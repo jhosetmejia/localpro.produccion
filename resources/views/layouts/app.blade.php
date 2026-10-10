@@ -14,7 +14,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link href="{{ asset('css/panel.css') }}?v=1" rel="stylesheet" />
+    <link href="{{ asset('css/panel.css') }}?v=2" rel="stylesheet" />
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     @stack('css')
 </head>
@@ -39,6 +39,23 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>  
     <script src="{{ asset('js/scripts.js') }}"></script>
+    <script>
+    // Celular: tocar la zona oscura o elegir una opción cierra el menú
+    (function () {
+        var movil = function () { return window.innerWidth < 992; };
+        var abierto = function () { return document.body.classList.contains('sb-sidenav-toggled'); };
+        var cerrar = function () { document.body.classList.remove('sb-sidenav-toggled'); };
+        var contenido = document.getElementById('layoutSidenav_content');
+        if (contenido) {
+            contenido.addEventListener('click', function (e) {
+                if (movil() && abierto()) { e.preventDefault(); e.stopPropagation(); cerrar(); }
+            }, true);
+        }
+        document.querySelectorAll('#sidenavAccordion a.nav-link[href]:not([href="#"])').forEach(function (a) {
+            a.addEventListener('click', function () { if (movil()) cerrar(); });
+        });
+    })();
+    </script>
     @stack('js')
 
 </body>

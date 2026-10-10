@@ -139,3 +139,8 @@ main h1,main .h1{font-weight:800;letter-spacing:-.03em;font-size:clamp(1.6rem,3v
 @media (max-width:1200px){.lp-counts{grid-template-columns:repeat(3,1fr)}}
 @media (max-width:992px){.lp-kpis,.lp-grid{grid-template-columns:1fr}}
 @media (max-width:576px){.lp-counts{grid-template-columns:repeat(2,1fr)}.lp-search{display:none}}
+
+/* Celular: la zona oscura indica que se puede tocar para cerrar el menú */
+@media (max-width:991.98px){
+  .sb-sidenav-toggled #layoutSidenav #layoutSidenav_content:before{cursor:pointer;background:rgba(11,13,12,.55);backdrop-filter:blur(2px)}
+}
