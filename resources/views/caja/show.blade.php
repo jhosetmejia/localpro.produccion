@@ -20,7 +20,7 @@
     <div class="lp-kpis">
         <div class="lp-kpi hero"><div class="ic"><i class="fa-solid fa-sack-dollar"></i></div><div class="lbl">Vendido</div><div class="val">@pesos($totales->sum('total'))</div><div class="sub">{{ $ventas->where('estado', 'pagada')->count() }} ventas</div></div>
         <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-money-bill-wave"></i></div><div class="lbl">Efectivo esperado</div><div class="val">@pesos($esperado)</div><div class="sub">Base @pesos($caja->monto_inicial) + efectivo</div></div>
-        <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-scale-balanced"></i></div><div class="lbl">Diferencia</div><div class="val">{{ $caja->diferencia === null ? '—' : '$' . number_format($caja->diferencia, 0, ',', '.') }}</div><div class="sub">{{ $caja->estado === 'abierta' ? 'Se calcula al cerrar' : 'Contó $' . number_format($caja->efectivo_contado, 0, ',', '.') }}</div></div>
+        <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-scale-balanced"></i></div><div class="lbl">Diferencia</div><div class="val">{{ $caja->diferencia === null ? '—' : dinero($caja->diferencia) }}</div><div class="sub">{{ $caja->estado === 'abierta' ? 'Se calcula al cerrar' : 'Contó ' . dinero($caja->efectivo_contado) }}</div></div>
     </div>
 
     <div class="lp-grid">

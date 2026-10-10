@@ -22,12 +22,13 @@ class StoreProductoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'codigo' => 'required|unique:productos,codigo|max:50',
-            'nombre' => 'required|unique:productos,nombre|max:80',
+            'codigo' => ['nullable', 'max:50', \Illuminate\Validation\Rule::unique('productos', 'codigo')->where('tienda_id', \App\Support\TiendaActual::id())],
+            'nombre' => ['required', 'max:80', \Illuminate\Validation\Rule::unique('productos', 'nombre')->where('tienda_id', \App\Support\TiendaActual::id())],
             'descripcion' => 'nullable|max:255',
             'fecha_vencimiento' => 'nullable|date',
             'img_path' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
             'precio_venta' => 'required|numeric|min:0|max:999999999',
+            'cantidad_inicial' => 'nullable|integer|min:0|max:100000',
             'marca_id' => 'nullable|integer|exists:marcas,id',
             'presentacione_id' => 'nullable|integer|exists:presentaciones,id',
             'categorias' => 'required'

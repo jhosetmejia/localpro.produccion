@@ -114,6 +114,10 @@ class posController extends Controller
             $variantes = ProductoVariante::with('producto:id,nombre,precio_venta')
                 ->whereIn('id', $ids)->lockForUpdate()->get()->keyBy('id');
 
+            if ($variantes->count() !== $ids->count()) {
+                throw ValidationException::withMessages(['items' => 'Algún producto ya no está disponible. Recargue el POS.']);
+            }
+
             $pedidas = collect($datos['items'])->groupBy('variante_id')->map->sum('cantidad');
             foreach ($pedidas as $id => $cant) {
                 $v = $variantes[$id];
@@ -130,11 +134,14 @@ class posController extends Controller
             $descuento = min((float) ($datos['descuento'] ?? 0), $subtotal);
             $total = round($subtotal - $descuento, 2);
 
-            $metodos = MetodoPago::whereIn('id', collect($datos['pagos'])->pluck('metodo_id'))->get()->keyBy('id');
+            $metodos = MetodoPago::where('activo', true)->whereIn('id', collect($datos['pagos'])->pluck('metodo_id'))->get()->keyBy('id');
+            if ($metodos->count() !== collect($datos['pagos'])->pluck('metodo_id')->unique()->count()) {
+                throw ValidationException::withMessages(['pagos' => 'Algún método de pago no está disponible. Recargue el POS.']);
+            }
             $pagos = collect($datos['pagos'])->filter(fn ($p) => $p['monto'] > 0)->values();
             $pagado = round($pagos->sum('monto'), 2);
             if ($pagado + 0.001 < $total) {
-                throw ValidationException::withMessages(['pagos' => 'El pago no alcanza: faltan $' . number_format($total - $pagado, 0, ',', '.')]);
+                throw ValidationException::withMessages(['pagos' => 'El pago no alcanza: faltan ' . dinero($total - $pagado)]);
             }
             // Solo el efectivo puede dar cambio
             $cambio = round($pagado - $total, 2);
@@ -144,7 +151,7 @@ class posController extends Controller
             }
 
             $venta = PosVenta::create([
-                'numero' => 'TMP-' . uniqid(),
+                'numero' => \App\Support\TiendaActual::tienda()->siguienteNumeroPos(),
                 'caja_id' => $caja->id,
                 'user_id' => Auth::id(),
                 'cliente_nombre' => $datos['cliente_nombre'] ?? null,
@@ -155,7 +162,6 @@ class posController extends Controller
                 'cambio' => max($cambio, 0),
                 'estado' => 'pagada',
             ]);
-            $venta->update(['numero' => 'POS-' . str_pad((string) $venta->id, 6, '0', STR_PAD_LEFT)]);
 
             foreach ($items as $i) {
                 $v = $variantes[$i['variante_id']];
@@ -217,6 +223,11 @@ class posController extends Controller
     public function facturaPublica(Request $request, PosVenta $venta)
     {
         abort_unless($request->hasValidSignature(), 403, 'El enlace de la factura no es válido.');
+        // La factura se muestra con los datos, moneda y zona horaria de la tienda que vendió
+        \App\Support\TiendaActual::set($venta->tienda_id);
+        $zona = \App\Support\Paises::datos(optional($venta->tienda)->pais)['zona'];
+        date_default_timezone_set($zona);
+        config(['app.timezone' => $zona]);
         return view('pos.factura', [
             'venta' => $venta->load(['items', 'pagos.metodo', 'user:id,name']),
             'negocio' => Negocio::datos(),

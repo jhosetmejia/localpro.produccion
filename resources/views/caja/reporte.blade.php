@@ -25,20 +25,20 @@
     <div class="b">VENTAS POR MÉTODO</div>
     <table>
         @forelse ($totales as $t)
-        <tr><td>{{ $t->nombre }}</td><td class="r">{{ number_format($t->total, 0, ',', '.') }}</td></tr>
+        <tr><td>{{ $t->nombre }}</td><td class="r">{{ dinero($t->total, false) }}</td></tr>
         @empty
         <tr><td>Sin ventas</td><td class="r">0</td></tr>
         @endforelse
-        <tr class="b"><td>TOTAL VENDIDO</td><td class="r">${{ number_format($totales->sum('total'), 0, ',', '.') }}</td></tr>
+        <tr class="b"><td>TOTAL VENDIDO</td><td class="r">{{ dinero($totales->sum('total')) }}</td></tr>
     </table>
     <hr>
     <div class="b">EFECTIVO</div>
     <table>
-        <tr><td>Base inicial</td><td class="r">{{ number_format($caja->monto_inicial, 0, ',', '.') }}</td></tr>
-        <tr><td>Esperado en caja</td><td class="r">{{ number_format($caja->efectivo_esperado ?? $caja->efectivoEsperado(), 0, ',', '.') }}</td></tr>
-        <tr><td>Contado</td><td class="r">{{ $caja->efectivo_contado !== null ? number_format($caja->efectivo_contado, 0, ',', '.') : '—' }}</td></tr>
+        <tr><td>Base inicial</td><td class="r">{{ dinero($caja->monto_inicial, false) }}</td></tr>
+        <tr><td>Esperado en caja</td><td class="r">{{ dinero($caja->efectivo_esperado ?? $caja->efectivoEsperado(), false) }}</td></tr>
+        <tr><td>Contado</td><td class="r">{{ $caja->efectivo_contado !== null ? dinero($caja->efectivo_contado, false) : '—' }}</td></tr>
         @if ($caja->diferencia !== null)
-        <tr class="b xl"><td>{{ abs($caja->diferencia) < 1 ? 'CUADRA' : ($caja->diferencia < 0 ? 'FALTANTE' : 'SOBRANTE') }}</td><td class="r">{{ number_format(abs($caja->diferencia), 0, ',', '.') }}</td></tr>
+        <tr class="b xl"><td>{{ abs($caja->diferencia) < 1 ? 'CUADRA' : ($caja->diferencia < 0 ? 'FALTANTE' : 'SOBRANTE') }}</td><td class="r">{{ dinero(abs($caja->diferencia), false) }}</td></tr>
         @endif
     </table>
     @if ($caja->nota_cierre)<hr><div>Nota: {{ $caja->nota_cierre }}</div>@endif

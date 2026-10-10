@@ -26,7 +26,7 @@ class metodoPagoController extends Controller
     public function store(Request $request)
     {
         $datos = $request->validate([
-            'nombre' => 'required|string|max:40|unique:metodos_pago,nombre',
+            'nombre' => ['required', 'string', 'max:40', Rule::unique('metodos_pago', 'nombre')->where('tienda_id', \App\Support\TiendaActual::id())],
             'orden' => 'nullable|integer|min:0|max:999',
         ]);
         MetodoPago::create([
@@ -41,7 +41,7 @@ class metodoPagoController extends Controller
     public function update(Request $request, MetodoPago $metodo)
     {
         $datos = $request->validate([
-            'nombre' => ['required', 'string', 'max:40', Rule::unique('metodos_pago', 'nombre')->ignore($metodo->id)],
+            'nombre' => ['required', 'string', 'max:40', Rule::unique('metodos_pago', 'nombre')->where('tienda_id', \App\Support\TiendaActual::id())->ignore($metodo->id)],
             'orden' => 'nullable|integer|min:0|max:999',
         ]);
         $metodo->update([

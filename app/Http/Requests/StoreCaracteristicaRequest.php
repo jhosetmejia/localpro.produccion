@@ -22,7 +22,7 @@ class StoreCaracteristicaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nombre' => 'required|max:60|unique:caracteristicas,nombre',
+            'nombre' => ['required', 'max:60', \Illuminate\Validation\Rule::unique('caracteristicas', 'nombre')->where('tienda_id', \App\Support\TiendaActual::id())],
             'descripcion' => 'nullable|max:255'
         ];
     }

@@ -56,7 +56,7 @@
         <div class="lp-kpi">
             <div class="ic"><i class="fa-solid fa-shirt"></i></div>
             <div class="lbl">Prendas en inventario</div>
-            <div class="val">{{ number_format($unidades, 0, ',', '.') }}</div>
+            <div class="val">{{ dinero($unidades, false) }}</div>
             <div class="sub">
                 @if ($caja) <span style="color:#16b34a">● Su caja está abierta</span>
                 @else Unidades disponibles @endif
@@ -116,7 +116,7 @@
             @can($permiso)
             <a class="lp-count" href="{{ route($ruta) }}">
                 <div class="ci"><i class="fa-solid {{ $icono }}"></i></div>
-                <b>{{ number_format($total, 0, ',', '.') }}</b>
+                <b>{{ dinero($total, false) }}</b>
                 <small>{{ $nombre }}</small>
             </a>
             @endcan

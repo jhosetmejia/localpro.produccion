@@ -102,7 +102,7 @@
                         <select name="role" id="role" class="form-select" aria-labelledby="rolHelpBlock">
                             <option value="" selected disabled>Seleccione:</option>
                             @foreach ($roles as $item)
-                            <option value="{{$item->name}}" @selected(old('role')==$item->name)>{{$item->name}}</option>
+                            <option value="{{$item->name}}" @selected(old('role')==$item->name)>{{$item->etiqueta ?? $item->name}}</option>
                             @endforeach
                         </select>
                     </div>

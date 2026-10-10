@@ -52,7 +52,8 @@
                         <td>{{$item->name}}</td>
                         <td>{{$item->email}}</td>
                         <td>
-                            {{$item->getRoleNames()->first()}}
+                            @php $rol = $item->getRoleNames()->first(); @endphp
+                            {{ $item->es_superadmin ? 'Administrador LocalPro' : (\App\Http\Controllers\userController::ROLES_TIENDA[$rol] ?? $rol) }}
                         </td>
                         <td>
                             <div class="d-flex justify-content-around">

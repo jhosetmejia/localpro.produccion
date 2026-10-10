@@ -25,9 +25,9 @@
     <section class="hero">
         <div class="wrap">
             <div>
-                <span class="eyebrow rise"><i></i> Sistema de gestión para negocios</span>
+                <span class="eyebrow rise"><i></i> POS e inventario para cualquier negocio</span>
                 <h1 class="serif rise d1">Te ayudamos a <em>gestionar</em> tu negocio.</h1>
-                <p class="lead rise d2">Ventas, compras, inventario, clientes y proveedores en un solo lugar. Sepa qué vende, qué le falta y cuánto gana, desde el computador o el celular.</p>
+                <p class="lead rise d2">Punto de venta, inventario, caja y clientes en un solo lugar. Para tiendas de ropa, calzado, restaurantes, minimercados y más. Desde el computador o el celular.</p>
                 <div class="hero-actions rise d3">
                     <a class="btn btn-amber" href="{{ route('registro') }}"><i class="fa-solid fa-user-plus"></i> Crear cuenta</a>
                     <a class="btn btn-ghost" href="{{ route('login') }}"><i class="fa-solid fa-arrow-right-to-bracket"></i> Ingresar</a>
@@ -125,9 +125,9 @@
                     <p>Sin instalaciones ni configuraciones difíciles.</p>
                 </div>
                 <div class="steps-grid">
-                    <div class="step"><b>01</b><h3>Cree su cuenta</h3><p>Regístrese con su correo en menos de un minuto.</p></div>
-                    <div class="step"><b>02</b><h3>Activamos su acceso</h3><p>Nuestro equipo habilita su cuenta y los módulos para su negocio.</p></div>
-                    <div class="step"><b>03</b><h3>Gestione y crezca</h3><p>Cargue sus productos y empiece a registrar ventas y compras.</p></div>
+                    <div class="step"><b>01</b><h3>Cree su cuenta</h3><p>Sus datos como dueño en menos de un minuto.</p></div>
+                    <div class="step"><b>02</b><h3>Configure su tienda</h3><p>Tipo de negocio, sus primeros productos y formas de pago, en 3 minutos.</p></div>
+                    <div class="step"><b>03</b><h3>Venda desde hoy</h3><p>Abra su caja y venda en el POS. Funciona en cualquier país y moneda.</p></div>
                 </div>
             </div>
         </div>

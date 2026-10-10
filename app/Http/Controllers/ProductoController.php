@@ -36,15 +36,9 @@ class ProductoController extends Controller
      */
     public function create()
     {
-        $marcas = Marca::join('caracteristicas as c', 'marcas.caracteristica_id', '=', 'c.id')
-            ->select('marcas.id as id', 'c.nombre as nombre')
-            ->where('c.estado', 1)
-            ->get();
-
-        $presentaciones = Presentacione::join('caracteristicas as c', 'presentaciones.caracteristica_id', '=', 'c.id')
-            ->select('presentaciones.id as id', 'c.nombre as nombre')
-            ->where('c.estado', 1)
-            ->get();
+        // Marcas y presentaciones no se usan en las tiendas
+        $marcas = collect();
+        $presentaciones = collect();
 
         $categorias = Categoria::join('caracteristicas as c', 'categorias.caracteristica_id', '=', 'c.id')
             ->select('categorias.id as id', 'c.nombre as nombre')
@@ -71,7 +65,7 @@ class ProductoController extends Controller
             }
 
             $producto->fill([
-                'codigo' => $request->codigo,
+                'codigo' => $request->codigo ?: \App\Support\CrearTienda::siguienteCodigo(),
                 'nombre' => $request->nombre,
                 'precio_venta' => $request->precio_venta,
                 'descripcion' => $request->descripcion,
@@ -84,8 +78,17 @@ class ProductoController extends Controller
             $producto->save();
 
             //Tabla categoría producto
-            $categorias = $request->get('categorias');
+            // Solo categorías de esta tienda
+            $categorias = Categoria::whereIn('id', (array) $request->get('categorias'))->pluck('id');
             $producto->categorias()->attach($categorias);
+
+            // Negocios sin tallas/colores: una sola referencia con su cantidad
+            if (!\App\Support\TiendaActual::tienda()->usa_tallas) {
+                $v = $producto->variantes()->create(['talla' => null, 'color' => null, 'stock' => 0]);
+                if ((int) $request->cantidad_inicial > 0) {
+                    $v->moverStock((int) $request->cantidad_inicial, 'entrada', null, 'Inventario inicial');
+                }
+            }
 
 
             DB::commit();
@@ -94,7 +97,10 @@ class ProductoController extends Controller
             return back()->withInput()->withErrors('No se pudo guardar el producto. Intente de nuevo.');
         }
 
-        // Siguiente paso natural en una tienda de ropa: cargar tallas, colores y cantidades
+        if (!\App\Support\TiendaActual::tienda()->usa_tallas) {
+            return redirect()->route('productos.index')->with('success', 'Producto registrado y listo para vender.');
+        }
+        // En moda el siguiente paso es cargar tallas, colores y cantidades
         return redirect()->route('productos.variantes', $producto)->with('success', 'Producto registrado. Ahora agregue sus tallas y colores.');
     }
 
@@ -111,15 +117,9 @@ class ProductoController extends Controller
      */
     public function edit(Producto $producto)
     {
-        $marcas = Marca::join('caracteristicas as c', 'marcas.caracteristica_id', '=', 'c.id')
-            ->select('marcas.id as id', 'c.nombre as nombre')
-            ->where('c.estado', 1)
-            ->get();
-
-        $presentaciones = Presentacione::join('caracteristicas as c', 'presentaciones.caracteristica_id', '=', 'c.id')
-            ->select('presentaciones.id as id', 'c.nombre as nombre')
-            ->where('c.estado', 1)
-            ->get();
+        // Marcas y presentaciones no se usan en las tiendas
+        $marcas = collect();
+        $presentaciones = collect();
 
         $categorias = Categoria::join('caracteristicas as c', 'categorias.caracteristica_id', '=', 'c.id')
             ->select('categorias.id as id', 'c.nombre as nombre')
@@ -163,7 +163,8 @@ class ProductoController extends Controller
             $producto->save();
 
             //Tabla categoría producto
-            $categorias = $request->get('categorias');
+            // Solo categorías de esta tienda
+            $categorias = Categoria::whereIn('id', (array) $request->get('categorias'))->pluck('id');
             $producto->categorias()->sync($categorias);
 
             DB::commit();

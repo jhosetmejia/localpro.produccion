@@ -64,22 +64,20 @@ class profileController extends Controller
      */
     public function update(Request $request, User $profile)
     {
+        // Cada quien solo puede editar su propio perfil (se ignora el id de la URL)
+        $profile = \Illuminate\Support\Facades\Auth::user();
+
         $request->validate([
-            'name' => 'required',
-            'email' => 'required|unique:users,email,' . $profile->id,
-            'password' => 'nullable'
+            'name' => 'required|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $profile->id,
+            'password' => 'nullable|min:8',
         ]);
 
-        /*Comprobar el password y aplicar el Hash*/
-        if (empty($request->password)) {
-            $request = Arr::except($request, array('password'));
-        } else {
-            $fieldHash = Hash::make($request->password);
-            $request->merge(['password' => $fieldHash]);
+        $datos = ['name' => $request->name, 'email' => $request->email];
+        if (!empty($request->password)) {
+            $datos['password'] = Hash::make($request->password);
         }
-
-        $profile->update($request->all());
-
+        $profile->update($datos);
 
         return redirect()->route('profile.index')->with('success', 'Cambios guardados');
     }

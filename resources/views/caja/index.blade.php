@@ -21,7 +21,7 @@
                     <td class="text-nowrap">{{ $c->abierta_en->format('d/m h:i a') }}</td>
                     <td class="text-nowrap">{{ $c->cerrada_en?->format('d/m h:i a') ?? '—' }}</td>
                     <td>@pesos($c->monto_inicial)</td>
-                    <td>{{ $c->total_ventas !== null ? '$' . number_format($c->total_ventas, 0, ',', '.') : '—' }}</td>
+                    <td>{{ $c->total_ventas !== null ? dinero($c->total_ventas) : '—' }}</td>
                     <td>
                         @if ($c->diferencia === null) —
                         @elseif (abs($c->diferencia) < 1) <span class="badge bg-success">Cuadró</span>

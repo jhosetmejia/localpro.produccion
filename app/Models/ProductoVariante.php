@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\PerteneceATienda;
 use Illuminate\Database\Eloquent\Model;
 
 class ProductoVariante extends Model
 {
+    use PerteneceATienda;
+
     protected $table = 'producto_variantes';
 
     protected $fillable = ['producto_id', 'talla', 'color', 'codigo_barras', 'stock', 'precio', 'estado'];

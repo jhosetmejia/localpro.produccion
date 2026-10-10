@@ -18,7 +18,8 @@ class UserSeeder extends Seeder
         $user = User::create([
             'name' => env('ADMIN_NAME', 'Administrador'),
             'email' => env('ADMIN_EMAIL', 'admin@gmail.com'),
-            'password' => bcrypt(env('ADMIN_PASSWORD', '12345678'))
+            'password' => bcrypt(env('ADMIN_PASSWORD', '12345678')),
+            'tienda_id' => \App\Models\Tienda::query()->value('id'),
         ]);
 
         //Usuario administrador
@@ -26,6 +27,8 @@ class UserSeeder extends Seeder
         $permisos = Permission::pluck('id','id')->all();
         $rol->syncPermissions($permisos);
         //$user = User::find(1);
-        $user->assignRole('administrador'); 
+        $user->assignRole('administrador');
+        // Administrador de toda la plataforma (ve todas las tiendas)
+        $user->forceFill(['es_superadmin' => true])->save();
     }
 }

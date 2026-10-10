@@ -28,8 +28,8 @@
         <h3>Cuente el efectivo</h3>
         <label class="form-label">Efectivo contado</label>
         <div class="input-group mb-2">
-            <span class="input-group-text fw-bold" style="border-radius:12px 0 0 12px">$</span>
-            <input type="number" id="contado" name="efectivo_contado" min="0" step="50" class="form-control form-control-lg fw-bold" required autofocus>
+            <span class="input-group-text fw-bold" style="border-radius:12px 0 0 12px">{{ moneda()['simbolo'] }}</span>
+            <input type="number" id="contado" name="efectivo_contado" min="0" step="{{ paso_dinero() }}" class="form-control form-control-lg fw-bold" required autofocus>
         </div>
         <div id="dif" class="fw-bold mb-3"></div>
         <label class="form-label">Nota de cierre (opcional)</label>
@@ -43,12 +43,17 @@
 <script>
 (function () {
     var esperado = {{ (float) $esperado }}, inp = document.getElementById('contado'), out = document.getElementById('dif');
-    var fmt = function (n) { return '$' + Math.round(Math.abs(n)).toLocaleString('es-CO'); };
+    var M = @json(moneda());
+    var fmt = function (n) {
+        var t = Math.abs(n).toFixed(M.decimales).split('.');
+        t[0] = t[0].replace(/\B(?=(\d{3})+(?!\d))/g, M.miles);
+        return M.simbolo + t.join(M.decimal);
+    };
     inp.addEventListener('input', function () {
         if (inp.value === '') { out.textContent = ''; return; }
         var d = parseFloat(inp.value) - esperado;
-        out.style.color = Math.abs(d) < 1 ? '#11702f' : (d < 0 ? '#b0206a' : '#8a6400');
-        out.textContent = Math.abs(d) < 1 ? '✔ La caja cuadra exacto' : (d < 0 ? 'Faltan ' + fmt(d) : 'Sobran ' + fmt(d));
+        out.style.color = Math.abs(d) < (M.decimales ? 0.005 : 1) ? '#11702f' : (d < 0 ? '#b0206a' : '#8a6400');
+        out.textContent = Math.abs(d) < (M.decimales ? 0.005 : 1) ? '✔ La caja cuadra exacto' : (d < 0 ? 'Faltan ' + fmt(d) : 'Sobran ' + fmt(d));
     });
 })();
 </script>

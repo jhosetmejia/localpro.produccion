@@ -58,23 +58,23 @@
         </div>
         @foreach ($venta->items as $i)
         <div class="it">
-            <div><b style="white-space:normal">{{ $i->descripcion }}</b><small>{{ trim(($i->talla ? 'Talla ' . $i->talla : '') . ($i->color ? ' · ' . $i->color : '')) }} — {{ $i->cantidad }} × ${{ number_format($i->precio, 0, ',', '.') }}</small></div>
-            <b>${{ number_format($i->subtotal, 0, ',', '.') }}</b>
+            <div><b style="white-space:normal">{{ $i->descripcion }}</b><small>{{ trim(($i->talla ? 'Talla ' . $i->talla : '') . ($i->color ? ' · ' . $i->color : '')) }} — {{ $i->cantidad }} × {{ dinero($i->precio) }}</small></div>
+            <b>{{ dinero($i->subtotal) }}</b>
         </div>
         @endforeach
         <div class="tot">
-            <div><span>Subtotal</span><span>${{ number_format($venta->subtotal, 0, ',', '.') }}</span></div>
-            @if ($venta->descuento > 0)<div><span>Descuento</span><span>-${{ number_format($venta->descuento, 0, ',', '.') }}</span></div>@endif
-            <div class="big"><span>Total</span><span>${{ number_format($venta->total, 0, ',', '.') }}</span></div>
+            <div><span>Subtotal</span><span>{{ dinero($venta->subtotal) }}</span></div>
+            @if ($venta->descuento > 0)<div><span>Descuento</span><span>-{{ dinero($venta->descuento) }}</span></div>@endif
+            <div class="big"><span>Total</span><span>{{ dinero($venta->total) }}</span></div>
         </div>
-        <div class="pay">Pagado con: {{ $venta->pagos->map(fn ($p) => $p->metodo->nombre)->implode(', ') }}@if($venta->cambio > 0) · Cambio ${{ number_format($venta->cambio, 0, ',', '.') }}@endif</div>
+        <div class="pay">Pagado con: {{ $venta->pagos->map(fn ($p) => $p->metodo->nombre)->implode(', ') }}@if($venta->cambio > 0) · Cambio {{ dinero($venta->cambio) }}@endif</div>
     </div>
     <div class="ft">{{ $negocio->mensaje_tiquete }}</div>
 </div>
 <div class="acc">
     <button class="p" onclick="window.print()">Guardar PDF / Imprimir</button>
     @if ($negocio->telefono)
-    <a class="d" target="_blank" href="https://wa.me/{{ (strlen(preg_replace('/\D/', '', $negocio->telefono)) === 10 ? '57' : '') . preg_replace('/\D/', '', $negocio->telefono) }}">Escribir a la tienda</a>
+    <a class="d" target="_blank" href="https://wa.me/{{ numero_whatsapp($negocio->telefono) }}">Escribir a la tienda</a>
     @endif
 </div>
 <p class="sig">Desarrollado por Jhoset Mejía - DiCreWeb</p>

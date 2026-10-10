@@ -13,7 +13,7 @@
     </div>
 
     <div class="lp-counts mb-3" style="grid-template-columns:repeat(4,1fr)">
-        <a class="lp-count" href="{{ route('inventario.index') }}"><div class="ci"><i class="fa-solid fa-shirt"></i></div><b>{{ number_format($resumen['unidades'], 0, ',', '.') }}</b><small>Unidades</small></a>
+        <a class="lp-count" href="{{ route('inventario.index') }}"><div class="ci"><i class="fa-solid fa-shirt"></i></div><b>{{ dinero($resumen['unidades'], false) }}</b><small>Unidades</small></a>
         <a class="lp-count" href="{{ route('inventario.index') }}"><div class="ci"><i class="fa-solid fa-layer-group"></i></div><b>{{ $resumen['referencias'] }}</b><small>Tallas/colores</small></a>
         <a class="lp-count" href="{{ route('inventario.index', ['filtro' => 'bajo']) }}"><div class="ci"><i class="fa-solid fa-arrow-trend-down"></i></div><b>{{ $resumen['bajo'] }}</b><small>Stock bajo (1–5)</small></a>
         <a class="lp-count" href="{{ route('inventario.index', ['filtro' => 'agotado']) }}"><div class="ci" style="background:#ff6fb5"><i class="fa-solid fa-ban"></i></div><b>{{ $resumen['agotado'] }}</b><small>Agotados</small></a>

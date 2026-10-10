@@ -102,9 +102,9 @@
                         <select name="role" id="role" class="form-select">
                             @foreach ($roles as $item)
                             @if ( in_array($item->name,$user->roles->pluck('name')->toArray()) )
-                            <option selected value="{{$item->name}}" @selected(old('role')==$item->name)>{{$item->name}}</option>
+                            <option selected value="{{$item->name}}" @selected(old('role')==$item->name)>{{$item->etiqueta ?? $item->name}}</option>
                             @else
-                            <option value="{{$item->name}}" @selected(old('role')==$item->name)>{{$item->name}}</option>
+                            <option value="{{$item->name}}" @selected(old('role')==$item->name)>{{$item->etiqueta ?? $item->name}}</option>
                             @endif
                             @endforeach
                         </select>

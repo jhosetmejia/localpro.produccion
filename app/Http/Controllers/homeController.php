@@ -21,6 +21,20 @@ class homeController extends Controller
             return view('welcome');
         }
 
+        $tienda = \App\Support\TiendaActual::tienda();
+        if (!$tienda) {
+            return Auth::user()->es_superadmin
+                ? redirect()->route('admin.tiendas.index')
+                : redirect()->route('login')->withErrors('Su usuario no está asociado a ninguna tienda.');
+        }
+        if (!$tienda->onboarding_completo) {
+            return redirect()->route('bienvenida.index');
+        }
+        if (!$tienda->activa && !Auth::user()->es_superadmin) {
+            Auth::logout();
+            return redirect()->route('login')->withErrors('La tienda está suspendida. Comuníquese con LocalPro.');
+        }
+
         // Cuenta registrada desde la web, aún sin rol asignado
         if (Auth::user()->roles()->count() === 0) {
             return view('panel.pendiente');
@@ -53,7 +67,7 @@ class homeController extends Controller
                 ['Proveedores', Proveedore::count(), 'fa-handshake', 'proveedores.index', 'ver-proveedore'],
                 ['Categorías', Categoria::count(), 'fa-tags', 'categorias.index', 'ver-categoria'],
                 ['Cajas', Caja::count(), 'fa-cash-register', 'cajas.index', 'ver-cajas'],
-                ['Usuarios', User::count(), 'fa-user-shield', 'users.index', 'ver-user'],
+                ['Usuarios', User::where('tienda_id', $tienda->id)->count(), 'fa-user-shield', 'users.index', 'ver-user'],
             ],
         ]);
     }

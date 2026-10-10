@@ -61,7 +61,7 @@
                             {{ $item->marca?->caracteristica?->nombre ?? '—' }}
                         </td>
                         <td>
-                            ${{ number_format($item->precio_venta, 0, ',', '.') }}
+                            {{ dinero($item->precio_venta) }}
                         </td>
                         <td>
                             @php $st = $item->variantes->sum('stock'); @endphp
@@ -94,7 +94,7 @@
                                     <ul class="dropdown-menu text-bg-light" style="font-size: small;">
                                         <!-----Editar Producto--->
                                         @can('editar-producto')
-                                        <li><a class="dropdown-item" href="{{route('productos.variantes',['producto' => $item])}}"><i class="fa-solid fa-shirt me-2"></i>Tallas, colores y stock</a></li>
+                                        <li><a class="dropdown-item" href="{{route('productos.variantes',['producto' => $item])}}"><i class="fa-solid fa-boxes-stacked me-2"></i>{{ \App\Support\TiendaActual::tienda()?->usa_tallas ? 'Tallas, colores y stock' : 'Stock' }}</a></li>
                                         <li><a class="dropdown-item" href="{{route('productos.edit',['producto' => $item])}}">Editar</a></li>
                                         @endcan
                                         <!----Ver-producto--->

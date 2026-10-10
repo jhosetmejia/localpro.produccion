@@ -9,7 +9,7 @@
 <div class="acc">
     <button class="p" onclick="window.print()">🖨 Imprimir</button>
     @if ($venta->whatsapp_numero)
-    <a class="w" target="_blank" href="https://wa.me/{{ $venta->whatsapp_numero }}?text={{ rawurlencode('Hola ' . ($venta->cliente_nombre ?: '') . ', gracias por su compra en ' . $negocio->nombre . '. Aquí está su factura ' . $venta->numero . ' por $' . number_format($venta->total, 0, ',', '.') . ': ' . $venta->url_factura) }}">WhatsApp</a>
+    <a class="w" target="_blank" href="https://wa.me/{{ $venta->whatsapp_numero }}?text={{ rawurlencode('Hola ' . ($venta->cliente_nombre ?: '') . ', gracias por su compra en ' . $negocio->nombre . '. Aquí está su factura ' . $venta->numero . ' por ' . dinero($venta->total) . ': ' . $venta->url_factura) }}">WhatsApp</a>
     @endif
     <a class="d" href="{{ route('pos.index') }}">Volver</a>
 </div>
@@ -35,23 +35,23 @@
         @foreach ($venta->items as $i)
         <tr><td colspan="2" class="b">{{ $i->descripcion }}</td></tr>
         <tr>
-            <td>{{ trim(($i->talla ? 'T:' . $i->talla : '') . ' ' . ($i->color ?? '')) }} &nbsp; {{ $i->cantidad }} x {{ number_format($i->precio, 0, ',', '.') }}</td>
-            <td class="r">{{ number_format($i->subtotal, 0, ',', '.') }}</td>
+            <td>{{ trim(($i->talla ? 'T:' . $i->talla : '') . ' ' . ($i->color ?? '')) }} &nbsp; {{ $i->cantidad }} x {{ dinero($i->precio, false) }}</td>
+            <td class="r">{{ dinero($i->subtotal, false) }}</td>
         </tr>
         @endforeach
     </table>
     <hr>
     <table>
-        <tr><td>Subtotal</td><td class="r">{{ number_format($venta->subtotal, 0, ',', '.') }}</td></tr>
-        @if ($venta->descuento > 0)<tr><td>Descuento</td><td class="r">-{{ number_format($venta->descuento, 0, ',', '.') }}</td></tr>@endif
-        <tr class="b xl"><td>TOTAL</td><td class="r">${{ number_format($venta->total, 0, ',', '.') }}</td></tr>
+        <tr><td>Subtotal</td><td class="r">{{ dinero($venta->subtotal, false) }}</td></tr>
+        @if ($venta->descuento > 0)<tr><td>Descuento</td><td class="r">-{{ dinero($venta->descuento, false) }}</td></tr>@endif
+        <tr class="b xl"><td>TOTAL</td><td class="r">{{ dinero($venta->total) }}</td></tr>
     </table>
     <hr>
     <table>
         @foreach ($venta->pagos as $p)
-        <tr><td>{{ $p->metodo->nombre }}</td><td class="r">{{ number_format($p->monto + ($p->metodo->es_efectivo && $loop->first ? $venta->cambio : 0), 0, ',', '.') }}</td></tr>
+        <tr><td>{{ $p->metodo->nombre }}</td><td class="r">{{ dinero($p->monto + ($p->metodo->es_efectivo && $loop->first ? $venta->cambio : 0), false) }}</td></tr>
         @endforeach
-        @if ($venta->cambio > 0)<tr class="b"><td>Cambio</td><td class="r">{{ number_format($venta->cambio, 0, ',', '.') }}</td></tr>@endif
+        @if ($venta->cambio > 0)<tr class="b"><td>Cambio</td><td class="r">{{ dinero($venta->cambio, false) }}</td></tr>@endif
     </table>
     <hr>
     <div class="c">{{ $negocio->mensaje_tiquete }}</div>

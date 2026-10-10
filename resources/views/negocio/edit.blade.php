@@ -13,6 +13,16 @@
             <div class="row g-3">
                 <div class="col-md-8"><label class="form-label">Nombre del negocio</label><input name="nombre" class="form-control" value="{{ old('nombre', $negocio->nombre) }}" required maxlength="80"></div>
                 <div class="col-md-4"><label class="form-label">NIT</label><input name="nit" class="form-control" value="{{ old('nit', $negocio->nit) }}" maxlength="30"></div>
+                <div class="col-md-6"><label class="form-label">País y moneda</label>
+                    <select name="pais" class="form-select">
+                        @foreach ($paises as $k => $p)<option value="{{ $k }}" @selected(old('pais', $negocio->pais) === $k)>{{ $p[0] }} · {{ $p[1] }}</option>@endforeach
+                    </select>
+                </div>
+                <div class="col-md-6"><label class="form-label">Tipo de negocio</label>
+                    <select name="tipo_negocio" class="form-select">
+                        @foreach ($tipos as $k => $t)<option value="{{ $k }}" @selected(old('tipo_negocio', $negocio->tipo_negocio) === $k)>{{ $t[0] }}{{ $t[2] ? ' (tallas y colores)' : '' }}</option>@endforeach
+                    </select>
+                </div>
                 <div class="col-md-8"><label class="form-label">Dirección</label><input name="direccion" class="form-control" value="{{ old('direccion', $negocio->direccion) }}" maxlength="120"></div>
                 <div class="col-md-4"><label class="form-label">Ciudad</label><input name="ciudad" class="form-control" value="{{ old('ciudad', $negocio->ciudad) }}" maxlength="60" placeholder="Pasto"></div>
                 <div class="col-md-6"><label class="form-label">Teléfono / WhatsApp</label><input name="telefono" class="form-control" value="{{ old('telefono', $negocio->telefono) }}" maxlength="30"></div>

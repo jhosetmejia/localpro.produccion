@@ -58,7 +58,7 @@
                     <!---Precio de venta---->
                     <div class="col-md-6">
                         <label for="precio_venta" class="form-label">Precio de venta (COP):</label>
-                        <input type="number" min="0" step="50" name="precio_venta" id="precio_venta" class="form-control" value="{{old('precio_venta',(int)$producto->precio_venta)}}" placeholder="Ej: 59900">
+                        <input type="number" min="0" step="{{ paso_dinero() }}" name="precio_venta" id="precio_venta" class="form-control" value="{{old('precio_venta',(float) $producto->precio_venta)}}" placeholder="Ej: {{ moneda()['decimales'] ? '29.90' : '59900' }}">
                         <small class="text-muted">Las tallas y colores pueden tener otro precio si lo necesita.</small>
                         @error('precio_venta')
                         <small class="text-danger d-block">{{'*'.$message}}</small>
@@ -70,40 +70,6 @@
                         <label for="img_path" class="form-label">Imagen:</label>
                         <input type="file" name="img_path" id="img_path" class="form-control" accept="image/*">
                         @error('img_path')
-                        <small class="text-danger">{{'*'.$message}}</small>
-                        @enderror
-                    </div>
-
-                    <!---Marca---->
-                    <div class="col-md-6">
-                        <label for="marca_id" class="form-label">Marca (opcional):</label>
-                        <select data-size="4" title="Seleccione una marca" data-live-search="true" name="marca_id" id="marca_id" class="form-control selectpicker show-tick">
-                            @foreach ($marcas as $item)
-                            @if ($producto->marca_id == $item->id)
-                            <option selected value="{{$item->id}}" {{ old('marca_id') == $item->id ? 'selected' : '' }}>{{$item->nombre}}</option>
-                            @else
-                            <option value="{{$item->id}}" {{ old('marca_id') == $item->id ? 'selected' : '' }}>{{$item->nombre}}</option>
-                            @endif
-                            @endforeach
-                        </select>
-                        @error('marca_id')
-                        <small class="text-danger">{{'*'.$message}}</small>
-                        @enderror
-                    </div>
-
-                    <!---Presentaciones---->
-                    <div class="col-md-6">
-                        <label for="presentacione_id" class="form-label">Presentación (opcional):</label>
-                        <select data-size="4" title="Seleccione una presentación" data-live-search="true" name="presentacione_id" id="presentacione_id" class="form-control selectpicker show-tick">
-                            @foreach ($presentaciones as $item)
-                            @if ($producto->presentacione_id == $item->id)
-                            <option selected value="{{$item->id}}" {{ old('presentacione_id') == $item->id ? 'selected' : '' }}>{{$item->nombre}}</option>
-                            @else
-                            <option value="{{$item->id}}" {{ old('presentacione_id') == $item->id ? 'selected' : '' }}>{{$item->nombre}}</option>
-                            @endif
-                            @endforeach
-                        </select>
-                        @error('presentacione_id')
                         <small class="text-danger">{{'*'.$message}}</small>
                         @enderror
                     </div>

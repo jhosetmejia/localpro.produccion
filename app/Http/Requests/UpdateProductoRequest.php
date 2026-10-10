@@ -23,8 +23,8 @@ class UpdateProductoRequest extends FormRequest
     {
         $producto = $this->route('producto');
         return [
-            'codigo' => 'required|unique:productos,codigo,'.$producto->id.'|max:50',
-            'nombre' => 'required|unique:productos,nombre,'.$producto->id.'|max:80',
+            'codigo' => ['required', 'max:50', \Illuminate\Validation\Rule::unique('productos', 'codigo')->where('tienda_id', \App\Support\TiendaActual::id())->ignore($producto->id)],
+            'nombre' => ['required', 'max:80', \Illuminate\Validation\Rule::unique('productos', 'nombre')->where('tienda_id', \App\Support\TiendaActual::id())->ignore($producto->id)],
             'descripcion' => 'nullable|max:255',
             'fecha_vencimiento' => 'nullable|date',
             'img_path' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',

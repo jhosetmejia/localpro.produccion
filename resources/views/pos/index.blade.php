@@ -169,7 +169,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
             <div class="items" id="items"></div>
             <div class="cf">
                 <div class="line"><span>Subtotal</span><b id="sub">$0</b></div>
-                <div class="line"><span>Descuento</span><input id="desc" type="number" min="0" step="50" placeholder="0" inputmode="numeric"></div>
+                <div class="line"><span>Descuento</span><input id="desc" type="number" min="0" step="{{ paso_dinero() }}" placeholder="0" inputmode="decimal"></div>
                 <div class="cli">
                     <input id="cn" placeholder="Cliente (opcional)" maxlength="80">
                     <input id="ct" placeholder="WhatsApp (opcional)" maxlength="20" inputmode="tel">
@@ -233,7 +233,14 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     var METODOS = @json($metodos);
     var CSRF = document.querySelector('meta[name=csrf-token]').content;
     var $ = function (id) { return document.getElementById(id); };
-    var fmt = function (n) { return '$' + Math.round(n || 0).toLocaleString('es-CO'); };
+    var M = @json(moneda());
+    var redondear = function (n) { return Number((n || 0).toFixed(M.decimales)); };
+    var fmt = function (n) {
+        n = redondear(n);
+        var t = Math.abs(n).toFixed(M.decimales).split('.');
+        t[0] = t[0].replace(/\B(?=(\d{3})+(?!\d))/g, M.miles);
+        return (n < 0 ? '-' : '') + M.simbolo + t.join(M.decimal);
+    };
     var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); };
 
     var productos = [], cart = [], actual = null, sel = { talla: null, color: null }, pagos = {}, ultima = null, enviando = false;
@@ -378,8 +385,8 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         var ids = Object.keys(pagos);
         $('prows').innerHTML = ids.map(function (id) {
             var m = METODOS.find(function (x) { return String(x.id) === id; });
-            var quick = m.es_efectivo ? '<div class="quick">' + [total(), 20000, 50000, 100000].filter(function (v, i, a) { return v > 0 && a.indexOf(v) === i; }).map(function (v, i) { return '<button data-q="' + v + '" data-id="' + id + '">' + (i === 0 ? 'Exacto ' : '') + fmt(v) + '</button>'; }).join('') + '</div>' : '';
-            return '<div class="prow"><b>' + esc(m.nombre) + '</b><input data-id="' + id + '" type="number" min="0" step="50" inputmode="numeric" placeholder="' + (ids.length === 1 ? Math.round(total()) : '0') + '" value="' + pagos[id] + '"></div>' + quick;
+            var quick = m.es_efectivo ? '<div class="quick">' + [total()].concat(M.decimales ? [10, 20, 50, 100] : [20000, 50000, 100000]).filter(function (v, i, a) { return v > 0 && a.indexOf(v) === i; }).map(function (v, i) { return '<button data-q="' + v + '" data-id="' + id + '">' + (i === 0 ? 'Exacto ' : '') + fmt(v) + '</button>'; }).join('') + '</div>' : '';
+            return '<div class="prow"><b>' + esc(m.nombre) + '</b><input data-id="' + id + '" type="number" min="0" step="' + (M.decimales ? '0.01' : '1') + '" inputmode="decimal" placeholder="' + (ids.length === 1 ? redondear(total()) : '0') + '" value="' + pagos[id] + '"></div>' + quick;
         }).join('');
         resumen();
     }
@@ -408,7 +415,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
             // El método nuevo propone lo que falta por pagar
             var explicito = Object.keys(pagos).reduce(function (a, k) { return a + (parseFloat(pagos[k]) || 0); }, 0);
             var falta = total() - explicito;
-            pagos[id] = falta > 0 ? String(Math.round(falta)) : '';
+            pagos[id] = falta > 0 ? String(redondear(falta)) : '';
         }
         pintarMetodos();
     });
@@ -458,7 +465,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         if (!ultima) return;
         var t = $('okTel').value.replace(/\D/g, '');
         if (t.length < 7) { $('okTel').focus(); toast('Escriba el WhatsApp del cliente', true); return; }
-        if (t.length === 10) t = '57' + t;
+        if (t.indexOf(M.indicativo) !== 0 || t.length <= 10) t = M.indicativo + t.replace(/^0+/, '');
         var nombre = $('cn').value.trim();
         var msg = 'Hola' + (nombre ? ' ' + nombre : '') + ', gracias por su compra en ' + NEGOCIO + ' 🛍️\n' +
             'Factura ' + ultima.numero + ' por ' + fmt(ultima.total) + '.\nVea y descargue su factura aquí: ' + ultima.factura_url;
@@ -497,6 +504,12 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
 
     pintarCarrito();
     buscar('');
+    @if (session('bienvenida'))
+    setTimeout(function () { toast('¡Su tienda está lista! Toque un producto para hacer su primera venta 🎉'); }, 600);
+    @endif
+    @if (session('success'))
+    setTimeout(function () { toast(@json(session('success'))); }, 400);
+    @endif
 })();
 </script>
 </body>

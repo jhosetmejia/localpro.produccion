@@ -26,8 +26,17 @@ class AppServiceProvider extends ServiceProvider
     {
         \Carbon\Carbon::setLocale('es');
 
-        // @pesos($valor) -> $1.234.567
-        Blade::directive('pesos', fn ($e) => "<?php echo '$' . number_format((float) ($e), 0, ',', '.'); ?>");
+        // La tienda se resuelve antes de cargar modelos desde la URL (aislamiento entre tiendas)
+        $kernel = $this->app->make(\Illuminate\Contracts\Http\Kernel::class);
+        if (method_exists($kernel, 'addToMiddlewarePriorityBefore')) {
+            $kernel->addToMiddlewarePriorityBefore(
+                \Illuminate\Routing\Middleware\SubstituteBindings::class,
+                \App\Http\Middleware\ResolverTienda::class
+            );
+        }
+
+        // @pesos($valor) -> valor en la moneda del país de la tienda ($59.900, $59.90, S/59.90…)
+        Blade::directive('pesos', fn ($e) => "<?php echo e(dinero($e)); ?>");
 
         //
     }

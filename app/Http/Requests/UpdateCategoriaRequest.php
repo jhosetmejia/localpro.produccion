@@ -25,7 +25,7 @@ class UpdateCategoriaRequest extends FormRequest
         $caracteristicaId = $categoria->caracteristica->id;
 
         return [
-            'nombre' => 'required|max:60|unique:caracteristicas,nombre,'.$caracteristicaId,
+            'nombre' => ['required', 'max:60', \Illuminate\Validation\Rule::unique('caracteristicas', 'nombre')->where('tienda_id', \App\Support\TiendaActual::id())->ignore($caracteristicaId)],
             'descripcion' => 'nullable|max:255'
         ];
     }

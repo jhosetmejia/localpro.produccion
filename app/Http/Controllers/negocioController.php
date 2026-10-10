@@ -17,7 +17,7 @@ class negocioController extends Controller
 
     public function edit()
     {
-        return view('negocio.edit', ['negocio' => Negocio::datos()]);
+        return view('negocio.edit', ['negocio' => Negocio::datos(), 'paises' => \App\Support\Paises::LISTA, 'tipos' => \App\Models\Tienda::TIPOS]);
     }
 
     public function update(Request $request)
@@ -25,6 +25,8 @@ class negocioController extends Controller
         $negocio = Negocio::datos();
         $datos = $request->validate([
             'nombre' => 'required|string|max:80',
+            'pais' => ['required', \Illuminate\Validation\Rule::in(array_keys(\App\Support\Paises::LISTA))],
+            'tipo_negocio' => ['required', \Illuminate\Validation\Rule::in(array_keys(\App\Models\Tienda::TIPOS))],
             'nit' => 'nullable|string|max:30',
             'direccion' => 'nullable|string|max:120',
             'ciudad' => 'nullable|string|max:60',
@@ -45,6 +47,7 @@ class negocioController extends Controller
             $datos['logo_path'] = null;
         }
         unset($datos['logo']);
+        $datos['usa_tallas'] = \App\Models\Tienda::TIPOS[$datos['tipo_negocio']][2];
 
         $negocio->update($datos);
         return back()->with('success', 'Datos del negocio guardados.');

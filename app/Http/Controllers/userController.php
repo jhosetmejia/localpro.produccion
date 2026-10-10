@@ -5,15 +5,17 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
-use Exception;
-use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
+use App\Support\TiendaActual;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
+// Cada dueño administra solo a las personas de su tienda (dueños y vendedores)
 class userController extends Controller
 {
+    public const ROLES_TIENDA = ['dueno' => 'Dueño', 'vendedor' => 'Vendedor'];
+
     function __construct()
     {
         $this->middleware('permission:ver-user|crear-user|editar-user|eliminar-user', ['only' => ['index']]);
@@ -21,111 +23,85 @@ class userController extends Controller
         $this->middleware('permission:editar-user', ['only' => ['edit', 'update']]);
         $this->middleware('permission:eliminar-user', ['only' => ['destroy']]);
     }
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index()
     {
-        $users = User::all();
+        $users = User::where('tienda_id', TiendaActual::id())->orderBy('name')->get();
         return view('user.index', compact('users'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        $roles = Role::all();
-        return view('user.create', compact('roles'));
+        return view('user.create', ['roles' => $this->roles()]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreUserRequest $request)
     {
-        try {
-            DB::beginTransaction();
-
-            //Encriptar contraseña
-            $fieldHash = Hash::make($request->password);
-            //Modificar el valor de password en nuestro request
-            $request->merge(['password' => $fieldHash]);
-
-            //Crear usuario
-            $user = User::create($request->all());
-
-            //Asignar su rol
+        DB::transaction(function () use ($request) {
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'tienda_id' => TiendaActual::id(),
+            ]);
             $user->assignRole($request->role);
+        });
 
-            DB::commit();
-        } catch (Exception $e) {
-            DB::rollBack();
-        }
-
-        return redirect()->route('users.index')->with('success', 'usuario registrado');
+        return redirect()->route('users.index')->with('success', 'Usuario registrado');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
-        //
+        return redirect()->route('users.index');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(User $user)
     {
-        $roles = Role::all();
-        return view('user.edit', compact('user', 'roles'));
+        $this->deMiTienda($user);
+        return view('user.edit', ['user' => $user, 'roles' => $this->roles()]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UpdateUserRequest $request, User $user)
     {
-        try {
-            DB::beginTransaction();
+        $this->deMiTienda($user);
 
-            /*Comprobar el password y aplicar el Hash*/
-            if (empty($request->password)) {
-                $request = Arr::except($request, array('password'));
-            } else {
-                $fieldHash = Hash::make($request->password);
-                $request->merge(['password' => $fieldHash]);
+        DB::transaction(function () use ($request, $user) {
+            $datos = ['name' => $request->name, 'email' => $request->email];
+            if (!empty($request->password)) {
+                $datos['password'] = Hash::make($request->password);
             }
+            $user->update($datos);
+            // El superadministrador conserva su rol de plataforma
+            if (!$user->es_superadmin) {
+                $user->syncRoles([$request->role]);
+            }
+        });
 
-            $user->update($request->all());
-
-            /**Actualizar rol */
-            $user->syncRoles([$request->role]);
-
-            DB::commit();
-        } catch (Exception $e) {
-            DB::rollBack();
-        }
-
-        return redirect()->route('users.index')->with('success','Usuario editado');
+        return redirect()->route('users.index')->with('success', 'Usuario editado');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
-        $user = User::find($id);
+        $user = User::findOrFail($id);
+        $this->deMiTienda($user);
+        abort_if((int) $user->id === (int) Auth::id(), 422, 'No puede eliminar su propio usuario.');
+        abort_if($user->es_superadmin, 422, 'Este usuario no se puede eliminar.');
 
-        //Eliminar rol
-        $rolUser = $user->getRoleNames()->first();
-        $user->removeRole($rolUser);
-
-        //Eliminar usuario
+        $user->syncRoles([]);
         $user->delete();
 
-        return redirect()->route('users.index')->with('success','Usuario eliminado');
+        return redirect()->route('users.index')->with('success', 'Usuario eliminado');
+    }
+
+    // Solo los roles de tienda, con nombre legible
+    private function roles()
+    {
+        return Role::whereIn('name', array_keys(self::ROLES_TIENDA))->get()
+            ->each(fn ($r) => $r->etiqueta = self::ROLES_TIENDA[$r->name]);
+    }
+
+    private function deMiTienda(User $user): void
+    {
+        abort_unless((int) $user->tienda_id === (int) TiendaActual::id(), 404);
     }
 }

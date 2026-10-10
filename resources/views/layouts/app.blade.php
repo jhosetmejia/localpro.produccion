@@ -29,6 +29,12 @@
 
         <div id="layoutSidenav_content">
 
+            @if (auth()->user()->es_superadmin && session()->has('tienda_visitada'))
+            <div style="background:#0b0d0c;color:#fff;padding:.6rem 1.2rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;font-weight:700;font-size:.9rem">
+                <span><i class="fa-solid fa-eye me-1" style="color:#a6f34a"></i> Está viendo la tienda <b style="color:#a6f34a">{{ \App\Support\TiendaActual::tienda()?->nombre }}</b> como administrador</span>
+                <form method="post" action="{{ route('admin.tiendas.salir') }}">@csrf<button class="btn btn-sm btn-primary py-1">Volver al panel de tiendas</button></form>
+            </div>
+            @endif
             <main>
                 @yield('content')
             </main>

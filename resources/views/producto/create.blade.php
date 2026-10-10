@@ -30,7 +30,7 @@
 
                     <!----Codigo---->
                     <div class="col-md-6">
-                        <label for="codigo" class="form-label">Código:</label>
+                        <label for="codigo" class="form-label">Código <span class="text-muted fw-normal">(vacío = automático)</span>:</label>
                         <input type="text" name="codigo" id="codigo" class="form-control" value="{{old('codigo')}}">
                         @error('codigo')
                         <small class="text-danger">{{'*'.$message}}</small>
@@ -58,44 +58,29 @@
                     <!---Precio de venta---->
                     <div class="col-md-6">
                         <label for="precio_venta" class="form-label">Precio de venta (COP):</label>
-                        <input type="number" min="0" step="50" name="precio_venta" id="precio_venta" class="form-control" value="{{old('precio_venta')}}" placeholder="Ej: 59900">
+                        <input type="number" min="0" step="{{ paso_dinero() }}" name="precio_venta" id="precio_venta" class="form-control" value="{{old('precio_venta')}}" placeholder="Ej: {{ moneda()['decimales'] ? '29.90' : '59900' }}">
                         <small class="text-muted">Las tallas y colores pueden tener otro precio si lo necesita.</small>
                         @error('precio_venta')
                         <small class="text-danger d-block">{{'*'.$message}}</small>
                         @enderror
                     </div>
 
+                    @unless (\App\Support\TiendaActual::tienda()?->usa_tallas)
+                    <!---Cantidad inicial---->
+                    <div class="col-md-6">
+                        <label for="cantidad_inicial" class="form-label">Cantidad disponible:</label>
+                        <input type="number" min="0" name="cantidad_inicial" id="cantidad_inicial" class="form-control" value="{{ old('cantidad_inicial', 0) }}">
+                        @error('cantidad_inicial')
+                        <small class="text-danger">{{'*'.$message}}</small>
+                        @enderror
+                    </div>
+                    @endunless
+
                     <!---Imagen---->
                     <div class="col-md-6">
                         <label for="img_path" class="form-label">Imagen:</label>
                         <input type="file" name="img_path" id="img_path" class="form-control" accept="image/*">
                         @error('img_path')
-                        <small class="text-danger">{{'*'.$message}}</small>
-                        @enderror
-                    </div>
-
-                    <!---Marca---->
-                    <div class="col-md-6">
-                        <label for="marca_id" class="form-label">Marca (opcional):</label>
-                        <select data-size="4" title="Seleccione una marca" data-live-search="true" name="marca_id" id="marca_id" class="form-control selectpicker show-tick">
-                            @foreach ($marcas as $item)
-                            <option value="{{$item->id}}" {{ old('marca_id') == $item->id ? 'selected' : '' }}>{{$item->nombre}}</option>
-                            @endforeach
-                        </select>
-                        @error('marca_id')
-                        <small class="text-danger">{{'*'.$message}}</small>
-                        @enderror
-                    </div>
-
-                    <!---Presentaciones---->
-                    <div class="col-md-6">
-                        <label for="presentacione_id" class="form-label">Presentación (opcional):</label>
-                        <select data-size="4" title="Seleccione una presentación" data-live-search="true" name="presentacione_id" id="presentacione_id" class="form-control selectpicker show-tick">
-                            @foreach ($presentaciones as $item)
-                            <option value="{{$item->id}}" {{ old('presentacione_id') == $item->id ? 'selected' : '' }}>{{$item->nombre}}</option>
-                            @endforeach
-                        </select>
-                        @error('presentacione_id')
                         <small class="text-danger">{{'*'.$message}}</small>
                         @enderror
                     </div>

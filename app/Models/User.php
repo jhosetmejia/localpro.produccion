@@ -21,7 +21,9 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'telefono',
         'password',
+        'tienda_id',
     ];
 
     /**
@@ -29,6 +31,11 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
+    public function tienda()
+    {
+        return $this->belongsTo(Tienda::class);
+    }
+
     protected $hidden = [
         'password',
         'remember_token',
@@ -41,6 +48,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'es_superadmin' => 'boolean',
     ];
 
     public function ventas(){

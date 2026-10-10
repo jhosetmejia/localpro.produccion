@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\PerteneceATienda;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
 class Caja extends Model
 {
+    use PerteneceATienda;
+
     protected $table = 'cajas';
 
     protected $fillable = [

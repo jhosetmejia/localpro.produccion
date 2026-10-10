@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\PerteneceATienda;
 use Illuminate\Database\Eloquent\Model;
 
 class PosVenta extends Model
 {
+    use PerteneceATienda;
+
     protected $table = 'pos_ventas';
 
     protected $fillable = [
@@ -41,14 +44,10 @@ class PosVenta extends Model
         return \Illuminate\Support\Facades\URL::signedRoute('factura.publica', ['venta' => $this->id]);
     }
 
-    // Teléfono listo para wa.me (Colombia +57 por defecto)
+    // Teléfono listo para wa.me con el indicativo del país de la tienda
     public function getWhatsappNumeroAttribute(): ?string
     {
-        $t = preg_replace('/\D/', '', (string) $this->cliente_telefono);
-        if ($t === '') {
-            return null;
-        }
-        return strlen($t) === 10 ? '57' . $t : $t;
+        return numero_whatsapp($this->cliente_telefono);
     }
 
     public function cliente()

@@ -18,9 +18,10 @@
 
     @include('layouts.partials.lp-flash')
 
+    @if (\App\Support\TiendaActual::tienda()?->usa_tallas || $producto->variantes->isEmpty())
     @can('editar-producto')
     <div class="lp-box mb-3">
-        <h3>Agregar tallas y colores</h3>
+        <h3>{{ \App\Support\TiendaActual::tienda()?->usa_tallas ? 'Agregar tallas y colores' : 'Cantidad disponible' }}</h3>
         <form method="post" action="{{ route('variantes.store', $producto) }}" class="row g-3 align-items-end">
             @csrf
             <div class="col-md-4">
@@ -42,7 +43,7 @@
             </div>
             <div class="col-md-2">
                 <label class="form-label">Precio <span class="text-muted fw-normal">(opcional)</span></label>
-                <input name="precio" type="number" min="0" step="50" class="form-control" placeholder="Igual al base">
+                <input name="precio" type="number" min="0" step="{{ paso_dinero() }}" class="form-control" placeholder="Igual al base">
             </div>
             <div class="col-md-1 d-grid">
                 <button class="btn btn-primary"><i class="fa-solid fa-plus"></i></button>
@@ -51,6 +52,7 @@
         </form>
     </div>
     @endcan
+    @endif
 
     <div class="lp-box">
         <h3>Inventario por talla y color <a href="{{ route('inventario.movimientos') }}">Ver movimientos</a></h3>
@@ -116,7 +118,7 @@
                             <div class="modal-header border-0"><h5 class="modal-title fw-bold">Editar {{ $v->etiqueta }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                             <div class="modal-body pt-0">
                                 <label class="form-label">Precio propio (vacío = precio base)</label>
-                                <input type="number" name="precio" min="0" step="50" class="form-control mb-3" value="{{ $v->precio !== null ? (int) $v->precio : '' }}">
+                                <input type="number" name="precio" min="0" step="{{ paso_dinero() }}" class="form-control mb-3" value="{{ $v->precio !== null ? (float) $v->precio : '' }}">
                                 <label class="form-label">Código de barras</label>
                                 <input name="codigo_barras" class="form-control mb-3" value="{{ $v->codigo_barras }}" placeholder="Escanee o escriba">
                                 <input type="hidden" name="estado" value="0">

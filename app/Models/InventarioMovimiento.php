@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\PerteneceATienda;
 use Illuminate\Database\Eloquent\Model;
 
 class InventarioMovimiento extends Model
 {
+    use PerteneceATienda;
+
     protected $table = 'inventario_movimientos';
 
     protected $fillable = ['producto_variante_id', 'tipo', 'cantidad', 'stock_resultante', 'user_id', 'referencia', 'nota'];
