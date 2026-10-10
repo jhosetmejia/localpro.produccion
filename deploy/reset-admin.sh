@@ -11,7 +11,7 @@ RAIZ="/home/$USUARIO/htdocs/$DOMINIO"
 cd "$RAIZ"
 
 # Clave sin letras que se confunden (l, I, O, 0, 1)
-CLAVE="$(tr -dc 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789' </dev/urandom | head -c 12)"
+CLAVE="$(set +o pipefail; head -c 400 /dev/urandom | tr -dc 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789' | head -c 12)"
 
 sudo -u "$USUARIO" php8.2 artisan migrate --force
 sudo -u "$USUARIO" env EMAIL="$EMAIL" CLAVE="$CLAVE" php8.2 artisan tinker --execute='
