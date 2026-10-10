@@ -144,3 +144,13 @@ main h1,main .h1{font-weight:800;letter-spacing:-.03em;font-size:clamp(1.6rem,3v
 @media (max-width:991.98px){
   .sb-sidenav-toggled #layoutSidenav #layoutSidenav_content:before{cursor:pointer;background:rgba(11,13,12,.55);backdrop-filter:blur(2px)}
 }
+
+/* Menú: alto real de la pantalla en celular (sin quedar tapado por la barra del navegador) */
+.sb-nav-fixed #layoutSidenav #layoutSidenav_nav{height:calc(100vh - 64px);height:calc(100dvh - 64px)}
+.lp-side{height:100%;display:flex;flex-direction:column}
+.lp-side .sb-sidenav-menu{flex:1;overflow-y:auto;min-height:0}
+.lp-side .sb-sidenav-footer{margin-bottom:.4rem}
+.lp-side-acciones{display:flex;gap:6px;padding:0 .7rem calc(.8rem + env(safe-area-inset-bottom))}
+.lp-side-acciones a{flex:1;display:flex;align-items:center;justify-content:center;gap:.45rem;padding:.65rem;border-radius:14px;background:#1a201c;color:#cfd8d2;font-weight:700;font-size:.85rem;text-decoration:none}
+.lp-side-acciones a:hover{background:#252c27;color:#fff}
+.lp-side-acciones a.salir{color:#ff9fbd}

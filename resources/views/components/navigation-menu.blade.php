@@ -109,10 +109,16 @@
         </div>
         <div class="sb-sidenav-footer">
             <span class="lp-avatar">{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}</span>
-            <div>
+            <div style="min-width:0;flex:1">
                 <div class="small">Sesión iniciada</div>
-                <b>{{ auth()->user()->name }}</b>
+                <b style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ auth()->user()->name }}</b>
             </div>
+        </div>
+        <div class="lp-side-acciones">
+            @can('ver-perfil')
+            <a href="{{ route('profile.index') }}"><i class="fa-regular fa-user"></i> Mi perfil</a>
+            @endcan
+            <a href="{{ route('logout') }}" class="salir"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión</a>
         </div>
     </nav>
 </div>
