@@ -8,7 +8,7 @@
 <body>
 <div class="auth">
     <aside class="auth-side">
-        <a href="{{ url('/') }}" class="brand"><span class="brand-mark">L</span>LocalPRO</a>
+        <a href="{{ url('/') }}" class="brand"><span class="brand-mark">L</span>LocalPro</a>
         <div>
             <h2 class="serif">Ordene su negocio <em>desde hoy</em>.</h2>
             <p>Cree su cuenta y nuestro equipo la activa con los módulos que necesita.</p>
@@ -18,7 +18,7 @@
                 <li><span><i class="fa-solid fa-check"></i></span> Acompañamiento para empezar</li>
             </ul>
         </div>
-        <small style="color:#8fa6a3">Desarrollado por Jhoset Mejía - DiCreWeb</small>
+        <small>Desarrollado por Jhoset Mejía - DiCreWeb</small>
     </aside>
 
     <main class="auth-main">

@@ -9,7 +9,7 @@
 
 <header class="nav">
     <div class="wrap">
-        <a href="{{ url('/') }}" class="brand"><span class="brand-mark">L</span>LocalPRO</a>
+        <a href="{{ url('/') }}" class="brand"><span class="brand-mark">L</span>LocalPro</a>
         <nav class="nav-links">
             <a class="link" href="#funciones">Funciones</a>
             <a class="link" href="#como-funciona">Cómo funciona</a>
@@ -32,10 +32,12 @@
                     <a class="btn btn-amber" href="{{ route('registro') }}"><i class="fa-solid fa-user-plus"></i> Crear cuenta</a>
                     <a class="btn btn-ghost" href="{{ route('login') }}"><i class="fa-solid fa-arrow-right-to-bracket"></i> Ingresar</a>
                 </div>
-                <p class="hero-note">Sin instalar nada · Funciona en cualquier navegador</p>
+                <p class="hero-note"><span>⚡ Sin instalar nada</span><span>📱 Desde el celular</span><span>☁️ En la nube</span></p>
             </div>
 
             <div class="mock rise d2" aria-hidden="true">
+                <div class="chip chip-1"><span><i class="fa-solid fa-check"></i></span> Venta registrada</div>
+                <div class="chip chip-2"><span><i class="fa-solid fa-boxes-stacked"></i></span> Stock al día</div>
                 <div class="mock-top"><span></span><span></span><span></span></div>
                 <div class="mock-grid">
                     <div class="kpi hl"><small>Ventas hoy</small><b>$1.2M</b></div>
@@ -52,11 +54,16 @@
         </div>
     </section>
 
+    <div class="marquee" aria-hidden="true"><div class="marquee-track">
+        <span>Ventas</span><span>Compras</span><span>Inventario</span><span>Clientes</span><span>Proveedores</span><span>Comprobantes</span><span>Usuarios y roles</span>
+        <span>Ventas</span><span>Compras</span><span>Inventario</span><span>Clientes</span><span>Proveedores</span><span>Comprobantes</span><span>Usuarios y roles</span>
+    </div></div>
+
     <section class="section" id="funciones">
         <div class="wrap">
             <div class="section-head">
                 <span class="eyebrow">Todo lo que incluye</span>
-                <h2 class="serif">Las herramientas que su negocio necesita, sin complicaciones.</h2>
+                <h2 class="serif">Todo su negocio, <span class="grad-text">en un solo lugar.</span></h2>
                 <p>Cada módulo está pensado para el día a día de un negocio local: rápido de usar y fácil de entender.</p>
             </div>
             <div class="features">
@@ -113,7 +120,7 @@
         <div class="wrap">
             <div class="steps">
                 <div class="section-head">
-                    <span class="eyebrow" style="background:#1d4a4b;color:#f6f2ea">Cómo funciona</span>
+                    <span class="eyebrow">Cómo funciona</span>
                     <h2 class="serif">Empiece en tres pasos.</h2>
                     <p>Sin instalaciones ni configuraciones difíciles.</p>
                 </div>
@@ -127,21 +134,21 @@
     </section>
 
     <section class="cta">
-        <div class="wrap">
-            <h2 class="serif">Su negocio, <em style="color:var(--amber-2)">más ordenado</em> desde hoy.</h2>
+        <div class="wrap"><div class="box">
+            <h2 class="serif">Su negocio, <span class="grad-text">más ordenado</span> desde hoy.</h2>
             <p>Cree su cuenta gratis o ingrese si ya tiene una.</p>
             <div class="hero-actions">
                 <a class="btn btn-amber" href="{{ route('registro') }}">Crear cuenta</a>
                 <a class="btn btn-ink" href="{{ route('login') }}">Ingresar</a>
             </div>
-        </div>
+        </div></div>
     </section>
 </main>
 
 <footer class="footer">
     <div class="wrap">
         <span>© {{ date('Y') }} LocalPRO</span>
-        <span>Desarrollado por Jhoset Mejía - DiCreWeb</span>
+        <span>Desarrollado por <b>Jhoset Mejía - DiCreWeb</b></span>
     </div>
 </footer>
 
