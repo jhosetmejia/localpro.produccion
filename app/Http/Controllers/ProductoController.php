@@ -26,7 +26,7 @@ class ProductoController extends Controller
      */
     public function index()
     {
-        $productos = Producto::with(['categorias.caracteristica','marca.caracteristica','presentacione.caracteristica'])->latest()->get();
+        $productos = Producto::with(['categorias.caracteristica','marca.caracteristica','presentacione.caracteristica','variantes'])->latest()->get();
     
         return view('producto.index',compact('productos'));
     }
@@ -73,6 +73,7 @@ class ProductoController extends Controller
             $producto->fill([
                 'codigo' => $request->codigo,
                 'nombre' => $request->nombre,
+                'precio_venta' => $request->precio_venta,
                 'descripcion' => $request->descripcion,
                 'fecha_vencimiento' => $request->fecha_vencimiento,
                 'img_path' => $name,
@@ -90,9 +91,11 @@ class ProductoController extends Controller
             DB::commit();
         } catch (Exception $e) {
             DB::rollBack();
+            return back()->withInput()->withErrors('No se pudo guardar el producto. Intente de nuevo.');
         }
 
-        return redirect()->route('productos.index')->with('success', 'Producto registrado');
+        // Siguiente paso natural en una tienda de ropa: cargar tallas, colores y cantidades
+        return redirect()->route('productos.variantes', $producto)->with('success', 'Producto registrado. Ahora agregue sus tallas y colores.');
     }
 
     /**
@@ -149,6 +152,7 @@ class ProductoController extends Controller
             $producto->fill([
                 'codigo' => $request->codigo,
                 'nombre' => $request->nombre,
+                'precio_venta' => $request->precio_venta,
                 'descripcion' => $request->descripcion,
                 'fecha_vencimiento' => $request->fecha_vencimiento,
                 'img_path' => $name,

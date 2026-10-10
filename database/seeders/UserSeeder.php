@@ -22,7 +22,7 @@ class UserSeeder extends Seeder
         ]);
 
         //Usuario administrador
-        $rol = Role::create(['name' => 'administrador']);
+        $rol = Role::firstOrCreate(['name' => 'administrador']);
         $permisos = Permission::pluck('id','id')->all();
         $rol->syncPermissions($permisos);
         //$user = User::find(1);

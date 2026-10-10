@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -23,6 +24,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        \Carbon\Carbon::setLocale('es');
+
+        // @pesos($valor) -> $1.234.567
+        Blade::directive('pesos', fn ($e) => "<?php echo '$' . number_format((float) ($e), 0, ',', '.'); ?>");
+
         //
     }
 }

@@ -13,12 +13,18 @@ class Producto extends Model
     protected $fillable = [
         'codigo',
         'nombre',
+        'precio_venta',
         'descripcion',
         'fecha_vencimiento',
         'marca_id',
         'presentacione_id',
         'img_path'
     ];
+
+    public function variantes()
+    {
+        return $this->hasMany(ProductoVariante::class);
+    }
 
     public function compras()
     {

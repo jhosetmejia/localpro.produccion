@@ -55,12 +55,13 @@
                         @enderror
                     </div>
 
-                    <!---Fecha de vencimiento---->
+                    <!---Precio de venta---->
                     <div class="col-md-6">
-                        <label for="fecha_vencimiento" class="form-label">Fecha de vencimiento:</label>
-                        <input type="date" name="fecha_vencimiento" id="fecha_vencimiento" class="form-control" value="{{old('fecha_vencimiento')}}">
-                        @error('fecha_vencimiento')
-                        <small class="text-danger">{{'*'.$message}}</small>
+                        <label for="precio_venta" class="form-label">Precio de venta (COP):</label>
+                        <input type="number" min="0" step="50" name="precio_venta" id="precio_venta" class="form-control" value="{{old('precio_venta')}}" placeholder="Ej: 59900">
+                        <small class="text-muted">Las tallas y colores pueden tener otro precio si lo necesita.</small>
+                        @error('precio_venta')
+                        <small class="text-danger d-block">{{'*'.$message}}</small>
                         @enderror
                     </div>
 
@@ -75,7 +76,7 @@
 
                     <!---Marca---->
                     <div class="col-md-6">
-                        <label for="marca_id" class="form-label">Marca:</label>
+                        <label for="marca_id" class="form-label">Marca (opcional):</label>
                         <select data-size="4" title="Seleccione una marca" data-live-search="true" name="marca_id" id="marca_id" class="form-control selectpicker show-tick">
                             @foreach ($marcas as $item)
                             <option value="{{$item->id}}" {{ old('marca_id') == $item->id ? 'selected' : '' }}>{{$item->nombre}}</option>
@@ -88,7 +89,7 @@
 
                     <!---Presentaciones---->
                     <div class="col-md-6">
-                        <label for="presentacione_id" class="form-label">Presentación:</label>
+                        <label for="presentacione_id" class="form-label">Presentación (opcional):</label>
                         <select data-size="4" title="Seleccione una presentación" data-live-search="true" name="presentacione_id" id="presentacione_id" class="form-control selectpicker show-tick">
                             @foreach ($presentaciones as $item)
                             <option value="{{$item->id}}" {{ old('presentacione_id') == $item->id ? 'selected' : '' }}>{{$item->nombre}}</option>

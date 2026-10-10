@@ -41,7 +41,8 @@
                         <th>Código</th>
                         <th>Nombre</th>
                         <th>Marca</th>
-                        <th>Presentación</th>
+                        <th>Precio</th>
+                        <th>Stock</th>
                         <th>Categorías</th>
                         <th>Estado</th>
                         <th>Acciones</th>
@@ -57,10 +58,14 @@
                             {{$item->nombre}}
                         </td>
                         <td>
-                            {{$item->marca->caracteristica->nombre}}
+                            {{ $item->marca?->caracteristica?->nombre ?? '—' }}
                         </td>
                         <td>
-                            {{$item->presentacione->caracteristica->nombre}}
+                            ${{ number_format($item->precio_venta, 0, ',', '.') }}
+                        </td>
+                        <td>
+                            @php $st = $item->variantes->sum('stock'); @endphp
+                            <span class="badge {{ $st <= 0 ? 'bg-danger' : ($st <= 5 ? 'bg-warning text-dark' : 'bg-success') }}">{{ $st }} und.</span>
                         </td>
                         <td>
                             @foreach ($item->categorias as $category)
@@ -89,6 +94,7 @@
                                     <ul class="dropdown-menu text-bg-light" style="font-size: small;">
                                         <!-----Editar Producto--->
                                         @can('editar-producto')
+                                        <li><a class="dropdown-item" href="{{route('productos.variantes',['producto' => $item])}}"><i class="fa-solid fa-shirt me-2"></i>Tallas, colores y stock</a></li>
                                         <li><a class="dropdown-item" href="{{route('productos.edit',['producto' => $item])}}">Editar</a></li>
                                         @endcan
                                         <!----Ver-producto--->
