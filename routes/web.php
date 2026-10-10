@@ -11,6 +11,7 @@ use App\Http\Controllers\presentacioneController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\profileController;
 use App\Http\Controllers\proveedorController;
+use App\Http\Controllers\registroController;
 use App\Http\Controllers\roleController;
 use App\Http\Controllers\userController;
 use App\Http\Controllers\ventaController;
@@ -43,7 +44,9 @@ Route::resources([
 ]);
 
 Route::get('/login',[loginController::class,'index'])->name('login');
-Route::post('/login',[loginController::class,'login']);
+Route::post('/login',[loginController::class,'login'])->middleware('throttle:10,1');
+Route::get('/registro',[registroController::class,'index'])->name('registro');
+Route::post('/registro',[registroController::class,'store'])->middleware('throttle:5,1');
 Route::get('/logout',[logoutController::class,'logout'])->name('logout');
 
 Route::get('/401', function () {

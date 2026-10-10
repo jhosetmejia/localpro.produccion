@@ -10,6 +10,10 @@ class homeController extends Controller
         if(!Auth::check()){
             return view('welcome');
         }
+        // Cuenta registrada desde la web, aún sin rol asignado
+        if(Auth::user()->roles()->count() === 0){
+            return view('panel.pendiente');
+        }
         return view('panel.index');
     }
 
