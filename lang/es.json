@@ -1,0 +1,22 @@
+{
+    "Showing": "Mostrando",
+    "to": "a",
+    "of": "de",
+    "results": "resultados",
+    "Previous": "Anterior",
+    "Next": "Siguiente",
+    "« Previous": "« Anterior",
+    "Next »": "Siguiente »",
+    "Pagination Navigation": "Navegación de páginas",
+    "Go to page :page": "Ir a la página :page",
+    "Too Many Attempts.": "Demasiados intentos. Espere un momento e intente de nuevo.",
+    "Unauthorized": "No autorizado",
+    "Forbidden": "Sin permiso",
+    "Not Found": "Página no encontrada",
+    "Page Expired": "La página expiró. Recargue e intente de nuevo.",
+    "Server Error": "Error del servidor",
+    "Service Unavailable": "Servicio no disponible",
+    "Whoops!": "¡Ups!",
+    "Hello!": "¡Hola!",
+    "Regards": "Saludos"
+}
