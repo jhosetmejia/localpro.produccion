@@ -22,7 +22,7 @@ class registroController extends Controller
     // Enlace del asesor: guarda su código (60 días) y abre el registro
     public function referido(string $codigo)
     {
-        $asesor = \App\Models\Asesor::where('codigo', strtoupper($codigo))->where('activo', true)->first();
+        $asesor = \App\Models\Asesor::porCodigo($codigo)->where('activo', true)->first();
         if (!$asesor) {
             return redirect()->route('registro');
         }
@@ -58,7 +58,7 @@ class registroController extends Controller
 
         // Si llegó por un asesor (enlace o código), el negocio queda en su red
         $codigo = strtoupper(trim((string) ($datos['codigo_asesor'] ?? '') ?: (string) session('codigo_asesor', $request->cookie('lp_asesor'))));
-        if ($codigo !== '' && ($asesor = \App\Models\Asesor::where('codigo', $codigo)->where('activo', true)->first())) {
+        if ($codigo !== '' && ($asesor = \App\Models\Asesor::porCodigo($codigo)->where('activo', true)->first())) {
             // Los negocios que trae un asesor arrancan con prueba gratis de 3 meses; luego pagan su plan anual
             $prueba = \App\Models\Plan::where('nombre', 'Prueba 3 meses')->first();
             $user->tienda->forceFill(['asesor_id' => $asesor->id] + ($prueba ? ['plan_id' => $prueba->id, 'plan_vence' => today()->addDays(($prueba->dias ?: 90) - 1)] : []))->save();

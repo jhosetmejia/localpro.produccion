@@ -8,7 +8,7 @@
     <div class="lp-hello">
         <div>
             <small><a href="{{ route('admin.tiendas.index') }}" class="text-decoration-none" style="color:inherit"><i class="fa-solid fa-arrow-left me-1"></i>Tiendas</a></small>
-            <h1>{{ $tienda->nombre }}</h1>
+            <h1>{{ $tienda->nombre }} <small style="font-size:.9rem;font-family:ui-monospace,Menlo,monospace;background:#eaf8ee;color:#11702f;border-radius:8px;padding:.15rem .5rem;vertical-align:middle">{{ $tienda->codigo }}</small></h1>
             <span class="text-muted fw-semibold"><i class="fa-solid {{ $tienda->tipo_icono }} me-1"></i>{{ $tienda->tipo_nombre }} · {{ $m['nombre'] }} ({{ $m['moneda'] }}){{ $tienda->ciudad ? ' · ' . $tienda->ciudad : '' }} · Inscrita {{ $tienda->created_at->locale('es')->isoFormat('D MMM YYYY') }}</span>
         </div>
         <div class="lp-quick">
@@ -50,7 +50,7 @@
                 @csrf
                 <select name="asesor_id" class="form-select">
                     <option value="">— Sin asesor (venta directa de LocalPro) —</option>
-                    @foreach ($asesores as $as)<option value="{{ $as->id }}" @selected((int) $tienda->asesor_id === $as->id)>{{ $as->nombre }} · {{ $as->cargo_nombre }}{{ $as->ciudad ? ' · ' . $as->ciudad : '' }}</option>@endforeach
+                    @foreach ($asesores as $as)<option value="{{ $as->id }}" @selected((int) $tienda->asesor_id === $as->id)>{{ $as->codigo }} · {{ $as->nombre }} · {{ $as->cargo_nombre }}{{ $as->ciudad ? ' · ' . $as->ciudad : '' }}</option>@endforeach
                 </select>
                 <button class="btn btn-dark">Guardar</button>
             </form>

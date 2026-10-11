@@ -47,6 +47,16 @@ class Tienda extends Model
                 $t->slug = $slug;
             }
         });
+        // Código del negocio: LCT-00001, LCT-00002…
+        static::creating(function (Tienda $t) {
+            if (empty($t->codigo) && \Illuminate\Support\Facades\Schema::hasColumn('tiendas', 'codigo')) {
+                $max = (int) static::where('codigo', 'like', 'LCT-%')->selectRaw('MAX(CAST(SUBSTRING(codigo, 5) AS UNSIGNED)) m')->value('m');
+                do {
+                    $c = 'LCT-' . str_pad((string) ++$max, 5, '0', STR_PAD_LEFT);
+                } while (static::where('codigo', $c)->exists());
+                $t->codigo = $c;
+            }
+        });
     }
 
     public function getUrlCatalogoAttribute(): string

@@ -7,7 +7,7 @@
 <div class="lp-dash">
     <div class="lp-hello">
         <div>
-            <small><i class="fa-solid {{ $yo->cargo_icono }} me-1"></i>{{ $yo->cargo_nombre }}{{ $yo->zona ? ' · ' . $yo->zona : '' }}{{ $yo->ciudad ? ' · ' . $yo->ciudad : '' }}</small>
+            <small><i class="fa-solid {{ $yo->cargo_icono }} me-1"></i>Código <b>{{ $yo->codigo }}</b> · {{ $yo->cargo_nombre }}{{ $yo->zona ? ' · ' . $yo->zona : '' }}{{ $yo->ciudad ? ' · ' . $yo->ciudad : '' }}</small>
             <h1>Hola, <span>{{ strtok($yo->nombre, ' ') }}</span></h1>
             @if ($yo->padre)<span class="text-muted fw-semibold">Su líder: {{ $yo->padre->nombre }} ({{ $yo->padre->cargo_nombre }})</span>@endif
         </div>

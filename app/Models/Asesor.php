@@ -127,12 +127,24 @@ class Asesor extends Model
         return $ids;
     }
 
-    public static function nuevoCodigo(string $nombre): string
+    // Código consecutivo de asesor: LCP-00001, LCP-00002…
+    public static function nuevoCodigo(?string $nombre = null): string
     {
-        $base = Str::upper(Str::limit(preg_replace('/[^A-Za-z]/', '', Str::ascii(strtok($nombre, ' ') ?: 'LP')), 6, ''));
+        $max = (int) static::where('codigo', 'like', 'LCP-%')->selectRaw("MAX(CAST(SUBSTRING(codigo, 5) AS UNSIGNED)) m")->value('m');
         do {
-            $c = ($base ?: 'LP') . random_int(100, 999);
+            $c = 'LCP-' . str_pad((string) ++$max, 5, '0', STR_PAD_LEFT);
         } while (static::where('codigo', $c)->exists());
         return $c;
+    }
+
+    /** Busca por código nuevo (LCP-00012, lcp12, 12) o por el código viejo (ELIANA723) */
+    public function scopePorCodigo($q, ?string $codigo)
+    {
+        $c = strtoupper(trim((string) $codigo));
+        if ($c === '') return $q->whereRaw('1 = 0');
+        if (preg_match('/^(?:LCP)?-?0*(\d{1,7})$/', $c, $m)) {
+            $c = 'LCP-' . str_pad($m[1], 5, '0', STR_PAD_LEFT);
+        }
+        return $q->where(fn ($w) => $w->where('codigo', $c)->orWhere('codigo_anterior', $c));
     }
 }

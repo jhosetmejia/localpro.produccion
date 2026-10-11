@@ -16,7 +16,7 @@ class aspiranteController extends Controller
 {
     private function invitador(string $codigo): Asesor
     {
-        $a = Asesor::with('user:id,name')->where('codigo', strtoupper($codigo))->where('activo', true)->where('estado', 'activo')->first();
+        $a = Asesor::with('user:id,name')->porCodigo($codigo)->where('activo', true)->where('estado', 'activo')->first();
         abort_unless($a, 404, 'Este enlace de invitación no es válido.');
         return $a;
     }

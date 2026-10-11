@@ -58,11 +58,11 @@ Route::get('/t/{slug}', [catalogoController::class, 'show'])->where('slug', '[a-
 Route::post('/webhooks/wompi', [wompiController::class, 'evento'])->middleware('throttle:60,1');
 Route::get('/factura/{venta}', [posController::class, 'facturaPublica'])->name('factura.publica');
 // Enlace de un asesor: el negocio que se inscribe queda en su red
-Route::get('/r/{codigo}', [registroController::class, 'referido'])->where('codigo', '[A-Za-z0-9]+')->name('referido');
+Route::get('/r/{codigo}', [registroController::class, 'referido'])->where('codigo', '[A-Za-z0-9\-]+')->name('referido');
 
 // Enlace para sumar asesores a la red (queda pendiente hasta que lo apruebe quien invitó)
-Route::get('/unete/{codigo}', [aspiranteController::class, 'form'])->where('codigo', '[A-Za-z0-9]+')->name('unete.form');
-Route::post('/unete/{codigo}', [aspiranteController::class, 'store'])->where('codigo', '[A-Za-z0-9]+')->middleware('throttle:5,1');
+Route::get('/unete/{codigo}', [aspiranteController::class, 'form'])->where('codigo', '[A-Za-z0-9\-]+')->name('unete.form');
+Route::post('/unete/{codigo}', [aspiranteController::class, 'store'])->where('codigo', '[A-Za-z0-9\-]+')->middleware('throttle:5,1');
 
 // ===== Panel de la red comercial (asesores y líderes) =====
 Route::middleware(['auth', 'asesor'])->prefix('asesor')->name('asesor.')->group(function () {

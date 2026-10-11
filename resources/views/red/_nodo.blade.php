@@ -9,7 +9,7 @@
             <span class="rn-av"><i class="fa-solid {{ $n->cargo_icono }}"></i></span>
             <span class="rn-tx">
                 <b>{{ $n->nombre }}</b>
-                <small>{{ $n->cargo_nombre }}{{ $n->zona ? ' · ' . $n->zona : '' }}{{ $n->ciudad ? ' · ' . $n->ciudad : ($n->departamento ? ' · ' . $n->departamento : '') }}@if ($n->cargo === 'lider_zona') · {{ $equipo->where('cargo', 'asesor')->count() }}/{{ \App\Models\Asesor::MAX_ASESORES_ZONA }} asesores @endif{{ $n->activo ? '' : ($n->estado === 'pendiente' ? ' · por aprobar' : ' · inactivo') }}</small>
+                <small>{{ $n->codigo }} · {{ $n->cargo_nombre }}{{ $n->zona ? ' · ' . $n->zona : '' }}{{ $n->ciudad ? ' · ' . $n->ciudad : ($n->departamento ? ' · ' . $n->departamento : '') }}@if ($n->cargo === 'lider_zona') · {{ $equipo->where('cargo', 'asesor')->count() }}/{{ \App\Models\Asesor::MAX_ASESORES_ZONA }} asesores @endif{{ $n->activo ? '' : ($n->estado === 'pendiente' ? ' · por aprobar' : ' · inactivo') }}</small>
             </span>
             <span class="rn-ct" title="Negocios propios / personas en su equipo"><i class="fa-solid fa-store"></i> {{ $suyos->count() }}@if ($equipo->count()) <i class="fa-solid fa-users ms-2"></i> {{ $equipo->count() }}@endif</span>
             @if (!empty($admin))<a href="{{ route('admin.red.show', $n) }}" class="rn-ed" title="Ver / editar"><i class="fa-solid fa-pen"></i></a>@endif
