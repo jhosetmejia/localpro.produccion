@@ -75,6 +75,30 @@
                     Panel
                 </a>
 
+                @if ($tiendaMenu && $tiendaMenu->es_conjunto)
+                <div class="sb-sidenav-menu-heading">Administración</div>
+                @php $menuConj = [
+                    ['conjunto.inicio', 'conjunto.inicio', 'fa-building', 'Resumen del conjunto'],
+                    ['conjunto.unidades', 'conjunto.unidad*', 'fa-door-closed', 'Unidades y residentes'],
+                    ['conjunto.cobros', 'conjunto.cobros*', 'fa-file-invoice', 'Cobros de administración'],
+                    ['conjunto.pagos', 'conjunto.pagos', 'fa-receipt', 'Pagos y recibos'],
+                    ['conjunto.cartera', 'conjunto.cartera', 'fa-triangle-exclamation', 'Cartera y morosos'],
+                    ['conjunto.gastos', 'conjunto.gastos', 'fa-wallet', 'Gastos'],
+                    ['conjunto.comunicados', 'conjunto.comunicados', 'fa-bullhorn', 'Comunicados'],
+                    ['conjunto.pqrs', 'conjunto.pqrs', 'fa-headset', 'PQRS'],
+                    ['conjunto.reservas', 'conjunto.reservas', 'fa-calendar-check', 'Zonas comunes'],
+                ]; @endphp
+                @foreach ($menuConj as [$r, $pat, $ic, $txt])
+                <a class="nav-link {{ $on($pat) }}" href="{{ route($r) }}"><div class="sb-nav-link-icon"><i class="fa-solid {{ $ic }}"></i></div>{{ $txt }}</a>
+                @endforeach
+                @can('editar-negocio')
+                <a class="nav-link {{ $on('negocio.*') }}" href="{{ route('negocio.edit') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-gear"></i></div>Datos del conjunto</a>
+                <a class="nav-link {{ $on('plan.*') }}" href="{{ route('plan.index') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-gem"></i></div>Mi plan</a>
+                @endcan
+                @can('ver-user')
+                <a class="nav-link {{ $on('users.*') }}" href="{{ route('users.index') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-user-gear"></i></div>Usuarios</a>
+                @endcan
+                @else
                 @can('usar-pos')
                 <a class="nav-link {{ $on('pos.index') }}" href="{{ route('pos.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-cash-register"></i></div>
@@ -181,6 +205,7 @@
                     Usuarios
                 </a>
                 @endcan
+                @endif
                 @endif
 
             </div>

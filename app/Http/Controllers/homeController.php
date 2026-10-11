@@ -43,6 +43,10 @@ class homeController extends Controller
             return redirect()->route('plan.index');
         }
 
+        // Conjuntos residenciales tienen su propio panel de administración
+        if ($tienda->es_conjunto) {
+            return redirect()->route('conjunto.inicio');
+        }
         // Cuenta registrada desde la web, aún sin rol asignado
         if (Auth::user()->roles()->count() === 0) {
             return view('panel.pendiente');

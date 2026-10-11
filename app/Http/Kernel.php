@@ -69,6 +69,7 @@ class Kernel extends HttpKernel
         'tienda' => \App\Http\Middleware\RequiereTienda::class,
         'superadmin' => \App\Http\Middleware\SoloSuperadmin::class,
         'asesor' => \App\Http\Middleware\SoloAsesor::class,
+        'conjunto' => \App\Http\Middleware\SoloConjunto::class,
         'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
         'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
         'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,

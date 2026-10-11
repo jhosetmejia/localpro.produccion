@@ -12,7 +12,7 @@ class Tienda extends Model
     protected $fillable = [
         'nombre', 'departamento', 'slug', 'catalogo_activo', 'cliente_obligatorio', 'pais', 'tipo_negocio', 'descripcion', 'usa_tallas', 'nit', 'regimen',
         'resolucion_numero', 'resolucion_fecha', 'resolucion_vigencia', 'resolucion_prefijo', 'resolucion_desde', 'resolucion_hasta', 'direccion', 'ciudad', 'telefono',
-        'email', 'logo_path', 'mensaje_tiquete', 'estado', 'onboarding_paso', 'onboarding_completo',
+        'email', 'logo_path', 'mensaje_tiquete', 'estado', 'onboarding_paso', 'onboarding_completo', 'conj_dia_vence', 'conj_interes_mora', 'conj_zonas',
     ];
 
     protected $casts = ['usa_tallas' => 'boolean', 'onboarding_completo' => 'boolean', 'catalogo_activo' => 'boolean', 'cliente_obligatorio' => 'boolean', 'plan_vence' => 'date', 'resolucion_fecha' => 'date', 'resolucion_vigencia' => 'date'];
@@ -29,6 +29,7 @@ class Tienda extends Model
         'tecnologia' => ['Tecnología y celulares', 'fa-mobile-screen', false, 'Celulares, accesorios, reparación'],
         'papeleria' => ['Papelería y regalos', 'fa-pen-ruler', false, 'Útiles, piñatería, detalles'],
         'ferreteria' => ['Ferretería', 'fa-screwdriver-wrench', false, 'Herramientas, materiales, eléctricos'],
+        'conjunto' => ['Conjunto residencial / edificio', 'fa-building', false, 'Administración de conjuntos, torres y edificios'],
         'otro' => ['Otro negocio', 'fa-store', false, 'Cualquier otro comercio'],
     ];
 
@@ -129,5 +130,24 @@ class Tienda extends Model
     public function asesor()
     {
         return $this->belongsTo(Asesor::class);
+    }
+
+    // Administración de conjuntos residenciales
+    public function getEsConjuntoAttribute(): bool
+    {
+        return $this->tipo_negocio === 'conjunto';
+    }
+
+    public function siguienteRecibo(): string
+    {
+        $fila = static::whereKey($this->id)->lockForUpdate()->first();
+        $n = (int) $fila->consecutivo_rc + 1;
+        $fila->forceFill(['consecutivo_rc' => $n])->save();
+        return 'RC-' . str_pad((string) $n, 6, '0', STR_PAD_LEFT);
+    }
+
+    public function getZonasComunesAttribute(): array
+    {
+        return array_values(array_filter(array_map('trim', explode(',', (string) $this->conj_zonas))));
     }
 }

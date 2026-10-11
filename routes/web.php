@@ -9,6 +9,7 @@ use App\Http\Controllers\bienvenidaController;
 use App\Http\Controllers\cajaController;
 use App\Http\Controllers\catalogoController;
 use App\Http\Controllers\cuentaController;
+use App\Http\Controllers\conjuntoController;
 use App\Http\Controllers\adminInicioController;
 use App\Http\Controllers\categoriaController;
 use App\Http\Controllers\clienteController;
@@ -84,6 +85,38 @@ Route::middleware(['auth', 'tienda:asistente'])->prefix('bienvenida')->name('bie
     Route::post('/productos', [bienvenidaController::class, 'productos'])->name('productos');
     Route::post('/cobro', [bienvenidaController::class, 'cobro'])->name('cobro');
     Route::get('/paso/{paso}', [bienvenidaController::class, 'irAPaso'])->whereNumber('paso')->name('paso');
+});
+
+// ===== Administración de conjuntos residenciales =====
+Route::middleware(['auth', 'tienda', 'conjunto'])->prefix('conjunto')->name('conjunto.')->controller(conjuntoController::class)->group(function () {
+    Route::get('/', 'inicio')->name('inicio');
+    Route::get('/unidades', 'unidades')->name('unidades');
+    Route::post('/unidades', 'unidadGuardar')->name('unidades.store');
+    Route::post('/unidades/lote', 'unidadesLote')->name('unidades.lote');
+    Route::get('/unidades/{unidad}', 'unidad')->name('unidad');
+    Route::put('/unidades/{unidad}', 'unidadGuardar')->name('unidades.update');
+    Route::post('/unidades/{unidad}/pago', 'pagoGuardar')->name('pago.store');
+    Route::get('/cobros', 'cobros')->name('cobros');
+    Route::post('/cobros/mes', 'generarMes')->name('cobros.mes');
+    Route::post('/cobros/especial', 'cargoEspecial')->name('cobros.especial');
+    Route::post('/cobros/intereses', 'generarIntereses')->name('cobros.intereses');
+    Route::post('/cobros/{cargo}/anular', 'cargoAnular')->name('cobros.anular');
+    Route::get('/pagos', 'pagos')->name('pagos');
+    Route::get('/pagos/{pago}', 'recibo')->name('recibo');
+    Route::post('/pagos/{pago}/anular', 'pagoAnular')->name('pago.anular');
+    Route::get('/cartera', 'cartera')->name('cartera');
+    Route::get('/gastos', 'gastos')->name('gastos');
+    Route::post('/gastos', 'gastoGuardar')->name('gastos.store');
+    Route::delete('/gastos/{gasto}', 'gastoBorrar')->name('gastos.destroy');
+    Route::get('/comunicados', 'comunicados')->name('comunicados');
+    Route::post('/comunicados', 'comunicadoGuardar')->name('comunicados.store');
+    Route::get('/pqrs', 'pqrs')->name('pqrs');
+    Route::post('/pqrs', 'pqrsGuardar')->name('pqrs.store');
+    Route::put('/pqrs/{pqrs}', 'pqrsGuardar')->name('pqrs.update');
+    Route::get('/reservas', 'reservas')->name('reservas');
+    Route::post('/reservas', 'reservaGuardar')->name('reservas.store');
+    Route::post('/reservas/{reserva}/cancelar', 'reservaCancelar')->name('reservas.cancelar');
+    Route::post('/configuracion', 'config')->name('config');
 });
 
 // ===== Pantallas de la tienda =====

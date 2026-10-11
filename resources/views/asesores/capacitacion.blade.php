@@ -80,7 +80,7 @@
         <h1>Cómo ganar un <em>salario mínimo</em> en una semana… o en 3 días.</h1>
         <p>Todo lo que necesita un asesor de LocalPro para vender desde el primer día: cuánto se gana, qué decir, cómo responder dudas y la rutina que funciona.</p>
         <div class="indice">
-            <a href="#meta">💰 La meta</a><a href="#producto">📱 Qué vendemos</a><a href="#pasos">🪜 Paso a paso</a><a href="#guiones">💬 Guiones</a><a href="#dudas">🙋 Dudas</a><a href="#rutina">✅ Rutina</a><a href="#crecer">🚀 Crecer</a>
+            <a href="#meta">💰 La meta</a><a href="#producto">📱 Qué vendemos</a><a href="#conjuntos">🏢 Conjuntos</a><a href="#pasos">🪜 Paso a paso</a><a href="#guiones">💬 Guiones</a><a href="#dudas">🙋 Dudas</a><a href="#rutina">✅ Rutina</a><a href="#crecer">🚀 Crecer</a>
         </div>
     </section>
 
@@ -121,6 +121,26 @@
             </ul>
         </div>
         <p class="regla" style="background:#e8f8ec;color:#11702f">💡 Frase clave: <i>"Por menos de {{ $f(ceil($plan / 12 / 100) * 100) }} al mes tienes tu negocio organizado y sabes cuánto ganas cada día."</i></p>
+    </section>
+
+    <section class="card" id="conjuntos">
+        <h2><span class="n">🏢</span>Otra cancha: conjuntos residenciales y edificios</h2>
+        <p class="sub">LocalPro también administra conjuntos, torres y edificios. Cada conjunto es un cliente más para ti, y suele tener cientos de familias.</p>
+        <div class="dos">
+            <ul style="margin:0;padding-left:1.1rem;font-weight:600">
+                <li>Cobro de administración mensual automático a todas las unidades.</li>
+                <li>Registro de pagos con recibo por WhatsApp o impreso.</li>
+                <li>Cartera y morosos con recordatorio por WhatsApp en un toque.</li>
+                <li>Cuotas extraordinarias (iguales o por coeficiente), multas e intereses de mora.</li>
+            </ul>
+            <ul style="margin:0;padding-left:1.1rem;font-weight:600">
+                <li>Gastos del conjunto e informe de ingresos vs. gastos.</li>
+                <li>Comunicados para los residentes.</li>
+                <li>PQRS y reportes de daños.</li>
+                <li>Reservas de zonas comunes sin cruces de horario.</li>
+            </ul>
+        </div>
+        <p class="regla" style="background:#e8f8ec;color:#11702f">🎯 A quién visitar: administradores de propiedad horizontal, consejos de administración y contadores de conjuntos. Al registrarse eligen el tipo <b>"Conjunto residencial / edificio"</b>.</p>
     </section>
 
     <section class="card" id="pasos">

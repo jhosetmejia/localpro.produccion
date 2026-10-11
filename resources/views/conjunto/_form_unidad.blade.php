@@ -1,0 +1,13 @@
+{{-- Campos de una unidad. $u = Unidad o null --}}
+<div class="col-6 col-md-3"><label class="form-label">Torre / bloque</label><input name="torre" class="form-control" maxlength="30" value="{{ old('torre', $u?->torre) }}" placeholder="Ej: Torre 1"></div>
+<div class="col-6 col-md-3"><label class="form-label">Número *</label><input name="numero" class="form-control" maxlength="20" required value="{{ old('numero', $u?->numero) }}" placeholder="Ej: 301"></div>
+<div class="col-6 col-md-3"><label class="form-label">Tipo</label><select name="tipo" class="form-select">@foreach (\App\Models\Conjunto\Unidad::TIPOS as $k => $v)<option value="{{ $k }}" @selected(old('tipo', $u->tipo ?? 'apartamento') === $k)>{{ $v }}</option>@endforeach</select></div>
+<div class="col-6 col-md-3"><label class="form-label">Cuota mensual *</label><input data-dinero type="number" name="cuota" class="form-control" min="0" required value="{{ old('cuota', (int) ($u->cuota ?? 0)) }}"></div>
+<div class="col-6 col-md-3"><label class="form-label">Coeficiente (%)</label><input type="number" step="0.00001" name="coeficiente" class="form-control" min="0" max="100" value="{{ old('coeficiente', $u?->coeficiente) }}"></div>
+<div class="col-6 col-md-3"><label class="form-label">Propietario</label><input name="propietario" class="form-control" maxlength="80" value="{{ old('propietario', $u?->propietario) }}"></div>
+<div class="col-6 col-md-3"><label class="form-label">Cédula propietario</label><input name="propietario_doc" class="form-control" maxlength="20" value="{{ old('propietario_doc', $u?->propietario_doc) }}"></div>
+<div class="col-6 col-md-3"><label class="form-label">WhatsApp propietario</label><input name="propietario_tel" class="form-control" maxlength="20" inputmode="tel" value="{{ old('propietario_tel', $u?->propietario_tel) }}"></div>
+<div class="col-md-4"><label class="form-label">Correo propietario</label><input type="email" name="propietario_email" class="form-control" maxlength="120" value="{{ old('propietario_email', $u?->propietario_email) }}"></div>
+<div class="col-6 col-md-4"><label class="form-label">Residente (si es arrendatario)</label><input name="residente" class="form-control" maxlength="80" value="{{ old('residente', $u?->residente) }}"></div>
+<div class="col-6 col-md-4"><label class="form-label">WhatsApp residente</label><input name="residente_tel" class="form-control" maxlength="20" inputmode="tel" value="{{ old('residente_tel', $u?->residente_tel) }}"></div>
+<div class="col-12"><label class="form-label">Notas</label><input name="notas" class="form-control" maxlength="255" value="{{ old('notas', $u?->notas) }}" placeholder="Parqueadero, mascotas, observaciones…"></div>

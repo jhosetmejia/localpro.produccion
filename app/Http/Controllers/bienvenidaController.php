@@ -104,6 +104,14 @@ class bienvenidaController extends Controller
 
         $datos['usa_tallas'] = Tienda::TIPOS[$datos['tipo_negocio']][2];
         $datos['onboarding_paso'] = 3;
+
+        // Un conjunto residencial no vende productos: termina aquí y pasa a su panel de administración
+        if ($datos['tipo_negocio'] === 'conjunto') {
+            $datos['onboarding_paso'] = 5;
+            $datos['onboarding_completo'] = true;
+            $tienda->update($datos);
+            return redirect()->route('conjunto.unidades')->with('success', '¡Listo! Empiece creando las unidades (apartamentos o casas) del conjunto.');
+        }
         $tienda->update($datos);
 
         return redirect()->route('bienvenida.index');
