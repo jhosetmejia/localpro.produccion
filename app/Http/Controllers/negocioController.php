@@ -57,6 +57,7 @@ class negocioController extends Controller
         }
         unset($datos['logo']);
         $datos['catalogo_activo'] = $request->boolean('catalogo_activo');
+        $datos['cliente_obligatorio'] = $request->boolean('cliente_obligatorio');
         $datos['usa_tallas'] = \App\Models\Tienda::TIPOS[$datos['tipo_negocio']][2];
 
         $negocio->update($datos);

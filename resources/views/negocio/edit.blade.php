@@ -64,6 +64,12 @@
             <div class="form-check form-switch d-inline-block mt-3"><input class="form-check-input" type="checkbox" name="catalogo_activo" value="1" id="catAct" @checked(old('catalogo_activo', $negocio->catalogo_activo))><label class="form-check-label" for="catAct">Catálogo visible al público</label></div>
             @unless ($negocio->telefono)<div class="alert border-0 mt-2 mb-0 small" style="background:#fff5d6;color:#8a6400">Ponga el teléfono / WhatsApp del negocio para recibir los pedidos.</div>@endunless
         </div>
+        <div class="lp-box">
+            <h3>Caja (punto de venta)</h3>
+            <input type="hidden" name="cliente_obligatorio" value="0">
+            <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="cliente_obligatorio" value="1" id="cliObl" @checked(old('cliente_obligatorio', $negocio->cliente_obligatorio))><label class="form-check-label fw-bold" for="cliObl">Pedir siempre el cliente para cobrar</label></div>
+            <small class="text-muted d-block mt-1">Apagado: se puede vender como "consumidor final" (la caja recuerda poner el cliente). Encendido: no deja cobrar sin elegir o crear el cliente.</small>
+        </div>
         <div class="lp-box text-center">
             <h3>Logo</h3>
             <div style="width:160px;height:160px;margin:0 auto 1rem;border-radius:24px;border:2px dashed var(--lp-line);display:grid;place-items:center;overflow:hidden;background:#fafdfb">

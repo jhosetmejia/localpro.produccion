@@ -82,6 +82,8 @@ input{font:inherit}
 .cli{display:block}
 .cli-busca{display:flex;gap:8px}
 .cli-busca input{flex:1}
+.cli-busca.pide input{border-color:#ff5d8f;animation:sacude .35s}
+@keyframes sacude{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 .cli-nuevo{flex:none;border:1.5px solid #c9efd2;background:#f2fbf3;color:#11702f;border-radius:12px;padding:0 .8rem;font-weight:800;font-size:.85rem;white-space:nowrap}
 .cli input{border:1.5px solid var(--line);border-radius:12px;padding:.55rem .7rem;font-weight:600;font-size:.88rem;min-width:0}
 .cli input:focus,.line input:focus{outline:none;border-color:#2fd15a}
@@ -277,6 +279,16 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     </div>
 </div>
 
+<!-- Recordatorio: vender sin cliente -->
+<div class="ov" id="ovSinCli">
+    <div class="md" style="width:min(440px,100%)">
+        <div class="mh"><div><h3>¿Vender sin cliente?</h3></div><button class="x" data-close>&times;</button></div>
+        <p id="scTxt" style="color:var(--mut);font-weight:600;line-height:1.45"></p>
+        <button class="mbtn" id="scAgregar"><i class="fa-solid fa-user-plus"></i> Agregar cliente</button>
+        <button class="mbtn dark" id="scSeguir" style="margin-top:8px">Seguir sin cliente</button>
+    </div>
+</div>
+
 <!-- Cobrar -->
 <div class="ov" id="ovPay">
     <div class="md">
@@ -318,6 +330,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     var URL_NUEVO = @json(route('productos.create'));
     var URL_CLIENTES = @json(route('pos.clientes')), URL_SALDO = @json(route('pos.saldo'));
     var URL_CLIENTE_NUEVO = @json(route('pos.clientes.crear'));
+    var CLIENTE_OBLIGATORIO = @json((bool) $negocio->cliente_obligatorio);
     var NEGOCIO = @json($negocio->nombre);
     var METODOS = @json($metodos);
     var CSRF = document.querySelector('meta[name=csrf-token]').content;
@@ -473,8 +486,22 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
 
     // ---------- Cobro ----------
     var ICONOS = { efectivo: 'fa-money-bill-wave', otro: 'fa-mobile-screen-button' };
-    function abrirCobro() {
+    function abrirCobro(sinCliente) {
         if (!cart.length) return;
+        if (!clienteId && sinCliente !== true) {
+            if (CLIENTE_OBLIGATORIO) {
+                toast('Esta tienda pide el cliente: búsquelo o toque "Nuevo"', true);
+                $('cn').scrollIntoView({ block: 'center', behavior: 'smooth' });
+                $('cliBusca').classList.remove('pide'); void $('cliBusca').offsetWidth; $('cliBusca').classList.add('pide');
+                return;
+            }
+            $('scTxt').textContent = $('cn').value.trim()
+                ? 'Escribió "' + $('cn').value.trim() + '" pero no lo eligió de la lista ni lo creó. ¿Lo guardamos como cliente?'
+                : 'La venta quedará como consumidor final. Con el cliente puede enviarle la factura por WhatsApp y avisarle de mercancía nueva.';
+            abrir('ovSinCli');
+            return;
+        }
+        cerrar('ovSinCli');
         $('toast').classList.remove('on'); $('cart').classList.remove('open');
         $('pCli').textContent = clienteId || $('cn').value.trim() ? $('cn').value.trim() : 'Consumidor final (sin cliente)';
         pagos = {}; credito = null;
@@ -530,7 +557,9 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     });
     $('prows').addEventListener('input', function (e) { if (e.target.dataset.id) { pagos[e.target.dataset.id] = e.target.value; resumen(); } });
     $('prows').addEventListener('click', function (e) { var b = e.target.closest('[data-q]'); if (!b) return; pagos[b.dataset.id] = b.dataset.q; pintarMetodos(); });
-    $('payBtn').addEventListener('click', abrirCobro);
+    $('payBtn').addEventListener('click', function () { abrirCobro(); });
+    $('scAgregar').addEventListener('click', function () { cerrar('ovSinCli'); abrirNuevoCliente(); });
+    $('scSeguir').addEventListener('click', function () { abrirCobro(true); });
     $('usarSaldo').addEventListener('click', function () {
         var c = prompt('Código de la nota crédito (ej. NC-000012):');
         if (!c) return;
@@ -571,7 +600,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     function elegirCliente(c) {
         clienteId = c.id; $('cn').value = c.nombre; $('ct').value = c.telefono || '';
         $('cliSelTxt').textContent = '👤 ' + c.nombre + (c.documento && c.documento.indexOf('TEL-') !== 0 ? ' · CC ' + c.documento : '') + (c.telefono ? ' · ' + c.telefono : '');
-        $('cliSel').style.display = 'flex'; $('cliBusca').style.display = 'none'; $('cliRes').style.display = 'none';
+        $('cliSel').style.display = 'flex'; $('cliBusca').style.display = 'none'; $('cliBusca').classList.remove('pide'); $('cliRes').style.display = 'none';
     }
     function quitarCliente() { clienteId = null; $('cliSel').style.display = 'none'; $('cliBusca').style.display = ''; $('cn').value = ''; $('ct').value = ''; }
     function abrirNuevoCliente() {
@@ -677,7 +706,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     }
     document.addEventListener('keydown', function (e) {
         if (e.key === 'F2') { e.preventDefault(); abrirCobro(); }
-        else if (e.key === 'Escape') { ['ovVar', 'ovPay', 'ovCli'].forEach(cerrar); $('cart').classList.remove('open'); }
+        else if (e.key === 'Escape') { ['ovVar', 'ovPay', 'ovCli', 'ovSinCli'].forEach(cerrar); $('cart').classList.remove('open'); }
         else if (e.key === 'Enter') {
             if ($('ovCli').classList.contains('on')) { e.preventDefault(); $('ncOk').click(); }
             else if ($('ovPay').classList.contains('on')) { e.preventDefault(); confirmar(); }

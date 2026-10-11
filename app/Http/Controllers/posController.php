@@ -114,6 +114,13 @@ class posController extends Controller
             'pagos.required' => 'Indique cómo pagó el cliente.',
         ]);
 
+        // Si la tienda lo exige, no se vende sin cliente
+        if (\App\Support\TiendaActual::tienda()->cliente_obligatorio
+            && empty($datos['cliente_id'])
+            && !(!empty($datos['cliente_nombre']) && !empty($datos['cliente_telefono']))) {
+            throw ValidationException::withMessages(['cliente_id' => 'Esta tienda pide el cliente para cobrar. Búsquelo o créelo con el botón "Nuevo".']);
+        }
+
         $venta = DB::transaction(function () use ($datos, $caja) {
             // Bloquea las tallas/colores vendidos para que dos cajas no vendan la misma unidad
             $ids = collect($datos['items'])->pluck('variante_id')->unique();
