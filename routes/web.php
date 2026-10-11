@@ -3,10 +3,12 @@
 use App\Http\Controllers\adminTiendaController;
 use App\Http\Controllers\bienvenidaController;
 use App\Http\Controllers\cajaController;
+use App\Http\Controllers\catalogoController;
 use App\Http\Controllers\categoriaController;
 use App\Http\Controllers\clienteController;
 use App\Http\Controllers\devolucionController;
 use App\Http\Controllers\entradaController;
+use App\Http\Controllers\etiquetaController;
 use App\Http\Controllers\homeController;
 use App\Http\Controllers\inventarioController;
 use App\Http\Controllers\loginController;
@@ -40,6 +42,7 @@ Route::get('/recuperar', [recuperarController::class, 'formulario'])->name('pass
 Route::post('/recuperar', [recuperarController::class, 'enviar'])->middleware('throttle:5,1')->name('password.email');
 Route::get('/restablecer/{token}', [recuperarController::class, 'formularioNueva'])->name('password.reset');
 Route::post('/restablecer', [recuperarController::class, 'guardarNueva'])->middleware('throttle:10,1')->name('password.update');
+Route::get('/t/{slug}', [catalogoController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('catalogo.show');
 Route::get('/factura/{venta}', [posController::class, 'facturaPublica'])->name('factura.publica');
 
 // ===== Asistente de configuración de la tienda nueva =====
@@ -87,6 +90,10 @@ Route::middleware(['auth', 'tienda'])->group(function () {
 
     // Entradas de mercancía
     Route::resource('entradas', entradaController::class)->only(['index', 'create', 'store', 'show']);
+
+    // Etiquetas con código de barras
+    Route::get('/productos/{producto}/etiquetas', [etiquetaController::class, 'producto'])->name('etiquetas.producto');
+    Route::get('/entradas/{entrada}/etiquetas', [etiquetaController::class, 'entrada'])->name('etiquetas.entrada');
 
     // Inventario, tallas y colores
     Route::get('/inventario', [inventarioController::class, 'index'])->name('inventario.index');

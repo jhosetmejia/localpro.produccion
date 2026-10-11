@@ -27,8 +27,27 @@
                 <div class="col-md-4"><label class="form-label">Ciudad</label><input name="ciudad" class="form-control" value="{{ old('ciudad', $negocio->ciudad) }}" maxlength="60" placeholder="Pasto"></div>
                 <div class="col-md-6"><label class="form-label">Teléfono / WhatsApp</label><input name="telefono" class="form-control" value="{{ old('telefono', $negocio->telefono) }}" maxlength="30"></div>
                 <div class="col-md-6"><label class="form-label">Correo</label><input name="email" type="email" class="form-control" value="{{ old('email', $negocio->email) }}" maxlength="120"></div>
+                <div class="col-12">
+                    <label class="form-label">Dirección de su catálogo en línea</label>
+                    <div class="input-group"><span class="input-group-text" style="border-radius:12px 0 0 12px">{{ url('/t') }}/</span><input name="slug" class="form-control" value="{{ old('slug', $negocio->slug) }}" pattern="[a-z0-9-]+" maxlength="60" required></div>
+                    <small class="text-muted">Solo minúsculas, números y guiones. Ej: moda-urbana-pasto</small>
+                </div>
                 <div class="col-12"><label class="form-label">Mensaje al pie del tiquete</label><input name="mensaje_tiquete" class="form-control" value="{{ old('mensaje_tiquete', $negocio->mensaje_tiquete) }}" maxlength="255"></div>
             </div>
+        </div>
+        <div>
+        <div class="lp-box text-center mb-3">
+            <h3>Catálogo en línea</h3>
+            <p class="text-muted small">Comparta este enlace en Instagram, WhatsApp o Facebook: sus clientes ven sus productos y le piden por WhatsApp.</p>
+            <div id="qr" class="d-flex justify-content-center mb-2"></div>
+            <input class="form-control mb-2 text-center" id="urlCat" value="{{ $negocio->url_catalogo }}" readonly onclick="this.select()">
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-dark flex-fill" onclick="navigator.clipboard && navigator.clipboard.writeText(document.getElementById('urlCat').value); this.textContent='¡Copiado!'"><i class="fa-regular fa-copy me-1"></i>Copiar</button>
+                <a class="btn btn-primary flex-fill" target="_blank" href="{{ $negocio->url_catalogo }}"><i class="fa-solid fa-up-right-from-square me-1"></i>Ver</a>
+            </div>
+            <input type="hidden" name="catalogo_activo" value="0">
+            <div class="form-check form-switch d-inline-block mt-3"><input class="form-check-input" type="checkbox" name="catalogo_activo" value="1" id="catAct" @checked(old('catalogo_activo', $negocio->catalogo_activo))><label class="form-check-label" for="catAct">Catálogo visible al público</label></div>
+            @unless ($negocio->telefono)<div class="alert border-0 mt-2 mb-0 small" style="background:#fff5d6;color:#8a6400">Ponga el teléfono / WhatsApp del negocio para recibir los pedidos.</div>@endunless
         </div>
         <div class="lp-box text-center">
             <h3>Logo</h3>
@@ -46,6 +65,14 @@
             @endif
             <button class="btn btn-primary w-100 mt-3"><i class="fa-solid fa-floppy-disk me-1"></i>Guardar cambios</button>
         </div>
+        </div>
     </form>
 </div>
 @endsection
+
+@push('js')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+    if (window.QRCode) new QRCode(document.getElementById('qr'), { text: @json($negocio->url_catalogo), width: 150, height: 150, colorDark: '#0b0d0c', colorLight: '#ffffff' });
+</script>
+@endpush

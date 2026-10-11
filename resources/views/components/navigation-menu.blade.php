@@ -104,6 +104,12 @@
                     Datos del negocio
                 </a>
                 @endcan
+                @if ($tiendaMenu && $tiendaMenu->catalogo_activo && $tiendaMenu->slug)
+                <a class="nav-link" href="{{ $tiendaMenu->url_catalogo }}" target="_blank">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-globe"></i></div>
+                    Mi catálogo en línea
+                </a>
+                @endif
                 @can('ver-metodo-pago')
                 <a class="nav-link {{ $on('metodos-pago.*') }}" href="{{ route('metodos-pago.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-credit-card"></i></div>

@@ -55,7 +55,7 @@
     @endif
 
     <div class="lp-box">
-        <h3>Inventario por talla y color <a href="{{ route('inventario.movimientos') }}">Ver movimientos</a></h3>
+        <h3>Inventario por talla y color <span><a href="{{ route('etiquetas.producto', $producto) }}" class="me-3"><i class="fa-solid fa-barcode me-1"></i>Imprimir etiquetas</a><a href="{{ route('inventario.movimientos') }}">Ver movimientos</a></span></h3>
         @if ($producto->variantes->isEmpty())
             <div class="lp-empty"><i class="fa-solid fa-shirt fa-2x mb-2 d-block" style="color:#bfeccb"></i>Este producto aún no tiene tallas ni colores. Agréguelos arriba para poder venderlo en el POS.</div>
         @else

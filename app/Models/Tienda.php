@@ -10,11 +10,11 @@ class Tienda extends Model
     protected $table = 'tiendas';
 
     protected $fillable = [
-        'nombre', 'pais', 'tipo_negocio', 'descripcion', 'usa_tallas', 'nit', 'direccion', 'ciudad', 'telefono',
+        'nombre', 'slug', 'catalogo_activo', 'pais', 'tipo_negocio', 'descripcion', 'usa_tallas', 'nit', 'direccion', 'ciudad', 'telefono',
         'email', 'logo_path', 'mensaje_tiquete', 'estado', 'onboarding_paso', 'onboarding_completo',
     ];
 
-    protected $casts = ['usa_tallas' => 'boolean', 'onboarding_completo' => 'boolean'];
+    protected $casts = ['usa_tallas' => 'boolean', 'onboarding_completo' => 'boolean', 'catalogo_activo' => 'boolean'];
 
     // Categorías de negocio que se pueden elegir al registrarse
     public const TIPOS = [
@@ -30,6 +30,27 @@ class Tienda extends Model
         'ferreteria' => ['Ferretería', 'fa-screwdriver-wrench', false, 'Herramientas, materiales, eléctricos'],
         'otro' => ['Otro negocio', 'fa-store', false, 'Cualquier otro comercio'],
     ];
+
+    // Al crear o renombrar una tienda sin dirección de catálogo, se le asigna una única
+    protected static function booted(): void
+    {
+        static::saving(function (Tienda $t) {
+            if (empty($t->slug) || ($t->isDirty('nombre') && str_starts_with((string) $t->getOriginal('nombre'), 'Tienda de '))) {
+                $base = \Illuminate\Support\Str::slug($t->nombre) ?: 'tienda';
+                $slug = $base;
+                $i = 2;
+                while (static::where('slug', $slug)->where('id', '!=', $t->id ?? 0)->exists()) {
+                    $slug = $base . '-' . $i++;
+                }
+                $t->slug = $slug;
+            }
+        });
+    }
+
+    public function getUrlCatalogoAttribute(): string
+    {
+        return url('/t/' . $this->slug);
+    }
 
     public function usuarios()
     {
