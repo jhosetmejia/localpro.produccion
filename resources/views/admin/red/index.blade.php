@@ -57,25 +57,38 @@
             <div class="row g-2 align-items-end mb-3">
                 <div class="col-md-4"><label class="form-label">Valor del plan anual con asesor</label><input data-dinero type="number" name="red_valor_plan" class="form-control fw-bold" value="{{ (int) $valores['valor_plan'] }}"></div>
             </div>
-            <div class="table-responsive">
-                <table class="table align-middle mb-2" style="min-width:420px">
-                    <thead><tr><th>Quién gana</th><th style="width:34%">Venta nueva</th><th style="width:34%">Renovación anual</th></tr></thead>
-                    <tbody>
-                    @foreach ($filas as $k => [$nombre, $clave])
-                    <tr>
-                        <td class="fw-bold">{{ $nombre }}</td>
-                        <td><input data-dinero type="number" name="red_nueva_{{ $clave }}" class="form-control vn" value="{{ (int) $valores['nueva'][$k] }}"></td>
-                        <td><input data-dinero type="number" name="red_renov_{{ $clave }}" class="form-control vr" value="{{ (int) $valores['renovacion'][$k] }}"></td>
-                    </tr>
-                    @endforeach
-                    <tr style="background:#f2fbf3">
-                        <td class="fw-bold" style="color:#11702f">LocalPro (el resto)</td>
-                        <td class="fw-bold fs-5" id="restoN">${{ number_format($resto('nueva'), 0, ',', '.') }}</td>
-                        <td class="fw-bold fs-5" id="restoR">${{ number_format($resto('renovacion'), 0, ',', '.') }}</td>
-                    </tr>
-                    </tbody>
-                </table>
+            <div class="rv">
+                <div class="rv-h"><span>Quién gana</span><span>Venta nueva</span><span>Renovación anual</span></div>
+                @foreach ($filas as $k => [$nombre, $clave])
+                <div class="rv-f">
+                    <b>{{ $nombre }}</b>
+                    <label><small>Venta nueva</small><input data-dinero type="number" min="0" name="red_nueva_{{ $clave }}" class="form-control vn" value="{{ (int) $valores['nueva'][$k] }}"></label>
+                    <label><small>Renovación anual</small><input data-dinero type="number" min="0" name="red_renov_{{ $clave }}" class="form-control vr" value="{{ (int) $valores['renovacion'][$k] }}"></label>
+                </div>
+                @endforeach
+                <div class="rv-f rv-t">
+                    <b>LocalPro (el resto)</b>
+                    <label><small>Venta nueva</small><span id="restoN">${{ number_format($resto('nueva'), 0, ',', '.') }}</span></label>
+                    <label><small>Renovación anual</small><span id="restoR">${{ number_format($resto('renovacion'), 0, ',', '.') }}</span></label>
+                </div>
             </div>
+            <style>
+                .rv{margin-bottom:10px}
+                .rv-h,.rv-f{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:10px;align-items:center}
+                .rv-h{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#5b665e;padding:0 0 6px;border-bottom:1.5px solid #e3efe5}
+                .rv-f{padding:10px 0;border-bottom:1px solid #edf3ee}
+                .rv-f label{margin:0;display:block;min-width:0}
+                .rv-f label small{display:none;font-weight:700;color:#5b665e;font-size:.75rem}
+                .rv-f input{width:100%;min-width:0}
+                .rv-t{background:#f2fbf3;border-radius:14px;padding:12px;border:0;margin-top:6px}
+                .rv-t b{color:#11702f}.rv-t span{font-weight:800;font-size:1.15rem}
+                @media (max-width:576px){
+                    .rv-h{display:none}
+                    .rv-f{grid-template-columns:1fr 1fr}
+                    .rv-f b{grid-column:1/-1}
+                    .rv-f label small{display:block;margin-bottom:2px}
+                }
+            </style>
             <div class="small text-muted mb-3">Si un líder vende directamente, cobra la parte de asesor más la de su cargo y las de los cargos de abajo. Si un cargo está vacío o inactivo, esa parte queda para LocalPro. Un líder de zona maneja máximo {{ \App\Models\Asesor::MAX_ASESORES_ZONA }} asesores.</div>
             <button class="btn btn-dark">Guardar valores</button>
         </form>

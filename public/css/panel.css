@@ -199,3 +199,9 @@ main h1,main .h1{font-weight:800;letter-spacing:-.03em;font-size:clamp(1.6rem,3v
 
 .lp-vista select{border-radius:999px;border:1.5px solid #cfe9d6;background-color:#f2fbf3;color:#11702f;max-width:190px;padding-top:.3rem;padding-bottom:.3rem}
 @media (max-width:420px){.lp-vista select{max-width:140px;font-size:.75rem}}
+
+/* Que ninguna pantalla se salga a lo ancho en el celular */
+#layoutSidenav_content{min-width:0;overflow-x:hidden}
+.lp-dash{min-width:0}
+.lp-count small{display:block;line-height:1.2}
+@media (max-width:576px){.lp-hello .lp-quick{width:100%}.lp-hello .lp-quick .btn{flex:1 1 auto}}
