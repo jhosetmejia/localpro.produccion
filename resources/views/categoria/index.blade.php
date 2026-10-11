@@ -1,141 +1,76 @@
 @extends('layouts.app')
 
-@section('title','categorías')
-
-@push('css-datatable')
-<link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css">
-@endpush
-
-@push('css')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-@endpush
+@section('title', 'Categorías')
 
 @section('content')
-
-@include('layouts.partials.alert')
- 
-<div class="container-fluid px-4">
-    <h1 class="mt-4 text-center">Categorías</h1>
-    <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item"><a href="{{ route('panel') }}">Inicio</a></li>
-        <li class="breadcrumb-item active">Categorías</li>
-    </ol>
+<div class="lp-dash" style="max-width:860px;margin:0 auto">
+    <div class="lp-hello">
+        <div><small>Inventario</small><h1>Categorías</h1><span class="text-muted fw-semibold">Agrupe sus productos (ej. Camisetas, Jeans, Chaquetas) para encontrarlos y filtrarlos fácil.</span></div>
+    </div>
+    @include('layouts.partials.lp-flash')
 
     @can('crear-categoria')
-    <div class="mb-4">
-        <a href="{{route('categorias.create')}}">
-            <button type="button" class="btn btn-primary">Añadir nuevo registro</button>
-        </a>
-    </div>
+    <form method="post" action="{{ route('categorias.store') }}" class="lp-box mb-3">
+        @csrf
+        <h3>Nueva categoría</h3>
+        <div class="d-flex gap-2 flex-wrap">
+            <input name="nombre" class="form-control flex-grow-1" style="min-width:180px;flex-basis:200px" placeholder="Ej: Chaquetas" maxlength="60" value="{{ old('nombre') }}" required>
+            <input name="descripcion" class="form-control flex-grow-1" style="min-width:180px;flex-basis:200px" placeholder="Descripción (opcional)" maxlength="255" value="{{ old('descripcion') }}">
+            <button class="btn btn-primary"><i class="fa-solid fa-plus me-1"></i>Agregar</button>
+        </div>
+    </form>
     @endcan
 
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-table me-1"></i>
-            Tabla categorías
-        </div>
-        <div class="card-body">
-            <table id="datatablesSimple" class="table-striped fs-6">
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Descripción</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($categorias as $categoria)
-                    <tr>
-                        <td>
-                            {{$categoria->caracteristica->nombre}}
-                        </td>
-                        <td>
-                            {{$categoria->caracteristica->descripcion}}
-                        </td>
-                        <td>
-                            @if ($categoria->caracteristica->estado == 1)
-                            <span class="badge rounded-pill text-bg-success">activo</span>
-                            @else
-                            <span class="badge rounded-pill text-bg-danger">eliminado</span>
-                            @endif
-                        </td>
-                        <td>
-                            <div class="d-flex justify-content-around">
-
-                                <div>
-                                    <button title="Opciones" class="btn btn-datatable btn-icon btn-transparent-dark me-2" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <svg class="svg-inline--fa fa-ellipsis-vertical" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="ellipsis-vertical" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 512" data-fa-i2svg="">
-                                            <path fill="currentColor" d="M56 472a56 56 0 1 1 0-112 56 56 0 1 1 0 112zm0-160a56 56 0 1 1 0-112 56 56 0 1 1 0 112zM0 96a56 56 0 1 1 112 0A56 56 0 1 1 0 96z"></path>
-                                        </svg>
-                                    </button>
-                                    <ul class="dropdown-menu text-bg-light" style="font-size: small;">
-                                        <!-----Editar categoría--->
-                                        @can('editar-categoria')
-                                        <li><a class="dropdown-item" href="{{route('categorias.edit',['categoria'=>$categoria])}}">Editar</a></li>
-                                        @endcan
-                                    </ul>
-                                </div>
-
-                                <div>
-                                    <!----Separador----->
-                                    <div class="vr"></div>
-                                </div>
-
-                                <div>
-                                    <!------Eliminar categoria---->
-                                    @can('eliminar-categoria')
-                                    @if ($categoria->caracteristica->estado == 1)
-                                    <button title="Eliminar" data-bs-toggle="modal" data-bs-target="#confirmModal-{{$categoria->id}}" class="btn btn-datatable btn-icon btn-transparent-dark">
-                                        <svg class="svg-inline--fa fa-trash-can" aria-hidden="true" focusable="false" data-prefix="far" data-icon="trash-can" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg="">
-                                            <path fill="currentColor" d="M170.5 51.6L151.5 80h145l-19-28.4c-1.5-2.2-4-3.6-6.7-3.6H177.1c-2.7 0-5.2 1.3-6.7 3.6zm147-26.6L354.2 80H368h48 8c13.3 0 24 10.7 24 24s-10.7 24-24 24h-8V432c0 44.2-35.8 80-80 80H112c-44.2 0-80-35.8-80-80V128H24c-13.3 0-24-10.7-24-24S10.7 80 24 80h8H80 93.8l36.7-55.1C140.9 9.4 158.4 0 177.1 0h93.7c18.7 0 36.2 9.4 46.6 24.9zM80 128V432c0 17.7 14.3 32 32 32H336c17.7 0 32-14.3 32-32V128H80zm80 64V400c0 8.8-7.2 16-16 16s-16-7.2-16-16V192c0-8.8 7.2-16 16-16s16 7.2 16 16zm80 0V400c0 8.8-7.2 16-16 16s-16-7.2-16-16V192c0-8.8 7.2-16 16-16s16 7.2 16 16zm80 0V400c0 8.8-7.2 16-16 16s-16-7.2-16-16V192c0-8.8 7.2-16 16-16s16 7.2 16 16z"></path>
-                                        </svg>
-                                    </button>
-                                    @else
-                                    <button title="Restaurar" data-bs-toggle="modal" data-bs-target="#confirmModal-{{$categoria->id}}" class="btn btn-datatable btn-icon btn-transparent-dark">
-                                        <i class="fa-solid fa-rotate"></i>
-                                    </button>
-                                    @endif
-                                    @endcan
-                                </div>
-
-                            </div>
-                        </td>
-                    </tr>
-
-                    <!-- Modal -->
-                    <div class="modal fade" id="confirmModal-{{$categoria->id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h1 class="modal-title fs-5" id="exampleModalLabel">Mensaje de confirmación</h1>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                                </div>
-                                <div class="modal-body">
-                                    {{ $categoria->caracteristica->estado == 1 ? '¿Seguro que quieres eliminar la categoría?' : '¿Seguro que quieres restaurar la categoría?' }}
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                    <form action="{{ route('categorias.destroy',['categoria'=>$categoria->id]) }}" method="post">
-                                        @method('DELETE')
-                                        @csrf
-                                        <button type="submit" class="btn btn-danger">Confirmar</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    @endforeach
-                </tbody>
-            </table>
-
-        </div>
+    <div class="lp-box">
+        <h3>Sus categorías <small class="text-muted fw-semibold">{{ $categorias->count() }}</small></h3>
+        @if ($categorias->count() > 6)
+        <input type="search" class="form-control mb-2" placeholder="Buscar categoría..." oninput="var t=this.value.toLowerCase();document.querySelectorAll('.cat-item').forEach(function(li){li.style.display=li.dataset.n.indexOf(t)>-1?'':'none'})">
+        @endif
+        <ul class="lp-list">
+            @forelse ($categorias as $c)
+            @php $activa = $c->caracteristica->estado == 1; @endphp
+            <li class="cat-item {{ $activa ? '' : 'opacity-50' }}" data-n="{{ mb_strtolower($c->caracteristica->nombre) }}">
+                <div class="av"><i class="fa-solid fa-tag"></i></div>
+                <div class="t">
+                    <b>{{ $c->caracteristica->nombre }}</b>
+                    <small>{{ $c->productos_count }} {{ $c->productos_count === 1 ? 'producto' : 'productos' }}{{ $c->caracteristica->descripcion ? ' · ' . $c->caracteristica->descripcion : '' }}{{ $activa ? '' : ' · Oculta' }}</small>
+                </div>
+                <div class="d-flex gap-1 flex-none">
+                    @can('editar-categoria')
+                    <button type="button" class="btn btn-sm btn-dark" data-bs-toggle="modal" data-bs-target="#ed{{ $c->id }}" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                    @endcan
+                    @can('eliminar-categoria')
+                    <form method="post" action="{{ route('categorias.destroy', $c) }}" onsubmit="return confirm('{{ $activa ? '¿Ocultar la categoría ' . e($c->caracteristica->nombre) . '? Los productos no se borran.' : '¿Volver a mostrar esta categoría?' }}')">
+                        @csrf @method('DELETE')
+                        <button class="btn btn-sm {{ $activa ? 'btn-danger' : 'btn-success' }}" title="{{ $activa ? 'Ocultar' : 'Restaurar' }}"><i class="fa-solid {{ $activa ? 'fa-eye-slash' : 'fa-rotate-left' }}"></i></button>
+                    </form>
+                    @endcan
+                </div>
+            </li>
+            @empty
+            <li class="lp-empty">Aún no tiene categorías. Cree la primera arriba.</li>
+            @endforelse
+        </ul>
     </div>
-
 </div>
-@endsection
 
-@push('js')
-<script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
-<script src="{{ asset('js/datatables-simple-demo.js') }}?v=2"></script>
-@endpush
+@can('editar-categoria')
+@foreach ($categorias as $c)
+<div class="modal fade" id="ed{{ $c->id }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" method="post" action="{{ route('categorias.update', $c) }}" style="border-radius:22px">
+            @csrf @method('PATCH')
+            <div class="modal-header border-0"><h5 class="modal-title fw-bold">Editar categoría</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
+            <div class="modal-body pt-0">
+                <label class="form-label">Nombre</label>
+                <input name="nombre" class="form-control mb-3" value="{{ $c->caracteristica->nombre }}" maxlength="60" required>
+                <label class="form-label">Descripción (opcional)</label>
+                <input name="descripcion" class="form-control" value="{{ $c->caracteristica->descripcion }}" maxlength="255">
+            </div>
+            <div class="modal-footer border-0"><button class="btn btn-primary w-100">Guardar</button></div>
+        </form>
+    </div>
+</div>
+@endforeach
+@endcan
+@endsection

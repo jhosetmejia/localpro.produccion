@@ -157,7 +157,7 @@ main h1,main .h1{font-weight:800;letter-spacing:-.03em;font-size:clamp(1.6rem,3v
 
 /* Categorías como botones */
 .lp-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:.4rem}
-.lp-chip{display:inline-flex;align-items:center;gap:.4rem;border:2px solid var(--lp-line);background:#fff;border-radius:999px;padding:.55rem 1rem;font-weight:700;font-size:.92rem;cursor:pointer;color:var(--lp-ink);text-decoration:none;transition:all .12s;user-select:none}
+.lp-chip{font:inherit;display:inline-flex;align-items:center;gap:.4rem;border:2px solid var(--lp-line);background:#fff;border-radius:999px;padding:.55rem 1rem;font-weight:700;font-size:.92rem;cursor:pointer;color:var(--lp-ink);text-decoration:none;transition:all .12s;user-select:none}
 .lp-chip svg,.lp-chip i{display:none}
 .btn-check:checked+.lp-chip{background:var(--lp-black);border-color:var(--lp-black);color:#fff}
 .btn-check:checked+.lp-chip svg,.btn-check:checked+.lp-chip i{display:inline-block;color:var(--lp-lime)}

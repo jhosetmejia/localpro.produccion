@@ -25,11 +25,12 @@ class categoriaController extends Controller
      */
     public function index()
     {
-        $categorias = Categoria::with('caracteristica')->latest()->get();
+        $categorias = Categoria::with('caracteristica')->withCount('productos')->get()
+            ->sortBy(fn ($c) => [$c->caracteristica->estado == 1 ? 0 : 1, mb_strtolower($c->caracteristica->nombre)])
+            ->values();
 
         return view('categoria.index', ['categorias' => $categorias]);
     }
-
     /**
      * Show the form for creating a new resource.
      */
@@ -43,20 +44,18 @@ class categoriaController extends Controller
      */
     public function store(StoreCaracteristicaRequest $request)
     {
-        try {
-            DB::beginTransaction();
+        $categoria = DB::transaction(function () use ($request) {
             $caracteristica = Caracteristica::create($request->validated());
-            $caracteristica->categoria()->create([
-                'caracteristica_id' => $caracteristica->id
-            ]);
-            DB::commit();
-        } catch (Exception $e) {
-            DB::rollBack();
+            return $caracteristica->categoria()->create(['caracteristica_id' => $caracteristica->id]);
+        });
+
+        // Desde el formulario de producto se crea sin salir de la página
+        if ($request->expectsJson()) {
+            return response()->json(['id' => $categoria->id, 'nombre' => $request->validated()['nombre']]);
         }
 
         return redirect()->route('categorias.index')->with('success', 'Categoría registrada');
     }
-
     /**
      * Display the specified resource.
      */
@@ -90,7 +89,7 @@ class categoriaController extends Controller
     public function destroy(string $id)
     {
         $message = '';
-        $categoria = Categoria::find($id);
+        $categoria = Categoria::findOrFail($id);
         if ($categoria->caracteristica->estado == 1) {
             Caracteristica::where('id', $categoria->caracteristica->id)
                 ->update([

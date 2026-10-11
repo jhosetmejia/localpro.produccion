@@ -108,3 +108,18 @@
 </div>
 @endsection
 
+@push('js')
+<script>
+// Avisa antes de salir si hay cambios sin guardar en el producto
+(function () {
+    var f = document.querySelector('form[enctype]') || document.querySelector('main form');
+    if (!f) return;
+    var cambios = false;
+    f.addEventListener('input', function () { cambios = true; });
+    f.addEventListener('change', function () { cambios = true; });
+    f.addEventListener('submit', function () { cambios = false; });
+    window.addEventListener('beforeunload', function (e) { if (cambios) { e.preventDefault(); e.returnValue = ''; } });
+})();
+</script>
+@endpush
+
