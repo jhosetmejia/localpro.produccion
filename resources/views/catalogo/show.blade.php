@@ -84,7 +84,7 @@ button{font:inherit;border:0;background:none;cursor:pointer;color:inherit}
         <div class="logo">@if ($tienda->logo_url)<img src="{{ $tienda->logo_url }}" alt="{{ $tienda->nombre }}">@else{{ mb_substr($tienda->nombre, 0, 1) }}@endif</div>
         <div>
             <h1>{{ $tienda->nombre }}</h1>
-            <p>{{ $tienda->descripcion ?: $tienda->tipo_nombre }}{{ $tienda->ciudad ? ' · ' . $tienda->ciudad : '' }}</p>
+            <p>{{ $tienda->descripcion ?: $tienda->tipo_nombre }}{{ $tienda->ciudad ? ' · ' . $tienda->ciudad . ($tienda->departamento && $tienda->departamento !== $tienda->ciudad ? ', ' . $tienda->departamento : '') : '' }}</p>
         </div>
     </div>
 </header>

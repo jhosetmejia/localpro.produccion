@@ -17,13 +17,8 @@
                         @foreach ($tipos as $k => $t)<option value="{{ $k }}" @selected(old('tipo_negocio', 'moda') === $k)>{{ $t[0] }}</option>@endforeach
                     </select>
                 </div>
-                <div class="col-md-4"><label class="form-label">País</label>
-                    <select name="pais" class="form-select" required>
-                        @foreach ($paises as $k => $p)<option value="{{ $k }}" @selected(old('pais', 'CO') === $k)>{{ $p[0] }} · {{ $p[1] }}</option>@endforeach
-                    </select>
-                </div>
-                <div class="col-md-4"><label class="form-label">Ciudad</label><input name="ciudad" class="form-control" value="{{ old('ciudad') }}" maxlength="60"></div>
-                <div class="col-md-4"><label class="form-label">Teléfono de la tienda</label><input name="telefono" class="form-control" value="{{ old('telefono') }}" maxlength="30"></div>
+                @include('layouts.partials.ubicacion', ['pais' => 'CO'])
+                <div class="col-md-6"><label class="form-label">Teléfono de la tienda</label><input name="telefono" class="form-control" value="{{ old('telefono') }}" maxlength="30"></div>
             </div>
         </div>
         <div class="lp-box">

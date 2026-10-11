@@ -38,12 +38,12 @@ class negocioController extends Controller
             'resolucion_desde' => 'nullable|integer|min:1',
             'resolucion_hasta' => 'nullable|integer|min:1|gte:resolucion_desde',
             'direccion' => 'nullable|string|max:120',
-            'ciudad' => 'nullable|string|max:60',
+
             'telefono' => 'nullable|string|max:30',
             'email' => 'nullable|email|max:120',
             'mensaje_tiquete' => 'nullable|string|max:255',
             'logo' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:2048',
-        ]);
+        ] + \App\Support\Ubicaciones::reglas($request->input('pais'), $request->input('departamento')), \App\Support\Ubicaciones::mensajes());
 
         if ($request->hasFile('logo')) {
             if ($negocio->logo_path) {

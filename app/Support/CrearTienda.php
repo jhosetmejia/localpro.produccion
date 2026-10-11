@@ -26,6 +26,7 @@ class CrearTienda
                 'tipo_negocio' => $tipo,
                 'usa_tallas' => Tienda::TIPOS[$tipo][2] ?? false,
                 'telefono' => $tienda['telefono'] ?? null,
+                'departamento' => $tienda['departamento'] ?? null,
                 'ciudad' => $tienda['ciudad'] ?? null,
                 'email' => $dueno['email'],
                 'mensaje_tiquete' => '¡Gracias por su compra!',

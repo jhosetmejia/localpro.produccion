@@ -10,6 +10,8 @@ class Paises
 {
     public const LISTA = [
         'CO' => ['Colombia', 'COP', '$', 0, '.', ',', '57', 'America/Bogota'],
+        'CR' => ['Costa Rica', 'CRC', '₡', 0, '.', ',', '506', 'America/Costa_Rica'],
+        'SV' => ['El Salvador', 'USD', '$', 2, ',', '.', '503', 'America/El_Salvador'],
         'EC' => ['Ecuador', 'USD', '$', 2, '.', ',', '593', 'America/Guayaquil'],
         'PE' => ['Perú', 'PEN', 'S/', 2, ',', '.', '51', 'America/Lima'],
         'MX' => ['México', 'MXN', '$', 2, ',', '.', '52', 'America/Mexico_City'],
@@ -20,10 +22,8 @@ class Paises
         'PY' => ['Paraguay', 'PYG', '₲', 0, '.', ',', '595', 'America/Asuncion'],
         'UY' => ['Uruguay', 'UYU', '$', 2, '.', ',', '598', 'America/Montevideo'],
         'PA' => ['Panamá', 'USD', '$', 2, ',', '.', '507', 'America/Panama'],
-        'CR' => ['Costa Rica', 'CRC', '₡', 0, '.', ',', '506', 'America/Costa_Rica'],
         'GT' => ['Guatemala', 'GTQ', 'Q', 2, ',', '.', '502', 'America/Guatemala'],
         'HN' => ['Honduras', 'HNL', 'L', 2, ',', '.', '504', 'America/Tegucigalpa'],
-        'SV' => ['El Salvador', 'USD', '$', 2, ',', '.', '503', 'America/El_Salvador'],
         'NI' => ['Nicaragua', 'NIO', 'C$', 2, ',', '.', '505', 'America/Managua'],
         'DO' => ['República Dominicana', 'DOP', 'RD$', 2, ',', '.', '1', 'America/Santo_Domingo'],
         'ES' => ['España', 'EUR', '€', 2, '.', ',', '34', 'Europe/Madrid'],

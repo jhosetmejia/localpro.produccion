@@ -79,11 +79,20 @@ class bienvenidaController extends Controller
             'nombre' => 'required|string|max:80',
             'tipo_negocio' => ['required', Rule::in(array_keys(Tienda::TIPOS))],
             'descripcion' => 'nullable|string|max:120',
-            'ciudad' => 'nullable|string|max:60',
+            'pais' => ['required', Rule::in(array_keys(\App\Support\Paises::LISTA))],
             'telefono' => 'nullable|string|max:30',
             'nit' => 'nullable|string|max:30',
             'logo' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:2048',
-        ], ['nombre.required' => 'Escriba el nombre de su negocio.', 'tipo_negocio.required' => 'Elija el tipo de negocio.']);
+        ] + \App\Support\Ubicaciones::reglas($request->input('pais'), $request->input('departamento')),
+        ['nombre.required' => 'Escriba el nombre de su negocio.', 'tipo_negocio.required' => 'Elija el tipo de negocio.'] + \App\Support\Ubicaciones::mensajes());
+
+        // Si cambió de país antes de vender, sus formas de pago pasan a ser las de ese país
+        if ($datos['pais'] !== $tienda->pais && !\App\Models\PosVenta::exists()) {
+            \App\Models\MetodoPago::query()->delete();
+            foreach (CrearTienda::metodosPorPais($datos['pais']) as $i => [$nombre, $efectivo]) {
+                \App\Models\MetodoPago::create(['nombre' => $nombre, 'es_efectivo' => $efectivo, 'activo' => true, 'orden' => $i + 1]);
+            }
+        }
 
         if ($request->hasFile('logo')) {
             if ($tienda->logo_path) {

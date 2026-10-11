@@ -53,18 +53,17 @@ class adminTiendaController extends Controller
             'nombre' => 'required|string|max:80',
             'tipo_negocio' => ['required', Rule::in(array_keys(Tienda::TIPOS))],
             'pais' => ['required', Rule::in(array_keys(Paises::LISTA))],
-            'ciudad' => 'nullable|string|max:60',
             'telefono' => 'nullable|string|max:30',
             'dueno_nombre' => 'required|string|max:80',
             'dueno_email' => 'required|email|max:120|unique:users,email',
             'dueno_telefono' => 'nullable|string|max:20',
             'dueno_password' => 'required|string|min:8',
-        ], [], [
+        ] + \App\Support\Ubicaciones::reglas($request->input('pais'), $request->input('departamento'), false), \App\Support\Ubicaciones::mensajes(), [
             'dueno_nombre' => 'nombre del dueño', 'dueno_email' => 'correo del dueño', 'dueno_password' => 'contraseña del dueño',
         ]);
 
         [$tienda] = CrearTienda::crear(
-            ['nombre' => $datos['nombre'], 'tipo_negocio' => $datos['tipo_negocio'], 'pais' => $datos['pais'], 'ciudad' => $datos['ciudad'] ?? null, 'telefono' => $datos['telefono'] ?? null],
+            ['nombre' => $datos['nombre'], 'tipo_negocio' => $datos['tipo_negocio'], 'pais' => $datos['pais'], 'departamento' => $datos['departamento'] ?? null, 'ciudad' => $datos['ciudad'] ?? null, 'telefono' => $datos['telefono'] ?? null],
             ['name' => $datos['dueno_nombre'], 'email' => $datos['dueno_email'], 'telefono' => $datos['dueno_telefono'] ?? null, 'password' => $datos['dueno_password']]
         );
 

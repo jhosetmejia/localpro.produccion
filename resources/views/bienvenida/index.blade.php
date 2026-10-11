@@ -19,7 +19,10 @@
         h1{font-size:clamp(1.8rem,4vw,2.5rem);font-weight:800;letter-spacing:-.035em;line-height:1.05;margin-bottom:.4rem}
         .lead{color:var(--muted);margin-bottom:1.6rem}
         .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-        @media(max-width:640px){.grid2{grid-template-columns:1fr}}
+        .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+        @media(max-width:640px){.grid2,.grid3{grid-template-columns:1fr}}
+        select.in{appearance:auto}
+        select.in:disabled{opacity:.6}
         .tipos{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:1.2rem}
         .tipo input{position:absolute;opacity:0;pointer-events:none}
         .tipo label{display:flex;flex-direction:column;gap:.35rem;border:2px solid var(--line);border-radius:18px;padding:14px;cursor:pointer;height:100%;transition:all .15s;background:#fff}
@@ -102,8 +105,10 @@
                 <label>¿Qué vende exactamente? <span style="color:var(--muted);font-weight:600">(opcional)</span></label>
                 <input class="in" name="descripcion" value="{{ old('descripcion', $tienda->descripcion) }}" placeholder="Ej: Ropa urbana para hombre y mujer" maxlength="120">
             </div>
+            <div class="grid3" style="margin-bottom:1.1rem">
+                @include('layouts.partials.ubicacion', ['pais' => $tienda->pais, 'departamento' => $tienda->departamento, 'ciudad' => $tienda->ciudad, 'clase' => 'in', 'envoltura' => 'field', 'etiqueta' => ''])
+            </div>
             <div class="grid2">
-                <div class="field"><label>Ciudad</label><input class="in" name="ciudad" value="{{ old('ciudad', $tienda->ciudad) }}" placeholder="Ej: Pasto" maxlength="60"></div>
                 <div class="field"><label>Teléfono / WhatsApp de la tienda</label><input class="in" name="telefono" value="{{ old('telefono', $tienda->telefono) }}" maxlength="30"></div>
                 <div class="field"><label>NIT / RUT <span style="color:var(--muted);font-weight:600">(opcional)</span></label><input class="in" name="nit" value="{{ old('nit', $tienda->nit) }}" maxlength="30"></div>
                 <div class="field">

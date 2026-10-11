@@ -12,8 +12,8 @@
 <style>
 :root{--g:linear-gradient(135deg,#a6f34a 0%,#2fd15a 45%,#16b34a 100%);--g2:#16b34a;--lime:#a6f34a;--k:#0b0d0c;--ink:#151a17;--bg:#f4f8f5;--line:#e3efe5;--mut:#5b665e;--gold:#ffcc33;--pink:#ff5d8f}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;overflow:hidden}
+html,body{height:100%;height:100dvh}
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;overflow:hidden;width:100%;max-width:100vw}
 button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
 input{font:inherit}
 .app{display:grid;grid-template-rows:64px 1fr;height:100vh;height:100dvh}
@@ -30,10 +30,13 @@ input{font:inherit}
 .tbtn:hover{background:#252c27}
 .tbtn.red{color:#ff9fbd}
 /* Cuerpo */
-.main{display:grid;grid-template-columns:1fr 400px;min-height:0}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 400px;min-height:0;min-width:0}
+.main>*,.cat,.search{min-width:0}
+.top{min-width:0;overflow:hidden}
+.top .pill{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .cat{display:flex;flex-direction:column;min-height:0;padding:18px}
 .search{position:relative;margin-bottom:14px}
-.search input{width:100%;height:56px;border-radius:18px;border:2px solid var(--line);background:#fff;padding:0 56px 0 52px;font-size:1.05rem;font-weight:600;outline:none;transition:border-color .15s,box-shadow .15s}
+.search input{width:100%;min-width:0;text-overflow:ellipsis;height:56px;border-radius:18px;border:2px solid var(--line);background:#fff;padding:0 56px 0 52px;font-size:1.05rem;font-weight:600;outline:none;transition:border-color .15s,box-shadow .15s}
 .search input:focus{border-color:#2fd15a;box-shadow:0 0 0 5px rgba(47,209,90,.15)}
 .search .ic{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:#93a097;font-size:1.1rem}
 .search .scan{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:var(--bg);width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:var(--g2)}
@@ -139,12 +142,23 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
 .fab{display:none}
 /* Celular / tablet vertical */
 @media (max-width:900px){
-  .main{grid-template-columns:1fr}
-  .cart{position:fixed;inset:auto 0 0 0;height:82vh;border-radius:26px 26px 0 0;border:0;box-shadow:0 -20px 50px rgba(0,0,0,.25);transform:translateY(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1);z-index:40}
-  .cart.open{transform:none}
-  .fab{display:flex;position:fixed;left:14px;right:14px;bottom:14px;height:60px;border-radius:18px;background:var(--k);color:#fff;align-items:center;justify-content:space-between;padding:0 18px;font-weight:800;z-index:30;box-shadow:0 18px 40px -16px rgba(0,0,0,.6)}
+  .main{grid-template-columns:minmax(0,1fr)}
+  .cat{padding:12px}
+  .search input{height:50px;font-size:.98rem;padding:0 50px 0 46px}
+  .top .pill{flex:0 1 auto}
+  .tbtn{flex:none}
+  .toast{bottom:calc(92px + env(safe-area-inset-bottom))}
+  .cart{position:fixed;inset:auto 0 0 0;height:82vh;height:82dvh;border-radius:26px 26px 0 0;border:0;box-shadow:0 -20px 50px rgba(0,0,0,.25);transform:translateY(calc(100% + 60px));visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s .28s;z-index:40;padding-bottom:env(safe-area-inset-bottom)}
+  .cart.open{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+  .cat{padding-bottom:0}
+  .grid{padding-bottom:110px}
+  .fab{display:flex;position:fixed;left:14px;right:14px;bottom:calc(16px + env(safe-area-inset-bottom));height:60px;border-radius:18px;background:var(--k);color:#fff;align-items:center;justify-content:space-between;padding:0 18px;font-weight:800;z-index:30;box-shadow:0 18px 40px -16px rgba(0,0,0,.6)}
   .fab .n{background:var(--g);color:var(--k);border-radius:999px;padding:.15rem .6rem;margin-right:.5rem}
-  .top .pill.hide-m,.tbtn span{display:none}
+  .top .pill.hide-m{display:none}
+  .top{gap:8px;padding:0 10px}
+  .brand span:last-child{display:none}
+  .tbtn{flex-direction:column;gap:2px;height:48px;padding:0 .55rem;font-size:.66rem;justify-content:center}
+  .tbtn span{display:block;line-height:1}
   .grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
 }
 </style>
@@ -157,9 +171,9 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         <div class="pill"><i class="fa-solid fa-cash-register"></i>Caja #{{ $caja->id }}</div>
         <div class="pill hide-m"><i class="fa-solid fa-user"></i>{{ auth()->user()->name }}</div>
         <div class="sp"></div>
-        <a class="tbtn" href="{{ route('cajas.show', $caja) }}"><i class="fa-solid fa-receipt"></i><span>Mi turno</span></a>
-        <a class="tbtn" href="{{ route('cajas.cerrar') }}"><i class="fa-solid fa-lock"></i><span>Cerrar caja</span></a>
-        <a class="tbtn" href="{{ route('panel') }}"><i class="fa-solid fa-house"></i><span>Panel</span></a>
+        <a class="tbtn" href="{{ route('cajas.show', $caja) }}" title="Ver las ventas de mi turno"><i class="fa-solid fa-receipt"></i><span>Mi turno</span></a>
+        <a class="tbtn" href="{{ route('cajas.cerrar') }}" title="Cerrar caja y hacer el cuadre"><i class="fa-solid fa-lock"></i><span>Cerrar caja</span></a>
+        <a class="tbtn" href="{{ route('panel') }}" title="Volver al panel"><i class="fa-solid fa-house"></i><span>Panel</span></a>
     </header>
 
     <div class="main">
@@ -191,7 +205,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     </div>
 </div>
 
-<button class="fab" id="fab"><span><span class="n" id="fabN">0</span>Ver venta</span><span id="fabT">$0</span></button>
+<button class="fab" id="fab"><span><span class="n" id="fabN">0</span><i class="fa-solid fa-bag-shopping"></i> Ver venta y cobrar</span><span id="fabT">$0</span></button>
 
 <!-- Elegir talla y color -->
 <div class="ov" id="ovVar">
@@ -240,6 +254,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
 <script>
 (function () {
     var URL_BUSCAR = @json(route('pos.buscar')), URL_VENTA = @json(route('pos.store'));
+    var URL_NUEVO = @json(route('productos.create'));
     var URL_CLIENTES = @json(route('pos.clientes')), URL_SALDO = @json(route('pos.saldo'));
     var NEGOCIO = @json($negocio->nombre);
     var METODOS = @json($metodos);
@@ -280,7 +295,9 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     function pintarGrid() {
         var g = $('grid');
         if (!productos.length) {
-            g.innerHTML = '<div class="empty"><i class="fa-solid fa-shirt"></i>No hay prendas con tallas y colores para mostrar.<br><small>Cree productos y agrégueles tallas/colores en Inventario.</small></div>';
+            g.innerHTML = $('q').value.trim()
+                ? '<div class="empty"><i class="fa-solid fa-magnifying-glass"></i>No se encontró "' + esc($('q').value.trim()) + '".</div>'
+                : '<div class="empty"><i class="fa-solid fa-box-open"></i>Aún no tiene productos para vender.<br><a href="' + URL_NUEVO + '" style="display:inline-block;margin-top:12px;background:#0b0d0c;color:#fff;border-radius:999px;padding:.7rem 1.2rem;font-weight:800;text-decoration:none">+ Crear mi primer producto</a></div>';
             return;
         }
         g.innerHTML = productos.map(function (p, i) {
@@ -561,6 +578,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     });
     window.addEventListener('beforeunload', function (e) { if (cart.length && !ultima) { e.preventDefault(); e.returnValue = ''; } });
 
+    if (window.innerWidth < 600) $('q').placeholder = 'Buscar o escanear…';
     pintarCarrito();
     buscar('');
     @if (session('bienvenida'))

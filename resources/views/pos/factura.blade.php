@@ -45,7 +45,7 @@
         <div class="logo">@if ($negocio->logo_url)<img src="{{ $negocio->logo_url }}" alt="{{ $negocio->nombre }}">@else<span>{{ mb_substr($negocio->nombre, 0, 1) }}</span>@endif</div>
         <div>
             <h1>{{ $negocio->nombre }}</h1>
-            <p>@if($negocio->nit)NIT {{ $negocio->nit }} · @endif{{ $negocio->direccion }}@if($negocio->ciudad), {{ $negocio->ciudad }}@endif @if($negocio->telefono)<br>Tel. {{ $negocio->telefono }}@endif</p>
+            <p>@if($negocio->nit)NIT {{ $negocio->nit }} · @endif{{ $negocio->direccion }}@if($negocio->ciudad){{ $negocio->direccion ? ', ' : '' }}{{ $negocio->ciudad }}@endif @if($negocio->departamento && $negocio->departamento !== $negocio->ciudad)({{ $negocio->departamento }})@endif @if($negocio->telefono)<br>Tel. {{ $negocio->telefono }}@endif</p>
         </div>
     </div>
     <div class="bd">
