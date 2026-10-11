@@ -133,6 +133,9 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
 .sum div{display:flex;justify-content:space-between;font-weight:700}
 .sum .big{font-size:1.4rem;color:var(--lime)}
 .sum .warn{color:#ff9fbd}
+.sum .cli-l{font-size:.85rem;color:#cfd8d2;font-weight:600}
+.sum .cli-l span:last-child{text-align:right;max-width:65%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#pOk{position:sticky;bottom:0;z-index:2;box-shadow:0 0 0 10px #fff}
 .err{background:#ffe9f3;color:#9b1c5a;border-radius:14px;padding:.7rem .9rem;font-weight:700;font-size:.9rem;margin-top:12px;display:none}
 .ok{text-align:center}
 .ok .badge{width:84px;height:84px;border-radius:26px;background:var(--g);display:grid;place-items:center;margin:4px auto 14px;font-size:2.2rem;color:var(--k);animation:bounce .5s cubic-bezier(.2,1.6,.4,1)}
@@ -177,6 +180,18 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
   .cli-res{bottom:auto;top:calc(100% + 6px)}
   .ov{align-items:flex-start;padding-top:calc(76px + env(safe-area-inset-top));backdrop-filter:none}
   .ov .md{max-height:calc(100% - 90px)}
+  #ovPay .md{padding:16px 16px 14px}
+  #ovPay .mh{margin-bottom:6px}
+  #ovPay .mh small{display:none}
+  #ovPay .lbl{margin:6px 0}
+  .methods{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .mt{padding:.5rem .25rem;font-size:.78rem;border-radius:12px;gap:.2rem;text-align:center;line-height:1.15}
+  .mt i,.mt svg{font-size:1rem}
+  .prow input{width:130px}
+  .credit{padding:.45rem;font-size:.85rem;margin-top:8px}
+  .sum{margin-top:10px;padding:10px 14px;gap:4px}
+  .sum .big{font-size:1.25rem}
+  #pOk{margin-top:12px}
   .card{transition:none}
   .card:hover{transform:none;box-shadow:none}
   .toast{top:calc(74px + env(safe-area-inset-top));bottom:auto;transform:translateX(-50%) translateY(-160px);width:max-content;max-width:calc(100vw - 24px);font-size:.92rem}
@@ -271,6 +286,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         <div id="prows"></div>
         <button type="button" class="credit" id="usarSaldo"><i class="fa-solid fa-ticket"></i> Usar saldo a favor (nota crédito)</button>
         <div class="sum">
+            <div class="cli-l"><span>Cliente</span><span id="pCli"></span></div>
             <div><span>Total a cobrar</span><span id="pTot">$0</span></div>
             <div><span>Recibido</span><span id="pRec">$0</span></div>
             <div class="big" id="pChgRow"><span id="pChgLbl">Cambio</span><span id="pChg">$0</span></div>
@@ -460,6 +476,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     function abrirCobro() {
         if (!cart.length) return;
         $('toast').classList.remove('on'); $('cart').classList.remove('open');
+        $('pCli').textContent = clienteId || $('cn').value.trim() ? $('cn').value.trim() : 'Consumidor final (sin cliente)';
         pagos = {}; credito = null;
         var ef = METODOS.find(function (m) { return m.es_efectivo; }) || METODOS[0];
         if (ef) pagos[ef.id] = '';
