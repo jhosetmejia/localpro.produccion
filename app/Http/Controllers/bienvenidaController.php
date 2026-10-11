@@ -132,10 +132,12 @@ class bienvenidaController extends Controller
                     if (Producto::where('nombre', $nombre)->exists()) {
                         continue;
                     }
+                    $controla = !in_array($tienda->tipo_negocio, ['restaurante', 'cafeteria'], true);
                     $producto = Producto::create([
                         'codigo' => CrearTienda::siguienteCodigo(),
                         'nombre' => $nombre,
                         'precio_venta' => $p['precio'],
+                        'controla_inventario' => $controla,
                     ]);
                     $producto->categorias()->attach($categoria->id);
 
@@ -144,7 +146,7 @@ class bienvenidaController extends Controller
                     foreach (($tallas ?: [null]) as $t) {
                         foreach (($colores ?: [null]) as $c) {
                             $v = $producto->variantes()->create(['talla' => $t, 'color' => $c, 'stock' => 0]);
-                            if ((int) ($p['cantidad'] ?? 0) > 0) {
+                            if ($controla && (int) ($p['cantidad'] ?? 0) > 0) {
                                 $v->moverStock((int) $p['cantidad'], 'entrada', null, 'Inventario inicial');
                             }
                         }

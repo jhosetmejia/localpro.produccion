@@ -75,11 +75,13 @@ class varianteController extends Controller
     {
         $datos = $request->validate([
             'precio' => 'nullable|numeric|min:0|max:999999999',
+            'costo' => 'nullable|numeric|min:0|max:999999999',
             'codigo_barras' => ['nullable', 'string', 'max:60', Rule::unique('producto_variantes', 'codigo_barras')->where('tienda_id', \App\Support\TiendaActual::id())->ignore($variante->id)],
             'estado' => 'nullable|boolean',
         ]);
         $variante->update([
             'precio' => $datos['precio'] ?? null,
+            'costo' => $datos['costo'] ?? null,
             'codigo_barras' => $datos['codigo_barras'] ?? null,
             'estado' => $request->boolean('estado', true) ? 1 : 0,
         ]);

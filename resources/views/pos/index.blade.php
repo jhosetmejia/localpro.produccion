@@ -272,11 +272,12 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
             return;
         }
         g.innerHTML = productos.map(function (p, i) {
-            var cls = p.stock <= 0 ? 'zero' : (p.stock <= 5 ? 'low' : '');
-            return '<button class="card ' + (p.stock <= 0 ? 'off' : '') + '" data-i="' + i + '">' +
+            var cls = !p.controla ? '' : (p.stock <= 0 ? 'zero' : (p.stock <= 5 ? 'low' : ''));
+            var off = p.controla && p.stock <= 0;
+            return '<button class="card ' + (off ? 'off' : '') + '" data-i="' + i + '">' +
                 '<div class="thumb">' + (p.img ? '<img src="' + esc(p.img) + '" alt="" loading="lazy">' : esc(p.nombre.charAt(0))) + '</div>' +
                 '<b>' + esc(p.nombre) + '</b>' +
-                '<div class="row"><span class="price">' + fmt(p.precio) + '</span><span class="stk ' + cls + '">' + p.stock + ' und</span></div></button>';
+                '<div class="row"><span class="price">' + fmt(p.precio) + '</span><span class="stk ' + cls + '">' + (p.controla ? p.stock + ' und' : 'Disponible') + '</span></div></button>';
         }).join('');
     }
     $('grid').addEventListener('click', function (e) {
@@ -291,7 +292,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         if (p.variantes.length === 1) { agregar(p, p.variantes[0]); return; }
         actual = p; sel = { talla: null, color: null };
         $('vNom').textContent = p.nombre;
-        $('vInfo').textContent = 'Código ' + p.codigo + ' · ' + p.stock + ' unidades';
+        $('vInfo').textContent = 'Código ' + p.codigo + (p.controla ? ' · ' + p.stock + ' unidades' : '');
         pintarChips();
         abrir('ovVar');
     }
@@ -307,15 +308,15 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         $('vColoresW').style.display = hayC ? '' : 'none';
         $('vTallas').innerHTML = tallas.map(function (t) {
             var st = vs.filter(function (v) { return v.talla === t && (!sel.color || v.color === sel.color); }).reduce(function (a, v) { return a + v.stock; }, 0);
-            return '<button class="chip ' + (sel.talla === t ? 'sel' : '') + '" data-t="' + esc(t) + '" ' + (st <= 0 ? 'disabled' : '') + '>' + esc(t || 'Única') + '<small>' + st + ' und</small></button>';
+            return '<button class="chip ' + (sel.talla === t ? 'sel' : '') + '" data-t="' + esc(t) + '" ' + (actual.controla && st <= 0 ? 'disabled' : '') + '>' + esc(t || 'Única') + (actual.controla ? '<small>' + st + ' und</small>' : '') + '</button>';
         }).join('');
         $('vColores').innerHTML = colores.map(function (c) {
             var st = vs.filter(function (v) { return v.color === c && (!sel.talla || v.talla === sel.talla); }).reduce(function (a, v) { return a + v.stock; }, 0);
-            return '<button class="chip ' + (sel.color === c ? 'sel' : '') + '" data-c="' + esc(c) + '" ' + (st <= 0 ? 'disabled' : '') + '>' + esc(c || 'Único') + '<small>' + st + ' und</small></button>';
+            return '<button class="chip ' + (sel.color === c ? 'sel' : '') + '" data-c="' + esc(c) + '" ' + (actual.controla && st <= 0 ? 'disabled' : '') + '>' + esc(c || 'Único') + (actual.controla ? '<small>' + st + ' und</small>' : '') + '</button>';
         }).join('');
         var v = varianteElegida();
-        $('vAdd').disabled = !v || v.stock <= 0;
-        $('vAdd').textContent = v ? 'Agregar · ' + fmt(v.precio) + ' (' + v.stock + ' disp.)' : 'Elija talla y color';
+        $('vAdd').disabled = !v || (actual.controla && v.stock <= 0);
+        $('vAdd').textContent = v ? 'Agregar · ' + fmt(v.precio) + (actual.controla ? ' (' + v.stock + ' disp.)' : '') : 'Elija talla y color';
     }
     function varianteElegida() {
         if (!actual) return null;
@@ -329,9 +330,9 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     function agregar(p, v) {
         var it = cart.find(function (x) { return x.variante_id === v.id; });
         var enCarrito = it ? it.cantidad : 0;
-        if (enCarrito + 1 > v.stock) { toast('Solo hay ' + v.stock + ' de ' + p.nombre + ' ' + v.etiqueta, true); return; }
+        if (p.controla && enCarrito + 1 > v.stock) { toast('Solo hay ' + v.stock + ' de ' + p.nombre + ' ' + v.etiqueta, true); return; }
         if (it) it.cantidad++;
-        else cart.push({ variante_id: v.id, nombre: p.nombre, etiqueta: v.etiqueta, precio: v.precio, stock: v.stock, cantidad: 1 });
+        else cart.push({ variante_id: v.id, nombre: p.nombre, etiqueta: v.etiqueta, precio: v.precio, stock: v.stock, controla: p.controla, cantidad: 1 });
         pintarCarrito();
         toast(p.nombre + ' · ' + v.etiqueta + ' agregado');
         $('q').focus();
@@ -358,7 +359,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         if (b.dataset.rm !== undefined) { cart.splice(+b.dataset.rm, 1); }
         else {
             var i = cart[+b.dataset.k], n = i.cantidad + (+b.dataset.d);
-            if (n > i.stock) { toast('Solo hay ' + i.stock + ' disponibles', true); return; }
+            if (i.controla && n > i.stock) { toast('Solo hay ' + i.stock + ' disponibles', true); return; }
             if (n <= 0) cart.splice(+b.dataset.k, 1); else i.cantidad = n;
         }
         pintarCarrito();

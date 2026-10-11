@@ -29,6 +29,8 @@ class UpdateProductoRequest extends FormRequest
             'fecha_vencimiento' => 'nullable|date',
             'img_path' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
             'precio_venta' => 'required|numeric|min:0|max:999999999',
+            'precio_costo' => 'nullable|numeric|min:0|max:999999999',
+            'controla_inventario' => 'nullable|boolean',
             'marca_id' => 'nullable|integer|exists:marcas,id',
             'presentacione_id' => 'nullable|integer|exists:presentaciones,id',
             'categorias' => 'required'

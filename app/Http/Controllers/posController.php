@@ -41,7 +41,7 @@ class posController extends Controller
         $q = trim((string) $request->get('q'));
 
         $variantes = ProductoVariante::query()
-            ->with('producto:id,nombre,codigo,precio_venta,img_path')
+            ->with('producto:id,nombre,codigo,precio_venta,precio_costo,img_path,controla_inventario')
             ->where('estado', 1)
             ->whereHas('producto', fn ($p) => $p->where('estado', 1))
             ->when($q !== '', function ($w) use ($q) {
@@ -54,8 +54,11 @@ class posController extends Controller
             ->limit(120)
             ->get();
 
+        // El costo solo lo ve quien registra entradas (no los vendedores)
+        $verCosto = Auth::user()->can('ver-entradas');
+
         // Agrupadas por producto para elegir talla y color en el POS
-        $productos = $variantes->groupBy('producto_id')->map(function ($grupo) {
+        $productos = $variantes->groupBy('producto_id')->map(function ($grupo) use ($verCosto) {
             $p = $grupo->first()->producto;
             return [
                 'id' => $p->id,
@@ -64,6 +67,7 @@ class posController extends Controller
                 'precio' => (float) $p->precio_venta,
                 'img' => $p->img_path ? asset('storage/productos/' . $p->img_path) : null,
                 'stock' => (int) $grupo->sum('stock'),
+                'controla' => (bool) $p->controla_inventario,
                 'variantes' => $grupo->sortBy(['talla', 'color'])->values()->map(fn ($v) => [
                     'id' => $v->id,
                     'talla' => $v->talla,
@@ -72,6 +76,7 @@ class posController extends Controller
                     'stock' => (int) $v->stock,
                     'precio' => $v->precio_final,
                     'codigo_barras' => $v->codigo_barras,
+                    'costo' => $verCosto ? $v->costo_final : null,
                 ]),
             ];
         })->values();
@@ -111,7 +116,7 @@ class posController extends Controller
         $venta = DB::transaction(function () use ($datos, $caja) {
             // Bloquea las tallas/colores vendidos para que dos cajas no vendan la misma unidad
             $ids = collect($datos['items'])->pluck('variante_id')->unique();
-            $variantes = ProductoVariante::with('producto:id,nombre,precio_venta')
+            $variantes = ProductoVariante::with('producto:id,nombre,precio_venta,precio_costo,controla_inventario')
                 ->whereIn('id', $ids)->lockForUpdate()->get()->keyBy('id');
 
             if ($variantes->count() !== $ids->count()) {
@@ -121,7 +126,7 @@ class posController extends Controller
             $pedidas = collect($datos['items'])->groupBy('variante_id')->map->sum('cantidad');
             foreach ($pedidas as $id => $cant) {
                 $v = $variantes[$id];
-                if ($v->stock < $cant) {
+                if ($v->controla && $v->stock < $cant) {
                     throw ValidationException::withMessages([
                         'items' => "No hay suficiente {$v->producto->nombre} ({$v->etiqueta}). Disponibles: {$v->stock}.",
                     ]);
@@ -172,9 +177,12 @@ class posController extends Controller
                     'color' => $v->color,
                     'cantidad' => $i['cantidad'],
                     'precio' => $i['precio'],
+                    'costo' => $v->costo_final,
                     'subtotal' => round($i['cantidad'] * $i['precio'], 2),
                 ]);
-                $v->moverStock(-(int) $i['cantidad'], 'venta', $venta->numero);
+                if ($v->controla) {
+                    $v->moverStock(-(int) $i['cantidad'], 'venta', $venta->numero);
+                }
             }
 
             // El cambio se descuenta del efectivo para que la caja cuadre
@@ -256,7 +264,7 @@ class posController extends Controller
             }
             abort_if($venta->caja->estado !== 'abierta', 422, 'Solo se pueden anular ventas de una caja abierta.');
             foreach ($venta->items as $item) {
-                if ($item->variante) {
+                if ($item->variante && $item->variante->controla) {
                     $item->variante->moverStock((int) $item->cantidad, 'anulacion', $venta->numero);
                 }
             }

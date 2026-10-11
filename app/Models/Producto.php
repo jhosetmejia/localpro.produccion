@@ -17,12 +17,16 @@ class Producto extends Model
         'codigo',
         'nombre',
         'precio_venta',
+        'precio_costo',
+        'controla_inventario',
         'descripcion',
         'fecha_vencimiento',
         'marca_id',
         'presentacione_id',
         'img_path'
     ];
+
+    protected $casts = ['controla_inventario' => 'boolean'];
 
     public function variantes()
     {

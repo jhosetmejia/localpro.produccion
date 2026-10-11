@@ -5,6 +5,7 @@ use App\Http\Controllers\bienvenidaController;
 use App\Http\Controllers\cajaController;
 use App\Http\Controllers\categoriaController;
 use App\Http\Controllers\clienteController;
+use App\Http\Controllers\entradaController;
 use App\Http\Controllers\homeController;
 use App\Http\Controllers\inventarioController;
 use App\Http\Controllers\loginController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\posController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\profileController;
 use App\Http\Controllers\proveedorController;
+use App\Http\Controllers\recuperarController;
 use App\Http\Controllers\registroController;
 use App\Http\Controllers\userController;
 use App\Http\Controllers\varianteController;
@@ -32,6 +34,10 @@ Route::post('/login', [loginController::class, 'login'])->middleware('throttle:1
 Route::get('/logout', [logoutController::class, 'logout'])->name('logout');
 Route::get('/registro', [registroController::class, 'index'])->name('registro');
 Route::post('/registro', [registroController::class, 'store'])->middleware('throttle:5,1');
+Route::get('/recuperar', [recuperarController::class, 'formulario'])->name('password.request');
+Route::post('/recuperar', [recuperarController::class, 'enviar'])->middleware('throttle:5,1')->name('password.email');
+Route::get('/restablecer/{token}', [recuperarController::class, 'formularioNueva'])->name('password.reset');
+Route::post('/restablecer', [recuperarController::class, 'guardarNueva'])->middleware('throttle:10,1')->name('password.update');
 Route::get('/factura/{venta}', [posController::class, 'facturaPublica'])->name('factura.publica');
 
 // ===== Asistente de configuración de la tienda nueva =====
@@ -71,6 +77,9 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::post('/cajas/cerrar', [cajaController::class, 'guardarCierre'])->name('cajas.guardarCierre');
     Route::get('/cajas/{caja}', [cajaController::class, 'show'])->name('cajas.show');
     Route::get('/cajas/{caja}/reporte', [cajaController::class, 'reporte'])->name('cajas.reporte');
+
+    // Entradas de mercancía
+    Route::resource('entradas', entradaController::class)->only(['index', 'create', 'store', 'show']);
 
     // Inventario, tallas y colores
     Route::get('/inventario', [inventarioController::class, 'index'])->name('inventario.index');

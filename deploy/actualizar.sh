@@ -54,6 +54,18 @@ run $PHP artisan optimize:clear
 run $PHP artisan config:cache || restaurar
 run $PHP artisan view:cache || restaurar
 
+# Respaldo diario automático (3:15 a. m.) y correo sin servidor configurado
+CRON=/etc/cron.d/localpro-respaldo
+if [ ! -f "$CRON" ]; then
+  echo "15 3 * * * root /bin/bash $RAIZ/deploy/respaldo-diario.sh >> /var/log/localpro-respaldo.log 2>&1" > "$CRON"
+  chmod 644 "$CRON"
+  echo "    Respaldo diario programado (3:15 a. m., se guardan 15 días)."
+fi
+if grep -q "^MAIL_HOST=mailhog" .env; then
+  sed -i "s/^MAIL_MAILER=.*/MAIL_MAILER=log/" .env
+  run $PHP artisan config:cache >/dev/null
+fi
+
 echo "==> 5/5 Comprobación"
 CODE=$(curl -s -o /dev/null -w '%{http_code}' --resolve "$DOMINIO:443:127.0.0.1" "https://$DOMINIO/login" -k)
 [ "$CODE" = "200" ] || { echo "La página respondió $CODE"; restaurar; }

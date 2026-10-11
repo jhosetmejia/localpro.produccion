@@ -45,7 +45,7 @@
                 </a>
                 @endcan
 
-                @canany(['ver-inventario', 'ver-producto', 'ver-categoria'])
+                @canany(['ver-inventario', 'ver-producto', 'ver-categoria', 'ver-entradas'])
                 <div class="sb-sidenav-menu-heading">Inventario</div>
                 @endcanany
                 @can('ver-producto')
@@ -58,6 +58,12 @@
                 <a class="nav-link {{ $on('inventario.*') }}" href="{{ route('inventario.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-warehouse"></i></div>
                     Existencias
+                </a>
+                @endcan
+                @can('ver-entradas')
+                <a class="nav-link {{ $on('entradas.*') }}" href="{{ route('entradas.index') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-truck-ramp-box"></i></div>
+                    Entradas de mercancía
                 </a>
                 @endcan
                 @can('ver-categoria')

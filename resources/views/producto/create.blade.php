@@ -76,6 +76,24 @@
                     </div>
                     @endunless
 
+                    <!---Costo---->
+                    <div class="col-md-6">
+                        <label for="precio_costo" class="form-label">Precio de costo <span class="text-muted fw-normal">(lo que le cuesta a usted)</span>:</label>
+                        <input type="number" min="0" step="{{ paso_dinero() }}" name="precio_costo" id="precio_costo" class="form-control" value="{{ old('precio_costo') }}" placeholder="Opcional, para calcular su ganancia">
+                        @error('precio_costo')
+                        <small class="text-danger">{{'*'.$message}}</small>
+                        @enderror
+                    </div>
+
+                    <!---Controla inventario---->
+                    <div class="col-md-6 d-flex align-items-end">
+                        <input type="hidden" name="controla_inventario" value="0">
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" role="switch" name="controla_inventario" value="1" id="controla_inventario" @checked(old('controla_inventario', !in_array(\App\Support\TiendaActual::tienda()?->tipo_negocio, ['restaurante', 'cafeteria'])))>
+                            <label class="form-check-label" for="controla_inventario">Controlar inventario <small class="text-muted d-block">Apáguelo en comidas preparadas o servicios: se vende sin límite de cantidad.</small></label>
+                        </div>
+                    </div>
+
                     <!---Imagen---->
                     <div class="col-md-6">
                         <label for="img_path" class="form-label">Imagen:</label>

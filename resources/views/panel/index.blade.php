@@ -45,7 +45,7 @@
             <div class="ic"><i class="fa-solid fa-sack-dollar"></i></div>
             <div class="lbl">Vendido hoy</div>
             <div class="val">@pesos($ventasHoy)</div>
-            <div class="sub">{{ $numVentasHoy }} {{ $numVentasHoy === 1 ? 'venta' : 'ventas' }} en el POS</div>
+            <div class="sub">{{ $numVentasHoy }} {{ $numVentasHoy === 1 ? 'venta' : 'ventas' }}@can('ver-reportes') · ganancia <b style="color:#a6f34a">@pesos($gananciaHoy)</b>@endcan</div>
         </div>
         <div class="lp-kpi">
             <div class="ic"><i class="fa-solid fa-calendar-check"></i></div>

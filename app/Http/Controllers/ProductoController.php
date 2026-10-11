@@ -68,6 +68,8 @@ class ProductoController extends Controller
                 'codigo' => $request->codigo ?: \App\Support\CrearTienda::siguienteCodigo(),
                 'nombre' => $request->nombre,
                 'precio_venta' => $request->precio_venta,
+                'precio_costo' => $request->precio_costo ?: 0,
+                'controla_inventario' => $request->boolean('controla_inventario'),
                 'descripcion' => $request->descripcion,
                 'fecha_vencimiento' => $request->fecha_vencimiento,
                 'img_path' => $name,
@@ -85,7 +87,7 @@ class ProductoController extends Controller
             // Negocios sin tallas/colores: una sola referencia con su cantidad
             if (!\App\Support\TiendaActual::tienda()->usa_tallas) {
                 $v = $producto->variantes()->create(['talla' => null, 'color' => null, 'stock' => 0]);
-                if ((int) $request->cantidad_inicial > 0) {
+                if ((int) $request->cantidad_inicial > 0 && $producto->controla_inventario) {
                     $v->moverStock((int) $request->cantidad_inicial, 'entrada', null, 'Inventario inicial');
                 }
             }
@@ -153,6 +155,8 @@ class ProductoController extends Controller
                 'codigo' => $request->codigo,
                 'nombre' => $request->nombre,
                 'precio_venta' => $request->precio_venta,
+                'precio_costo' => $request->precio_costo ?: 0,
+                'controla_inventario' => $request->boolean('controla_inventario'),
                 'descripcion' => $request->descripcion,
                 'fecha_vencimiento' => $request->fecha_vencimiento,
                 'img_path' => $name,

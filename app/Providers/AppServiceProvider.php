@@ -26,6 +26,18 @@ class AppServiceProvider extends ServiceProvider
     {
         \Carbon\Carbon::setLocale('es');
 
+        // Correo de recuperación de contraseña en español
+        \Illuminate\Auth\Notifications\ResetPassword::toMailUsing(function ($user, string $token) {
+            $url = route('password.reset', ['token' => $token, 'email' => $user->getEmailForPasswordReset()]);
+            return (new \Illuminate\Notifications\Messages\MailMessage)
+                ->subject('Cree su nueva contraseña de LocalPro')
+                ->greeting('Hola ' . strtok($user->name, ' ') . ',')
+                ->line('Recibimos una solicitud para cambiar la contraseña de su cuenta en LocalPro.')
+                ->action('Crear contraseña nueva', $url)
+                ->line('El enlace vence en 60 minutos. Si usted no lo pidió, ignore este correo.')
+                ->salutation('Equipo LocalPro');
+        });
+
         // La tienda se resuelve antes de cargar modelos desde la URL (aislamiento entre tiendas)
         $kernel = $this->app->make(\Illuminate\Contracts\Http\Kernel::class);
         if (method_exists($kernel, 'addToMiddlewarePriorityBefore')) {

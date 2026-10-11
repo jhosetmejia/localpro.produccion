@@ -51,6 +51,7 @@
                         <button type="button" class="toggle-pass" aria-label="Mostrar contraseña" onclick="var p=document.getElementById('password');p.type=p.type==='password'?'text':'password'"><i class="fa-regular fa-eye"></i></button>
                     </div>
                 </div>
+                <div style="text-align:right;margin:-.3rem 0 .4rem"><a href="{{ route('password.request') }}" style="font-size:.88rem;font-weight:700;color:var(--green-2)">¿Olvidó su contraseña?</a></div>
                 <button class="btn btn-ink btn-block" type="submit" style="margin-top:.6rem">Iniciar sesión <i class="fa-solid fa-arrow-right"></i></button>
             </form>
 

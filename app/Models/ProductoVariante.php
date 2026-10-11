@@ -11,9 +11,9 @@ class ProductoVariante extends Model
 
     protected $table = 'producto_variantes';
 
-    protected $fillable = ['producto_id', 'talla', 'color', 'codigo_barras', 'stock', 'precio', 'estado'];
+    protected $fillable = ['producto_id', 'talla', 'color', 'codigo_barras', 'stock', 'precio', 'costo', 'estado'];
 
-    protected $casts = ['stock' => 'integer', 'precio' => 'decimal:2'];
+    protected $casts = ['stock' => 'integer', 'precio' => 'decimal:2', 'costo' => 'decimal:2'];
 
     public function producto()
     {
@@ -29,6 +29,18 @@ class ProductoVariante extends Model
     public function getPrecioFinalAttribute(): float
     {
         return (float) ($this->precio ?? $this->producto->precio_venta ?? 0);
+    }
+
+    // Costo unitario: el de la variante o, si está vacío, el del producto
+    public function getCostoFinalAttribute(): float
+    {
+        return (float) ($this->costo ?? $this->producto->precio_costo ?? 0);
+    }
+
+    // ¿Se descuenta y se valida el stock al vender? (comidas y servicios normalmente no)
+    public function getControlaAttribute(): bool
+    {
+        return (bool) ($this->producto->controla_inventario ?? true);
     }
 
     public function getEtiquetaAttribute(): string

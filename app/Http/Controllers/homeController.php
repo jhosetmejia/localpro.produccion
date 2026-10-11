@@ -52,7 +52,14 @@ class homeController extends Controller
             ];
         });
 
+        // Ganancia de hoy: lo vendido menos el costo de lo vendido y los descuentos
+        $ventasHoyIds = $pos()->whereDate('created_at', $hoy)->pluck('id');
+        $gananciaHoy = (float) \App\Models\PosVentaItem::whereIn('pos_venta_id', $ventasHoyIds)
+            ->selectRaw('COALESCE(SUM(subtotal - costo * cantidad), 0) as g')->value('g')
+            - (float) PosVenta::whereIn('id', $ventasHoyIds)->sum('descuento');
+
         return view('panel.index', [
+            'gananciaHoy' => $gananciaHoy,
             'ventasHoy' => (float) $pos()->whereDate('created_at', $hoy)->sum('total'),
             'numVentasHoy' => $pos()->whereDate('created_at', $hoy)->count(),
             'ventasMes' => (float) $pos()->whereBetween('created_at', [$hoy->copy()->startOfMonth(), now()])->sum('total'),

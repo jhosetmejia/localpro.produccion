@@ -125,6 +125,10 @@
         @if ($tienda->usa_tallas)
             <div class="tip"><i class="fa-solid fa-lightbulb me-1"></i> Escriba las tallas y colores separados por coma. Se crea cada combinación con la cantidad indicada (ej. 4 tallas × 2 colores = 8 referencias).</div>
         @endif
+        @php $sinConteo = in_array($tienda->tipo_negocio, ['restaurante', 'cafeteria']); @endphp
+        @if ($sinConteo)
+            <div class="tip"><i class="fa-solid fa-utensils me-1"></i> En su tipo de negocio no hace falta contar unidades: se vende sin límite. Si algún producto sí lo necesita, actívelo luego en Productos.</div>
+        @endif
         <form method="post" action="{{ route('bienvenida.productos') }}">
             @csrf
             <div class="prods" id="prods">
@@ -136,7 +140,7 @@
                         <div class="row">
                             <div><small>Producto</small><input class="in" name="productos[{{ $i }}][nombre]" value="{{ $p['nombre'] ?? '' }}" maxlength="80"></div>
                             <div><small>Precio ({{ moneda()['moneda'] }})</small><input class="in" type="number" min="0" step="{{ paso_dinero() }}" name="productos[{{ $i }}][precio]" value="{{ $p['precio'] ?? '' }}" placeholder="0"></div>
-                            <div><small>{{ $tienda->usa_tallas ? 'Cantidad c/u' : 'Cantidad' }}</small><input class="in" type="number" min="0" name="productos[{{ $i }}][cantidad]" value="{{ $p['cantidad'] ?? 0 }}"></div>
+                            <div @if($sinConteo) style="display:none" @endif><small>{{ $tienda->usa_tallas ? 'Cantidad c/u' : 'Cantidad' }}</small><input class="in" type="number" min="0" name="productos[{{ $i }}][cantidad]" value="{{ $p['cantidad'] ?? 0 }}"></div>
                         </div>
                         @if ($tienda->usa_tallas)
                         <div class="row2">

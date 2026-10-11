@@ -119,6 +119,8 @@
                             <div class="modal-body pt-0">
                                 <label class="form-label">Precio propio (vacío = precio base)</label>
                                 <input type="number" name="precio" min="0" step="{{ paso_dinero() }}" class="form-control mb-3" value="{{ $v->precio !== null ? (float) $v->precio : '' }}">
+                                <label class="form-label">Costo propio (vacío = costo del producto)</label>
+                                <input type="number" name="costo" min="0" step="{{ paso_dinero() }}" class="form-control mb-3" value="{{ $v->costo !== null ? (float) $v->costo : '' }}">
                                 <label class="form-label">Código de barras</label>
                                 <input name="codigo_barras" class="form-control mb-3" value="{{ $v->codigo_barras }}" placeholder="Escanee o escriba">
                                 <input type="hidden" name="estado" value="0">
