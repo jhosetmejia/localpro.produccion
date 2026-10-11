@@ -32,6 +32,26 @@
                     <div class="input-group"><span class="input-group-text" style="border-radius:12px 0 0 12px">{{ url('/t') }}/</span><input name="slug" class="form-control" value="{{ old('slug', $negocio->slug) }}" pattern="[a-z0-9-]+" maxlength="60" required></div>
                     <small class="text-muted">Solo minúsculas, números y guiones. Ej: moda-urbana-pasto</small>
                 </div>
+                <div class="col-12"><hr><h3 style="font-size:1rem;font-weight:800">Facturación DIAN <small class="text-muted fw-normal">(opcional, sale impreso en el tiquete)</small></h3></div>
+                <div class="col-md-6"><label class="form-label">Régimen</label>
+                    <select name="regimen" class="form-select">
+                        <option value="">—</option>
+                        @foreach (['No responsable de IVA', 'Responsable de IVA', 'Régimen simple de tributación'] as $r)<option @selected(old('regimen', $negocio->regimen) === $r)>{{ $r }}</option>@endforeach
+                    </select>
+                </div>
+                <div class="col-md-6"><label class="form-label">N.º resolución de facturación</label><input name="resolucion_numero" class="form-control" value="{{ old('resolucion_numero', $negocio->resolucion_numero) }}" maxlength="40"></div>
+                <div class="col-md-4"><label class="form-label">Fecha resolución</label><input type="date" name="resolucion_fecha" class="form-control" value="{{ old('resolucion_fecha', $negocio->resolucion_fecha?->format('Y-m-d')) }}"></div>
+                <div class="col-md-4"><label class="form-label">Vigente hasta</label><input type="date" name="resolucion_vigencia" class="form-control" value="{{ old('resolucion_vigencia', $negocio->resolucion_vigencia?->format('Y-m-d')) }}"></div>
+                <div class="col-md-4"><label class="form-label">Prefijo</label><input name="resolucion_prefijo" class="form-control" value="{{ old('resolucion_prefijo', $negocio->resolucion_prefijo) }}" maxlength="10" placeholder="Ej: POS"></div>
+                <div class="col-md-6"><label class="form-label">Rango desde</label><input type="number" min="1" name="resolucion_desde" class="form-control" value="{{ old('resolucion_desde', $negocio->resolucion_desde) }}"></div>
+                <div class="col-md-6"><label class="form-label">Rango hasta</label><input type="number" min="1" name="resolucion_hasta" class="form-control" value="{{ old('resolucion_hasta', $negocio->resolucion_hasta) }}"></div>
+                @if ($negocio->resolucion_prefijo)
+                <div class="col-12"><small class="text-muted">Con prefijo, las ventas se numeran <b>{{ $negocio->resolucion_prefijo }}-{{ max($negocio->consecutivo_pos + 1, (int) $negocio->resolucion_desde) }}</b> en adelante.
+                    @if ($negocio->resolucion_hasta && $negocio->consecutivo_pos >= $negocio->resolucion_hasta - 50)<b class="text-danger"> ¡Quedan pocos números del rango autorizado! Solicite una nueva resolución.</b>@endif
+                    @if ($negocio->resolucion_vigencia && $negocio->resolucion_vigencia->lt(today()->addDays(30)))<b class="text-danger"> La resolución vence pronto.</b>@endif
+                </small></div>
+                @endif
+                <div class="col-12"><small class="text-muted"><i class="fa-solid fa-circle-info me-1"></i>La factura electrónica con envío a la DIAN requiere un proveedor tecnológico; se puede conectar más adelante.</small></div>
                 <div class="col-12"><label class="form-label">Mensaje al pie del tiquete</label><input name="mensaje_tiquete" class="form-control" value="{{ old('mensaje_tiquete', $negocio->mensaje_tiquete) }}" maxlength="255"></div>
             </div>
         </div>

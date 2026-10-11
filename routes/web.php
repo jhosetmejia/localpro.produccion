@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\adminPlanController;
 use App\Http\Controllers\adminTiendaController;
 use App\Http\Controllers\bienvenidaController;
 use App\Http\Controllers\cajaController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\loginController;
 use App\Http\Controllers\logoutController;
 use App\Http\Controllers\metodoPagoController;
 use App\Http\Controllers\negocioController;
+use App\Http\Controllers\planController;
 use App\Http\Controllers\posController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\profileController;
@@ -24,6 +26,7 @@ use App\Http\Controllers\registroController;
 use App\Http\Controllers\reporteController;
 use App\Http\Controllers\userController;
 use App\Http\Controllers\varianteController;
+use App\Http\Controllers\wompiController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -43,6 +46,7 @@ Route::post('/recuperar', [recuperarController::class, 'enviar'])->middleware('t
 Route::get('/restablecer/{token}', [recuperarController::class, 'formularioNueva'])->name('password.reset');
 Route::post('/restablecer', [recuperarController::class, 'guardarNueva'])->middleware('throttle:10,1')->name('password.update');
 Route::get('/t/{slug}', [catalogoController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('catalogo.show');
+Route::post('/webhooks/wompi', [wompiController::class, 'evento'])->middleware('throttle:60,1');
 Route::get('/factura/{venta}', [posController::class, 'facturaPublica'])->name('factura.publica');
 
 // ===== Asistente de configuración de la tienda nueva =====
@@ -108,6 +112,11 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::get('/reportes', [reporteController::class, 'index'])->name('reportes.index');
     Route::get('/reportes/exportar/{tipo}', [reporteController::class, 'exportar'])->whereIn('tipo', ['ventas', 'productos', 'inventario'])->name('reportes.exportar');
 
+    // Plan de LocalPro
+    Route::get('/mi-plan', [planController::class, 'index'])->name('plan.index');
+    Route::post('/mi-plan/{plan}/pagar', [planController::class, 'pagar'])->name('plan.pagar');
+    Route::get('/mi-plan/retorno', [planController::class, 'retorno'])->name('plan.retorno');
+
     // Configuración del negocio
     Route::get('/metodos-pago', [metodoPagoController::class, 'index'])->name('metodos-pago.index');
     Route::post('/metodos-pago', [metodoPagoController::class, 'store'])->name('metodos-pago.store');
@@ -124,6 +133,10 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::get('/tiendas/{tienda}', [adminTiendaController::class, 'show'])->name('tiendas.show');
     Route::post('/tiendas/{tienda}/estado', [adminTiendaController::class, 'estado'])->name('tiendas.estado');
     Route::post('/tiendas/{tienda}/entrar', [adminTiendaController::class, 'entrar'])->name('tiendas.entrar');
+    Route::post('/tiendas/{tienda}/plan', [adminTiendaController::class, 'plan'])->name('tiendas.plan');
+    Route::post('/tiendas/{tienda}/pago', [adminTiendaController::class, 'pago'])->name('tiendas.pago');
+    Route::get('/planes', [adminPlanController::class, 'index'])->name('planes.index');
+    Route::post('/planes', [adminPlanController::class, 'guardar'])->name('planes.guardar');
     Route::post('/salir-de-tienda', [adminTiendaController::class, 'salir'])->name('tiendas.salir');
 });
 

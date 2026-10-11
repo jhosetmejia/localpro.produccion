@@ -35,6 +35,10 @@ class homeController extends Controller
             return redirect()->route('login')->withErrors('La tienda está suspendida. Comuníquese con LocalPro.');
         }
 
+        if ($tienda->plan_vencido && !Auth::user()->es_superadmin) {
+            return redirect()->route('plan.index');
+        }
+
         // Cuenta registrada desde la web, aún sin rol asignado
         if (Auth::user()->roles()->count() === 0) {
             return view('panel.pendiente');

@@ -33,6 +33,22 @@ class TiendaActual
     }
 
     /**
+     * Revisa el límite del plan (usuarios o productos). Devuelve un mensaje si ya llegó al máximo.
+     */
+    public static function limitePlan(string $que): ?string
+    {
+        $plan = self::tienda()?->plan;
+        $max = $que === 'usuarios' ? $plan?->max_usuarios : $plan?->max_productos;
+        if (!$max) {
+            return null;
+        }
+        $actual = $que === 'usuarios'
+            ? \App\Models\User::where('tienda_id', self::id())->count()
+            : \App\Models\Producto::count();
+        return $actual >= $max ? "Su plan {$plan->nombre} permite hasta {$max} {$que}. Mejore su plan en \"Mi plan\" para agregar más." : null;
+    }
+
+    /**
      * Ejecuta algo como si se estuviera dentro de otra tienda (o de ninguna).
      */
     public static function como(?int $id, callable $fn)

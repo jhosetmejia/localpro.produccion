@@ -10,9 +10,13 @@
 
                 @if (auth()->user()->es_superadmin)
                 <div class="sb-sidenav-menu-heading">LocalPro</div>
-                <a class="nav-link {{ $on('admin.*') }}" href="{{ route('admin.tiendas.index') }}">
+                <a class="nav-link {{ $on('admin.tiendas.*') }}" href="{{ route('admin.tiendas.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-crown"></i></div>
                     Tiendas inscritas
+                </a>
+                <a class="nav-link {{ $on('admin.planes.*') }}" href="{{ route('admin.planes.index') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-gem"></i></div>
+                    Planes y cobros
                 </a>
                 @endif
 
@@ -114,6 +118,12 @@
                 <a class="nav-link {{ $on('metodos-pago.*') }}" href="{{ route('metodos-pago.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-credit-card"></i></div>
                     Métodos de pago
+                </a>
+                @endcan
+                @can('editar-negocio')
+                <a class="nav-link {{ $on('plan.*') }}" href="{{ route('plan.index') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-gem"></i></div>
+                    Mi plan
                 </a>
                 @endcan
                 @can('ver-user')

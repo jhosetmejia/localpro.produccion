@@ -37,6 +37,9 @@ class userController extends Controller
 
     public function store(StoreUserRequest $request)
     {
+        if ($msg = TiendaActual::limitePlan('usuarios')) {
+            return back()->withInput()->withErrors($msg);
+        }
         DB::transaction(function () use ($request) {
             $user = User::create([
                 'name' => $request->name,

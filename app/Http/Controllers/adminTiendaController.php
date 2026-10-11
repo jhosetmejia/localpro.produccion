@@ -16,7 +16,7 @@ class adminTiendaController extends Controller
     public function index(Request $request)
     {
         $q = trim((string) $request->get('q'));
-        $tiendas = Tienda::query()
+        $tiendas = Tienda::query()->with('plan')
             ->when($q !== '', fn ($w) => $w->where(fn ($x) => $x->where('nombre', 'like', "%$q%")->orWhere('email', 'like', "%$q%")->orWhere('ciudad', 'like', "%$q%")))
             ->when($request->get('estado'), fn ($w, $e) => $w->where('estado', $e))
             ->latest()
@@ -86,13 +86,48 @@ class adminTiendaController extends Controller
         ];
         $ultimas = DB::table('pos_ventas')->where('tienda_id', $tienda->id)->latest()->limit(8)->get();
 
-        return view('admin.tiendas.show', compact('tienda', 'usuarios', 'metricas', 'ultimas'));
+        $planes = \App\Models\Plan::orderBy('orden')->get();
+        $pagosPlan = \App\Models\PagoSuscripcion::with('plan')->where('tienda_id', $tienda->id)->latest()->limit(10)->get();
+        return view('admin.tiendas.show', compact('tienda', 'usuarios', 'metricas', 'ultimas', 'planes', 'pagosPlan'));
     }
 
     public function estado(Tienda $tienda)
     {
         $tienda->update(['estado' => $tienda->activa ? 'suspendida' : 'activa']);
         return back()->with('success', 'La tienda ' . $tienda->nombre . ' quedó ' . ($tienda->activa ? 'activa' : 'suspendida') . '.');
+    }
+
+    // Asignar plan y fecha de vencimiento a mano
+    public function plan(Request $request, Tienda $tienda)
+    {
+        $datos = $request->validate([
+            'plan_id' => 'required|exists:planes,id',
+            'plan_vence' => 'nullable|date',
+        ]);
+        $tienda->forceFill(['plan_id' => $datos['plan_id'], 'plan_vence' => $datos['plan_vence'] ?? null])->save();
+        return back()->with('success', 'Plan actualizado.');
+    }
+
+    // Registrar un pago recibido por fuera (transferencia, Nequi, efectivo): extiende el plan
+    public function pago(Request $request, Tienda $tienda)
+    {
+        $datos = $request->validate([
+            'plan_id' => 'required|exists:planes,id',
+            'monto' => 'required|numeric|min:0',
+            'nota' => 'nullable|string|max:255',
+        ]);
+        DB::transaction(function () use ($datos, $tienda) {
+            \App\Models\PagoSuscripcion::create([
+                'tienda_id' => $tienda->id,
+                'plan_id' => $datos['plan_id'],
+                'monto' => $datos['monto'],
+                'metodo' => 'manual',
+                'referencia' => 'MAN-' . $tienda->id . '-' . now()->format('ymdHis'),
+                'nota' => $datos['nota'] ?? null,
+                'registrado_por' => auth()->id(),
+            ])->aprobar();
+        });
+        return back()->with('success', 'Pago registrado y plan extendido.');
     }
 
     // Ver el sistema como si fuera la tienda (para dar soporte)

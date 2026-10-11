@@ -6,7 +6,7 @@
 <div class="lp-dash">
     <div class="lp-hello">
         <div><small><i class="fa-solid fa-crown me-1"></i>Administrador LocalPro</small><h1>Tiendas <span>inscritas</span></h1></div>
-        <div class="lp-quick"><a href="{{ route('admin.tiendas.create') }}" class="btn btn-primary btn-lg"><i class="fa-solid fa-plus me-1"></i>Crear tienda</a></div>
+        <div class="lp-quick"><a href="{{ route('admin.planes.index') }}" class="btn btn-dark btn-lg"><i class="fa-solid fa-gem me-1"></i>Planes y cobros</a><a href="{{ route('admin.tiendas.create') }}" class="btn btn-primary btn-lg"><i class="fa-solid fa-plus me-1"></i>Crear tienda</a></div>
     </div>
     @include('layouts.partials.lp-flash')
 
@@ -32,7 +32,7 @@
         </form>
         <div class="table-responsive">
             <table class="table align-middle">
-                <thead><tr><th>Tienda</th><th>Dueño</th><th>País</th><th>Productos</th><th>Ventas</th><th>Última venta</th><th>Estado</th><th></th></tr></thead>
+                <thead><tr><th>Tienda</th><th>Dueño</th><th>Plan</th><th>País</th><th>Productos</th><th>Ventas</th><th>Última venta</th><th>Estado</th><th></th></tr></thead>
                 <tbody>
                 @forelse ($tiendas as $t)
                     @php $v = $ventas[$t->id] ?? null; $m = \App\Support\Paises::datos($t->pais); $d = $duenos[$t->id][0] ?? null; @endphp
@@ -44,6 +44,7 @@
                             </div>
                         </td>
                         <td>{{ $d?->name ?? '—' }}<br><small class="text-muted">{{ $d?->email }}</small></td>
+                        <td>{{ $t->plan->nombre ?? '—' }}@if($t->plan_vence)<br><small class="{{ $t->plan_vencido ? 'text-danger' : 'text-muted' }}">{{ $t->plan_vencido ? 'Venció' : 'Vence' }} {{ $t->plan_vence->format('d/m/y') }}</small>@endif</td>
                         <td>{{ $m['nombre'] }}<br><small class="text-muted">{{ $m['moneda'] }}</small></td>
                         <td>{{ $productos[$t->id] ?? 0 }}</td>
                         <td>{{ $v->n ?? 0 }}<br><small class="text-muted">{{ $m['simbolo'] }}{{ number_format((float) ($v->total ?? 0), $m['decimales'], $m['decimal'], $m['miles']) }}</small></td>
@@ -59,7 +60,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="8" class="lp-empty">Aún no hay tiendas inscritas.</td></tr>
+                    <tr><td colspan="9" class="lp-empty">Aún no hay tiendas inscritas.</td></tr>
                 @endforelse
                 </tbody>
             </table>

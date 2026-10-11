@@ -53,6 +53,9 @@ class ProductoController extends Controller
      */
     public function store(StoreProductoRequest $request)
     {
+        if ($msg = \App\Support\TiendaActual::limitePlan('productos')) {
+            return back()->withInput()->withErrors($msg);
+        }
         //dd($request);
         try {
             DB::beginTransaction();

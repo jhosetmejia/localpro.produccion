@@ -10,11 +10,12 @@ class Tienda extends Model
     protected $table = 'tiendas';
 
     protected $fillable = [
-        'nombre', 'slug', 'catalogo_activo', 'pais', 'tipo_negocio', 'descripcion', 'usa_tallas', 'nit', 'direccion', 'ciudad', 'telefono',
+        'nombre', 'slug', 'catalogo_activo', 'pais', 'tipo_negocio', 'descripcion', 'usa_tallas', 'nit', 'regimen',
+        'resolucion_numero', 'resolucion_fecha', 'resolucion_vigencia', 'resolucion_prefijo', 'resolucion_desde', 'resolucion_hasta', 'direccion', 'ciudad', 'telefono',
         'email', 'logo_path', 'mensaje_tiquete', 'estado', 'onboarding_paso', 'onboarding_completo',
     ];
 
-    protected $casts = ['usa_tallas' => 'boolean', 'onboarding_completo' => 'boolean', 'catalogo_activo' => 'boolean'];
+    protected $casts = ['usa_tallas' => 'boolean', 'onboarding_completo' => 'boolean', 'catalogo_activo' => 'boolean', 'plan_vence' => 'date', 'resolucion_fecha' => 'date', 'resolucion_vigencia' => 'date'];
 
     // Categorías de negocio que se pueden elegir al registrarse
     public const TIPOS = [
@@ -50,6 +51,22 @@ class Tienda extends Model
     public function getUrlCatalogoAttribute(): string
     {
         return url('/t/' . $this->slug);
+    }
+
+    public function plan()
+    {
+        return $this->belongsTo(Plan::class);
+    }
+
+    // El plan pagado ya pasó su fecha de vencimiento
+    public function getPlanVencidoAttribute(): bool
+    {
+        return $this->plan_vence !== null && $this->plan_vence->lt(today());
+    }
+
+    public function getDiasParaVencerAttribute(): ?int
+    {
+        return $this->plan_vence ? (int) today()->diffInDays($this->plan_vence, false) : null;
     }
 
     public function usuarios()
@@ -98,6 +115,12 @@ class Tienda extends Model
     {
         $fila = static::whereKey($this->id)->lockForUpdate()->first();
         $n = $fila->consecutivo_pos + 1;
+        // Con resolución DIAN: numeración con su prefijo, dentro del rango autorizado
+        if ($fila->resolucion_prefijo) {
+            $n = max($n, (int) ($fila->resolucion_desde ?: 1));
+            $fila->forceFill(['consecutivo_pos' => $n])->save();
+            return $fila->resolucion_prefijo . '-' . $n;
+        }
         $fila->forceFill(['consecutivo_pos' => $n])->save();
         return 'POS-' . str_pad((string) $n, 6, '0', STR_PAD_LEFT);
     }

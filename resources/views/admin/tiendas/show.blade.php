@@ -26,6 +26,36 @@
         <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-signal"></i></div><div class="lbl">Estado</div><div class="val" style="font-size:1.6rem">{{ !$tienda->onboarding_completo ? 'Configurando (paso ' . $tienda->onboarding_paso . ')' : ($tienda->activa ? 'Activa' : 'Suspendida') }}</div><div class="sub">{{ $metricas['cajas_abiertas'] }} caja(s) abierta(s)</div></div>
     </div>
 
+    <div class="lp-grid mb-3">
+        <div class="lp-box">
+            <h3>Plan: {{ $tienda->plan->nombre ?? 'Sin plan' }} {!! $tienda->plan_vence ? '<small class="text-muted fw-semibold">' . ($tienda->plan_vencido ? 'venció' : 'vence') . ' el ' . $tienda->plan_vence->format('d/m/Y') . '</small>' : '' !!}</h3>
+            <form method="post" action="{{ route('admin.tiendas.plan', $tienda) }}" class="row g-2 align-items-end mb-3">
+                @csrf
+                <div class="col-md-5"><label class="form-label">Plan</label><select name="plan_id" class="form-select">@foreach ($planes as $p)<option value="{{ $p->id }}" @selected((int) $tienda->plan_id === (int) $p->id)>{{ $p->nombre }}</option>@endforeach</select></div>
+                <div class="col-md-4"><label class="form-label">Vence</label><input type="date" name="plan_vence" class="form-control" value="{{ $tienda->plan_vence?->format('Y-m-d') }}"></div>
+                <div class="col-md-3 d-grid"><button class="btn btn-dark">Asignar</button></div>
+            </form>
+            <form method="post" action="{{ route('admin.tiendas.pago', $tienda) }}" class="row g-2 align-items-end" onsubmit="return confirm('¿Registrar el pago y extender el plan?')">
+                @csrf
+                <div class="col-12"><b>Registrar pago recibido</b> <small class="text-muted">(transferencia, Nequi, efectivo)</small></div>
+                <div class="col-md-5"><select name="plan_id" class="form-select" id="pp" onchange="document.getElementById('pm').value=this.selectedOptions[0].dataset.p">@foreach ($planes->where('precio', '>', 0) as $p)<option value="{{ $p->id }}" data-p="{{ (int) $p->precio }}">{{ $p->nombre }} · ${{ number_format($p->precio, 0, ',', '.') }}</option>@endforeach</select></div>
+                <div class="col-md-3"><input type="number" min="0" name="monto" id="pm" class="form-control" value="{{ (int) optional($planes->where('precio', '>', 0)->first())->precio }}"></div>
+                <div class="col-md-4 d-grid"><button class="btn btn-primary">Registrar pago</button></div>
+                <div class="col-12"><input name="nota" class="form-control" placeholder="Nota (opcional): ej. Nequi ref 12345"></div>
+            </form>
+        </div>
+        <div class="lp-box">
+            <h3>Pagos de plan</h3>
+            <ul class="lp-list">
+                @forelse ($pagosPlan as $pg)
+                <li><div class="av"><i class="fa-solid fa-file-invoice-dollar"></i></div><div class="t"><b>{{ $pg->plan->nombre ?? '' }} · ${{ number_format($pg->monto, 0, ',', '.') }}</b><small>{{ $pg->created_at->format('d/m/Y') }} · {{ ucfirst($pg->metodo) }}{{ $pg->periodo_hasta ? ' · hasta ' . $pg->periodo_hasta->format('d/m/Y') : '' }}</small></div><span class="badge {{ $pg->estado === 'aprobado' ? 'bg-success' : ($pg->estado === 'pendiente' ? 'bg-warning text-dark' : 'bg-danger') }}">{{ ucfirst($pg->estado) }}</span></li>
+                @empty
+                <li class="lp-empty">Sin pagos registrados.</li>
+                @endforelse
+            </ul>
+        </div>
+    </div>
+
     <div class="lp-grid">
         <div class="lp-box">
             <h3>Últimas ventas</h3>

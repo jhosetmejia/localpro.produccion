@@ -33,6 +33,7 @@ class CrearTienda
                 'onboarding_paso' => 2,
                 'onboarding_completo' => false,
             ]);
+            $t->forceFill(['plan_id' => \App\Models\Plan::gratis()?->id])->save();
 
             TiendaActual::como($t->id, function () use ($t) {
                 foreach (self::metodosPorPais($t->pais) as $i => [$nombre, $efectivo]) {

@@ -36,6 +36,13 @@
                 <form method="post" action="{{ route('admin.tiendas.salir') }}">@csrf<button class="btn btn-sm btn-primary py-1">Volver al panel de tiendas</button></form>
             </div>
             @endif
+            @php $tPlan = \App\Support\TiendaActual::tienda(); @endphp
+            @if ($tPlan && $tPlan->plan_vence && $tPlan->dias_para_vencer !== null && $tPlan->dias_para_vencer <= 5 && $tPlan->dias_para_vencer >= 0 && !request()->routeIs('plan.*'))
+            <div style="background:#fff5d6;color:#8a6400;padding:.6rem 1.2rem;font-weight:700;font-size:.9rem;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:center">
+                <span><i class="fa-solid fa-hourglass-half me-1"></i> Su plan vence {{ $tPlan->dias_para_vencer === 0 ? 'hoy' : 'en ' . $tPlan->dias_para_vencer . ' día(s)' }} ({{ $tPlan->plan_vence->format('d/m/Y') }}).</span>
+                @can('editar-negocio')<a href="{{ route('plan.index') }}" class="btn btn-sm btn-dark py-1">Renovar</a>@endcan
+            </div>
+            @endif
             <main>
                 @yield('content')
             </main>

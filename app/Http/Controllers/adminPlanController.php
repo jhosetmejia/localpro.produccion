@@ -1,0 +1,52 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Ajuste;
+use App\Models\PagoSuscripcion;
+use App\Models\Plan;
+use Illuminate\Http\Request;
+
+// Administrador: planes y precios de LocalPro, WhatsApp de soporte e ingresos por suscripciones
+class adminPlanController extends Controller
+{
+    public function index()
+    {
+        return view('admin.planes.index', [
+            'planes' => Plan::withCount(['tiendas' => fn ($q) => $q])->orderBy('orden')->get(),
+            'soporte' => Ajuste::valor('soporte_whatsapp'),
+            'wompi' => planController::wompiActivo(),
+            'ingresosMes' => (float) PagoSuscripcion::where('estado', 'aprobado')->where('updated_at', '>=', now()->startOfMonth())->sum('monto'),
+            'pagos' => PagoSuscripcion::with(['tienda:id,nombre', 'plan:id,nombre'])->latest()->limit(20)->get(),
+        ]);
+    }
+
+    public function guardar(Request $request)
+    {
+        $request->validate([
+            'planes' => 'array',
+            'planes.*.nombre' => 'required|string|max:40',
+            'planes.*.precio' => 'required|numeric|min:0',
+            'planes.*.dias' => 'nullable|integer|min:1|max:3650',
+            'planes.*.descripcion' => 'nullable|string|max:200',
+            'nuevo.nombre' => 'nullable|string|max:40',
+            'nuevo.precio' => 'nullable|numeric|min:0',
+            'nuevo.dias' => 'nullable|integer|min:1|max:3650',
+            'soporte_whatsapp' => 'nullable|string|max:20',
+        ]);
+        foreach ((array) $request->input('planes') as $id => $d) {
+            Plan::whereKey($id)->update([
+                'nombre' => $d['nombre'], 'precio' => $d['precio'], 'dias' => $d['dias'] ?: null,
+                'descripcion' => $d['descripcion'] ?? null, 'activo' => !empty($d['activo']),
+            ]);
+        }
+        if ($request->filled('nuevo.nombre')) {
+            Plan::create([
+                'nombre' => $request->input('nuevo.nombre'), 'precio' => $request->input('nuevo.precio', 0),
+                'dias' => $request->input('nuevo.dias') ?: null, 'activo' => true, 'orden' => Plan::max('orden') + 1,
+            ]);
+        }
+        Ajuste::guardar('soporte_whatsapp', preg_replace('/[^\d+]/', '', (string) $request->input('soporte_whatsapp')));
+        return back()->with('success', 'Planes guardados.');
+    }
+}
