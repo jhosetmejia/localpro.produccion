@@ -16,19 +16,5 @@
     </div>
     <a href="{{ route('plan.index') }}" class="lp-limite-btn"><i class="fa-solid fa-rocket me-1"></i>Pásate a Pro</a>
 </div>
-@once
-<style>
-.lp-limite{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;background:linear-gradient(90deg,#0b0d0c,#1d2a22);color:#fff;border-radius:20px;padding:.9rem 1.1rem;margin:0 0 1rem}
-.lp-limite.lleno{background:linear-gradient(90deg,#4a0f2a,#0b0d0c)}
-.lp-limite-t{flex:1 1 240px;min-width:0}
-.lp-limite-t b{display:block;font-size:.95rem}
-.lp-limite-t b i{color:#a6f34a}
-.lp-limite-t small{color:#b9c6be;font-weight:600}
-.lp-limite-b{display:block;height:7px;border-radius:9px;background:rgba(255,255,255,.15);margin-top:.5rem;overflow:hidden}
-.lp-limite-b i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#a6f34a,#16b34a)}
-.lp-limite.lleno .lp-limite-b i{background:#ff5c93}
-.lp-limite-btn{background:linear-gradient(90deg,#a3f04a,#16b84e);color:#0b0d0c;font-weight:900;border-radius:999px;padding:.6rem 1.1rem;text-decoration:none;white-space:nowrap}
-.lp-limite-btn:hover{color:#0b0d0c;filter:brightness(1.05)}
-</style>
-@endonce
+
 @endif

@@ -22,6 +22,13 @@
 @endphp
 
 <div class="lp-dash">
+    @php $tPlan = \App\Support\TiendaActual::tienda(); @endphp
+    @if ($tPlan?->plan && (float) $tPlan->plan->precio <= 0 && $tPlan->plan_vence && !$tPlan->plan_vencido)
+    <div class="lp-limite" style="margin-bottom:.8rem">
+        <div class="lp-limite-t"><b><i class="fa-solid fa-gift me-1" style="color:#a6f34a"></i>Le quedan {{ $tPlan->dias_para_vencer }} {{ $tPlan->dias_para_vencer == 1 ? 'día' : 'días' }} de su prueba gratis</b><small>Úselo con todo su equipo. Al terminar, elija un plan para seguir vendiendo sin perder nada.</small></div>
+        <a href="{{ route('plan.index') }}" class="lp-limite-btn"><i class="fa-solid fa-rocket me-1"></i>Pásate a Pro</a>
+    </div>
+    @endif
     @include('layouts.partials.limite-plan', ['que' => 'productos'])
     <div class="lp-hello">
         <div>
