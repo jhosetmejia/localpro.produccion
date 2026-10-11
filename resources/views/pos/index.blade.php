@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 @include('layouts.partials.pwa')
 <title>POS · {{ $negocio->nombre }}</title>
@@ -16,9 +16,11 @@ html,body{height:100%;height:100dvh}
 body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;overflow:hidden;width:100%;max-width:100vw}
 button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
 input{font:inherit}
-.app{display:grid;grid-template-rows:64px 1fr;height:100vh;height:100dvh;height:var(--vvh,100dvh)}
+.app{display:grid;grid-template-rows:calc(64px + env(safe-area-inset-top)) 1fr;height:100vh;height:100dvh}
 /* Barra superior */
-.top{display:flex;align-items:center;gap:14px;padding:0 18px;background:var(--k);color:#fff}
+.top{display:flex;align-items:center;gap:14px;padding:env(safe-area-inset-top) 18px 0;background:var(--k);color:#fff}
+.mbar{display:none}
+.cx{display:none}
 .brand{display:flex;align-items:center;gap:.55rem;font-weight:800;letter-spacing:.06em}
 .mk{width:30px;height:30px;position:relative;flex:none}
 .mk::before,.mk::after{content:"";position:absolute;width:17px;height:17px;border-radius:5px;transform:rotate(45deg);top:6px}
@@ -93,9 +95,9 @@ input{font:inherit}
 .pay:disabled{opacity:.4;box-shadow:none;cursor:not-allowed;transform:none}
 kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size:.7rem;font-family:inherit}
 /* Modales */
-.ov{position:fixed;inset:0;background:rgba(11,13,12,.55);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.ov{position:fixed;inset:0;background:rgba(11,13,12,.55);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:50;padding:calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom))}
 .ov.on{display:flex}
-.md{background:#fff;border-radius:28px;width:min(560px,100%);max-height:92vh;overflow:auto;padding:22px;animation:up .22s cubic-bezier(.2,.8,.2,1)}
+.md{background:#fff;border-radius:28px;width:min(560px,100%);max-height:100%;overflow:auto;padding:22px;animation:up .22s cubic-bezier(.2,.8,.2,1)}
 @keyframes up{from{opacity:0;transform:translateY(20px) scale(.98)}}
 .mh{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:14px}
 .mh h3{font-size:1.25rem;font-weight:800;line-height:1.2}
@@ -152,13 +154,19 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
   .search input{height:50px;font-size:.98rem;padding:0 50px 0 46px}
   .top .pill{flex:0 1 auto}
   .tbtn{flex:none}
-  .toast{top:72px;bottom:auto;transform:translateX(-50%) translateY(-160px);width:max-content;max-width:calc(100vw - 24px);font-size:.92rem}
+  .toast{top:calc(74px + env(safe-area-inset-top));bottom:auto;transform:translateX(-50%) translateY(-160px);width:max-content;max-width:calc(100vw - 24px);font-size:.92rem}
   .toast.on{transform:translateX(-50%) translateY(0)}
-  .cart{position:fixed;inset:auto 0 auto 0;top:calc(var(--vvh,100dvh) - min(82dvh, calc(var(--vvh,100dvh) - 70px)));height:min(82dvh, calc(var(--vvh,100dvh) - 70px));border-radius:26px 26px 0 0;border:0;box-shadow:0 -20px 50px rgba(0,0,0,.25);transform:translateY(calc(100% + 60px));visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s .28s;z-index:40;padding-bottom:env(safe-area-inset-bottom)}
+  .cart{position:fixed;left:0;right:0;bottom:0;top:calc(70px + env(safe-area-inset-top));height:auto;border-radius:26px 26px 0 0;border:0;box-shadow:0 -20px 50px rgba(0,0,0,.25);transform:translateY(calc(100% + 60px));visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s .28s;z-index:40;padding-bottom:calc(env(safe-area-inset-bottom) + 8px)}
   .cart.open{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
   .cat{padding-bottom:0}
-  .grid{padding-bottom:110px}
-  .fab{display:flex;position:fixed;left:14px;right:14px;top:calc(var(--vvh,100dvh) - 76px);bottom:auto;height:60px;border-radius:18px;background:var(--k);color:#fff;align-items:center;justify-content:space-between;padding:0 18px;font-weight:800;z-index:30;box-shadow:0 18px 40px -16px rgba(0,0,0,.6)}
+  .grid{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
+  .cx{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--bg);color:var(--k)!important;font-size:1.3rem!important;margin-left:6px}
+  body.hay .mbar{display:flex;gap:8px;margin:0 0 12px}
+  .mbar button{height:52px;border-radius:16px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:.45rem}
+  .mbar .ver{background:#fff;border:1.5px solid var(--line);padding:0 .9rem;flex:none}
+  .mbar .ver .n{background:var(--k);color:#fff;border-radius:999px;padding:.1rem .55rem;font-size:.8rem}
+  .mbar .cob{flex:1;background:var(--g);color:var(--k);font-size:1.02rem;box-shadow:0 12px 24px -14px rgba(47,209,90,.95)}
+  .fab{display:flex;position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));height:60px;border-radius:18px;background:var(--k);color:#fff;align-items:center;justify-content:space-between;padding:0 18px;font-weight:800;z-index:30;box-shadow:0 18px 40px -16px rgba(0,0,0,.6)}
   .fab .n{background:var(--g);color:var(--k);border-radius:999px;padding:.15rem .6rem;margin-right:.5rem}
   .top .pill.hide-m{display:none}
   .top{gap:8px;padding:0 10px}
@@ -189,11 +197,15 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
                 <input id="q" type="search" placeholder="Buscar prenda o escanear código de barras…" autocomplete="off" autofocus>
                 <span class="scan" title="Compatible con lector de código de barras"><i class="fa-solid fa-barcode"></i></span>
             </div>
+            <div class="mbar" id="mbar">
+                <button type="button" class="ver" id="mbVer"><span class="n" id="mbN">0</span> Ver venta</button>
+                <button type="button" class="cob" id="mbCob"><i class="fa-solid fa-money-bill-wave"></i> Cobrar <span id="mbT">$0</span></button>
+            </div>
             <div class="grid" id="grid"></div>
         </section>
 
         <aside class="cart" id="cart">
-            <div class="ch"><h2><i class="fa-solid fa-bag-shopping me-1" style="color:#16b34a"></i> Venta actual</h2><button id="clear">Vaciar</button></div>
+            <div class="ch"><h2><i class="fa-solid fa-bag-shopping me-1" style="color:#16b34a"></i> Venta actual</h2><div><button id="clear">Vaciar</button><button type="button" class="cx" id="cartX" aria-label="Seguir agregando">&times;</button></div></div>
             <div class="items" id="items"></div>
             <div class="cf">
                 <div class="line"><span>Subtotal</span><b id="sub">$0</b></div>
@@ -258,18 +270,6 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
 
 <div class="toast" id="toast" role="status" aria-live="polite"><b class="ti">✓</b><span></span></div>
 
-<script>
-// Altura visible real: en la app instalada la barra del teléfono puede tapar la parte de abajo
-(function () {
-    function medir() {
-        var h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
-        document.documentElement.style.setProperty('--vvh', Math.round(h) + 'px');
-    }
-    medir();
-    window.addEventListener('resize', medir);
-    if (window.visualViewport) window.visualViewport.addEventListener('resize', medir);
-})();
-</script>
 <script>
 (function () {
     var URL_BUSCAR = @json(route('pos.buscar')), URL_VENTA = @json(route('pos.store'));
@@ -352,8 +352,8 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         var tallas = uniq(vs.map(function (v) { return v.talla; }));
         var colores = uniq(vs.map(function (v) { return v.color; }));
         var hayT = tallas.some(function (x) { return x; }), hayC = colores.some(function (x) { return x; });
-        if (!hayT) sel.talla = tallas[0];
-        if (!hayC) sel.color = colores[0];
+        if (!hayT || tallas.length === 1) sel.talla = tallas[0];
+        if (!hayC || colores.length === 1) sel.color = colores[0];
         $('vTallasW').style.display = hayT ? '' : 'none';
         $('vColoresW').style.display = hayC ? '' : 'none';
         $('vTallas').innerHTML = tallas.map(function (t) {
@@ -408,6 +408,9 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         $('tot').textContent = fmt(total());
         $('fabT').textContent = fmt(total());
         $('fabN').textContent = cart.reduce(function (a, i) { return a + i.cantidad; }, 0);
+        $('mbN').textContent = $('fabN').textContent;
+        $('mbT').textContent = fmt(total());
+        document.body.classList.toggle('hay', cart.length > 0);
         $('payBtn').disabled = !cart.length;
     }
     $('items').addEventListener('click', function (e) {
@@ -428,6 +431,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     var ICONOS = { efectivo: 'fa-money-bill-wave', otro: 'fa-mobile-screen-button' };
     function abrirCobro() {
         if (!cart.length) return;
+        $('toast').classList.remove('on'); $('cart').classList.remove('open');
         pagos = {}; credito = null;
         var ef = METODOS.find(function (m) { return m.es_efectivo; }) || METODOS[0];
         if (ef) pagos[ef.id] = '';
@@ -482,6 +486,9 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     $('prows').addEventListener('input', function (e) { if (e.target.dataset.id) { pagos[e.target.dataset.id] = e.target.value; resumen(); } });
     $('prows').addEventListener('click', function (e) { var b = e.target.closest('[data-q]'); if (!b) return; pagos[b.dataset.id] = b.dataset.q; pintarMetodos(); });
     $('payBtn').addEventListener('click', abrirCobro);
+    $('mbCob').addEventListener('click', function () { if (cart.length) abrirCobro(); });
+    $('mbVer').addEventListener('click', function () { $('cart').classList.add('open'); });
+    $('cartX').addEventListener('click', function () { $('cart').classList.remove('open'); });
     $('usarSaldo').addEventListener('click', function () {
         var c = prompt('Código de la nota crédito (ej. NC-000012):');
         if (!c) return;
