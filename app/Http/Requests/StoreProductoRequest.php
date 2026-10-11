@@ -33,7 +33,12 @@ class StoreProductoRequest extends FormRequest
             'cantidad_inicial' => 'nullable|integer|min:0|max:100000',
             'marca_id' => 'nullable|integer|exists:marcas,id',
             'presentacione_id' => 'nullable|integer|exists:presentaciones,id',
-            'categorias' => 'nullable|array'
+            'categorias' => 'nullable|array',
+            'con_tallas' => 'nullable|boolean',
+            'variantes' => 'nullable|array|max:300',
+            'variantes.*.talla' => 'nullable|string|max:40',
+            'variantes.*.color' => 'nullable|string|max:60',
+            'variantes.*.cantidad' => 'nullable|integer|min:0|max:100000',
         ];
     }
 
@@ -41,14 +46,21 @@ class StoreProductoRequest extends FormRequest
     {
         return [
             'marca_id' => 'marca',
-            'presentacione_id' => 'presentación'
+            'presentacione_id' => 'presentación',
+            'variantes.*.talla' => 'talla',
+            'variantes.*.color' => 'color',
+            'variantes.*.cantidad' => 'cantidad',
         ];
     }
 
     public function messages()
     {
         return [
-            'codigo.required' => 'Se necesita un campo código'
+            'codigo.required' => 'Se necesita un campo código',
+            'nombre.unique' => 'Ya tiene un producto con ese nombre.',
+            'variantes.*.talla.max' => 'Una talla es muy larga (máximo 40 letras).',
+            'variantes.*.color.max' => 'Un color es muy largo (máximo 60 letras).',
+            'variantes.max' => 'Son demasiadas combinaciones de talla y color.'
         ];
     }
 }

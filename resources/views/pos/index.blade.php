@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 @include('layouts.partials.pwa')
 <title>POS · {{ $negocio->nombre }}</title>
@@ -16,7 +16,7 @@ html,body{height:100%;height:100dvh}
 body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;overflow:hidden;width:100%;max-width:100vw}
 button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
 input{font:inherit}
-.app{display:grid;grid-template-rows:64px 1fr;height:100vh;height:100dvh}
+.app{display:grid;grid-template-rows:64px 1fr;height:100vh;height:100dvh;height:var(--vvh,100dvh)}
 /* Barra superior */
 .top{display:flex;align-items:center;gap:14px;padding:0 18px;background:var(--k);color:#fff}
 .brand{display:flex;align-items:center;gap:.55rem;font-weight:800;letter-spacing:.06em}
@@ -138,8 +138,13 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
 .wa-in input{flex:1;border:2px solid var(--line);border-radius:14px;padding:.7rem .9rem;font-weight:700}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120px);background:var(--k);color:#fff;border-radius:16px;padding:.8rem 1.1rem;font-weight:700;z-index:60;transition:transform .25s;display:flex;gap:.5rem;align-items:center;max-width:92vw}
 .toast.on{transform:translateX(-50%) translateY(0)}
-.toast i{color:var(--lime)}
+.toast .ti{width:24px;height:24px;border-radius:50%;background:var(--lime);color:var(--k);display:grid;place-items:center;font-size:.8rem;flex:none}
+.toast.bad{background:#9b1c5a}
+.toast.bad .ti{background:#fff;color:#9b1c5a}
 .fab{display:none}
+.fab.bump{animation:bump .5s ease}
+@keyframes bump{0%{transform:scale(1)}35%{transform:scale(1.06)}100%{transform:scale(1)}}
+.vya{color:#0a8a3c;font-weight:700;font-size:.85rem;min-height:1.1em;margin:.2rem 0 .4rem}
 /* Celular / tablet vertical */
 @media (max-width:900px){
   .main{grid-template-columns:minmax(0,1fr)}
@@ -147,12 +152,13 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
   .search input{height:50px;font-size:.98rem;padding:0 50px 0 46px}
   .top .pill{flex:0 1 auto}
   .tbtn{flex:none}
-  .toast{bottom:calc(92px + env(safe-area-inset-bottom))}
-  .cart{position:fixed;inset:auto 0 0 0;height:82vh;height:82dvh;border-radius:26px 26px 0 0;border:0;box-shadow:0 -20px 50px rgba(0,0,0,.25);transform:translateY(calc(100% + 60px));visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s .28s;z-index:40;padding-bottom:env(safe-area-inset-bottom)}
+  .toast{top:72px;bottom:auto;transform:translateX(-50%) translateY(-160px);width:max-content;max-width:calc(100vw - 24px);font-size:.92rem}
+  .toast.on{transform:translateX(-50%) translateY(0)}
+  .cart{position:fixed;inset:auto 0 auto 0;top:calc(var(--vvh,100dvh) - min(82dvh, calc(var(--vvh,100dvh) - 70px)));height:min(82dvh, calc(var(--vvh,100dvh) - 70px));border-radius:26px 26px 0 0;border:0;box-shadow:0 -20px 50px rgba(0,0,0,.25);transform:translateY(calc(100% + 60px));visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s .28s;z-index:40;padding-bottom:env(safe-area-inset-bottom)}
   .cart.open{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
   .cat{padding-bottom:0}
   .grid{padding-bottom:110px}
-  .fab{display:flex;position:fixed;left:14px;right:14px;bottom:calc(16px + env(safe-area-inset-bottom));height:60px;border-radius:18px;background:var(--k);color:#fff;align-items:center;justify-content:space-between;padding:0 18px;font-weight:800;z-index:30;box-shadow:0 18px 40px -16px rgba(0,0,0,.6)}
+  .fab{display:flex;position:fixed;left:14px;right:14px;top:calc(var(--vvh,100dvh) - 76px);bottom:auto;height:60px;border-radius:18px;background:var(--k);color:#fff;align-items:center;justify-content:space-between;padding:0 18px;font-weight:800;z-index:30;box-shadow:0 18px 40px -16px rgba(0,0,0,.6)}
   .fab .n{background:var(--g);color:var(--k);border-radius:999px;padding:.15rem .6rem;margin-right:.5rem}
   .top .pill.hide-m{display:none}
   .top{gap:8px;padding:0 10px}
@@ -213,6 +219,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         <div class="mh"><div><h3 id="vNom"></h3><small id="vInfo"></small></div><button class="x" data-close>&times;</button></div>
         <div id="vTallasW"><div class="lbl">Talla</div><div class="chips" id="vTallas"></div></div>
         <div id="vColoresW"><div class="lbl">Color</div><div class="chips" id="vColores"></div></div>
+        <div class="vya" id="vYa"></div>
         <button class="mbtn" id="vAdd" disabled>Agregar a la venta</button>
     </div>
 </div>
@@ -249,8 +256,20 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     </div>
 </div>
 
-<div class="toast" id="toast"><i class="fa-solid fa-circle-check"></i><span></span></div>
+<div class="toast" id="toast" role="status" aria-live="polite"><b class="ti">✓</b><span></span></div>
 
+<script>
+// Altura visible real: en la app instalada la barra del teléfono puede tapar la parte de abajo
+(function () {
+    function medir() {
+        var h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+        document.documentElement.style.setProperty('--vvh', Math.round(h) + 'px');
+    }
+    medir();
+    window.addEventListener('resize', medir);
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', medir);
+})();
+</script>
 <script>
 (function () {
     var URL_BUSCAR = @json(route('pos.buscar')), URL_VENTA = @json(route('pos.store'));
@@ -325,6 +344,8 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         pintarChips();
         abrir('ovVar');
     }
+    function enVenta(v) { var it = cart.find(function (x) { return x.variante_id === v.id; }); return it ? it.cantidad : 0; }
+    function libre(v) { return Math.max(v.stock - enVenta(v), 0); }
     function uniq(a) { return a.filter(function (x, i) { return a.indexOf(x) === i; }); }
     function pintarChips() {
         var vs = actual.variantes;
@@ -336,16 +357,20 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         $('vTallasW').style.display = hayT ? '' : 'none';
         $('vColoresW').style.display = hayC ? '' : 'none';
         $('vTallas').innerHTML = tallas.map(function (t) {
-            var st = vs.filter(function (v) { return v.talla === t && (!sel.color || v.color === sel.color); }).reduce(function (a, v) { return a + v.stock; }, 0);
+            var st = vs.filter(function (v) { return v.talla === t && (!sel.color || v.color === sel.color); }).reduce(function (a, v) { return a + libre(v); }, 0);
             return '<button class="chip ' + (sel.talla === t ? 'sel' : '') + '" data-t="' + esc(t) + '" ' + (actual.controla && st <= 0 ? 'disabled' : '') + '>' + esc(t || 'Única') + (actual.controla ? '<small>' + st + ' und</small>' : '') + '</button>';
         }).join('');
         $('vColores').innerHTML = colores.map(function (c) {
-            var st = vs.filter(function (v) { return v.color === c && (!sel.talla || v.talla === sel.talla); }).reduce(function (a, v) { return a + v.stock; }, 0);
+            var st = vs.filter(function (v) { return v.color === c && (!sel.talla || v.talla === sel.talla); }).reduce(function (a, v) { return a + libre(v); }, 0);
             return '<button class="chip ' + (sel.color === c ? 'sel' : '') + '" data-c="' + esc(c) + '" ' + (actual.controla && st <= 0 ? 'disabled' : '') + '>' + esc(c || 'Único') + (actual.controla ? '<small>' + st + ' und</small>' : '') + '</button>';
         }).join('');
         var v = varianteElegida();
-        $('vAdd').disabled = !v || (actual.controla && v.stock <= 0);
-        $('vAdd').textContent = v ? 'Agregar · ' + fmt(v.precio) + (actual.controla ? ' (' + v.stock + ' disp.)' : '') : 'Elija talla y color';
+        var ya = v ? enVenta(v) : 0;
+        $('vAdd').disabled = !v || (actual.controla && libre(v) <= 0);
+        $('vAdd').textContent = !v ? 'Elija talla y color'
+            : (actual.controla && libre(v) <= 0 ? 'Ya están todas en la venta (' + ya + ')'
+            : 'Agregar · ' + fmt(v.precio) + (actual.controla ? ' (quedan ' + libre(v) + ')' : ''));
+        $('vYa').textContent = ya ? 'Ya tiene ' + ya + ' de esta en la venta.' : '';
     }
     function varianteElegida() {
         if (!actual) return null;
@@ -359,13 +384,15 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     function agregar(p, v) {
         var it = cart.find(function (x) { return x.variante_id === v.id; });
         var enCarrito = it ? it.cantidad : 0;
-        if (p.controla && enCarrito + 1 > v.stock) { toast('Solo hay ' + v.stock + ' de ' + p.nombre + ' ' + v.etiqueta, true); return; }
+        if (p.controla && enCarrito + 1 > v.stock) { toast('Ya agregó las ' + v.stock + ' unidades de ' + p.nombre + ' ' + v.etiqueta + '. Toque "Ver venta y cobrar".', true); avisarFab(); return; }
         if (it) it.cantidad++;
         else cart.push({ variante_id: v.id, nombre: p.nombre, etiqueta: v.etiqueta, precio: v.precio, stock: v.stock, controla: p.controla, cantidad: 1 });
         pintarCarrito();
         toast(p.nombre + ' · ' + v.etiqueta + ' agregado');
-        $('q').focus();
+        avisarFab();
+        if (window.innerWidth > 900) $('q').focus();
     }
+    function avisarFab() { var f = $('fab'); f.classList.remove('bump'); void f.offsetWidth; f.classList.add('bump'); }
     function subtotal() { return cart.reduce(function (a, i) { return a + i.precio * i.cantidad; }, 0); }
     function descuento() { return Math.min(Math.max(parseFloat($('desc').value) || 0, 0), subtotal()); }
     function total() { return Math.max(subtotal() - descuento(), 0); }
@@ -564,9 +591,9 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     var tt;
     function toast(m, bad) {
         var t = $('toast'); t.querySelector('span').textContent = m;
-        t.querySelector('i').className = 'fa-solid ' + (bad ? 'fa-circle-exclamation' : 'fa-circle-check');
-        t.querySelector('i').style.color = bad ? '#ff9fbd' : '';
-        t.classList.add('on'); clearTimeout(tt); tt = setTimeout(function () { t.classList.remove('on'); }, 1800);
+        t.querySelector('.ti').textContent = bad ? '!' : '✓';
+        t.classList.toggle('bad', !!bad);
+        t.classList.add('on'); clearTimeout(tt); tt = setTimeout(function () { t.classList.remove('on'); }, bad ? 3200 : 1800);
     }
     document.addEventListener('keydown', function (e) {
         if (e.key === 'F2') { e.preventDefault(); abrirCobro(); }

@@ -2,203 +2,183 @@
 
 @section('title','Productos')
 
-@push('css-datatable')
-<link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css">
-@endpush
-
 @push('css')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+.pl-top{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin:1.2rem 0 1rem}
+.pl-top h1{font-weight:900;font-size:1.6rem;margin:0;flex:1 1 auto}
+.pl-nuevo{background:linear-gradient(90deg,#a3f04a,#16b84e);color:#0b0d0c;font-weight:800;border:0;border-radius:999px;padding:.7rem 1.2rem;text-decoration:none;white-space:nowrap}
+.pl-nuevo:hover{color:#0b0d0c;filter:brightness(1.05)}
+.pl-buscar{position:relative;margin-bottom:.7rem}
+.pl-buscar input{border-radius:16px;padding:.8rem 1rem .8rem 2.6rem;font-size:1rem}
+.pl-buscar > i,.pl-buscar > svg{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:#7a8580;pointer-events:none}
+.pl-filtros{display:flex;gap:.4rem;overflow-x:auto;padding-bottom:.4rem;margin-bottom:.6rem}
+.pl-filtros button{border:1.5px solid #dfe6e2;background:#fff;border-radius:999px;padding:.4rem .9rem;font-weight:700;font-size:.85rem;white-space:nowrap;color:#33403a}
+.pl-filtros button.on{background:#0b0d0c;border-color:#0b0d0c;color:#fff}
+.pl-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:.8rem}
+.pl-item{background:#fff;border-radius:20px;padding:.9rem;box-shadow:0 6px 22px -14px rgba(0,0,0,.35);border:1px solid #edf1ee;display:flex;flex-direction:column;gap:.7rem;min-width:0}
+.pl-item.off{opacity:.6}
+.pl-cab{display:flex;gap:.8rem;align-items:center;min-width:0}
+.pl-foto{width:64px;height:64px;border-radius:14px;background:#eef3ef;flex:none;overflow:hidden;display:grid;place-items:center;font-weight:900;font-size:1.4rem;color:#16b84e}
+.pl-foto img{width:100%;height:100%;object-fit:cover}
+.pl-txt{min-width:0;flex:1}
+.pl-txt b{display:block;font-size:1rem;line-height:1.2;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.pl-txt small{color:#6b7570;display:block;margin-top:.15rem}
+.pl-precio{font-weight:900;font-size:1.05rem;white-space:nowrap}
+.pl-stk{display:inline-block;border-radius:999px;padding:.15rem .6rem;font-weight:800;font-size:.78rem;margin-top:.3rem}
+.pl-stk.ok{background:#dcfce7;color:#14753a}.pl-stk.low{background:#fef3c7;color:#92600a}.pl-stk.zero{background:#fde2e8;color:#b0173f}.pl-stk.na{background:#eef1ef;color:#55605a}
+.pl-tallas{display:flex;gap:.3rem;flex-wrap:wrap}
+.pl-tallas span{background:#f3f6f4;border-radius:8px;padding:.15rem .45rem;font-size:.75rem;font-weight:700;color:#33403a}
+.pl-tallas span.cero{color:#b3bab6;text-decoration:line-through}
+.pl-acc{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem}
+.pl-acc a,.pl-acc button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.2rem;border:0;border-radius:14px;padding:.55rem .2rem;font-size:.75rem;font-weight:800;text-decoration:none;background:#f1f5f2;color:#0b0d0c;min-height:58px}
+.pl-acc a:hover,.pl-acc button:hover{background:#e3ebe6;color:#0b0d0c}
+.pl-acc .pri{background:#0b0d0c;color:#fff}
+.pl-acc .pri:hover{background:#222;color:#fff}
+.pl-acc .del{color:#b0173f}
+.pl-acc i,.pl-acc svg{font-size:1.05rem}
+.pl-vacio{text-align:center;padding:2.5rem 1rem;color:#6b7570}
+.pl-vacio i,.pl-vacio svg{font-size:2.4rem;margin-bottom:.6rem;color:#16b84e}
+@media (max-width:420px){.pl-lista{grid-template-columns:minmax(0,1fr)}.pl-top h1{font-size:1.35rem}}
+</style>
 @endpush
 
 @section('content')
 
 @include('layouts.partials.alert')
 
-<div class="container-fluid px-4">
-    <h1 class="mt-4 text-center">Productos</h1>
-    <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item"><a href="{{ route('panel') }}">Inicio</a></li>
-        <li class="breadcrumb-item active">Productos</li>
-    </ol>
+@php
+    $tallas = (bool) \App\Support\TiendaActual::tienda()?->usa_tallas;
+    $activos = $productos->where('estado', 1)->count();
+    $ocultos = $productos->count() - $activos;
+@endphp
 
-    @can('crear-producto')
-    <div class="mb-4">
-        <a href="{{route('productos.create')}}">
-            <button type="button" class="btn btn-primary">Añadir nuevo registro</button>
-        </a>
+<div class="container-fluid px-3 px-md-4 pb-5">
+    <div class="pl-top">
+        <h1>Productos <small class="text-muted fw-bold" style="font-size:.9rem">({{ $activos }})</small></h1>
+        @can('crear-producto')
+        <a href="{{ route('productos.create') }}" class="pl-nuevo"><i class="fa-solid fa-plus"></i> Nuevo producto</a>
+        @endcan
     </div>
-    @endcan
 
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-table me-1"></i>
-            Tabla productos
+    @if ($productos->isEmpty())
+        <div class="pl-item pl-vacio">
+            <div><i class="fa-solid fa-shirt"></i></div>
+            <b>Aún no tiene productos.</b>
+            <span>Cree el primero y quedará listo para vender en la caja.</span>
+            @can('crear-producto')
+            <div><a href="{{ route('productos.create') }}" class="pl-nuevo d-inline-block mt-2">+ Crear mi primer producto</a></div>
+            @endcan
         </div>
-        <div class="card-body">
-            <table id="datatablesSimple" class="table table-striped fs-6">
-                <thead>
-                    <tr>
-                        <th>Código</th>
-                        <th>Nombre</th>
-                        <th>Marca</th>
-                        <th>Precio</th>
-                        <th>Stock</th>
-                        <th>Categorías</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($productos as $item)
-                    <tr>
-                        <td>
-                            {{$item->codigo}}
-                        </td>
-                        <td>
-                            {{$item->nombre}}
-                        </td>
-                        <td>
-                            {{ $item->marca?->caracteristica?->nombre ?? '—' }}
-                        </td>
-                        <td>
-                            {{ dinero($item->precio_venta) }}
-                        </td>
-                        <td>
-                            @php $st = $item->variantes->sum('stock'); @endphp
-                            <span class="badge {{ $st <= 0 ? 'bg-danger' : ($st <= 5 ? 'bg-warning text-dark' : 'bg-success') }}">{{ $st }} und.</span>
-                        </td>
-                        <td>
-                            @foreach ($item->categorias as $category)
-                            <div class="container" style="font-size: small;">
-                                <div class="row">
-                                    <span class="m-1 rounded-pill p-1 bg-secondary text-white text-center">{{$category->caracteristica->nombre}}</span>
-                                </div>
-                            </div>
-                            @endforeach
-                        </td>
-                        <td>
-                            @if ($item->estado == 1)
-                            <span class="badge rounded-pill text-bg-success">activo</span>
-                            @else
-                            <span class="badge rounded-pill text-bg-danger">eliminado</span>
+    @else
+        <div class="pl-buscar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="search" id="plQ" class="form-control" placeholder="Buscar por nombre, código o categoría" autocomplete="off">
+        </div>
+        <div class="pl-filtros" id="plF">
+            <button type="button" class="on" data-f="activos">Activos ({{ $activos }})</button>
+            <button type="button" data-f="bajo">Poco stock</button>
+            <button type="button" data-f="agotados">Agotados</button>
+            @if ($ocultos)
+            <button type="button" data-f="ocultos">Ocultos ({{ $ocultos }})</button>
+            @endif
+        </div>
+
+        <div class="pl-lista" id="plL">
+            @foreach ($productos as $item)
+            @php
+                $controla = (bool) $item->controla_inventario;
+                $st = (int) $item->variantes->sum('stock');
+                $clase = !$controla ? 'na' : ($st <= 0 ? 'zero' : ($st <= 5 ? 'low' : 'ok'));
+                $cats = $item->categorias->map(fn ($c) => $c->caracteristica?->nombre)->filter()->implode(', ');
+                $conVar = $item->variantes->filter(fn ($v) => $v->talla || $v->color);
+            @endphp
+            <div class="pl-item {{ $item->estado == 1 ? '' : 'off' }}"
+                 data-q="{{ mb_strtolower($item->nombre . ' ' . $item->codigo . ' ' . $cats) }}"
+                 data-estado="{{ $item->estado == 1 ? 1 : 0 }}" data-st="{{ $controla ? $st : -1 }}">
+                <div class="pl-cab">
+                    <div class="pl-foto">
+                        @if ($item->img_path)
+                        <img src="{{ asset('storage/productos/' . rawurlencode($item->img_path)) }}" alt="" loading="lazy">
+                        @else
+                        {{ mb_strtoupper(mb_substr($item->nombre, 0, 1)) }}
+                        @endif
+                    </div>
+                    <div class="pl-txt">
+                        <b>{{ $item->nombre }}</b>
+                        <small>{{ $item->codigo }}{{ $cats ? ' · ' . $cats : '' }}</small>
+                        <span class="pl-stk {{ $clase }}">
+                            @if ($item->estado != 1) Oculto
+                            @elseif (!$controla) Sin control de stock
+                            @elseif ($st <= 0) Agotado
+                            @else {{ $st }} {{ $st == 1 ? 'unidad' : 'unidades' }}
                             @endif
-                        </td>
-                        <td>
-                            <div class="d-flex justify-content-around">
-                                <div>
-                                    <button title="Opciones" class="btn btn-datatable btn-icon btn-transparent-dark me-2" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <svg class="svg-inline--fa fa-ellipsis-vertical" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="ellipsis-vertical" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 512" data-fa-i2svg="">
-                                            <path fill="currentColor" d="M56 472a56 56 0 1 1 0-112 56 56 0 1 1 0 112zm0-160a56 56 0 1 1 0-112 56 56 0 1 1 0 112zM0 96a56 56 0 1 1 112 0A56 56 0 1 1 0 96z"></path>
-                                        </svg>
-                                    </button>
-                                    <ul class="dropdown-menu text-bg-light" style="font-size: small;">
-                                        <!-----Editar Producto--->
-                                        @can('editar-producto')
-                                        <li><a class="dropdown-item" href="{{route('productos.variantes',['producto' => $item])}}"><i class="fa-solid fa-boxes-stacked me-2"></i>{{ \App\Support\TiendaActual::tienda()?->usa_tallas ? 'Tallas, colores y stock' : 'Stock' }}</a></li>
-                                        <li><a class="dropdown-item" href="{{route('productos.edit',['producto' => $item])}}">Editar</a></li>
-                                        @endcan
-                                        <!----Ver-producto--->
-                                        @can('ver-producto')
-                                        <li>
-                                            <a class="dropdown-item" role="button" data-bs-toggle="modal" data-bs-target="#verModal-{{$item->id}}">Ver</a>
-                                        </li>
-                                        @endcan
-                                    </ul>
-                                </div>
-                                <div>
-                                    <!----Separador----->
-                                    <div class="vr"></div>
-                                </div>
-                                <div>
-                                    <!------Eliminar producto---->
-                                    @can('eliminar-producto')
-                                    @if ($item->estado == 1)
-                                    <button title="Eliminar" data-bs-toggle="modal" data-bs-target="#confirmModal-{{$item->id}}" class="btn btn-datatable btn-icon btn-transparent-dark">
-                                        <svg class="svg-inline--fa fa-trash-can" aria-hidden="true" focusable="false" data-prefix="far" data-icon="trash-can" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg="">
-                                            <path fill="currentColor" d="M170.5 51.6L151.5 80h145l-19-28.4c-1.5-2.2-4-3.6-6.7-3.6H177.1c-2.7 0-5.2 1.3-6.7 3.6zm147-26.6L354.2 80H368h48 8c13.3 0 24 10.7 24 24s-10.7 24-24 24h-8V432c0 44.2-35.8 80-80 80H112c-44.2 0-80-35.8-80-80V128H24c-13.3 0-24-10.7-24-24S10.7 80 24 80h8H80 93.8l36.7-55.1C140.9 9.4 158.4 0 177.1 0h93.7c18.7 0 36.2 9.4 46.6 24.9zM80 128V432c0 17.7 14.3 32 32 32H336c17.7 0 32-14.3 32-32V128H80zm80 64V400c0 8.8-7.2 16-16 16s-16-7.2-16-16V192c0-8.8 7.2-16 16-16s16 7.2 16 16zm80 0V400c0 8.8-7.2 16-16 16s-16-7.2-16-16V192c0-8.8 7.2-16 16-16s16 7.2 16 16zm80 0V400c0 8.8-7.2 16-16 16s-16-7.2-16-16V192c0-8.8 7.2-16 16-16s16 7.2 16 16z"></path>
-                                        </svg>
-                                    </button>
-                                    @else
-                                    <button title="Restaurar" data-bs-toggle="modal" data-bs-target="#confirmModal-{{$item->id}}" class="btn btn-datatable btn-icon btn-transparent-dark">
-                                        <i class="fa-solid fa-rotate"></i>
-                                    </button>
-                                    @endif
-                                    @endcan
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-
-                    <!-- Modal -->
-                    <div class="modal fade" id="verModal-{{$item->id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-scrollable">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h1 class="modal-title fs-5" id="exampleModalLabel">Detalles del producto</h1>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="row">
-                                        <div class="col-12">
-                                            <p><span class="fw-bolder">Descripción: </span>{{$item->descripcion}}</p>
-                                        </div>
-                                        <div class="col-12">
-                                            <p><span class="fw-bolder">Fecha de vencimiento: </span>{{$item->fecha_vencimiento=='' ? 'No tiene' : $item->fecha_vencimiento}}</p>
-                                        </div>
-                                        <div class="col-12">
-                                            <p><span class="fw-bolder">Stock: </span>{{$item->stock}}</p>
-                                        </div>
-                                        <div class="col-12">
-                                            <p class="fw-bolder">Imagen:</p>
-                                            <div>
-                                                @if ($item->img_path != null)
-                                                <img src="{{ Storage::url('public/productos/'.$item->img_path) }}" alt="{{$item->nombre}}" class="img-fluid img-thumbnail border border-4 rounded">
-                                                @else
-                                                <img src="" alt="{{$item->nombre}}">
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                </div>
-                            </div>
-                        </div>
+                        </span>
                     </div>
+                    <div class="pl-precio">{{ dinero($item->precio_venta) }}</div>
+                </div>
 
-                    <!-- Modal de confirmación-->
-                    <div class="modal fade" id="confirmModal-{{$item->id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h1 class="modal-title fs-5" id="exampleModalLabel">Mensaje de confirmación</h1>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                                </div>
-                                <div class="modal-body">
-                                    {{ $item->estado == 1 ? '¿Seguro que quieres eliminar el producto?' : '¿Seguro que quieres restaurar el producto?' }}
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                    <form action="{{ route('productos.destroy',['producto'=>$item->id]) }}" method="post">
-                                        @method('DELETE')
-                                        @csrf
-                                        <button type="submit" class="btn btn-danger">Confirmar</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                @if ($conVar->isNotEmpty())
+                <div class="pl-tallas">
+                    @foreach ($conVar->take(12) as $v)
+                    <span class="{{ $controla && $v->stock <= 0 ? 'cero' : '' }}">{{ trim($v->talla . ' ' . $v->color) }}@if ($controla) · {{ $v->stock }}@endif</span>
                     @endforeach
-                </tbody>
-            </table>
-        </div>
+                    @if ($conVar->count() > 12)<span>+{{ $conVar->count() - 12 }}</span>@endif
+                </div>
+                @endif
 
-    </div>
+                <div class="pl-acc">
+                    @can('editar-producto')
+                    <a href="{{ route('productos.variantes', ['producto' => $item]) }}" class="pri"><i class="fa-solid fa-boxes-stacked"></i>{{ $tallas ? 'Tallas y stock' : 'Stock' }}</a>
+                    <a href="{{ route('productos.edit', ['producto' => $item]) }}"><i class="fa-solid fa-pen"></i>Editar</a>
+                    @endcan
+                    <a href="{{ route('etiquetas.producto', ['producto' => $item]) }}"><i class="fa-solid fa-barcode"></i>Etiquetas</a>
+                    @can('eliminar-producto')
+                    <form action="{{ route('productos.destroy', ['producto' => $item->id]) }}" method="post" class="d-contents" style="display:contents"
+                          onsubmit="return confirm(@json($item->estado == 1 ? '¿Ocultar este producto? Ya no saldrá en la caja ni en el catálogo. Puede restaurarlo después.' : '¿Restaurar este producto?'))">
+                        @method('DELETE')
+                        @csrf
+                        @if ($item->estado == 1)
+                        <button type="submit" class="del"><i class="fa-solid fa-eye-slash"></i>Ocultar</button>
+                        @else
+                        <button type="submit"><i class="fa-solid fa-rotate-left"></i>Restaurar</button>
+                        @endif
+                    </form>
+                    @endcan
+                </div>
+            </div>
+            @endforeach
+        </div>
+        <div class="pl-item pl-vacio mt-2" id="plNada" style="display:none"><b>No hay productos con ese filtro.</b></div>
+    @endif
 </div>
 @endsection
 
 @push('js')
-<script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
-<script src="{{ asset('js/datatables-simple-demo.js') }}?v=2"></script>
+<script>
+(function () {
+    var q = document.getElementById('plQ'); if (!q) return;
+    var filtro = 'activos';
+    var items = [].slice.call(document.querySelectorAll('#plL .pl-item'));
+    function aplicar() {
+        var t = q.value.trim().toLowerCase(), n = 0;
+        items.forEach(function (el) {
+            var e = el.dataset.estado === '1', st = +el.dataset.st, ok;
+            if (filtro === 'ocultos') ok = !e;
+            else if (filtro === 'bajo') ok = e && st > 0 && st <= 5;
+            else if (filtro === 'agotados') ok = e && st === 0;
+            else ok = e;
+            if (ok && t) ok = el.dataset.q.indexOf(t) !== -1;
+            el.style.display = ok ? '' : 'none'; if (ok) n++;
+        });
+        document.getElementById('plNada').style.display = n ? 'none' : '';
+    }
+    q.addEventListener('input', aplicar);
+    document.getElementById('plF').addEventListener('click', function (e) {
+        var b = e.target.closest('button'); if (!b) return;
+        [].forEach.call(this.children, function (x) { x.classList.remove('on'); });
+        b.classList.add('on'); filtro = b.dataset.f; aplicar();
+    });
+    aplicar();
+})();
+</script>
 @endpush

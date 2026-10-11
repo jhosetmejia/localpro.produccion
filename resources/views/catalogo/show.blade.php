@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ $tienda->nombre }} · Catálogo</title>
 <meta name="description" content="{{ $tienda->descripcion ?: 'Catálogo de ' . $tienda->nombre }}. Pida por WhatsApp.">
 <meta property="og:title" content="{{ $tienda->nombre }}">

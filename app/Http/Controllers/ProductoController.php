@@ -90,26 +90,48 @@ class ProductoController extends Controller
             }
             $producto->categorias()->attach($categorias);
 
-            // Negocios sin tallas/colores: una sola referencia con su cantidad
-            if (!\App\Support\TiendaActual::tienda()->usa_tallas) {
-                $v = $producto->variantes()->create(['talla' => null, 'color' => null, 'stock' => 0]);
-                if ((int) $request->cantidad_inicial > 0 && $producto->controla_inventario) {
-                    $v->moverStock((int) $request->cantidad_inicial, 'entrada', null, 'Inventario inicial');
+            // Cantidades: por talla/color (moda) o una sola cantidad
+            $controla = $producto->controla_inventario;
+            $creadas = 0;
+            $total = 0;
+            if (\App\Support\TiendaActual::tienda()->usa_tallas && $request->boolean('con_tallas')) {
+                $vistas = [];
+                foreach ((array) $request->input('variantes', []) as $fila) {
+                    $talla = mb_strtoupper(trim((string) ($fila['talla'] ?? ''))) ?: null;
+                    $color = mb_strtoupper(trim((string) ($fila['color'] ?? ''))) ?: null;
+                    $clave = $talla . '|' . $color;
+                    if ($clave === '|' || isset($vistas[$clave])) {
+                        continue;
+                    }
+                    $vistas[$clave] = true;
+                    $v = $producto->variantes()->create(['talla' => $talla, 'color' => $color, 'stock' => 0]);
+                    $cant = (int) ($fila['cantidad'] ?? 0);
+                    if ($cant > 0 && $controla) {
+                        $v->moverStock($cant, 'entrada', null, 'Inventario inicial');
+                        $total += $cant;
+                    }
+                    $creadas++;
                 }
             }
-
+            if ($creadas === 0) {
+                $v = $producto->variantes()->create(['talla' => null, 'color' => null, 'stock' => 0]);
+                $cant = (int) $request->cantidad_inicial;
+                if ($cant > 0 && $controla) {
+                    $v->moverStock($cant, 'entrada', null, 'Inventario inicial');
+                    $total += $cant;
+                }
+            }
 
             DB::commit();
         } catch (Exception $e) {
             DB::rollBack();
+            report($e);
             return back()->withInput()->withErrors('No se pudo guardar el producto. Intente de nuevo.');
         }
 
-        if (!\App\Support\TiendaActual::tienda()->usa_tallas) {
-            return redirect()->route('productos.index')->with('success', 'Producto registrado y listo para vender.');
-        }
-        // En moda el siguiente paso es cargar tallas, colores y cantidades
-        return redirect()->route('productos.variantes', $producto)->with('success', 'Producto registrado. Ahora agregue sus tallas y colores.');
+        $msg = 'Producto "' . $producto->nombre . '" guardado y listo para vender'
+            . ($controla ? ' (' . $total . ' ' . ($total === 1 ? 'unidad' : 'unidades') . ')' : '') . '.';
+        return redirect()->route('productos.index')->with('success', $msg);
     }
 
     /**
@@ -194,7 +216,7 @@ class ProductoController extends Controller
     public function destroy(string $id)
     {
         $message = '';
-        $producto = Producto::find($id);
+        $producto = Producto::findOrFail($id);
         if ($producto->estado == 1) {
             Producto::where('id', $producto->id)
                 ->update([
