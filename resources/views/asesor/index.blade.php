@@ -22,7 +22,7 @@
 
     <div class="lp-box mb-3">
         <h3><span><i class="fa-solid fa-link me-1"></i> Su enlace para inscribir negocios</span></h3>
-        <p class="text-muted small mb-2">El negocio que se registre con este enlace, o escriba su código <b>{{ $yo->codigo }}</b>, queda a su nombre y usted gana la comisión cuando pague su plan.</p>
+        <p class="text-muted small mb-2">El negocio que se registre con este enlace, o escriba su código <b>{{ $yo->codigo }}</b>, queda a su nombre y usted gana la comisión cuando pague su plan anual.</p>
         <div class="lp-link">
             <code id="miEnlace">{{ $yo->enlace }}</code>
             <button type="button" class="btn btn-dark btn-sm" onclick="navigator.clipboard && navigator.clipboard.writeText(document.getElementById('miEnlace').textContent.trim()); LP.toast('Enlace copiado')"><i class="fa-regular fa-copy me-1"></i>Copiar</button>

@@ -7,7 +7,7 @@
 <div class="lp-dash">
     <div class="lp-hello">
         <div><small><i class="fa-solid fa-crown me-1"></i>Administrador LocalPro</small><h1>Red <span>comercial</span></h1>
-            <span class="text-muted fw-semibold">Líderes de departamento → líderes de ciudad → asesores → negocios</span></div>
+            <span class="text-muted fw-semibold">Líder de país → líderes de departamento → líderes de ciudad → asesores → negocios</span></div>
         <div class="lp-quick"><a href="{{ route('admin.red.comisiones') }}" class="btn btn-dark btn-lg"><i class="fa-solid fa-coins me-1"></i>Comisiones</a></div>
     </div>
     @include('layouts.partials.lp-flash')
@@ -35,7 +35,7 @@
         </h3>
         <div class="rn-ley"><span style="--c:#16b34a">Plan al día</span><span style="--c:#f2b705">Vence pronto</span><span style="--c:#e0245e">Vencido</span><span style="--c:#b8c2bc">Plan gratis</span></div>
         @if ($raices->isEmpty())
-            <p class="lp-empty mb-0">Aún no hay nadie en la red. Empiece inscribiendo a sus líderes de departamento.</p>
+            <p class="lp-empty mb-0">Aún no hay nadie en la red. Empiece inscribiendo al líder de país o a sus líderes de departamento.</p>
         @else
         <ul class="rn-tree">
             @foreach ($raices as $n)
@@ -49,16 +49,19 @@
         <summary class="fw-bold" style="cursor:pointer;font-size:1.05rem"><i class="fa-solid fa-sliders me-1" style="color:#16b34a"></i> Valores de comisión</summary>
         <form method="post" action="{{ route('admin.red.valores') }}" class="row g-3 mt-1">
             @csrf
+            <div class="col-12 small fw-bold" style="color:#11702f"><i class="fa-solid fa-circle-info me-1"></i>Solo el plan anual paga comisión. Mensualidades y servicios adicionales son 100% para LocalPro.</div>
             <div class="col-md-4"><label class="form-label">Valor del plan anual con asesor</label><input data-dinero type="number" name="red_valor_plan" class="form-control" value="{{ (int) $valores['valor_plan'] }}"></div>
             <div class="col-12"><b>Venta nueva</b> <small class="text-muted">— LocalPro se queda con el resto</small></div>
-            <div class="col-md-4"><label class="form-label">Asesor que vende</label><input data-dinero type="number" name="red_nueva_venta" class="form-control" value="{{ (int) $valores['nueva']['venta'] }}"></div>
-            <div class="col-md-4"><label class="form-label">Líder de ciudad</label><input data-dinero type="number" name="red_nueva_ciudad" class="form-control" value="{{ (int) $valores['nueva']['lider_ciudad'] }}"></div>
-            <div class="col-md-4"><label class="form-label">Líder de departamento</label><input data-dinero type="number" name="red_nueva_departamento" class="form-control" value="{{ (int) $valores['nueva']['lider_departamento'] }}"></div>
+            <div class="col-md-3"><label class="form-label">Asesor que vende</label><input data-dinero type="number" name="red_nueva_venta" class="form-control" value="{{ (int) $valores['nueva']['venta'] }}"></div>
+            <div class="col-md-3"><label class="form-label">Líder de ciudad</label><input data-dinero type="number" name="red_nueva_ciudad" class="form-control" value="{{ (int) $valores['nueva']['lider_ciudad'] }}"></div>
+            <div class="col-md-3"><label class="form-label">Líder de departamento</label><input data-dinero type="number" name="red_nueva_departamento" class="form-control" value="{{ (int) $valores['nueva']['lider_departamento'] }}"></div>
+            <div class="col-md-3"><label class="form-label">Líder de país</label><input data-dinero type="number" name="red_nueva_pais" class="form-control" value="{{ (int) $valores['nueva']['lider_pais'] }}"></div>
             <div class="col-12"><b>Renovación (cada año)</b></div>
-            <div class="col-md-4"><label class="form-label">Asesor del negocio</label><input data-dinero type="number" name="red_renov_venta" class="form-control" value="{{ (int) $valores['renovacion']['venta'] }}"></div>
-            <div class="col-md-4"><label class="form-label">Líder de ciudad</label><input data-dinero type="number" name="red_renov_ciudad" class="form-control" value="{{ (int) $valores['renovacion']['lider_ciudad'] }}"></div>
-            <div class="col-md-4"><label class="form-label">Líder de departamento</label><input data-dinero type="number" name="red_renov_departamento" class="form-control" value="{{ (int) $valores['renovacion']['lider_departamento'] }}"></div>
-            <div class="col-12 small text-muted">Si un líder vende directamente, cobra la parte de asesor más la de su cargo. Si un cargo está vacío, esa parte queda para LocalPro. Si el negocio paga otro valor (por ejemplo un plan mensual), las comisiones se calculan en proporción.</div>
+            <div class="col-md-3"><label class="form-label">Asesor del negocio</label><input data-dinero type="number" name="red_renov_venta" class="form-control" value="{{ (int) $valores['renovacion']['venta'] }}"></div>
+            <div class="col-md-3"><label class="form-label">Líder de ciudad</label><input data-dinero type="number" name="red_renov_ciudad" class="form-control" value="{{ (int) $valores['renovacion']['lider_ciudad'] }}"></div>
+            <div class="col-md-3"><label class="form-label">Líder de departamento</label><input data-dinero type="number" name="red_renov_departamento" class="form-control" value="{{ (int) $valores['renovacion']['lider_departamento'] }}"></div>
+            <div class="col-md-3"><label class="form-label">Líder de país</label><input data-dinero type="number" name="red_renov_pais" class="form-control" value="{{ (int) $valores['renovacion']['lider_pais'] }}"></div>
+            <div class="col-12 small text-muted">Si un líder vende directamente, cobra la parte de asesor más la de su cargo. Si un cargo está vacío o inactivo, esa parte queda para LocalPro.</div>
             <div class="col-12"><button class="btn btn-dark">Guardar valores</button></div>
         </form>
     </details>

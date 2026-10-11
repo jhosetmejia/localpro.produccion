@@ -8,9 +8,9 @@ use App\Models\PagoSuscripcion;
 
 /**
  * Reparte cada pago de plan entre la red comercial.
- * Venta nueva (por defecto, plan de 200.000): asesor 80.000 · líder de ciudad 10.000 · líder de departamento 10.000 · LocalPro el resto.
- * Renovación (cada año): 10.000 a cada uno · LocalPro el resto.
- * Si el pago es de otro valor, las comisiones se ajustan en proporción. Un cargo vacío deja su parte para LocalPro.
+ * Solo el PLAN ANUAL genera comisión (mensualidades y servicios adicionales son 100% de LocalPro).
+ * Venta nueva (plan de 200.000): asesor 80.000 · líder de ciudad 10.000 · líder de departamento 10.000 · líder de país 10.000 · LocalPro el resto.
+ * Renovación anual: 10.000 a cada uno · LocalPro el resto. Un cargo vacío deja su parte para LocalPro.
  */
 class Comisiones
 {
@@ -19,8 +19,8 @@ class Comisiones
         $v = fn ($k, $d) => (float) Ajuste::valor($k, $d);
         return [
             'valor_plan' => $v('red_valor_plan', 200000),
-            'nueva' => ['venta' => $v('red_nueva_venta', 80000), 'lider_ciudad' => $v('red_nueva_ciudad', 10000), 'lider_departamento' => $v('red_nueva_departamento', 10000)],
-            'renovacion' => ['venta' => $v('red_renov_venta', 10000), 'lider_ciudad' => $v('red_renov_ciudad', 10000), 'lider_departamento' => $v('red_renov_departamento', 10000)],
+            'nueva' => ['venta' => $v('red_nueva_venta', 80000), 'lider_ciudad' => $v('red_nueva_ciudad', 10000), 'lider_departamento' => $v('red_nueva_departamento', 10000), 'lider_pais' => $v('red_nueva_pais', 10000)],
+            'renovacion' => ['venta' => $v('red_renov_venta', 10000), 'lider_ciudad' => $v('red_renov_ciudad', 10000), 'lider_departamento' => $v('red_renov_departamento', 10000), 'lider_pais' => $v('red_renov_pais', 10000)],
         ];
     }
 
@@ -28,6 +28,10 @@ class Comisiones
     {
         $tienda = $pago->tienda;
         if (!$tienda || !$tienda->asesor_id || (float) $pago->monto <= 0 || $pago->estado !== 'aprobado') {
+            return;
+        }
+        // Solo el plan anual paga comisión
+        if (!self::esAnual($pago)) {
             return;
         }
         if (Comision::where('pago_suscripcion_id', $pago->id)->exists()) {
@@ -38,21 +42,26 @@ class Comisiones
             return;
         }
 
-        $anteriores = PagoSuscripcion::where('tienda_id', $tienda->id)->where('estado', 'aprobado')
-            ->where('monto', '>', 0)->where('id', '<>', $pago->id)->exists();
+        // Renovación si ya había pagado antes un plan anual
+        $anteriores = PagoSuscripcion::with('plan')->where('tienda_id', $tienda->id)->where('estado', 'aprobado')
+            ->where('monto', '>', 0)->where('id', '<>', $pago->id)->get()->contains(fn ($p) => self::esAnual($p));
         $tipo = $anteriores ? 'renovacion' : 'nueva';
 
         $cfg = self::valores();
-        $factor = $cfg['valor_plan'] > 0 ? min(1, (float) $pago->monto / $cfg['valor_plan']) : 1;
         $lideres = $vendedor->lideres();
         $quien = [
             'venta' => $vendedor->activo ? $vendedor : null,
             'lider_ciudad' => $lideres['ciudad'],
             'lider_departamento' => $lideres['departamento'],
+            'lider_pais' => $lideres['pais'],
         ];
+        // Nunca se reparte más de lo que pagó el negocio
+        if (array_sum($cfg[$tipo]) > (float) $pago->monto) {
+            return;
+        }
 
         foreach ($quien as $concepto => $asesor) {
-            $monto = round($cfg[$tipo][$concepto] * $factor, 2);
+            $monto = round($cfg[$tipo][$concepto], 2);
             if (!$asesor || $monto <= 0) {
                 continue; // la parte queda para LocalPro
             }
@@ -66,5 +75,12 @@ class Comisiones
                 'estado' => 'pendiente',
             ]);
         }
+    }
+
+    // Plan de un año (365 días aprox.)
+    public static function esAnual(PagoSuscripcion $pago): bool
+    {
+        $dias = (int) ($pago->plan->dias ?? 0);
+        return $dias >= 360 && $dias <= 400;
     }
 }

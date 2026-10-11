@@ -16,6 +16,7 @@ class Comision extends Model
         'venta' => 'Por su venta',
         'lider_ciudad' => 'Como líder de ciudad',
         'lider_departamento' => 'Como líder de departamento',
+        'lider_pais' => 'Como líder de país',
     ];
 
     public function asesor()

@@ -15,7 +15,7 @@
         <option value="{{ $l->id }}" @selected((int) old('padre_id', $a->padre_id ?? 0) === $l->id)>{{ $l->nombre }} · {{ $l->cargo_nombre }}{{ $l->ciudad ? ' · ' . $l->ciudad : ($l->departamento ? ' · ' . $l->departamento : '') }}</option>
         @endforeach
     </select>
-    <small class="text-muted">Asesor → su líder de ciudad. Líder de ciudad → su líder de departamento.</small>
+    <small class="text-muted">Asesor → líder de ciudad → líder de departamento → líder de país.</small>
 </div>
 <div class="col-md-6"><label class="form-label">Celular / WhatsApp</label><input name="telefono" class="form-control" maxlength="20" inputmode="tel" value="{{ old('telefono', $a?->user?->telefono) }}"></div>
 @include('layouts.partials.ubicacion', ['pais' => $a->pais ?? 'CO', 'departamento' => $a->departamento ?? '', 'ciudad' => $a->ciudad ?? ''])

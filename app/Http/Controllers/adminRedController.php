@@ -21,7 +21,7 @@ class adminRedController extends Controller
     {
         $gente = Asesor::with('user:id,name,email,telefono')->withCount('tiendas')
             ->when($request->departamento, fn ($q, $d) => $q->where('departamento', $d))
-            ->orderByRaw("FIELD(cargo, 'lider_departamento', 'lider_ciudad', 'asesor')")->get();
+            ->orderByRaw("FIELD(cargo, 'lider_pais', 'lider_departamento', 'lider_ciudad', 'asesor')")->get();
         $ids = $gente->pluck('id');
         $negocios = Tienda::with('plan:id,nombre')->whereIn('asesor_id', $ids)->orderBy('nombre')->get()->groupBy('asesor_id');
 
@@ -29,7 +29,7 @@ class adminRedController extends Controller
             'raices' => $gente->filter(fn ($a) => !$a->padre_id || !$ids->contains($a->padre_id)),
             'hijos' => $gente->groupBy('padre_id'),
             'negocios' => $negocios,
-            'lideres' => Asesor::with('user:id,name')->whereIn('cargo', ['lider_departamento', 'lider_ciudad'])->where('activo', true)->get(),
+            'lideres' => Asesor::with('user:id,name')->whereIn('cargo', ['lider_pais', 'lider_departamento', 'lider_ciudad'])->where('activo', true)->get(),
             'departamentos' => Asesor::whereNotNull('departamento')->distinct()->orderBy('departamento')->pluck('departamento'),
             'departamento' => $request->departamento,
             'kpi' => [
@@ -84,7 +84,7 @@ class adminRedController extends Controller
             'equipo' => Asesor::with('user:id,name')->withCount('tiendas')->where('padre_id', $asesor->id)->get(),
             'comisiones' => Comision::with('tienda:id,nombre')->where('asesor_id', $asesor->id)->latest()->take(30)->get(),
             'pendiente' => (float) Comision::where('asesor_id', $asesor->id)->where('estado', 'pendiente')->sum('monto'),
-            'lideres' => Asesor::with('user:id,name')->whereIn('cargo', ['lider_departamento', 'lider_ciudad'])
+            'lideres' => Asesor::with('user:id,name')->whereIn('cargo', ['lider_pais', 'lider_departamento', 'lider_ciudad'])
                 ->whereNotIn('id', $asesor->idsRed())->get(),
             'sinAsesor' => Tienda::whereNull('asesor_id')->orderBy('nombre')->get(['id', 'nombre']),
         ]);
@@ -179,12 +179,13 @@ class adminRedController extends Controller
     public function valores(Request $request)
     {
         $reglas = [];
-        foreach (['red_valor_plan', 'red_nueva_venta', 'red_nueva_ciudad', 'red_nueva_departamento', 'red_renov_venta', 'red_renov_ciudad', 'red_renov_departamento'] as $k) {
+        foreach (['red_valor_plan', 'red_nueva_venta', 'red_nueva_ciudad', 'red_nueva_departamento', 'red_nueva_pais', 'red_renov_venta', 'red_renov_ciudad', 'red_renov_departamento', 'red_renov_pais'] as $k) {
             $reglas[$k] = 'required|numeric|min:0|max:100000000';
         }
         $datos = $request->validate($reglas);
-        if ($datos['red_nueva_venta'] + $datos['red_nueva_ciudad'] + $datos['red_nueva_departamento'] > $datos['red_valor_plan']) {
-            return back()->withErrors('Las comisiones de venta nueva suman más que el valor del plan.');
+        if ($datos['red_nueva_venta'] + $datos['red_nueva_ciudad'] + $datos['red_nueva_departamento'] + $datos['red_nueva_pais'] > $datos['red_valor_plan']
+            || $datos['red_renov_venta'] + $datos['red_renov_ciudad'] + $datos['red_renov_departamento'] + $datos['red_renov_pais'] > $datos['red_valor_plan']) {
+            return back()->withErrors(['red_valor_plan' => 'Las comisiones suman más que el valor del plan anual.']);
         }
         foreach ($datos as $k => $v) {
             Ajuste::guardar($k, $v);
@@ -216,8 +217,8 @@ class adminRedController extends Controller
                 throw \Illuminate\Validation\ValidationException::withMessages(['padre_id' => 'No puede quedar debajo de alguien de su propio equipo.']);
             }
         }
-        if ($datos['cargo'] === 'lider_departamento') {
-            $datos['padre_id'] = null;
+        if ($datos['cargo'] === 'lider_pais') {
+            $datos['padre_id'] = null; // el líder de país responde directamente a LocalPro
         }
         return $datos;
     }

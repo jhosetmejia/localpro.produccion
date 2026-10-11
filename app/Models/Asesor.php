@@ -15,6 +15,7 @@ class Asesor extends Model
     protected $casts = ['activo' => 'boolean'];
 
     public const CARGOS = [
+        'lider_pais' => ['Líder de país', 'fa-earth-americas', 4],
         'lider_departamento' => ['Líder de departamento', 'fa-flag', 3],
         'lider_ciudad' => ['Líder de ciudad', 'fa-city', 2],
         'asesor' => ['Asesor', 'fa-user-tie', 1],
@@ -70,26 +71,26 @@ class Asesor extends Model
         return url('/r/' . $this->codigo);
     }
 
-    // Quién cobra la parte de líder de ciudad y de departamento cuando este asesor vende
+    // Quién cobra cada parte cuando este asesor vende: el que vende cobra también las partes de su cargo y de los cargos de abajo
     public function lideres(): array
     {
-        if ($this->cargo === 'lider_departamento') {
-            return ['ciudad' => $this, 'departamento' => $this]; // vende el líder de depto: cobra las tres partes
+        $orden = ['lider_ciudad' => 2, 'lider_departamento' => 3, 'lider_pais' => 4];
+        $r = ['ciudad' => null, 'departamento' => null, 'pais' => null];
+        $mapa = ['lider_ciudad' => 'ciudad', 'lider_departamento' => 'departamento', 'lider_pais' => 'pais'];
+        foreach ($orden as $cargo => $nivel) {
+            if ($this->nivel >= $nivel) $r[$mapa[$cargo]] = $this;
         }
-        $ciudad = $this->cargo === 'lider_ciudad' ? $this : null;
-        $depto = null;
         $n = $this->padre;
         $vistos = [$this->id => true];
         while ($n && !isset($vistos[$n->id])) {
             $vistos[$n->id] = true;
-            if ($n->cargo === 'lider_departamento') {
-                $depto = $n->activo ? $n : null;
-                break; // arriba del líder de departamento ya no hay más cargos
+            $clave = $mapa[$n->cargo] ?? null;
+            if ($clave && !$r[$clave] && $n->nivel > $this->nivel) {
+                $r[$clave] = $n->activo ? $n : false; // inactivo: esa parte queda para LocalPro
             }
-            if (!$ciudad && $n->cargo === 'lider_ciudad' && $n->activo) $ciudad = $n;
             $n = $n->padre;
         }
-        return ['ciudad' => $ciudad, 'departamento' => $depto];
+        return array_map(fn ($x) => $x ?: null, $r);
     }
 
     // Ids de él y de toda la gente que tiene debajo
