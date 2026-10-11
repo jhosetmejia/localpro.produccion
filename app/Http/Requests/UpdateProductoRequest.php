@@ -33,7 +33,7 @@ class UpdateProductoRequest extends FormRequest
             'controla_inventario' => 'nullable|boolean',
             'marca_id' => 'nullable|integer|exists:marcas,id',
             'presentacione_id' => 'nullable|integer|exists:presentaciones,id',
-            'categorias' => 'required'
+            'categorias' => 'nullable|array'
         ];
     }
 

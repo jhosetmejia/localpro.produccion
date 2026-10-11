@@ -33,7 +33,7 @@ class StoreProductoRequest extends FormRequest
             'cantidad_inicial' => 'nullable|integer|min:0|max:100000',
             'marca_id' => 'nullable|integer|exists:marcas,id',
             'presentacione_id' => 'nullable|integer|exists:presentaciones,id',
-            'categorias' => 'required'
+            'categorias' => 'nullable|array'
         ];
     }
 

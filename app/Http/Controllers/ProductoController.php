@@ -85,6 +85,9 @@ class ProductoController extends Controller
             //Tabla categoría producto
             // Solo categorías de esta tienda
             $categorias = Categoria::whereIn('id', (array) $request->get('categorias'))->pluck('id');
+            if ($categorias->isEmpty()) {
+                $categorias = collect([\App\Support\CrearTienda::categoria('General')->id]);
+            }
             $producto->categorias()->attach($categorias);
 
             // Negocios sin tallas/colores: una sola referencia con su cantidad
@@ -172,6 +175,9 @@ class ProductoController extends Controller
             //Tabla categoría producto
             // Solo categorías de esta tienda
             $categorias = Categoria::whereIn('id', (array) $request->get('categorias'))->pluck('id');
+            if ($categorias->isEmpty()) {
+                $categorias = collect([\App\Support\CrearTienda::categoria('General')->id]);
+            }
             $producto->categorias()->sync($categorias);
 
             DB::commit();

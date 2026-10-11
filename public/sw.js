@@ -1,6 +1,7 @@
-// LocalPro: permite instalar el sistema como app. Las páginas siempre se piden en línea
-// (datos al día); si no hay internet se muestra un aviso en vez de la página de error del navegador.
-const CACHE = 'localpro-v1';
+// LocalPro: permite instalar el sistema como app. Las páginas siempre se piden al servidor (datos al día).
+// Si falla, se reintenta; la pantalla "Sin conexión" solo aparece cuando el teléfono realmente no tiene internet.
+// Si hay internet pero el servidor no responde, se deja ver el error real del navegador.
+const CACHE = 'localpro-v2';
 const OFFLINE = '/offline.html';
 
 self.addEventListener('install', (e) => {
@@ -13,8 +14,28 @@ self.addEventListener('activate', (e) => {
     self.clients.claim();
 });
 
+const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function navegar(request) {
+    try {
+        return await fetch(request);
+    } catch (e1) {
+        // Cambios de red (datos ↔ wifi) hacen fallar la primera petición: se reintenta
+        await esperar(1200);
+        try {
+            return await fetch(request);
+        } catch (e2) {
+            if (self.navigator && self.navigator.onLine === false) {
+                const r = await caches.match(OFFLINE);
+                if (r) return r;
+            }
+            throw e2;
+        }
+    }
+}
+
 self.addEventListener('fetch', (e) => {
-    if (e.request.mode === 'navigate') {
-        e.respondWith(fetch(e.request).catch(() => caches.match(OFFLINE)));
+    if (e.request.mode === 'navigate' && e.request.method === 'GET') {
+        e.respondWith(navegar(e.request));
     }
 });

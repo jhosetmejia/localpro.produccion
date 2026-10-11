@@ -3,7 +3,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="LocalPro">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-<script>if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}); }); }</script>
+<script>if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js?v=2').catch(function () {}); }); }</script>
 <script>
 // Botón "Instalar app" cuando el navegador lo permite
 window.addEventListener('beforeinstallprompt', function (e) {
