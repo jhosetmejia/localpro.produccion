@@ -205,3 +205,17 @@ main h1,main .h1{font-weight:800;letter-spacing:-.03em;font-size:clamp(1.6rem,3v
 .lp-dash{min-width:0}
 .lp-count small{display:block;line-height:1.2}
 @media (max-width:576px){.lp-hello .lp-quick{width:100%}.lp-hello .lp-quick .btn{flex:1 1 auto}}
+
+/* Portátil/escritorio: el menú es fijo, así que el contenido debe correrse su ancho exacto */
+@media (min-width:992px){
+  .sb-nav-fixed #layoutSidenav #layoutSidenav_content{margin-left:0;padding-left:240px;transition:padding .15s ease-in-out}
+  .sb-nav-fixed.sb-sidenav-toggled #layoutSidenav #layoutSidenav_content{margin-left:0;padding-left:0}
+}
+/* Pantallas medianas (portátiles 1366px y similares): las tarjetas se acomodan en vez de cortarse */
+@media (min-width:992px) and (max-width:1399.98px){
+  .lp-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .lp-kpis > :first-child{grid-column:1 / -1}
+  .lp-grid{grid-template-columns:minmax(0,1fr)}
+  .lp-counts{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+.lp-kpis > *,.lp-grid > *{min-width:0}
