@@ -13,6 +13,7 @@
 @section('content')
 
 @include('layouts.partials.alert')
+<div class="container-fluid px-4 pt-3">@include('layouts.partials.limite-plan', ['que' => 'usuarios'])</div>
 
 <div class="container-fluid px-4">
     <h1 class="mt-4 text-center">Usuarios</h1>

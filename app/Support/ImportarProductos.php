@@ -183,7 +183,7 @@ class ImportarProductos
 
                     if (!$nuevo && !$actualizar) { $err($p0['_num'], '"' . $p0['_nombre'] . '" ya existe (se dejó como estaba).'); continue; }
                     if ($nuevo) {
-                        if ($cupo <= 0) { $err($p0['_num'], 'su plan no permite más productos.'); continue; }
+                        if ($cupo <= 0) { $err($p0['_num'], 'su plan llegó al límite de productos (Pásate a Pro en "Mi plan" para crear más).'); continue; }
                         if ($precio === null) { $err($p0['_num'], '"' . $p0['_nombre'] . '" no tiene precio de venta.'); continue; }
                         $producto = Producto::create([
                             'codigo' => $p0['_codigo'] ?: CrearTienda::siguienteCodigo(),

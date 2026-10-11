@@ -23,13 +23,15 @@
             <h3>Planes (precios en COP)</h3>
             <div class="table-responsive">
                 <table class="table align-middle">
-                    <thead><tr><th>Nombre</th><th style="width:150px">Precio</th><th style="width:120px">Días</th><th>Descripción</th><th>Activo</th><th class="text-end">Tiendas</th></tr></thead>
+                    <thead><tr><th>Nombre</th><th style="width:150px">Precio</th><th style="width:120px">Días</th><th style="width:110px">Productos máx.</th><th style="width:110px">Personas máx.</th><th>Descripción</th><th>Activo</th><th class="text-end">Tiendas</th></tr></thead>
                     <tbody>
                     @foreach ($planes as $p)
                     <tr>
                         <td><input name="planes[{{ $p->id }}][nombre]" class="form-control" value="{{ $p->nombre }}" required></td>
                         <td><input data-dinero type="number" min="0" name="planes[{{ $p->id }}][precio]" class="form-control" value="{{ (int) $p->precio }}"></td>
                         <td><input type="number" min="1" name="planes[{{ $p->id }}][dias]" class="form-control" value="{{ $p->dias }}" placeholder="No vence"></td>
+                        <td><input type="number" min="1" name="planes[{{ $p->id }}][max_productos]" class="form-control" value="{{ $p->max_productos }}" placeholder="Sin límite"></td>
+                        <td><input type="number" min="1" name="planes[{{ $p->id }}][max_usuarios]" class="form-control" value="{{ $p->max_usuarios }}" placeholder="Sin límite"></td>
                         <td><input name="planes[{{ $p->id }}][descripcion]" class="form-control" value="{{ $p->descripcion }}"></td>
                         <td><input type="checkbox" class="form-check-input" name="planes[{{ $p->id }}][activo]" value="1" @checked($p->activo)></td>
                         <td class="text-end">{{ $p->tiendas_count }}</td>
@@ -39,7 +41,7 @@
                         <td><input name="nuevo[nombre]" class="form-control" placeholder="+ Nuevo plan"></td>
                         <td><input data-dinero type="number" min="0" name="nuevo[precio]" class="form-control" placeholder="0"></td>
                         <td><input type="number" min="1" name="nuevo[dias]" class="form-control" placeholder="30"></td>
-                        <td colspan="3"></td>
+                        <td colspan="5"></td>
                     </tr>
                     </tbody>
                 </table>

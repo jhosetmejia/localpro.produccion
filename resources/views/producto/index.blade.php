@@ -56,6 +56,7 @@
 @endphp
 
 <div class="container-fluid px-3 px-md-4 pb-5">
+    <div class="pt-3">@include('layouts.partials.limite-plan', ['que' => 'productos'])</div>
     <div class="pl-top">
         <h1>Productos <small class="text-muted fw-bold" style="font-size:.9rem">({{ $activos }})</small></h1>
         @can('crear-producto')

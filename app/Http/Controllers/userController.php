@@ -14,7 +14,7 @@ use Spatie\Permission\Models\Role;
 // Cada dueño administra solo a las personas de su tienda (dueños y vendedores)
 class userController extends Controller
 {
-    public const ROLES_TIENDA = ['dueno' => 'Dueño', 'vendedor' => 'Vendedor'];
+    public const ROLES_TIENDA = ['dueno' => 'Dueño / administrador', 'vendedor' => 'Vendedor (caja)'];
 
     function __construct()
     {
@@ -32,6 +32,9 @@ class userController extends Controller
 
     public function create()
     {
+        if ($msg = TiendaActual::limitePlan('usuarios')) {
+            return redirect()->route('users.index')->withErrors($msg);
+        }
         return view('user.create', ['roles' => $this->roles()]);
     }
 

@@ -37,6 +37,23 @@ class TiendaActual
      */
     public static function limitePlan(string $que): ?string
     {
+        $u = self::uso($que);
+        if (!$u || $u['actual'] < $u['max']) {
+            return null;
+        }
+        if ($que === 'usuarios') {
+            return $u['gratis']
+                ? "El plan Gratis permite el dueño y " . ($u['max'] - 1) . " vendedores. Pásate a Pro en \"Mi plan\" para agregar más personas."
+                : "Su plan {$u['plan']} permite hasta {$u['max']} usuarios. Mejore su plan en \"Mi plan\" para agregar más.";
+        }
+        return $u['gratis']
+            ? "El plan Gratis permite hasta {$u['max']} productos. Pásate a Pro en \"Mi plan\" para crear más productos."
+            : "Su plan {$u['plan']} permite hasta {$u['max']} productos. Mejore su plan en \"Mi plan\" para crear más.";
+    }
+
+    /** ['actual','max','plan','gratis'] o null si el plan no tiene límite */
+    public static function uso(string $que): ?array
+    {
         $plan = self::tienda()?->plan;
         $max = $que === 'usuarios' ? $plan?->max_usuarios : $plan?->max_productos;
         if (!$max) {
@@ -45,7 +62,7 @@ class TiendaActual
         $actual = $que === 'usuarios'
             ? \App\Models\User::where('tienda_id', self::id())->count()
             : \App\Models\Producto::count();
-        return $actual >= $max ? "Su plan {$plan->nombre} permite hasta {$max} {$que}. Mejore su plan en \"Mi plan\" para agregar más." : null;
+        return ['actual' => $actual, 'max' => (int) $max, 'plan' => $plan->nombre, 'gratis' => (float) $plan->precio <= 0 && !$plan->dias];
     }
 
     /**

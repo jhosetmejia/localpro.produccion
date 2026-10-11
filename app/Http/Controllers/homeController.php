@@ -55,6 +55,28 @@ class homeController extends Controller
         $hoy = Carbon::today();
         $pos = fn () => PosVenta::where('estado', 'pagada');
 
+        // Vendedores (caja): su propio panel, sin ganancias, con sus ventas y su meta
+        $yo = Auth::user();
+        if (!$yo->es_superadmin && !$yo->hasAnyRole(['dueno', 'administrador'])) {
+            $mias = fn () => $pos()->where('user_id', $yo->id);
+            $diaV = (float) $mias()->whereDate('created_at', $hoy)->sum('total');
+            $mesV = (float) $mias()->whereBetween('created_at', [$hoy->copy()->startOfMonth(), now()])->sum('total');
+            return view('panel.vendedor', [
+                'yo' => $yo,
+                'ventasHoy' => $diaV,
+                'numVentasHoy' => $mias()->whereDate('created_at', $hoy)->count(),
+                'ventasMes' => $mesV,
+                'numVentasMes' => $mias()->whereBetween('created_at', [$hoy->copy()->startOfMonth(), now()])->count(),
+                'caja' => Caja::abiertaDe($yo->id),
+                'semana' => collect(range(6, 0))->map(function ($d) use ($hoy, $mias) {
+                    $dia = $hoy->copy()->subDays($d);
+                    return ['label' => ucfirst($dia->locale('es')->isoFormat('ddd D')), 'total' => (float) $mias()->whereDate('created_at', $dia)->sum('total')];
+                }),
+                'ultimas' => PosVenta::where('user_id', $yo->id)->latest()->take(8)->get(),
+                'diasRestantes' => (int) $hoy->diffInDays($hoy->copy()->endOfMonth()) + 1,
+            ]);
+        }
+
         // Ventas del POS de los últimos 7 días para la gráfica
         $semana = collect(range(6, 0))->map(function ($d) use ($hoy, $pos) {
             $dia = $hoy->copy()->subDays($d);
@@ -70,7 +92,15 @@ class homeController extends Controller
             ->selectRaw('COALESCE(SUM(subtotal - costo * cantidad), 0) as g')->value('g')
             - (float) PosVenta::whereIn('id', $ventasHoyIds)->sum('descuento');
 
+        // Equipo de caja con sus metas (solo lo ve el dueño / administrador)
+        $equipo = User::role('vendedor')->where('tienda_id', $tienda->id)->orderBy('name')->get()->map(function ($u) use ($pos, $hoy) {
+            $u->vendido_dia = (float) $pos()->where('user_id', $u->id)->whereDate('created_at', $hoy)->sum('total');
+            $u->vendido_mes = (float) $pos()->where('user_id', $u->id)->whereBetween('created_at', [$hoy->copy()->startOfMonth(), now()])->sum('total');
+            return $u;
+        });
+
         return view('panel.index', [
+            'equipo' => $equipo,
             'gananciaHoy' => $gananciaHoy,
             'ventasHoy' => (float) $pos()->whereDate('created_at', $hoy)->sum('total'),
             'numVentasHoy' => $pos()->whereDate('created_at', $hoy)->count(),

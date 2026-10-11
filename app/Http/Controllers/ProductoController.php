@@ -36,6 +36,9 @@ class ProductoController extends Controller
      */
     public function create()
     {
+        if ($msg = \App\Support\TiendaActual::limitePlan('productos')) {
+            return redirect()->route('productos.index')->withErrors($msg);
+        }
         // Marcas y presentaciones no se usan en las tiendas
         $marcas = collect();
         $presentaciones = collect();

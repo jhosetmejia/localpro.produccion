@@ -29,6 +29,8 @@ class adminPlanController extends Controller
             'planes.*.precio' => 'required|numeric|min:0',
             'planes.*.dias' => 'nullable|integer|min:1|max:3650',
             'planes.*.descripcion' => 'nullable|string|max:200',
+            'planes.*.max_productos' => 'nullable|integer|min:1|max:1000000',
+            'planes.*.max_usuarios' => 'nullable|integer|min:1|max:10000',
             'nuevo.nombre' => 'nullable|string|max:40',
             'nuevo.precio' => 'nullable|numeric|min:0',
             'nuevo.dias' => 'nullable|integer|min:1|max:3650',
@@ -38,6 +40,7 @@ class adminPlanController extends Controller
             Plan::whereKey($id)->update([
                 'nombre' => $d['nombre'], 'precio' => $d['precio'], 'dias' => $d['dias'] ?: null,
                 'descripcion' => $d['descripcion'] ?? null, 'activo' => !empty($d['activo']),
+                'max_productos' => ($d['max_productos'] ?? null) ?: null, 'max_usuarios' => ($d['max_usuarios'] ?? null) ?: null,
             ]);
         }
         if ($request->filled('nuevo.nombre')) {

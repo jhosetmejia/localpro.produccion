@@ -22,6 +22,7 @@
 @endphp
 
 <div class="lp-dash">
+    @include('layouts.partials.limite-plan', ['que' => 'productos'])
     <div class="lp-hello">
         <div>
             <small>{{ ucfirst(now()->locale('es')->isoFormat('dddd D [de] MMMM')) }}</small>
@@ -63,6 +64,52 @@
             </div>
         </div>
     </div>
+
+
+    <div class="lp-box mb-3">
+        <h3><span><i class="fa-solid fa-bullseye me-1" style="color:#16b34a"></i> Metas de su equipo de caja</span>@can('crear-user')<a href="{{ route('users.create') }}">+ Vendedor</a>@endcan</h3>
+        @if ($equipo->isEmpty())
+            <p class="lp-empty mb-0">Aún no tiene vendedores. Cree uno en <b>Usuarios</b> con el rol "Vendedor (caja)": venden en el POS, no ven ganancias y usted les pone metas aquí.</p>
+        @else
+        <div class="eq-lista">
+            @foreach ($equipo as $u)
+            @php
+                $pd = $u->meta_dia > 0 ? min(100, round($u->vendido_dia / $u->meta_dia * 100)) : null;
+                $pm = $u->meta_mes > 0 ? min(100, round($u->vendido_mes / $u->meta_mes * 100)) : null;
+            @endphp
+            <div class="eq-f">
+                <div class="eq-n"><span class="eq-av">{{ mb_strtoupper(mb_substr($u->name, 0, 1)) }}</span><div><b>{{ $u->name }}</b><small>Hoy @pesos($u->vendido_dia) · Mes @pesos($u->vendido_mes)</small></div></div>
+                <div class="eq-m"><small>Meta de hoy</small>@if ($pd !== null)<span class="eq-b"><i style="width:{{ $pd }}%"></i></span><em>{{ $pd }}% de @pesos($u->meta_dia)</em>@else<em class="text-muted">Sin meta</em>@endif</div>
+                <div class="eq-m"><small>Meta del mes</small>@if ($pm !== null)<span class="eq-b"><i style="width:{{ $pm }}%"></i></span><em>{{ $pm }}% de @pesos($u->meta_mes)</em>@else<em class="text-muted">Sin meta</em>@endif</div>
+                <button type="button" class="btn btn-sm eq-btn" onclick="this.nextElementSibling.classList.toggle('d-none')"><i class="fa-solid fa-pen me-1"></i>Meta</button>
+                <form method="post" action="{{ route('equipo.meta', $u) }}" class="eq-form d-none">
+                    @csrf
+                    <label><small>Meta del día</small><input data-dinero type="number" min="0" name="meta_dia" class="form-control" value="{{ $u->meta_dia ? (int) $u->meta_dia : '' }}" placeholder="0"></label>
+                    <label><small>Meta del mes</small><input data-dinero type="number" min="0" name="meta_mes" class="form-control" value="{{ $u->meta_mes ? (int) $u->meta_mes : '' }}" placeholder="0"></label>
+                    <button class="btn btn-dark">Guardar</button>
+                </form>
+            </div>
+            @endforeach
+        </div>
+        @endif
+    </div>
+    <style>
+    .eq-lista{display:flex;flex-direction:column}
+    .eq-f{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr) auto;gap:.9rem;align-items:center;padding:.8rem 0;border-bottom:1px dashed var(--lp-line,#e3ebe6)}
+    .eq-f:last-child{border-bottom:0}
+    .eq-n{display:flex;gap:.7rem;align-items:center;min-width:0}
+    .eq-n b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .eq-n small{color:#6b7570;font-weight:600;font-size:.8rem}
+    .eq-av{width:40px;height:40px;border-radius:14px;background:#e8f8ec;color:#11702f;display:grid;place-items:center;font-weight:900;flex:none}
+    .eq-m small{display:block;font-size:.7rem;font-weight:800;color:#7a8580;text-transform:uppercase;letter-spacing:.05em}
+    .eq-m em{font-style:normal;font-weight:700;font-size:.8rem}
+    .eq-b{display:block;height:7px;border-radius:9px;background:#e8eee9;margin:.25rem 0;overflow:hidden}
+    .eq-b i{display:block;height:100%;background:linear-gradient(90deg,#a6f34a,#16b34a);border-radius:9px}
+    .eq-btn{border:1.5px solid #cfe9d6;background:#f2fbf3;color:#11702f;font-weight:800;border-radius:999px}
+    .eq-form{grid-column:1/-1;display:flex;gap:.6rem;align-items:flex-end;flex-wrap:wrap;background:#f7faf8;border-radius:16px;padding:.8rem}
+    .eq-form label{flex:1 1 160px;margin:0}.eq-form small{font-weight:700;color:#5b665e}
+    @media (max-width:767.98px){.eq-f{grid-template-columns:1fr 1fr}.eq-n{grid-column:1/-1}.eq-btn{grid-column:1/-1}}
+    </style>
 
     <div class="lp-grid">
         <div class="lp-box">

@@ -123,6 +123,8 @@ Route::middleware(['auth', 'tienda', 'conjunto'])->prefix('conjunto')->name('con
 
 // ===== Pantallas de la tienda =====
 Route::middleware(['auth', 'tienda'])->group(function () {
+    Route::post('/equipo/{user}/meta', [\App\Http\Controllers\metaController::class, 'guardar'])->name('equipo.meta');
+
     // Importar productos desde Excel (va antes de productos/{producto})
     Route::get('/productos/importar', [importarController::class, 'index'])->name('productos.importar');
     Route::get('/productos/importar/plantilla', [importarController::class, 'plantilla'])->name('productos.importar.plantilla');

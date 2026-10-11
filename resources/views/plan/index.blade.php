@@ -39,7 +39,8 @@
                 @if ((int) $tienda->plan_id === (int) $p->id)<span class="badge bg-success">Su plan</span>@endif
             </div>
             <div style="font-size:1.8rem;font-weight:800;letter-spacing:-.03em;margin:.4rem 0">{{ $p->es_gratis ? 'Gratis' : '$' . number_format($p->precio, 0, ',', '.') }}<small style="font-size:.85rem;color:var(--lp-muted)">{{ $p->es_gratis ? '' : ' COP' . ($p->dias ? ' / ' . ($p->dias >= 365 ? 'año' : ($p->dias >= 28 ? 'mes' : $p->dias . ' días')) : '') }}</small></div>
-            <p class="text-muted small mb-3">{{ $p->descripcion }}</p>
+            <p class="text-muted small mb-2">{{ $p->descripcion }}</p>
+            <p class="small fw-bold mb-3" style="color:#11702f"><i class="fa-solid fa-box me-1"></i>{{ $p->max_productos ? 'Hasta ' . number_format($p->max_productos, 0, ',', '.') . ' productos' : 'Productos ilimitados' }} · <i class="fa-solid fa-users ms-1 me-1"></i>{{ $p->max_usuarios ? ($p->max_usuarios > 1 ? 'Dueño + ' . ($p->max_usuarios - 1) . ' vendedores' : 'Solo el dueño') : 'Vendedores ilimitados' }}</p>
             @unless ($p->es_gratis)
                 @can('editar-negocio')
                 <form method="post" action="{{ route('plan.pagar', $p) }}">@csrf
