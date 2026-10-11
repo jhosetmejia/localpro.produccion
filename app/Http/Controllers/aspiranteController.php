@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Asesor;
 use App\Models\User;
+use App\Support\Bancos;
 use App\Support\RedComercial;
 use App\Support\Ubicaciones;
 use Illuminate\Http\Request;
@@ -37,13 +38,15 @@ class aspiranteController extends Controller
             'pais' => 'required|string|size:2',
             'zona' => 'nullable|string|max:60',
             'banco' => 'nullable|string|max:120',
-        ] + Ubicaciones::reglas($request->input('pais'), $request->input('departamento'), true), Ubicaciones::mensajes() + [
+        ] + Bancos::reglas() + Ubicaciones::reglas($request->input('pais'), $request->input('departamento'), true), Ubicaciones::mensajes() + [
             'email.unique' => 'Ya existe una cuenta con ese correo.',
             'password.min' => 'La clave debe tener mínimo 8 caracteres.',
             'password.confirmed' => 'Las claves no coinciden.',
             'documento.required' => 'Escriba su cédula.',
             'telefono.required' => 'Escriba su WhatsApp.',
         ]);
+
+        $d['banco'] = Bancos::componer($request);
 
         DB::transaction(function () use ($d, $invita) {
             $u = User::create(['name' => $d['name'], 'email' => strtolower($d['email']), 'telefono' => $d['telefono'], 'password' => Hash::make($d['password'])]);

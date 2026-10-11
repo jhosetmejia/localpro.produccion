@@ -21,6 +21,6 @@
 @include('layouts.partials.ubicacion', ['pais' => $a->pais ?? 'CO', 'departamento' => $a->departamento ?? '', 'ciudad' => $a->ciudad ?? ''])
 <div class="col-md-6"><label class="form-label">Zona / comuna <span class="text-muted fw-normal">(líder de zona y asesores)</span></label><input name="zona" class="form-control" maxlength="60" value="{{ old('zona', $a?->zona) }}" placeholder="Ej: Comuna 10"></div>
 <div class="col-md-6"><label class="form-label">Cédula</label><input name="documento" class="form-control" maxlength="20" value="{{ old('documento', $a?->documento) }}"></div>
-<div class="col-md-6"><label class="form-label">Dónde se le paga <span class="text-muted fw-normal">(Nequi, cuenta…)</span></label><input name="banco" class="form-control" maxlength="120" value="{{ old('banco', $a?->banco) }}" placeholder="Ej: Nequi 300 123 4567"></div>
+@include('layouts.partials.pago', ['banco' => $a?->banco, 'pais' => $a->pais ?? 'CO', 'titulo' => 'Dónde se le paga'])
 <div class="col-md-6"><label class="form-label">Correo (para entrar)</label><input type="email" name="email" class="form-control" maxlength="120" required value="{{ old('email', $a?->user?->email) }}"></div>
 <div class="col-md-6"><label class="form-label">{{ $a ? 'Nueva contraseña (opcional)' : 'Contraseña' }}</label><input type="text" name="password" class="form-control" minlength="8" {{ $a ? '' : 'required' }} autocomplete="new-password" placeholder="Mínimo 8 caracteres"></div>

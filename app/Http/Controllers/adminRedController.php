@@ -7,6 +7,7 @@ use App\Models\Asesor;
 use App\Models\Comision;
 use App\Models\Tienda;
 use App\Models\User;
+use App\Support\Bancos;
 use App\Support\Comisiones;
 use App\Support\Ubicaciones;
 use Illuminate\Http\Request;
@@ -236,7 +237,7 @@ class adminRedController extends Controller
             'zona' => 'nullable|string|max:60',
             'banco' => 'nullable|string|max:120',
             'pais' => 'required|string|size:2',
-        ] + Ubicaciones::reglas($request->input('pais'), $request->input('departamento'), false), Ubicaciones::mensajes() + [
+        ] + Bancos::reglas() + Ubicaciones::reglas($request->input('pais'), $request->input('departamento'), false), Ubicaciones::mensajes() + [
             'name.required' => 'Escriba el nombre.',
         ]);
 
@@ -261,6 +262,7 @@ class adminRedController extends Controller
         if ($datos['cargo'] === 'lider_pais') {
             $datos['padre_id'] = null; // el líder de país responde directamente a LocalPro
         }
+        $datos['banco'] = Bancos::componer($request);
         return $datos;
     }
 }

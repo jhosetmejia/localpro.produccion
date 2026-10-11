@@ -105,11 +105,11 @@
 
     <section class="card" id="producto">
         <h2><span class="n">📱</span>Qué vendemos (en 20 segundos)</h2>
-        <p class="sub">LocalPro es el sistema para que cualquier negocio venda, controle su inventario y su caja desde el celular.</p>
+        <p class="sub">LocalPro es el sistema para que cualquier negocio venda, controle su inventario con <b>stock actualizado</b> en tiempo real y su caja desde el celular.</p>
         <div class="dos">
             <ul style="margin:0;padding-left:1.1rem;font-weight:600">
                 <li>Caja (POS) para vender rápido, con o sin lector de código.</li>
-                <li>Inventario con tallas, colores y alertas de lo que se acaba.</li>
+                <li><b>Stock actualizado</b> al instante con cada venta: inventario con tallas, colores y alertas de lo que se acaba.</li>
                 <li>Abrir y cerrar caja con cuadre exacto.</li>
                 <li>Factura por WhatsApp o impresa.</li>
             </ul>

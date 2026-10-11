@@ -8,7 +8,7 @@
     <div class="lp-hello">
         <div><small><i class="fa-solid fa-crown me-1"></i>Administrador LocalPro</small><h1>Red <span>comercial</span></h1>
             <span class="text-muted fw-semibold">País → departamento → ciudad → zona (comuna) → asesores → negocios</span></div>
-        <div class="lp-quick"><a href="{{ route('admin.red.comisiones') }}" class="btn btn-dark btn-lg"><i class="fa-solid fa-coins me-1"></i>Comisiones</a></div>
+        <div class="lp-quick"><button type="button" class="mr-btn" data-ver-red><span class="mr-pulso"></span> Ver mi red</button><a href="{{ route('admin.red.comisiones') }}" class="btn btn-dark btn-lg"><i class="fa-solid fa-coins me-1"></i>Comisiones</a></div>
     </div>
     @include('layouts.partials.lp-flash')
 
@@ -70,6 +70,7 @@
             @endforeach
         </ul>
         @endif
+        @include('red._mapa', ['raices' => $raices, 'hijos' => $hijos, 'negocios' => $negocios, 'admin' => true, 'raiz' => 'LocalPro'])
     </div>
 
     <details class="lp-box" open>

@@ -51,7 +51,7 @@
                     <label for="pais">País</label>
                     <div class="input">
                         <i class="fa-solid fa-earth-americas"></i>
-                        <select id="pais" name="pais" required style="width:100%;padding:.95rem 1rem .95rem 2.8rem;border-radius:16px;border:2px solid var(--line);background:#fafdfb;font:inherit;font-weight:600;color:var(--ink);appearance:auto">
+                        <select id="pais" name="pais" required data-buscar style="width:100%;padding:.95rem 1rem .95rem 2.8rem;border-radius:16px;border:2px solid var(--line);background:#fafdfb;font:inherit;font-weight:600;color:var(--ink);appearance:auto">
                             @foreach ($paises as $codigo => $p)
                             <option value="{{ $codigo }}" data-ind="{{ $p[6] }}" data-mon="{{ $p[1] }}" @selected(old('pais', 'CO') === $codigo)>{{ $p[0] }} · {{ $p[1] }}</option>
                             @endforeach
@@ -103,5 +103,6 @@
         </div>
     </main>
 </div>
+@include('layouts.partials.lp-ui')
 </body>
 </html>

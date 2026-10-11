@@ -54,7 +54,7 @@
                 </div>
                 @include('layouts.partials.ubicacion', ['pais' => $invita->pais ?: 'CO', 'departamento' => $invita->departamento, 'ciudad' => $invita->ciudad, 'clase' => 'in', 'envoltura' => 'field', 'etiqueta' => ''])
                 <div class="field"><label>Zona / comuna donde trabajarás <span style="font-weight:500;opacity:.7">(opcional)</span></label><input class="in" name="zona" value="{{ old('zona', $invita->zona) }}" maxlength="60" placeholder="Ej: Comuna 10"></div>
-                <div class="field"><label>Dónde te pagamos <span style="font-weight:500;opacity:.7">(Nequi, cuenta…)</span></label><input class="in" name="banco" value="{{ old('banco') }}" maxlength="120" placeholder="Ej: Nequi 300 123 4567"></div>
+                @include('layouts.partials.pago', ['banco' => '', 'pais' => $invita->pais ?: 'CO', 'modo' => 'in', 'titulo' => 'Dónde te pagamos'])
                 <div class="field"><label>Correo (para entrar)</label><input class="in" type="email" name="email" value="{{ old('email') }}" maxlength="120" required autocomplete="email"></div>
                 <div class="dos">
                     <div class="field"><label>Clave</label><input class="in" type="password" name="password" minlength="8" required autocomplete="new-password" placeholder="Mínimo 8"></div>
@@ -66,5 +66,6 @@
         </div>
     </main>
 </div>
+@include('layouts.partials.lp-ui')
 </body>
 </html>
