@@ -17,7 +17,7 @@ class posController extends Controller
     public function __construct()
     {
         $this->middleware('auth')->except('facturaPublica');
-        $this->middleware('permission:usar-pos', ['only' => ['index', 'buscar', 'store', 'clientes']]);
+        $this->middleware('permission:usar-pos', ['only' => ['index', 'buscar', 'store', 'clientes', 'crearCliente']]);
         $this->middleware('permission:usar-pos|ver-cajas', ['only' => ['ticket', 'ventas']]);
         $this->middleware('permission:anular-venta-pos', ['only' => ['anular']]);
     }
@@ -262,10 +262,62 @@ class posController extends Controller
             return response()->json([]);
         }
         $lista = \App\Models\Cliente::with('persona')
-            ->whereHas('persona', fn ($p) => $p->where('razon_social', 'like', "%$q%")->orWhere('telefono', 'like', "%$q%")->orWhere('numero_documento', 'like', "%$q%"))
+            ->whereHas('persona', fn ($p) => $p->where(fn ($w) => $w->where('razon_social', 'like', "%$q%")->orWhere('telefono', 'like', "%$q%")->orWhere('numero_documento', 'like', "%$q%")))
             ->limit(8)->get()
             ->map(fn ($c) => ['id' => $c->id, 'nombre' => $c->persona->razon_social, 'telefono' => $c->persona->telefono, 'documento' => $c->persona->numero_documento]);
         return response()->json($lista);
+    }
+
+    // Crea un cliente desde la caja (nombre, cédula, WhatsApp y dirección)
+    public function crearCliente(Request $request)
+    {
+        $d = $request->validate([
+            'nombre' => 'required|string|min:2|max:80',
+            'documento' => 'nullable|string|max:20',
+            'telefono' => 'nullable|string|max:20',
+            'direccion' => 'nullable|string|max:80',
+        ], [
+            'nombre.required' => 'Escriba el nombre del cliente.',
+            'documento.max' => 'La cédula es muy larga.',
+            'telefono.max' => 'El WhatsApp es muy largo.',
+            'direccion.max' => 'La dirección es muy larga (máximo 80 letras).',
+        ]);
+        $doc = preg_replace('/[^0-9A-Za-z-]/', '', (string) ($d['documento'] ?? ''));
+        $tel = preg_replace('/\D/', '', (string) ($d['telefono'] ?? ''));
+
+        // Si ya existe en esta tienda (misma cédula o mismo WhatsApp), se devuelve ese
+        $existente = \App\Models\Cliente::with('persona')->whereHas('persona', function ($p) use ($doc, $tel) {
+            $p->where(function ($w) use ($doc, $tel) {
+                if ($doc !== '') $w->orWhere('numero_documento', $doc);
+                if ($tel !== '') $w->orWhere('telefono', $tel);
+            });
+        })->when($doc === '' && $tel === '', fn ($q) => $q->whereRaw('1 = 0'))->first();
+
+        if ($existente) {
+            $c = $existente;
+            $existia = true;
+        } else {
+            $c = DB::transaction(function () use ($d, $doc, $tel) {
+                $persona = \App\Models\Persona::create([
+                    'razon_social' => trim($d['nombre']),
+                    'direccion' => trim((string) ($d['direccion'] ?? '')),
+                    'telefono' => $tel ?: null,
+                    'tipo_persona' => 'natural',
+                    'documento_id' => \App\Models\Documento::orderByRaw("tipo_documento = 'Cédula de ciudadanía' desc")->value('id'),
+                    'numero_documento' => $doc ?: ($tel ? 'TEL-' . $tel : 'C-' . now()->format('ymdHis')),
+                ]);
+                return $persona->cliente()->create(['persona_id' => $persona->id])->load('persona');
+            });
+            $existia = false;
+        }
+
+        return response()->json([
+            'id' => $c->id,
+            'nombre' => $c->persona->razon_social,
+            'telefono' => $c->persona->telefono,
+            'documento' => $c->persona->numero_documento,
+            'existia' => $existia,
+        ]);
     }
 
     // Tiquete para impresora térmica de 80 mm

@@ -80,6 +80,7 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::post('/pos/ventas/{venta}/devolucion', [devolucionController::class, 'store'])->name('devoluciones.store');
     Route::get('/devoluciones/{devolucion}', [devolucionController::class, 'show'])->name('devoluciones.show');
     Route::get('/pos/clientes', [posController::class, 'clientes'])->name('pos.clientes');
+    Route::post('/pos/clientes', [posController::class, 'crearCliente'])->name('pos.clientes.crear');
     Route::get('/pos/saldo', [devolucionController::class, 'saldo'])->name('pos.saldo');
 
     // Caja
