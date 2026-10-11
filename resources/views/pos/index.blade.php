@@ -147,9 +147,8 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
 .toast .ti{width:24px;height:24px;border-radius:50%;background:var(--lime);color:var(--k);display:grid;place-items:center;font-size:.8rem;flex:none}
 .toast.bad{background:#9b1c5a}
 .toast.bad .ti{background:#fff;color:#9b1c5a}
-.fab{display:none}
-.fab.bump{animation:bump .5s ease}
-@keyframes bump{0%{transform:scale(1)}35%{transform:scale(1.06)}100%{transform:scale(1)}}
+.cart.bump{animation:bump .4s ease}
+@keyframes bump{0%{transform:scale(1)}35%{transform:scale(1.02)}100%{transform:scale(1)}}
 .fcli{display:grid;gap:10px}
 .fcli label{display:flex;flex-direction:column;gap:4px;font-weight:700;font-size:.82rem;color:var(--mut)}
 .fcli input{border:1.5px solid var(--line);border-radius:12px;padding:.7rem .8rem;font-weight:600;font-size:1rem;color:var(--ink)}
@@ -159,7 +158,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
 @media (max-width:900px){
   body{overflow:auto;overflow-x:hidden}
   html,body{height:auto;min-height:100%}
-  .app{height:auto;min-height:100dvh;grid-template-rows:auto auto}
+  .app{height:auto;min-height:100dvh;grid-template-rows:auto 1fr;align-content:start}
   .top{min-height:calc(64px + env(safe-area-inset-top))}
   .main{display:flex;flex-direction:column;padding:12px 12px calc(24px + env(safe-area-inset-bottom));gap:12px}
   .cat{display:contents}
@@ -182,7 +181,6 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
   .card:hover{transform:none;box-shadow:none}
   .toast{top:calc(74px + env(safe-area-inset-top));bottom:auto;transform:translateX(-50%) translateY(-160px);width:max-content;max-width:calc(100vw - 24px);font-size:.92rem}
   .toast.on{transform:translateX(-50%) translateY(0)}
-  .fab{display:none!important}
   .top .pill{flex:0 1 auto}
   .top .pill.hide-m{display:none}
   .top{gap:8px;padding:env(safe-area-inset-top) 10px 0}
@@ -237,7 +235,6 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     </div>
 </div>
 
-<button class="fab" id="fab"><span><span class="n" id="fabN">0</span><i class="fa-solid fa-bag-shopping"></i> Ver venta y cobrar</span><span id="fabT">$0</span></button>
 
 <!-- Elegir talla y color -->
 <div class="ov" id="ovVar">
@@ -428,7 +425,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         avisarFab();
         if (window.innerWidth > 900) $('q').focus();
     }
-    function avisarFab() { var f = $('fab'); f.classList.remove('bump'); void f.offsetWidth; f.classList.add('bump'); }
+    function avisarFab() { var f = $('cart'); f.classList.remove('bump'); void f.offsetWidth; f.classList.add('bump'); }
     function subtotal() { return cart.reduce(function (a, i) { return a + i.precio * i.cantidad; }, 0); }
     function descuento() { return Math.min(Math.max(parseFloat($('desc').value) || 0, 0), subtotal()); }
     function total() { return Math.max(subtotal() - descuento(), 0); }
@@ -442,8 +439,6 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         }).join('');
         $('sub').textContent = fmt(subtotal());
         $('tot').textContent = fmt(total());
-        $('fabT').textContent = fmt(total());
-        $('fabN').textContent = cart.reduce(function (a, i) { return a + i.cantidad; }, 0);
         document.body.classList.toggle('hay', cart.length > 0);
         $('payBtn').disabled = !cart.length;
     }
@@ -459,7 +454,6 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     });
     $('desc').addEventListener('input', pintarCarrito);
     $('clear').addEventListener('click', function () { if (cart.length && confirm('¿Vaciar la venta actual?')) { cart = []; pintarCarrito(); } });
-    $('fab').addEventListener('click', function () { $('cart').classList.add('open'); });
 
     // ---------- Cobro ----------
     var ICONOS = { efectivo: 'fa-money-bill-wave', otro: 'fa-mobile-screen-button' };
