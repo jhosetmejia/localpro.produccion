@@ -7,7 +7,7 @@
 <div class="lp-dash">
     <div class="lp-hello">
         <div>
-            <small><i class="fa-solid {{ $yo->cargo_icono }} me-1"></i>{{ $yo->cargo_nombre }}{{ $yo->ciudad ? ' · ' . $yo->ciudad : '' }}</small>
+            <small><i class="fa-solid {{ $yo->cargo_icono }} me-1"></i>{{ $yo->cargo_nombre }}{{ $yo->zona ? ' · ' . $yo->zona : '' }}{{ $yo->ciudad ? ' · ' . $yo->ciudad : '' }}</small>
             <h1>Hola, <span>{{ strtok($yo->nombre, ' ') }}</span></h1>
             @if ($yo->padre)<span class="text-muted fw-semibold">Su líder: {{ $yo->padre->nombre }} ({{ $yo->padre->cargo_nombre }})</span>@endif
         </div>
@@ -17,7 +17,7 @@
     <div class="lp-kpis">
         <div class="lp-kpi hero"><div class="ic"><i class="fa-solid fa-sack-dollar"></i></div><div class="lbl">Comisión por cobrar</div><div class="val">{{ $f($resumen['pendiente']) }}</div><div class="sub">Este mes ganó {{ $f($resumen['mes']) }} · ya le pagaron {{ $f($resumen['pagada']) }}</div></div>
         <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-store"></i></div><div class="lbl">Mis negocios</div><div class="val">{{ $negocios->count() }}</div><div class="sub">{{ $yo->cargo === 'asesor' ? 'Negocios que usted inscribió' : $resumen['negociosRed'] . ' en toda su red' }}</div></div>
-        <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-users"></i></div><div class="lbl">Mi equipo</div><div class="val">{{ $resumen['equipo'] }}</div><div class="sub">{{ $yo->cargo === 'asesor' ? 'Personas a su cargo' : 'Líderes y asesores debajo de usted' }}</div></div>
+        <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-users"></i></div><div class="lbl">Mi equipo</div><div class="val">{{ $resumen['equipo'] }}</div><div class="sub">{{ $yo->cargo === 'lider_zona' ? 'Asesores de su zona (máximo ' . \App\Models\Asesor::MAX_ASESORES_ZONA . ')' : ($yo->cargo === 'asesor' ? 'Personas a su cargo' : 'Líderes y asesores debajo de usted') }}</div></div>
     </div>
 
     <div class="lp-box mb-3">

@@ -17,11 +17,16 @@ use Illuminate\Validation\Rule;
 // Administración de la red comercial (solo el administrador de LocalPro)
 class adminRedController extends Controller
 {
+    public const CLAVES_VALOR = [
+        'red_nueva_venta', 'red_nueva_zona', 'red_nueva_ciudad', 'red_nueva_departamento', 'red_nueva_pais',
+        'red_renov_venta', 'red_renov_zona', 'red_renov_ciudad', 'red_renov_departamento', 'red_renov_pais',
+    ];
+
     public function index(Request $request)
     {
         $gente = Asesor::with('user:id,name,email,telefono')->withCount('tiendas')
             ->when($request->departamento, fn ($q, $d) => $q->where('departamento', $d))
-            ->orderByRaw("FIELD(cargo, 'lider_pais', 'lider_departamento', 'lider_ciudad', 'asesor')")->get();
+            ->orderByRaw("FIELD(cargo, 'lider_pais', 'lider_departamento', 'lider_ciudad', 'lider_zona', 'asesor')")->get();
         $ids = $gente->pluck('id');
         $negocios = Tienda::with('plan:id,nombre')->whereIn('asesor_id', $ids)->orderBy('nombre')->get()->groupBy('asesor_id');
 
@@ -29,7 +34,7 @@ class adminRedController extends Controller
             'raices' => $gente->filter(fn ($a) => !$a->padre_id || !$ids->contains($a->padre_id)),
             'hijos' => $gente->groupBy('padre_id'),
             'negocios' => $negocios,
-            'lideres' => Asesor::with('user:id,name')->whereIn('cargo', ['lider_pais', 'lider_departamento', 'lider_ciudad'])->where('activo', true)->get(),
+            'lideres' => Asesor::with('user:id,name')->whereIn('cargo', ['lider_pais', 'lider_departamento', 'lider_ciudad', 'lider_zona'])->where('activo', true)->get(),
             'departamentos' => Asesor::whereNotNull('departamento')->distinct()->orderBy('departamento')->pluck('departamento'),
             'departamento' => $request->departamento,
             'kpi' => [
@@ -65,6 +70,7 @@ class adminRedController extends Controller
                 'pais' => $datos['pais'],
                 'departamento' => $datos['departamento'] ?? null,
                 'ciudad' => $datos['ciudad'] ?? null,
+                'zona' => $datos['zona'] ?? null,
                 'documento' => $datos['documento'] ?? null,
                 'banco' => $datos['banco'] ?? null,
                 'codigo' => Asesor::nuevoCodigo($datos['name']),
@@ -84,7 +90,7 @@ class adminRedController extends Controller
             'equipo' => Asesor::with('user:id,name')->withCount('tiendas')->where('padre_id', $asesor->id)->get(),
             'comisiones' => Comision::with('tienda:id,nombre')->where('asesor_id', $asesor->id)->latest()->take(30)->get(),
             'pendiente' => (float) Comision::where('asesor_id', $asesor->id)->where('estado', 'pendiente')->sum('monto'),
-            'lideres' => Asesor::with('user:id,name')->whereIn('cargo', ['lider_pais', 'lider_departamento', 'lider_ciudad'])
+            'lideres' => Asesor::with('user:id,name')->whereIn('cargo', ['lider_pais', 'lider_departamento', 'lider_ciudad', 'lider_zona'])
                 ->whereNotIn('id', $asesor->idsRed())->get(),
             'sinAsesor' => Tienda::whereNull('asesor_id')->orderBy('nombre')->get(['id', 'nombre']),
         ]);
@@ -112,6 +118,7 @@ class adminRedController extends Controller
                 'pais' => $datos['pais'],
                 'departamento' => $datos['departamento'] ?? null,
                 'ciudad' => $datos['ciudad'] ?? null,
+                'zona' => $datos['zona'] ?? null,
                 'documento' => $datos['documento'] ?? null,
                 'banco' => $datos['banco'] ?? null,
                 'activo' => $request->boolean('activo'),
@@ -179,12 +186,12 @@ class adminRedController extends Controller
     public function valores(Request $request)
     {
         $reglas = [];
-        foreach (['red_valor_plan', 'red_nueva_venta', 'red_nueva_ciudad', 'red_nueva_departamento', 'red_nueva_pais', 'red_renov_venta', 'red_renov_ciudad', 'red_renov_departamento', 'red_renov_pais'] as $k) {
+        foreach (array_merge(['red_valor_plan'], self::CLAVES_VALOR) as $k) {
             $reglas[$k] = 'required|numeric|min:0|max:100000000';
         }
         $datos = $request->validate($reglas);
-        if ($datos['red_nueva_venta'] + $datos['red_nueva_ciudad'] + $datos['red_nueva_departamento'] + $datos['red_nueva_pais'] > $datos['red_valor_plan']
-            || $datos['red_renov_venta'] + $datos['red_renov_ciudad'] + $datos['red_renov_departamento'] + $datos['red_renov_pais'] > $datos['red_valor_plan']) {
+        $suma = fn ($t) => collect($datos)->filter(fn ($v, $k) => str_starts_with($k, 'red_' . $t . '_'))->sum();
+        if ($suma('nueva') > $datos['red_valor_plan'] || $suma('renov') > $datos['red_valor_plan']) {
             return back()->withErrors(['red_valor_plan' => 'Las comisiones suman más que el valor del plan anual.']);
         }
         foreach ($datos as $k => $v) {
@@ -201,6 +208,7 @@ class adminRedController extends Controller
             'cargo' => ['required', Rule::in(array_keys(Asesor::CARGOS))],
             'padre_id' => 'nullable|integer|exists:asesores,id',
             'documento' => 'nullable|string|max:20',
+            'zona' => 'nullable|string|max:60',
             'banco' => 'nullable|string|max:120',
             'pais' => 'required|string|size:2',
         ] + Ubicaciones::reglas($request->input('pais'), $request->input('departamento'), false), Ubicaciones::mensajes() + [
@@ -212,6 +220,14 @@ class adminRedController extends Controller
             $nivel = Asesor::CARGOS[$datos['cargo']][2];
             if ($padre->nivel <= $nivel) {
                 throw \Illuminate\Validation\ValidationException::withMessages(['padre_id' => 'El líder debe tener un cargo más alto (' . $padre->nombre . ' es ' . $padre->cargo_nombre . ').']);
+            }
+            // El líder de zona tiene máximo 10 asesores
+            if ($padre->cargo === 'lider_zona' && $datos['cargo'] === 'asesor'
+                && (!$asesor || (int) $asesor->padre_id !== (int) $padre->id || $asesor->cargo !== 'asesor')) {
+                $tiene = Asesor::where('padre_id', $padre->id)->where('cargo', 'asesor')->where('activo', true)->count();
+                if ($tiene >= Asesor::MAX_ASESORES_ZONA) {
+                    throw \Illuminate\Validation\ValidationException::withMessages(['padre_id' => $padre->nombre . ' ya tiene ' . Asesor::MAX_ASESORES_ZONA . ' asesores (el máximo por zona). Asígnelo a otro líder de zona o cree una zona nueva.']);
+                }
             }
             if ($asesor && in_array($padre->id, $asesor->idsRed(), true)) {
                 throw \Illuminate\Validation\ValidationException::withMessages(['padre_id' => 'No puede quedar debajo de alguien de su propio equipo.']);

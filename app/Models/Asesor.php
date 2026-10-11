@@ -10,15 +10,23 @@ class Asesor extends Model
 {
     protected $table = 'asesores';
 
-    protected $fillable = ['user_id', 'cargo', 'padre_id', 'pais', 'departamento', 'ciudad', 'codigo', 'documento', 'banco', 'activo'];
+    protected $fillable = ['user_id', 'cargo', 'padre_id', 'pais', 'departamento', 'ciudad', 'zona', 'codigo', 'documento', 'banco', 'activo'];
 
     protected $casts = ['activo' => 'boolean'];
 
     public const CARGOS = [
-        'lider_pais' => ['Líder de país', 'fa-earth-americas', 4],
-        'lider_departamento' => ['Líder de departamento', 'fa-flag', 3],
-        'lider_ciudad' => ['Líder de ciudad', 'fa-city', 2],
+        'lider_pais' => ['Líder de país', 'fa-earth-americas', 5],
+        'lider_departamento' => ['Líder de departamento', 'fa-flag', 4],
+        'lider_ciudad' => ['Líder de ciudad', 'fa-city', 3],
+        'lider_zona' => ['Líder de zona', 'fa-map-pin', 2],
         'asesor' => ['Asesor', 'fa-user-tie', 1],
+    ];
+
+    // Un líder de zona (comuna) maneja máximo esta cantidad de asesores
+    public const MAX_ASESORES_ZONA = 10;
+
+    public const CLAVES = [
+        'lider_zona' => 'zona', 'lider_ciudad' => 'ciudad', 'lider_departamento' => 'departamento', 'lider_pais' => 'pais',
     ];
 
     public function user()
@@ -74,11 +82,10 @@ class Asesor extends Model
     // Quién cobra cada parte cuando este asesor vende: el que vende cobra también las partes de su cargo y de los cargos de abajo
     public function lideres(): array
     {
-        $orden = ['lider_ciudad' => 2, 'lider_departamento' => 3, 'lider_pais' => 4];
-        $r = ['ciudad' => null, 'departamento' => null, 'pais' => null];
-        $mapa = ['lider_ciudad' => 'ciudad', 'lider_departamento' => 'departamento', 'lider_pais' => 'pais'];
-        foreach ($orden as $cargo => $nivel) {
-            if ($this->nivel >= $nivel) $r[$mapa[$cargo]] = $this;
+        $mapa = self::CLAVES;
+        $r = array_fill_keys(array_values($mapa), null);
+        foreach ($mapa as $cargo => $clave) {
+            if ($this->nivel >= self::CARGOS[$cargo][2]) $r[$clave] = $this;
         }
         $n = $this->padre;
         $vistos = [$this->id => true];
