@@ -81,7 +81,7 @@
         @endphp
         <form method="post" action="{{ route('admin.red.valores') }}" class="mt-2" id="fValores">
             @csrf
-            <div class="small fw-bold mb-2" style="color:#11702f"><i class="fa-solid fa-circle-info me-1"></i>Solo el plan anual paga comisión. Mensualidades y servicios adicionales son 100% para LocalPro.</div>
+            <div class="small fw-bold mb-2" style="color:#11702f"><i class="fa-solid fa-circle-info me-1"></i>Solo el plan anual paga comisión. Mensualidades y servicios adicionales son 100% para LocalPro. La renovación se paga cada año, de por vida, mientras el negocio y el asesor sigan activos.</div>
             <div class="row g-2 align-items-end mb-3">
                 <div class="col-6 col-md-4"><label class="form-label">Meta para subir: negocios pagados</label><input type="number" min="1" name="red_meta_negocios" class="form-control" value="{{ $metas['negocios'] }}"></div>
                 <div class="col-6 col-md-4"><label class="form-label">Meta para subir: asesores sumados</label><input type="number" min="0" name="red_meta_asesores" class="form-control" value="{{ $metas['asesores'] }}"></div>

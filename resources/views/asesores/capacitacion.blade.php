@@ -220,7 +220,7 @@
         <div class="regla">⚠️ Para estar activo y recibir comisiones debes tener al menos un negocio con pago. Si no, la comisión queda para LocalPro.</div>
     </section>
 
-    <div style="text-align:center;margin:20px 0">
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:24px 0 32px">
         @if ($yo)
         <a class="btn btn-w" target="_blank" href="https://wa.me/?text={{ rawurlencode('Equipo 🙌 esta es la capacitación de LocalPro: cuánto ganamos, qué decir y la rutina diaria. Entren desde su panel → Capacitación.') }}"><i class="fa-brands fa-whatsapp"></i> Compartir con mi equipo</a>
         @endif

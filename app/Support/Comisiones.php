@@ -20,7 +20,7 @@ class Comisiones
         return [
             'valor_plan' => $v('red_valor_plan', 220000),
             'nueva' => ['venta' => $v('red_nueva_venta', 100000), 'lider_zona' => $v('red_nueva_zona', 5000), 'lider_ciudad' => $v('red_nueva_ciudad', 5000), 'lider_departamento' => $v('red_nueva_departamento', 5000), 'lider_pais' => $v('red_nueva_pais', 5000)],
-            'renovacion' => ['venta' => $v('red_renov_venta', 10000), 'lider_zona' => $v('red_renov_zona', 10000), 'lider_ciudad' => $v('red_renov_ciudad', 10000), 'lider_departamento' => $v('red_renov_departamento', 10000), 'lider_pais' => $v('red_renov_pais', 10000)],
+            'renovacion' => ['venta' => $v('red_renov_venta', 5000), 'lider_zona' => $v('red_renov_zona', 10000), 'lider_ciudad' => $v('red_renov_ciudad', 10000), 'lider_departamento' => $v('red_renov_departamento', 10000), 'lider_pais' => $v('red_renov_pais', 10000)],
         ];
     }
 
@@ -38,7 +38,8 @@ class Comisiones
             return;
         }
         $vendedor = $tienda->asesor;
-        if (!$vendedor) {
+        // La renovación se paga de por vida, siempre que el negocio y el asesor sigan activos
+        if (!$vendedor || !$tienda->activa) {
             return;
         }
 

@@ -131,6 +131,7 @@
         @if ($tienda->usa_tallas)
             <div class="tip"><i class="fa-solid fa-lightbulb me-1"></i> Escriba las tallas y colores separados por coma. Se crea cada combinación con la cantidad indicada (ej. 4 tallas × 2 colores = 8 referencias).</div>
         @endif
+        <div class="tip" style="background:#eef7ff;color:#164a7a"><i class="fa-solid fa-file-excel me-1"></i> <b>¿Ya tiene cientos de productos en Excel o en otro sistema?</b> Pulse "Omitir por ahora" y luego en <b>Productos → Importar Excel</b> súbalos todos de una vez, o envíenos el archivo y nuestro equipo se los carga.</div>
         @php $sinConteo = in_array($tienda->tipo_negocio, ['restaurante', 'cafeteria']); @endphp
         @if ($sinConteo)
             <div class="tip"><i class="fa-solid fa-utensils me-1"></i> En su tipo de negocio no hace falta contar unidades: se vende sin límite. Si algún producto sí lo necesita, actívelo luego en Productos.</div>

@@ -6,10 +6,12 @@
 # Desarrollado por Jhoset Mejía - DiCreWeb
 set -uo pipefail
 
-DOMINIO="localpro.narinoexposhow.com"
+# Nombre de la carpeta en el servidor (quedó con el nombre del dominio de pruebas; es solo interno)
+CARPETA="localpro.narinoexposhow.com"
+DOMINIO="localproo.com"
 USUARIO="localpro"
 PHP="php8.2"
-RAIZ="/home/$USUARIO/htdocs/$DOMINIO"
+RAIZ="/home/$USUARIO/htdocs/$CARPETA"
 STAMP="$(date +%Y%m%d-%H%M%S)"
 RESP="/home/$USUARIO/respaldos/$STAMP"
 
@@ -50,6 +52,11 @@ run $PHP -d memory_limit=-1 /usr/local/bin/composer update --no-dev --optimize-a
 
 echo "==> 4/5 Base de datos y caché"
 run $PHP artisan migrate --force || restaurar
+# El sistema funciona solo en localproo.com (los enlaces de asesores, catálogos y correos salen con ese dominio)
+if ! grep -q "^APP_URL=https://$DOMINIO" .env; then
+  sed -i "s|^APP_URL=.*|APP_URL=https://$DOMINIO|" .env
+  echo "    Dominio del sistema: https://$DOMINIO"
+fi
 run $PHP artisan optimize:clear
 run $PHP artisan config:cache || restaurar
 run $PHP artisan view:cache || restaurar

@@ -12,7 +12,7 @@ class DominioPrincipal
 
     public function handle(Request $request, Closure $next)
     {
-        $principal = parse_url((string) config('app.url'), PHP_URL_HOST);
+        $principal = app()->environment('production') ? config('app.dominio') : parse_url((string) config('app.url'), PHP_URL_HOST);
         $host = strtolower($request->getHost());
 
         if ($principal && $host !== $principal

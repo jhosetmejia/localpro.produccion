@@ -22,6 +22,11 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-gem"></i></div>
                     Planes y cobros
                 </a>
+                @php $impPend = \App\Models\Importacion::where('tipo', 'solicitud')->where('estado', 'pendiente')->count(); @endphp
+                <a class="nav-link {{ $on('admin.importaciones') }}" href="{{ route('admin.importaciones') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-file-import"></i></div>
+                    Cargar productos @if ($impPend)<span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c">{{ $impPend }}</span>@endif
+                </a>
                 <a class="nav-link {{ $on('admin.pagos') }}" href="{{ route('admin.pagos') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
                     Pagos recibidos

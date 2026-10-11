@@ -58,6 +58,9 @@ return [
 
     'asset_url' => env('ASSET_URL'),
 
+    // Dominio oficial: todos los enlaces que se comparten salen con este dominio
+    'dominio' => env('APP_DOMINIO', 'localproo.com'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

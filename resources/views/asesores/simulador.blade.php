@@ -81,7 +81,7 @@
         <small>Trabaja con LocalPro</small>
         <h1>Gana dinero ayudando a los negocios de tu ciudad a <em>vender más</em>.</h1>
         <p>LocalPro es el sistema de caja, inventario y catálogo que los negocios usan desde el celular. Tú los inscribes y ganas comisión por cada negocio, y cada año cuando renuevan.</p>
-        <div class="chips"><span>💸 Sin inversión</span><span>📱 Desde tu celular</span><span>🔁 Ganas en cada renovación</span><span>🚀 Creces a líder</span></div>
+        <div class="chips"><span>💸 Sin inversión</span><span>📱 Desde tu celular</span><span>🔁 Ganas en cada renovación, de por vida</span><span>🚀 Creces a líder</span></div>
     </section>
 
     <div class="grid">
@@ -194,7 +194,7 @@
         var det = [];
         if (p) det.push(['Tus ' + p + ' negocios × ' + fmt(propio(N)), p * propio(N)]);
         if (red) det.push([red + ' negocios de tu equipo × ' + fmt(deCargo(N)), red * deCargo(N)]);
-        det.push(['Desde el mes 13: renovaciones (' + Math.round(ren * 100) + '%) cada mes', mesRenov]);
+        det.push(['Desde el mes 13: renovaciones de por vida (' + Math.round(ren * 100) + '% renuevan) cada mes', mesRenov]);
         $('det').innerHTML = det.map(function (x) { return '<li><span>' + x[0] + '</span><b>' + fmt(x[1]) + '</b></li>'; }).join('');
 
         var max = Math.max.apply(null, meses) || 1;

@@ -8,6 +8,9 @@
 .pl-top h1{font-weight:900;font-size:1.6rem;margin:0;flex:1 1 auto}
 .pl-nuevo{background:linear-gradient(90deg,#a3f04a,#16b84e);color:#0b0d0c;font-weight:800;border:0;border-radius:999px;padding:.7rem 1.2rem;text-decoration:none;white-space:nowrap}
 .pl-nuevo:hover{color:#0b0d0c;filter:brightness(1.05)}
+.pl-imp{background:#fff;color:#0b0d0c;font-weight:800;border:1.5px solid #dfe6e2;border-radius:999px;padding:.65rem 1.1rem;text-decoration:none;white-space:nowrap}
+.pl-imp i{color:#16b34a}.pl-imp:hover{border-color:#16b34a;color:#0b0d0c}
+@media (max-width:420px){.pl-top .pl-imp,.pl-top .pl-nuevo{flex:1 1 auto;text-align:center}}
 .pl-buscar{position:relative;margin-bottom:.7rem}
 .pl-buscar input{border-radius:16px;padding:.8rem 1rem .8rem 2.6rem;font-size:1rem}
 .pl-buscar > i,.pl-buscar > svg{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:#7a8580;pointer-events:none}
@@ -56,6 +59,7 @@
     <div class="pl-top">
         <h1>Productos <small class="text-muted fw-bold" style="font-size:.9rem">({{ $activos }})</small></h1>
         @can('crear-producto')
+        <a href="{{ route('productos.importar') }}" class="pl-imp"><i class="fa-solid fa-file-excel"></i> Importar Excel</a>
         <a href="{{ route('productos.create') }}" class="pl-nuevo"><i class="fa-solid fa-plus"></i> Nuevo producto</a>
         @endcan
     </div>
@@ -66,7 +70,8 @@
             <b>Aún no tiene productos.</b>
             <span>Cree el primero y quedará listo para vender en la caja.</span>
             @can('crear-producto')
-            <div><a href="{{ route('productos.create') }}" class="pl-nuevo d-inline-block mt-2">+ Crear mi primer producto</a></div>
+            <div class="d-flex gap-2 justify-content-center flex-wrap mt-2"><a href="{{ route('productos.create') }}" class="pl-nuevo d-inline-block">+ Crear mi primer producto</a><a href="{{ route('productos.importar') }}" class="pl-imp d-inline-block"><i class="fa-solid fa-file-excel"></i> Ya los tengo en Excel</a></div>
+            <small class="d-block mt-2">¿Tiene cientos de productos? Impórtelos de una vez o envíenos el archivo y se los cargamos.</small>
             @endcan
         </div>
     @else

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\importarController;
+use App\Http\Controllers\adminImportacionController;
 use App\Http\Controllers\adminPlanController;
 use App\Http\Controllers\adminRedController;
 use App\Http\Controllers\adminTiendaController;
@@ -121,6 +123,15 @@ Route::middleware(['auth', 'tienda', 'conjunto'])->prefix('conjunto')->name('con
 
 // ===== Pantallas de la tienda =====
 Route::middleware(['auth', 'tienda'])->group(function () {
+    // Importar productos desde Excel (va antes de productos/{producto})
+    Route::get('/productos/importar', [importarController::class, 'index'])->name('productos.importar');
+    Route::get('/productos/importar/plantilla', [importarController::class, 'plantilla'])->name('productos.importar.plantilla');
+    Route::post('/productos/importar', [importarController::class, 'subir'])->name('productos.importar.subir');
+    Route::get('/productos/importar/revisar', [importarController::class, 'revisar'])->name('productos.importar.revisar');
+    Route::post('/productos/importar/confirmar', [importarController::class, 'confirmar'])->name('productos.importar.confirmar');
+    Route::post('/productos/importar/cancelar', [importarController::class, 'cancelar'])->name('productos.importar.cancelar');
+    Route::post('/productos/importar/equipo', [importarController::class, 'solicitar'])->name('productos.importar.solicitar');
+
     Route::resources([
         'categorias' => categoriaController::class,
         'productos' => ProductoController::class,
@@ -205,6 +216,10 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::post('/planes', [adminPlanController::class, 'guardar'])->name('planes.guardar');
     Route::post('/salir-de-tienda', [adminTiendaController::class, 'salir'])->name('tiendas.salir');
     Route::post('/vista', [adminTiendaController::class, 'vista'])->name('vista');
+    Route::get('/importaciones', [adminImportacionController::class, 'index'])->name('importaciones');
+    Route::get('/importaciones/{importacion}/archivo', [adminImportacionController::class, 'descargar'])->name('importaciones.archivo');
+    Route::post('/importaciones/{importacion}/atender', [adminImportacionController::class, 'atender'])->name('importaciones.atender');
+    Route::post('/importaciones/{importacion}/estado', [adminImportacionController::class, 'estado'])->name('importaciones.estado');
     Route::get('/red', [adminRedController::class, 'index'])->name('red.index');
     Route::post('/red', [adminRedController::class, 'store'])->name('red.store');
     Route::get('/red/comisiones', [adminRedController::class, 'comisiones'])->name('red.comisiones');

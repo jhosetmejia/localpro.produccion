@@ -25,6 +25,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         \Carbon\Carbon::setLocale('es');
+
+        // En producción todo enlace (asesores, catálogos, correos) sale con el dominio oficial, entren por donde entren
+        if ($this->app->environment('production') && config('app.dominio')) {
+            \Illuminate\Support\Facades\URL::forceRootUrl('https://' . config('app.dominio'));
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
         \Illuminate\Pagination\Paginator::useBootstrapFive();
 
         // Correo de recuperación de contraseña en español
