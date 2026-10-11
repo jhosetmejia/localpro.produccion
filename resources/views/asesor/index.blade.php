@@ -31,6 +31,51 @@
         </div>
     </div>
 
+    @if ($aspirantes->isNotEmpty())
+    <div class="lp-box mb-3" style="border-color:#bfeccb;background:#f7fdf8">
+        <h3><span><i class="fa-solid fa-user-clock me-1"></i> Aspirantes por aprobar ({{ $aspirantes->count() }})</span></h3>
+        <ul class="lp-list">
+            @foreach ($aspirantes as $p)
+            <li style="flex-wrap:wrap">
+                <div class="av"><i class="fa-solid fa-user-plus"></i></div>
+                <div class="t"><b>{{ $p->nombre }}</b><small>CC {{ $p->documento }} · {{ $p->user->telefono }} · {{ $p->ciudad ?: '' }}{{ $p->zona ? ' · ' . $p->zona : '' }} · {{ $p->created_at->locale('es')->diffForHumans() }}</small></div>
+                <div class="d-flex gap-2">
+                    <form method="post" action="{{ route('asesor.aspirantes.decidir', $p) }}">@csrf<input type="hidden" name="accion" value="aprobar"><button class="btn btn-sm btn-primary"><i class="fa-solid fa-check me-1"></i>Aprobar</button></form>
+                    <form method="post" action="{{ route('asesor.aspirantes.decidir', $p) }}" data-confirm="¿Rechazar a {{ $p->nombre }}?" data-confirm-ok="Sí, rechazar" data-peligro>@csrf<input type="hidden" name="accion" value="rechazar"><button class="btn btn-sm btn-light">Rechazar</button></form>
+                </div>
+            </li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
+    <div class="lp-grid mb-3">
+        <div class="lp-box">
+            <h3><span><i class="fa-solid fa-user-plus me-1"></i> Suma asesores a tu equipo</span></h3>
+            <p class="text-muted small mb-2">Quien se inscriba con este enlace queda como aspirante y usted lo aprueba aquí mismo.</p>
+            <div class="lp-link">
+                <code id="enlaceRec">{{ $yo->enlace_reclutar }}</code>
+                <button type="button" class="btn btn-dark btn-sm" onclick="navigator.clipboard && navigator.clipboard.writeText(document.getElementById('enlaceRec').textContent.trim()); LP.toast('Enlace copiado')"><i class="fa-regular fa-copy me-1"></i>Copiar</button>
+                <a class="btn btn-success btn-sm" target="_blank" href="https://wa.me/?text={{ rawurlencode('¡Hola! Te invito a trabajar conmigo como asesor de LocalPro: ganas comisión por cada negocio que inscribas, sin inversión. Inscríbete aquí: ' . $yo->enlace_reclutar) }}"><i class="fa-brands fa-whatsapp me-1"></i>Invitar</a>
+            </div>
+        </div>
+        <div class="lp-box">
+            @if ($progreso['siguiente'])
+            <h3><span><i class="fa-solid fa-ranking-star me-1"></i> Meta para subir a {{ $progreso['siguienteNombre'] }}</span></h3>
+            @foreach ([['Negocios activos que pagaron su plan anual', $progreso['negocios'], $progreso['metaN']], ['Asesores que usted sumó (activos)', $progreso['asesores'], $progreso['metaA']]] as [$t, $v, $m])
+            <div class="mb-2">
+                <div class="d-flex justify-content-between small fw-bold"><span>{{ $t }}</span><span>{{ min($v, $m) }}/{{ $m }}</span></div>
+                <div style="height:10px;border-radius:99px;background:#eef3ef;overflow:hidden"><div style="height:100%;width:{{ $m ? min(100, $v / $m * 100) : 0 }}%;background:linear-gradient(90deg,#a6f34a,#16b34a)"></div></div>
+            </div>
+            @endforeach
+            <small class="text-muted">{{ $progreso['listo'] ? '🎉 ¡Cumplió la meta! LocalPro revisará su ascenso.' : 'Las pruebas gratis no cuentan: solo negocios que ya pagaron su plan anual.' }}</small>
+            @else
+            <h3><span><i class="fa-solid fa-crown me-1"></i> Está en el rango más alto</span></h3>
+            <p class="text-muted mb-0">Líder de país. ¡Gracias por llevar LocalPro a todo el país!</p>
+            @endif
+        </div>
+    </div>
+
     <div class="lp-grid mb-3">
         <div class="lp-box">
             <h3><span><i class="fa-solid fa-store me-1"></i> Mis negocios</span></h3>

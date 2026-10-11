@@ -4,6 +4,7 @@ use App\Http\Controllers\adminPlanController;
 use App\Http\Controllers\adminRedController;
 use App\Http\Controllers\adminTiendaController;
 use App\Http\Controllers\asesorPanelController;
+use App\Http\Controllers\aspiranteController;
 use App\Http\Controllers\bienvenidaController;
 use App\Http\Controllers\cajaController;
 use App\Http\Controllers\catalogoController;
@@ -56,11 +57,16 @@ Route::get('/factura/{venta}', [posController::class, 'facturaPublica'])->name('
 // Enlace de un asesor: el negocio que se inscribe queda en su red
 Route::get('/r/{codigo}', [registroController::class, 'referido'])->where('codigo', '[A-Za-z0-9]+')->name('referido');
 
+// Enlace para sumar asesores a la red (queda pendiente hasta que lo apruebe quien invitó)
+Route::get('/unete/{codigo}', [aspiranteController::class, 'form'])->where('codigo', '[A-Za-z0-9]+')->name('unete.form');
+Route::post('/unete/{codigo}', [aspiranteController::class, 'store'])->where('codigo', '[A-Za-z0-9]+')->middleware('throttle:5,1');
+
 // ===== Panel de la red comercial (asesores y líderes) =====
 Route::middleware(['auth', 'asesor'])->prefix('asesor')->name('asesor.')->group(function () {
     Route::get('/', [asesorPanelController::class, 'index'])->name('index');
     Route::get('/red', [asesorPanelController::class, 'red'])->name('red');
     Route::get('/comisiones', [asesorPanelController::class, 'comisiones'])->name('comisiones');
+    Route::post('/aspirantes/{aspirante}', [aspiranteController::class, 'decidir'])->name('aspirantes.decidir');
 });
 // Mi cuenta (todos los usuarios): datos y clave
 Route::middleware('auth')->group(function () {
@@ -171,6 +177,7 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::post('/red/comisiones/pagar', [adminRedController::class, 'pagar'])->name('red.pagar');
     Route::post('/red/comisiones/{comision}/anular', [adminRedController::class, 'anular'])->name('red.anular');
     Route::post('/red/valores', [adminRedController::class, 'valores'])->name('red.valores');
+    Route::post('/red/{asesor}/ascender', [adminRedController::class, 'ascender'])->name('red.ascender');
     Route::get('/red/{asesor}', [adminRedController::class, 'show'])->name('red.show');
     Route::put('/red/{asesor}', [adminRedController::class, 'update'])->name('red.update');
     Route::post('/tiendas/{tienda}/asesor', [adminRedController::class, 'asignar'])->name('tiendas.asesor');

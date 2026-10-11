@@ -29,6 +29,8 @@ class asesorPanelController extends Controller
             'porVencer' => Tienda::where('asesor_id', $yo->id)->whereNotNull('plan_vence')
                 ->whereBetween('plan_vence', [today()->subDays(15), today()->addDays(30)])->orderBy('plan_vence')->get(),
             'ultimas' => Comision::with('tienda:id,nombre')->where('asesor_id', $yo->id)->latest()->take(8)->get(),
+            'aspirantes' => Asesor::with('user:id,name,email,telefono')->where('reclutado_por', $yo->id)->where('estado', 'pendiente')->latest()->get(),
+            'progreso' => \App\Support\RedComercial::progreso($yo),
         ]);
     }
 

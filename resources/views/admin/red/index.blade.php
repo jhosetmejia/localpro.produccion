@@ -18,6 +18,33 @@
         <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-store"></i></div><div class="lbl">Negocios con asesor</div><div class="val">{{ $kpi['negocios'] }}</div><div class="sub">{{ $kpi['sinAsesor'] }} sin asesor</div></div>
     </div>
 
+    @if ($candidatos->isNotEmpty())
+    <div class="lp-box mb-3" style="border-color:#bfeccb;background:#f7fdf8">
+        <h3><span><i class="fa-solid fa-ranking-star me-1"></i> Ascensos sugeridos ({{ $candidatos->count() }})</span><small class="text-muted">Cumplen {{ $metas['negocios'] }} negocios pagados y {{ $metas['asesores'] }} asesores sumados</small></h3>
+        <ul class="lp-list">
+            @foreach ($candidatos as $c)
+            <li style="flex-wrap:wrap">
+                <div class="av"><i class="fa-solid {{ $c->cargo_icono }}"></i></div>
+                <div class="t"><b><a href="{{ route('admin.red.show', $c) }}" class="text-decoration-none" style="color:inherit">{{ $c->nombre }}</a></b>
+                    <small>{{ $c->cargo_nombre }} → <b>{{ \App\Models\Asesor::CARGOS[$c->cargo_siguiente][0] }}</b> · {{ $c->meta_negocios }} negocios pagados · {{ $c->meta_asesores }} asesores</small></div>
+                <form method="post" action="{{ route('admin.red.ascender', $c) }}" data-confirm="¿Subir a {{ $c->nombre }} a {{ \App\Models\Asesor::CARGOS[$c->cargo_siguiente][0] }}?" data-confirm-texto="Las personas que él sumó pasan a su equipo." data-confirm-ok="Sí, ascender">@csrf<button class="btn btn-sm btn-primary"><i class="fa-solid fa-arrow-up me-1"></i>Aprobar ascenso</button></form>
+            </li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
+    @if ($pendientes->isNotEmpty())
+    <div class="lp-box mb-3">
+        <h3><span><i class="fa-solid fa-user-clock me-1"></i> Aspirantes esperando aprobación ({{ $pendientes->count() }})</span><small class="text-muted">Los aprueba quien los invitó</small></h3>
+        <ul class="lp-list">
+            @foreach ($pendientes as $p)
+            <li><div class="av"><i class="fa-solid fa-user-plus"></i></div><div class="t"><b>{{ $p->nombre }}</b><small>Invitado por {{ $p->reclutador->nombre ?? '—' }} · {{ $p->ciudad }} · {{ $p->created_at->locale('es')->diffForHumans() }}</small></div></li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
     <details class="lp-box mb-3" @if ($errors->any() && !$errors->has('red_valor_plan')) open @endif>
         <summary class="fw-bold" style="cursor:pointer;font-size:1.05rem"><i class="fa-solid fa-user-plus me-1" style="color:#16b34a"></i> Inscribir asesor o líder</summary>
         <form method="post" action="{{ route('admin.red.store') }}" class="row g-3 mt-1">
@@ -55,6 +82,8 @@
             @csrf
             <div class="small fw-bold mb-2" style="color:#11702f"><i class="fa-solid fa-circle-info me-1"></i>Solo el plan anual paga comisión. Mensualidades y servicios adicionales son 100% para LocalPro.</div>
             <div class="row g-2 align-items-end mb-3">
+                <div class="col-6 col-md-4"><label class="form-label">Meta para subir: negocios pagados</label><input type="number" min="1" name="red_meta_negocios" class="form-control" value="{{ $metas['negocios'] }}"></div>
+                <div class="col-6 col-md-4"><label class="form-label">Meta para subir: asesores sumados</label><input type="number" min="0" name="red_meta_asesores" class="form-control" value="{{ $metas['asesores'] }}"></div>
                 <div class="col-md-4"><label class="form-label">Valor del plan anual con asesor</label><input data-dinero type="number" name="red_valor_plan" class="form-control fw-bold" value="{{ (int) $valores['valor_plan'] }}"></div>
             </div>
             <div class="rv">

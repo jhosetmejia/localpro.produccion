@@ -67,6 +67,36 @@
         </div>
     </div>
 
+    <div class="lp-grid mb-3">
+        <div class="lp-box">
+            @if ($progreso['siguiente'])
+            <h3>Meta para subir a {{ $progreso['siguienteNombre'] }}</h3>
+            @foreach ([['Negocios activos que pagaron', $progreso['negocios'], $progreso['metaN']], ['Asesores sumados (activos)', $progreso['asesores'], $progreso['metaA']]] as [$t, $v, $m])
+            <div class="mb-2">
+                <div class="d-flex justify-content-between small fw-bold"><span>{{ $t }}</span><span>{{ $v }}/{{ $m }}</span></div>
+                <div style="height:10px;border-radius:99px;background:#eef3ef;overflow:hidden"><div style="height:100%;width:{{ $m ? min(100, $v / $m * 100) : 0 }}%;background:linear-gradient(90deg,#a6f34a,#16b34a)"></div></div>
+            </div>
+            @endforeach
+            @if ($progreso['listo'])
+            <form method="post" action="{{ route('admin.red.ascender', $a) }}" data-confirm="¿Subir a {{ $a->nombre }} a {{ $progreso['siguienteNombre'] }}?" data-confirm-ok="Sí, ascender">@csrf<button class="btn btn-primary mt-2"><i class="fa-solid fa-arrow-up me-1"></i>Aprobar ascenso</button></form>
+            @endif
+            @else
+            <h3>Rango más alto (Líder de país)</h3>
+            @endif
+            <p class="small text-muted mt-2 mb-0">{{ $reclutador ? 'Lo sumó: ' . $reclutador->nombre : 'Inscrito por LocalPro' }}{{ $a->aprobado_at ? ' · aprobado el ' . $a->aprobado_at->format('d/m/Y') : '' }}</p>
+        </div>
+        <div class="lp-box">
+            <h3>Historial</h3>
+            <ul class="lp-list">
+                @forelse ($historial as $h)
+                <li><div class="av"><i class="fa-solid fa-clock-rotate-left"></i></div><div class="t"><b>{{ ucfirst(str_replace('_', ' ', $h->accion)) }}</b><small>{{ $h->detalle }} · {{ \Carbon\Carbon::parse($h->created_at)->format('d/m/Y H:i') }}</small></div></li>
+                @empty
+                <li class="lp-empty">Sin movimientos registrados.</li>
+                @endforelse
+            </ul>
+        </div>
+    </div>
+
     <div class="lp-box">
         <h3>Comisiones</h3>
         <ul class="lp-list">

@@ -10,9 +10,9 @@ class Asesor extends Model
 {
     protected $table = 'asesores';
 
-    protected $fillable = ['user_id', 'cargo', 'padre_id', 'pais', 'departamento', 'ciudad', 'zona', 'codigo', 'documento', 'banco', 'activo'];
+    protected $fillable = ['user_id', 'cargo', 'padre_id', 'pais', 'departamento', 'ciudad', 'zona', 'codigo', 'documento', 'banco', 'activo', 'estado', 'reclutado_por', 'aprobado_at'];
 
-    protected $casts = ['activo' => 'boolean'];
+    protected $casts = ['activo' => 'boolean', 'aprobado_at' => 'datetime'];
 
     public const CARGOS = [
         'lider_pais' => ['Líder de país', 'fa-earth-americas', 5],
@@ -42,6 +42,21 @@ class Asesor extends Model
     public function hijos()
     {
         return $this->hasMany(Asesor::class, 'padre_id');
+    }
+
+    public function reclutador()
+    {
+        return $this->belongsTo(Asesor::class, 'reclutado_por');
+    }
+
+    public function reclutados()
+    {
+        return $this->hasMany(Asesor::class, 'reclutado_por');
+    }
+
+    public function getEnlaceReclutarAttribute(): string
+    {
+        return url('/unete/' . $this->codigo);
     }
 
     public function tiendas()

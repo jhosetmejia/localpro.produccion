@@ -59,7 +59,9 @@ class registroController extends Controller
         // Si llegó por un asesor (enlace o código), el negocio queda en su red
         $codigo = strtoupper(trim((string) ($datos['codigo_asesor'] ?? '') ?: (string) session('codigo_asesor', $request->cookie('lp_asesor'))));
         if ($codigo !== '' && ($asesor = \App\Models\Asesor::where('codigo', $codigo)->where('activo', true)->first())) {
-            $user->tienda->forceFill(['asesor_id' => $asesor->id])->save();
+            // Los negocios que trae un asesor arrancan con prueba gratis de 3 meses; luego pagan su plan anual
+            $prueba = \App\Models\Plan::where('nombre', 'Prueba 3 meses')->first();
+            $user->tienda->forceFill(['asesor_id' => $asesor->id] + ($prueba ? ['plan_id' => $prueba->id, 'plan_vence' => today()->addDays(($prueba->dias ?: 90) - 1)] : []))->save();
         }
 
         Auth::login($user);

@@ -44,7 +44,18 @@ class adminRedController extends Controller
                 'pendiente' => (float) Comision::where('estado', 'pendiente')->sum('monto'),
             ],
             'valores' => Comisiones::valores(),
+            'candidatos' => \App\Support\RedComercial::candidatos(),
+            'metas' => \App\Support\RedComercial::metas(),
+            'pendientes' => Asesor::with(['user:id,name', 'reclutador.user:id,name'])->where('estado', 'pendiente')->latest()->get(),
         ]);
+    }
+
+    // Aprobar el ascenso que el sistema sugiere
+    public function ascender(Asesor $asesor)
+    {
+        $antes = $asesor->cargo_nombre;
+        $nuevo = \App\Support\RedComercial::ascender($asesor);
+        return back()->with('success', $asesor->nombre . ' subió de ' . $antes . ' a ' . Asesor::CARGOS[$nuevo][0] . '. 🎉');
     }
 
     public function store(Request $request)
@@ -75,7 +86,10 @@ class adminRedController extends Controller
                 'banco' => $datos['banco'] ?? null,
                 'codigo' => Asesor::nuevoCodigo($datos['name']),
                 'activo' => true,
+                'estado' => 'activo',
+                'aprobado_at' => now(),
             ]);
+            \App\Support\RedComercial::historial(Asesor::where('user_id', $user->id)->first(), 'inscrito', 'Inscrito por el administrador como ' . Asesor::CARGOS[$datos['cargo']][0]);
         });
 
         return back()->with('success', $datos['name'] . ' quedó inscrito en la red. Ya puede entrar con su correo y contraseña.');
@@ -93,6 +107,9 @@ class adminRedController extends Controller
             'lideres' => Asesor::with('user:id,name')->whereIn('cargo', ['lider_pais', 'lider_departamento', 'lider_ciudad', 'lider_zona'])
                 ->whereNotIn('id', $asesor->idsRed())->get(),
             'sinAsesor' => Tienda::whereNull('asesor_id')->orderBy('nombre')->get(['id', 'nombre']),
+            'progreso' => \App\Support\RedComercial::progreso($asesor),
+            'historial' => DB::table('asesor_historial')->where('asesor_id', $asesor->id)->latest('id')->take(20)->get(),
+            'reclutador' => $asesor->reclutador()->with('user:id,name')->first(),
         ]);
     }
 
@@ -122,7 +139,11 @@ class adminRedController extends Controller
                 'documento' => $datos['documento'] ?? null,
                 'banco' => $datos['banco'] ?? null,
                 'activo' => $request->boolean('activo'),
+                'estado' => $request->boolean('activo') ? 'activo' : ($asesor->estado === 'pendiente' ? 'pendiente' : 'activo'),
             ]);
+            if ($asesor->wasChanged('cargo')) \App\Support\RedComercial::historial($asesor, 'cambio_cargo', 'Cargo cambiado a ' . $asesor->cargo_nombre);
+            if ($asesor->wasChanged('padre_id')) \App\Support\RedComercial::historial($asesor, 'cambio_lider', 'Nuevo líder: ' . ($asesor->padre?->nombre ?? 'LocalPro'));
+            if ($asesor->wasChanged('activo')) \App\Support\RedComercial::historial($asesor, $asesor->activo ? 'activado' : 'inactivo', null);
         });
 
         return back()->with('success', 'Datos de ' . $datos['name'] . ' guardados.');
@@ -189,8 +210,10 @@ class adminRedController extends Controller
         foreach (array_merge(['red_valor_plan'], self::CLAVES_VALOR) as $k) {
             $reglas[$k] = 'required|numeric|min:0|max:100000000';
         }
+        $reglas['red_meta_negocios'] = 'required|integer|min:1|max:1000';
+        $reglas['red_meta_asesores'] = 'required|integer|min:0|max:1000';
         $datos = $request->validate($reglas);
-        $suma = fn ($t) => collect($datos)->filter(fn ($v, $k) => str_starts_with($k, 'red_' . $t . '_'))->sum();
+        $suma = fn ($t) => collect($datos)->except(['red_meta_negocios', 'red_meta_asesores'])->filter(fn ($v, $k) => str_starts_with($k, 'red_' . $t . '_'))->sum();
         if ($suma('nueva') > $datos['red_valor_plan'] || $suma('renov') > $datos['red_valor_plan']) {
             return back()->withErrors(['red_valor_plan' => 'Las comisiones suman más que el valor del plan anual.']);
         }

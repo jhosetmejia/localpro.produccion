@@ -18,7 +18,9 @@ class SoloAsesor
         if (!$asesor->activo) {
             Auth::logout();
             $request->session()->invalidate();
-            return redirect()->route('login')->withErrors('Su usuario de asesor está inactivo. Comuníquese con LocalPro.');
+            return redirect()->route('login')->withErrors($asesor->estado === 'pendiente'
+                ? 'Su solicitud todavía no ha sido aprobada. Pídale a quien lo invitó que la apruebe en su panel.'
+                : 'Su usuario de asesor está inactivo. Comuníquese con LocalPro.');
         }
         $request->attributes->set('asesor', $asesor);
         return $next($request);
