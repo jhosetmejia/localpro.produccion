@@ -67,7 +67,8 @@ if grep -q "^MAIL_HOST=mailhog" .env; then
 fi
 
 echo "==> 5/5 Comprobación"
-CODE=$(curl -s -o /dev/null -w '%{http_code}' --resolve "$DOMINIO:443:127.0.0.1" "https://$DOMINIO/login" -k)
+HOSTAPP=$(grep '^APP_URL=' .env | sed 's#.*://##; s#/.*##; s#"##g'); HOSTAPP=${HOSTAPP:-$DOMINIO}
+CODE=$(curl -s -o /dev/null -w '%{http_code}' --resolve "$HOSTAPP:443:127.0.0.1" "https://$HOSTAPP/login" -k)
 [ "$CODE" = "200" ] || { echo "La página respondió $CODE"; restaurar; }
 
 echo
