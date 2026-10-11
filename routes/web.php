@@ -75,6 +75,7 @@ Route::middleware('auth')->group(function () {
 });
 // Simulador de ganancias para reclutar: solo asesores, líderes y el administrador
 Route::middleware('auth')->get('/asesor/simulador', [unirseController::class, 'index'])->name('asesor.simulador');
+Route::middleware('auth')->get('/asesor/capacitacion', [unirseController::class, 'capacitacion'])->name('asesor.capacitacion');
 
 // ===== Asistente de configuración de la tienda nueva =====
 Route::middleware(['auth', 'tienda:asistente'])->prefix('bienvenida')->name('bienvenida.')->group(function () {

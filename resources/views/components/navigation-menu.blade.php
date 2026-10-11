@@ -38,6 +38,10 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-calculator"></i></div>
                     Simulador de ganancias
                 </a>
+                <a class="nav-link" href="{{ route('asesor.capacitacion') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                    Capacitación del equipo
+                </a>
                 @endif
 
                 @if (auth()->user()->asesor)
@@ -57,6 +61,10 @@
                 <a class="nav-link" href="{{ route('asesor.simulador') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-calculator"></i></div>
                     Simulador de ganancias
+                </a>
+                <a class="nav-link" href="{{ route('asesor.capacitacion') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                    Capacitación del equipo
                 </a>
                 @endif
 

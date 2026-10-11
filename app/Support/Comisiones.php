@@ -9,7 +9,7 @@ use App\Models\PagoSuscripcion;
 /**
  * Reparte cada pago de plan entre la red comercial.
  * Solo el PLAN ANUAL genera comisión (mensualidades y servicios adicionales son 100% de LocalPro).
- * Venta nueva (plan de 200.000): asesor 80.000 · líder de zona 10.000 · líder de ciudad 10.000 · líder de departamento 10.000 · líder de país 10.000 · LocalPro el resto.
+ * Venta nueva (plan de 220.000): asesor 100.000 · líder de zona, ciudad, departamento y país 5.000 cada uno · LocalPro 100.000.
  * Renovación anual: 10.000 a cada uno · LocalPro el resto. Un cargo vacío deja su parte para LocalPro.
  */
 class Comisiones
@@ -18,8 +18,8 @@ class Comisiones
     {
         $v = fn ($k, $d) => (float) Ajuste::valor($k, $d);
         return [
-            'valor_plan' => $v('red_valor_plan', 200000),
-            'nueva' => ['venta' => $v('red_nueva_venta', 80000), 'lider_zona' => $v('red_nueva_zona', 10000), 'lider_ciudad' => $v('red_nueva_ciudad', 10000), 'lider_departamento' => $v('red_nueva_departamento', 10000), 'lider_pais' => $v('red_nueva_pais', 10000)],
+            'valor_plan' => $v('red_valor_plan', 220000),
+            'nueva' => ['venta' => $v('red_nueva_venta', 100000), 'lider_zona' => $v('red_nueva_zona', 5000), 'lider_ciudad' => $v('red_nueva_ciudad', 5000), 'lider_departamento' => $v('red_nueva_departamento', 5000), 'lider_pais' => $v('red_nueva_pais', 5000)],
             'renovacion' => ['venta' => $v('red_renov_venta', 10000), 'lider_zona' => $v('red_renov_zona', 10000), 'lider_ciudad' => $v('red_renov_ciudad', 10000), 'lider_departamento' => $v('red_renov_departamento', 10000), 'lider_pais' => $v('red_renov_pais', 10000)],
         ];
     }

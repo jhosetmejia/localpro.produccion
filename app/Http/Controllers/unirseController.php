@@ -23,4 +23,18 @@ class unirseController extends Controller
             'whatsapp' => $tel ?: null,
         ]);
     }
+
+    // Capacitación para el equipo: cómo vender, guiones, objeciones y metas (solo red comercial y administrador)
+    public function capacitacion()
+    {
+        $u = auth()->user();
+        if (!$u->es_superadmin && !($u->asesor && $u->asesor->activo)) {
+            return redirect()->route('panel');
+        }
+        return view('asesores.capacitacion', [
+            'valores' => Comisiones::valores(),
+            'salario' => (float) Ajuste::valor('red_salario_minimo', 1750000),
+            'yo' => $u->asesor,
+        ]);
+    }
 }
