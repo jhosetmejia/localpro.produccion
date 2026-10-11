@@ -60,7 +60,7 @@
                 </a>
                 @endif
 
-                @if ($tiendaMenu || !auth()->user()->asesor)
+                @if ($tiendaMenu || (!auth()->user()->asesor && !auth()->user()->es_superadmin))
                 <div class="sb-sidenav-menu-heading">{{ $tiendaMenu ? \Illuminate\Support\Str::limit($tiendaMenu->nombre, 22) : 'Inicio' }}</div>
                 <a class="nav-link {{ $on('panel') }}" href="{{ route('panel') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-house"></i></div>

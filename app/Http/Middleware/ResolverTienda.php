@@ -20,8 +20,14 @@ class ResolverTienda
 
         if ($user = Auth::user()) {
             $id = $user->tienda_id;
-            if ($user->es_superadmin && $request->session()->has('tienda_visitada')) {
-                $id = (int) $request->session()->get('tienda_visitada');
+            if ($user->es_superadmin) {
+                // El superadministrador trabaja por defecto como "cliente interno" (panel de LocalPro, sin tienda).
+                // Ve una tienda solo si entra a una o si elige "Mi tienda" en el selector de vista.
+                if ($request->session()->has('tienda_visitada')) {
+                    $id = (int) $request->session()->get('tienda_visitada');
+                } elseif ($request->session()->get('vista_admin') !== 'tienda') {
+                    $id = null;
+                }
             }
             TiendaActual::set($id ?: null);
 

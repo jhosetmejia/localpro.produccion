@@ -137,9 +137,18 @@ class adminTiendaController extends Controller
         return redirect()->route('panel');
     }
 
+    // Selector de vista del superadministrador: "interno" (panel LocalPro) o "tienda" (su propia tienda, como cliente)
+    public function vista(Request $request)
+    {
+        $modo = $request->input('modo') === 'tienda' && $request->user()->tienda_id ? 'tienda' : 'interno';
+        $request->session()->forget('tienda_visitada');
+        $request->session()->put('vista_admin', $modo);
+        return $modo === 'tienda' ? redirect()->route('panel') : redirect()->route('admin.inicio');
+    }
+
     public function salir(Request $request)
     {
-        $request->session()->forget('tienda_visitada');
-        return redirect()->route('admin.tiendas.index');
+        $request->session()->forget(['tienda_visitada', 'vista_admin']);
+        return redirect()->route('admin.inicio');
     }
 }

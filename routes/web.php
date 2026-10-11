@@ -164,6 +164,7 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::get('/planes', [adminPlanController::class, 'index'])->name('planes.index');
     Route::post('/planes', [adminPlanController::class, 'guardar'])->name('planes.guardar');
     Route::post('/salir-de-tienda', [adminTiendaController::class, 'salir'])->name('tiendas.salir');
+    Route::post('/vista', [adminTiendaController::class, 'vista'])->name('vista');
     Route::get('/red', [adminRedController::class, 'index'])->name('red.index');
     Route::post('/red', [adminRedController::class, 'store'])->name('red.store');
     Route::get('/red/comisiones', [adminRedController::class, 'comisiones'])->name('red.comisiones');

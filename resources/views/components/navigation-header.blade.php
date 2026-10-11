@@ -7,7 +7,19 @@
         <input type="search" placeholder="Buscar en el menú..." aria-label="Buscar en el menú" id="lpMenuSearch" autocomplete="off" />
     </div>
 
-    <ul class="navbar-nav ms-auto me-3 me-lg-4">
+    @if (auth()->user()->es_superadmin)
+    @php $vistaTienda = session('tienda_visitada') || session('vista_admin') === 'tienda'; @endphp
+    <form method="post" action="{{ route('admin.vista') }}" class="ms-auto me-2 lp-vista">
+        @csrf
+        <select name="modo" class="form-select form-select-sm fw-bold" onchange="this.form.submit()" aria-label="Vista">
+            <option value="interno" @selected(!$vistaTienda)>👑 Cliente interno</option>
+            @if (auth()->user()->tienda_id || session('tienda_visitada'))
+            <option value="tienda" @selected($vistaTienda)>🏪 Cliente externo{{ session('tienda_visitada') ? ' (tienda visitada)' : '' }}</option>
+            @endif
+        </select>
+    </form>
+    @endif
+    <ul class="navbar-nav {{ auth()->user()->es_superadmin ? '' : 'ms-auto' }} me-3 me-lg-4">
         <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle lp-user" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <span class="lp-avatar">{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}</span>
