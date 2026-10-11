@@ -61,6 +61,7 @@ input{font:inherit}
 .ch{padding:16px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1.5px solid var(--line)}
 .ch h2{font-size:1.1rem;font-weight:800}
 .ch button{color:var(--mut);font-weight:700;font-size:.82rem}
+.ch > div{display:flex;align-items:center;gap:6px}
 .items{flex:1;overflow:auto;padding:6px 14px}
 .it{display:flex;gap:10px;align-items:center;padding:10px 4px;border-bottom:1px dashed var(--line);animation:pop .25s ease}
 @keyframes pop{from{opacity:0;transform:translateX(10px)}}
@@ -156,17 +157,21 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
   .tbtn{flex:none}
   .toast{top:calc(74px + env(safe-area-inset-top));bottom:auto;transform:translateX(-50%) translateY(-160px);width:max-content;max-width:calc(100vw - 24px);font-size:.92rem}
   .toast.on{transform:translateX(-50%) translateY(0)}
-  .cart{position:fixed;left:0;right:0;bottom:0;top:calc(70px + env(safe-area-inset-top));height:auto;border-radius:26px 26px 0 0;border:0;box-shadow:0 -20px 50px rgba(0,0,0,.25);transform:translateY(calc(100% + 60px));visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s .28s;z-index:40;padding-bottom:calc(env(safe-area-inset-bottom) + 8px)}
-  .cart.open{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+  .cart{position:fixed;left:8px;right:8px;bottom:auto;top:calc(72px + env(safe-area-inset-top));height:auto;max-height:none;border-radius:26px;border:0;box-shadow:0 30px 80px -10px rgba(0,0,0,.45),0 0 0 100vmax rgba(11,13,12,.45);transform:translateY(-16px);opacity:0;visibility:hidden;transition:transform .22s,opacity .22s,visibility 0s .22s;z-index:40}
+  .cart .items{flex:none;max-height:32vh}
+  .ov{align-items:flex-start;padding-top:calc(76px + env(safe-area-inset-top))}
+  .ov .md{max-height:calc(100% - 90px)}
+  .cart.open{transform:none;opacity:1;visibility:visible;transition:transform .22s,opacity .22s}
   .cat{padding-bottom:0}
   .grid{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
   .cx{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--bg);color:var(--k)!important;font-size:1.3rem!important;margin-left:6px}
-  body.hay .mbar{display:flex;gap:8px;margin:0 0 12px}
+  .mbar{display:flex;gap:8px;margin:0 0 12px}
+  .mbar .cob:disabled{opacity:.45;box-shadow:none}
   .mbar button{height:52px;border-radius:16px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:.45rem}
   .mbar .ver{background:#fff;border:1.5px solid var(--line);padding:0 .9rem;flex:none}
   .mbar .ver .n{background:var(--k);color:#fff;border-radius:999px;padding:.1rem .55rem;font-size:.8rem}
   .mbar .cob{flex:1;background:var(--g);color:var(--k);font-size:1.02rem;box-shadow:0 12px 24px -14px rgba(47,209,90,.95)}
-  .fab{display:flex;position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));height:60px;border-radius:18px;background:var(--k);color:#fff;align-items:center;justify-content:space-between;padding:0 18px;font-weight:800;z-index:30;box-shadow:0 18px 40px -16px rgba(0,0,0,.6)}
+  .fab{display:none!important;position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));height:60px;border-radius:18px;background:var(--k);color:#fff;align-items:center;justify-content:space-between;padding:0 18px;font-weight:800;z-index:30;box-shadow:0 18px 40px -16px rgba(0,0,0,.6)}
   .fab .n{background:var(--g);color:var(--k);border-radius:999px;padding:.15rem .6rem;margin-right:.5rem}
   .top .pill.hide-m{display:none}
   .top{gap:8px;padding:0 10px}
@@ -199,7 +204,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
             </div>
             <div class="mbar" id="mbar">
                 <button type="button" class="ver" id="mbVer"><span class="n" id="mbN">0</span> Ver venta</button>
-                <button type="button" class="cob" id="mbCob"><i class="fa-solid fa-money-bill-wave"></i> Cobrar <span id="mbT">$0</span></button>
+                <button type="button" class="cob" id="mbCob" disabled><i class="fa-solid fa-money-bill-wave"></i> Cobrar <span id="mbT">$0</span></button>
             </div>
             <div class="grid" id="grid"></div>
         </section>
@@ -411,6 +416,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         $('mbN').textContent = $('fabN').textContent;
         $('mbT').textContent = fmt(total());
         document.body.classList.toggle('hay', cart.length > 0);
+        $('mbCob').disabled = !cart.length;
         $('payBtn').disabled = !cart.length;
     }
     $('items').addEventListener('click', function (e) {
@@ -489,6 +495,12 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     $('mbCob').addEventListener('click', function () { if (cart.length) abrirCobro(); });
     $('mbVer').addEventListener('click', function () { $('cart').classList.add('open'); });
     $('cartX').addEventListener('click', function () { $('cart').classList.remove('open'); });
+    // Tocar fuera de la venta la cierra (celular)
+    document.addEventListener('click', function (e) {
+        var c = $('cart');
+        if (!c.classList.contains('open') || c.contains(e.target) || e.target.closest('#mbVer,#fab,.ov')) return;
+        c.classList.remove('open'); e.preventDefault(); e.stopPropagation();
+    }, true);
     $('usarSaldo').addEventListener('click', function () {
         var c = prompt('Código de la nota crédito (ej. NC-000012):');
         if (!c) return;
