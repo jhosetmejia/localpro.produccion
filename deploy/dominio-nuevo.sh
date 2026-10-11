@@ -34,12 +34,17 @@ if clpctl lets-encrypt:install:certificate --domainName="$VIEJO" --subjectAltern
 # CloudPanel puede reescribir el server_name al instalar el certificado: se asegura otra vez
 grep -q "$NUEVO" "$VHOST" || { sed -i -E "s/(server_name[^;]*$VIEJO)([^;]*);/\1 $NUEVO www.$NUEVO\2;/" "$VHOST"; nginx -t >/dev/null 2>&1 && systemctl reload nginx; }
 
-echo "==> 4/5 El sistema usa ahora https://$NUEVO en enlaces, facturas y catálogo"
-sed -i "s|^APP_URL=.*|APP_URL=https://$NUEVO|" "$RAIZ/.env"
-cd "$RAIZ" && sudo -u localpro $PHP artisan config:cache >/dev/null && sudo -u localpro $PHP artisan view:clear >/dev/null
-
-echo "==> 5/5 Prueba"
+echo "==> 4/5 Prueba"
 C=$(curl -s -o /dev/null -w '%{http_code}' --resolve "$NUEVO:443:127.0.0.1" "https://$NUEVO/login")
 echo "    https://$NUEVO/login -> $C"
-if [ "$C" = "200" ]; then echo "LISTO. LocalPro funciona en https://$NUEVO (y sigue funcionando en https://$VIEJO)"
-else echo "Revisar: si el DNS aún no apunta al servidor, el certificado no se puede emitir. Espere a que propague y vuelva a correr este comando."; fi
+
+if [ "$C" = "200" ]; then
+  echo "==> 5/5 El sistema usa ahora https://$NUEVO en enlaces, facturas y catálogo"
+  sed -i "s|^APP_URL=.*|APP_URL=https://$NUEVO|" "$RAIZ/.env"
+  echo "LISTO. LocalPro funciona en https://$NUEVO (y sigue funcionando en https://$VIEJO)"
+else
+  echo "==> 5/5 Todavía no: el sistema sigue usando https://$VIEJO"
+  sed -i "s|^APP_URL=.*|APP_URL=https://$VIEJO|" "$RAIZ/.env"
+  echo "El dominio $NUEVO aún no apunta a este servidor ($IP). Cambie su DNS y vuelva a correr este comando."
+fi
+cd "$RAIZ" && sudo -u localpro $PHP artisan config:cache >/dev/null && sudo -u localpro $PHP artisan view:clear >/dev/null
