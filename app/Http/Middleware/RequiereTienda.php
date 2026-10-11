@@ -19,7 +19,7 @@ class RequiereTienda
 
         if (!$tienda) {
             if ($user && $user->es_superadmin) {
-                return redirect()->route('admin.tiendas.index');
+                return redirect()->route('admin.inicio');
             }
             if ($user && $user->asesor) {
                 return redirect()->route('asesor.index');

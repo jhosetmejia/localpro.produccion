@@ -10,13 +10,25 @@
 
                 @if (auth()->user()->es_superadmin)
                 <div class="sb-sidenav-menu-heading">LocalPro</div>
+                <a class="nav-link {{ $on('admin.inicio') }}" href="{{ route('admin.inicio') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-gauge-high"></i></div>
+                    Panel LocalPro
+                </a>
                 <a class="nav-link {{ $on('admin.tiendas.*') }}" href="{{ route('admin.tiendas.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-crown"></i></div>
-                    Tiendas inscritas
+                    Empresas inscritas
                 </a>
                 <a class="nav-link {{ $on('admin.planes.*') }}" href="{{ route('admin.planes.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-gem"></i></div>
                     Planes y cobros
+                </a>
+                <a class="nav-link {{ $on('admin.pagos') }}" href="{{ route('admin.pagos') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                    Pagos recibidos
+                </a>
+                <a class="nav-link {{ $on('admin.usuarios') }}" href="{{ route('admin.usuarios') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-users"></i></div>
+                    Usuarios del sistema
                 </a>
                 <a class="nav-link {{ $on('admin.red.*') }}" href="{{ route('admin.red.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-sitemap"></i></div>
@@ -173,9 +185,7 @@
             </div>
         </div>
         <div class="lp-side-acciones">
-            @can('ver-perfil')
-            <a href="{{ route('profile.index') }}"><i class="fa-regular fa-user"></i> Mi perfil</a>
-            @endcan
+            <a href="{{ route('cuenta.edit') }}"><i class="fa-regular fa-user"></i> Mi cuenta y clave</a>
             <a href="{{ route('logout') }}" class="salir"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión</a>
         </div>
     </nav>

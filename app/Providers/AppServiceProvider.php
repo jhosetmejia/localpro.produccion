@@ -25,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         \Carbon\Carbon::setLocale('es');
+        \Illuminate\Pagination\Paginator::useBootstrapFive();
 
         // Correo de recuperación de contraseña en español
         \Illuminate\Auth\Notifications\ResetPassword::toMailUsing(function ($user, string $token) {

@@ -14,7 +14,7 @@
                 <span class="d-none d-sm-inline">{{ \Illuminate\Support\Str::words(auth()->user()->name, 1, '') }}</span>
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                <li><a class="dropdown-item" href="{{ route('profile.index') }}"><i class="fa-regular fa-user me-2"></i>Mi perfil</a></li>
+                <li><a class="dropdown-item" href="{{ route('cuenta.edit') }}"><i class="fa-regular fa-user me-2"></i>Mi cuenta y clave</a></li>
                 <li><hr class="dropdown-divider" /></li>
                 <li><a class="dropdown-item text-danger" href="{{ route('logout') }}"><i class="fa-solid fa-arrow-right-from-bracket me-2"></i>Cerrar sesión</a></li>
             </ul>

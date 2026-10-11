@@ -24,7 +24,7 @@ class homeController extends Controller
         $tienda = \App\Support\TiendaActual::tienda();
         if (!$tienda) {
             if (Auth::user()->es_superadmin) {
-                return redirect()->route('admin.tiendas.index');
+                return redirect()->route('admin.inicio');
             }
             if (Auth::user()->asesor) {
                 return redirect()->route('asesor.index');

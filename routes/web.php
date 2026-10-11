@@ -7,6 +7,8 @@ use App\Http\Controllers\asesorPanelController;
 use App\Http\Controllers\bienvenidaController;
 use App\Http\Controllers\cajaController;
 use App\Http\Controllers\catalogoController;
+use App\Http\Controllers\cuentaController;
+use App\Http\Controllers\adminInicioController;
 use App\Http\Controllers\categoriaController;
 use App\Http\Controllers\clienteController;
 use App\Http\Controllers\devolucionController;
@@ -59,6 +61,11 @@ Route::middleware(['auth', 'asesor'])->prefix('asesor')->name('asesor.')->group(
     Route::get('/', [asesorPanelController::class, 'index'])->name('index');
     Route::get('/red', [asesorPanelController::class, 'red'])->name('red');
     Route::get('/comisiones', [asesorPanelController::class, 'comisiones'])->name('comisiones');
+});
+// Mi cuenta (todos los usuarios): datos y clave
+Route::middleware('auth')->group(function () {
+    Route::get('/cuenta', [cuentaController::class, 'edit'])->name('cuenta.edit');
+    Route::put('/cuenta', [cuentaController::class, 'update'])->name('cuenta.update');
 });
 // Simulador de ganancias para reclutar: solo asesores, líderes y el administrador
 Route::middleware('auth')->get('/asesor/simulador', [unirseController::class, 'index'])->name('asesor.simulador');
@@ -142,6 +149,10 @@ Route::middleware(['auth', 'tienda'])->group(function () {
 
 // ===== Administrador de la plataforma =====
 Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [adminInicioController::class, 'index'])->name('inicio');
+    Route::get('/usuarios', [adminInicioController::class, 'usuarios'])->name('usuarios');
+    Route::post('/usuarios/{user}/clave', [adminInicioController::class, 'clave'])->name('usuarios.clave');
+    Route::get('/pagos', [adminInicioController::class, 'pagos'])->name('pagos');
     Route::get('/tiendas', [adminTiendaController::class, 'index'])->name('tiendas.index');
     Route::get('/tiendas/nueva', [adminTiendaController::class, 'create'])->name('tiendas.create');
     Route::post('/tiendas', [adminTiendaController::class, 'store'])->name('tiendas.store');
