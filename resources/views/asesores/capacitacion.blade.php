@@ -94,7 +94,7 @@
         </div>
         <div class="sl">
             <label>Si vendes <span id="vPlanes">25</span> planes…</label>
-            <input type="range" id="planes" min="1" max="60" value="25">
+            <input type="range" id="planes" min="1" max="100" value="25">
         </div>
         <div class="ej">
             <div><small>Ganas</small><b id="gana">{{ $f(25 * $com) }}</b></div>

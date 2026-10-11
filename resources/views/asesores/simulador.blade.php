@@ -95,9 +95,9 @@
                 <button type="button" data-r="4"><i class="fa-solid fa-flag"></i>Líder depto.</button>
                 <button type="button" data-r="5"><i class="fa-solid fa-earth-americas"></i>Líder de país</button>
             </div>
-            <div class="sl"><label>Negocios que inscribes tú al mes <b id="vPropios">10</b></label><input type="range" id="propios" min="0" max="40" value="10"></div>
+            <div class="sl"><label>Negocios que inscribes tú al mes <b id="vPropios">10</b></label><input type="range" id="propios" min="0" max="100" value="10"></div>
             <div class="sl" data-min="2"><label>Asesores en tu zona <b id="vAsesores">10</b></label><input type="range" id="asesores" min="1" max="10" value="10"><small>Un líder de zona maneja hasta 10 asesores (una comuna).</small></div>
-            <div class="sl" data-min="2"><label>Negocios que inscribe cada asesor al mes <b id="vPorAsesor">5</b></label><input type="range" id="porAsesor" min="1" max="30" value="5"></div>
+            <div class="sl" data-min="2"><label>Negocios que inscribe cada asesor al mes <b id="vPorAsesor">5</b></label><input type="range" id="porAsesor" min="1" max="100" value="5"></div>
             <div class="sl" data-min="3"><label>Zonas (comunas) en tu ciudad <b id="vZonas">5</b></label><input type="range" id="zonas" min="1" max="30" value="5"></div>
             <div class="sl" data-min="4"><label>Ciudades en tu departamento <b id="vCiudades">4</b></label><input type="range" id="ciudades" min="1" max="30" value="4"></div>
             <div class="sl" data-min="5"><label>Departamentos en el país <b id="vDeptos">5</b></label><input type="range" id="deptos" min="1" max="32" value="5"></div>
