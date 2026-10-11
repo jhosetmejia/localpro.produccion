@@ -45,6 +45,15 @@
             </form>
         </div>
         <div class="lp-box">
+            <h3><span><i class="fa-solid fa-user-tie me-1"></i> Asesor del negocio</span>@if ($tienda->asesor)<a href="{{ route('admin.red.show', $tienda->asesor) }}" class="small">Ver asesor</a>@endif</h3>
+            <form method="post" action="{{ route('admin.tiendas.asesor', $tienda) }}" class="d-flex gap-2 mb-3">
+                @csrf
+                <select name="asesor_id" class="form-select">
+                    <option value="">— Sin asesor (venta directa de LocalPro) —</option>
+                    @foreach ($asesores as $as)<option value="{{ $as->id }}" @selected((int) $tienda->asesor_id === $as->id)>{{ $as->nombre }} · {{ $as->cargo_nombre }}{{ $as->ciudad ? ' · ' . $as->ciudad : '' }}</option>@endforeach
+                </select>
+                <button class="btn btn-dark">Guardar</button>
+            </form>
             <h3>Pagos de plan</h3>
             <ul class="lp-list">
                 @forelse ($pagosPlan as $pg)

@@ -87,7 +87,8 @@ class adminTiendaController extends Controller
 
         $planes = \App\Models\Plan::orderBy('orden')->get();
         $pagosPlan = \App\Models\PagoSuscripcion::with('plan')->where('tienda_id', $tienda->id)->latest()->limit(10)->get();
-        return view('admin.tiendas.show', compact('tienda', 'usuarios', 'metricas', 'ultimas', 'planes', 'pagosPlan'));
+        $asesores = \App\Models\Asesor::with('user:id,name')->where('activo', true)->get()->sortBy('nombre');
+        return view('admin.tiendas.show', compact('tienda', 'usuarios', 'metricas', 'ultimas', 'planes', 'pagosPlan', 'asesores'));
     }
 
     public function estado(Tienda $tienda)

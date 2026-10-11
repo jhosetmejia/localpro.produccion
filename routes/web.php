@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\adminPlanController;
+use App\Http\Controllers\adminRedController;
 use App\Http\Controllers\adminTiendaController;
+use App\Http\Controllers\asesorPanelController;
 use App\Http\Controllers\bienvenidaController;
 use App\Http\Controllers\cajaController;
 use App\Http\Controllers\catalogoController;
@@ -48,6 +50,15 @@ Route::post('/restablecer', [recuperarController::class, 'guardarNueva'])->middl
 Route::get('/t/{slug}', [catalogoController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('catalogo.show');
 Route::post('/webhooks/wompi', [wompiController::class, 'evento'])->middleware('throttle:60,1');
 Route::get('/factura/{venta}', [posController::class, 'facturaPublica'])->name('factura.publica');
+// Enlace de un asesor: el negocio que se inscribe queda en su red
+Route::get('/r/{codigo}', [registroController::class, 'referido'])->where('codigo', '[A-Za-z0-9]+')->name('referido');
+
+// ===== Panel de la red comercial (asesores y líderes) =====
+Route::middleware(['auth', 'asesor'])->prefix('asesor')->name('asesor.')->group(function () {
+    Route::get('/', [asesorPanelController::class, 'index'])->name('index');
+    Route::get('/red', [asesorPanelController::class, 'red'])->name('red');
+    Route::get('/comisiones', [asesorPanelController::class, 'comisiones'])->name('comisiones');
+});
 
 // ===== Asistente de configuración de la tienda nueva =====
 Route::middleware(['auth', 'tienda:asistente'])->prefix('bienvenida')->name('bienvenida.')->group(function () {
@@ -139,6 +150,15 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::get('/planes', [adminPlanController::class, 'index'])->name('planes.index');
     Route::post('/planes', [adminPlanController::class, 'guardar'])->name('planes.guardar');
     Route::post('/salir-de-tienda', [adminTiendaController::class, 'salir'])->name('tiendas.salir');
+    Route::get('/red', [adminRedController::class, 'index'])->name('red.index');
+    Route::post('/red', [adminRedController::class, 'store'])->name('red.store');
+    Route::get('/red/comisiones', [adminRedController::class, 'comisiones'])->name('red.comisiones');
+    Route::post('/red/comisiones/pagar', [adminRedController::class, 'pagar'])->name('red.pagar');
+    Route::post('/red/comisiones/{comision}/anular', [adminRedController::class, 'anular'])->name('red.anular');
+    Route::post('/red/valores', [adminRedController::class, 'valores'])->name('red.valores');
+    Route::get('/red/{asesor}', [adminRedController::class, 'show'])->name('red.show');
+    Route::put('/red/{asesor}', [adminRedController::class, 'update'])->name('red.update');
+    Route::post('/tiendas/{tienda}/asesor', [adminRedController::class, 'asignar'])->name('tiendas.asesor');
 });
 
 Route::get('/401', fn () => view('pages.401'));

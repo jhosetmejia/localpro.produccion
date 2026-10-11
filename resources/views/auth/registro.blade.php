@@ -82,6 +82,13 @@
                         <input id="password_confirmation" name="password_confirmation" type="password" placeholder="Repita la contraseña" autocomplete="new-password" required />
                     </div>
                 </div>
+                <div class="field">
+                    <label for="codigo_asesor">Código de asesor <span style="font-weight:500;opacity:.7">(opcional)</span></label>
+                    <div class="input">
+                        <i class="fa-solid fa-user-tie"></i>
+                        <input id="codigo_asesor" name="codigo_asesor" type="text" maxlength="20" placeholder="Si un asesor le ayudó, escriba su código" value="{{ old('codigo_asesor', $codigoAsesor ?? '') }}" style="text-transform:uppercase" autocomplete="off" />
+                    </div>
+                </div>
                 <button class="btn btn-amber btn-block" type="submit" style="margin-top:.6rem">Continuar · Datos del negocio <i class="fa-solid fa-arrow-right"></i></button>
             </form>
 

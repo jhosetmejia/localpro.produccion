@@ -124,4 +124,10 @@ class Tienda extends Model
         $fila->forceFill(['consecutivo_pos' => $n])->save();
         return 'POS-' . str_pad((string) $n, 6, '0', STR_PAD_LEFT);
     }
+
+    // Asesor de la red comercial que trajo este negocio
+    public function asesor()
+    {
+        return $this->belongsTo(Asesor::class);
+    }
 }

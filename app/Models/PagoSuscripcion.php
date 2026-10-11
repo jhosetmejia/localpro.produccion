@@ -39,5 +39,12 @@ class PagoSuscripcion extends Model
 
         $this->update(['estado' => 'aprobado', 'periodo_desde' => $desde, 'periodo_hasta' => $hasta]);
         $tienda->forceFill(['plan_id' => $plan->id, 'plan_vence' => $hasta, 'estado' => 'activa'])->save();
+
+        // Comisiones de la red comercial (si el negocio llegó por un asesor)
+        try {
+            \App\Support\Comisiones::generar($this->fresh());
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 }

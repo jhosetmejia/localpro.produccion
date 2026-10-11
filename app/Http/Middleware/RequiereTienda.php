@@ -18,9 +18,13 @@ class RequiereTienda
         $tienda = TiendaActual::tienda();
 
         if (!$tienda) {
-            return $user && $user->es_superadmin
-                ? redirect()->route('admin.tiendas.index')
-                : redirect()->route('login')->withErrors('Su usuario no está asociado a ninguna tienda.');
+            if ($user && $user->es_superadmin) {
+                return redirect()->route('admin.tiendas.index');
+            }
+            if ($user && $user->asesor) {
+                return redirect()->route('asesor.index');
+            }
+            return redirect()->route('login')->withErrors('Su usuario no está asociado a ninguna tienda.');
         }
 
         if (!$tienda->activa && !$user->es_superadmin) {

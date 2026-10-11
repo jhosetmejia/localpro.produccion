@@ -23,9 +23,13 @@ class homeController extends Controller
 
         $tienda = \App\Support\TiendaActual::tienda();
         if (!$tienda) {
-            return Auth::user()->es_superadmin
-                ? redirect()->route('admin.tiendas.index')
-                : redirect()->route('login')->withErrors('Su usuario no está asociado a ninguna tienda.');
+            if (Auth::user()->es_superadmin) {
+                return redirect()->route('admin.tiendas.index');
+            }
+            if (Auth::user()->asesor) {
+                return redirect()->route('asesor.index');
+            }
+            return redirect()->route('login')->withErrors('Su usuario no está asociado a ninguna tienda.');
         }
         if (!$tienda->onboarding_completo) {
             return redirect()->route('bienvenida.index');

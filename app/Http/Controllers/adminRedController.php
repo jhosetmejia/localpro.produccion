@@ -1,0 +1,224 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Ajuste;
+use App\Models\Asesor;
+use App\Models\Comision;
+use App\Models\Tienda;
+use App\Models\User;
+use App\Support\Comisiones;
+use App\Support\Ubicaciones;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
+
+// Administración de la red comercial (solo el administrador de LocalPro)
+class adminRedController extends Controller
+{
+    public function index(Request $request)
+    {
+        $gente = Asesor::with('user:id,name,email,telefono')->withCount('tiendas')
+            ->when($request->departamento, fn ($q, $d) => $q->where('departamento', $d))
+            ->orderByRaw("FIELD(cargo, 'lider_departamento', 'lider_ciudad', 'asesor')")->get();
+        $ids = $gente->pluck('id');
+        $negocios = Tienda::with('plan:id,nombre')->whereIn('asesor_id', $ids)->orderBy('nombre')->get()->groupBy('asesor_id');
+
+        return view('admin.red.index', [
+            'raices' => $gente->filter(fn ($a) => !$a->padre_id || !$ids->contains($a->padre_id)),
+            'hijos' => $gente->groupBy('padre_id'),
+            'negocios' => $negocios,
+            'lideres' => Asesor::with('user:id,name')->whereIn('cargo', ['lider_departamento', 'lider_ciudad'])->where('activo', true)->get(),
+            'departamentos' => Asesor::whereNotNull('departamento')->distinct()->orderBy('departamento')->pluck('departamento'),
+            'departamento' => $request->departamento,
+            'kpi' => [
+                'gente' => Asesor::where('activo', true)->count(),
+                'negocios' => Tienda::whereNotNull('asesor_id')->count(),
+                'sinAsesor' => Tienda::whereNull('asesor_id')->count(),
+                'pendiente' => (float) Comision::where('estado', 'pendiente')->sum('monto'),
+            ],
+            'valores' => Comisiones::valores(),
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $datos = $this->validar($request);
+        $datos += $request->validate([
+            'email' => 'required|email|max:120|unique:users,email',
+            'password' => 'required|string|min:8',
+        ], ['email.unique' => 'Ya existe un usuario con ese correo.', 'password.min' => 'La contraseña debe tener mínimo 8 caracteres.']);
+
+        DB::transaction(function () use ($datos) {
+            $user = User::create([
+                'name' => $datos['name'],
+                'email' => $datos['email'],
+                'telefono' => $datos['telefono'] ?? null,
+                'password' => Hash::make($datos['password']),
+                'tienda_id' => null,
+            ]);
+            Asesor::create([
+                'user_id' => $user->id,
+                'cargo' => $datos['cargo'],
+                'padre_id' => $datos['padre_id'] ?? null,
+                'pais' => $datos['pais'],
+                'departamento' => $datos['departamento'] ?? null,
+                'ciudad' => $datos['ciudad'] ?? null,
+                'documento' => $datos['documento'] ?? null,
+                'banco' => $datos['banco'] ?? null,
+                'codigo' => Asesor::nuevoCodigo($datos['name']),
+                'activo' => true,
+            ]);
+        });
+
+        return back()->with('success', $datos['name'] . ' quedó inscrito en la red. Ya puede entrar con su correo y contraseña.');
+    }
+
+    public function show(Asesor $asesor)
+    {
+        $asesor->load('user', 'padre.user');
+        return view('admin.red.show', [
+            'a' => $asesor,
+            'negocios' => Tienda::with('plan:id,nombre')->where('asesor_id', $asesor->id)->orderBy('nombre')->get(),
+            'equipo' => Asesor::with('user:id,name')->withCount('tiendas')->where('padre_id', $asesor->id)->get(),
+            'comisiones' => Comision::with('tienda:id,nombre')->where('asesor_id', $asesor->id)->latest()->take(30)->get(),
+            'pendiente' => (float) Comision::where('asesor_id', $asesor->id)->where('estado', 'pendiente')->sum('monto'),
+            'lideres' => Asesor::with('user:id,name')->whereIn('cargo', ['lider_departamento', 'lider_ciudad'])
+                ->whereNotIn('id', $asesor->idsRed())->get(),
+            'sinAsesor' => Tienda::whereNull('asesor_id')->orderBy('nombre')->get(['id', 'nombre']),
+        ]);
+    }
+
+    public function update(Request $request, Asesor $asesor)
+    {
+        $datos = $this->validar($request, $asesor);
+        $datos += $request->validate([
+            'email' => ['required', 'email', 'max:120', Rule::unique('users', 'email')->ignore($asesor->user_id)],
+            'password' => 'nullable|string|min:8',
+            'activo' => 'nullable|boolean',
+        ]);
+
+        DB::transaction(function () use ($datos, $asesor, $request) {
+            $u = $asesor->user;
+            $u->fill(['name' => $datos['name'], 'email' => $datos['email'], 'telefono' => $datos['telefono'] ?? null]);
+            if (!empty($datos['password'])) {
+                $u->password = Hash::make($datos['password']);
+            }
+            $u->save();
+            $asesor->update([
+                'cargo' => $datos['cargo'],
+                'padre_id' => $datos['padre_id'] ?? null,
+                'pais' => $datos['pais'],
+                'departamento' => $datos['departamento'] ?? null,
+                'ciudad' => $datos['ciudad'] ?? null,
+                'documento' => $datos['documento'] ?? null,
+                'banco' => $datos['banco'] ?? null,
+                'activo' => $request->boolean('activo'),
+            ]);
+        });
+
+        return back()->with('success', 'Datos de ' . $datos['name'] . ' guardados.');
+    }
+
+    // Pasar un negocio a un asesor (o quitárselo)
+    public function asignar(Request $request, Tienda $tienda)
+    {
+        $datos = $request->validate(['asesor_id' => 'nullable|integer|exists:asesores,id']);
+        $tienda->forceFill(['asesor_id' => $datos['asesor_id'] ?? null])->save();
+        return back()->with('success', $datos['asesor_id'] ?? null
+            ? $tienda->nombre . ' quedó con ' . Asesor::find($datos['asesor_id'])->nombre . '.'
+            : $tienda->nombre . ' quedó sin asesor.');
+    }
+
+    public function comisiones(Request $request)
+    {
+        $filtro = fn ($q) => $q->when($request->estado ?? 'pendiente', fn ($q, $e) => $e === 'todas' ? $q : $q->where('estado', $e))
+            ->when($request->asesor, fn ($q, $a) => $q->where('asesor_id', $a));
+
+        return view('admin.red.comisiones', [
+            'lista' => $filtro(Comision::with(['asesor.user:id,name', 'tienda:id,nombre']))->latest()->paginate(40)->withQueryString(),
+            'porAsesor' => Comision::with('asesor.user:id,name')->where('estado', 'pendiente')
+                ->selectRaw('asesor_id, SUM(monto) as total, COUNT(*) as n')->groupBy('asesor_id')->orderByDesc('total')->get(),
+            'asesores' => Asesor::with('user:id,name')->get(),
+            'estado' => $request->estado ?? 'pendiente',
+            'asesor' => $request->asesor,
+            'valores' => Comisiones::valores(),
+        ]);
+    }
+
+    // Marcar comisiones como pagadas (las elegidas o todas las pendientes de un asesor)
+    public function pagar(Request $request)
+    {
+        $datos = $request->validate([
+            'ids' => 'nullable|array',
+            'ids.*' => 'integer',
+            'asesor_id' => 'nullable|integer|exists:asesores,id',
+            'nota' => 'nullable|string|max:255',
+        ]);
+        $q = Comision::where('estado', 'pendiente');
+        if (!empty($datos['asesor_id'])) {
+            $q->where('asesor_id', $datos['asesor_id']);
+        } elseif (!empty($datos['ids'])) {
+            $q->whereIn('id', $datos['ids']);
+        } else {
+            return back()->withErrors('Elija las comisiones a pagar.');
+        }
+        $total = (float) (clone $q)->sum('monto');
+        $n = $q->update(['estado' => 'pagada', 'pagada_at' => now(), 'nota' => $datos['nota'] ?? null]);
+        return back()->with('success', $n . ' comisión(es) marcadas como pagadas por $' . number_format($total, 0, ',', '.') . '.');
+    }
+
+    public function anular(Comision $comision)
+    {
+        abort_if($comision->estado === 'pagada', 422, 'Ya está pagada.');
+        $comision->update(['estado' => 'anulada']);
+        return back()->with('success', 'Comisión anulada.');
+    }
+
+    public function valores(Request $request)
+    {
+        $reglas = [];
+        foreach (['red_valor_plan', 'red_nueva_venta', 'red_nueva_ciudad', 'red_nueva_departamento', 'red_renov_venta', 'red_renov_ciudad', 'red_renov_departamento'] as $k) {
+            $reglas[$k] = 'required|numeric|min:0|max:100000000';
+        }
+        $datos = $request->validate($reglas);
+        if ($datos['red_nueva_venta'] + $datos['red_nueva_ciudad'] + $datos['red_nueva_departamento'] > $datos['red_valor_plan']) {
+            return back()->withErrors('Las comisiones de venta nueva suman más que el valor del plan.');
+        }
+        foreach ($datos as $k => $v) {
+            Ajuste::guardar($k, $v);
+        }
+        return back()->with('success', 'Valores de comisión guardados. Aplican a los pagos que lleguen de ahora en adelante.');
+    }
+
+    private function validar(Request $request, ?Asesor $asesor = null): array
+    {
+        $datos = $request->validate([
+            'name' => 'required|string|max:80',
+            'telefono' => 'nullable|string|max:20',
+            'cargo' => ['required', Rule::in(array_keys(Asesor::CARGOS))],
+            'padre_id' => 'nullable|integer|exists:asesores,id',
+            'documento' => 'nullable|string|max:20',
+            'banco' => 'nullable|string|max:120',
+            'pais' => 'required|string|size:2',
+        ] + Ubicaciones::reglas($request->input('pais'), $request->input('departamento'), false), Ubicaciones::mensajes() + [
+            'name.required' => 'Escriba el nombre.',
+        ]);
+
+        if (!empty($datos['padre_id'])) {
+            $padre = Asesor::find($datos['padre_id']);
+            $nivel = Asesor::CARGOS[$datos['cargo']][2];
+            if ($padre->nivel <= $nivel) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['padre_id' => 'El líder debe tener un cargo más alto (' . $padre->nombre . ' es ' . $padre->cargo_nombre . ').']);
+            }
+            if ($asesor && in_array($padre->id, $asesor->idsRed(), true)) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['padre_id' => 'No puede quedar debajo de alguien de su propio equipo.']);
+            }
+        }
+        if ($datos['cargo'] === 'lider_departamento') {
+            $datos['padre_id'] = null;
+        }
+        return $datos;
+    }
+}

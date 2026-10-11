@@ -54,4 +54,10 @@ class User extends Authenticatable
     public function ventas(){
         return $this->hasMany(Venta::class);
     }
+
+    // Si pertenece a la red comercial (asesor o líder)
+    public function asesor()
+    {
+        return $this->hasOne(Asesor::class);
+    }
 }

@@ -18,8 +18,29 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-gem"></i></div>
                     Planes y cobros
                 </a>
+                <a class="nav-link {{ $on('admin.red.*') }}" href="{{ route('admin.red.index') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-sitemap"></i></div>
+                    Red comercial
+                </a>
                 @endif
 
+                @if (auth()->user()->asesor)
+                <div class="sb-sidenav-menu-heading">Red comercial</div>
+                <a class="nav-link {{ $on('asesor.index') }}" href="{{ route('asesor.index') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-gauge"></i></div>
+                    Mi panel
+                </a>
+                <a class="nav-link {{ $on('asesor.red') }}" href="{{ route('asesor.red') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-sitemap"></i></div>
+                    Mi red
+                </a>
+                <a class="nav-link {{ $on('asesor.comisiones') }}" href="{{ route('asesor.comisiones') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-coins"></i></div>
+                    Mis comisiones
+                </a>
+                @endif
+
+                @if ($tiendaMenu || !auth()->user()->asesor)
                 <div class="sb-sidenav-menu-heading">{{ $tiendaMenu ? \Illuminate\Support\Str::limit($tiendaMenu->nombre, 22) : 'Inicio' }}</div>
                 <a class="nav-link {{ $on('panel') }}" href="{{ route('panel') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-house"></i></div>
@@ -132,6 +153,7 @@
                     Usuarios
                 </a>
                 @endcan
+                @endif
 
             </div>
         </div>
