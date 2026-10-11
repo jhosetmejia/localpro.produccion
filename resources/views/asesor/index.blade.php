@@ -11,6 +11,7 @@
             <h1>Hola, <span>{{ strtok($yo->nombre, ' ') }}</span></h1>
             @if ($yo->padre)<span class="text-muted fw-semibold">Su líder: {{ $yo->padre->nombre }} ({{ $yo->padre->cargo_nombre }})</span>@endif
         </div>
+        <div class="lp-quick"><a href="{{ route('asesor.simulador') }}" class="btn btn-primary btn-lg"><i class="fa-solid fa-calculator me-1"></i>Simulador para reclutar</a></div>
     </div>
     @include('layouts.partials.lp-flash')
 

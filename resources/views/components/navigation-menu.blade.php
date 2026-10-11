@@ -22,6 +22,10 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-sitemap"></i></div>
                     Red comercial
                 </a>
+                <a class="nav-link" href="{{ route('asesor.simulador') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-calculator"></i></div>
+                    Simulador de ganancias
+                </a>
                 @endif
 
                 @if (auth()->user()->asesor)
@@ -37,6 +41,10 @@
                 <a class="nav-link {{ $on('asesor.comisiones') }}" href="{{ route('asesor.comisiones') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-coins"></i></div>
                     Mis comisiones
+                </a>
+                <a class="nav-link" href="{{ route('asesor.simulador') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-calculator"></i></div>
+                    Simulador de ganancias
                 </a>
                 @endif
 

@@ -28,6 +28,7 @@ use App\Http\Controllers\registroController;
 use App\Http\Controllers\reporteController;
 use App\Http\Controllers\userController;
 use App\Http\Controllers\varianteController;
+use App\Http\Controllers\unirseController;
 use App\Http\Controllers\wompiController;
 use Illuminate\Support\Facades\Route;
 
@@ -59,6 +60,8 @@ Route::middleware(['auth', 'asesor'])->prefix('asesor')->name('asesor.')->group(
     Route::get('/red', [asesorPanelController::class, 'red'])->name('red');
     Route::get('/comisiones', [asesorPanelController::class, 'comisiones'])->name('comisiones');
 });
+// Simulador de ganancias para reclutar: solo asesores, líderes y el administrador
+Route::middleware('auth')->get('/asesor/simulador', [unirseController::class, 'index'])->name('asesor.simulador');
 
 // ===== Asistente de configuración de la tienda nueva =====
 Route::middleware(['auth', 'tienda:asistente'])->prefix('bienvenida')->name('bienvenida.')->group(function () {
