@@ -75,6 +75,13 @@ input{font:inherit}
 .cli{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .cli input{border:1.5px solid var(--line);border-radius:12px;padding:.55rem .7rem;font-weight:600;font-size:.88rem;min-width:0}
 .cli input:focus,.line input:focus{outline:none;border-color:#2fd15a}
+.cli{position:relative}
+.cli-res{position:absolute;left:0;right:0;bottom:calc(100% + 6px);background:#fff;border:1.5px solid var(--line);border-radius:14px;box-shadow:0 20px 40px -20px rgba(0,0,0,.35);overflow:hidden;display:none;z-index:5}
+.cli-res button{display:block;width:100%;text-align:left;padding:.6rem .8rem;border-bottom:1px solid var(--line);font-size:.86rem}
+.cli-res button:hover{background:#f2fbf3}
+.cli-res small{color:var(--mut);display:block;font-size:.75rem}
+.cli-sel{grid-column:1/-1;display:none;justify-content:space-between;align-items:center;background:#f2fbf3;border:1.5px solid #c9efd2;border-radius:12px;padding:.45rem .7rem;font-weight:700;font-size:.86rem;color:#11702f}
+.credit{margin-top:10px;width:100%;border:2px dashed var(--line);border-radius:14px;padding:.6rem;font-weight:800;color:var(--g2)}
 .total{display:flex;justify-content:space-between;align-items:baseline;font-weight:800}
 .total span:last-child{font-size:2rem;letter-spacing:-.03em}
 .pay{height:62px;border-radius:18px;background:var(--g);color:var(--k);font-weight:800;font-size:1.15rem;display:flex;align-items:center;justify-content:center;gap:.6rem;box-shadow:0 16px 30px -14px rgba(47,209,90,.95);transition:transform .15s,filter .15s}
@@ -171,7 +178,9 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
                 <div class="line"><span>Subtotal</span><b id="sub">$0</b></div>
                 <div class="line"><span>Descuento</span><input id="desc" type="number" min="0" step="{{ paso_dinero() }}" placeholder="0" inputmode="decimal"></div>
                 <div class="cli">
-                    <input id="cn" placeholder="Cliente (opcional)" maxlength="80">
+                    <div class="cli-res" id="cliRes"></div>
+                    <div class="cli-sel" id="cliSel"><span id="cliSelTxt"></span><button type="button" id="cliQuitar" aria-label="Quitar cliente">&times;</button></div>
+                    <input id="cn" placeholder="Cliente: buscar o escribir" maxlength="80" autocomplete="off">
                     <input id="ct" placeholder="WhatsApp (opcional)" maxlength="20" inputmode="tel">
                 </div>
                 <div class="total"><span>Total</span><span id="tot">$0</span></div>
@@ -200,6 +209,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         <div class="lbl">Método de pago</div>
         <div class="methods" id="methods"></div>
         <div id="prows"></div>
+        <button type="button" class="credit" id="usarSaldo"><i class="fa-solid fa-ticket"></i> Usar saldo a favor (nota crédito)</button>
         <div class="sum">
             <div><span>Total a cobrar</span><span id="pTot">$0</span></div>
             <div><span>Recibido</span><span id="pRec">$0</span></div>
@@ -229,6 +239,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
 <script>
 (function () {
     var URL_BUSCAR = @json(route('pos.buscar')), URL_VENTA = @json(route('pos.store'));
+    var URL_CLIENTES = @json(route('pos.clientes')), URL_SALDO = @json(route('pos.saldo'));
     var NEGOCIO = @json($negocio->nombre);
     var METODOS = @json($metodos);
     var CSRF = document.querySelector('meta[name=csrf-token]').content;
@@ -243,7 +254,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     };
     var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); };
 
-    var productos = [], cart = [], actual = null, sel = { talla: null, color: null }, pagos = {}, ultima = null, enviando = false;
+    var productos = [], cart = [], actual = null, sel = { talla: null, color: null }, pagos = {}, ultima = null, enviando = false, clienteId = null, credito = null;
 
     // ---------- Catálogo ----------
     var timer;
@@ -372,7 +383,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     var ICONOS = { efectivo: 'fa-money-bill-wave', otro: 'fa-mobile-screen-button' };
     function abrirCobro() {
         if (!cart.length) return;
-        pagos = {};
+        pagos = {}; credito = null;
         var ef = METODOS.find(function (m) { return m.es_efectivo; }) || METODOS[0];
         if (ef) pagos[ef.id] = '';
         pintarMetodos();
@@ -386,6 +397,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         var ids = Object.keys(pagos);
         $('prows').innerHTML = ids.map(function (id) {
             var m = METODOS.find(function (x) { return String(x.id) === id; });
+            if (!m && credito && String(credito.metodo_id) === id) m = { id: credito.metodo_id, nombre: 'Saldo a favor ' + credito.codigo + ' (máx. ' + fmt(credito.saldo) + ')', es_efectivo: false };
             var quick = m.es_efectivo ? '<div class="quick">' + [total()].concat(M.decimales ? [10, 20, 50, 100] : [20000, 50000, 100000]).filter(function (v, i, a) { return v > 0 && a.indexOf(v) === i; }).map(function (v, i) { return '<button data-q="' + v + '" data-id="' + id + '">' + (i === 0 ? 'Exacto ' : '') + fmt(v) + '</button>'; }).join('') + '</div>' : '';
             return '<div class="prow"><b>' + esc(m.nombre) + '</b><input data-id="' + id + '" type="number" min="0" step="' + (M.decimales ? '0.01' : '1') + '" inputmode="decimal" placeholder="' + (ids.length === 1 ? redondear(total()) : '0') + '" value="' + pagos[id] + '"></div>' + quick;
         }).join('');
@@ -395,7 +407,9 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         var ids = Object.keys(pagos);
         return ids.map(function (id) {
             var v = pagos[id] === '' ? (ids.length === 1 ? total() : 0) : parseFloat(pagos[id]) || 0;
-            return { metodo_id: +id, monto: v };
+            var p = { metodo_id: +id, monto: v };
+            if (credito && +id === credito.metodo_id) { p.monto = Math.min(v, credito.saldo); p.referencia = credito.codigo; }
+            return p;
         });
     }
     function resumen() {
@@ -423,6 +437,48 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     $('prows').addEventListener('input', function (e) { if (e.target.dataset.id) { pagos[e.target.dataset.id] = e.target.value; resumen(); } });
     $('prows').addEventListener('click', function (e) { var b = e.target.closest('[data-q]'); if (!b) return; pagos[b.dataset.id] = b.dataset.q; pintarMetodos(); });
     $('payBtn').addEventListener('click', abrirCobro);
+    $('usarSaldo').addEventListener('click', function () {
+        var c = prompt('Código de la nota crédito (ej. NC-000012):');
+        if (!c) return;
+        fetch(URL_SALDO + '?codigo=' + encodeURIComponent(c.trim()), { headers: { Accept: 'application/json' } })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (res) {
+                if (!res.ok) { toast(res.d.message || 'Nota crédito no válida', true); return; }
+                credito = res.d;
+                Object.keys(pagos).forEach(function (k) { if (pagos[k] === '') pagos[k] = '0'; });
+                pagos[credito.metodo_id] = String(redondear(Math.min(credito.saldo, total())));
+                var falta = total() - Math.min(credito.saldo, total());
+                var otro = Object.keys(pagos).find(function (k) { return +k !== credito.metodo_id; });
+                if (otro) pagos[otro] = falta > 0 ? String(redondear(falta)) : '0';
+                pintarMetodos();
+                toast('Saldo a favor aplicado: ' + fmt(Math.min(credito.saldo, total())));
+            });
+    });
+
+    // ---------- Clientes ----------
+    var tc;
+    $('cn').addEventListener('input', function () {
+        if (clienteId) return;
+        clearTimeout(tc); var v = this.value.trim();
+        if (v.length < 2) { $('cliRes').style.display = 'none'; return; }
+        tc = setTimeout(function () {
+            fetch(URL_CLIENTES + '?q=' + encodeURIComponent(v), { headers: { Accept: 'application/json' } }).then(function (r) { return r.json(); }).then(function (l) {
+                if (!l.length) { $('cliRes').innerHTML = '<button type="button" disabled><small>No está registrado. Escriba su WhatsApp y se guarda al vender.</small></button>'; }
+                else $('cliRes').innerHTML = l.map(function (c, i) { return '<button type="button" data-i="' + i + '">' + esc(c.nombre) + '<small>' + esc(c.telefono || c.documento || '') + '</small></button>'; }).join('');
+                $('cliRes')._l = l; $('cliRes').style.display = 'block';
+            });
+        }, 250);
+    });
+    $('cliRes').addEventListener('click', function (e) {
+        var b = e.target.closest('button[data-i]'); if (!b) return;
+        var c = $('cliRes')._l[+b.dataset.i];
+        clienteId = c.id; $('cn').value = c.nombre; $('ct').value = c.telefono || '';
+        $('cliSelTxt').textContent = '👤 ' + c.nombre; $('cliSel').style.display = 'flex';
+        $('cn').style.display = 'none'; $('cliRes').style.display = 'none';
+    });
+    function quitarCliente() { clienteId = null; $('cliSel').style.display = 'none'; $('cn').style.display = ''; $('cn').value = ''; $('ct').value = ''; }
+    $('cliQuitar').addEventListener('click', quitarCliente);
+    document.addEventListener('click', function (e) { if (!e.target.closest('.cli')) $('cliRes').style.display = 'none'; });
 
     function confirmar() {
         if (enviando || $('pOk').disabled) return;
@@ -434,6 +490,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
                 items: cart.map(function (i) { return { variante_id: i.variante_id, cantidad: i.cantidad }; }),
                 descuento: descuento(),
                 pagos: montos().filter(function (p) { return p.monto > 0; }),
+                cliente_id: clienteId,
                 cliente_nombre: $('cn').value.trim() || null,
                 cliente_telefono: $('ct').value.trim() || null
             })
@@ -474,7 +531,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     });
     function nuevaVenta() {
         cart = []; ultima = null;
-        $('desc').value = ''; $('cn').value = ''; $('ct').value = '';
+        $('desc').value = ''; quitarCliente();
         pintarCarrito(); cerrar('ovOk'); $('cart').classList.remove('open');
         buscar($('q').value.trim());
         $('q').focus();

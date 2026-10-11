@@ -35,8 +35,8 @@ class varianteController extends Controller
             'precio' => 'nullable|numeric|min:0|max:999999999',
         ], [], ['stock' => 'cantidad inicial']);
 
-        $tallas = $this->lista($datos['tallas'] ?? '');
-        $colores = $this->lista($datos['colores'] ?? '');
+        $tallas = \App\Support\Listas::valores($datos['tallas'] ?? '', 40, 'tallas');
+        $colores = \App\Support\Listas::valores($datos['colores'] ?? '', 60, 'colores');
         $tallas = $tallas ?: [null];
         $colores = $colores ?: [null];
 

@@ -28,6 +28,11 @@
                     <td class="fw-bold">@pesos($v->total) @if($v->estado === 'anulada')<span class="badge bg-danger">Anulada</span>@endif</td>
                     <td class="text-end text-nowrap">
                         <a href="{{ route('pos.ticket', $v) }}" target="_blank" class="btn btn-sm btn-dark"><i class="fa-solid fa-receipt"></i></a>
+                        @if ($v->estado === 'pagada')
+                        @can('devolver-venta')
+                        <a href="{{ route('devoluciones.create', $v) }}" class="btn btn-sm btn-warning" title="Cambio o devolución"><i class="fa-solid fa-right-left"></i></a>
+                        @endcan
+                        @endif
                         <a href="{{ $v->url_factura }}" target="_blank" class="btn btn-sm btn-info" title="Factura del cliente"><i class="fa-solid fa-file-invoice"></i></a>
                         @if ($v->whatsapp_numero)
                         <a href="https://wa.me/{{ $v->whatsapp_numero }}?text={{ rawurlencode('Hola, aquí está su factura ' . $v->numero . ': ' . $v->url_factura) }}" target="_blank" class="btn btn-sm btn-success"><i class="fa-brands fa-whatsapp"></i></a>

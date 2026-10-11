@@ -77,7 +77,8 @@ class cajaController extends Controller
         $totales = $caja->totalesPorMetodo();
         $ventas = $caja->ventas()->with('pagos.metodo')->latest()->get();
         $esperado = $caja->estado === 'abierta' ? $caja->efectivoEsperado() : (float) $caja->efectivo_esperado;
-        return view('caja.show', compact('caja', 'totales', 'ventas', 'esperado'));
+        $reembolsos = $caja->reembolsosPorMetodo();
+        return view('caja.show', compact('caja', 'totales', 'ventas', 'esperado', 'reembolsos'));
     }
 
     public function cerrar()
@@ -87,8 +88,9 @@ class cajaController extends Controller
             return redirect()->route('cajas.abrir');
         }
         $totales = $caja->totalesPorMetodo();
+        $reembolsos = $caja->reembolsosPorMetodo();
         $esperado = $caja->efectivoEsperado();
-        return view('caja.cerrar', compact('caja', 'totales', 'esperado'));
+        return view('caja.cerrar', compact('caja', 'totales', 'esperado', 'reembolsos'));
     }
 
     public function guardarCierre(Request $request)
@@ -129,6 +131,7 @@ class cajaController extends Controller
         return view('caja.reporte', [
             'caja' => $caja->load('user:id,name'),
             'totales' => $caja->totalesPorMetodo(),
+            'reembolsos' => $caja->reembolsosPorMetodo(),
             'anuladas' => $caja->ventas()->where('estado', 'anulada')->count(),
             'numVentas' => $caja->ventas()->where('estado', 'pagada')->count(),
             'negocio' => Negocio::datos(),

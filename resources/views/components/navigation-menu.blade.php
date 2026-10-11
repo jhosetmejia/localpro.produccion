@@ -38,6 +38,12 @@
                     Ventas
                 </a>
                 @endcanany
+                @can('ver-reportes')
+                <a class="nav-link {{ $on('reportes.*') }}" href="{{ route('reportes.index') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-chart-pie"></i></div>
+                    Reportes
+                </a>
+                @endcan
                 @can('ver-cajas-todas')
                 <a class="nav-link {{ $on('cajas.index') }}" href="{{ route('cajas.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-scale-balanced"></i></div>

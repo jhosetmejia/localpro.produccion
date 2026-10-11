@@ -141,8 +141,8 @@ class bienvenidaController extends Controller
                     ]);
                     $producto->categorias()->attach($categoria->id);
 
-                    $tallas = $tienda->usa_tallas ? $this->lista($p['tallas'] ?? '') : [];
-                    $colores = $tienda->usa_tallas ? $this->lista($p['colores'] ?? '') : [];
+                    $tallas = $tienda->usa_tallas ? \App\Support\Listas::valores($p['tallas'] ?? '', 40, 'tallas') : [];
+                    $colores = $tienda->usa_tallas ? \App\Support\Listas::valores($p['colores'] ?? '', 60, 'colores') : [];
                     foreach (($tallas ?: [null]) as $t) {
                         foreach (($colores ?: [null]) as $c) {
                             $v = $producto->variantes()->create(['talla' => $t, 'color' => $c, 'stock' => 0]);

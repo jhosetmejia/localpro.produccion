@@ -16,6 +16,10 @@
             @empty
             <li class="lp-empty">No hubo ventas en este turno.</li>
             @endforelse
+            @foreach ($reembolsos as $r)
+            <li><div class="av" style="color:#b0206a"><i class="fa-solid fa-rotate-left"></i></div><div class="t"><b>Devoluciones en {{ $r->nombre }}</b><small>{{ $r->n }} devolución(es)</small></div><span class="m" style="color:#b0206a">-@pesos($r->total)</span></li>
+            @endforeach
+
         </ul>
         <div class="d-flex justify-content-between align-items-center mt-3 p-3" style="background:var(--lp-black);color:#fff;border-radius:16px">
             <span class="fw-bold">Efectivo que debe haber en caja</span>

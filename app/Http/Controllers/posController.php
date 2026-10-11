@@ -17,7 +17,7 @@ class posController extends Controller
     public function __construct()
     {
         $this->middleware('auth')->except('facturaPublica');
-        $this->middleware('permission:usar-pos', ['only' => ['index', 'buscar', 'store']]);
+        $this->middleware('permission:usar-pos', ['only' => ['index', 'buscar', 'store', 'clientes']]);
         $this->middleware('permission:usar-pos|ver-cajas', ['only' => ['ticket', 'ventas']]);
         $this->middleware('permission:anular-venta-pos', ['only' => ['anular']]);
     }
@@ -106,6 +106,7 @@ class posController extends Controller
             'pagos.*.metodo_id' => 'required|integer|exists:metodos_pago,id',
             'pagos.*.monto' => 'required|numeric|min:0|max:999999999',
             'pagos.*.referencia' => 'nullable|string|max:60',
+            'cliente_id' => 'nullable|integer',
             'cliente_nombre' => 'nullable|string|max:80',
             'cliente_telefono' => 'nullable|string|max:20',
         ], [
@@ -155,10 +156,46 @@ class posController extends Controller
                 throw ValidationException::withMessages(['pagos' => 'Los pagos que no son en efectivo no pueden superar el total.']);
             }
 
+            // Pagos con saldo a favor (nota crédito de un cambio): se valida y se descuenta el saldo
+            foreach ($pagos as $p) {
+                if (!$metodos[$p['metodo_id']]->es_credito) {
+                    continue;
+                }
+                $nc = \App\Models\Devolucion::where('codigo', strtoupper(trim((string) ($p['referencia'] ?? ''))))
+                    ->where('tipo', 'cambio')->lockForUpdate()->first();
+                if (!$nc || $nc->saldo_disponible + 0.001 < $p['monto']) {
+                    throw ValidationException::withMessages(['pagos' => 'La nota crédito no tiene saldo suficiente.']);
+                }
+                $nc->decrement('saldo_disponible', $p['monto']);
+            }
+
+            // Cliente: el elegido en el buscador, o uno nuevo si escribieron nombre y teléfono
+            $clienteId = null;
+            if (!empty($datos['cliente_id'])) {
+                $clienteId = \App\Models\Cliente::whereKey($datos['cliente_id'])->value('id');
+            } elseif (!empty($datos['cliente_nombre']) && !empty($datos['cliente_telefono'])) {
+                $tel = preg_replace('/\D/', '', $datos['cliente_telefono']);
+                $existente = \App\Models\Persona::where('telefono', $tel)->whereHas('cliente')->first();
+                if ($existente) {
+                    $clienteId = $existente->cliente->id;
+                } else {
+                    $persona = \App\Models\Persona::create([
+                        'razon_social' => $datos['cliente_nombre'],
+                        'direccion' => '',
+                        'telefono' => $tel,
+                        'tipo_persona' => 'natural',
+                        'documento_id' => \App\Models\Documento::orderByRaw("tipo_documento = 'Cédula de ciudadanía' desc")->value('id'),
+                        'numero_documento' => 'TEL-' . $tel,
+                    ]);
+                    $clienteId = $persona->cliente()->create(['persona_id' => $persona->id])->id;
+                }
+            }
+
             $venta = PosVenta::create([
                 'numero' => \App\Support\TiendaActual::tienda()->siguienteNumeroPos(),
                 'caja_id' => $caja->id,
                 'user_id' => Auth::id(),
+                'cliente_id' => $clienteId,
                 'cliente_nombre' => $datos['cliente_nombre'] ?? null,
                 'cliente_telefono' => $datos['cliente_telefono'] ?? null,
                 'subtotal' => $subtotal,
@@ -217,6 +254,20 @@ class posController extends Controller
         ]);
     }
 
+    // Busca clientes de la tienda por nombre, teléfono o documento
+    public function clientes(Request $request)
+    {
+        $q = trim((string) $request->get('q'));
+        if (mb_strlen($q) < 2) {
+            return response()->json([]);
+        }
+        $lista = \App\Models\Cliente::with('persona')
+            ->whereHas('persona', fn ($p) => $p->where('razon_social', 'like', "%$q%")->orWhere('telefono', 'like', "%$q%")->orWhere('numero_documento', 'like', "%$q%"))
+            ->limit(8)->get()
+            ->map(fn ($c) => ['id' => $c->id, 'nombre' => $c->persona->razon_social, 'telefono' => $c->persona->telefono, 'documento' => $c->persona->numero_documento]);
+        return response()->json($lista);
+    }
+
     // Tiquete para impresora térmica de 80 mm
     public function ticket(PosVenta $venta)
     {
@@ -263,6 +314,7 @@ class posController extends Controller
                 return;
             }
             abort_if($venta->caja->estado !== 'abierta', 422, 'Solo se pueden anular ventas de una caja abierta.');
+            abort_if(\App\Models\Devolucion::where('pos_venta_id', $venta->id)->exists(), 422, 'Esta venta tiene devoluciones; no se puede anular.');
             foreach ($venta->items as $item) {
                 if ($item->variante && $item->variante->controla) {
                     $item->variante->moverStock((int) $item->cantidad, 'anulacion', $venta->numero);

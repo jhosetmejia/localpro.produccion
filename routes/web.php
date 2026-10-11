@@ -5,6 +5,7 @@ use App\Http\Controllers\bienvenidaController;
 use App\Http\Controllers\cajaController;
 use App\Http\Controllers\categoriaController;
 use App\Http\Controllers\clienteController;
+use App\Http\Controllers\devolucionController;
 use App\Http\Controllers\entradaController;
 use App\Http\Controllers\homeController;
 use App\Http\Controllers\inventarioController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\profileController;
 use App\Http\Controllers\proveedorController;
 use App\Http\Controllers\recuperarController;
 use App\Http\Controllers\registroController;
+use App\Http\Controllers\reporteController;
 use App\Http\Controllers\userController;
 use App\Http\Controllers\varianteController;
 use Illuminate\Support\Facades\Route;
@@ -67,6 +69,11 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::get('/pos/ventas', [posController::class, 'ventas'])->name('pos.ventas');
     Route::get('/pos/ventas/{venta}/ticket', [posController::class, 'ticket'])->name('pos.ticket');
     Route::post('/pos/ventas/{venta}/anular', [posController::class, 'anular'])->name('pos.anular');
+    Route::get('/pos/ventas/{venta}/devolucion', [devolucionController::class, 'create'])->name('devoluciones.create');
+    Route::post('/pos/ventas/{venta}/devolucion', [devolucionController::class, 'store'])->name('devoluciones.store');
+    Route::get('/devoluciones/{devolucion}', [devolucionController::class, 'show'])->name('devoluciones.show');
+    Route::get('/pos/clientes', [posController::class, 'clientes'])->name('pos.clientes');
+    Route::get('/pos/saldo', [devolucionController::class, 'saldo'])->name('pos.saldo');
 
     // Caja
     Route::get('/cajas', [cajaController::class, 'index'])->name('cajas.index');
@@ -89,6 +96,10 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::put('/variantes/{variante}', [varianteController::class, 'update'])->name('variantes.update');
     Route::post('/variantes/{variante}/ajustar', [varianteController::class, 'ajustar'])->name('variantes.ajustar');
     Route::delete('/variantes/{variante}', [varianteController::class, 'destroy'])->name('variantes.destroy');
+
+    // Reportes
+    Route::get('/reportes', [reporteController::class, 'index'])->name('reportes.index');
+    Route::get('/reportes/exportar/{tipo}', [reporteController::class, 'exportar'])->whereIn('tipo', ['ventas', 'productos', 'inventario'])->name('reportes.exportar');
 
     // Configuración del negocio
     Route::get('/metodos-pago', [metodoPagoController::class, 'index'])->name('metodos-pago.index');

@@ -50,9 +50,24 @@ class Caja extends Model
             ->get();
     }
 
+    /**
+     * Dinero devuelto a clientes desde esta caja, por método (solo reembolsos; los cambios no sacan dinero).
+     */
+    public function reembolsosPorMetodo()
+    {
+        return DB::table('devoluciones as d')
+            ->join('metodos_pago as m', 'm.id', '=', 'd.metodo_pago_id')
+            ->where('d.caja_id', $this->id)
+            ->where('d.tipo', 'reembolso')
+            ->groupBy('m.id', 'm.nombre', 'm.es_efectivo')
+            ->select('m.id', 'm.nombre', 'm.es_efectivo', DB::raw('SUM(d.total) as total'), DB::raw('COUNT(*) as n'))
+            ->get();
+    }
+
     public function efectivoEsperado(): float
     {
         $efectivo = $this->totalesPorMetodo()->where('es_efectivo', 1)->sum('total');
-        return (float) $this->monto_inicial + (float) $efectivo;
+        $devuelto = $this->reembolsosPorMetodo()->where('es_efectivo', 1)->sum('total');
+        return (float) $this->monto_inicial + (float) $efectivo - (float) $devuelto;
     }
 }

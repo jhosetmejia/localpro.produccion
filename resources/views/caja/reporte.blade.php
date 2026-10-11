@@ -29,6 +29,9 @@
         @empty
         <tr><td>Sin ventas</td><td class="r">0</td></tr>
         @endforelse
+        @foreach ($reembolsos as $r)
+        <tr><td>Devuelto en {{ $r->nombre }}</td><td class="r">-{{ dinero($r->total, false) }}</td></tr>
+        @endforeach
         <tr class="b"><td>TOTAL VENDIDO</td><td class="r">{{ dinero($totales->sum('total')) }}</td></tr>
     </table>
     <hr>

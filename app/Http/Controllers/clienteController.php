@@ -60,9 +60,17 @@ class clienteController extends Controller
     /**
      * Display the specified resource.
      */
+    // Historial de compras del cliente en el POS
     public function show(string $id)
     {
-        //
+        $cliente = Cliente::with('persona.documento')->findOrFail($id);
+        $ventas = \App\Models\PosVenta::with('items')->where('cliente_id', $cliente->id)->latest()->get();
+        $pagadas = $ventas->where('estado', 'pagada');
+        return view('cliente.show', [
+            'cliente' => $cliente,
+            'ventas' => $ventas,
+            'resumen' => ['total' => (float) $pagadas->sum('total'), 'n' => $pagadas->count(), 'ultima' => $pagadas->first()?->created_at],
+        ]);
     }
 
     /**

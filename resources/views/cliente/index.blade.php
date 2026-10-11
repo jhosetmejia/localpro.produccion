@@ -81,6 +81,7 @@
                                     <ul class="dropdown-menu text-bg-light" style="font-size: small;">
                                         <!-----Editar cliente--->
                                         @can('editar-cliente')
+                                        <li><a class="dropdown-item" href="{{route('clientes.show',['cliente'=>$item])}}"><i class="fa-solid fa-bag-shopping me-2"></i>Ver compras</a></li>
                                         <li><a class="dropdown-item" href="{{route('clientes.edit',['cliente'=>$item])}}">Editar</a></li>
                                         @endcan
                                     </ul>

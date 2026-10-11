@@ -61,6 +61,15 @@ class Tienda extends Model
         return $this->estado === 'activa';
     }
 
+    // Siguiente número de devolución / nota crédito (NC-000001…). Dentro de una transacción.
+    public function siguienteNumeroNc(): string
+    {
+        $fila = static::whereKey($this->id)->lockForUpdate()->first();
+        $n = $fila->consecutivo_nc + 1;
+        $fila->forceFill(['consecutivo_nc' => $n])->save();
+        return 'NC-' . str_pad((string) $n, 6, '0', STR_PAD_LEFT);
+    }
+
     /**
      * Siguiente número de venta POS de esta tienda (POS-000001, POS-000002…). Llamar dentro de una transacción.
      */
@@ -68,7 +77,7 @@ class Tienda extends Model
     {
         $fila = static::whereKey($this->id)->lockForUpdate()->first();
         $n = $fila->consecutivo_pos + 1;
-        $fila->update(['consecutivo_pos' => $n]);
+        $fila->forceFill(['consecutivo_pos' => $n])->save();
         return 'POS-' . str_pad((string) $n, 6, '0', STR_PAD_LEFT);
     }
 }
