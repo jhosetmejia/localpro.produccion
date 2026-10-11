@@ -41,8 +41,12 @@ html.lp-cargando::after{content:"";position:fixed;left:50%;top:50%;width:64px;he
 <meta name="theme-color" content="#0b0d0c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="LocalPro">
-<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-<script>if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js?v=2').catch(function () {}); }); }</script>
+<link rel="icon" href="/favicon.svg?v=3" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png?v=3" sizes="32x32" type="image/png">
+<link rel="icon" href="/favicon-16.png?v=3" sizes="16x16" type="image/png">
+<link rel="shortcut icon" href="/favicon.ico?v=3">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=3">
+<script>if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js?v=3').catch(function () {}); }); }</script>
 <script>
 // Botón "Instalar app" cuando el navegador lo permite
 window.addEventListener('beforeinstallprompt', function (e) {

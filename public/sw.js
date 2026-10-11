@@ -1,7 +1,7 @@
 // LocalPro: permite instalar el sistema como app. Las páginas siempre se piden al servidor (datos al día).
 // Si falla, se reintenta; la pantalla "Sin conexión" solo aparece cuando el teléfono realmente no tiene internet.
 // Si hay internet pero el servidor no responde, se deja ver el error real del navegador.
-const CACHE = 'localpro-v2';
+const CACHE = 'localpro-v3';
 const OFFLINE = '/offline.html';
 
 self.addEventListener('install', (e) => {
