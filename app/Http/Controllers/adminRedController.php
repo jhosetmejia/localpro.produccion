@@ -46,6 +46,7 @@ class adminRedController extends Controller
             'valores' => Comisiones::valores(),
             'candidatos' => \App\Support\RedComercial::candidatos(),
             'metas' => \App\Support\RedComercial::metas(),
+            'salario' => (float) \App\Models\Ajuste::valor('red_salario_minimo', 1750000),
             'pendientes' => Asesor::with(['user:id,name', 'reclutador.user:id,name'])->where('estado', 'pendiente')->latest()->get(),
         ]);
     }
@@ -212,8 +213,9 @@ class adminRedController extends Controller
         }
         $reglas['red_meta_negocios'] = 'required|integer|min:1|max:1000';
         $reglas['red_meta_asesores'] = 'required|integer|min:0|max:1000';
+        $reglas['red_salario_minimo'] = 'nullable|numeric|min:0|max:100000000';
         $datos = $request->validate($reglas);
-        $suma = fn ($t) => collect($datos)->except(['red_meta_negocios', 'red_meta_asesores'])->filter(fn ($v, $k) => str_starts_with($k, 'red_' . $t . '_'))->sum();
+        $suma = fn ($t) => collect($datos)->except(['red_meta_negocios', 'red_meta_asesores', 'red_salario_minimo'])->filter(fn ($v, $k) => str_starts_with($k, 'red_' . $t . '_'))->sum();
         if ($suma('nueva') > $datos['red_valor_plan'] || $suma('renov') > $datos['red_valor_plan']) {
             return back()->withErrors(['red_valor_plan' => 'Las comisiones suman más que el valor del plan anual.']);
         }

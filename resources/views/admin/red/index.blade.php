@@ -84,6 +84,7 @@
             <div class="row g-2 align-items-end mb-3">
                 <div class="col-6 col-md-4"><label class="form-label">Meta para subir: negocios pagados</label><input type="number" min="1" name="red_meta_negocios" class="form-control" value="{{ $metas['negocios'] }}"></div>
                 <div class="col-6 col-md-4"><label class="form-label">Meta para subir: asesores sumados</label><input type="number" min="0" name="red_meta_asesores" class="form-control" value="{{ $metas['asesores'] }}"></div>
+                <div class="col-6 col-md-4"><label class="form-label">Salario mínimo (capacitación)</label><input data-dinero type="number" min="0" name="red_salario_minimo" class="form-control" value="{{ (int) $salario }}"></div>
                 <div class="col-md-4"><label class="form-label">Valor del plan anual con asesor</label><input data-dinero type="number" name="red_valor_plan" class="form-control fw-bold" value="{{ (int) $valores['valor_plan'] }}"></div>
             </div>
             <div class="rv">
