@@ -27,13 +27,13 @@
         </div>
     </div>
 
-    <form method="post" action="{{ route('cajas.guardarCierre') }}" class="lp-box" onsubmit="return confirm('¿Cerrar la caja? Después no podrá vender hasta abrir una nueva.')">
+    <form method="post" action="{{ route('cajas.guardarCierre') }}" class="lp-box" data-confirm="¿Cerrar la caja?" data-confirm-texto="Después no podrá vender hasta abrir una caja nueva." data-confirm-ok="Sí, cerrar caja">
         @csrf
         <h3>Cuente el efectivo</h3>
         <label class="form-label">Efectivo contado</label>
         <div class="input-group mb-2">
             <span class="input-group-text fw-bold" style="border-radius:12px 0 0 12px">{{ moneda()['simbolo'] }}</span>
-            <input type="number" id="contado" name="efectivo_contado" min="0" step="{{ paso_dinero() }}" class="form-control form-control-lg fw-bold" required autofocus>
+            <input data-dinero type="number" id="contado" name="efectivo_contado" min="0" step="{{ paso_dinero() }}" class="form-control form-control-lg fw-bold" required autofocus>
         </div>
         <div id="dif" class="fw-bold mb-3"></div>
         <label class="form-label">Nota de cierre (opcional)</label>

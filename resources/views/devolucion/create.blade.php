@@ -10,7 +10,7 @@
     </div>
     @include('layouts.partials.lp-flash')
 
-    <form method="post" action="{{ route('devoluciones.store', $venta) }}" onsubmit="return confirm('¿Registrar la devolución?')">
+    <form method="post" action="{{ route('devoluciones.store', $venta) }}" data-confirm="¿Registrar la devolución?" data-confirm-texto="Las prendas devueltas vuelven al inventario." data-confirm-ok="Sí, registrar">
         @csrf
         <div class="lp-box mb-3">
             <h3>¿Qué devuelve el cliente?</h3>

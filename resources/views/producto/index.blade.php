@@ -134,7 +134,7 @@
                     <a href="{{ route('etiquetas.producto', ['producto' => $item]) }}"><i class="fa-solid fa-barcode"></i>Etiquetas</a>
                     @can('eliminar-producto')
                     <form action="{{ route('productos.destroy', ['producto' => $item->id]) }}" method="post" class="d-contents" style="display:contents"
-                          onsubmit="return confirm(@json($item->estado == 1 ? '¿Ocultar este producto? Ya no saldrá en la caja ni en el catálogo. Puede restaurarlo después.' : '¿Restaurar este producto?'))">
+                          data-confirm="{{ $item->estado == 1 ? '¿Ocultar este producto?' : '¿Restaurar este producto?' }}" data-confirm-texto="{{ $item->estado == 1 ? 'Ya no saldrá en la caja ni en el catálogo. Puede restaurarlo después.' : 'Volverá a salir en la caja y en el catálogo.' }}" data-confirm-ok="{{ $item->estado == 1 ? 'Sí, ocultar' : 'Sí, restaurar' }}" @if($item->estado == 1) data-peligro @endif>
                         @method('DELETE')
                         @csrf
                         @if ($item->estado == 1)

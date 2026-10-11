@@ -17,6 +17,7 @@
     <link href="{{ asset('css/panel.css') }}?v=5" rel="stylesheet" />
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     @include('layouts.partials.pwa')
+    @include('layouts.partials.lp-ui')
     @stack('css')
 </head>
 

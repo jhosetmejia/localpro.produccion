@@ -86,7 +86,7 @@
         var tr = document.createElement('tr'); tr.dataset.id = v.id;
         tr.innerHTML = '<td><b>' + esc(p.nombre) + '</b><br><small class="text-muted">' + esc(v.etiqueta) + '</small><input type="hidden" name="items[' + k + '][variante_id]" value="' + v.id + '"></td>' +
             '<td><input type="number" min="1" class="form-control c" name="items[' + k + '][cantidad]" value="1" required></td>' +
-            '<td><input type="number" min="0" step="' + (M.decimales ? '0.01' : '1') + '" class="form-control k" name="items[' + k + '][costo]" value="' + (v.costo || 0) + '" required></td>' +
+            '<td><input data-dinero type="number" min="0" step="' + (M.decimales ? '0.01' : '1') + '" class="form-control k" name="items[' + k + '][costo]" value="' + (v.costo || 0) + '" required></td>' +
             '<td class="text-end fw-bold s"></td><td class="text-end"><button type="button" class="btn btn-sm btn-danger x"><i class="fa-solid fa-xmark"></i></button></td>';
         filas.appendChild(tr);
         tr.querySelector('.c').focus(); tr.querySelector('.c').select();

@@ -28,7 +28,7 @@
                     @foreach ($planes as $p)
                     <tr>
                         <td><input name="planes[{{ $p->id }}][nombre]" class="form-control" value="{{ $p->nombre }}" required></td>
-                        <td><input type="number" min="0" name="planes[{{ $p->id }}][precio]" class="form-control" value="{{ (int) $p->precio }}"></td>
+                        <td><input data-dinero type="number" min="0" name="planes[{{ $p->id }}][precio]" class="form-control" value="{{ (int) $p->precio }}"></td>
                         <td><input type="number" min="1" name="planes[{{ $p->id }}][dias]" class="form-control" value="{{ $p->dias }}" placeholder="No vence"></td>
                         <td><input name="planes[{{ $p->id }}][descripcion]" class="form-control" value="{{ $p->descripcion }}"></td>
                         <td><input type="checkbox" class="form-check-input" name="planes[{{ $p->id }}][activo]" value="1" @checked($p->activo)></td>
@@ -37,7 +37,7 @@
                     @endforeach
                     <tr>
                         <td><input name="nuevo[nombre]" class="form-control" placeholder="+ Nuevo plan"></td>
-                        <td><input type="number" min="0" name="nuevo[precio]" class="form-control" placeholder="0"></td>
+                        <td><input data-dinero type="number" min="0" name="nuevo[precio]" class="form-control" placeholder="0"></td>
                         <td><input type="number" min="1" name="nuevo[dias]" class="form-control" placeholder="30"></td>
                         <td colspan="3"></td>
                     </tr>

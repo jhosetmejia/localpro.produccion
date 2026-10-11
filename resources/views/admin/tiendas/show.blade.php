@@ -13,7 +13,7 @@
         </div>
         <div class="lp-quick">
             <form method="post" action="{{ route('admin.tiendas.entrar', $tienda) }}">@csrf<button class="btn btn-primary"><i class="fa-solid fa-right-to-bracket me-1"></i>Entrar a la tienda</button></form>
-            <form method="post" action="{{ route('admin.tiendas.estado', $tienda) }}" onsubmit="return confirm('{{ $tienda->activa ? '¿Suspender esta tienda? Sus usuarios no podrán entrar.' : '¿Activar esta tienda?' }}')">@csrf
+            <form method="post" action="{{ route('admin.tiendas.estado', $tienda) }}" data-confirm="{{ $tienda->activa ? '¿Suspender esta tienda?' : '¿Activar esta tienda?' }}" data-confirm-texto="{{ $tienda->activa ? 'Sus usuarios no podrán entrar hasta que la active de nuevo.' : 'Sus usuarios podrán volver a entrar y vender.' }}" data-confirm-ok="{{ $tienda->activa ? 'Sí, suspender' : 'Sí, activar' }}" @if($tienda->activa) data-peligro @endif>@csrf
                 <button class="btn {{ $tienda->activa ? 'btn-danger' : 'btn-dark' }}"><i class="fa-solid {{ $tienda->activa ? 'fa-ban' : 'fa-circle-check' }} me-1"></i>{{ $tienda->activa ? 'Suspender' : 'Activar' }}</button>
             </form>
         </div>
@@ -35,11 +35,11 @@
                 <div class="col-md-4"><label class="form-label">Vence</label><input type="date" name="plan_vence" class="form-control" value="{{ $tienda->plan_vence?->format('Y-m-d') }}"></div>
                 <div class="col-md-3 d-grid"><button class="btn btn-dark">Asignar</button></div>
             </form>
-            <form method="post" action="{{ route('admin.tiendas.pago', $tienda) }}" class="row g-2 align-items-end" onsubmit="return confirm('¿Registrar el pago y extender el plan?')">
+            <form method="post" action="{{ route('admin.tiendas.pago', $tienda) }}" class="row g-2 align-items-end" data-confirm="¿Registrar el pago?" data-confirm-texto="Se extiende el plan de la tienda según los meses indicados." data-confirm-ok="Sí, registrar">
                 @csrf
                 <div class="col-12"><b>Registrar pago recibido</b> <small class="text-muted">(transferencia, Nequi, efectivo)</small></div>
                 <div class="col-md-5"><select name="plan_id" class="form-select" id="pp" onchange="document.getElementById('pm').value=this.selectedOptions[0].dataset.p">@foreach ($planes->where('precio', '>', 0) as $p)<option value="{{ $p->id }}" data-p="{{ (int) $p->precio }}">{{ $p->nombre }} · ${{ number_format($p->precio, 0, ',', '.') }}</option>@endforeach</select></div>
-                <div class="col-md-3"><input type="number" min="0" name="monto" id="pm" class="form-control" value="{{ (int) optional($planes->where('precio', '>', 0)->first())->precio }}"></div>
+                <div class="col-md-3"><input data-dinero type="number" min="0" name="monto" id="pm" class="form-control" value="{{ (int) optional($planes->where('precio', '>', 0)->first())->precio }}"></div>
                 <div class="col-md-4 d-grid"><button class="btn btn-primary">Registrar pago</button></div>
                 <div class="col-12"><input name="nota" class="form-control" placeholder="Nota (opcional): ej. Nequi ref 12345"></div>
             </form>

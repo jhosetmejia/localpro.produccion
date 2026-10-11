@@ -41,7 +41,7 @@
                             <a href="{{ route('pos.ticket', $v) }}" target="_blank" class="btn btn-sm btn-info"><i class="fa-solid fa-receipt"></i></a>
                             @if ($v->estado === 'pagada' && $caja->estado === 'abierta')
                             @can('anular-venta-pos')
-                            <form method="post" action="{{ route('pos.anular', $v) }}" class="d-inline" onsubmit="return confirm('¿Anular {{ $v->numero }}? Las prendas vuelven al inventario.')">@csrf<button class="btn btn-sm btn-danger"><i class="fa-solid fa-ban"></i></button></form>
+                            <form method="post" action="{{ route('pos.anular', $v) }}" class="d-inline" data-confirm="¿Anular la venta {{ $v->numero }}?" data-confirm-texto="Las prendas vuelven al inventario y la venta no suma en la caja." data-confirm-ok="Sí, anular" data-peligro>@csrf<button class="btn btn-sm btn-danger"><i class="fa-solid fa-ban"></i></button></form>
                             @endcan
                             @endif
                         </td>

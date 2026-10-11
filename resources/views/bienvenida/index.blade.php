@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     @include('layouts.partials.landing-head')
+    @include('layouts.partials.lp-ui')
     <title>Configure su tienda — LocalPro</title>
     <style>
         body{background:radial-gradient(circle at 85% 0%,rgba(166,243,74,.28),transparent 40%),radial-gradient(circle at 0% 100%,rgba(255,111,181,.12),transparent 40%),#fff}
@@ -144,7 +145,7 @@
                     <div>
                         <div class="row">
                             <div><small>Producto</small><input class="in" name="productos[{{ $i }}][nombre]" value="{{ $p['nombre'] ?? '' }}" maxlength="80"></div>
-                            <div><small>Precio ({{ moneda()['moneda'] }})</small><input class="in" type="number" min="0" step="{{ paso_dinero() }}" name="productos[{{ $i }}][precio]" value="{{ $p['precio'] ?? '' }}" placeholder="0"></div>
+                            <div><small>Precio ({{ moneda()['moneda'] }})</small><input data-dinero class="in" type="number" min="0" step="{{ paso_dinero() }}" name="productos[{{ $i }}][precio]" value="{{ $p['precio'] ?? '' }}" placeholder="0"></div>
                             <div @if($sinConteo) style="display:none" @endif><small>{{ $tienda->usa_tallas ? 'Cantidad c/u' : 'Cantidad' }}</small><input class="in" type="number" min="0" name="productos[{{ $i }}][cantidad]" value="{{ $p['cantidad'] ?? 0 }}"></div>
                         </div>
                         @if ($tienda->usa_tallas)
@@ -200,7 +201,7 @@
             </div>
             <div class="grid2">
                 <div class="field"><label>¿Otra forma de pago? <span style="color:var(--muted);font-weight:600">(opcional)</span></label><input class="in" name="nuevo_metodo" maxlength="40" placeholder="Ej: Addi, Sistecrédito, QR"></div>
-                <div class="field"><label>Base de caja para empezar hoy</label><input class="in" type="number" min="0" step="{{ paso_dinero() }}" name="monto_inicial" value="0"><small style="color:var(--muted)">El efectivo con el que abre su caja ({{ moneda()['moneda'] }}).</small></div>
+                <div class="field"><label>Base de caja para empezar hoy</label><input data-dinero class="in" type="number" min="0" step="{{ paso_dinero() }}" name="monto_inicial" value="0"><small style="color:var(--muted)">El efectivo con el que abre su caja ({{ moneda()['moneda'] }}).</small></div>
             </div>
             <div class="acts">
                 <span></span>

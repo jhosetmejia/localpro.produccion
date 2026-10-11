@@ -14,7 +14,7 @@
             <label class="form-label">Base de caja (efectivo inicial)</label>
             <div class="input-group mb-3">
                 <span class="input-group-text fw-bold" style="border-radius:12px 0 0 12px">{{ moneda()['simbolo'] }}</span>
-                <input type="number" name="monto_inicial" min="0" step="{{ paso_dinero() }}" class="form-control form-control-lg fw-bold" value="{{ old('monto_inicial', 0) }}" required autofocus>
+                <input data-dinero type="number" name="monto_inicial" min="0" step="{{ paso_dinero() }}" class="form-control form-control-lg fw-bold" value="{{ old('monto_inicial', 0) }}" required autofocus>
             </div>
             <div class="d-flex gap-2 flex-wrap mb-3">
                 @foreach (moneda()['decimales'] ? [20, 50, 100, 200] : [50000, 100000, 200000, 300000] as $b)

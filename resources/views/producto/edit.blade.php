@@ -57,7 +57,7 @@
                     <!---Precio de venta---->
                     <div class="col-md-6">
                         <label for="precio_venta" class="form-label">Precio de venta (COP):</label>
-                        <input type="number" min="0" step="{{ paso_dinero() }}" name="precio_venta" id="precio_venta" class="form-control" value="{{old('precio_venta',(float) $producto->precio_venta)}}" placeholder="Ej: {{ moneda()['decimales'] ? '29.90' : '59900' }}">
+                        <input data-dinero type="number" min="0" step="{{ paso_dinero() }}" name="precio_venta" id="precio_venta" class="form-control" value="{{old('precio_venta',(float) $producto->precio_venta)}}" placeholder="Ej: {{ moneda()['decimales'] ? '29.90' : '59900' }}">
                         <small class="text-muted">Las tallas y colores pueden tener otro precio si lo necesita.</small>
                         @error('precio_venta')
                         <small class="text-danger d-block">{{'*'.$message}}</small>
@@ -67,7 +67,7 @@
                     <!---Costo---->
                     <div class="col-md-6">
                         <label for="precio_costo" class="form-label">Precio de costo <span class="text-muted fw-normal">(lo que le cuesta a usted)</span>:</label>
-                        <input type="number" min="0" step="{{ paso_dinero() }}" name="precio_costo" id="precio_costo" class="form-control" value="{{ old('precio_costo', (float) $producto->precio_costo ?: '') }}" placeholder="Opcional, para calcular su ganancia">
+                        <input data-dinero type="number" min="0" step="{{ paso_dinero() }}" name="precio_costo" id="precio_costo" class="form-control" value="{{ old('precio_costo', (float) $producto->precio_costo ?: '') }}" placeholder="Opcional, para calcular su ganancia">
                         @error('precio_costo')
                         <small class="text-danger">{{'*'.$message}}</small>
                         @enderror

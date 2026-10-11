@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 @include('layouts.partials.pwa')
+@include('layouts.partials.lp-ui')
 <title>POS · {{ $negocio->nombre }}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -235,7 +236,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
             <div class="items" id="items"></div>
             <div class="cf">
                 <div class="line"><span>Subtotal</span><b id="sub">$0</b></div>
-                <div class="line"><span>Descuento</span><input id="desc" type="number" min="0" step="{{ paso_dinero() }}" placeholder="0" inputmode="decimal"></div>
+                <div class="line"><span>Descuento</span><input id="desc" data-dinero type="number" min="0" step="{{ paso_dinero() }}" placeholder="0" inputmode="decimal"></div>
                 <div class="cli">
                     <div class="cli-sel" id="cliSel"><span id="cliSelTxt"></span><button type="button" id="cliQuitar" aria-label="Quitar cliente">&times;</button></div>
                     <div class="cli-busca" id="cliBusca">
@@ -482,7 +483,11 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         pintarCarrito();
     });
     $('desc').addEventListener('input', pintarCarrito);
-    $('clear').addEventListener('click', function () { if (cart.length && confirm('¿Vaciar la venta actual?')) { cart = []; pintarCarrito(); } });
+    $('clear').addEventListener('click', function () {
+        if (!cart.length) return;
+        LP.confirmar({ titulo: '¿Vaciar la venta?', texto: 'Se quitan todos los productos de la venta actual.', ok: 'Sí, vaciar', peligro: true })
+            .then(function (si) { if (si) { cart = []; pintarCarrito(); } });
+    });
 
     // ---------- Cobro ----------
     var ICONOS = { efectivo: 'fa-money-bill-wave', otro: 'fa-mobile-screen-button' };
@@ -520,7 +525,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
             var m = METODOS.find(function (x) { return String(x.id) === id; });
             if (!m && credito && String(credito.metodo_id) === id) m = { id: credito.metodo_id, nombre: 'Saldo a favor ' + credito.codigo + ' (máx. ' + fmt(credito.saldo) + ')', es_efectivo: false };
             var quick = m.es_efectivo ? '<div class="quick">' + [total()].concat(M.decimales ? [10, 20, 50, 100] : [20000, 50000, 100000]).filter(function (v, i, a) { return v > 0 && a.indexOf(v) === i; }).map(function (v, i) { return '<button data-q="' + v + '" data-id="' + id + '">' + (i === 0 ? 'Exacto ' : '') + fmt(v) + '</button>'; }).join('') + '</div>' : '';
-            return '<div class="prow"><b>' + esc(m.nombre) + '</b><input data-id="' + id + '" type="number" min="0" step="' + (M.decimales ? '0.01' : '1') + '" inputmode="decimal" placeholder="' + (ids.length === 1 ? redondear(total()) : '0') + '" value="' + pagos[id] + '"></div>' + quick;
+            return '<div class="prow"><b>' + esc(m.nombre) + '</b><input data-dinero data-id="' + id + '" type="number" min="0" step="' + (M.decimales ? '0.01' : '1') + '" inputmode="decimal" placeholder="' + (ids.length === 1 ? redondear(total()) : '0') + '" value="' + pagos[id] + '"></div>' + quick;
         }).join('');
         resumen();
     }
@@ -561,7 +566,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     $('scAgregar').addEventListener('click', function () { cerrar('ovSinCli'); abrirNuevoCliente(); });
     $('scSeguir').addEventListener('click', function () { abrirCobro(true); });
     $('usarSaldo').addEventListener('click', function () {
-        var c = prompt('Código de la nota crédito (ej. NC-000012):');
+        LP.pedir({ titulo: 'Usar saldo a favor', texto: 'Escriba el código de la nota crédito que tiene el cliente.', placeholder: 'Ej. NC-000012', ok: 'Aplicar', icono: '🎟' }).then(function (c) {
         if (!c) return;
         fetch(URL_SALDO + '?codigo=' + encodeURIComponent(c.trim()), { headers: { Accept: 'application/json' } })
             .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
@@ -576,6 +581,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
                 pintarMetodos();
                 toast('Saldo a favor aplicado: ' + fmt(Math.min(credito.saldo, total())));
             });
+        });
     });
 
     // ---------- Clientes ----------

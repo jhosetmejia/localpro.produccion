@@ -59,7 +59,7 @@
                     <label for="precio_venta" class="form-label">Precio de venta ({{ moneda()['moneda'] }})</label>
                     <div class="input-group input-group-lg">
                         <span class="input-group-text fw-bold" style="border-radius:12px 0 0 12px">{{ moneda()['simbolo'] }}</span>
-                        <input type="number" min="0" step="{{ paso_dinero() }}" name="precio_venta" id="precio_venta" class="form-control fw-bold" value="{{ old('precio_venta') }}" placeholder="{{ moneda()['decimales'] ? '29.90' : '130000' }}" inputmode="decimal" required>
+                        <input data-dinero type="number" min="0" step="{{ paso_dinero() }}" name="precio_venta" id="precio_venta" class="form-control fw-bold" value="{{ old('precio_venta') }}" placeholder="{{ moneda()['decimales'] ? '29.90' : '130000' }}" inputmode="decimal" required>
                     </div>
                     @error('precio_venta')<small class="text-danger">{{ $message }}</small>@enderror
                 </div>
@@ -141,7 +141,7 @@
                 <div class="row g-3 mt-1">
                     <div class="col-md-6">
                         <label for="precio_costo" class="form-label">Precio de costo <span class="text-muted fw-normal">(lo que le costó)</span></label>
-                        <input type="number" min="0" step="{{ paso_dinero() }}" name="precio_costo" id="precio_costo" class="form-control" value="{{ old('precio_costo') }}" placeholder="Para calcular su ganancia" inputmode="decimal">
+                        <input data-dinero type="number" min="0" step="{{ paso_dinero() }}" name="precio_costo" id="precio_costo" class="form-control" value="{{ old('precio_costo') }}" placeholder="Para calcular su ganancia" inputmode="decimal">
                         @error('precio_costo')<small class="text-danger">{{ $message }}</small>@enderror
                     </div>
                     <div class="col-md-6">

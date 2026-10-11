@@ -43,7 +43,7 @@
             </div>
             <div class="col-md-2">
                 <label class="form-label">Precio <span class="text-muted fw-normal">(opcional)</span></label>
-                <input name="precio" type="number" min="0" step="{{ paso_dinero() }}" class="form-control" placeholder="Igual al base">
+                <input data-dinero name="precio" type="number" min="0" step="{{ paso_dinero() }}" class="form-control" placeholder="Igual al base">
             </div>
             <div class="col-md-1 d-grid">
                 <button class="btn btn-primary"><i class="fa-solid fa-plus"></i></button>
@@ -76,7 +76,7 @@
                             @endcan
                             @can('editar-producto')
                             <button class="btn btn-sm btn-dark" data-bs-toggle="modal" data-bs-target="#ed{{ $v->id }}"><i class="fa-solid fa-pen"></i></button>
-                            <form method="post" action="{{ route('variantes.destroy', $v) }}" class="d-inline" onsubmit="return confirm('¿Quitar {{ $v->etiqueta }}?')">
+                            <form method="post" action="{{ route('variantes.destroy', $v) }}" class="d-inline" data-confirm="¿Quitar {{ $v->etiqueta }}?" data-confirm-ok="Sí, quitar" data-peligro>
                                 @csrf @method('DELETE')
                                 <button class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i></button>
                             </form>
@@ -118,9 +118,9 @@
                             <div class="modal-header border-0"><h5 class="modal-title fw-bold">Editar {{ $v->etiqueta }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                             <div class="modal-body pt-0">
                                 <label class="form-label">Precio propio (vacío = precio base)</label>
-                                <input type="number" name="precio" min="0" step="{{ paso_dinero() }}" class="form-control mb-3" value="{{ $v->precio !== null ? (float) $v->precio : '' }}">
+                                <input data-dinero type="number" name="precio" min="0" step="{{ paso_dinero() }}" class="form-control mb-3" value="{{ $v->precio !== null ? (float) $v->precio : '' }}">
                                 <label class="form-label">Costo propio (vacío = costo del producto)</label>
-                                <input type="number" name="costo" min="0" step="{{ paso_dinero() }}" class="form-control mb-3" value="{{ $v->costo !== null ? (float) $v->costo : '' }}">
+                                <input data-dinero type="number" name="costo" min="0" step="{{ paso_dinero() }}" class="form-control mb-3" value="{{ $v->costo !== null ? (float) $v->costo : '' }}">
                                 <label class="form-label">Código de barras</label>
                                 <input name="codigo_barras" class="form-control mb-3" value="{{ $v->codigo_barras }}" placeholder="Escanee o escriba">
                                 <input type="hidden" name="estado" value="0">

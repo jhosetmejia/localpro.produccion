@@ -40,7 +40,7 @@
                     <button type="button" class="btn btn-sm btn-dark" data-bs-toggle="modal" data-bs-target="#ed{{ $c->id }}" title="Editar"><i class="fa-solid fa-pen"></i></button>
                     @endcan
                     @can('eliminar-categoria')
-                    <form method="post" action="{{ route('categorias.destroy', $c) }}" onsubmit="return confirm('{{ $activa ? '¿Ocultar la categoría ' . e($c->caracteristica->nombre) . '? Los productos no se borran.' : '¿Volver a mostrar esta categoría?' }}')">
+                    <form method="post" action="{{ route('categorias.destroy', $c) }}" data-confirm="{{ $activa ? '¿Ocultar la categoría ' . $c->caracteristica->nombre . '?' : '¿Volver a mostrar esta categoría?' }}" data-confirm-texto="{{ $activa ? 'Los productos no se borran.' : '' }}" data-confirm-ok="{{ $activa ? 'Sí, ocultar' : 'Sí, mostrar' }}">
                         @csrf @method('DELETE')
                         <button class="btn btn-sm {{ $activa ? 'btn-danger' : 'btn-success' }}" title="{{ $activa ? 'Ocultar' : 'Restaurar' }}"><i class="fa-solid {{ $activa ? 'fa-eye-slash' : 'fa-rotate-left' }}"></i></button>
                     </form>
