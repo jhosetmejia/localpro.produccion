@@ -100,6 +100,10 @@ class Wompi
     public static function verificarPendientes(?int $tiendaId = null, int $max = 25): int
     {
         if (!self::activo() || !config('services.wompi.private_key')) return 0;
+        // Wompi no recibe pagos de menos de 1.500: esos enlaces nunca se pueden pagar
+        PagoSuscripcion::where('metodo', 'wompi')->where('estado', 'pendiente')->where('monto', '<', 1500)
+            ->when($tiendaId, fn ($q) => $q->where('tienda_id', $tiendaId))
+            ->update(['estado' => 'rechazado', 'nota' => 'Enlace anulado: Wompi no recibe pagos de menos de $1.500']);
         $n = 0;
         PagoSuscripcion::where('metodo', 'wompi')->where('estado', 'pendiente')
             ->where('created_at', '>=', now()->subDays(3))
