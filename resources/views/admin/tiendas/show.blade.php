@@ -55,6 +55,12 @@
                 </select>
                 </div><button class="btn btn-dark">Guardar</button>
             </form>
+            <div class="d-flex gap-2 flex-wrap mb-3 p-2" style="background:#f2fbf3;border:1.5px solid #cfe9d6;border-radius:14px">
+                <div class="flex-grow-1 small fw-semibold" style="color:#11702f;min-width:180px"><i class="fa-solid fa-credit-card me-1"></i>Enlace de pago con Wompi: el negocio (o quien sea) paga y el plan se activa solo.</div>
+                <a class="btn btn-sm btn-success" target="_blank" href="https://wa.me/{{ $tienda->telefono ? numero_whatsapp($tienda->telefono) : '' }}?text={{ rawurlencode('Hola, le escribo de LocalPro 👋 Aquí puede pagar el plan de ' . $tienda->nombre . ' en línea (tarjeta, PSE o Nequi) y se activa de una vez: ' . $tienda->url_pago) }}"><i class="fa-brands fa-whatsapp me-1"></i>Enviar</a>
+                <button type="button" class="btn btn-sm btn-light" onclick="navigator.clipboard.writeText('{{ $tienda->url_pago }}');this.innerText='¡Copiado!'"><i class="fa-regular fa-copy me-1"></i>Copiar</button>
+                <a class="btn btn-sm btn-dark" target="_blank" href="{{ $tienda->url_pago }}"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+            </div>
             <h3>Pagos de plan</h3>
             <ul class="lp-list">
                 @forelse ($pagosPlan as $pg)

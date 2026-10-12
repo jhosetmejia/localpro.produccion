@@ -37,6 +37,7 @@ use App\Http\Controllers\userController;
 use App\Http\Controllers\varianteController;
 use App\Http\Controllers\unirseController;
 use App\Http\Controllers\wompiController;
+use App\Http\Controllers\pagarController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -59,6 +60,10 @@ Route::get('/t/{slug}', [catalogoController::class, 'show'])->where('slug', '[a-
 Route::get('/t/{slug}/p/{producto}', [catalogoController::class, 'producto'])->where(['slug' => '[a-z0-9-]+', 'producto' => '[0-9]+(-[a-z0-9-]*)?'])->name('catalogo.producto');
 Route::get('/sitemap.xml', [catalogoController::class, 'sitemap'])->name('sitemap');
 Route::post('/webhooks/wompi', [wompiController::class, 'evento'])->middleware('throttle:60,1');
+// Enlace de pago de un negocio (firmado): lo usa el dueño o su asesor para pagar el plan con Wompi sin entrar al sistema
+Route::get('/pagar/retorno', [pagarController::class, 'retorno'])->name('pagar.retorno');
+Route::get('/pagar/{tienda}', [pagarController::class, 'show'])->whereNumber('tienda')->middleware('signed:relative')->name('pagar.show');
+Route::post('/pagar/{tienda}/{plan}', [pagarController::class, 'ir'])->whereNumber(['tienda', 'plan'])->middleware(['signed:relative', 'throttle:10,1'])->name('pagar.ir');
 Route::get('/factura/{venta}', [posController::class, 'facturaPublica'])->name('factura.publica');
 // Enlace de un asesor: el negocio que se inscribe queda en su red
 Route::get('/r/{codigo}', [registroController::class, 'referido'])->where('codigo', '[A-Za-z0-9\-]+')->name('referido');

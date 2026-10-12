@@ -104,7 +104,9 @@
                 <li>
                     <div class="av"><i class="fa-solid {{ $t->tipo_icono }}"></i></div>
                     <div class="t"><b>{{ $t->nombre }}</b><small>{{ $t->ciudad ?: 'Sin ciudad' }} · {{ $t->plan->nombre ?? 'Sin plan' }}{{ $t->plan_vence ? ' · ' . ($t->plan_vence->isPast() ? 'venció ' : 'vence ') . $t->plan_vence->format('d/m/Y') : '' }}</small></div>
-                    @if ($t->telefono)<a class="btn btn-sm btn-light" target="_blank" href="https://wa.me/{{ numero_whatsapp($t->telefono) }}" title="Escribir por WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>@endif
+                    @php $msgPago = 'Hola, le escribo de LocalPro 👋 Aquí puede pagar el plan de ' . $t->nombre . ' en línea (tarjeta, PSE o Nequi) y se activa de una vez: ' . $t->url_pago; @endphp
+                    <a class="btn btn-sm btn-success" target="_blank" href="https://wa.me/{{ $t->telefono ? numero_whatsapp($t->telefono) : '' }}?text={{ rawurlencode($msgPago) }}" title="Enviar enlace de pago por WhatsApp"><i class="fa-brands fa-whatsapp me-1"></i>Cobrar</a>
+                    <a class="btn btn-sm btn-dark" target="_blank" href="{{ $t->url_pago }}" title="Pagar yo el plan de este negocio"><i class="fa-solid fa-credit-card"></i></a>
                 </li>
                 @empty
                 <li class="lp-empty">Aún no tiene negocios. Comparta su enlace para empezar.</li>
@@ -117,7 +119,8 @@
             <ul class="lp-list">
                 @forelse ($porVencer as $t)
                 <li><div class="av"><i class="fa-solid fa-hourglass-half"></i></div><div class="t"><b>{{ $t->nombre }}</b><small>{{ $t->plan_vence->isPast() ? 'Venció' : 'Vence' }} el {{ $t->plan_vence->format('d/m/Y') }}</small></div>
-                    @if ($t->telefono)<a class="btn btn-sm btn-success" target="_blank" href="https://wa.me/{{ numero_whatsapp($t->telefono) }}?text={{ rawurlencode('Hola, le escribo de LocalPro: su plan vence el ' . $t->plan_vence->format('d/m/Y') . '. ¿Le ayudo a renovarlo?') }}"><i class="fa-brands fa-whatsapp"></i></a>@endif
+                    <a class="btn btn-sm btn-success" target="_blank" href="https://wa.me/{{ $t->telefono ? numero_whatsapp($t->telefono) : '' }}?text={{ rawurlencode('Hola, le escribo de LocalPro: su plan ' . ($t->plan_vence->isPast() ? 'venció' : 'vence') . ' el ' . $t->plan_vence->format('d/m/Y') . '. Puede renovarlo aquí en línea (tarjeta, PSE o Nequi) y queda activo de una vez: ' . $t->url_pago) }}"><i class="fa-brands fa-whatsapp me-1"></i>Cobrar</a>
+                    <a class="btn btn-sm btn-dark" target="_blank" href="{{ $t->url_pago }}" title="Pagar yo la renovación"><i class="fa-solid fa-credit-card"></i></a>
                 </li>
                 @empty
                 <li class="lp-empty">Nada por renovar por ahora.</li>

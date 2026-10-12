@@ -163,6 +163,12 @@ class Tienda extends Model
         return $this->belongsTo(User::class, 'venta_directa_id');
     }
 
+    // Enlace firmado para pagar el plan con Wompi (lo comparte el asesor o LocalPro por WhatsApp)
+    public function getUrlPagoAttribute(): string
+    {
+        return url(\Illuminate\Support\Facades\URL::signedRoute('pagar.show', ['tienda' => $this->id], null, false));
+    }
+
     // Sin asesor de la red y sin asignar a LocalPro
     public function scopeSinAsignar($q)
     {

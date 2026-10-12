@@ -6,9 +6,9 @@ use App\Models\Ajuste;
 use App\Models\PagoSuscripcion;
 use App\Models\Plan;
 use App\Support\TiendaActual;
+use App\Support\Wompi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 
 // "Mi plan": el dueño ve su plan, cuándo vence y paga (Wompi o por WhatsApp con LocalPro)
 class planController extends Controller
@@ -43,40 +43,33 @@ class planController extends Controller
                 : back()->withErrors('El pago en línea aún no está disponible. Comuníquese con LocalPro.');
         }
 
-        $pago = PagoSuscripcion::create([
-            'tienda_id' => $tienda->id,
-            'plan_id' => $plan->id,
-            'monto' => $plan->precio,
-            'metodo' => 'wompi',
-            'referencia' => 'LP-' . $tienda->id . '-' . now()->format('ymdHis') . '-' . Str::upper(Str::random(4)),
-            'estado' => 'pendiente',
-            'registrado_por' => Auth::id(),
-        ]);
-
-        $centavos = (int) round($plan->precio * 100);
-        $firma = hash('sha256', $pago->referencia . $centavos . 'COP' . config('services.wompi.integrity_secret'));
-        $url = 'https://checkout.wompi.co/p/?' . http_build_query([
-            'public-key' => config('services.wompi.public_key'),
-            'currency' => 'COP',
-            'amount-in-cents' => $centavos,
-            'reference' => $pago->referencia,
-            'signature:integrity' => $firma,
-            'redirect-url' => route('plan.retorno'),
-            'customer-data:email' => Auth::user()->email,
-            'customer-data:full-name' => Auth::user()->name,
-        ]);
+        $pago = pagarController::crearPago($tienda, $plan, Auth::id(), 'Pagado por ' . Auth::user()->name . ' desde Mi plan');
+        $url = Wompi::urlCheckout($pago, route('plan.retorno', ['ref' => $pago->referencia]), Auth::user()->email, Auth::user()->name, $tienda->telefono);
 
         return redirect()->away($url);
     }
 
-    // Wompi devuelve al cliente aquí; la activación la confirma el aviso (webhook) de Wompi
+    // Wompi devuelve al cliente aquí con ?id=<transacción>: se confirma de una vez (el aviso de Wompi y la conciliación son respaldo)
     public function retorno(Request $request)
     {
-        return redirect()->route('plan.index')->with('success', 'Recibimos su pago. Su plan se activa apenas Wompi lo confirme (normalmente en menos de un minuto). Recargue esta página.');
+        $tienda = TiendaActual::tienda();
+        $pago = PagoSuscripcion::where('tienda_id', $tienda->id)->where('referencia', (string) $request->query('ref'))->first();
+        if ($pago && $pago->estado !== 'aprobado' && ($id = $request->query('id'))) {
+            $tx = Wompi::transaccion((string) $id);
+            if ($tx && ($tx['reference'] ?? '') === $pago->referencia) {
+                $pago = Wompi::procesar($tx) ?? $pago;
+            }
+        }
+        $r = redirect()->route('plan.index');
+        return match ($pago?->estado) {
+            'aprobado' => $r->with('success', '¡Pago aprobado! Su plan ' . ($pago->plan->nombre ?? '') . ' quedó activo hasta el ' . optional($pago->periodo_hasta)->format('d/m/Y') . '.'),
+            'rechazado' => $r->withErrors('El pago no fue aprobado. Puede intentarlo de nuevo con otro medio de pago.'),
+            default => $r->with('success', 'Su pago está en proceso. El plan se activa apenas Wompi lo confirme (normalmente en pocos minutos).'),
+        };
     }
 
     public static function wompiActivo(): bool
     {
-        return (bool) (config('services.wompi.public_key') && config('services.wompi.integrity_secret') && config('services.wompi.events_secret'));
+        return Wompi::activo();
     }
 }

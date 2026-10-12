@@ -155,6 +155,7 @@
             <li><b>Inscríbelo ahí mismo con tu enlace</b><span>Que se registre con <b>tu enlace</b> (o escriba tu código) para que quede a tu nombre. Arranca con 3 meses gratis.</span></li>
             <li><b>Ayúdale a subir sus primeros productos</b><span>Acompáñalo 10 minutos: crear 3 productos y hacer su primera venta. El que vende el primer día, se queda.</span></li>
             <li><b>Haz seguimiento</b><span>Escríbele a los 3 días, al mes y antes de que termine la prueba. Cuando paga su plan anual, <b>ganas {{ $f($com) }}</b>.</span></li>
+            <li><b>Cóbrale con el enlace de pago</b><span>En tu panel, en <b>Mis negocios</b>, toca <b>Cobrar</b>: le llega por WhatsApp un enlace para pagar en línea (tarjeta, PSE o Nequi). Apenas paga, su plan queda activo solo. Si el cliente te da el efectivo, con el botón 💳 pagas tú mismo desde tu celular. La comisión queda a tu nombre igual.</span></li>
         </ol>
         <div class="regla">📌 Tu enlace para inscribir negocios: <span style="word-break:break-all">{{ $enlace }}</span></div>
     </section>
@@ -166,7 +167,7 @@
             $guiones = [
                 ['Primer mensaje por WhatsApp', "¡Hola! 👋 Soy {nombre}, asesor de LocalPro. Ayudamos a negocios como el tuyo a vender más rápido y saber exactamente cuánto ganan cada día, desde el celular.\n\nTe regalo 3 meses gratis para que lo pruebes. ¿Te muestro en 5 minutos cómo funciona? 😊"],
                 ['En persona (en el local)', "Hola, ¿cómo está? Soy {nombre}, de LocalPro. Una pregunta rápida: ¿cómo lleva el control de lo que vende y de lo que tiene en inventario?\n\n(Escuchar)\n\nMire, con esto lo hace desde el celular: vende, ve lo que le queda y al final del día sabe cuánto ganó. ¿Le muestro una venta de ejemplo? Son 2 minutos."],
-                ['Cuando se termina la prueba', "¡Hola {negocio}! 🙌 Ya llevas 3 meses usando LocalPro. Tu prueba gratis termina pronto.\n\nPara seguir con todo (ventas, inventario, caja y tu página web en Google) el plan anual es de {plan}, menos de {mes} al mes. ¿Te ayudo a activarlo hoy?"],
+                ['Cuando se termina la prueba', "¡Hola {negocio}! 🙌 Ya llevas 3 meses usando LocalPro. Tu prueba gratis termina pronto.\n\nPara seguir con todo (ventas, inventario, caja y tu página web en Google) el plan anual es de {plan}, menos de {mes} al mes. Te mando el enlace para pagarlo en línea (tarjeta, PSE o Nequi) y queda activo de una vez. ¿Te lo envío?"],
                 ['Para sumar asesores a tu equipo', "¡Hola! Estoy trabajando con LocalPro y me está yendo muy bien. Ganas {comision} por cada negocio que inscribes y no necesitas invertir.\n\n¿Te gustaría trabajar conmigo? Te enseño todo. Inscríbete aquí: {enlace_equipo}"],
             ];
             $rep = ['{nombre}' => $yo ? strtok($yo->nombre, ' ') : '(tu nombre)', '{plan}' => $f($plan), '{mes}' => $f(ceil($plan / 12 / 100) * 100), '{comision}' => $f($com), '{enlace_equipo}' => $yo?->enlace_reclutar ?? '(tu enlace)'];

@@ -13,7 +13,9 @@
     <div class="lp-box mb-3" style="{{ $wompi ? '' : 'background:#fff5d6;border-color:#f3e0a6' }}">
         <h3><span><i class="fa-solid fa-credit-card me-1"></i> Cobro en línea con Wompi: {{ $wompi ? 'activo ✅' : 'sin configurar' }}</span></h3>
         @unless ($wompi)
-        <p class="mb-0 small">Mientras tanto, el botón "Pagar" de las tiendas les abre un WhatsApp con usted y usted registra el pago en la ficha de cada tienda. Para activar Wompi, cree su cuenta en wompi.com y agregue en el archivo <code>.env</code> del servidor: <code>WOMPI_PUBLIC_KEY</code>, <code>WOMPI_INTEGRITY_SECRET</code> y <code>WOMPI_EVENTS_SECRET</code>. En Wompi configure la URL de eventos: <code>{{ url('/webhooks/wompi') }}</code></p>
+        <p class="mb-0 small">Mientras tanto, el botón "Pagar" de las tiendas les abre un WhatsApp con usted y usted registra el pago en la ficha de cada tienda. Para activar Wompi agregue en el archivo <code>.env</code> del servidor: <code>WOMPI_PUBLIC_KEY</code>, <code>WOMPI_INTEGRITY_SECRET</code>, <code>WOMPI_PRIVATE_KEY</code> y <code>WOMPI_EVENTS_SECRET</code>.</p>
+        @else
+        <p class="mb-0 small">{{ \App\Support\Wompi::esPruebas() ? '⚠️ Llaves de PRUEBAS (sandbox): no entra dinero real.' : 'Recibiendo pagos reales.' }} El dueño paga desde "Mi plan" y el asesor o usted pueden enviar el enlace de pago de cada negocio por WhatsApp. El plan se activa al volver de Wompi; los pendientes se revisan solos cada 10 minutos{{ config('services.wompi.private_key') ? '' : ' (falta WOMPI_PRIVATE_KEY para esto)' }}.</p>
         @endunless
     </div>
 

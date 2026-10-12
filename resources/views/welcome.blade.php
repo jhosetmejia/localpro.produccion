@@ -118,7 +118,7 @@
                 <div class="plus-t">
                     <span class="eyebrow">El plus de LocalProo</span>
                     <h3 class="serif">Por solo ${{ number_format($vp, 0, ',', '.') }} al año: sistema completo + su página web en Google.</h3>
-                    <p>Empiece con <b>3 meses gratis con todo</b> (usuarios y productos ilimitados). Si le sirve, sigue con el plan anual: menos de ${{ number_format(ceil($vp / 12 / 100) * 100, 0, ',', '.') }} al mes.</p>
+                    <p>Empiece con <b>3 meses gratis con todo</b> (usuarios y productos ilimitados). Si le sirve, sigue con el plan anual: menos de ${{ number_format(ceil($vp / 12 / 100) * 100, 0, ',', '.') }} al mes. <b>Páguelo en línea</b> con tarjeta, PSE o Nequi y se activa al instante.</p>
                 </div>
                 <a class="btn btn-amber" href="{{ route('registro') }}"><i class="fa-solid fa-gift"></i> Empezar gratis</a>
             </div>
