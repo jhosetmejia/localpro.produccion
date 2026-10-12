@@ -16,11 +16,11 @@ class adminTiendaController extends Controller
     public function index(Request $request)
     {
         $q = trim((string) $request->get('q'));
-        $tiendas = Tienda::query()->with(['plan', 'asesor.user:id,name'])
+        $tiendas = Tienda::query()->with(['plan', 'asesor.user:id,name', 'ventaDirecta:id,name'])
             ->when($q !== '', fn ($w) => $w->where(fn ($x) => $x->where('nombre', 'like', "%$q%")->orWhere('email', 'like', "%$q%")->orWhere('ciudad', 'like', "%$q%")->orWhere('codigo', 'like', "%$q%")
                 ->orWhereHas('asesor', fn ($a) => $a->where('codigo', 'like', "%$q%"))))
             ->when($request->get('estado'), fn ($w, $e) => $w->where('estado', $e))
-            ->when($request->get('asesor') === 'sin', fn ($w) => $w->whereNull('asesor_id'))
+            ->when($request->get('asesor') === 'sin', fn ($w) => $w->sinAsignar())
             ->latest()
             ->get();
 
@@ -41,7 +41,7 @@ class adminTiendaController extends Controller
             'ventas_hoy' => DB::table('pos_ventas')->where('estado', 'pagada')->whereDate('created_at', today())->count(),
         ];
 
-        $resumen['sin_asesor'] = Tienda::whereNull('asesor_id')->count();
+        $resumen['sin_asesor'] = Tienda::sinAsignar()->count();
         $asesores = \App\Models\Asesor::with('user:id,name,email')->where('activo', true)
             ->orderByRaw("FIELD(cargo, 'asesor', 'lider_zona', 'lider_ciudad', 'lider_departamento', 'lider_pais')")->get();
         return view('admin.tiendas.index', compact('tiendas', 'ventas', 'productos', 'usuarios', 'duenos', 'resumen', 'q', 'asesores'));

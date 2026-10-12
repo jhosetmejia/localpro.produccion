@@ -42,7 +42,7 @@ class adminRedController extends Controller
             'kpi' => [
                 'gente' => Asesor::where('activo', true)->count(),
                 'negocios' => Tienda::whereNotNull('asesor_id')->count(),
-                'sinAsesor' => Tienda::whereNull('asesor_id')->count(),
+                'sinAsesor' => Tienda::sinAsignar()->count(),
                 'pendiente' => (float) Comision::where('estado', 'pendiente')->sum('monto'),
             ],
             'valores' => Comisiones::valores(),
@@ -112,7 +112,7 @@ class adminRedController extends Controller
             'pendiente' => (float) Comision::where('asesor_id', $asesor->id)->where('estado', 'pendiente')->sum('monto'),
             'lideres' => Asesor::with('user:id,name')->whereIn('cargo', ['lider_pais', 'lider_departamento', 'lider_ciudad', 'lider_zona'])
                 ->whereNotIn('id', $asesor->idsRed())->get(),
-            'sinAsesor' => Tienda::whereNull('asesor_id')->orderBy('nombre')->get(['id', 'nombre']),
+            'sinAsesor' => Tienda::sinAsignar()->orderBy('nombre')->get(['id', 'nombre']),
             'progreso' => \App\Support\RedComercial::progreso($asesor),
             'historial' => DB::table('asesor_historial')->where('asesor_id', $asesor->id)->latest('id')->take(20)->get(),
             'reclutador' => $asesor->reclutador()->with('user:id,name')->first(),
@@ -155,14 +155,24 @@ class adminRedController extends Controller
         return back()->with('success', 'Datos de ' . $datos['name'] . ' guardados.');
     }
 
-    // Pasar un negocio a un asesor (o quitárselo)
+    // Pasar un negocio a un asesor, a LocalPro (venta directa del súper administrador) o dejarlo sin asignar
     public function asignar(Request $request, Tienda $tienda)
     {
-        $datos = $request->validate(['asesor_id' => 'nullable|integer|exists:asesores,id']);
-        $tienda->forceFill(['asesor_id' => $datos['asesor_id'] ?? null])->save();
-        return back()->with('success', $datos['asesor_id'] ?? null
-            ? $tienda->nombre . ' quedó con ' . Asesor::find($datos['asesor_id'])->nombre . '.'
-            : $tienda->nombre . ' quedó sin asesor.');
+        $request->validate(['asesor_id' => ['nullable', function ($attr, $v, $fail) {
+            if ($v !== 'localpro' && !Asesor::whereKey($v)->exists()) $fail('Asesor no válido.');
+        }]]);
+        $valor = $request->input('asesor_id');
+
+        if ($valor === 'localpro') {
+            $tienda->forceFill(['asesor_id' => null, 'venta_directa_id' => $request->user()->id])->save();
+            return back()->with('success', $tienda->nombre . ' quedó con LocalPro · ' . $request->user()->name . '.');
+        }
+        if ($valor) {
+            $tienda->forceFill(['asesor_id' => (int) $valor, 'venta_directa_id' => null])->save();
+            return back()->with('success', $tienda->nombre . ' quedó con ' . Asesor::find($valor)->nombre . '.');
+        }
+        $tienda->forceFill(['asesor_id' => null, 'venta_directa_id' => null])->save();
+        return back()->with('success', $tienda->nombre . ' quedó sin asesor.');
     }
 
     public function comisiones(Request $request)

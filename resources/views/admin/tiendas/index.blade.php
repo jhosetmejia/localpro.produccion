@@ -49,8 +49,8 @@
                     <small>{{ $d?->name ?? 'Sin dueño' }}{{ $t->ciudad ? ' · ' . $t->ciudad : '' }} · {{ $t->plan->nombre ?? 'Sin plan' }}@if($t->plan_vence) · <span class="{{ $t->plan_vencido ? 'text-danger fw-bold' : '' }}">{{ $t->plan_vencido ? 'venció' : 'vence' }} {{ $t->plan_vence->format('d/m/y') }}</span>@endif · {{ $v->n ?? 0 }} ventas</small>
                 </div>
                 <div class="w-100 d-flex align-items-center gap-2 mt-1 ps-5">
-                    @if ($t->asesor)<small class="text-muted"><i class="fa-solid fa-user-tie me-1"></i>{{ $t->asesor->nombre }} · {{ $t->asesor->codigo }}</small>@else<small class="text-warning fw-bold"><i class="fa-solid fa-user-slash me-1"></i>Sin asesor</small>@endif
-                    <button type="button" class="btn btn-sm btn-asg ms-auto" data-asignar="{{ route('admin.tiendas.asesor', $t) }}" data-tienda="{{ $t->nombre }}" data-actual="{{ $t->asesor_id }}">{{ $t->asesor ? 'Cambiar' : 'Asignar' }}</button>
+                    @if ($t->asesor)<small class="text-muted"><i class="fa-solid fa-user-tie me-1"></i>{{ $t->asesor->nombre }} · {{ $t->asesor->codigo }}</small>@elseif ($t->venta_directa_id)<small class="text-muted"><i class="fa-solid fa-crown me-1" style="color:#16b34a"></i>{{ $t->ventaDirecta->name ?? 'LocalPro' }} · <span class="lp-cod">LocalPro</span></small>@else<small class="text-warning fw-bold"><i class="fa-solid fa-user-slash me-1"></i>Sin asesor</small>@endif
+                    <button type="button" class="btn btn-sm btn-asg ms-auto" data-asignar="{{ route('admin.tiendas.asesor', $t) }}" data-tienda="{{ $t->nombre }}" data-actual="{{ $t->asesor_id ?: ($t->venta_directa_id ? 'localpro' : '') }}">{{ ($t->asesor || $t->venta_directa_id) ? 'Cambiar' : 'Asignar' }}</button>
                 </div>
                 <div class="d-flex gap-1 align-items-center">
                     @if (!$t->onboarding_completo)<span class="badge bg-warning text-dark">Config.</span>@elseif ($t->activa)<span class="badge bg-success">Activa</span>@else<span class="badge bg-danger">Suspendida</span>@endif
@@ -77,8 +77,8 @@
                         <td>{{ $d?->name ?? '—' }}<br><small class="text-muted">{{ $d?->email }}</small></td>
                         <td>{{ $t->plan->nombre ?? '—' }}@if($t->plan_vence)<br><small class="{{ $t->plan_vencido ? 'text-danger' : 'text-muted' }}">{{ $t->plan_vencido ? 'Venció' : 'Vence' }} {{ $t->plan_vence->format('d/m/y') }}</small>@endif</td>
                         <td class="text-nowrap">
-                            @if ($t->asesor)<span class="fw-semibold">{{ \Illuminate\Support\Str::limit($t->asesor->nombre, 18) }}</span><br><small class="lp-cod">{{ $t->asesor->codigo }}</small>@else<small class="text-warning fw-bold">Sin asesor</small>@endif
-                            <br><button type="button" class="btn btn-sm btn-asg mt-1" data-asignar="{{ route('admin.tiendas.asesor', $t) }}" data-tienda="{{ $t->nombre }}" data-actual="{{ $t->asesor_id }}"><i class="fa-solid fa-user-plus me-1"></i>{{ $t->asesor ? 'Cambiar' : 'Asignar' }}</button>
+                            @if ($t->asesor)<span class="fw-semibold">{{ \Illuminate\Support\Str::limit($t->asesor->nombre, 18) }}</span><br><small class="lp-cod">{{ $t->asesor->codigo }}</small>@elseif ($t->venta_directa_id)<span class="fw-semibold"><i class="fa-solid fa-crown me-1" style="color:#16b34a"></i>{{ \Illuminate\Support\Str::limit($t->ventaDirecta->name ?? 'LocalPro', 18) }}</span><br><small class="lp-cod">LocalPro</small>@else<small class="text-warning fw-bold">Sin asesor</small>@endif
+                            <br><button type="button" class="btn btn-sm btn-asg mt-1" data-asignar="{{ route('admin.tiendas.asesor', $t) }}" data-tienda="{{ $t->nombre }}" data-actual="{{ $t->asesor_id ?: ($t->venta_directa_id ? 'localpro' : '') }}"><i class="fa-solid fa-user-plus me-1"></i>{{ ($t->asesor || $t->venta_directa_id) ? 'Cambiar' : 'Asignar' }}</button>
                         </td>
                         <td>{{ $m['nombre'] }}<br><small class="text-muted">{{ $m['moneda'] }}</small></td>
                         <td>{{ $productos[$t->id] ?? 0 }}</td>
@@ -112,7 +112,8 @@
         <p id="asgTienda" class="text-muted fw-semibold mb-3"></p>
         <label class="form-label" for="asgSel">Busque por nombre, código (LCP-00001), correo o ciudad</label>
         <select name="asesor_id" id="asgSel" class="form-select" data-buscar data-max="6">
-            <option value="" data-sub="{{ auth()->user()->name }} · súper administrador · {{ auth()->user()->email }}">👑 LocalPro — venta directa (sin asesor)</option>
+            <option value="localpro" data-sub="{{ auth()->user()->name }} · súper administrador · {{ auth()->user()->email }}">👑 LocalPro — {{ auth()->user()->name }} (venta directa)</option>
+            <option value="" data-sub="Queda en la lista de Sin asesor">— Sin asignar</option>
             @foreach ($asesores as $as)
             <option value="{{ $as->id }}" data-sub="{{ $as->cargo_nombre }}{{ $as->ciudad ? ' · ' . $as->ciudad : '' }}{{ $as->user?->email ? ' · ' . $as->user->email : '' }}">{{ $as->codigo }} · {{ $as->nombre }}</option>
             @endforeach

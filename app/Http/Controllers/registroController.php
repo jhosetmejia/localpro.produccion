@@ -64,7 +64,7 @@ class registroController extends Controller
         if ($asesor || \App\Models\Asesor::esCodigoLocalpro($codigo)) {
             // Los negocios que llegan por un asesor (o por LocalPro) arrancan con prueba gratis de 3 meses; luego pagan su plan anual
             $prueba = \App\Models\Plan::where('nombre', 'Prueba 3 meses')->first();
-            $user->tienda->forceFill(['asesor_id' => $asesor?->id] + ($prueba ? ['plan_id' => $prueba->id, 'plan_vence' => today()->addDays(($prueba->dias ?: 90) - 1)] : []))->save();
+            $user->tienda->forceFill(['asesor_id' => $asesor?->id, 'venta_directa_id' => null] + ($prueba ? ['plan_id' => $prueba->id, 'plan_vence' => today()->addDays(($prueba->dias ?: 90) - 1)] : []))->save();
         }
 
         Auth::login($user);

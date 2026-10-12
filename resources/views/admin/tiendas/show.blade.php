@@ -49,7 +49,8 @@
             <form method="post" action="{{ route('admin.tiendas.asesor', $tienda) }}" class="d-flex gap-2 mb-3 align-items-start"><div class="flex-grow-1" style="min-width:0">
                 @csrf
                 <select name="asesor_id" class="form-select" data-buscar data-max="6" aria-label="Asesor del negocio">
-                    <option value="" data-sub="{{ auth()->user()->name }} · súper administrador · {{ auth()->user()->email }}">👑 LocalPro — venta directa (sin asesor)</option>
+                    <option value="localpro" @selected(!$tienda->asesor_id && $tienda->venta_directa_id) data-sub="{{ auth()->user()->name }} · súper administrador · {{ auth()->user()->email }}">👑 LocalPro — {{ auth()->user()->name }} (venta directa)</option>
+                    <option value="" @selected(!$tienda->asesor_id && !$tienda->venta_directa_id) data-sub="Queda en la lista de Sin asesor">— Sin asignar</option>
                     @foreach ($asesores as $as)<option value="{{ $as->id }}" @selected((int) $tienda->asesor_id === $as->id) data-sub="{{ $as->cargo_nombre }}{{ $as->ciudad ? ' · ' . $as->ciudad : '' }}{{ $as->user?->email ? ' · ' . $as->user->email : '' }}">{{ $as->codigo }} · {{ $as->nombre }}</option>@endforeach
                 </select>
                 </div><button class="btn btn-dark">Guardar</button>

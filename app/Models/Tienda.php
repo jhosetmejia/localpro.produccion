@@ -157,6 +157,18 @@ class Tienda extends Model
         return $this->belongsTo(Asesor::class);
     }
 
+    // Súper administrador que tomó el negocio como venta directa de LocalPro (sin asesor)
+    public function ventaDirecta()
+    {
+        return $this->belongsTo(User::class, 'venta_directa_id');
+    }
+
+    // Sin asesor de la red y sin asignar a LocalPro
+    public function scopeSinAsignar($q)
+    {
+        return $q->whereNull('asesor_id')->whereNull('venta_directa_id');
+    }
+
     // Administración de conjuntos residenciales
     public function getEsConjuntoAttribute(): bool
     {
