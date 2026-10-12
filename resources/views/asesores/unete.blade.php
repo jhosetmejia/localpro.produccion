@@ -20,7 +20,7 @@
         <a href="{{ url('/') }}" class="brand"><span class="brand-mark">L</span>LocalPro</a>
         <div>
             <h2 class="serif">Gana con LocalPro <em>desde tu celular</em>.</h2>
-            <p>{{ $invita->nombre }} te invita a su equipo de asesores. Inscribe negocios, gana comisión por cada uno y cada año cuando renuevan.</p>
+            <p>{{ $invita->id ? $invita->nombre . ' te invita a su equipo de asesores.' : 'LocalPro te invita a su equipo de asesores.' }} Inscribe negocios, gana comisión por cada uno y cada año cuando renuevan.</p>
             <ul class="auth-list">
                 <li><span><i class="fa-solid fa-check"></i></span> Sin inversión</li>
                 <li><span><i class="fa-solid fa-check"></i></span> Tu propio panel, enlace y comisiones</li>
@@ -42,7 +42,7 @@
                 </div>
             @else
             <h1 class="serif" style="font-size:2.2rem">Únete como asesor</h1>
-            <p class="sub">Te invita <b>{{ $invita->nombre }}</b> ({{ $invita->cargo_nombre }}). Llena tus datos, haz un curso corto de 10 minutos y recibe tu <b>certificado de Asesor Comercial LocalPro</b>.</p>
+            <p class="sub">Te invita <b>{{ $invita->nombre }}</b>{{ $invita->id ? ' (' . $invita->cargo_nombre . ')' : '' }}. Llena tus datos, haz un curso corto de 10 minutos y recibe tu <b>certificado de Asesor Comercial LocalPro</b>.</p>
 
             @if ($errors->any())<div class="alert">{{ $errors->first() }}</div>@endif
 

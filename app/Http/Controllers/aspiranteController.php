@@ -18,6 +18,12 @@ class aspiranteController extends Controller
 {
     private function invitador(string $codigo): Asesor
     {
+        // Enlace del súper administrador: invita LocalPro (queda sin líder hasta que el admin se lo asigne)
+        if (Asesor::esCodigoLocalpro($codigo)) {
+            $a = new Asesor(['codigo' => Asesor::CODIGO_LOCALPRO, 'cargo' => 'lider_pais', 'pais' => 'CO']);
+            $a->setRelation('user', new User(['name' => 'LocalPro']));
+            return $a;
+        }
         $a = Asesor::with('user:id,name')->porCodigo($codigo)->where('activo', true)->where('estado', 'activo')->first();
         abort_unless($a, 404, 'Este enlace de invitación no es válido.');
         return $a;
@@ -53,7 +59,7 @@ class aspiranteController extends Controller
         $u = DB::transaction(function () use ($d, $invita) {
             $u = User::create(['name' => $d['name'], 'email' => strtolower($d['email']), 'telefono' => $d['telefono'], 'password' => Hash::make($d['password'])]);
             $a = Asesor::create([
-                'user_id' => $u->id, 'cargo' => 'asesor', 'padre_id' => null, 'reclutado_por' => $invita->id,
+                'user_id' => $u->id, 'cargo' => 'asesor', 'padre_id' => null, 'reclutado_por' => $invita->id ?: null,
                 'pais' => $d['pais'], 'departamento' => $d['departamento'] ?? null, 'ciudad' => $d['ciudad'] ?? null,
                 'zona' => $d['zona'] ?? null, 'documento' => $d['documento'], 'banco' => $d['banco'] ?? null,
                 'codigo' => Asesor::nuevoCodigo($d['name']), 'activo' => false, 'estado' => 'capacitacion',

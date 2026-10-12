@@ -23,11 +23,12 @@ class registroController extends Controller
     public function referido(string $codigo)
     {
         $asesor = \App\Models\Asesor::porCodigo($codigo)->where('activo', true)->first();
-        if (!$asesor) {
+        $guardar = $asesor?->codigo ?? (\App\Models\Asesor::esCodigoLocalpro($codigo) ? \App\Models\Asesor::CODIGO_LOCALPRO : null);
+        if (!$guardar) {
             return redirect()->route('registro');
         }
-        session(['codigo_asesor' => $asesor->codigo]);
-        return redirect()->route('registro')->withCookie(cookie('lp_asesor', $asesor->codigo, 60 * 24 * 60));
+        session(['codigo_asesor' => $guardar]);
+        return redirect()->route('registro')->withCookie(cookie('lp_asesor', $guardar, 60 * 24 * 60));
     }
 
     public function store(Request $request)
@@ -58,10 +59,12 @@ class registroController extends Controller
 
         // Si llegó por un asesor (enlace o código), el negocio queda en su red
         $codigo = strtoupper(trim((string) ($datos['codigo_asesor'] ?? '') ?: (string) session('codigo_asesor', $request->cookie('lp_asesor'))));
-        if ($codigo !== '' && ($asesor = \App\Models\Asesor::porCodigo($codigo)->where('activo', true)->first())) {
-            // Los negocios que trae un asesor arrancan con prueba gratis de 3 meses; luego pagan su plan anual
+        $asesor = $codigo !== '' ? \App\Models\Asesor::porCodigo($codigo)->where('activo', true)->first() : null;
+        // Código LOCALPRO (súper administrador): el negocio queda directo con LocalPro, sin asesor
+        if ($asesor || \App\Models\Asesor::esCodigoLocalpro($codigo)) {
+            // Los negocios que llegan por un asesor (o por LocalPro) arrancan con prueba gratis de 3 meses; luego pagan su plan anual
             $prueba = \App\Models\Plan::where('nombre', 'Prueba 3 meses')->first();
-            $user->tienda->forceFill(['asesor_id' => $asesor->id] + ($prueba ? ['plan_id' => $prueba->id, 'plan_vence' => today()->addDays(($prueba->dias ?: 90) - 1)] : []))->save();
+            $user->tienda->forceFill(['asesor_id' => $asesor?->id] + ($prueba ? ['plan_id' => $prueba->id, 'plan_vence' => today()->addDays(($prueba->dias ?: 90) - 1)] : []))->save();
         }
 
         Auth::login($user);

@@ -34,6 +34,20 @@
     </div>
     @endif
 
+    @php $enlacesAdmin = [['unete', 'enlaceUnete', 'Sumar asesores', 'fa-user-plus', '¡Hola! Te invito a trabajar como asesor comercial de LocalPro: ganas comisión por cada negocio que inscribas, sin inversión. Te registras, haces un curso corto y recibes tu certificado: '], ['r', 'enlaceNeg', 'Inscribir negocios', 'fa-store', '¡Hola! Te recomiendo LocalPro para manejar tu negocio: ventas, caja, inventario y catálogo desde el celular, con 3 meses gratis. Inscríbete aquí: ']]; @endphp
+    <div class="lp-box mb-3">
+        <h3><span><i class="fa-solid fa-key me-1"></i> Su código de LocalPro: <b>{{ \App\Models\Asesor::CODIGO_LOCALPRO }}</b></span><small class="text-muted">Quien entra con él queda directo con LocalPro; luego usted le asigna líder</small></h3>
+        @foreach ($enlacesAdmin as [$ruta, $id, $titulo, $icono, $texto])
+        @php $url = url('/' . $ruta . '/' . \App\Models\Asesor::CODIGO_LOCALPRO); @endphp
+        <div class="small fw-bold mt-2 mb-1"><i class="fa-solid {{ $icono }} me-1"></i>{{ $titulo }}</div>
+        <div class="lp-link">
+            <code id="{{ $id }}">{{ $url }}</code>
+            <button type="button" class="btn btn-dark btn-sm" onclick="navigator.clipboard && navigator.clipboard.writeText(document.getElementById('{{ $id }}').textContent.trim()); LP.toast('Enlace copiado')"><i class="fa-regular fa-copy me-1"></i>Copiar</button>
+            <a class="btn btn-success btn-sm" target="_blank" href="https://wa.me/?text={{ rawurlencode($texto . $url) }}"><i class="fa-brands fa-whatsapp me-1"></i>Compartir</a>
+        </div>
+        @endforeach
+    </div>
+
     @if ($pendientes->isNotEmpty())
     <div class="lp-box mb-3">
         <h3><span><i class="fa-solid fa-user-clock me-1"></i> Aspirantes esperando aprobación ({{ $pendientes->count() }})</span><small class="text-muted">Los aprueba quien los invitó</small></h3>
@@ -50,7 +64,7 @@
         <h3><span><i class="fa-solid fa-graduation-cap me-1"></i> Haciendo el curso de asesores ({{ $enCurso->count() }})</span><small class="text-muted">{{ $certificados }} certificados entregados · {{ $sinCurso }} activos aún sin certificado (no entran a su panel hasta aprobar)</small></h3>
         <ul class="lp-list">
             @foreach ($enCurso as $p)
-            <li><div class="av"><i class="fa-solid fa-book-open"></i></div><div class="t"><b>{{ $p->nombre }}</b><small>Invitado por {{ $p->reclutador->nombre ?? '—' }} · lecciones {{ count($p->curso_modulos ?? []) }}/4{{ $p->curso_nota !== null ? ' · mejor nota ' . $p->curso_nota . '%' : '' }} · {{ $p->ciudad }} · {{ $p->created_at->locale('es')->diffForHumans() }}</small></div>
+            <li><div class="av"><i class="fa-solid fa-book-open"></i></div><div class="t"><b>{{ $p->nombre }}</b><small>Invitado por {{ $p->reclutador->nombre ?? 'LocalPro' }} · lecciones {{ count($p->curso_modulos ?? []) }}/4{{ $p->curso_nota !== null ? ' · mejor nota ' . $p->curso_nota . '%' : '' }} · {{ $p->ciudad }} · {{ $p->created_at->locale('es')->diffForHumans() }}</small></div>
                 @if ($p->user->telefono)<a class="btn btn-sm btn-light" target="_blank" href="https://wa.me/{{ numero_whatsapp($p->user->telefono) }}"><i class="fa-brands fa-whatsapp"></i></a>@endif
             </li>
             @endforeach

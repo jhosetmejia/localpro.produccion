@@ -25,6 +25,14 @@ class Asesor extends Model
         'asesor' => ['Asesor', 'fa-user-tie', 1],
     ];
 
+    // Código del súper administrador: quien entra con él queda directo con LocalPro (sin asesor ni líder)
+    public const CODIGO_LOCALPRO = 'LOCALPRO';
+
+    public static function esCodigoLocalpro(?string $codigo): bool
+    {
+        return strtoupper(trim((string) $codigo)) === self::CODIGO_LOCALPRO;
+    }
+
     // Un líder de zona (comuna) maneja máximo esta cantidad de asesores
     public const MAX_ASESORES_ZONA = 10;
 
