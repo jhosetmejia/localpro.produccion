@@ -170,6 +170,14 @@
                 </a>
                 @endcan
 
+                @canany(['responder-redes', 'publicar-redes', 'editar-negocio'])
+                @php $redesNl = \Illuminate\Support\Facades\Schema::hasTable('redes_conversaciones') ? \App\Models\RedConversacion::where('no_leidos', '>', 0)->count() : 0; @endphp
+                <a class="nav-link {{ $on('redes.*') }}" href="{{ route('redes.index') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-hashtag"></i></div>
+                    Mis redes @if ($redesNl)<span class="badge rounded-pill ms-auto" style="background:#ff3b6b;color:#fff">{{ $redesNl }}</span>@else<span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c;font-size:.6rem">NUEVO</span>@endif
+                </a>
+                @endcanany
+
                 @canany(['ver-cliente', 'ver-proveedore'])
                 <div class="sb-sidenav-menu-heading">Contactos</div>
                 @endcanany

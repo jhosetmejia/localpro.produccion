@@ -32,6 +32,15 @@ return [
     ],
 
     // Cobro de planes de LocalPro con Wompi (Colombia). Llaves en el panel de Wompi > Desarrolladores.
+    // Facebook e Instagram para "Mis redes" (app de Meta de LocalPro)
+    'meta' => [
+        'app_id' => env('META_APP_ID'),
+        'app_secret' => env('META_APP_SECRET'),
+        'verify_token' => env('META_VERIFY_TOKEN'),
+        'config_id' => env('META_CONFIG_ID'),
+        'version' => env('META_GRAPH_VERSION', 'v24.0'),
+    ],
+
     'wompi' => [
         'public_key' => env('WOMPI_PUBLIC_KEY'),
         'private_key' => env('WOMPI_PRIVATE_KEY'),

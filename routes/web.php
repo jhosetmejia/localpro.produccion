@@ -3,6 +3,8 @@
 use App\Http\Controllers\importarController;
 use App\Http\Controllers\importarClientesController;
 use App\Http\Controllers\separadoController;
+use App\Http\Controllers\redesController;
+use App\Http\Controllers\metaWebhookController;
 use App\Http\Controllers\adminImportacionController;
 use App\Http\Controllers\adminPlanController;
 use App\Http\Controllers\adminRedController;
@@ -62,6 +64,12 @@ Route::get('/t/{slug}', [catalogoController::class, 'show'])->where('slug', '[a-
 Route::get('/t/{slug}/p/{producto}', [catalogoController::class, 'producto'])->where(['slug' => '[a-z0-9-]+', 'producto' => '[0-9]+(-[a-z0-9-]*)?'])->name('catalogo.producto');
 Route::get('/sitemap.xml', [catalogoController::class, 'sitemap'])->name('sitemap');
 Route::post('/webhooks/wompi', [wompiController::class, 'evento'])->middleware('throttle:60,1');
+Route::get('/webhooks/meta', [metaWebhookController::class, 'verificar']);
+// Páginas legales (las pide Meta para aprobar la app)
+foreach (['privacidad' => 'privacidad', 'terminos' => 'terminos', 'eliminar-datos' => 'eliminar'] as $ruta => $vista) {
+    Route::get('/' . $ruta, fn () => view('legal.' . $vista, ['correo' => \App\Models\Ajuste::valor('correo_legal') ?: config('mail.from.address')]))->name('legal.' . $vista);
+}
+Route::post('/webhooks/meta', [metaWebhookController::class, 'evento'])->middleware('throttle:600,1');
 // Enlace de pago de un negocio (firmado): lo usa el dueño o su asesor para pagar el plan con Wompi sin entrar al sistema
 Route::get('/pagar/retorno', [pagarController::class, 'retorno'])->name('pagar.retorno');
 // Estado de un separado para el cliente (enlace firmado que se envía por WhatsApp)
@@ -185,6 +193,26 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     // POS
     Route::get('/pos', [posController::class, 'index'])->name('pos.index');
     Route::get('/separados', [separadoController::class, 'index'])->name('separados.index');
+
+    // Mis redes (Facebook e Instagram)
+    Route::get('/mis-redes', [redesController::class, 'index'])->name('redes.index');
+    Route::get('/mis-redes/chats', [redesController::class, 'lista'])->name('redes.lista');
+    Route::get('/mis-redes/chats/{conversacion}', [redesController::class, 'mensajes'])->whereNumber('conversacion')->name('redes.mensajes');
+    Route::post('/mis-redes/chats/{conversacion}/enviar', [redesController::class, 'enviar'])->whereNumber('conversacion')->middleware('throttle:60,1')->name('redes.enviar');
+    Route::post('/mis-redes/chats/{conversacion}/etiqueta', [redesController::class, 'etiqueta'])->whereNumber('conversacion')->name('redes.etiqueta');
+    Route::post('/mis-redes/chats/{conversacion}/cliente', [redesController::class, 'guardarCliente'])->whereNumber('conversacion')->name('redes.cliente');
+    Route::post('/mis-redes/actualizar', [redesController::class, 'sincronizar'])->middleware('throttle:10,1')->name('redes.sincronizar');
+    Route::get('/mis-redes/productos', [redesController::class, 'productos'])->name('redes.productos');
+    Route::get('/mis-redes/publicar', [redesController::class, 'publicar'])->name('redes.publicar');
+    Route::post('/mis-redes/publicar', [redesController::class, 'guardarPublicacion'])->middleware('throttle:20,1')->name('redes.publicar.guardar');
+    Route::post('/mis-redes/publicaciones/{publicacion}/reintentar', [redesController::class, 'reintentar'])->whereNumber('publicacion')->name('redes.reintentar');
+    Route::delete('/mis-redes/publicaciones/{publicacion}', [redesController::class, 'borrarPublicacion'])->whereNumber('publicacion')->name('redes.publicacion.borrar');
+    Route::get('/mis-redes/cuentas', [redesController::class, 'cuentasVista'])->name('redes.cuentas');
+    Route::get('/mis-redes/conectar', [redesController::class, 'conectar'])->name('redes.conectar');
+    Route::get('/mis-redes/conectar/retorno', [redesController::class, 'callback'])->name('redes.callback');
+    Route::get('/mis-redes/conectar/paginas', [redesController::class, 'elegir'])->name('redes.elegir');
+    Route::post('/mis-redes/conectar/paginas', [redesController::class, 'guardarPaginas'])->name('redes.elegir.guardar');
+    Route::post('/mis-redes/cuentas/{cuenta}/desconectar', [redesController::class, 'desconectar'])->whereNumber('cuenta')->name('redes.desconectar');
     Route::get('/separados/nuevo', [separadoController::class, 'create'])->name('separados.create');
     Route::post('/separados', [separadoController::class, 'store'])->name('separados.store');
     Route::get('/separados/{separado}', [separadoController::class, 'show'])->whereNumber('separado')->name('separados.show');

@@ -17,7 +17,7 @@ class posController extends Controller
     public function __construct()
     {
         $this->middleware('auth')->except('facturaPublica');
-        $this->middleware('permission:usar-pos', ['only' => ['index', 'buscar', 'store', 'clientes', 'crearCliente']]);
+        $this->middleware('permission:usar-pos', ['only' => ['index', 'buscar', 'store', 'clientes', 'crearCliente', 'actualizarCliente']]);
         $this->middleware('permission:usar-pos|ver-cajas', ['only' => ['ticket', 'ventas']]);
         $this->middleware('permission:anular-venta-pos', ['only' => ['anular']]);
     }

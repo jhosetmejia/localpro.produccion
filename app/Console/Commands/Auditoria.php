@@ -116,6 +116,18 @@ class Auditoria extends Command
             $evt && !str_starts_with($evt, $prod ? 'prod_events_' : 'test_events_') ? $this->aviso('Wompi: WOMPI_EVENTS_SECRET no corresponde al ambiente') : null;
         }
 
+        if (\App\Support\Meta::activo()) {
+            $this->ok('Mis redes: app de Meta configurada');
+            filled(config('services.meta.verify_token')) ? $this->ok('Mis redes: token del webhook configurado') : $this->falla('Mis redes: falta META_VERIFY_TOKEN (no llegarán los mensajes en tiempo real)');
+            try {
+                $err = \App\Models\RedCuenta::withoutGlobalScopes()->where('estado', 'error')->count();
+                $err ? $this->aviso("Mis redes: $err cuenta(s) con error de conexión (deben volver a conectar)") : null;
+                $atr = \App\Models\RedPublicacion::withoutGlobalScopes()->where('estado', 'programada')->where('programada_para', '<', now()->subMinutes(10))->count();
+                $atr ? $this->falla("Mis redes: $atr publicación(es) programada(s) atrasada(s): ¿corre el cron?") : null;
+            } catch (\Throwable $e) {}
+        } else {
+            $this->aviso('Mis redes: falta META_APP_ID / META_APP_SECRET (los negocios ven "Muy pronto")');
+        }
         is_link(public_path('storage')) || is_dir(public_path('storage')) ? $this->ok('Enlace de imágenes (storage:link) creado') : $this->falla('Falta "php artisan storage:link": los logos y fotos de productos no se ven');
         is_writable(storage_path('logs')) ? $this->ok('Carpeta de logs con permiso de escritura') : $this->falla('storage/logs sin permiso de escritura');
 

@@ -55,8 +55,8 @@
     </section>
 
     <div class="marquee" aria-hidden="true"><div class="marquee-track">
-        <span>Caja POS</span><span>Stock actualizado</span><span>Tienda en línea</span><span>Aparece en Google</span><span>Comprar por WhatsApp</span><span>Importar desde Excel</span><span>Separados y abonos</span><span>Metas de vendedores</span><span>Reportes y ganancias</span>
-        <span>Caja POS</span><span>Stock actualizado</span><span>Tienda en línea</span><span>Aparece en Google</span><span>Comprar por WhatsApp</span><span>Importar desde Excel</span><span>Separados y abonos</span><span>Metas de vendedores</span><span>Reportes y ganancias</span>
+        <span>Caja POS</span><span>Stock actualizado</span><span>Tienda en línea</span><span>Aparece en Google</span><span>Comprar por WhatsApp</span><span>Importar desde Excel</span><span>Separados y abonos</span><span>Chats de Facebook e Instagram</span><span>Metas de vendedores</span><span>Reportes y ganancias</span>
+        <span>Caja POS</span><span>Stock actualizado</span><span>Tienda en línea</span><span>Aparece en Google</span><span>Comprar por WhatsApp</span><span>Importar desde Excel</span><span>Separados y abonos</span><span>Chats de Facebook e Instagram</span><span>Metas de vendedores</span><span>Reportes y ganancias</span>
     </div></div>
 
     <section class="section" id="funciones">
@@ -106,6 +106,11 @@
                     <div class="ico"><i class="fa-solid fa-people-group"></i></div>
                     <h3>Clientes y WhatsApp</h3>
                     <p>Guarde sus clientes con su historial y envíeles mensajes y promociones por WhatsApp. ¿Ya los tiene en Excel? Súbalos en un instante.</p>
+                </article>
+                <article class="feature">
+                    <div class="ico"><i class="fa-solid fa-hashtag"></i></div>
+                    <h3>Facebook e Instagram en un solo lugar</h3>
+                    <p>Responda los chats de Messenger e Instagram desde LocalPro, envíe sus productos con foto y precio en un toque y publique en las dos redes al tiempo.</p>
                 </article>
                 <article class="feature">
                     <div class="ico"><i class="fa-solid fa-box-archive"></i></div>
@@ -162,6 +167,7 @@
 <footer class="footer">
     <div class="wrap">
         <span>© {{ date('Y') }} LocalProo · Todos los derechos reservados</span>
+        <span style="display:flex;gap:14px;flex-wrap:wrap"><a href="{{ route('legal.privacidad') }}">Privacidad</a><a href="{{ route('legal.terminos') }}">Condiciones</a><a href="{{ route('legal.eliminar') }}">Eliminar mis datos</a></span>
     </div>
 </footer>
 
