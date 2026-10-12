@@ -11,6 +11,7 @@ use App\Http\Controllers\bienvenidaController;
 use App\Http\Controllers\cajaController;
 use App\Http\Controllers\catalogoController;
 use App\Http\Controllers\cuentaController;
+use App\Http\Controllers\cursoController;
 use App\Http\Controllers\conjuntoController;
 use App\Http\Controllers\adminInicioController;
 use App\Http\Controllers\categoriaController;
@@ -62,9 +63,20 @@ Route::get('/factura/{venta}', [posController::class, 'facturaPublica'])->name('
 // Enlace de un asesor: el negocio que se inscribe queda en su red
 Route::get('/r/{codigo}', [registroController::class, 'referido'])->where('codigo', '[A-Za-z0-9\-]+')->name('referido');
 
-// Enlace para sumar asesores a la red (queda pendiente hasta que lo apruebe quien invitó)
+// Enlace para sumar asesores a la red: se inscribe, hace un curso corto y al aprobarlo queda como asesor
 Route::get('/unete/{codigo}', [aspiranteController::class, 'form'])->where('codigo', '[A-Za-z0-9\-]+')->name('unete.form');
 Route::post('/unete/{codigo}', [aspiranteController::class, 'store'])->where('codigo', '[A-Za-z0-9\-]+')->middleware('throttle:5,1');
+
+// Curso básico del aspirante a asesor y su certificado
+Route::middleware('auth')->prefix('curso')->name('curso.')->group(function () {
+    Route::get('/', [cursoController::class, 'index'])->name('index');
+    Route::get('/leccion/{n}', [cursoController::class, 'leccion'])->whereNumber('n')->name('leccion');
+    Route::post('/leccion/{n}', [cursoController::class, 'completar'])->whereNumber('n')->name('completar');
+    Route::get('/examen', [cursoController::class, 'examen'])->name('examen');
+    Route::post('/examen', [cursoController::class, 'calificar'])->middleware('throttle:20,1')->name('calificar');
+    Route::get('/certificado', [cursoController::class, 'certificado'])->name('certificado');
+});
+Route::get('/certificado/{codigo}', [cursoController::class, 'verificar'])->where('codigo', '[A-Za-z0-9\-]+')->name('certificado.verificar');
 
 // ===== Panel de la red comercial (asesores y líderes) =====
 Route::middleware(['auth', 'asesor'])->prefix('asesor')->name('asesor.')->group(function () {
@@ -72,6 +84,7 @@ Route::middleware(['auth', 'asesor'])->prefix('asesor')->name('asesor.')->group(
     Route::get('/red', [asesorPanelController::class, 'red'])->name('red');
     Route::get('/comisiones', [asesorPanelController::class, 'comisiones'])->name('comisiones');
     Route::post('/aspirantes/{aspirante}', [aspiranteController::class, 'decidir'])->name('aspirantes.decidir');
+    Route::post('/equipo/{aspirante}/desactivar', [aspiranteController::class, 'desactivar'])->name('equipo.desactivar');
 });
 // Mi cuenta (todos los usuarios): datos y clave
 Route::middleware('auth')->group(function () {

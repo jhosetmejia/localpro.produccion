@@ -15,6 +15,10 @@ class SoloAsesor
         if (!$asesor) {
             return redirect()->route('panel');
         }
+        // Aspirante que todavía no aprueba el curso: va a su curso
+        if ($asesor->estado === 'capacitacion') {
+            return redirect()->route('curso.index');
+        }
         if (!$asesor->activo) {
             Auth::logout();
             $request->session()->invalidate();

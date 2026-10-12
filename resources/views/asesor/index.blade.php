@@ -50,10 +50,29 @@
     </div>
     @endif
 
+    @if ($enCurso->isNotEmpty())
+    <div class="lp-box mb-3" style="border-color:#bfeccb;background:#f7fdf8">
+        <h3><span><i class="fa-solid fa-graduation-cap me-1"></i> Haciendo el curso ({{ $enCurso->count() }})</span><small class="text-muted">Al aprobarlo quedan en su equipo solos</small></h3>
+        <ul class="lp-list">
+            @foreach ($enCurso as $p)
+            @php $vistas = count($p->curso_modulos ?? []); @endphp
+            <li style="flex-wrap:wrap">
+                <div class="av"><i class="fa-solid fa-book-open"></i></div>
+                <div class="t"><b>{{ $p->nombre }}</b><small>Lecciones {{ $vistas }}/4{{ $p->curso_nota !== null ? ' · mejor nota examen ' . $p->curso_nota . '%' : '' }} · se inscribió {{ $p->created_at->locale('es')->diffForHumans() }}</small></div>
+                <div class="d-flex gap-2">
+                    @if ($p->user->telefono)<a class="btn btn-sm btn-success" target="_blank" href="https://wa.me/{{ numero_whatsapp($p->user->telefono) }}?text={{ rawurlencode('¡Hola ' . strtok($p->nombre, ' ') . '! 💪 Te falta poquito para terminar el curso de LocalPro y recibir tu certificado. Entra aquí: ' . route('curso.index')) }}"><i class="fa-brands fa-whatsapp me-1"></i>Animar</a>@endif
+                    <form method="post" action="{{ route('asesor.equipo.desactivar', $p) }}" data-confirm="¿Sacar a {{ $p->nombre }} del curso?" data-confirm-ok="Sí, sacar" data-peligro>@csrf<button class="btn btn-sm btn-light">Sacar</button></form>
+                </div>
+            </li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
     <div class="lp-grid mb-3">
         <div class="lp-box">
             <h3><span><i class="fa-solid fa-user-plus me-1"></i> Suma asesores a tu equipo</span></h3>
-            <p class="text-muted small mb-2">Quien se inscriba con este enlace queda como aspirante y usted lo aprueba aquí mismo.</p>
+            <p class="text-muted small mb-2">Quien se inscriba con este enlace hace un curso corto, recibe su certificado y queda en su equipo automáticamente.</p>
             <div class="lp-link">
                 <code id="enlaceRec">{{ $yo->enlace_reclutar }}</code>
                 <button type="button" class="btn btn-dark btn-sm" onclick="navigator.clipboard && navigator.clipboard.writeText(document.getElementById('enlaceRec').textContent.trim()); LP.toast('Enlace copiado')"><i class="fa-regular fa-copy me-1"></i>Copiar</button>
@@ -106,6 +125,23 @@
             </ul>
         </div>
     </div>
+
+    @if ($sumados->isNotEmpty())
+    <div class="lp-box mb-3">
+        <h3><span><i class="fa-solid fa-user-check me-1"></i> Personas que usted sumó</span><small class="text-muted">Puede desactivar a quien no le cuadre</small></h3>
+        <ul class="lp-list">
+            @foreach ($sumados as $p)
+            <li>
+                <div class="av"><i class="fa-solid {{ $p->cargo_icono }}"></i></div>
+                <div class="t"><b>{{ $p->nombre }}</b><small>{{ $p->codigo }} · {{ $p->cargo_nombre }}{{ $p->certificado ? ' · certificado ' . $p->certificado : '' }}{{ $p->activo ? '' : ' · inactivo' }}</small></div>
+                @if ($p->activo)
+                <form method="post" action="{{ route('asesor.equipo.desactivar', $p) }}" data-confirm="¿Desactivar a {{ $p->nombre }}? Para activarlo de nuevo hay que pedírselo a LocalPro." data-confirm-ok="Sí, desactivar" data-peligro>@csrf<button class="btn btn-sm btn-light">Desactivar</button></form>
+                @endif
+            </li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
 
     <div class="lp-box">
         <h3><span><i class="fa-solid fa-coins me-1"></i> Últimas comisiones</span><a href="{{ route('asesor.comisiones') }}" class="small">Ver todas</a></h3>

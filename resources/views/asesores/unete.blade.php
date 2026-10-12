@@ -24,6 +24,7 @@
             <ul class="auth-list">
                 <li><span><i class="fa-solid fa-check"></i></span> Sin inversión</li>
                 <li><span><i class="fa-solid fa-check"></i></span> Tu propio panel, enlace y comisiones</li>
+                <li><span><i class="fa-solid fa-check"></i></span> Curso gratis con certificado</li>
                 <li><span><i class="fa-solid fa-check"></i></span> Puedes crecer a líder</li>
             </ul>
         </div>
@@ -41,7 +42,7 @@
                 </div>
             @else
             <h1 class="serif" style="font-size:2.2rem">Únete como asesor</h1>
-            <p class="sub">Te invita <b>{{ $invita->nombre }}</b> ({{ $invita->cargo_nombre }}). Llena tus datos y te aprueba en su panel.</p>
+            <p class="sub">Te invita <b>{{ $invita->nombre }}</b> ({{ $invita->cargo_nombre }}). Llena tus datos, haz un curso corto de 10 minutos y recibe tu <b>certificado de Asesor Comercial LocalPro</b>.</p>
 
             @if ($errors->any())<div class="alert">{{ $errors->first() }}</div>@endif
 
@@ -60,7 +61,7 @@
                     <div class="field"><label>Clave</label><input class="in" type="password" name="password" minlength="8" required autocomplete="new-password" placeholder="Mínimo 8"></div>
                     <div class="field"><label>Repite la clave</label><input class="in" type="password" name="password_confirmation" required autocomplete="new-password"></div>
                 </div>
-                <button class="btn btn-amber btn-block" type="submit" style="margin-top:.4rem">Enviar solicitud <i class="fa-solid fa-arrow-right"></i></button>
+                <button class="btn btn-amber btn-block" type="submit" style="margin-top:.4rem">Inscribirme y empezar el curso <i class="fa-solid fa-arrow-right"></i></button>
             </form>
             @endif
         </div>

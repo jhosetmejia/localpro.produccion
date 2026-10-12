@@ -8,10 +8,12 @@ use App\Support\Bancos;
 use App\Support\RedComercial;
 use App\Support\Ubicaciones;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
-// Enlace para sumar asesores: el interesado se inscribe y queda "aspirante" hasta que lo apruebe quien lo invitó
+// Enlace para sumar asesores: el interesado se inscribe, entra de una vez a un curso corto
+// y al aprobar el examen queda como asesor activo (quien lo invitó puede desactivarlo después)
 class aspiranteController extends Controller
 {
     private function invitador(string $codigo): Asesor
@@ -48,18 +50,21 @@ class aspiranteController extends Controller
 
         $d['banco'] = Bancos::componer($request);
 
-        DB::transaction(function () use ($d, $invita) {
+        $u = DB::transaction(function () use ($d, $invita) {
             $u = User::create(['name' => $d['name'], 'email' => strtolower($d['email']), 'telefono' => $d['telefono'], 'password' => Hash::make($d['password'])]);
             $a = Asesor::create([
                 'user_id' => $u->id, 'cargo' => 'asesor', 'padre_id' => null, 'reclutado_por' => $invita->id,
                 'pais' => $d['pais'], 'departamento' => $d['departamento'] ?? null, 'ciudad' => $d['ciudad'] ?? null,
                 'zona' => $d['zona'] ?? null, 'documento' => $d['documento'], 'banco' => $d['banco'] ?? null,
-                'codigo' => Asesor::nuevoCodigo($d['name']), 'activo' => false, 'estado' => 'pendiente',
+                'codigo' => Asesor::nuevoCodigo($d['name']), 'activo' => false, 'estado' => 'capacitacion',
             ]);
-            RedComercial::historial($a, 'solicitud', 'Se inscribió con el enlace de ' . $invita->nombre, $u->id);
+            RedComercial::historial($a, 'solicitud', 'Se inscribió con el enlace de ' . $invita->nombre . ' y empezó el curso', $u->id);
+            return $u;
         });
 
-        return redirect()->route('unete.form', $codigo)->with('enviado', $d['name']);
+        Auth::login($u);
+        $request->session()->regenerate();
+        return redirect()->route('curso.index')->with('bienvenida', true);
     }
 
     // Quien invitó aprueba o rechaza a su aspirante
@@ -80,5 +85,18 @@ class aspiranteController extends Controller
         $aspirante->update(['estado' => 'rechazado', 'activo' => false]);
         RedComercial::historial($aspirante, 'rechazado', 'Rechazado por ' . $yo->nombre);
         return back()->with('success', 'Solicitud de ' . $aspirante->nombre . ' rechazada.');
+    }
+
+    // Quien lo invitó puede desactivar (o sacar del curso) a una persona que sumó. Volver a activarla lo hace LocalPro.
+    public function desactivar(Request $request, Asesor $aspirante)
+    {
+        $yo = $request->attributes->get('asesor');
+        abort_unless((int) $aspirante->reclutado_por === (int) $yo->id && in_array($aspirante->estado, ['activo', 'capacitacion'], true) && ($aspirante->activo || $aspirante->estado === 'capacitacion'), 403);
+
+        $aspirante->estado === 'capacitacion'
+            ? $aspirante->update(['estado' => 'rechazado', 'activo' => false])
+            : $aspirante->update(['activo' => false]);
+        RedComercial::historial($aspirante, 'inactivo', 'Desactivado por quien lo invitó: ' . $yo->nombre);
+        return back()->with('success', $aspirante->nombre . ' quedó desactivado. Si fue un error, escríbale a LocalPro para activarlo de nuevo.');
     }
 }

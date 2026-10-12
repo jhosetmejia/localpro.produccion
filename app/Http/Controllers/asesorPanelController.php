@@ -30,6 +30,8 @@ class asesorPanelController extends Controller
                 ->whereBetween('plan_vence', [today()->subDays(15), today()->addDays(30)])->orderBy('plan_vence')->get(),
             'ultimas' => Comision::with('tienda:id,nombre')->where('asesor_id', $yo->id)->latest()->take(8)->get(),
             'aspirantes' => Asesor::with('user:id,name,email,telefono')->where('reclutado_por', $yo->id)->where('estado', 'pendiente')->latest()->get(),
+            'enCurso' => Asesor::with('user:id,name,telefono')->where('reclutado_por', $yo->id)->where('estado', 'capacitacion')->latest()->get(),
+            'sumados' => Asesor::with('user:id,name,telefono')->where('reclutado_por', $yo->id)->where('estado', 'activo')->latest()->take(30)->get(),
             'progreso' => \App\Support\RedComercial::progreso($yo),
         ]);
     }

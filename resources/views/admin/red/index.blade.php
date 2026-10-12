@@ -45,6 +45,19 @@
     </div>
     @endif
 
+    @if ($enCurso->isNotEmpty())
+    <div class="lp-box mb-3">
+        <h3><span><i class="fa-solid fa-graduation-cap me-1"></i> Haciendo el curso de asesores ({{ $enCurso->count() }})</span><small class="text-muted">{{ $certificados }} certificados entregados · al aprobar quedan activos solos</small></h3>
+        <ul class="lp-list">
+            @foreach ($enCurso as $p)
+            <li><div class="av"><i class="fa-solid fa-book-open"></i></div><div class="t"><b>{{ $p->nombre }}</b><small>Invitado por {{ $p->reclutador->nombre ?? '—' }} · lecciones {{ count($p->curso_modulos ?? []) }}/4{{ $p->curso_nota !== null ? ' · mejor nota ' . $p->curso_nota . '%' : '' }} · {{ $p->ciudad }} · {{ $p->created_at->locale('es')->diffForHumans() }}</small></div>
+                @if ($p->user->telefono)<a class="btn btn-sm btn-light" target="_blank" href="https://wa.me/{{ numero_whatsapp($p->user->telefono) }}"><i class="fa-brands fa-whatsapp"></i></a>@endif
+            </li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
     <details class="lp-box mb-3" @if ($errors->any() && !$errors->has('red_valor_plan')) open @endif>
         <summary class="fw-bold" style="cursor:pointer;font-size:1.05rem"><i class="fa-solid fa-user-plus me-1" style="color:#16b34a"></i> Inscribir asesor o líder</summary>
         <form method="post" action="{{ route('admin.red.store') }}" class="row g-3 mt-1">

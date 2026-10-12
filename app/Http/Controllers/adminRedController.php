@@ -26,6 +26,7 @@ class adminRedController extends Controller
     public function index(Request $request)
     {
         $gente = Asesor::with('user:id,name,email,telefono')->withCount('tiendas')
+            ->where('estado', '<>', 'capacitacion')
             ->when($request->departamento, fn ($q, $d) => $q->where('departamento', $d))
             ->orderByRaw("FIELD(cargo, 'lider_pais', 'lider_departamento', 'lider_ciudad', 'lider_zona', 'asesor')")->get();
         $ids = $gente->pluck('id');
@@ -49,6 +50,8 @@ class adminRedController extends Controller
             'metas' => \App\Support\RedComercial::metas(),
             'salario' => (float) \App\Models\Ajuste::valor('red_salario_minimo', 1750000),
             'pendientes' => Asesor::with(['user:id,name', 'reclutador.user:id,name'])->where('estado', 'pendiente')->latest()->get(),
+            'enCurso' => Asesor::with(['user:id,name,telefono', 'reclutador.user:id,name'])->where('estado', 'capacitacion')->latest()->get(),
+            'certificados' => Asesor::whereNotNull('curso_aprobado_at')->count(),
         ]);
     }
 

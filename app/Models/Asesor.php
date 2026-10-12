@@ -10,9 +10,9 @@ class Asesor extends Model
 {
     protected $table = 'asesores';
 
-    protected $fillable = ['user_id', 'cargo', 'padre_id', 'pais', 'departamento', 'ciudad', 'zona', 'codigo', 'documento', 'banco', 'activo', 'estado', 'reclutado_por', 'aprobado_at'];
+    protected $fillable = ['user_id', 'cargo', 'padre_id', 'pais', 'departamento', 'ciudad', 'zona', 'codigo', 'documento', 'banco', 'activo', 'estado', 'reclutado_por', 'aprobado_at', 'curso_modulos', 'curso_nota', 'curso_aprobado_at', 'certificado'];
 
-    protected $casts = ['activo' => 'boolean', 'aprobado_at' => 'datetime'];
+    protected $casts = ['activo' => 'boolean', 'aprobado_at' => 'datetime', 'curso_modulos' => 'array', 'curso_aprobado_at' => 'datetime'];
 
     public const CARGOS = [
         'lider_pais' => ['Líder de país', 'fa-earth-americas', 5],
