@@ -27,6 +27,9 @@ class negocioController extends Controller
             'nombre' => 'required|string|max:80',
             'slug' => ['required', 'string', 'max:60', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/', \Illuminate\Validation\Rule::unique('tiendas', 'slug')->ignore($negocio->id)],
             'catalogo_activo' => 'nullable|boolean',
+            'mod_medida' => 'nullable|boolean',
+            'mod_vencimiento' => 'nullable|boolean',
+            'mod_recetas' => 'nullable|boolean',
             'pais' => ['required', \Illuminate\Validation\Rule::in(array_keys(\App\Support\Paises::LISTA))],
             'tipo_negocio' => ['required', \Illuminate\Validation\Rule::in(array_keys(\App\Models\Tienda::TIPOS))],
             'nit' => 'nullable|string|max:30',
@@ -58,6 +61,9 @@ class negocioController extends Controller
         unset($datos['logo']);
         $datos['catalogo_activo'] = $request->boolean('catalogo_activo');
         $datos['cliente_obligatorio'] = $request->boolean('cliente_obligatorio');
+        foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas'] as $m) {
+            $datos[$m] = $request->boolean($m);
+        }
         $datos['usa_tallas'] = \App\Models\Tienda::TIPOS[$datos['tipo_negocio']][2];
 
         $negocio->update($datos);

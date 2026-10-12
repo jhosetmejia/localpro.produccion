@@ -41,3 +41,17 @@ if (!function_exists('numero_whatsapp')) {
         return str_starts_with($t, $ind) && strlen($t) > 10 ? $t : $ind . ltrim($t, '0');
     }
 }
+
+if (!function_exists('cantidad')) {
+    // 3 -> "3", 1.5 -> "1,5", 0.125 -> "0,125" (con la unidad si se pasa: "1,5 m")
+    function cantidad($n, ?string $unidad = null): string
+    {
+        $n = round((float) $n, 3);
+        $dec = moneda()['decimal'] ?? ',';
+        $txt = floor($n) == $n ? number_format($n, 0, $dec, moneda()['miles'] ?? '.') : rtrim(rtrim(number_format($n, 3, $dec, moneda()['miles'] ?? '.'), '0'), $dec);
+        if ($unidad === null) return $txt;
+        $corta = \App\Models\Producto::UNIDADES[$unidad][1] ?? $unidad;
+        return $txt . ' ' . $corta;
+    }
+}
+

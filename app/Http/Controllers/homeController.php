@@ -105,11 +105,11 @@ class homeController extends Controller
             'ventasHoy' => (float) $pos()->whereDate('created_at', $hoy)->sum('total'),
             'numVentasHoy' => $pos()->whereDate('created_at', $hoy)->count(),
             'ventasMes' => (float) $pos()->whereBetween('created_at', [$hoy->copy()->startOfMonth(), now()])->sum('total'),
-            'unidades' => (int) ProductoVariante::where('estado', 1)->sum('stock'),
+            'unidades' => (float) ProductoVariante::where('estado', 1)->sum('stock'),
             'caja' => Caja::abiertaDe(Auth::id()),
             'semana' => $semana,
             'ultimasVentas' => PosVenta::with('user:id,name')->latest()->take(6)->get(),
-            'stockBajo' => ProductoVariante::with('producto:id,nombre')->where('estado', 1)->where('stock', '<=', 3)->orderBy('stock')->take(6)->get(),
+            'stockBajo' => ProductoVariante::with('producto:id,nombre,unidad')->where('estado', 1)->where('stock', '<=', 3)->orderBy('stock')->take(6)->get(),
             'conteos' => [
                 ['Productos', Producto::count(), 'fa-shirt', 'productos.index', 'ver-producto'],
                 ['Clientes', Cliente::count(), 'fa-people-group', 'clientes.index', 'ver-cliente'],

@@ -33,6 +33,7 @@ class catalogoController extends Controller
             'id' => $p->id,
             'nombre' => $p->nombre,
             'codigo' => $p->codigo,
+            'unidad' => $p->es_fraccion ? $p->unidad_corta : null,
             'descripcion' => $p->descripcion,
             'precio' => (float) $p->precio_venta,
             'desde' => $precios->count() > 1 && $precios->min() < $precios->max() ? (float) $precios->min() : null,

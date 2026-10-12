@@ -13,6 +13,8 @@ class InventarioMovimiento extends Model
 
     protected $fillable = ['producto_variante_id', 'tipo', 'cantidad', 'stock_resultante', 'user_id', 'referencia', 'nota'];
 
+    protected $casts = ['cantidad' => 'float', 'stock_resultante' => 'float'];
+
     public function variante()
     {
         return $this->belongsTo(ProductoVariante::class, 'producto_variante_id');

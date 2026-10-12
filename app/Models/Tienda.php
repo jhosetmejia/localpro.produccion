@@ -10,14 +10,23 @@ class Tienda extends Model
     protected $table = 'tiendas';
 
     protected $fillable = [
-        'nombre', 'departamento', 'slug', 'catalogo_activo', 'cliente_obligatorio', 'pais', 'tipo_negocio', 'descripcion', 'usa_tallas', 'nit', 'regimen',
+        'nombre', 'departamento', 'slug', 'catalogo_activo', 'mod_medida', 'mod_vencimiento', 'mod_recetas', 'cliente_obligatorio', 'pais', 'tipo_negocio', 'descripcion', 'usa_tallas', 'nit', 'regimen',
         'resolucion_numero', 'resolucion_fecha', 'resolucion_vigencia', 'resolucion_prefijo', 'resolucion_desde', 'resolucion_hasta', 'direccion', 'ciudad', 'telefono',
         'email', 'logo_path', 'mensaje_tiquete', 'estado', 'onboarding_paso', 'onboarding_completo', 'conj_dia_vence', 'conj_interes_mora', 'conj_zonas',
     ];
 
-    protected $casts = ['usa_tallas' => 'boolean', 'onboarding_completo' => 'boolean', 'catalogo_activo' => 'boolean', 'cliente_obligatorio' => 'boolean', 'plan_vence' => 'date', 'resolucion_fecha' => 'date', 'resolucion_vigencia' => 'date'];
+    protected $casts = ['mod_medida' => 'boolean', 'mod_vencimiento' => 'boolean', 'mod_recetas' => 'boolean', 'usa_tallas' => 'boolean', 'onboarding_completo' => 'boolean', 'catalogo_activo' => 'boolean', 'cliente_obligatorio' => 'boolean', 'plan_vence' => 'date', 'resolucion_fecha' => 'date', 'resolucion_vigencia' => 'date'];
 
     // Categorías de negocio que se pueden elegir al registrarse
+    // Módulos que se encienden solos según el tipo de negocio (se pueden cambiar en Datos del negocio)
+    public const MODULOS_POR_TIPO = [
+        'minimercado' => ['mod_vencimiento'],
+        'belleza' => ['mod_vencimiento'],
+        'ferreteria' => ['mod_medida'],
+        'restaurante' => ['mod_recetas'],
+        'cafeteria' => ['mod_recetas', 'mod_vencimiento'],
+    ];
+
     public const TIPOS = [
         'moda' => ['Moda y ropa', 'fa-shirt', true, 'Ropa para dama, caballero, niños, urbana, deportiva…'],
         'calzado' => ['Calzado', 'fa-shoe-prints', true, 'Zapatos, tenis, sandalias, botas'],

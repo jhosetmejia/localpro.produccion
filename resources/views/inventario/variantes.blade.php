@@ -39,7 +39,7 @@
             </div>
             <div class="col-md-2">
                 <label class="form-label">Cantidad de cada una</label>
-                <input name="stock" type="number" min="0" class="form-control" value="{{ old('stock', 0) }}" required>
+                <input name="stock" type="number" min="0" step="any" class="form-control" value="{{ old('stock', 0) }}" required>
             </div>
             <div class="col-md-2">
                 <label class="form-label">Precio <span class="text-muted fw-normal">(opcional)</span></label>
@@ -67,7 +67,7 @@
                     <tr class="{{ $v->estado ? '' : 'opacity-50' }}">
                         <td class="fw-bold">{{ $v->talla ?? '—' }}</td>
                         <td>{{ $v->color ?? '—' }}</td>
-                        <td><span class="badge {{ $v->stock <= 0 ? 'bg-danger' : ($v->stock <= 5 ? 'bg-warning text-dark' : 'bg-success') }} fs-6">{{ $v->stock }}</span></td>
+                        <td><span class="badge {{ $v->stock <= 0 ? 'bg-danger' : ($v->stock <= 5 ? 'bg-warning text-dark' : 'bg-success') }} fs-6">{{ cantidad($v->stock) }}</span></td>
                         <td>@pesos($v->precio_final) @if($v->precio === null)<small class="text-muted">(base)</small>@endif</td>
                         <td><code>{{ $v->codigo_barras ?? '—' }}</code></td>
                         <td class="text-end text-nowrap">
@@ -95,7 +95,7 @@
                             @csrf
                             <div class="modal-header border-0"><h5 class="modal-title fw-bold">{{ $producto->nombre }} · {{ $v->etiqueta }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                             <div class="modal-body pt-0">
-                                <p class="text-muted">Stock actual: <b>{{ $v->stock }}</b> unidades</p>
+                                <p class="text-muted">Stock actual: <b>{{ cantidad($v->stock) }}</b></p>
                                 <label class="form-label">¿Qué pasó?</label>
                                 <select name="tipo" class="form-select mb-3">
                                     <option value="entrada">Llegó mercancía (sumar)</option>
@@ -103,7 +103,7 @@
                                     <option value="ajuste">Conteo físico (dejar cantidad exacta)</option>
                                 </select>
                                 <label class="form-label">Cantidad</label>
-                                <input type="number" name="cantidad" min="0" class="form-control mb-3" required>
+                                <input type="number" name="cantidad" min="0" step="any" class="form-control mb-3" required>
                                 <label class="form-label">Nota (opcional)</label>
                                 <input name="nota" class="form-control" maxlength="255" placeholder="Ej: Pedido proveedor #123">
                             </div>

@@ -60,7 +60,7 @@
             md.appendChild(el('h4', null, o.titulo || '¿Está seguro?'));
             if (o.texto) md.appendChild(el('p', null, o.texto));
             var campo;
-            if (conCampo) { campo = el('input'); campo.placeholder = o.placeholder || ''; campo.value = o.valor || ''; md.appendChild(campo); }
+            if (conCampo) { campo = el('input'); campo.placeholder = o.placeholder || ''; campo.value = o.valor || ''; if (o.inputmode) campo.inputMode = o.inputmode; md.appendChild(campo); }
             var bt = el('div', 'lpx-bt'), no = el('button', 'lpx-no', o.cancelar || 'Cancelar'), si = el('button', 'lpx-si', o.ok || 'Aceptar');
             no.type = si.type = 'button';
             bt.appendChild(no); bt.appendChild(si); md.appendChild(bt); ov.appendChild(md); document.body.appendChild(ov);

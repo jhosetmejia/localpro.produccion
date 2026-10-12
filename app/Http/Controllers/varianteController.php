@@ -31,7 +31,7 @@ class varianteController extends Controller
         $datos = $request->validate([
             'tallas' => 'nullable|string|max:200',
             'colores' => 'nullable|string|max:300',
-            'stock' => 'required|integer|min:0|max:100000',
+            'stock' => 'required|numeric|min:0|max:100000',
             'precio' => 'nullable|numeric|min:0|max:999999999',
         ], [], ['stock' => 'cantidad inicial']);
 
@@ -57,7 +57,7 @@ class varianteController extends Controller
                         'precio' => $datos['precio'] ?? null,
                     ]);
                     if ((int) $datos['stock'] > 0) {
-                        $v->moverStock((int) $datos['stock'], 'entrada', null, 'Inventario inicial');
+                        $v->moverStock((float) $datos['stock'], 'entrada', null, 'Inventario inicial');
                     }
                     $creadas++;
                 }
@@ -93,18 +93,18 @@ class varianteController extends Controller
     {
         $datos = $request->validate([
             'tipo' => 'required|in:entrada,salida,ajuste',
-            'cantidad' => 'required|integer|min:0|max:100000',
+            'cantidad' => 'required|numeric|min:0|max:100000',
             'nota' => 'nullable|string|max:255',
         ]);
 
         DB::transaction(function () use ($variante, $datos) {
             $actual = ProductoVariante::whereKey($variante->id)->lockForUpdate()->value('stock');
             $delta = match ($datos['tipo']) {
-                'entrada' => (int) $datos['cantidad'],
-                'salida' => -(int) $datos['cantidad'],
-                'ajuste' => (int) $datos['cantidad'] - (int) $actual,
+                'entrada' => (float) $datos['cantidad'],
+                'salida' => -(float) $datos['cantidad'],
+                'ajuste' => round((float) $datos['cantidad'] - (float) $actual, 3),
             };
-            if ($delta !== 0) {
+            if (abs($delta) > 0.0005) {
                 $variante->moverStock($delta, $datos['tipo'], null, $datos['nota'] ?? null);
             }
         });

@@ -54,7 +54,7 @@ class devolucionController extends Controller
             'metodo_pago_id' => 'required_if:tipo,reembolso|nullable|integer',
             'motivo' => 'nullable|string|max:255',
             'cantidades' => 'required|array',
-            'cantidades.*' => 'nullable|integer|min:0|max:100000',
+            'cantidades.*' => 'nullable|numeric|min:0|max:100000',
         ], ['metodo_pago_id.required_if' => 'Elija cómo le devuelve el dinero al cliente.']);
 
         $dev = DB::transaction(function () use ($venta, $caja, $datos) {
@@ -67,12 +67,12 @@ class devolucionController extends Controller
 
             $lineas = [];
             foreach ($venta->items as $item) {
-                $cant = (int) ($datos['cantidades'][$item->id] ?? 0);
+                $cant = round((float) ($datos['cantidades'][$item->id] ?? 0), 3);
                 if ($cant <= 0) {
                     continue;
                 }
-                $max = $item->cantidad - ($devuelto[$item->id] ?? 0);
-                if ($cant > $max) {
+                $max = round((float) $item->cantidad - (float) ($devuelto[$item->id] ?? 0), 3);
+                if ($cant > $max + 0.0005) {
                     throw ValidationException::withMessages(['cantidades' => "De {$item->descripcion} solo se pueden devolver {$max}."]);
                 }
                 $lineas[] = [$item, $cant];

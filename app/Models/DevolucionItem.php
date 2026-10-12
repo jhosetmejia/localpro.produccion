@@ -10,6 +10,8 @@ class DevolucionItem extends Model
 
     protected $fillable = ['devolucion_id', 'pos_venta_item_id', 'producto_variante_id', 'cantidad', 'precio', 'subtotal'];
 
+    protected $casts = ['cantidad' => 'float'];
+
     public function ventaItem()
     {
         return $this->belongsTo(PosVentaItem::class, 'pos_venta_item_id');

@@ -93,7 +93,7 @@
             @foreach ($productos as $item)
             @php
                 $controla = (bool) $item->controla_inventario;
-                $st = (int) $item->variantes->sum('stock');
+                $st = round((float) $item->variantes->sum('stock'), 3);
                 $clase = !$controla ? 'na' : ($st <= 0 ? 'zero' : ($st <= 5 ? 'low' : 'ok'));
                 $cats = $item->categorias->map(fn ($c) => $c->caracteristica?->nombre)->filter()->implode(', ');
                 $conVar = $item->variantes->filter(fn ($v) => $v->talla || $v->color);
@@ -116,17 +116,18 @@
                             @if ($item->estado != 1) Oculto
                             @elseif (!$controla) Sin control de stock
                             @elseif ($st <= 0) Agotado
-                            @else {{ $st }} {{ $st == 1 ? 'unidad' : 'unidades' }}
+                            @elseif ($item->es_fraccion) {{ cantidad($st, $item->unidad) }} disponibles
+                            @else {{ cantidad($st) }} {{ $st == 1 ? 'unidad' : 'unidades' }}
                             @endif
                         </span>
                     </div>
-                    <div class="pl-precio">{{ dinero($item->precio_venta) }}</div>
+                    <div class="pl-precio">{{ dinero($item->precio_venta) }}@if ($item->es_fraccion)<small style="font-weight:700;color:#6b7570">/{{ $item->unidad_corta }}</small>@endif</div>
                 </div>
 
                 @if ($conVar->isNotEmpty())
                 <div class="pl-tallas">
                     @foreach ($conVar->take(12) as $v)
-                    <span class="{{ $controla && $v->stock <= 0 ? 'cero' : '' }}">{{ trim($v->talla . ' ' . $v->color) }}@if ($controla) · {{ $v->stock }}@endif</span>
+                    <span class="{{ $controla && $v->stock <= 0 ? 'cero' : '' }}">{{ trim($v->talla . ' ' . $v->color) }}@if ($controla) · {{ cantidad($v->stock) }}@endif</span>
                     @endforeach
                     @if ($conVar->count() > 12)<span>+{{ $conVar->count() - 12 }}</span>@endif
                 </div>

@@ -198,7 +198,7 @@ window.LPC = (function () {
                 '🛍️ *' + p.nombre + '*\n' +
                 (p.codigo ? 'Código: ' + p.codigo + '\n' : '') +
                 (v && p.variantes.length > 1 ? 'Opción: ' + v.etiqueta + '\n' : '') +
-                'Cantidad: ' + cant + '\n' +
+                'Cantidad: ' + cant + (p.unidad ? ' ' + p.unidad : '') + '\n' +
                 'Precio: ' + fmt((v ? v.precio : p.precio) * cant) + '\n\n' + p.url;
             window.open('https://wa.me/' + WA + '?text=' + encodeURIComponent(msg), '_blank');
         }

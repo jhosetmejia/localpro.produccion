@@ -23,8 +23,31 @@ class Producto extends Model
         'fecha_vencimiento',
         'marca_id',
         'presentacione_id',
-        'img_path'
+        'img_path',
+        'unidad'
     ];
+
+    // Cómo se vende: por unidad o por medida (metro, kilo, litro…). [nombre, abreviatura, plural]
+    public const UNIDADES = [
+        'und' => ['Unidad', 'und', 'unidades'],
+        'm' => ['Metro', 'm', 'metros'],
+        'cm' => ['Centímetro', 'cm', 'centímetros'],
+        'kg' => ['Kilo', 'kg', 'kilos'],
+        'g' => ['Gramo', 'g', 'gramos'],
+        'lb' => ['Libra', 'lb', 'libras'],
+        'l' => ['Litro', 'L', 'litros'],
+        'ml' => ['Mililitro', 'ml', 'mililitros'],
+    ];
+
+    public function getEsFraccionAttribute(): bool
+    {
+        return ($this->unidad ?: 'und') !== 'und';
+    }
+
+    public function getUnidadCortaAttribute(): string
+    {
+        return self::UNIDADES[$this->unidad ?: 'und'][1] ?? 'und';
+    }
 
     protected $casts = ['controla_inventario' => 'boolean'];
 

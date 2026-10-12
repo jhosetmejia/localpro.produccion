@@ -338,6 +338,9 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     var $ = function (id) { return document.getElementById(id); };
     var M = @json(moneda());
     var redondear = function (n) { return Number((n || 0).toFixed(M.decimales)); };
+    // Cantidades: 3 -> "3", 1.5 -> "1,5"
+    var cant = function (n) { n = Math.round((+n || 0) * 1000) / 1000; var t = String(n).split('.'); t[0] = t[0].replace(/\B(?=(\d{3})+(?!\d))/g, M.miles); return t.join(M.decimal); };
+    var und = function (o) { return o.fraccion ? o.unidad_txt : 'und'; };
     var fmt = function (n) {
         n = redondear(n);
         var t = Math.abs(n).toFixed(M.decimales).split('.');
@@ -382,7 +385,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
             return '<button class="card ' + (off ? 'off' : '') + '" data-i="' + i + '">' +
                 '<div class="thumb">' + (p.img ? '<img src="' + esc(p.img) + '" alt="" loading="lazy">' : esc(p.nombre.charAt(0))) + '</div>' +
                 '<b>' + esc(p.nombre) + '</b>' +
-                '<div class="row"><span class="price">' + fmt(p.precio) + '</span><span class="stk ' + cls + '">' + (p.controla ? p.stock + ' und' : 'Disponible') + '</span></div></button>';
+                '<div class="row"><span class="price">' + fmt(p.precio) + (p.fraccion ? '<small style="font-weight:700;opacity:.7">/' + esc(p.unidad_txt) + '</small>' : '') + '</span><span class="stk ' + cls + '">' + (p.controla ? cant(p.stock) + ' ' + esc(und(p)) : 'Disponible') + '</span></div></button>';
         }).join('');
     }
     $('grid').addEventListener('click', function (e) {
@@ -399,7 +402,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         if (conUnidades.length === 1) { agregar(p, conUnidades[0]); return; }
         actual = p; sel = { talla: null, color: null };
         $('vNom').textContent = p.nombre;
-        $('vInfo').textContent = 'Código ' + p.codigo + (p.controla ? ' · ' + p.stock + ' unidades' : '');
+        $('vInfo').textContent = 'Código ' + p.codigo + (p.controla ? ' · ' + cant(p.stock) + ' ' + (p.fraccion ? p.unidad_pl : 'unidades') : '');
         pintarChips();
         abrir('ovVar');
     }
@@ -417,18 +420,18 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         $('vColoresW').style.display = hayC ? '' : 'none';
         $('vTallas').innerHTML = tallas.map(function (t) {
             var st = vs.filter(function (v) { return v.talla === t && (!sel.color || v.color === sel.color); }).reduce(function (a, v) { return a + libre(v); }, 0);
-            return '<button class="chip ' + (sel.talla === t ? 'sel' : '') + '" data-t="' + esc(t) + '" ' + (actual.controla && st <= 0 ? 'disabled' : '') + '>' + esc(t || 'Única') + (actual.controla ? '<small>' + st + ' und</small>' : '') + '</button>';
+            return '<button class="chip ' + (sel.talla === t ? 'sel' : '') + '" data-t="' + esc(t) + '" ' + (actual.controla && st <= 0 ? 'disabled' : '') + '>' + esc(t || 'Única') + (actual.controla ? '<small>' + cant(st) + ' ' + esc(und(actual)) + '</small>' : '') + '</button>';
         }).join('');
         $('vColores').innerHTML = colores.map(function (c) {
             var st = vs.filter(function (v) { return v.color === c && (!sel.talla || v.talla === sel.talla); }).reduce(function (a, v) { return a + libre(v); }, 0);
-            return '<button class="chip ' + (sel.color === c ? 'sel' : '') + '" data-c="' + esc(c) + '" ' + (actual.controla && st <= 0 ? 'disabled' : '') + '>' + esc(c || 'Único') + (actual.controla ? '<small>' + st + ' und</small>' : '') + '</button>';
+            return '<button class="chip ' + (sel.color === c ? 'sel' : '') + '" data-c="' + esc(c) + '" ' + (actual.controla && st <= 0 ? 'disabled' : '') + '>' + esc(c || 'Único') + (actual.controla ? '<small>' + cant(st) + ' ' + esc(und(actual)) + '</small>' : '') + '</button>';
         }).join('');
         var v = varianteElegida();
         var ya = v ? enVenta(v) : 0;
         $('vAdd').disabled = !v || (actual.controla && libre(v) <= 0);
         $('vAdd').textContent = !v ? 'Elija talla y color'
             : (actual.controla && libre(v) <= 0 ? 'Ya están todas en la venta (' + ya + ')'
-            : 'Agregar · ' + fmt(v.precio) + (actual.controla ? ' (quedan ' + libre(v) + ')' : ''));
+            : 'Agregar · ' + fmt(v.precio) + (actual.controla ? ' (quedan ' + cant(libre(v)) + ')' : ''));
         $('vYa').textContent = ya ? 'Ya tiene ' + ya + ' de esta en la venta.' : '';
     }
     function varianteElegida() {
@@ -444,9 +447,34 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     $('vAdd').addEventListener('click', function () { var v = varianteElegida(); if (v) { agregar(actual, v); cerrar('ovVar'); } });
 
     // ---------- Carrito ----------
+    // Por metro, kilo o litro: se pregunta la medida (acepta decimales)
+    function leerMedida(txt) { var n = parseFloat(String(txt || '').replace(/\s/g, '').replace(',', '.')); return isFinite(n) ? Math.round(n * 1000) / 1000 : 0; }
+    function pedirMedida(p, v, actualCant) {
+        var disp = p.controla ? libre(v) + (actualCant || 0) : null;
+        return LP.pedir({
+            titulo: '¿Cuántos ' + p.unidad_pl + ' de ' + p.nombre + (v.etiqueta && p.variantes.length > 1 ? ' (' + v.etiqueta + ')' : '') + '?',
+            texto: fmt(v.precio) + ' por ' + p.unidad_txt + (disp !== null ? ' · Disponible: ' + cant(disp) + ' ' + p.unidad_txt : ''),
+            placeholder: 'Ej: 1,5', inputmode: 'decimal', valor: actualCant ? cant(actualCant) : '', ok: actualCant ? 'Cambiar' : 'Agregar'
+        }).then(function (r) {
+            if (r === null) return null;
+            var n = leerMedida(r);
+            if (n <= 0) { toast('Escriba una medida mayor a cero', true); return null; }
+            if (disp !== null && n > disp + 0.0005) { toast('Solo hay ' + cant(disp) + ' ' + p.unidad_txt + ' disponibles', true); return null; }
+            return n;
+        });
+    }
     function agregar(p, v) {
         var it = cart.find(function (x) { return x.variante_id === v.id; });
         var enCarrito = it ? it.cantidad : 0;
+        if (p.fraccion) {
+            pedirMedida(p, v, 0).then(function (n) {
+                if (!n) return;
+                if (it) it.cantidad = Math.round((it.cantidad + n) * 1000) / 1000;
+                else cart.push({ variante_id: v.id, nombre: p.nombre, etiqueta: v.etiqueta, precio: v.precio, stock: v.stock, controla: p.controla, cantidad: n, fraccion: true, unidad_txt: p.unidad_txt, unidad_pl: p.unidad_pl, p: p, v: v });
+                pintarCarrito(); toast(p.nombre + ' · ' + cant(n) + ' ' + p.unidad_txt + ' agregado'); avisarFab();
+            });
+            return;
+        }
         if (p.controla && enCarrito + 1 > v.stock) { toast('Ya agregó las ' + v.stock + ' unidades de ' + p.nombre + ' ' + v.etiqueta + '. Toque "Ver venta y cobrar".', true); avisarFab(); return; }
         if (it) it.cantidad++;
         else cart.push({ variante_id: v.id, nombre: p.nombre, etiqueta: v.etiqueta, precio: v.precio, stock: v.stock, controla: p.controla, cantidad: 1 });
@@ -464,7 +492,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         if (!cart.length) el.innerHTML = '<div class="cempty"><i class="fa-solid fa-bag-shopping"></i>Toque una prenda o escanee su código para agregarla.</div>';
         else el.innerHTML = cart.map(function (i, k) {
             return '<div class="it"><div class="t"><b>' + esc(i.nombre) + '</b><small>' + esc(i.etiqueta) + ' · ' + fmt(i.precio) + '</small></div>' +
-                '<div class="qty"><button data-k="' + k + '" data-d="-1">−</button><span>' + i.cantidad + '</span><button data-k="' + k + '" data-d="1">+</button></div>' +
+                '<div class="qty"><button data-k="' + k + '" data-d="-1">−</button>' + (i.fraccion ? '<span data-med="' + k + '" title="Cambiar medida" style="cursor:pointer;text-decoration:underline dotted">' + cant(i.cantidad) + ' ' + esc(i.unidad_txt) + '</span>' : '<span>' + i.cantidad + '</span>') + '<button data-k="' + k + '" data-d="1">+</button></div>' +
                 '<div class="s">' + fmt(i.precio * i.cantidad) + '</div><button class="rm" data-rm="' + k + '" aria-label="Quitar"><i class="fa-solid fa-xmark"></i></button></div>';
         }).join('');
         $('sub').textContent = fmt(subtotal());
@@ -473,11 +501,17 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         $('payBtn').disabled = !cart.length;
     }
     $('items').addEventListener('click', function (e) {
+        var m = e.target.closest('[data-med]');
+        if (m) {
+            var im = cart[+m.dataset.med];
+            pedirMedida(im.p, im.v, im.cantidad).then(function (n) { if (n) { im.cantidad = n; pintarCarrito(); } });
+            return;
+        }
         var b = e.target.closest('button'); if (!b) return;
         if (b.dataset.rm !== undefined) { cart.splice(+b.dataset.rm, 1); }
         else {
-            var i = cart[+b.dataset.k], n = i.cantidad + (+b.dataset.d);
-            if (i.controla && n > i.stock) { toast('Solo hay ' + i.stock + ' disponibles', true); return; }
+            var i = cart[+b.dataset.k], n = Math.round((i.cantidad + (+b.dataset.d)) * 1000) / 1000;
+            if (i.controla && n > i.stock + 0.0005) { toast('Solo hay ' + cant(i.stock) + ' ' + (i.fraccion ? i.unidad_txt : '') + ' disponibles', true); return; }
             if (n <= 0) cart.splice(+b.dataset.k, 1); else i.cantidad = n;
         }
         pintarCarrito();

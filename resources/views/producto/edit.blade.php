@@ -63,6 +63,15 @@
                         <small class="text-danger d-block">{{'*'.$message}}</small>
                         @enderror
                     </div>
+                    @if (\App\Support\TiendaActual::tienda()?->mod_medida)
+                    <div class="col-md-6">
+                        <label for="unidad" class="form-label">Se vende por</label>
+                        <select name="unidad" id="unidad" class="form-select">
+                            @foreach (\App\Models\Producto::UNIDADES as $k => $u)<option value="{{ $k }}" @selected(old('unidad', $producto->unidad ?: 'und') === $k)>{{ $u[0] }}{{ $k !== 'und' ? ' (' . $u[1] . ')' : '' }}</option>@endforeach
+                        </select>
+                        <small class="text-muted">El precio de venta es por cada unidad de medida.</small>
+                    </div>
+                    @endif
 
                     <!---Costo---->
                     <div class="col-md-6">

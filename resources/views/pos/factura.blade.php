@@ -58,7 +58,7 @@
         </div>
         @foreach ($venta->items as $i)
         <div class="it">
-            <div><b style="white-space:normal">{{ $i->descripcion }}</b><small>{{ trim(($i->talla ? 'Talla ' . $i->talla : '') . ($i->color ? ' · ' . $i->color : '')) }} — {{ $i->cantidad }} × {{ dinero($i->precio) }}</small></div>
+            <div><b style="white-space:normal">{{ $i->descripcion }}</b><small>{{ trim(($i->talla ? 'Talla ' . $i->talla : '') . ($i->color ? ' · ' . $i->color : '')) }} — {{ cantidad($i->cantidad) }} × {{ dinero($i->precio) }}</small></div>
             <b>{{ dinero($i->subtotal) }}</b>
         </div>
         @endforeach

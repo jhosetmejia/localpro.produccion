@@ -63,6 +63,15 @@
                     </div>
                     @error('precio_venta')<small class="text-danger">{{ $message }}</small>@enderror
                 </div>
+                @if (\App\Support\TiendaActual::tienda()?->mod_medida)
+                <div class="col-12">
+                    <label for="unidad" class="form-label">Se vende por</label>
+                    <select name="unidad" id="unidad" class="form-select form-select-lg">
+                        @foreach (\App\Models\Producto::UNIDADES as $k => $u)<option value="{{ $k }}" @selected(old('unidad', 'und') === $k)>{{ $u[0] }}{{ $k !== 'und' ? ' (' . $u[1] . ')' : '' }}</option>@endforeach
+                    </select>
+                    <small class="text-muted">El precio es por cada <b id="unTxt">unidad</b>. En la caja podrá vender medidas con decimales, ej. 1,5 m o 0,250 kg.</small>
+                </div>
+                @endif
                 <div class="col-12">
                     <label class="form-label">Foto <span class="text-muted fw-normal">(opcional)</span></label>
                     <label class="pf-foto" for="img_path">
@@ -115,8 +124,8 @@
 
             <div id="bloqueUnica" @if($moda) style="display:none" @endif>
                 @unless ($sinConteo)
-                <label for="cantidad_inicial" class="form-label">Cantidad disponible</label>
-                <input type="number" min="0" name="cantidad_inicial" id="cantidad_inicial" class="form-control form-control-lg fw-bold" style="max-width:220px" value="{{ old('cantidad_inicial', 0) }}" inputmode="numeric">
+                <label for="cantidad_inicial" class="form-label">Cantidad disponible <span id="cantUn" class="text-muted fw-normal"></span></label>
+                <input type="number" min="0" step="any" name="cantidad_inicial" id="cantidad_inicial" class="form-control form-control-lg fw-bold" style="max-width:220px" value="{{ old('cantidad_inicial', 0) }}" inputmode="decimal">
                 @else
                 <p class="text-muted mb-0"><i class="fa-solid fa-utensils me-1"></i> En su negocio no hace falta contar unidades: se vende sin límite. Puede cambiarlo en "Más opciones".</p>
                 @endunless
@@ -252,6 +261,20 @@
     f.addEventListener('input', function () { cambios = true; });
     f.addEventListener('submit', function () { cambios = false; });
     window.addEventListener('beforeunload', function (e) { if (cambios) { e.preventDefault(); e.returnValue = ''; } });
+})();
+</script>
+@endpush
+@push('js')
+<script>
+(function () {
+    var u = document.getElementById('unidad'); if (!u) return;
+    var U = @json(\App\Models\Producto::UNIDADES);
+    function pintar() {
+        var x = U[u.value] || U.und;
+        document.getElementById('unTxt').textContent = x[0].toLowerCase();
+        var c = document.getElementById('cantUn'); if (c) c.textContent = u.value === 'und' ? '' : '(en ' + x[2] + ')';
+    }
+    u.addEventListener('change', pintar); pintar();
 })();
 </script>
 @endpush

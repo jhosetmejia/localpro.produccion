@@ -40,7 +40,7 @@ class entradaController extends Controller
             'nota' => 'nullable|string|max:255',
             'items' => 'required|array|min:1|max:300',
             'items.*.variante_id' => 'required|integer',
-            'items.*.cantidad' => 'required|integer|min:1|max:100000',
+            'items.*.cantidad' => 'required|numeric|min:0.001|max:100000',
             'items.*.costo' => 'required|numeric|min:0|max:999999999',
         ], ['items.required' => 'Agregue al menos un producto a la entrada.']);
 
@@ -80,7 +80,7 @@ class entradaController extends Controller
                 // El último costo de compra queda como costo de esa talla/color
                 $v->update(['costo' => $i['costo']]);
                 if ($v->controla) {
-                    $v->moverStock((int) $i['cantidad'], 'entrada', $ref, !empty($datos['numero_factura']) ? 'Factura ' . $datos['numero_factura'] : null);
+                    $v->moverStock(round((float) $i['cantidad'], 3), 'entrada', $ref, !empty($datos['numero_factura']) ? 'Factura ' . $datos['numero_factura'] : null);
                 }
             }
             $entrada->update(['total' => $total]);

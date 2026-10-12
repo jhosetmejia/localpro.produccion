@@ -80,7 +80,8 @@ class ProductoController extends Controller
                 'fecha_vencimiento' => $request->fecha_vencimiento,
                 'img_path' => $name,
                 'marca_id' => $request->marca_id,
-                'presentacione_id' => $request->presentacione_id
+                'presentacione_id' => $request->presentacione_id,
+                'unidad' => \App\Support\TiendaActual::tienda()->mod_medida ? ($request->unidad ?: 'und') : 'und',
             ]);
 
             $producto->save();
@@ -118,7 +119,7 @@ class ProductoController extends Controller
             }
             if ($creadas === 0) {
                 $v = $producto->variantes()->create(['talla' => null, 'color' => null, 'stock' => 0]);
-                $cant = (int) $request->cantidad_inicial;
+                $cant = $producto->es_fraccion ? round((float) $request->cantidad_inicial, 3) : (int) $request->cantidad_inicial;
                 if ($cant > 0 && $controla) {
                     $v->moverStock($cant, 'entrada', null, 'Inventario inicial');
                     $total += $cant;
@@ -133,7 +134,7 @@ class ProductoController extends Controller
         }
 
         $msg = 'Producto "' . $producto->nombre . '" guardado y listo para vender'
-            . ($controla ? ' (' . $total . ' ' . ($total === 1 ? 'unidad' : 'unidades') . ')' : '') . '.';
+            . ($controla ? ' (' . ($producto->es_fraccion ? cantidad($total, $producto->unidad) : $total . ' ' . ($total == 1 ? 'unidad' : 'unidades')) . ')' : '') . '.';
         return redirect()->route('productos.index')->with('success', $msg);
     }
 
@@ -192,7 +193,8 @@ class ProductoController extends Controller
                 'fecha_vencimiento' => $request->fecha_vencimiento,
                 'img_path' => $name,
                 'marca_id' => $request->marca_id,
-                'presentacione_id' => $request->presentacione_id
+                'presentacione_id' => $request->presentacione_id,
+                'unidad' => \App\Support\TiendaActual::tienda()->mod_medida ? ($request->unidad ?: ($producto->unidad ?: 'und')) : ($producto->unidad ?: 'und'),
             ]);
 
             $producto->save();

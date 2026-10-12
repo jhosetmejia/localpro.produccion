@@ -77,7 +77,7 @@
                 </a>
                 <div class="b">
                     <a href="{{ $p['url'] }}"><h3>{{ $p['nombre'] }}</h3></a>
-                    <div class="pr">@if ($p['desde'])<small>Desde</small>@pesos($p['desde'])@else @pesos($p['precio'])@endif</div>
+                    <div class="pr">@if ($p['desde'])<small>Desde</small>@pesos($p['desde'])@else @pesos($p['precio'])@endif @if ($p['unidad'])<small>/ {{ $p['unidad'] }}</small>@endif</div>
                     @if ($p['disponible'])
                     <div class="bt">
                         @if (count($p['variantes']) > 1)

@@ -16,7 +16,7 @@
             <thead><tr><th>Producto</th><th class="text-end">Cantidad</th><th class="text-end">Costo c/u</th><th class="text-end">Subtotal</th></tr></thead>
             <tbody>
             @foreach ($entrada->items as $i)
-            <tr><td>{{ $i->descripcion }}</td><td class="text-end">{{ $i->cantidad }}</td><td class="text-end">@pesos($i->costo)</td><td class="text-end fw-bold">@pesos($i->subtotal)</td></tr>
+            <tr><td>{{ $i->descripcion }}</td><td class="text-end">{{ cantidad($i->cantidad) }}</td><td class="text-end">@pesos($i->costo)</td><td class="text-end fw-bold">@pesos($i->subtotal)</td></tr>
             @endforeach
             </tbody>
         </table>

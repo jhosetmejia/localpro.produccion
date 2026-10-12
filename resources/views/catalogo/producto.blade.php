@@ -82,7 +82,7 @@
         <div class="info">
             <h1>{{ $p['nombre'] }}</h1>
             @if ($p['codigo'])<div class="cod">Código: {{ $p['codigo'] }}</div>@endif
-            <div class="precio" id="ppPrecio">@if ($p['desde'])<small>Desde</small>@endif{{ $precioTxt }}</div>
+            <div class="precio" id="ppPrecio">@if ($p['desde'])<small>Desde</small>@endif{{ $precioTxt }}@if ($p['unidad'])<small> / {{ $p['unidad'] }}</small>@endif</div>
             <div class="disp {{ $p['disponible'] ? '' : 'no' }}">{{ $p['disponible'] ? '● Disponible' : '● Agotado por ahora' }}</div>
             @if ($p['descripcion'])<p class="desc">{{ $p['descripcion'] }}</p>@endif
 

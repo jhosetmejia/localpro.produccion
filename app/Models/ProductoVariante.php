@@ -13,7 +13,7 @@ class ProductoVariante extends Model
 
     protected $fillable = ['producto_id', 'talla', 'color', 'codigo_barras', 'stock', 'precio', 'costo', 'estado'];
 
-    protected $casts = ['stock' => 'integer', 'precio' => 'decimal:2', 'costo' => 'decimal:2'];
+    protected $casts = ['stock' => 'float', 'precio' => 'decimal:2', 'costo' => 'decimal:2'];
 
     public function producto()
     {
@@ -51,10 +51,10 @@ class ProductoVariante extends Model
     /**
      * Suma o resta stock y deja el movimiento registrado. Llamar dentro de una transacción.
      */
-    public function moverStock(int $cantidad, string $tipo, ?string $referencia = null, ?string $nota = null): void
+    public function moverStock(float $cantidad, string $tipo, ?string $referencia = null, ?string $nota = null): void
     {
         $fila = static::whereKey($this->id)->lockForUpdate()->first();
-        $nuevo = $fila->stock + $cantidad;
+        $nuevo = round((float) $fila->stock + $cantidad, 3);
         $fila->update(['stock' => $nuevo]);
         $this->stock = $nuevo;
 

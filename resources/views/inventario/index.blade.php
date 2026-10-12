@@ -42,7 +42,7 @@
                         <td class="fw-bold">{{ $v->talla ?? '—' }}</td>
                         <td>{{ $v->color ?? '—' }}</td>
                         <td>@pesos($v->precio ?? $v->producto->precio_venta)</td>
-                        <td><span class="badge {{ $v->stock <= 0 ? 'bg-danger' : ($v->stock <= 5 ? 'bg-warning text-dark' : 'bg-success') }} fs-6">{{ $v->stock }}</span></td>
+                        <td><span class="badge {{ $v->stock <= 0 ? 'bg-danger' : ($v->stock <= 5 ? 'bg-warning text-dark' : 'bg-success') }} fs-6">{{ cantidad($v->stock) }}</span></td>
                         <td class="text-end"><a href="{{ route('productos.variantes', $v->producto_id) }}" class="btn btn-sm btn-dark">Gestionar</a></td>
                     </tr>
                 @empty

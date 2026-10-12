@@ -23,7 +23,7 @@
             @forelse ($ventas as $v)
             <li>
                 <div class="av"><i class="fa-solid fa-receipt"></i></div>
-                <div class="t"><b>{{ $v->numero }} · {{ $v->created_at->format('d/m/Y') }}</b><small>{{ $v->items->map(fn ($i) => $i->cantidad . '× ' . $i->descripcion . ($i->talla ? ' ' . $i->talla : ''))->implode(', ') }}</small></div>
+                <div class="t"><b>{{ $v->numero }} · {{ $v->created_at->format('d/m/Y') }}</b><small>{{ $v->items->map(fn ($i) => cantidad($i->cantidad) . '× ' . $i->descripcion . ($i->talla ? ' ' . $i->talla : ''))->implode(', ') }}</small></div>
                 @if ($v->estado === 'anulada')<span class="lp-pill">Anulada</span>@endif
                 <span class="m">@pesos($v->total)</span>
                 <a href="{{ route('pos.ticket', $v) }}" target="_blank" class="btn btn-sm btn-dark"><i class="fa-solid fa-receipt"></i></a>

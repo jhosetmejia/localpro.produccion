@@ -18,7 +18,7 @@
                         <td class="text-nowrap">{{ $m->created_at->format('d/m/Y h:i a') }}</td>
                         <td><b>{{ $m->variante?->producto?->nombre ?? '—' }}</b> <small class="text-muted">{{ $m->variante?->etiqueta }}</small></td>
                         <td><span class="badge {{ $tipos[$m->tipo][1] ?? 'bg-secondary' }}">{{ $tipos[$m->tipo][0] ?? $m->tipo }}</span></td>
-                        <td class="fw-bold {{ $m->cantidad < 0 ? 'text-danger' : 'text-success' }}">{{ $m->cantidad > 0 ? '+' : '' }}{{ $m->cantidad }}</td>
+                        <td class="fw-bold {{ $m->cantidad < 0 ? 'text-danger' : 'text-success' }}">{{ $m->cantidad > 0 ? '+' : '' }}{{ cantidad($m->cantidad) }}</td>
                         <td>{{ $m->stock_resultante }}</td>
                         <td>{{ $m->user?->name ?? '—' }}</td>
                         <td><small>{{ $m->referencia }} {{ $m->nota }}</small></td>

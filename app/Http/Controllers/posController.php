@@ -41,7 +41,7 @@ class posController extends Controller
         $q = trim((string) $request->get('q'));
 
         $variantes = ProductoVariante::query()
-            ->with('producto:id,nombre,codigo,precio_venta,precio_costo,img_path,controla_inventario')
+            ->with('producto:id,nombre,codigo,precio_venta,precio_costo,img_path,controla_inventario,unidad')
             ->where('estado', 1)
             ->whereHas('producto', fn ($p) => $p->where('estado', 1))
             ->when($q !== '', function ($w) use ($q) {
@@ -66,14 +66,18 @@ class posController extends Controller
                 'codigo' => $p->codigo,
                 'precio' => (float) $p->precio_venta,
                 'img' => $p->img_path ? asset('storage/productos/' . $p->img_path) : null,
-                'stock' => (int) $grupo->sum('stock'),
+                'stock' => round((float) $grupo->sum('stock'), 3),
                 'controla' => (bool) $p->controla_inventario,
+                'unidad' => $p->unidad ?: 'und',
+                'unidad_txt' => $p->unidad_corta,
+                'unidad_pl' => \App\Models\Producto::UNIDADES[$p->unidad ?: 'und'][2] ?? 'unidades',
+                'fraccion' => $p->es_fraccion,
                 'variantes' => $grupo->sortBy(['talla', 'color'])->values()->map(fn ($v) => [
                     'id' => $v->id,
                     'talla' => $v->talla,
                     'color' => $v->color,
                     'etiqueta' => $v->etiqueta,
-                    'stock' => (int) $v->stock,
+                    'stock' => round((float) $v->stock, 3),
                     'precio' => $v->precio_final,
                     'codigo_barras' => $v->codigo_barras,
                     'costo' => $verCosto ? $v->costo_final : null,
@@ -100,7 +104,7 @@ class posController extends Controller
         $datos = $request->validate([
             'items' => 'required|array|min:1|max:200',
             'items.*.variante_id' => 'required|integer|exists:producto_variantes,id',
-            'items.*.cantidad' => 'required|integer|min:1|max:1000',
+            'items.*.cantidad' => 'required|numeric|min:0.001|max:100000',
             'descuento' => 'nullable|numeric|min:0|max:999999999',
             'pagos' => 'required|array|min:1|max:6',
             'pagos.*.metodo_id' => 'required|integer|exists:metodos_pago,id',
@@ -124,19 +128,23 @@ class posController extends Controller
         $venta = DB::transaction(function () use ($datos, $caja) {
             // Bloquea las tallas/colores vendidos para que dos cajas no vendan la misma unidad
             $ids = collect($datos['items'])->pluck('variante_id')->unique();
-            $variantes = ProductoVariante::with('producto:id,nombre,precio_venta,precio_costo,controla_inventario')
+            $variantes = ProductoVariante::with('producto:id,nombre,precio_venta,precio_costo,controla_inventario,unidad')
                 ->whereIn('id', $ids)->lockForUpdate()->get()->keyBy('id');
 
             if ($variantes->count() !== $ids->count()) {
                 throw ValidationException::withMessages(['items' => 'Algún producto ya no está disponible. Recargue el POS.']);
             }
 
-            $pedidas = collect($datos['items'])->groupBy('variante_id')->map->sum('cantidad');
+            $pedidas = collect($datos['items'])->groupBy('variante_id')->map(fn ($g) => round($g->sum(fn ($i) => (float) $i['cantidad']), 3));
             foreach ($pedidas as $id => $cant) {
                 $v = $variantes[$id];
-                if ($v->controla && $v->stock < $cant) {
+                // Lo que se vende por unidad va en números enteros; por metro/kilo/litro acepta decimales
+                if (!$v->producto->es_fraccion && floor($cant) != $cant) {
+                    throw ValidationException::withMessages(['items' => "{$v->producto->nombre} se vende por unidades enteras."]);
+                }
+                if ($v->controla && (float) $v->stock + 0.0005 < $cant) {
                     throw ValidationException::withMessages([
-                        'items' => "No hay suficiente {$v->producto->nombre} ({$v->etiqueta}). Disponibles: {$v->stock}.",
+                        'items' => "No hay suficiente {$v->producto->nombre} ({$v->etiqueta}). Disponibles: " . cantidad($v->stock, $v->producto->unidad ?: 'und') . '.',
                     ]);
                 }
             }
@@ -225,7 +233,7 @@ class posController extends Controller
                     'subtotal' => round($i['cantidad'] * $i['precio'], 2),
                 ]);
                 if ($v->controla) {
-                    $v->moverStock(-(int) $i['cantidad'], 'venta', $venta->numero);
+                    $v->moverStock(-round((float) $i['cantidad'], 3), 'venta', $venta->numero);
                 }
             }
 
@@ -376,7 +384,7 @@ class posController extends Controller
             abort_if(\App\Models\Devolucion::where('pos_venta_id', $venta->id)->exists(), 422, 'Esta venta tiene devoluciones; no se puede anular.');
             foreach ($venta->items as $item) {
                 if ($item->variante && $item->variante->controla) {
-                    $item->variante->moverStock((int) $item->cantidad, 'anulacion', $venta->numero);
+                    $item->variante->moverStock((float) $item->cantidad, 'anulacion', $venta->numero);
                 }
             }
             $venta->update(['estado' => 'anulada', 'anulada_en' => now(), 'anulada_por' => Auth::id()]);

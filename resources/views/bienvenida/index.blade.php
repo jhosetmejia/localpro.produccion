@@ -32,6 +32,18 @@
         .tipo label small{color:var(--muted);font-size:.76rem;line-height:1.3}
         .tipo input:checked+label{border-color:var(--green);background:var(--soft);box-shadow:0 0 0 4px rgba(47,209,90,.15)}
         .tipo input:focus-visible+label{outline:3px solid var(--green)}
+        .mods{display:flex;flex-direction:column;gap:8px;margin-bottom:1.2rem}
+        .mod{display:block;cursor:pointer;margin:0}
+        .mod input[type=checkbox]{position:absolute;opacity:0;pointer-events:none}
+        .mod-c{display:flex;gap:12px;align-items:center;border:2px solid var(--line);border-radius:16px;padding:12px 14px;background:#fff;transition:all .15s}
+        .mod-c > i{font-size:1.2rem;color:var(--green-2);width:26px;text-align:center;flex:none}
+        .mod-c > span{flex:1;min-width:0}.mod-c b{display:block;font-size:.95rem}.mod-c small{color:var(--muted);font-size:.78rem;line-height:1.3}
+        .mod-sw{width:44px;height:26px;border-radius:999px;background:#dfe6e2;position:relative;flex:none;transition:background .15s}
+        .mod-sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);transition:left .15s}
+        .mod input:checked + .mod-c{border-color:var(--green);background:var(--soft)}
+        .mod input:checked + .mod-c .mod-sw{background:var(--green-2)}
+        .mod input:checked + .mod-c .mod-sw::after{left:21px}
+        .mod input:focus-visible + .mod-c{outline:3px solid var(--green)}
         .field label{display:block;font-size:.85rem;font-weight:800;margin-bottom:.4rem}
         .in{width:100%;padding:.85rem 1rem;border-radius:14px;border:2px solid var(--line);background:#fafdfb;font:inherit;font-weight:600;color:var(--ink)}
         .in:focus{outline:none;border-color:var(--green);background:#fff;box-shadow:0 0 0 5px rgba(47,209,90,.15)}
@@ -102,6 +114,21 @@
                 @endforeach
             </div>
 
+            <div class="mods" id="mods">
+                <div class="field" style="margin-bottom:.4rem"><label>¿Qué necesita su negocio? <span style="color:var(--muted);font-weight:600">(lo marcamos según su tipo; puede cambiarlo cuando quiera)</span></label></div>
+                @foreach ([
+                    'mod_medida' => ['fa-ruler-combined', 'Vendo por metro, kilo o litro', 'Ej: vidrio, telas, cables, carnes, granos. En la caja se venden medidas como 1,5 m o 0,250 kg.'],
+                    'mod_vencimiento' => ['fa-calendar-xmark', 'Mis productos tienen fecha de vencimiento', 'Ej: droguería, alimentos, cosméticos. Le avisamos lo que está por vencer.'],
+                    'mod_recetas' => ['fa-bowl-food', 'Preparo productos con insumos (recetas)', 'Ej: restaurante, panadería. Al vender se descuentan los ingredientes.'],
+                ] as $k => [$ic, $tit, $txt])
+                <label class="mod">
+                    <input type="hidden" name="{{ $k }}" value="0">
+                    <input type="checkbox" name="{{ $k }}" value="1" data-mod="{{ $k }}" @checked(old($k, $tienda->$k))>
+                    <span class="mod-c"><i class="fa-solid {{ $ic }}"></i><span><b>{{ $tit }}</b><small>{{ $txt }}</small></span><em class="mod-sw"></em></span>
+                </label>
+                @endforeach
+            </div>
+
             <div class="field" style="margin-bottom:1.1rem">
                 <label>¿Qué vende exactamente? <span style="color:var(--muted);font-weight:600">(opcional)</span></label>
                 <input class="in" name="descripcion" value="{{ old('descripcion', $tienda->descripcion) }}" placeholder="Ej: Ropa urbana para hombre y mujer" maxlength="120">
@@ -122,6 +149,22 @@
             </div>
             <div class="acts"><span></span><button class="btn btn-ink">Continuar · Productos <i class="fa-solid fa-arrow-right"></i></button></div>
         </form>
+        <script>
+        (function () {
+            var MAP = @json(\App\Models\Tienda::MODULOS_POR_TIPO), tocados = {};
+            var mods = document.getElementById('mods'); if (!mods) return;
+            mods.addEventListener('change', function (e) { if (e.target.dataset.mod) tocados[e.target.dataset.mod] = true; });
+            function aplicar(tipo) {
+                mods.style.display = tipo === 'conjunto' ? 'none' : '';
+                var on = MAP[tipo] || [];
+                mods.querySelectorAll('[data-mod]').forEach(function (c) { if (!tocados[c.dataset.mod]) c.checked = on.indexOf(c.dataset.mod) !== -1; });
+            }
+            document.querySelectorAll('input[name=tipo_negocio]').forEach(function (r) { r.addEventListener('change', function () { aplicar(r.value); }); });
+            var marcado = document.querySelector('input[name=tipo_negocio]:checked');
+            if (marcado && {{ ($tienda->mod_medida || $tienda->mod_vencimiento || $tienda->mod_recetas || old('mod_medida') !== null) ? 'false' : 'true' }}) aplicar(marcado.value);
+            else if (marcado) mods.style.display = marcado.value === 'conjunto' ? 'none' : '';
+        })();
+        </script>
         @endif
 
         {{-- ===== PASO 3: PRODUCTOS ===== --}}

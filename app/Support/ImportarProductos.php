@@ -232,9 +232,9 @@ class ImportarProductos
 
                         $cant = self::numero($x['cantidad'] ?? null);
                         if ($cant !== null && $producto->controla_inventario) {
-                            $cant = (int) round(max(0, $cant));
-                            $delta = $cant - (int) $v->stock;
-                            if ($delta !== 0) $v->moverStock($delta, $nuevo || $v->wasRecentlyCreated ? 'entrada' : 'ajuste', null, 'Importación desde Excel');
+                            $cant = $producto->es_fraccion ? round(max(0, $cant), 3) : (int) round(max(0, $cant));
+                            $delta = round($cant - (float) $v->stock, 3);
+                            if (abs($delta) > 0.0005) $v->moverStock($delta, $nuevo || $v->wasRecentlyCreated ? 'entrada' : 'ajuste', null, 'Importación desde Excel');
                             $res['unidades'] += $cant;
                         }
                     }

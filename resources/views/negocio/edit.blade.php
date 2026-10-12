@@ -76,6 +76,18 @@
             <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="cliente_obligatorio" value="1" id="cliObl" @checked(old('cliente_obligatorio', $negocio->cliente_obligatorio))><label class="form-check-label fw-bold" for="cliObl">Pedir siempre el cliente para cobrar</label></div>
             <small class="text-muted d-block mt-1">Apagado: se puede vender como "consumidor final" (la caja recuerda poner el cliente). Encendido: no deja cobrar sin elegir o crear el cliente.</small>
         </div>
+        <div class="lp-box mt-3">
+            <h3>Módulos de su negocio</h3>
+            @foreach ([
+                'mod_medida' => ['Vender por metro, kilo o litro', 'En cada producto elige cómo se vende y en la caja vende medidas con decimales (1,5 m · 0,250 kg).', false],
+                'mod_vencimiento' => ['Fechas de vencimiento', 'Lotes con fecha de vencimiento y alertas de lo que está por vencer.', true],
+                'mod_recetas' => ['Recetas e insumos', 'Al vender se descuentan los ingredientes de cada receta.', true],
+            ] as $k => [$tit, $txt, $pronto])
+            <input type="hidden" name="{{ $k }}" value="0">
+            <div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" name="{{ $k }}" value="1" id="{{ $k }}" @checked(old($k, $negocio->$k))><label class="form-check-label fw-bold" for="{{ $k }}">{{ $tit }}@if ($pronto) <span class="badge rounded-pill" style="background:#fef3c7;color:#92600a;font-size:.65rem">Muy pronto</span>@endif</label>
+                <small class="text-muted d-block">{{ $txt }}</small></div>
+            @endforeach
+        </div>
         <div class="lp-box text-center">
             <h3>Logo</h3>
             <div style="width:160px;height:160px;margin:0 auto 1rem;border-radius:24px;border:2px dashed var(--lp-line);display:grid;place-items:center;overflow:hidden;background:#fafdfb">

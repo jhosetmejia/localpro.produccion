@@ -30,7 +30,7 @@
     <table>
         @foreach ($dev->items as $i)
         <tr><td colspan="2" class="b">{{ $i->ventaItem->descripcion ?? '' }}</td></tr>
-        <tr><td>{{ trim(($i->ventaItem->talla ? 'T:' . $i->ventaItem->talla : '') . ' ' . ($i->ventaItem->color ?? '')) }} &nbsp; {{ $i->cantidad }} und</td><td class="r">{{ dinero($i->subtotal, false) }}</td></tr>
+        <tr><td>{{ trim(($i->ventaItem->talla ? 'T:' . $i->ventaItem->talla : '') . ' ' . ($i->ventaItem->color ?? '')) }} &nbsp; {{ cantidad($i->cantidad) }} und</td><td class="r">{{ dinero($i->subtotal, false) }}</td></tr>
         @endforeach
     </table>
     <hr>

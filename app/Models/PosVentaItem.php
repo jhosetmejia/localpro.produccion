@@ -10,6 +10,8 @@ class PosVentaItem extends Model
 
     protected $fillable = ['pos_venta_id', 'producto_variante_id', 'descripcion', 'talla', 'color', 'cantidad', 'precio', 'costo', 'subtotal'];
 
+    protected $casts = ['cantidad' => 'float'];
+
     public function variante()
     {
         return $this->belongsTo(ProductoVariante::class, 'producto_variante_id');

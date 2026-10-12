@@ -140,7 +140,7 @@
                 <li>
                     <div class="av"><i class="fa-solid fa-shirt"></i></div>
                     <div class="t"><b>{{ $v->producto->nombre ?? '' }}</b><small>{{ $v->etiqueta }}</small></div>
-                    <span class="lp-pill {{ $v->stock > 0 ? 'warn' : '' }}">{{ $v->stock > 0 ? $v->stock . ' und' : 'Agotado' }}</span>
+                    <span class="lp-pill {{ $v->stock > 0 ? 'warn' : '' }}">{{ $v->stock > 0 ? cantidad($v->stock) . ' ' . ($v->producto?->unidad_corta ?? 'und') : 'Agotado' }}</span>
                 </li>
                 @empty
                 <li class="lp-empty"><i class="fa-solid fa-circle-check me-1" style="color:#2fd15a"></i>Todo el inventario está bien surtido.</li>

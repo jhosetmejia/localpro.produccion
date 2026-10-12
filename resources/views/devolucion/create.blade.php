@@ -21,9 +21,9 @@
                     @php $max = $i->cantidad - ($devuelto[$i->id] ?? 0); @endphp
                     <tr class="{{ $max <= 0 ? 'opacity-50' : '' }}">
                         <td><b>{{ $i->descripcion }}</b><br><small class="text-muted">{{ trim(($i->talla ? 'Talla ' . $i->talla : '') . ($i->color ? ' · ' . $i->color : '')) }}</small></td>
-                        <td class="text-end">{{ $i->cantidad }}@if(($devuelto[$i->id] ?? 0) > 0)<br><small class="text-danger">ya devolvió {{ $devuelto[$i->id] }}</small>@endif</td>
+                        <td class="text-end">{{ cantidad($i->cantidad) }}@if(($devuelto[$i->id] ?? 0) > 0)<br><small class="text-danger">ya devolvió {{ $devuelto[$i->id] }}</small>@endif</td>
                         <td class="text-end">@pesos($i->precio)</td>
-                        <td><input type="number" class="form-control dv" name="cantidades[{{ $i->id }}]" min="0" max="{{ max(0, $max) }}" value="0" data-p="{{ (float) $i->precio }}" @disabled($max <= 0)></td>
+                        <td><input type="number" class="form-control dv" name="cantidades[{{ $i->id }}]" min="0" step="any" max="{{ max(0, $max) }}" value="0" data-p="{{ (float) $i->precio }}" @disabled($max <= 0)></td>
                     </tr>
                 @endforeach
                 </tbody>

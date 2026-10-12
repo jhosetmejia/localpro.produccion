@@ -36,7 +36,7 @@
         @foreach ($venta->items as $i)
         <tr><td colspan="2" class="b">{{ $i->descripcion }}</td></tr>
         <tr>
-            <td>{{ trim(($i->talla ? 'T:' . $i->talla : '') . ' ' . ($i->color ?? '')) }} &nbsp; {{ $i->cantidad }} x {{ dinero($i->precio, false) }}</td>
+            <td>{{ trim(($i->talla ? 'T:' . $i->talla : '') . ' ' . ($i->color ?? '')) }} &nbsp; {{ cantidad($i->cantidad) }} x {{ dinero($i->precio, false) }}</td>
             <td class="r">{{ dinero($i->subtotal, false) }}</td>
         </tr>
         @endforeach
