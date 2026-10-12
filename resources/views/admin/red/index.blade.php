@@ -8,7 +8,7 @@
     <div class="lp-hello">
         <div><small><i class="fa-solid fa-crown me-1"></i>Administrador LocalPro</small><h1>Red <span>comercial</span></h1>
             <span class="text-muted fw-semibold">País → departamento → ciudad → zona (comuna) → asesores → negocios</span></div>
-        <div class="lp-quick"><button type="button" class="mr-btn" data-ver-red><span class="mr-pulso"></span> Ver mi red</button><a href="{{ route('admin.red.comisiones') }}" class="btn btn-dark btn-lg"><i class="fa-solid fa-coins me-1"></i>Comisiones</a></div>
+        <div class="lp-quick"><button type="button" class="mr-btn" data-ver-red><span class="mr-pulso"></span> Ver mi red</button><a href="{{ route('admin.red.comisiones') }}" class="btn btn-dark btn-lg"><i class="fa-solid fa-coins me-1"></i>Comisiones</a><a href="{{ route('curso.index') }}" class="btn btn-success btn-lg"><i class="fa-solid fa-graduation-cap me-1"></i>Ver el curso</a></div>
     </div>
     @include('layouts.partials.lp-flash')
 
@@ -45,9 +45,9 @@
     </div>
     @endif
 
-    @if ($enCurso->isNotEmpty())
+    @if ($enCurso->isNotEmpty() || $sinCurso)
     <div class="lp-box mb-3">
-        <h3><span><i class="fa-solid fa-graduation-cap me-1"></i> Haciendo el curso de asesores ({{ $enCurso->count() }})</span><small class="text-muted">{{ $certificados }} certificados entregados · al aprobar quedan activos solos</small></h3>
+        <h3><span><i class="fa-solid fa-graduation-cap me-1"></i> Haciendo el curso de asesores ({{ $enCurso->count() }})</span><small class="text-muted">{{ $certificados }} certificados entregados · {{ $sinCurso }} activos aún sin certificado (no entran a su panel hasta aprobar)</small></h3>
         <ul class="lp-list">
             @foreach ($enCurso as $p)
             <li><div class="av"><i class="fa-solid fa-book-open"></i></div><div class="t"><b>{{ $p->nombre }}</b><small>Invitado por {{ $p->reclutador->nombre ?? '—' }} · lecciones {{ count($p->curso_modulos ?? []) }}/4{{ $p->curso_nota !== null ? ' · mejor nota ' . $p->curso_nota . '%' : '' }} · {{ $p->ciudad }} · {{ $p->created_at->locale('es')->diffForHumans() }}</small></div>

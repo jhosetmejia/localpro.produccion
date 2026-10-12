@@ -14,6 +14,9 @@ class Asesor extends Model
 
     protected $casts = ['activo' => 'boolean', 'aprobado_at' => 'datetime', 'curso_modulos' => 'array', 'curso_aprobado_at' => 'datetime'];
 
+    // Solo en memoria: el administrador recorriendo el curso en modo vista (nunca se guarda)
+    public bool $vistaAdmin = false;
+
     public const CARGOS = [
         'lider_pais' => ['Líder de país', 'fa-earth-americas', 5],
         'lider_departamento' => ['Líder de departamento', 'fa-flag', 4],

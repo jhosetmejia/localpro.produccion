@@ -52,6 +52,7 @@ class adminRedController extends Controller
             'pendientes' => Asesor::with(['user:id,name', 'reclutador.user:id,name'])->where('estado', 'pendiente')->latest()->get(),
             'enCurso' => Asesor::with(['user:id,name,telefono', 'reclutador.user:id,name'])->where('estado', 'capacitacion')->latest()->get(),
             'certificados' => Asesor::whereNotNull('curso_aprobado_at')->count(),
+            'sinCurso' => Asesor::where('activo', true)->where('estado', 'activo')->whereNull('curso_aprobado_at')->count(),
         ]);
     }
 

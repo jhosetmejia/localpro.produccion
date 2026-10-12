@@ -8,12 +8,55 @@ use App\Support\RedComercial;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-// Curso básico del aspirante a asesor: lecciones → examen fácil → certificado → queda como asesor activo
+// Curso básico obligatorio para toda la red: lecciones → examen fácil → certificado.
+// Aspirante nuevo: al aprobar queda como asesor activo. Asesor que ya estaba activo: al aprobar vuelve a su panel.
+// Administrador: lo recorre completo en modo vista (no se guarda en la base y el certificado es de muestra).
 class cursoController extends Controller
 {
     private function yo(): ?Asesor
     {
-        return auth()->user()?->asesor;
+        $u = auth()->user();
+        if ($u?->asesor) {
+            return $u->asesor;
+        }
+        if ($u?->es_superadmin) {
+            $a = new Asesor([
+                'estado' => 'activo',
+                'curso_modulos' => session('curso_admin.modulos', []),
+                'curso_nota' => session('curso_admin.nota'),
+                'curso_aprobado_at' => session('curso_admin.aprobado'),
+                'certificado' => 'CERT-MUESTRA',
+            ]);
+            $a->setRelation('user', $u);
+            $a->setRelation('reclutador', null);
+            $a->vistaAdmin = true;
+            return $a;
+        }
+        return null;
+    }
+
+    private function esAdmin(Asesor $a): bool
+    {
+        return !empty($a->vistaAdmin);
+    }
+
+    private function panel(Asesor $a): string
+    {
+        return $this->esAdmin($a) ? route('admin.red.index') : route('asesor.index');
+    }
+
+    // Guarda el avance: en la base para la red, en la sesión para el administrador
+    private function guardar(Asesor $a, array $datos): void
+    {
+        if ($this->esAdmin($a)) {
+            $mapa = ['curso_modulos' => 'modulos', 'curso_nota' => 'nota', 'curso_aprobado_at' => 'aprobado'];
+            foreach ($datos as $k => $v) {
+                if (isset($mapa[$k])) session()->put('curso_admin.' . $mapa[$k], $v);
+            }
+            $a->forceFill($datos);
+            return;
+        }
+        $a->update($datos);
     }
 
     private function hechas(Asesor $a): array
@@ -21,20 +64,32 @@ class cursoController extends Controller
         return array_map('intval', $a->curso_modulos ?? []);
     }
 
+    private function comunes(Asesor $a): array
+    {
+        return ['yo' => $a, 'admin' => $this->esAdmin($a), 'panel' => $this->panel($a)];
+    }
+
     public function index()
     {
         $a = $this->yo();
         if (!$a) return redirect()->route('panel');
-        $a->load('reclutador.user:id,name');
+        if (!$this->esAdmin($a)) $a->load('reclutador.user:id,name');
 
-        return view('curso.index', [
-            'yo' => $a,
+        return view('curso.index', $this->comunes($a) + [
             'lecciones' => CursoAsesor::lecciones(),
             'hechas' => $this->hechas($a),
-            'intentos' => DB::table('asesor_examenes')->where('asesor_id', $a->id)->count(),
+            'intentos' => $a->id ? DB::table('asesor_examenes')->where('asesor_id', $a->id)->count() : (int) session('curso_admin.intentos', 0),
             'minima' => CursoAsesor::notaMinima(),
             'preguntas' => CursoAsesor::cantidadPreguntas(),
         ]);
+    }
+
+    // Solo para el administrador: borrar su avance de muestra y empezar de nuevo
+    public function reiniciar()
+    {
+        abort_unless(auth()->user()?->es_superadmin, 403);
+        session()->forget('curso_admin');
+        return redirect()->route('curso.index');
     }
 
     public function leccion(int $n)
@@ -49,8 +104,8 @@ class cursoController extends Controller
             return redirect()->route('curso.leccion', $n - 1);
         }
 
-        return view('curso.leccion', [
-            'yo' => $a, 'n' => $n, 'l' => $lecciones[$n], 'total' => count($lecciones), 'hechas' => $hechas,
+        return view('curso.leccion', $this->comunes($a) + [
+            'n' => $n, 'l' => $lecciones[$n], 'total' => count($lecciones), 'hechas' => $hechas,
         ]);
     }
 
@@ -66,7 +121,7 @@ class cursoController extends Controller
         if (!in_array($n, $hechas, true)) {
             $hechas[] = $n;
             sort($hechas);
-            $a->update(['curso_modulos' => $hechas]);
+            $this->guardar($a, ['curso_modulos' => $hechas]);
         }
         return isset($lecciones[$n + 1])
             ? redirect()->route('curso.leccion', $n + 1)
@@ -86,8 +141,7 @@ class cursoController extends Controller
         $request->session()->put('curso_examen', $ids);
         $banco = CursoAsesor::preguntas();
 
-        return view('curso.examen', [
-            'yo' => $a,
+        return view('curso.examen', $this->comunes($a) + [
             'preguntas' => array_map(fn ($id) => ['id' => $id] + array_combine(['p', 'o', 'c'], $banco[$id]), $ids),
             'minima' => CursoAsesor::notaMinima(),
         ]);
@@ -116,11 +170,15 @@ class cursoController extends Controller
         $nota = (int) round($correctas / max(1, $total) * 100);
         $aprobado = $nota >= CursoAsesor::notaMinima();
 
-        DB::table('asesor_examenes')->insert([
-            'asesor_id' => $a->id, 'nota' => $nota, 'correctas' => $correctas, 'total' => $total,
-            'aprobado' => $aprobado, 'respuestas' => json_encode($detalle), 'created_at' => now(), 'updated_at' => now(),
-        ]);
-        $a->update(['curso_nota' => max((int) $a->curso_nota, $nota)]);
+        if ($this->esAdmin($a)) {
+            session()->put('curso_admin.intentos', (int) session('curso_admin.intentos', 0) + 1);
+        } else {
+            DB::table('asesor_examenes')->insert([
+                'asesor_id' => $a->id, 'nota' => $nota, 'correctas' => $correctas, 'total' => $total,
+                'aprobado' => $aprobado, 'respuestas' => json_encode($detalle), 'created_at' => now(), 'updated_at' => now(),
+            ]);
+        }
+        $this->guardar($a, ['curso_nota' => max((int) $a->curso_nota, $nota)]);
 
         if (!$aprobado) {
             return redirect()->route('curso.index')->with('resultado', [
@@ -129,10 +187,15 @@ class cursoController extends Controller
             ]);
         }
 
+        if ($this->esAdmin($a)) {
+            $this->guardar($a, ['curso_aprobado_at' => now()]);
+            return redirect()->route('curso.certificado')->with('felicitar', true);
+        }
+
         DB::transaction(function () use ($a, $nota) {
             $a->refresh();
             $datos = ['curso_aprobado_at' => now(), 'certificado' => $a->certificado ?: self::nuevoCertificado()];
-            // Si venía como aspirante, queda como asesor activo de una vez (quien lo invitó puede desactivarlo después)
+            // Aspirante: queda como asesor activo de una vez (quien lo invitó puede desactivarlo después)
             if (in_array($a->estado, ['capacitacion', 'pendiente'], true)) {
                 $invita = $a->reclutador;
                 $datos += [
@@ -141,7 +204,7 @@ class cursoController extends Controller
                 ];
             }
             $a->update($datos);
-            RedComercial::historial($a, 'aprobado', 'Aprobó el curso de asesores con ' . $nota . '% · certificado ' . $a->certificado);
+            RedComercial::historial($a, 'curso', 'Aprobó el curso de asesores con ' . $nota . '% · certificado ' . $a->certificado);
         });
 
         return redirect()->route('curso.certificado')->with('felicitar', true);
@@ -152,7 +215,8 @@ class cursoController extends Controller
         $a = $this->yo();
         if (!$a) return redirect()->route('panel');
         if (!$a->curso_aprobado_at) return redirect()->route('curso.index');
-        return view('curso.certificado', ['a' => $a->load('user'), 'propio' => true, 'felicitar' => session('felicitar')]);
+        if (!$this->esAdmin($a)) $a->load('user');
+        return view('curso.certificado', $this->comunes($a) + ['a' => $a, 'propio' => true, 'felicitar' => session('felicitar')]);
     }
 
     // Verificación pública del certificado (para quien lo vea en una hoja de vida)
@@ -160,7 +224,7 @@ class cursoController extends Controller
     {
         $a = Asesor::with('user')->where('certificado', strtoupper($codigo))->whereNotNull('curso_aprobado_at')->first();
         abort_unless($a, 404, 'Este certificado no existe.');
-        return view('curso.certificado', ['a' => $a, 'propio' => false, 'felicitar' => false]);
+        return view('curso.certificado', ['a' => $a, 'propio' => false, 'felicitar' => false, 'admin' => false, 'panel' => url('/')]);
     }
 
     private static function nuevoCertificado(): string

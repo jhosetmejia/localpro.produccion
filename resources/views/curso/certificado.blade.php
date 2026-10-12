@@ -100,7 +100,7 @@
         <button class="btn btn-g" onclick="window.print()"><i class="fa-solid fa-file-arrow-down"></i> Descargar en PDF</button>
         <a class="btn btn-l" target="_blank" href="{{ $linkedin }}"><i class="fa-brands fa-linkedin"></i> Agregar a LinkedIn</a>
         <a class="btn btn-w" target="_blank" href="https://wa.me/?text={{ rawurlencode('¡Me certifiqué como Asesor Comercial LocalPro! 🎉 ' . $verificar) }}"><i class="fa-brands fa-whatsapp"></i> Compartir</a>
-        <a class="btn btn-k" href="{{ route('asesor.index') }}"><i class="fa-solid fa-gauge"></i> Ir a mi panel</a>
+        <a class="btn btn-k" href="{{ $panel }}"><i class="fa-solid fa-gauge"></i> Ir a mi panel</a>
     </div>
     <p class="no-print" style="text-align:center;color:var(--mut);font-weight:600;font-size:.85rem;margin-top:12px">Para el PDF: en la ventana de impresión elija "Guardar como PDF". Cualquiera puede verificar su certificado con el código <b>{{ $a->certificado }}</b>.</p>
     @endif

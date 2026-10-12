@@ -26,6 +26,9 @@
     @if (session('bienvenida'))
         <div class="msg ok"><i class="fa-solid fa-circle-check"></i> ¡Tu inscripción quedó lista{{ $yo->reclutador ? ' en el equipo de ' . $yo->reclutador->nombre : '' }}! Empecemos.</div>
     @endif
+    @if (!$admin && $yo->estado === 'activo' && !$yo->curso_aprobado_at)
+        <div class="msg mal"><i class="fa-solid fa-circle-info"></i> LocalPro ahora certifica a toda su red. Haga este curso corto para seguir usando su panel: no pierde su cargo, su equipo ni sus comisiones.</div>
+    @endif
     @if (session('error'))<div class="msg mal">{{ session('error') }}</div>@endif
     @if ($res && !$res['aprobado'])
         <div class="msg mal">
@@ -62,7 +65,7 @@
     </div>
 
     @if ($aprobado)
-        <a href="{{ route('asesor.index') }}" class="btn btn-k btn-block"><i class="fa-solid fa-gauge"></i> Ir a mi panel de asesor</a>
+        <a href="{{ $panel }}" class="btn btn-k btn-block"><i class="fa-solid fa-gauge"></i> Ir a mi panel de asesor</a>
     @elseif ($siguiente)
         <a href="{{ route('curso.leccion', $siguiente) }}" class="btn btn-g btn-block">{{ $vistas ? 'Continuar' : 'Empezar el curso' }} <i class="fa-solid fa-arrow-right"></i></a>
     @else

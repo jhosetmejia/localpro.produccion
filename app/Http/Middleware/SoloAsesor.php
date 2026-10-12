@@ -26,6 +26,10 @@ class SoloAsesor
                 ? 'Su solicitud todavía no ha sido aprobada. Pídale a quien lo invitó que la apruebe en su panel.'
                 : 'Su usuario de asesor está inactivo. Comuníquese con LocalPro.');
         }
+        // El curso es obligatorio para toda la red, también para quienes ya estaban activos
+        if (!$asesor->curso_aprobado_at) {
+            return redirect()->route('curso.index');
+        }
         $request->attributes->set('asesor', $asesor);
         return $next($request);
     }

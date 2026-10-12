@@ -75,6 +75,7 @@ Route::middleware('auth')->prefix('curso')->name('curso.')->group(function () {
     Route::get('/examen', [cursoController::class, 'examen'])->name('examen');
     Route::post('/examen', [cursoController::class, 'calificar'])->middleware('throttle:20,1')->name('calificar');
     Route::get('/certificado', [cursoController::class, 'certificado'])->name('certificado');
+    Route::post('/reiniciar', [cursoController::class, 'reiniciar'])->name('reiniciar');
 });
 Route::get('/certificado/{codigo}', [cursoController::class, 'verificar'])->where('codigo', '[A-Za-z0-9\-]+')->name('certificado.verificar');
 
