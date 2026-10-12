@@ -77,3 +77,5 @@ window.addEventListener('beforeinstallprompt', function (e) {
     }
 });
 </script>
+
+@include('layouts.partials.ver-clave')
