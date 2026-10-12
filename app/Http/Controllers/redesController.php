@@ -152,7 +152,9 @@ class redesController extends Controller
             try { $n += Meta::sincronizar($c); } catch (Throwable $e) { $err[] = $c->page_nombre . ': ' . $e->getMessage(); $c->update(['estado' => 'error', 'error' => mb_substr($e->getMessage(), 0, 250)]); }
         }
         TiendaActual::set($tid);
-        return back()->with($err ? 'error' : 'success', $err ? implode(' · ', $err) : ($n ? "Se trajeron $n mensajes nuevos." : 'Todo al día.'));
+        $err = array_merge($err, Meta::$avisos);
+        $r = back()->with('success', $n ? "Se trajeron $n mensajes nuevos." : 'Todo al día.');
+        return $err ? $r->withErrors(implode(' · ', $err)) : $r;
     }
 
     // Productos para enviar en el chat o publicar

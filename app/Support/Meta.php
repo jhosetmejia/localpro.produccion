@@ -89,26 +89,39 @@ class Meta
 
     // ---------- Mensajes ----------
     /** Trae las conversaciones recientes (al conectar o con el botón "Actualizar"). */
+    /** Avisos de la última sincronización (para mostrarlos en pantalla). */
+    public static array $avisos = [];
+
+    private const CAMPOS_MSJ = 'id,message,from,created_time,attachments{mime_type,image_data,file_url}';
+
     public static function sincronizar(RedCuenta $c, int $limite = 25): int
     {
         TiendaActual::set($c->tienda_id);
         $n = 0;
         foreach (array_filter(['facebook' => 'messenger', 'instagram' => $c->ig_id ? 'instagram' : null]) as $plat => $param) {
+            $propio = $plat === 'instagram' ? $c->ig_id : $c->page_id;
             try {
-                $r = self::get($c->page_id . '/conversations', [
-                    'platform' => $param, 'limit' => $limite, 'access_token' => $c->page_token,
-                    'fields' => 'id,updated_time,participants,messages.limit(15){id,message,from,created_time,attachments{mime_type,image_data,file_url}}',
-                ]);
+                $convs = self::listaConversaciones($c, $param, $plat === 'instagram' ? min($limite, 15) : $limite);
             } catch (\Throwable $e) {
-                Log::warning('Meta sincronizar ' . $plat . ': ' . $e->getMessage());
+                Log::error('Meta sincronizar ' . $plat . ': ' . $e->getMessage());
+                self::$avisos[] = ($plat === 'instagram' ? 'Instagram' : 'Facebook') . ': ' . $e->getMessage();
                 continue;
             }
-            $propio = $plat === 'instagram' ? $c->ig_id : $c->page_id;
-            foreach ($r['data'] ?? [] as $conv) {
+            foreach ($convs as $conv) {
                 $otro = collect($conv['participants']['data'] ?? [])->first(fn ($p) => (string) ($p['id'] ?? '') !== (string) $propio && ($p['username'] ?? null) !== $c->ig_usuario);
                 if (!$otro) continue;
                 $cv = self::conversacion($c, $plat, (string) $otro['id'], $otro['name'] ?? null, $otro['username'] ?? null);
-                foreach (array_reverse($conv['messages']['data'] ?? []) as $m) {
+                // Los mensajes de cada chat se piden aparte (pedirlos todos juntos hace que Instagram se demore y falle)
+                $mensajes = $conv['messages']['data'] ?? null;
+                if ($mensajes === null) {
+                    try {
+                        $mensajes = self::get((string) $conv['id'], ['fields' => 'messages.limit(15){' . self::CAMPOS_MSJ . '}', 'access_token' => $c->page_token])['messages']['data'] ?? [];
+                    } catch (\Throwable $e) {
+                        Log::error('Meta mensajes ' . $plat . ' ' . $conv['id'] . ': ' . $e->getMessage());
+                        continue;
+                    }
+                }
+                foreach (array_reverse($mensajes) as $m) {
                     $delCliente = (string) ($m['from']['id'] ?? '') !== (string) $propio && ($m['from']['username'] ?? null) !== $c->ig_usuario;
                     $adj = $m['attachments']['data'][0] ?? null;
                     $n += self::guardarMensaje($cv, (string) $m['id'], $delCliente, $m['message'] ?? null,
@@ -119,6 +132,25 @@ class Meta
         }
         $c->update(['sincronizado_en' => now(), 'estado' => 'activa', 'error' => null]);
         return $n;
+    }
+
+    // Lista de conversaciones; si Meta se demora, vuelve a intentar pidiendo menos
+    private static function listaConversaciones(RedCuenta $c, string $plataforma, int $limite): array
+    {
+        $ultimo = null;
+        foreach (array_unique([$limite, 8, 3]) as $lim) {
+            try {
+                $r = self::get($c->page_id . '/conversations', [
+                    'platform' => $plataforma, 'limit' => $lim, 'access_token' => $c->page_token,
+                    'fields' => $plataforma === 'instagram' ? 'id,updated_time,participants' : 'id,updated_time,participants,messages.limit(15){' . self::CAMPOS_MSJ . '}',
+                ]);
+                return $r['data'] ?? [];
+            } catch (\Throwable $e) {
+                $ultimo = $e;
+                if (!str_contains(strtolower($e->getMessage()), 'timeout') && !str_contains($e->getMessage(), 'tard')) throw $e;
+            }
+        }
+        throw $ultimo;
     }
 
     public static function conversacion(RedCuenta $c, string $plat, string $contacto, ?string $nombre = null, ?string $usuario = null): RedConversacion
@@ -286,8 +318,9 @@ class Meta
         $j = $r->json() ?: [];
         if ($r->failed() || isset($j['error'])) {
             $e = $j['error'] ?? [];
-            $msg = $e['error_user_msg'] ?? $e['message'] ?? ('error ' . $r->status());
+            $msg = $e['message'] ?? $e['error_user_msg'] ?? ('error ' . $r->status());
             if (in_array((int) ($e['code'] ?? 0), [190, 102], true)) $msg = 'La conexión venció o se quitó el permiso. Vuelva a conectar la cuenta.';
+            if ((int) ($e['code'] ?? 0) === -2 || (int) ($e['error_subcode'] ?? 0) === 2534084) $msg = 'Timeout: Meta se demoró en responder';
             if (in_array((int) ($e['error_subcode'] ?? 0), [2018278, 2534022], true)) $msg = 'Ya pasaron más de 24 horas desde el último mensaje del cliente: Meta no deja responder por aquí.';
             throw new RuntimeException($msg);
         }
