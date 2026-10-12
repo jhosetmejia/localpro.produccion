@@ -138,16 +138,16 @@ class Meta
     private static function listaConversaciones(RedCuenta $c, string $plataforma, int $limite): array
     {
         $ultimo = null;
-        foreach (array_unique([$limite, 8, 3]) as $lim) {
+        foreach (array_unique([$limite, 5]) as $lim) {
             try {
                 $r = self::get($c->page_id . '/conversations', [
                     'platform' => $plataforma, 'limit' => $lim, 'access_token' => $c->page_token,
                     'fields' => $plataforma === 'instagram' ? 'id,updated_time,participants' : 'id,updated_time,participants,messages.limit(15){' . self::CAMPOS_MSJ . '}',
-                ]);
+                ], 30);
                 return $r['data'] ?? [];
             } catch (\Throwable $e) {
                 $ultimo = $e;
-                if (!str_contains(strtolower($e->getMessage()), 'timeout') && !str_contains($e->getMessage(), 'tard')) throw $e;
+                if (!str_contains(strtolower($e->getMessage()), 'timeout')) throw $e;
             }
         }
         throw $ultimo;
@@ -300,16 +300,25 @@ class Meta
     }
 
     // ---------- HTTP ----------
-    private static function get(string $ruta, array $q): array
+    private static function get(string $ruta, array $q, int $espera = 20): array
     {
-        $r = Http::timeout(20)->acceptJson()->get(self::api($ruta), $q);
+        try {
+            $r = Http::timeout($espera)->acceptJson()->get(self::api($ruta), $q);
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            // Nunca se muestra el mensaje original: trae la dirección con la llave de acceso
+            throw new RuntimeException(str_contains(strtolower($e->getMessage()), 'timed out') ? 'Timeout: Meta no respondió a tiempo' : 'No hubo conexión con Meta');
+        }
         return self::respuesta($r);
     }
 
     private static function post(string $ruta, array $d, bool $json = false): array
     {
         $h = Http::timeout(30)->acceptJson();
-        $r = $json ? $h->asJson()->post(self::api($ruta), $d) : $h->asForm()->post(self::api($ruta), $d);
+        try {
+            $r = $json ? $h->asJson()->post(self::api($ruta), $d) : $h->asForm()->post(self::api($ruta), $d);
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            throw new RuntimeException(str_contains(strtolower($e->getMessage()), 'timed out') ? 'Timeout: Meta no respondió a tiempo' : 'No hubo conexión con Meta');
+        }
         return self::respuesta($r);
     }
 
@@ -322,8 +331,13 @@ class Meta
             if (in_array((int) ($e['code'] ?? 0), [190, 102], true)) $msg = 'La conexión venció o se quitó el permiso. Vuelva a conectar la cuenta.';
             if ((int) ($e['code'] ?? 0) === -2 || (int) ($e['error_subcode'] ?? 0) === 2534084) $msg = 'Timeout: Meta se demoró en responder';
             if (in_array((int) ($e['error_subcode'] ?? 0), [2018278, 2534022], true)) $msg = 'Ya pasaron más de 24 horas desde el último mensaje del cliente: Meta no deja responder por aquí.';
-            throw new RuntimeException($msg);
+            throw new RuntimeException(self::sinLlaves($msg));
         }
         return $j;
+    }
+
+    public static function sinLlaves(string $txt): string
+    {
+        return preg_replace('/(access_token=|EAA)[A-Za-z0-9_\-]+/', '$1***', $txt);
     }
 }
