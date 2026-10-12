@@ -140,13 +140,25 @@
 .asg-bt{display:flex;gap:10px;margin-top:18px}.asg-bt .btn{flex:1;border-radius:14px;font-weight:800;padding:.7rem}
 </style>
 <script>
-// Eliminar tienda: pide escribir el código para confirmar
+// Eliminar tienda: ventana LocalPro que pide escribir el código para confirmar
 document.querySelectorAll('form[data-eliminar]').forEach(function (f) {
     f.addEventListener('submit', function (e) {
+        if (f._ok) return;
+        e.preventDefault();
         var cod = f.dataset.eliminar;
-        var r = prompt('¿Eliminar la tienda "' + f.dataset.nombre + '" con todos sus productos, ventas y usuarios?\nEsto no se puede deshacer.\n\nEscriba el código ' + cod + ' para confirmar:');
-        if (r === null || r.trim().toUpperCase() !== cod.toUpperCase()) { e.preventDefault(); if (r !== null) alert('El código no coincide. No se eliminó.'); return; }
-        f.querySelector('input[name=confirmar]').value = r.trim();
+        LP.pedir({
+            titulo: '¿Eliminar ' + f.dataset.nombre + '?',
+            texto: 'Se borran sus productos, ventas, cajas y usuarios. Esto no se puede deshacer. Escriba ' + cod + ' para confirmar.',
+            placeholder: cod,
+            ok: 'Sí, eliminar',
+            peligro: true
+        }).then(function (r) {
+            if (r === null || r === undefined) return;
+            if (String(r).trim().toUpperCase() !== cod.toUpperCase()) { LP.toast('El código no coincide. No se eliminó la tienda.', 'error'); return; }
+            f.querySelector('input[name=confirmar]').value = String(r).trim();
+            f._ok = true;
+            f.submit();
+        });
     });
 });
 (function () {
