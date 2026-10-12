@@ -46,13 +46,13 @@
         </div>
         <div class="lp-box">
             <h3><span><i class="fa-solid fa-user-tie me-1"></i> Asesor del negocio</span>@if ($tienda->asesor)<a href="{{ route('admin.red.show', $tienda->asesor) }}" class="small">Ver asesor</a>@endif</h3>
-            <form method="post" action="{{ route('admin.tiendas.asesor', $tienda) }}" class="d-flex gap-2 mb-3">
+            <form method="post" action="{{ route('admin.tiendas.asesor', $tienda) }}" class="d-flex gap-2 mb-3 align-items-start"><div class="flex-grow-1" style="min-width:0">
                 @csrf
-                <select name="asesor_id" class="form-select">
-                    <option value="">— Sin asesor (venta directa de LocalPro) —</option>
-                    @foreach ($asesores as $as)<option value="{{ $as->id }}" @selected((int) $tienda->asesor_id === $as->id)>{{ $as->codigo }} · {{ $as->nombre }} · {{ $as->cargo_nombre }}{{ $as->ciudad ? ' · ' . $as->ciudad : '' }}</option>@endforeach
+                <select name="asesor_id" class="form-select" data-buscar data-max="6" aria-label="Asesor del negocio">
+                    <option value="" data-sub="{{ auth()->user()->name }} · súper administrador · {{ auth()->user()->email }}">👑 LocalPro — venta directa (sin asesor)</option>
+                    @foreach ($asesores as $as)<option value="{{ $as->id }}" @selected((int) $tienda->asesor_id === $as->id) data-sub="{{ $as->cargo_nombre }}{{ $as->ciudad ? ' · ' . $as->ciudad : '' }}{{ $as->user?->email ? ' · ' . $as->user->email : '' }}">{{ $as->codigo }} · {{ $as->nombre }}</option>@endforeach
                 </select>
-                <button class="btn btn-dark">Guardar</button>
+                </div><button class="btn btn-dark">Guardar</button>
             </form>
             <h3>Pagos de plan</h3>
             <ul class="lp-list">

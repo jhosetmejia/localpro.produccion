@@ -42,7 +42,7 @@ class adminTiendaController extends Controller
         ];
 
         $resumen['sin_asesor'] = Tienda::whereNull('asesor_id')->count();
-        $asesores = \App\Models\Asesor::with('user:id,name')->where('activo', true)
+        $asesores = \App\Models\Asesor::with('user:id,name,email')->where('activo', true)
             ->orderByRaw("FIELD(cargo, 'asesor', 'lider_zona', 'lider_ciudad', 'lider_departamento', 'lider_pais')")->get();
         return view('admin.tiendas.index', compact('tiendas', 'ventas', 'productos', 'usuarios', 'duenos', 'resumen', 'q', 'asesores'));
     }
@@ -92,7 +92,7 @@ class adminTiendaController extends Controller
 
         $planes = \App\Models\Plan::orderBy('orden')->get();
         $pagosPlan = \App\Models\PagoSuscripcion::with('plan')->where('tienda_id', $tienda->id)->latest()->limit(10)->get();
-        $asesores = \App\Models\Asesor::with('user:id,name')->where('activo', true)->get()->sortBy('nombre');
+        $asesores = \App\Models\Asesor::with('user:id,name,email')->where('activo', true)->get()->sortBy('nombre');
         return view('admin.tiendas.show', compact('tienda', 'usuarios', 'metricas', 'ultimas', 'planes', 'pagosPlan', 'asesores'));
     }
 

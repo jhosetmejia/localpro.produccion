@@ -110,15 +110,11 @@
         <div class="asg-ic"><i class="fa-solid fa-user-tie"></i></div>
         <h4>Asignar asesor</h4>
         <p id="asgTienda" class="text-muted fw-semibold mb-3"></p>
-        <label class="form-label" for="asgSel">Busque por nombre, código (LCP-00001) o ciudad</label>
-        <select name="asesor_id" id="asgSel" class="form-select">
-            <option value="">— Sin asesor (queda para LocalPro) —</option>
-            @foreach ($asesores->groupBy('cargo_nombre') as $cargo => $grupo)
-            <optgroup label="{{ $cargo }}">
-                @foreach ($grupo as $a)
-                <option value="{{ $a->id }}">{{ $a->codigo }} · {{ $a->nombre }}{{ $a->ciudad ? ' · ' . $a->ciudad : '' }}</option>
-                @endforeach
-            </optgroup>
+        <label class="form-label" for="asgSel">Busque por nombre, código (LCP-00001), correo o ciudad</label>
+        <select name="asesor_id" id="asgSel" class="form-select" data-buscar data-max="6">
+            <option value="" data-sub="{{ auth()->user()->name }} · súper administrador · {{ auth()->user()->email }}">👑 LocalPro — venta directa (sin asesor)</option>
+            @foreach ($asesores as $as)
+            <option value="{{ $as->id }}" data-sub="{{ $as->cargo_nombre }}{{ $as->ciudad ? ' · ' . $as->ciudad : '' }}{{ $as->user?->email ? ' · ' . $as->user->email : '' }}">{{ $as->codigo }} · {{ $as->nombre }}</option>
             @endforeach
         </select>
         <small class="text-muted d-block mt-2">Desde ahora las comisiones de este negocio (venta nueva y renovaciones) son para ese asesor y sus líderes.</small>
