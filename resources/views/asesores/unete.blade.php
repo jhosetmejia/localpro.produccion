@@ -61,7 +61,7 @@
                     <div class="field"><label>Clave</label><input class="in" type="password" name="password" minlength="8" required autocomplete="new-password" placeholder="Mínimo 8"></div>
                     <div class="field"><label>Repite la clave</label><input class="in" type="password" name="password_confirmation" required autocomplete="new-password"></div>
                 </div>
-                <button class="btn btn-amber btn-block" type="submit" style="margin-top:.4rem">Inscribirme y empezar el curso <i class="fa-solid fa-arrow-right"></i></button>
+                <button class="btn btn-amber btn-block" type="submit" style="margin-top:.4rem">Inscribirme y realizar la prueba <i class="fa-solid fa-arrow-right"></i></button>
             </form>
             @endif
         </div>
