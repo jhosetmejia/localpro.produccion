@@ -20,6 +20,8 @@
         <tr><td>Apertura</td><td class="r">{{ $caja->abierta_en->format('d/m/Y h:i a') }}</td></tr>
         <tr><td>Cierre</td><td class="r">{{ $caja->cerrada_en?->format('d/m/Y h:i a') ?? 'ABIERTA' }}</td></tr>
         <tr><td>Ventas</td><td class="r">{{ $numVentas }} @if($anuladas)({{ $anuladas }} anuladas)@endif</td></tr>
+        @php $abCaja = $caja->totalAbonos(); @endphp
+        @if ($abCaja != 0)<tr><td>Abonos de separados</td><td class="r">{{ dinero($abCaja, false) }}</td></tr>@endif
     </table>
     <hr>
     <div class="b">VENTAS POR MÉTODO</div>

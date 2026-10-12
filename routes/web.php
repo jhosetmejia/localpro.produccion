@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\importarController;
 use App\Http\Controllers\importarClientesController;
+use App\Http\Controllers\separadoController;
 use App\Http\Controllers\adminImportacionController;
 use App\Http\Controllers\adminPlanController;
 use App\Http\Controllers\adminRedController;
@@ -63,6 +64,8 @@ Route::get('/sitemap.xml', [catalogoController::class, 'sitemap'])->name('sitema
 Route::post('/webhooks/wompi', [wompiController::class, 'evento'])->middleware('throttle:60,1');
 // Enlace de pago de un negocio (firmado): lo usa el dueño o su asesor para pagar el plan con Wompi sin entrar al sistema
 Route::get('/pagar/retorno', [pagarController::class, 'retorno'])->name('pagar.retorno');
+// Estado de un separado para el cliente (enlace firmado que se envía por WhatsApp)
+Route::get('/mi-separado/{separado}', [separadoController::class, 'publico'])->whereNumber('separado')->middleware('signed:relative')->name('separados.publico');
 Route::get('/pagar/{tienda}', [pagarController::class, 'show'])->whereNumber('tienda')->middleware('signed:relative')->name('pagar.show');
 Route::post('/pagar/{tienda}/{plan}', [pagarController::class, 'ir'])->whereNumber(['tienda', 'plan'])->middleware(['signed:relative', 'throttle:10,1'])->name('pagar.ir');
 Route::get('/factura/{venta}', [posController::class, 'facturaPublica'])->name('factura.publica');
@@ -181,6 +184,14 @@ Route::middleware(['auth', 'tienda'])->group(function () {
 
     // POS
     Route::get('/pos', [posController::class, 'index'])->name('pos.index');
+    Route::get('/separados', [separadoController::class, 'index'])->name('separados.index');
+    Route::get('/separados/nuevo', [separadoController::class, 'create'])->name('separados.create');
+    Route::post('/separados', [separadoController::class, 'store'])->name('separados.store');
+    Route::get('/separados/{separado}', [separadoController::class, 'show'])->whereNumber('separado')->name('separados.show');
+    Route::post('/separados/{separado}/abonar', [separadoController::class, 'abonar'])->whereNumber('separado')->name('separados.abonar');
+    Route::post('/separados/{separado}/entregar', [separadoController::class, 'entregar'])->whereNumber('separado')->name('separados.entregar');
+    Route::post('/separados/{separado}/cancelar', [separadoController::class, 'cancelar'])->whereNumber('separado')->name('separados.cancelar');
+    Route::get('/separados/abonos/{abono}/recibo', [separadoController::class, 'recibo'])->whereNumber('abono')->name('separados.recibo');
     Route::get('/pos/buscar', [posController::class, 'buscar'])->name('pos.buscar');
     Route::post('/pos/ventas', [posController::class, 'store'])->name('pos.store');
     Route::get('/pos/ventas', [posController::class, 'ventas'])->name('pos.ventas');

@@ -12,7 +12,7 @@
             <table class="table align-middle">
                 <thead><tr><th>Fecha</th><th>Prenda</th><th>Tipo</th><th>Cantidad</th><th>Quedó</th><th>Usuario</th><th>Detalle</th></tr></thead>
                 <tbody>
-                @php $tipos = ['entrada' => ['Entrada', 'bg-success'], 'salida' => ['Salida', 'bg-danger'], 'ajuste' => ['Conteo', 'bg-warning text-dark'], 'venta' => ['Venta', 'bg-dark'], 'anulacion' => ['Anulación', 'bg-info text-dark']]; @endphp
+                @php $tipos = ['entrada' => ['Entrada', 'bg-success'], 'salida' => ['Salida', 'bg-danger'], 'ajuste' => ['Conteo', 'bg-warning text-dark'], 'venta' => ['Venta', 'bg-dark'], 'anulacion' => ['Anulación', 'bg-info text-dark'], 'separado' => ['Separado', 'bg-secondary'], 'sep_cancelado' => ['Separado cancelado', 'bg-info text-dark']]; @endphp
                 @forelse ($movimientos as $m)
                     <tr>
                         <td class="text-nowrap">{{ $m->created_at->format('d/m/Y h:i a') }}</td>

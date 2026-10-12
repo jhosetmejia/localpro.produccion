@@ -11,7 +11,7 @@ class MetodoPago extends Model
 
     protected $table = 'metodos_pago';
 
-    protected $fillable = ['nombre', 'es_efectivo', 'es_credito', 'activo', 'orden'];
+    protected $fillable = ['nombre', 'es_efectivo', 'es_credito', 'activo', 'interno', 'orden'];
 
     protected $casts = ['es_efectivo' => 'boolean', 'es_credito' => 'boolean', 'activo' => 'boolean'];
 
@@ -19,6 +19,12 @@ class MetodoPago extends Model
     public static function saldoAFavor(): self
     {
         return static::firstOrCreate(['nombre' => 'Saldo a favor'], ['es_efectivo' => false, 'es_credito' => true, 'activo' => true, 'orden' => 99]);
+    }
+
+    // Método interno para entregar un separado ya pagado con abonos (no suma dinero a la caja)
+    public static function pagadoConAbonos(): self
+    {
+        return static::firstOrCreate(['nombre' => 'Pagado con abonos'], ['es_efectivo' => false, 'es_credito' => true, 'activo' => false, 'interno' => true, 'orden' => 100]);
     }
 
     public function scopeActivos($q)

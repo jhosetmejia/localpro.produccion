@@ -19,7 +19,7 @@ class metodoPagoController extends Controller
 
     public function index()
     {
-        $metodos = MetodoPago::orderBy('orden')->orderBy('nombre')->get();
+        $metodos = MetodoPago::when(\Illuminate\Support\Facades\Schema::hasColumn('metodos_pago', 'interno'), fn ($q) => $q->where('interno', false))->orderBy('orden')->orderBy('nombre')->get();
         return view('metodo-pago.index', compact('metodos'));
     }
 

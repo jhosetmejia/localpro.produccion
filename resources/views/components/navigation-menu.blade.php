@@ -113,6 +113,11 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-cash-register"></i></div>
                     Vender (POS)
                 </a>
+                @php $sepAct = \Illuminate\Support\Facades\Schema::hasTable('separados') ? \App\Models\Separado::where('estado', 'activo')->count() : 0; @endphp
+                <a class="nav-link {{ $on('separados.*') }}" href="{{ route('separados.index') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-box-archive"></i></div>
+                    Separados y abonos @if ($sepAct)<span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c">{{ $sepAct }}</span>@endif
+                </a>
                 <a class="nav-link {{ $on('cajas.show') || $on('cajas.abrir') || $on('cajas.cerrar') ? 'active' : '' }}" href="{{ route('cajas.actual') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-vault"></i></div>
                     Mi caja

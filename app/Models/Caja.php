@@ -39,11 +39,46 @@ class Caja extends Model
      */
     public function totalesPorMetodo()
     {
+        $ventas = $this->totalesVentas();
+        $abonos = $this->abonosPorMetodo();
+        if ($abonos->isEmpty()) return $ventas;
+        // Suma ventas + abonos de separados por método (el dinero de los abonos entra a esta caja)
+        return $ventas->concat($abonos)->groupBy('id')->map(function ($g) {
+            $f = clone $g->first();
+            $f->total = $g->sum('total');
+            $f->ventas = $g->sum('ventas');
+            return $f;
+        })->sortBy('nombre')->values();
+    }
+
+    /**
+     * Abonos de separados recibidos en esta caja, por método.
+     */
+    public function abonosPorMetodo()
+    {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('separado_abonos')) return collect();
+        return DB::table('separado_abonos as a')
+            ->join('metodos_pago as m', 'm.id', '=', 'a.metodo_pago_id')
+            ->where('a.caja_id', $this->id)
+            ->where('a.anulado', false)
+            ->groupBy('m.id', 'm.nombre', 'm.es_efectivo')
+            ->select('m.id', 'm.nombre', 'm.es_efectivo', DB::raw('SUM(a.monto) as total'), DB::raw('COUNT(*) as ventas'))
+            ->get();
+    }
+
+    public function totalAbonos(): float
+    {
+        return (float) $this->abonosPorMetodo()->sum('total');
+    }
+
+    private function totalesVentas()
+    {
         return DB::table('pos_venta_pagos as p')
             ->join('pos_ventas as v', 'v.id', '=', 'p.pos_venta_id')
             ->join('metodos_pago as m', 'm.id', '=', 'p.metodo_pago_id')
             ->where('v.caja_id', $this->id)
             ->where('v.estado', 'pagada')
+            ->when(\Illuminate\Support\Facades\Schema::hasColumn('metodos_pago', 'interno'), fn ($q) => $q->where('m.interno', false))
             ->groupBy('m.id', 'm.nombre', 'm.es_efectivo')
             ->orderBy('m.nombre')
             ->select('m.id', 'm.nombre', 'm.es_efectivo', DB::raw('SUM(p.monto) as total'), DB::raw('COUNT(DISTINCT v.id) as ventas'))
