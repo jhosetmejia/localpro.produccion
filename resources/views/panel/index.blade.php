@@ -27,30 +27,63 @@
         $nProd = \App\Models\Producto::count();
         $nCli = \App\Models\Cliente::count();
         $compartio = (bool) \App\Models\Ajuste::valor('t' . $tPlan?->id . '_compartio');
-        $pasos = [
-            ['Crea tus primeros 10 productos', min($nProd, 10) . ' de 10 listos', $nProd >= 10, $nProd >= 10 ? null : route('productos.create'), 'Crear producto', 'fa-box-open', min(100, $nProd * 10), route('productos.importar'), '¿Los tiene en Excel?'],
-            ['Comparte tu tienda en línea con tus contactos', 'Envía tu página por WhatsApp a tus clientes y grupos', $compartio, route('panel.compartir'), 'Compartir por WhatsApp', 'fa-share-nodes', $compartio ? 100 : 0, null, null],
-            ['Mete tus contactos al sistema', min($nCli, 10) . ' de 10 clientes · para enviarles mensajes por WhatsApp', $nCli >= 10, route('clientes.create'), 'Agregar cliente', 'fa-address-book', min(100, $nCli * 10), null, null],
+        $tid = (int) $tPlan?->id;
+        $nUsuarios = $tid ? \App\Models\User::where('tienda_id', $tid)->count() : 0;
+        $nVentas = $tid ? \App\Models\PosVenta::where('tienda_id', $tid)->where('estado', 'pagada')->count() : 0;
+        $tieneLogo = filled($tPlan?->logo_path);
+        // Nivel 1: que le lleguen clientes
+        $nivel1 = [
+            ['Crea tus primeros 10 productos', min($nProd, 10) . ' de 10 listos', $nProd >= 10, route('productos.create'), 'Crear producto', 'fa-box-open', min(100, $nProd * 10), route('productos.importar'), '¿Los tiene en Excel?', false],
+            ['Comparte tu tienda en línea con tus contactos', 'Envía tu página por WhatsApp a tus clientes y grupos', $compartio, route('panel.compartir'), 'Compartir por WhatsApp', 'fa-share-nodes', $compartio ? 100 : 0, null, null, true],
+            ['Mete tus contactos al sistema', min($nCli, 10) . ' de 10 clientes · para enviarles mensajes por WhatsApp', $nCli >= 10, route('clientes.create'), 'Agregar cliente', 'fa-address-book', min(100, $nCli * 10), null, null, false],
         ];
-        $hechos = collect($pasos)->where(2, true)->count();
+        // Nivel 2: arme su negocio como un profesional
+        $nivel2 = [
+            ['Crea un usuario para tu vendedor o asesor', $nUsuarios > 1 ? 'Ya tiene ' . ($nUsuarios - 1) . ' en su equipo' : 'Cada uno entra con su clave y vende en su propia caja (no ve sus ganancias)', $nUsuarios > 1, route('users.create'), 'Crear usuario', 'fa-user-plus', 0, null, null, false],
+            ['Pon el logo de tu negocio', 'Sale en sus tiquetes, facturas y en su tienda en línea', $tieneLogo, route('negocio.edit'), 'Subir logo', 'fa-image', 0, null, null, false],
+            ['Haz tu primera venta en la caja', $nVentas > 0 ? $nVentas . ' ventas registradas' : 'Abra la caja y registre una venta: el inventario se descuenta solo', $nVentas > 0, route('cajas.abrir'), 'Abrir caja y vender', 'fa-cash-register', 0, null, null, false],
+        ];
+        $hechos1 = collect($nivel1)->where(2, true)->count();
+        $hechos2 = collect($nivel2)->where(2, true)->count();
+        $nivel = $hechos1 < 3 ? 1 : ($hechos2 < 3 ? 2 : 3);
+        $pasos = $nivel === 1 ? $nivel1 : $nivel2;
+        $hechos = $nivel === 1 ? $hechos1 : $hechos2;
     @endphp
     @include('layouts.partials.cuenta-regresiva')
     @include('layouts.partials.limite-plan', ['que' => 'productos'])
-    @if ($hechos < 3 && auth()->user()->can('crear-producto'))
+    @if (auth()->user()->can('crear-producto'))
+    @if ($nivel < 3)
     <div class="vm-box">
-        <div class="vm-h"><div><small>Para vender más</small><b>3 pasos para que le lleguen más clientes</b></div><span class="vm-n">{{ $hechos }}/3</span></div>
+        @if ($nivel === 2)
+        <div class="vm-felicita">
+            <span class="vm-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></span>
+            <div><b>¡Muy bien! Completó el nivel 1</b><small>Ya tiene productos, compartió su tienda y tiene clientes. Ahora arme su negocio como un profesional.</small></div>
+        </div>
+        @endif
+        <div class="vm-h"><div><small>Nivel {{ $nivel }} · {{ $nivel === 1 ? 'Para vender más' : 'Para crecer' }}</small><b>{{ $nivel === 1 ? '3 pasos para que le lleguen más clientes' : '3 pasos para manejar su negocio como un profesional' }}</b></div><span class="vm-n">{{ $hechos }}/3</span></div>
         <div class="vm-pasos">
-            @foreach ($pasos as $i => [$tit, $sub, $ok, $url, $btn, $ic, $pct, $url2, $btn2])
+            @foreach ($pasos as $i => [$tit, $sub, $ok, $url, $btn, $ic, $pct, $url2, $btn2, $nueva])
             <div class="vm-p {{ $ok ? 'ok' : '' }}">
                 <span class="vm-i">@if ($ok)<i class="fa-solid fa-check"></i>@else{{ $i + 1 }}@endif</span>
                 <div class="vm-t"><b>{{ $tit }}</b><small>{{ $sub }}</small>@if (!$ok && $pct > 0)<span class="vm-bar"><i style="width:{{ $pct }}%"></i></span>@endif</div>
-                @if (!$ok)
-                <div class="vm-a"><a href="{{ $url }}" class="vm-btn" @if ($i === 1) target="_blank" rel="noopener" @endif><i class="fa-solid {{ $ic }} me-1"></i>{{ $btn }}</a>@if ($url2)<a href="{{ $url2 }}" class="vm-link">{{ $btn2 }}</a>@endif</div>
+                @if ($ok)
+                <span class="vm-ok"><i class="fa-solid fa-star me-1"></i>¡Listo!</span>
+                @else
+                <div class="vm-a"><a href="{{ $url }}" class="vm-btn" @if ($nueva) target="_blank" rel="noopener" @endif><i class="fa-solid {{ $ic }} me-1"></i>{{ $btn }}</a>@if ($url2)<a href="{{ $url2 }}" class="vm-link">{{ $btn2 }}</a>@endif</div>
                 @endif
             </div>
             @endforeach
         </div>
     </div>
+    @else
+    <div class="vm-fin" id="vm-fin" data-k="lp_fin_{{ $tid }}">
+        <button type="button" class="vm-x" aria-label="Cerrar" onclick="try{localStorage.setItem(this.parentNode.dataset.k,'1')}catch(e){};this.parentNode.remove()">&times;</button>
+        <span class="vm-stars grande"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></span>
+        <b>¡Felicitaciones, {{ \Illuminate\Support\Str::words(auth()->user()->name, 1, '') }}! 🏆</b>
+        <p>Completó todos los pasos. Usted es una persona que <b>se preocupa por su negocio</b>: tiene productos, clientes, su tienda en línea, su equipo y ya está vendiendo con LocalPro. ¡Siga así!</p>
+    </div>
+    <script>try{if(localStorage.getItem(document.getElementById('vm-fin').dataset.k))document.getElementById('vm-fin').remove()}catch(e){}</script>
+    @endif
     <style>
     .vm-box{background:#fff;border:1.5px solid #bfeccb;border-radius:24px;padding:1.1rem 1.2rem;margin-bottom:1.2rem;background:linear-gradient(180deg,#f4fcf6,#fff 60%)}
     .vm-h{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:.8rem}
@@ -68,6 +101,19 @@
     .vm-btn{background:linear-gradient(90deg,#a3f04a,#16b84e);color:#0b0d0c;font-weight:800;border-radius:999px;padding:.5rem 1rem;text-decoration:none;white-space:nowrap;font-size:.88rem}
     .vm-btn:hover{color:#0b0d0c;filter:brightness(1.05)}
     .vm-link{font-weight:700;font-size:.82rem;color:#11702f}
+    .vm-ok{background:#e8f8ec;color:#11702f;font-weight:800;border-radius:999px;padding:.4rem .9rem;font-size:.85rem;white-space:nowrap}
+    .vm-ok i{color:#f5b301}
+    .vm-felicita{display:flex;gap:.9rem;align-items:center;background:#0b0d0c;color:#fff;border-radius:18px;padding:.8rem 1rem;margin-bottom:1rem}
+    .vm-felicita b{display:block;font-size:1rem;color:#a6f34a}.vm-felicita small{color:#c9d3cc;font-weight:600;font-size:.82rem}
+    .vm-stars{display:inline-flex;gap:.15rem;color:#f5b301;font-size:1.15rem;flex:none}
+    .vm-stars i{animation:vmStar .6s cubic-bezier(.2,.9,.3,1.4) both}
+    .vm-stars i:nth-child(2){animation-delay:.12s}.vm-stars i:nth-child(3){animation-delay:.24s}.vm-stars i:nth-child(4){animation-delay:.36s}.vm-stars i:nth-child(5){animation-delay:.48s}
+    .vm-stars.grande{font-size:2rem;gap:.35rem;margin-bottom:.4rem}
+    @keyframes vmStar{0%{transform:scale(0) rotate(-40deg);opacity:0}100%{transform:none;opacity:1}}
+    .vm-fin{position:relative;text-align:center;background:linear-gradient(135deg,#0b0d0c,#14261a);color:#fff;border-radius:24px;padding:1.4rem 1.2rem;margin-bottom:1.2rem;box-shadow:0 0 0 2px #2fd15a inset}
+    .vm-fin>b{display:block;font-size:1.35rem;font-weight:900;color:#a6f34a}
+    .vm-fin p{margin:.3rem auto 0;max-width:36rem;color:#c9d3cc;font-weight:600}.vm-fin p b{color:#fff}
+    .vm-x{position:absolute;top:.6rem;right:.8rem;background:none;border:0;color:#9aa69e;font-size:1.6rem;line-height:1;cursor:pointer}
     </style>
     @endif
     <div class="lp-hello">
