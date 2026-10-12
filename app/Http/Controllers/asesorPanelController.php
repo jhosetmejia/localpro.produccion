@@ -13,7 +13,7 @@ class asesorPanelController extends Controller
     public function index(Request $request)
     {
         $yo = $request->attributes->get('asesor')->load('user', 'padre.user');
-        $ids = $yo->idsRed();
+        $ids = array_keys($yo->arbolVisible());
         $comisiones = Comision::where('asesor_id', $yo->id);
         $negocios = Tienda::with('plan')->where('asesor_id', $yo->id)->latest()->get();
 
@@ -79,14 +79,16 @@ class asesorPanelController extends Controller
     public function red(Request $request)
     {
         $yo = $request->attributes->get('asesor');
-        $ids = $yo->idsRed();
+        // Su gente de abajo + la que sumó con su enlace (aunque esté con su líder o haciendo el curso)
+        $arbol = $yo->arbolVisible();
+        $ids = array_keys($arbol);
         $gente = Asesor::with('user:id,name,telefono')->whereIn('id', $ids)->get();
         $negocios = Tienda::with('plan:id,nombre')->whereIn('asesor_id', $ids)->orderBy('nombre')->get()->groupBy('asesor_id');
 
         return view('asesor.red', [
             'yo' => $yo,
             'raices' => $gente->where('id', $yo->id),
-            'hijos' => $gente->where('id', '<>', $yo->id)->groupBy('padre_id'),
+            'hijos' => $gente->where('id', '<>', $yo->id)->groupBy(fn ($a) => $arbol[$a->id]),
             'negocios' => $negocios,
             'total' => $negocios->flatten()->count(),
         ]);

@@ -138,6 +138,37 @@ class Asesor extends Model
         return $ids;
     }
 
+    /**
+     * Lo que el asesor ve en "Mi red": la gente que tiene debajo (padre_id) MÁS la gente que él sumó con su enlace
+     * (reclutado_por), aunque el sistema la haya ubicado con su líder o aún esté haciendo el curso.
+     * Devuelve [id => id de quien se dibuja como su "padre" en el árbol]. Solo es para mostrar: no cambia comisiones.
+     */
+    public function arbolVisible(): array
+    {
+        $padres = [$this->id => null];
+        $nivel = [$this->id];
+        for ($i = 0; $i < 8 && $nivel; $i++) {
+            $nuevos = static::where(fn ($q) => $q->whereIn('padre_id', $nivel)->orWhereIn('reclutado_por', $nivel))
+                ->where('estado', '<>', 'rechazado')
+                ->whereNotIn('id', array_keys($padres))
+                ->get(['id', 'padre_id', 'reclutado_por']);
+            $siguiente = [];
+            foreach ($nuevos as $n) {
+                $padres[$n->id] = in_array($n->padre_id, $nivel) ? $n->padre_id : $n->reclutado_por;
+                $siguiente[] = $n->id;
+            }
+            $nivel = $siguiente;
+        }
+        return $padres;
+    }
+
+    // Asesores a los que se les puede inscribir un negocio con su enlace o código: activos, o que todavía están
+    // haciendo el curso / por aprobar (el negocio queda en su red; la comisión solo se paga si está activo al cobrar)
+    public function scopeAceptaNegocios($q)
+    {
+        return $q->where(fn ($w) => $w->where('activo', true)->orWhereIn('estado', ['capacitacion', 'pendiente']));
+    }
+
     // Código consecutivo de asesor: LCP-00001, LCP-00002…
     public static function nuevoCodigo(?string $nombre = null): string
     {

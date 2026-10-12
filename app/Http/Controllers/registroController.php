@@ -22,7 +22,7 @@ class registroController extends Controller
     // Enlace del asesor: guarda su código (60 días) y abre el registro
     public function referido(string $codigo)
     {
-        $asesor = \App\Models\Asesor::porCodigo($codigo)->where('activo', true)->first();
+        $asesor = \App\Models\Asesor::porCodigo($codigo)->aceptaNegocios()->first();
         $guardar = $asesor?->codigo ?? (\App\Models\Asesor::esCodigoLocalpro($codigo) ? \App\Models\Asesor::CODIGO_LOCALPRO : null);
         if (!$guardar) {
             return redirect()->route('registro');
@@ -59,7 +59,7 @@ class registroController extends Controller
 
         // Si llegó por un asesor (enlace o código), el negocio queda en su red
         $codigo = strtoupper(trim((string) ($datos['codigo_asesor'] ?? '') ?: (string) session('codigo_asesor', $request->cookie('lp_asesor'))));
-        $asesor = $codigo !== '' ? \App\Models\Asesor::porCodigo($codigo)->where('activo', true)->first() : null;
+        $asesor = $codigo !== '' ? \App\Models\Asesor::porCodigo($codigo)->aceptaNegocios()->first() : null;
         // Código LOCALPRO (súper administrador): el negocio queda directo con LocalPro, sin asesor
         if ($asesor || \App\Models\Asesor::esCodigoLocalpro($codigo)) {
             // Los negocios que llegan por un asesor (o por LocalPro) arrancan con prueba gratis de 3 meses; luego pagan su plan anual
