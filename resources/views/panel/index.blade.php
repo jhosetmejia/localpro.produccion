@@ -34,12 +34,7 @@
         ];
         $hechos = collect($pasos)->where(2, true)->count();
     @endphp
-    @if ($tPlan?->plan && (float) $tPlan->plan->precio <= 0 && $tPlan->plan_vence && !$tPlan->plan_vencido && $tPlan->dias_para_vencer <= 30)
-    <div class="lp-limite" style="margin-bottom:.8rem">
-        <div class="lp-limite-t"><b><i class="fa-solid fa-gift me-1" style="color:#a6f34a"></i>Le quedan {{ $tPlan->dias_para_vencer }} {{ $tPlan->dias_para_vencer == 1 ? 'día' : 'días' }} de su prueba gratis</b><small>Elija un plan para seguir vendiendo sin perder nada de lo que tiene.</small></div>
-        <a href="{{ route('plan.index') }}" class="lp-limite-btn"><i class="fa-solid fa-rocket me-1"></i>Pásate a Pro</a>
-    </div>
-    @endif
+    @include('layouts.partials.cuenta-regresiva')
     @include('layouts.partials.limite-plan', ['que' => 'productos'])
     @if ($hechos < 3 && auth()->user()->can('crear-producto'))
     <div class="vm-box">

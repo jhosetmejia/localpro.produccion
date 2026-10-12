@@ -8,6 +8,7 @@
         <div><small>LocalPro</small><h1>Mi <span>plan</span></h1><span class="text-muted fw-semibold">{{ $tienda->nombre }}</span></div>
     </div>
     @include('layouts.partials.lp-flash')
+    @include('layouts.partials.cuenta-regresiva')
 
     @if ($tienda->plan_vencido)
     <div class="lp-box mb-3" style="background:#ffe9f3;border-color:#ffc3de">
