@@ -10,7 +10,7 @@
     <aside class="auth-side">
         <a href="{{ url('/') }}" class="brand"><span class="brand-mark">L</span>LocalPro</a>
         <div>
-            <h2 class="serif">Ordene su negocio <em>desde hoy</em>.</h2>
+            <h2 class="serif">Ordene su negocio <em>desde hoy.</em></h2>
             <p>Cree su cuenta, configure su tienda en 4 pasos y empiece a vender hoy mismo.</p>
             <ul class="auth-list">
                 <li><span><i class="fa-solid fa-check"></i></span> Registro en menos de un minuto</li>

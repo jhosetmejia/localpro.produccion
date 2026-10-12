@@ -9,7 +9,7 @@
     <aside class="auth-side">
         <a href="{{ url('/') }}" class="brand"><span class="brand-mark">L</span>LocalPro</a>
         <div>
-            <h2 class="serif">Tranquilo, <em>pasa</em>.</h2>
+            <h2 class="serif">Tranquilo, <em>pasa.</em></h2>
             <p>Le enviamos un enlace a su correo para que cree una contraseña nueva en segundos.</p>
         </div>
         <small>© {{ date('Y') }} LocalProo · Todos los derechos reservados</small>
