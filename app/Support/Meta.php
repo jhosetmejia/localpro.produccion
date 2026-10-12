@@ -115,10 +115,14 @@ class Meta
                 $mensajes = $conv['messages']['data'] ?? null;
                 if ($mensajes === null) {
                     try {
-                        $mensajes = self::get((string) $conv['id'], ['fields' => 'messages.limit(15){' . self::CAMPOS_MSJ . '}', 'access_token' => $c->page_token])['messages']['data'] ?? [];
+                        $mensajes = self::get((string) $conv['id'], ['fields' => 'messages.limit(15){' . self::CAMPOS_MSJ . '}', 'access_token' => $c->page_token], 30)['messages']['data'] ?? [];
                     } catch (\Throwable $e) {
-                        Log::error('Meta mensajes ' . $plat . ' ' . $conv['id'] . ': ' . $e->getMessage());
-                        continue;
+                        try {
+                            $mensajes = self::get((string) $conv['id'], ['fields' => 'messages.limit(5){id,created_time,from,message}', 'access_token' => $c->page_token], 30)['messages']['data'] ?? [];
+                        } catch (\Throwable $e2) {
+                            Log::error('Meta mensajes ' . $plat . ' ' . $conv['id'] . ': ' . $e2->getMessage());
+                            continue;
+                        }
                     }
                 }
                 foreach (array_reverse($mensajes) as $m) {
@@ -134,23 +138,38 @@ class Meta
         return $n;
     }
 
-    // Lista de conversaciones; si Meta se demora, vuelve a intentar pidiendo menos
+    // Lista de conversaciones; si Meta se demora o pide "menos datos", vuelve a intentar pidiendo menos
     private static function listaConversaciones(RedCuenta $c, string $plataforma, int $limite): array
     {
+        $ig = $plataforma === 'instagram';
+        $intentos = $ig
+            ? [[$limite, 'id,updated_time,participants'], [5, 'id,updated_time,participants'], [2, 'id,updated_time,participants'], [10, 'id,updated_time'], [3, 'id']]
+            : [[$limite, 'id,updated_time,participants,messages.limit(15){' . self::CAMPOS_MSJ . '}'], [5, 'id,updated_time,participants']];
         $ultimo = null;
-        foreach (array_unique([$limite, 5]) as $lim) {
+        foreach ($intentos as [$lim, $campos]) {
             try {
                 $r = self::get($c->page_id . '/conversations', [
-                    'platform' => $plataforma, 'limit' => $lim, 'access_token' => $c->page_token,
-                    'fields' => $plataforma === 'instagram' ? 'id,updated_time,participants' : 'id,updated_time,participants,messages.limit(15){' . self::CAMPOS_MSJ . '}',
+                    'platform' => $plataforma, 'limit' => $lim, 'access_token' => $c->page_token, 'fields' => $campos,
                 ], 30);
-                return $r['data'] ?? [];
+                $convs = $r['data'] ?? [];
+                // Si no vinieron los participantes, se piden chat por chat
+                foreach ($convs as &$cv) {
+                    if (!isset($cv['participants'])) {
+                        try {
+                            $cv['participants'] = self::get((string) $cv['id'], ['fields' => 'participants', 'access_token' => $c->page_token], 30)['participants'] ?? [];
+                        } catch (\Throwable $e) {
+                            $cv['participants'] = [];
+                        }
+                    }
+                }
+                return $convs;
             } catch (\Throwable $e) {
                 $ultimo = $e;
-                if (!str_contains(strtolower($e->getMessage()), 'timeout')) throw $e;
+                $m = strtolower($e->getMessage());
+                if (!str_contains($m, 'timeout') && !str_contains($m, 'reduce the amount') && !str_contains($m, 'unknown error')) throw $e;
             }
         }
-        throw $ultimo;
+        throw new RuntimeException('Meta está tardando demasiado en entregar los chats antiguos. Los mensajes nuevos sí le llegan solos; intente Actualizar más tarde.');
     }
 
     public static function conversacion(RedCuenta $c, string $plat, string $contacto, ?string $nombre = null, ?string $usuario = null): RedConversacion

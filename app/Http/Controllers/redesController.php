@@ -152,7 +152,7 @@ class redesController extends Controller
             try { $n += Meta::sincronizar($c); } catch (Throwable $e) { $err[] = $c->page_nombre . ': ' . $e->getMessage(); $c->update(['estado' => 'error', 'error' => mb_substr($e->getMessage(), 0, 250)]); }
         }
         TiendaActual::set($tid);
-        $err = array_map(fn ($x) => Meta::sinLlaves($x), array_merge($err, Meta::$avisos));
+        $err = array_values(array_unique(array_map(fn ($x) => Meta::sinLlaves($x), array_merge($err, Meta::$avisos))));
         $r = back()->with('success', $n ? "Se trajeron $n mensajes nuevos." : 'Todo al día.');
         return $err ? $r->withErrors(implode(' · ', $err)) : $r;
     }
