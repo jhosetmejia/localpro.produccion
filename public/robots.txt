@@ -1,2 +1,7 @@
 User-agent: *
-Disallow:
+Disallow: /admin
+Disallow: /asesor
+Disallow: /pos
+Allow: /
+
+Sitemap: https://localproo.com/sitemap.xml

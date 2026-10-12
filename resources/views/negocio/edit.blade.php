@@ -52,8 +52,14 @@
         </div>
         <div>
         <div class="lp-box text-center mb-3">
-            <h3>Catálogo en línea</h3>
-            <p class="text-muted small">Comparta este enlace en Instagram, WhatsApp o Facebook: sus clientes ven sus productos y le piden por WhatsApp.</p>
+            <h3>Tienda en línea</h3>
+            <p class="text-muted small">Su página web con sus productos por categorías y botón <b>Comprar</b> por WhatsApp. Compártala en Instagram, WhatsApp o Facebook.</p>
+            @php $tG = \App\Support\TiendaActual::tienda(); @endphp
+            @if ($tG?->en_google)
+            <div class="small fw-bold mb-2" style="color:#11702f"><i class="fa-brands fa-google me-1"></i>Aparece en los resultados de Google</div>
+            @else
+            <div class="small mb-2 p-2" style="background:#f2fbf3;border-radius:12px;color:#11702f"><i class="fa-brands fa-google me-1"></i>Con un plan pago su tienda también <b>aparece en Google</b>. <a href="{{ route('plan.index') }}" class="fw-bold" style="color:#11702f">Pásate a Pro</a></div>
+            @endif
             <div id="qr" class="d-flex justify-content-center mb-2"></div>
             <input class="form-control mb-2 text-center" id="urlCat" value="{{ $negocio->url_catalogo }}" readonly onclick="this.select()">
             <div class="d-flex gap-2">
@@ -61,7 +67,7 @@
                 <a class="btn btn-primary flex-fill" target="_blank" href="{{ $negocio->url_catalogo }}"><i class="fa-solid fa-up-right-from-square me-1"></i>Ver</a>
             </div>
             <input type="hidden" name="catalogo_activo" value="0">
-            <div class="form-check form-switch d-inline-block mt-3"><input class="form-check-input" type="checkbox" name="catalogo_activo" value="1" id="catAct" @checked(old('catalogo_activo', $negocio->catalogo_activo))><label class="form-check-label" for="catAct">Catálogo visible al público</label></div>
+            <div class="form-check form-switch d-inline-block mt-3"><input class="form-check-input" type="checkbox" name="catalogo_activo" value="1" id="catAct" @checked(old('catalogo_activo', $negocio->catalogo_activo))><label class="form-check-label" for="catAct">Tienda en línea visible al público</label></div>
             @unless ($negocio->telefono)<div class="alert border-0 mt-2 mb-0 small" style="background:#fff5d6;color:#8a6400">Ponga el teléfono / WhatsApp del negocio para recibir los pedidos.</div>@endunless
         </div>
         <div class="lp-box">

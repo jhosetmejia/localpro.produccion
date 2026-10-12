@@ -70,6 +70,12 @@ class Tienda extends Model
     }
 
     // El plan pagado ya pasó su fecha de vencimiento
+    // La tienda en línea aparece en Google (sitemap e indexación) solo con un plan pago al día
+    public function getEnGoogleAttribute(): bool
+    {
+        return $this->plan && (float) $this->plan->precio > 0 && !$this->plan_vencido;
+    }
+
     public function getPlanVencidoAttribute(): bool
     {
         return $this->plan_vence !== null && $this->plan_vence->lt(today());

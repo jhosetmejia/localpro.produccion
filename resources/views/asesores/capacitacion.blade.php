@@ -114,13 +114,13 @@
                 <li>Factura por WhatsApp o impresa.</li>
             </ul>
             <ul style="margin:0;padding-left:1.1rem;font-weight:600">
-                <li>Catálogo en línea para recibir pedidos por WhatsApp.</li>
+                <li><b>🌐 Página web / tienda en línea</b> con sus productos por categorías, botón Comprar por WhatsApp y que <b>aparece en Google</b>.</li>
                 <li>Clientes, vendedores y reportes de ventas.</li>
                 <li>Sin instalar nada: funciona en celular y computador.</li>
                 <li><b>3 meses de prueba gratis</b> y luego solo {{ $f($plan) }} al año.</li>
             </ul>
         </div>
-        <p class="regla" style="background:#e8f8ec;color:#11702f">💡 Frase clave: <i>"Por menos de {{ $f(ceil($plan / 12 / 100) * 100) }} al mes tienes tu negocio organizado y sabes cuánto ganas cada día."</i></p>
+        <p class="regla" style="background:#e8f8ec;color:#11702f">💡 Frase clave: <i>"Por solo {{ $f($plan) }} al año tiene su sistema de ventas con stock actualizado y además una página web de su tienda que aparece en Google. Por menos de {{ $f(ceil($plan / 12 / 100) * 100) }} al mes tienes tu negocio organizado y sabes cuánto ganas cada día."</i></p>
     </section>
 
     <section class="card" id="conjuntos">

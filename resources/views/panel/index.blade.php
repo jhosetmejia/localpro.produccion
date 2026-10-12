@@ -45,6 +45,8 @@
                 @endif
             @endcan
             @can('crear-producto')<a href="{{ route('productos.create') }}" class="btn btn-ghost btn-lg" style="border:2px solid #0b0d0c;background:#fff"><i class="fa-solid fa-plus me-1"></i>Producto</a>@endcan
+            @php $tW = \App\Support\TiendaActual::tienda(); @endphp
+            @if ($tW?->catalogo_activo)<a href="{{ $tW->url_catalogo }}" target="_blank" class="btn btn-ghost btn-lg" style="border:2px solid #16b34a;background:#f2fbf3;color:#11702f"><i class="fa-solid fa-globe me-1"></i>Mi tienda en línea</a>@endif
         </div>
     </div>
 

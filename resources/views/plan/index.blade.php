@@ -31,6 +31,17 @@
         </div>
     </div>
 
+    <div class="lp-box mb-3" style="background:linear-gradient(120deg,#0b0d0c,#163b22);color:#fff;border:0">
+        <div class="d-flex gap-3 align-items-center flex-wrap">
+            <div style="width:56px;height:56px;border-radius:18px;background:linear-gradient(135deg,#a6f34a,#16b34a);display:grid;place-items:center;font-size:1.5rem;color:#0b0d0c;flex:none"><i class="fa-solid fa-globe"></i></div>
+            <div style="flex:1;min-width:220px">
+                <b style="font-size:1.15rem">Plus: su página web con tienda en línea que aparece en Google</b>
+                <div style="color:#b9c6be;font-weight:600">Sus productos por categorías, botón <b style="color:#a6f34a">Comprar</b> por WhatsApp y cada producto con su propia página para que lo encuentren en los resultados de búsqueda. Incluida en los planes pagos.</div>
+            </div>
+            <a href="{{ $tienda->url_catalogo }}" target="_blank" class="btn" style="background:#a6f34a;color:#0b0d0c;font-weight:800;border-radius:999px">Ver mi tienda en línea</a>
+        </div>
+    </div>
+
     <div class="lp-counts mb-3" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
         @foreach ($planes as $p)
         <div class="lp-count" style="padding:1.4rem;{{ (int) $tienda->plan_id === (int) $p->id ? 'border-color:#2fd15a;box-shadow:0 0 0 4px rgba(47,209,90,.15)' : '' }}">
