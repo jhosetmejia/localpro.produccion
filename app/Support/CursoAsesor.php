@@ -102,21 +102,22 @@ class CursoAsesor
         $plan = self::plata($v['valor_plan']);
         $com = self::plata($v['nueva']['venta']);
 
+        // Preguntas desde el punto de vista del asesor: siempre sobre el negocio que él inscribe y acompaña
         return [
-            1 => ['¿Qué es LocalPro?', ['Un sistema para que los negocios vendan y controlen su inventario y su caja', 'Una red social para negocios', 'Un banco para emprendedores'], 0],
-            2 => ['¿Hay que instalar algún programa para usar LocalPro?', ['Sí, en un computador especial', 'No, funciona en el navegador del celular o del computador', 'Solo funciona con impresora'], 1],
-            3 => ['¿Qué pasa con el inventario cuando el negocio hace una venta?', ['Hay que descontarlo a mano', 'No cambia', 'Se descuenta solo'], 2],
-            4 => ['Si el negocio no tiene impresora, ¿cómo entrega la factura?', ['No puede facturar', 'La envía por WhatsApp', 'Tiene que comprar una impresora'], 1],
-            5 => ['¿Cuánto dura la prueba gratis para un negocio inscrito por un asesor?', ['3 meses', '1 semana', 'No hay prueba gratis'], 0],
-            6 => ['¿Cuánto vale el plan anual?', [$plan, '$20.000', '$1.000.000'], 0],
-            7 => ['¿Cómo queda un negocio a su nombre?', ['Llamando a LocalPro', 'Registrándose con su enlace o escribiendo su código de asesor', 'No importa, todos quedan a su nombre'], 1],
-            8 => ['¿Cuándo gana usted la comisión de ' . $com . '?', ['Apenas el negocio se registra', 'Cuando el negocio paga su plan anual', 'Cada vez que el negocio vende algo'], 1],
-            9 => ['¿Qué necesita para estar activo y recibir comisiones?', ['Tener al menos un negocio con pago', 'Pagar una mensualidad', 'Nada'], 0],
-            10 => ['¿Qué incluye la página web del negocio?', ['Solo el logo', 'Sus productos por categorías con botón para comprar por WhatsApp', 'Juegos para clientes'], 1],
-            11 => ['¿LocalPro también sirve para conjuntos residenciales?', ['Sí, para cobrar la administración, registrar pagos y más', 'No, solo para tiendas de ropa', 'Solo para restaurantes'], 0],
-            12 => ['¿Qué es lo mejor que puede hacer después de inscribir un negocio?', ['Olvidarse de él', 'Ayudarle a subir sus primeros productos y hacer su primera venta', 'Cobrarle de una vez'], 1],
-            13 => ['¿Qué pasa cuando un negocio renueva su plan cada año?', ['Usted también gana una comisión de renovación', 'Usted pierde su comisión', 'El negocio pierde sus datos'], 0],
-            14 => ['¿Qué puede hacer el dueño con la caja?', ['Nada', 'Abrirla y cerrarla con cuadre exacto por cada vendedor', 'Solo verla en papel'], 1],
+            1 => ['Un dueño de negocio le pregunta qué es LocalPro. ¿Qué le responde?', ['Un sistema para que su negocio venda y controle su inventario y su caja desde el celular', 'Una red social para negocios', 'Un banco para emprendedores'], 0],
+            2 => ['El negocio que usted va a inscribir no tiene computador. ¿Puede usar LocalPro?', ['No, necesita un computador especial', 'Sí, funciona en el navegador del celular, sin instalar nada', 'Solo si compra una impresora'], 1],
+            3 => ['¿Qué pasa con el inventario del negocio que usted inscribió cuando hace una venta?', ['El dueño tiene que descontarlo a mano', 'No cambia', 'Se descuenta solo con cada venta'], 2],
+            4 => ['El negocio que usted inscribió no tiene impresora. ¿Cómo le entrega la factura a su cliente?', ['No puede facturar', 'Se la envía por WhatsApp', 'Tiene que comprar una impresora primero'], 1],
+            5 => ['Cuando usted inscribe un negocio con su enlace, ¿cuánto tiempo lo puede usar gratis?', ['3 meses', '1 semana', 'No tiene prueba gratis'], 0],
+            6 => ['Al terminar la prueba gratis, ¿cuánto paga al año el negocio que usted inscribió?', [$plan, '$20.000', '$1.000.000'], 0],
+            7 => ['¿Qué debe hacer para que el negocio que usted consiguió quede a su nombre?', ['Llamar a LocalPro después', 'Que se registre con su enlace o escriba su código de asesor', 'Nada, todos los negocios quedan a su nombre'], 1],
+            8 => ['¿Cuándo gana usted la comisión de ' . $com . ' por el negocio que inscribió?', ['Apenas el negocio se registra', 'Cuando el negocio paga su plan anual', 'Cada vez que el negocio vende algo'], 1],
+            9 => ['¿Qué necesita usted para seguir activo y recibir sus comisiones?', ['Tener al menos un negocio inscrito con pago', 'Pagar una mensualidad a LocalPro', 'Nada'], 0],
+            10 => ['¿Qué le ofrece la página web al negocio que usted inscribió?', ['Solo mostrar su logo', 'Sus productos por categorías con botón para comprar por WhatsApp y aparecer en Google', 'Juegos para sus clientes'], 1],
+            11 => ['Un administrador de un conjunto residencial le pregunta si LocalPro le sirve. ¿Qué le responde?', ['Sí, para cobrar la administración, registrar pagos, ver morosos y más', 'No, solo sirve para tiendas de ropa', 'Solo sirve para restaurantes'], 0],
+            12 => ['Acaba de inscribir un negocio. ¿Qué es lo mejor que puede hacer en ese momento?', ['Irse y volver cuando termine la prueba', 'Ayudarle a subir sus primeros productos y hacer su primera venta', 'Cobrarle de una vez'], 1],
+            13 => ['El negocio que usted inscribió renueva su plan al año siguiente. ¿Qué pasa con usted?', ['Gana una comisión de renovación', 'Pierde su comisión', 'No pasa nada'], 0],
+            14 => ['El dueño del negocio que usted inscribió tiene 2 vendedores. ¿Cómo controla la plata de cada uno?', ['No se puede', 'Cada vendedor abre y cierra su caja con cuadre exacto', 'Anotándolo en un cuaderno'], 1],
         ];
     }
 
