@@ -4,7 +4,7 @@
 #   bash /home/localpro/htdocs/localpro.narinoexposhow.com/deploy/configurar-correo.sh
 # Pregunta los datos SMTP (ej. Hostinger: smtp.hostinger.com, puerto 465, ssl) y envía un correo de prueba.
 set -euo pipefail
-RAIZ="/home/localpro/htdocs/localpro.narinoexposhow.com"
+RAIZ="$( [ -d /home/localproo/htdocs/localproo.com ] && echo /home/localproo/htdocs/localproo.com || echo /home/localpro/htdocs/localpro.narinoexposhow.com )"
 cd "$RAIZ"
 
 read -rp "Servidor SMTP [smtp.hostinger.com]: " HOST; HOST=${HOST:-smtp.hostinger.com}

@@ -3,8 +3,9 @@
 # Lo ejecuta el cron /etc/cron.d/localpro-respaldo (lo instala deploy/actualizar.sh).
 # Desarrollado por Jhoset Mejía - DiCreWeb
 set -uo pipefail
-RAIZ="/home/localpro/htdocs/localpro.narinoexposhow.com"
-DEST="/home/localpro/respaldos/diario"
+RAIZ="$( [ -d /home/localproo/htdocs/localproo.com ] && echo /home/localproo/htdocs/localproo.com || echo /home/localpro/htdocs/localpro.narinoexposhow.com )"
+USR="$(stat -c %U "$RAIZ")"
+DEST="/home/$USR/respaldos/diario"
 DIAS=15
 HOY="$(date +%Y%m%d)"
 mkdir -p "$DEST"
@@ -25,4 +26,4 @@ tar -czf "$DEST/archivos-$HOY.tar.gz" -C "$RAIZ/storage/app" public 2>/dev/null 
 
 find "$DEST" -name 'base-*.sql.gz' -mtime +$DIAS -delete
 find "$DEST" -name 'archivos-*.tar.gz' -mtime +$DIAS -delete
-chown -R localpro:localpro /home/localpro/respaldos
+chown -R "$USR:$USR" "/home/$USR/respaldos"

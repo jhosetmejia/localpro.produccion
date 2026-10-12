@@ -6,10 +6,10 @@
 # Desarrollado por Jhoset Mejía - DiCreWeb
 set -uo pipefail
 
-# Nombre de la carpeta en el servidor (quedó con el nombre del dominio de pruebas; es solo interno)
-CARPETA="localpro.narinoexposhow.com"
+# Desde la migración el sitio vive en /home/localproo/htdocs/localproo.com (antes en la carpeta de pruebas)
+if [ -d /home/localproo/htdocs/localproo.com ]; then CARPETA="localproo.com"; USUARIO="localproo"
+else CARPETA="localpro.narinoexposhow.com"; USUARIO="localpro"; fi
 DOMINIO="localproo.com"
-USUARIO="localpro"
 PHP="php8.2"
 RAIZ="/home/$USUARIO/htdocs/$CARPETA"
 STAMP="$(date +%Y%m%d-%H%M%S)"
