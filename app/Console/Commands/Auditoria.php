@@ -145,7 +145,8 @@ class Auditoria extends Command
     private function tiendas(): void
     {
         $this->ok('Tiendas inscritas: ' . Tienda::count() . ' · activas: ' . Tienda::where('estado', 'activa')->count());
-        $this->revisar('Tiendas sin dueño (nadie puede entrar a administrarlas)', fn () => Tienda::whereNotIn('id', User::role('dueno')->whereNotNull('tienda_id')->pluck('tienda_id'))->get(), true, fn ($t) => "$t->codigo $t->nombre");
+        $this->revisar('Tiendas sin dueño (nadie puede entrar a administrarlas)', fn () => Tienda::whereNotIn('id', User::role('dueno')->whereNotNull('tienda_id')->pluck('tienda_id'))
+            ->whereNotIn('id', User::where('es_superadmin', true)->whereNotNull('tienda_id')->pluck('tienda_id'))->get(), true, fn ($t) => "$t->codigo $t->nombre");
         $this->revisar('Tiendas sin plan asignado', fn () => Tienda::whereNull('plan_id')->get(), false, fn ($t) => "$t->codigo $t->nombre");
         $this->revisar('Tiendas con plan vencido (bloqueadas, solo ven "Mi plan")', fn () => Tienda::whereNotNull('plan_vence')->whereDate('plan_vence', '<', today())->get(), false, fn ($t) => "$t->codigo $t->nombre (" . $t->plan_vence->format('d/m/Y') . ')');
         $this->revisar('Tiendas que vencen en los próximos 7 días', fn () => Tienda::whereBetween('plan_vence', [today(), today()->addDays(7)])->get(), false, fn ($t) => "$t->codigo $t->nombre (" . $t->plan_vence->format('d/m/Y') . ')');
@@ -212,7 +213,7 @@ class Auditoria extends Command
             if (!Schema::hasTable('pos_venta_pagos')) return [];
             return DB::table('pos_ventas as v')->where('v.estado', 'pagada')
                 ->selectRaw('v.id, v.numero, v.total, v.cambio, (SELECT COALESCE(SUM(p.monto),0) FROM pos_venta_pagos p WHERE p.pos_venta_id = v.id) pagado')
-                ->get()->filter(fn ($v) => ((float) $v->pagado - (float) ($v->cambio ?? 0)) + 1 < (float) $v->total);
+                ->get()->filter(fn ($v) => (float) $v->pagado + 1 < (float) $v->total);
         }, true, fn ($v) => ($v->numero ?? "#$v->id") . " total $v->total / pagado $v->pagado");
         $this->revisar('Clientes con cédula repetida en la misma tienda', fn () => DB::table('personas')->select('tienda_id', 'numero_documento')->groupBy('tienda_id', 'numero_documento')->havingRaw('COUNT(*) > 1')->get(), false, fn ($p) => "T$p->tienda_id $p->numero_documento");
     }

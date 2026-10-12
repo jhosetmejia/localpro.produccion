@@ -10,6 +10,19 @@
     </div>
     @include('layouts.partials.lp-flash')
 
+    @php $tC = $u->tienda_id ? \App\Models\Tienda::with('plan')->find($u->tienda_id) : null; @endphp
+    @if ($tC && $tC->codigo)
+    <div class="mb-3" style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;background:#0b0d0c;color:#fff;border-radius:22px;padding:1rem 1.2rem">
+        <div style="width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(135deg,#a6f34a,#16b34a);color:#0b0d0c;font-size:1.4rem;flex:none"><i class="fa-solid fa-store"></i></div>
+        <div style="flex:1 1 220px;min-width:0">
+            <small style="color:#9fe3b0;font-weight:700">Código de comercio de {{ $tC->nombre }}</small>
+            <div style="font-size:1.8rem;font-weight:900;letter-spacing:.04em;color:#2fd15a;line-height:1.1">{{ $tC->codigo }}</div>
+            <small style="color:#c9d3cc">Úselo cuando hable con LocalPro o con su asesor{{ $tC->plan ? ' · Plan ' . $tC->plan->nombre . ($tC->plan_vence ? ' hasta ' . $tC->plan_vence->format('d/m/Y') : '') : '' }}.</small>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="navigator.clipboard.writeText('{{ $tC->codigo }}');LP.toast('Código copiado','ok')"><i class="fa-regular fa-copy me-1"></i>Copiar</button>
+    </div>
+    @endif
+
     <form method="post" action="{{ route('cuenta.update') }}" class="lp-grid">
         @csrf @method('PUT')
         <div class="lp-box">
