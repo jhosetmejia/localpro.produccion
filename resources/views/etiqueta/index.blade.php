@@ -53,7 +53,15 @@
 
 <script>
 (function () {
-    var ITEMS = @json($items->map(fn ($it) => ['nombre' => $it['v']->producto->nombre, 'op' => $it['v']->etiqueta !== 'Única' ? $it['v']->etiqueta : '', 'codigo' => $it['v']->codigo_barras, 'precio' => dinero($it['v']->precio_final)]));
+    @php
+        $itemsJs = $items->map(fn ($it) => [
+            'nombre' => $it['v']->producto->nombre,
+            'op' => $it['v']->etiqueta !== 'Única' ? $it['v']->etiqueta : '',
+            'codigo' => $it['v']->codigo_barras,
+            'precio' => dinero($it['v']->precio_final),
+        ])->values();
+    @endphp
+    var ITEMS = @json($itemsJs);
     var TIENDA = @json($negocio->nombre);
     var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); };
     function pintar() {

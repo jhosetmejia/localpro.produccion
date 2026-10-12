@@ -195,7 +195,8 @@
     var tallas = document.getElementById('tallas');
     if (tallas) {
         var colores = document.getElementById('colores'), filas = document.getElementById('filas');
-        var guardadas = @json(collect(old('variantes', []))->mapWithKeys(fn ($v) => [mb_strtoupper(trim(($v['talla'] ?? '') . '|' . ($v['color'] ?? ''))) => $v['cantidad'] ?? 0]));
+        @php $guardadasJs = collect(old('variantes', []))->mapWithKeys(fn ($v) => [mb_strtoupper(trim(($v['talla'] ?? '') . '|' . ($v['color'] ?? ''))) => $v['cantidad'] ?? 0]); @endphp
+        var guardadas = @json($guardadasJs);
         var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); };
         var lista = function (t) {
             var vistos = {};
