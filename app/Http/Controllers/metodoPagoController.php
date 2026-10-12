@@ -43,9 +43,11 @@ class metodoPagoController extends Controller
         $datos = $request->validate([
             'nombre' => ['required', 'string', 'max:40', Rule::unique('metodos_pago', 'nombre')->where('tienda_id', \App\Support\TiendaActual::id())->ignore($metodo->id)],
             'orden' => 'nullable|integer|min:0|max:999',
+            'medio_dian' => ['nullable', Rule::in(array_keys(\App\Support\Dian\Catalogos::MEDIOS_PAGO))],
         ]);
         $metodo->update([
             'nombre' => $datos['nombre'],
+            'medio_dian' => $datos['medio_dian'] ?? $metodo->medio_dian,
             'orden' => $datos['orden'] ?? 0,
             'es_efectivo' => $request->boolean('es_efectivo'),
             'activo' => $request->boolean('activo'),

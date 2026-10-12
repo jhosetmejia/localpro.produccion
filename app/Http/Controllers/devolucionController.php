@@ -122,6 +122,12 @@ class devolucionController extends Controller
                 }
             }
 
+            // Venta facturada electrónicamente: la devolución va a la DIAN como nota crédito parcial
+            \App\Support\Dian\Facturador::enviarDespues(\App\Support\Dian\Facturador::notaCredito(
+                $venta, 'Devolución ' . $dev->codigo . ($dev->motivo ? ': ' . $dev->motivo : ''), '1', $dev,
+                collect($lineas)->map(fn ($l) => ['item_id' => $l[0]->id, 'cantidad' => $l[1]])->all(), $total
+            ));
+
             return $dev;
         });
 

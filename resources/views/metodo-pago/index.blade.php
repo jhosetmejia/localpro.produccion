@@ -54,6 +54,10 @@
                 <input name="nombre" class="form-control mb-3" value="{{ $m->nombre }}" maxlength="40" required>
                 <label class="form-label">Orden</label>
                 <input name="orden" type="number" min="0" class="form-control mb-3" value="{{ $m->orden }}">
+                @if (!\App\Support\TiendaActual::tienda()?->pais || \App\Support\TiendaActual::tienda()->pais === 'CO')
+                <label class="form-label small fw-bold">Cómo se reporta en la factura DIAN</label>
+                <select name="medio_dian" class="form-select mb-3">@foreach (\App\Support\Dian\Catalogos::MEDIOS_PAGO as $k => $n)<option value="{{ $k }}" @selected(($m->medio_dian ?: 'ZZZ') === $k)>{{ $n }}</option>@endforeach</select>
+                @endif
                 <div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" name="es_efectivo" value="1" id="e{{ $m->id }}" @checked($m->es_efectivo)><label class="form-check-label" for="e{{ $m->id }}">Es efectivo</label></div>
                 <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="activo" value="1" id="a{{ $m->id }}" @checked($m->activo)><label class="form-check-label" for="a{{ $m->id }}">Activo en el POS</label></div>
             </div>

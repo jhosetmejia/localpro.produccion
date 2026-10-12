@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Factura {{ $venta->numero }} · {{ $negocio->nombre }}</title>
+<title>{{ ['fe' => 'Factura electrónica', 'pos_e' => 'Documento POS'][$venta->tipo_doc] ?? 'Comprobante' }} {{ $venta->numero }} · {{ $negocio->nombre }}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -67,6 +67,7 @@
             @if ($venta->descuento > 0)<div><span>Descuento</span><span>-{{ dinero($venta->descuento) }}</span></div>@endif
             <div class="big"><span>Total</span><span>{{ dinero($venta->total) }}</span></div>
         </div>
+        <div style="margin-top:16px;background:#f7fbf8;border-radius:14px;padding:12px 14px">@include('pos._fiscal', ['web' => true])</div>
         <div class="pay">Pagado con: {{ $venta->pagos->map(fn ($p) => $p->metodo->nombre)->implode(', ') }}@if($venta->cambio > 0) · Cambio {{ dinero($venta->cambio) }}@endif</div>
     </div>
     <div class="ft">{{ $negocio->mensaje_tiquete }}</div>

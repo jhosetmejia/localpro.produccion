@@ -8,7 +8,7 @@ class PosVentaItem extends Model
 {
     protected $table = 'pos_venta_items';
 
-    protected $fillable = ['pos_venta_id', 'producto_variante_id', 'descripcion', 'talla', 'color', 'cantidad', 'precio', 'costo', 'subtotal'];
+    protected $fillable = ['pos_venta_id', 'producto_variante_id', 'descripcion', 'talla', 'color', 'cantidad', 'precio', 'costo', 'subtotal', 'impuesto', 'iva_tasa', 'base', 'iva_valor'];
 
     protected $casts = ['cantidad' => 'float'];
 

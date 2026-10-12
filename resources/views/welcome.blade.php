@@ -55,8 +55,8 @@
     </section>
 
     <div class="marquee" aria-hidden="true"><div class="marquee-track">
-        <span>Caja POS</span><span>Stock actualizado</span><span>Tienda en línea</span><span>Aparece en Google</span><span>Comprar por WhatsApp</span><span>Importar desde Excel</span><span>Separados y abonos</span><span>Chats de Facebook e Instagram</span><span>Metas de vendedores</span><span>Niveles y certificados</span><span>Reportes y ganancias</span>
-        <span>Caja POS</span><span>Stock actualizado</span><span>Tienda en línea</span><span>Aparece en Google</span><span>Comprar por WhatsApp</span><span>Importar desde Excel</span><span>Separados y abonos</span><span>Chats de Facebook e Instagram</span><span>Metas de vendedores</span><span>Niveles y certificados</span><span>Reportes y ganancias</span>
+        <span>Caja POS</span><span>Stock actualizado</span><span>Tienda en línea</span><span>Aparece en Google</span><span>Comprar por WhatsApp</span><span>Importar desde Excel</span><span>Separados y abonos</span><span>Factura electrónica DIAN</span><span>Chats de Facebook e Instagram</span><span>Metas de vendedores</span><span>Niveles y certificados</span><span>Reportes y ganancias</span>
+        <span>Caja POS</span><span>Stock actualizado</span><span>Tienda en línea</span><span>Aparece en Google</span><span>Comprar por WhatsApp</span><span>Importar desde Excel</span><span>Separados y abonos</span><span>Factura electrónica DIAN</span><span>Chats de Facebook e Instagram</span><span>Metas de vendedores</span><span>Niveles y certificados</span><span>Reportes y ganancias</span>
     </div></div>
 
     <section class="section" id="funciones">
@@ -111,6 +111,11 @@
                     <div class="ico"><i class="fa-solid fa-hashtag"></i></div>
                     <h3>Facebook e Instagram en un solo lugar</h3>
                     <p>Responda los chats de Messenger e Instagram desde LocalPro, envíe sus productos con foto y precio en un toque y publique en las dos redes al tiempo.</p>
+                </article>
+                <article class="feature">
+                    <div class="ico"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                    <h3>Preparado para la DIAN</h3>
+                    <p>IVA separado en cada venta, resoluciones de numeración con aviso de vencimiento, POS electrónico y factura electrónica con CUFE y código QR, a través de un proveedor autorizado.</p>
                 </article>
                 <article class="feature">
                     <div class="ico"><i class="fa-solid fa-box-archive"></i></div>

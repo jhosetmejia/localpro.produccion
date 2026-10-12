@@ -20,7 +20,9 @@
                 <tbody>
                 @forelse ($ventas as $v)
                 <tr class="{{ $v->estado === 'anulada' ? 'opacity-50' : '' }}">
-                    <td class="fw-bold">{{ $v->numero }}</td>
+                    <td class="fw-bold">{{ $v->numero }}
+                        @if ($v->documento)<small class="d-block fw-bold" style="color:{{ $v->documento->estado_info[1] }}">{{ $v->tipo_doc === 'fe' ? 'FE' : 'POS-e' }} · {{ $v->documento->estado_info[0] }}</small>@endif
+                    </td>
                     <td class="text-nowrap">{{ $v->created_at->format('d/m/Y h:i a') }}</td>
                     <td>{{ $v->user->name ?? '—' }}</td>
                     <td>{{ $v->cliente_nombre ?? 'Mostrador' }}@if($v->cliente_telefono)<br><small class="text-muted">{{ $v->cliente_telefono }}</small>@endif</td>

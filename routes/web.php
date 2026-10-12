@@ -279,6 +279,13 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::put('/metodos-pago/{metodo}', [metodoPagoController::class, 'update'])->name('metodos-pago.update');
     Route::get('/negocio', [negocioController::class, 'edit'])->name('negocio.edit');
     Route::put('/negocio', [negocioController::class, 'update'])->name('negocio.update');
+    // Facturación electrónica DIAN
+    Route::get('/facturacion', [\App\Http\Controllers\facturacionController::class, 'index'])->name('facturacion.index');
+    Route::put('/facturacion', [\App\Http\Controllers\facturacionController::class, 'update'])->name('facturacion.update');
+    Route::post('/facturacion/revisar', [\App\Http\Controllers\facturacionController::class, 'revisar'])->middleware('throttle:20,1')->name('facturacion.revisar');
+    Route::post('/facturacion/impuesto', [\App\Http\Controllers\facturacionController::class, 'impuestoMasivo'])->name('facturacion.impuesto');
+    Route::get('/facturacion/documentos/{documento}', [\App\Http\Controllers\facturacionController::class, 'documento'])->whereNumber('documento')->name('facturacion.documento');
+    Route::post('/facturacion/documentos/{documento}/reintentar', [\App\Http\Controllers\facturacionController::class, 'reintentar'])->whereNumber('documento')->middleware('throttle:30,1')->name('facturacion.reintentar');
 });
 
 // ===== Administrador de la plataforma =====
@@ -305,6 +312,9 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::post('/vista', [adminTiendaController::class, 'vista'])->name('vista');
     Route::get('/importaciones', [adminImportacionController::class, 'index'])->name('importaciones');
     Route::get('/auditoria', [adminInicioController::class, 'auditoria'])->name('auditoria');
+    Route::get('/facturacion', [\App\Http\Controllers\adminFacturacionController::class, 'index'])->name('facturacion');
+    Route::post('/facturacion', [\App\Http\Controllers\adminFacturacionController::class, 'guardar'])->name('facturacion.guardar');
+    Route::post('/facturacion/cola', [\App\Http\Controllers\adminFacturacionController::class, 'enviarCola'])->middleware('throttle:6,1')->name('facturacion.cola');
     Route::post('/auditoria', [adminInicioController::class, 'correrAuditoria'])->middleware('throttle:6,1')->name('auditoria.correr');
     Route::get('/importaciones/{importacion}/archivo', [adminImportacionController::class, 'descargar'])->name('importaciones.archivo');
     Route::post('/importaciones/{importacion}/atender', [adminImportacionController::class, 'atender'])->name('importaciones.atender');

@@ -24,5 +24,5 @@ class Persona extends Model
         return $this->hasOne(Cliente::class);
     }
 
-    protected $fillable = ['razon_social','direccion','telefono','email','tipo_persona','documento_id','numero_documento'];
+    protected $fillable = ['razon_social','direccion','telefono','email','tipo_persona','documento_id','numero_documento','dv','responsabilidad','municipio_dane'];
 }

@@ -31,6 +31,10 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-stethoscope"></i></div>
                     Auditoría
                 </a>
+                <a class="nav-link {{ $on('admin.facturacion') }}" href="{{ route('admin.facturacion') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-file-invoice"></i></div>
+                    Facturación DIAN
+                </a>
                 <a class="nav-link {{ $on('admin.pagos') }}" href="{{ route('admin.pagos') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
                     Pagos recibidos
@@ -202,6 +206,14 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-store"></i></div>
                     Datos del negocio
                 </a>
+                @endcan
+                @can('facturacion-dian')
+                @if (!$tiendaMenu?->pais || $tiendaMenu->pais === 'CO')
+                <a class="nav-link {{ $on('facturacion.*') }}" href="{{ route('facturacion.index') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                    Facturación DIAN
+                </a>
+                @endif
                 @endcan
                 @if ($tiendaMenu && $tiendaMenu->catalogo_activo && $tiendaMenu->slug)
                 <a class="nav-link" href="{{ $tiendaMenu->url_catalogo }}" target="_blank">

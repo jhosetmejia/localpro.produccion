@@ -82,6 +82,7 @@ class ProductoController extends Controller
                 'marca_id' => $request->marca_id,
                 'presentacione_id' => $request->presentacione_id,
                 'unidad' => \App\Support\TiendaActual::tienda()->mod_medida ? ($request->unidad ?: 'und') : 'und',
+                'impuesto' => $request->impuesto ?: \App\Support\Dian\Facturador::impuestoPorDefecto(\App\Support\TiendaActual::tienda()),
             ]);
 
             $producto->save();
@@ -195,6 +196,7 @@ class ProductoController extends Controller
                 'marca_id' => $request->marca_id,
                 'presentacione_id' => $request->presentacione_id,
                 'unidad' => \App\Support\TiendaActual::tienda()->mod_medida ? ($request->unidad ?: ($producto->unidad ?: 'und')) : ($producto->unidad ?: 'und'),
+                'impuesto' => $request->impuesto ?: ($producto->impuesto ?: 'ninguno'),
             ]);
 
             $producto->save();

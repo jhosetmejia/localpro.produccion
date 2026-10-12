@@ -113,6 +113,7 @@ class posController extends Controller
             'cliente_id' => 'nullable|integer',
             'cliente_nombre' => 'nullable|string|max:80',
             'cliente_telefono' => 'nullable|string|max:20',
+            'factura_electronica' => 'nullable|boolean',
         ], [
             'items.required' => 'Agregue al menos una prenda.',
             'pagos.required' => 'Indique cómo pagó el cliente.',
@@ -128,7 +129,7 @@ class posController extends Controller
         $venta = DB::transaction(function () use ($datos, $caja) {
             // Bloquea las tallas/colores vendidos para que dos cajas no vendan la misma unidad
             $ids = collect($datos['items'])->pluck('variante_id')->unique();
-            $variantes = ProductoVariante::with('producto:id,nombre,precio_venta,precio_costo,controla_inventario,unidad')
+            $variantes = ProductoVariante::with('producto:id,codigo,nombre,precio_venta,precio_costo,controla_inventario,unidad,impuesto')
                 ->whereIn('id', $ids)->lockForUpdate()->get()->keyBy('id');
 
             if ($variantes->count() !== $ids->count()) {
@@ -154,6 +155,10 @@ class posController extends Controller
             $subtotal = $items->sum(fn ($i) => round($i['cantidad'] * $i['precio'], 2));
             $descuento = min((float) ($datos['descuento'] ?? 0), $subtotal);
             $total = round($subtotal - $descuento, 2);
+            // IVA / impoconsumo incluidos en el precio: se separa base e impuesto de cada línea (con el descuento repartido)
+            $imp = \App\Support\Dian\Impuestos::calcular($items->map(fn ($i) => [
+                'total' => round($i['cantidad'] * $i['precio'], 2), 'impuesto' => $variantes[$i['variante_id']]->producto->impuesto ?? 'ninguno',
+            ])->all(), $descuento);
 
             $metodos = MetodoPago::where('activo', true)->whereIn('id', collect($datos['pagos'])->pluck('metodo_id'))->get()->keyBy('id');
             if ($metodos->count() !== collect($datos['pagos'])->pluck('metodo_id')->unique()->count()) {
@@ -206,8 +211,30 @@ class posController extends Controller
                 }
             }
 
+            // Documento que sale: tiquete, POS electrónico o factura electrónica (si el cliente la pide)
+            $tienda = \App\Models\Tienda::whereKey(\App\Support\TiendaActual::id())->lockForUpdate()->first();
+            $tipoDoc = \App\Support\Dian\Facturador::tipoDocumento($tienda, !empty($datos['factura_electronica']));
+            $adquiriente = \App\Support\Dian\Facturador::adquiriente($clienteId ? \App\Models\Cliente::with('persona.documento')->find($clienteId) : null);
+            if (!empty($datos['factura_electronica']) && $tipoDoc !== 'fe') {
+                throw ValidationException::withMessages(['pagos' => 'La factura electrónica no está activa en este negocio. Actívela en Facturación DIAN o venda con tiquete.']);
+            }
+            if ($tipoDoc === 'fe') {
+                if ($adquiriente['numero'] === \App\Support\Dian\Catalogos::CONSUMIDOR_FINAL['numero']) {
+                    throw ValidationException::withMessages(['cliente_id' => 'Para factura electrónica elija un cliente con cédula o NIT (no consumidor final).']);
+                }
+                if (empty($adquiriente['email'])) {
+                    throw ValidationException::withMessages(['cliente_id' => 'Para factura electrónica el cliente necesita correo: allí le llega. Agréguelo con "Actualizar datos".']);
+                }
+            }
+            \App\Support\Dian\Facturador::asegurarNumeracion($tienda, $tipoDoc);
+
             $venta = PosVenta::create([
-                'numero' => \App\Support\TiendaActual::tienda()->siguienteNumeroPos(),
+                'numero' => $tipoDoc === 'fe' ? $tienda->siguienteNumeroFe() : $tienda->siguienteNumeroPos(),
+                'tipo_doc' => $tipoDoc,
+                'base_gravable' => $imp['base'],
+                'impuestos' => $imp['impuestos'],
+                'impuestos_detalle' => $imp['detalle'] ?: null,
+                'adquiriente' => $clienteId || $tipoDoc !== 'tiquete' ? $adquiriente : null,
                 'caja_id' => $caja->id,
                 'user_id' => Auth::id(),
                 'cliente_id' => $clienteId,
@@ -220,9 +247,14 @@ class posController extends Controller
                 'estado' => 'pagada',
             ]);
 
-            foreach ($items as $i) {
+            foreach ($items->values() as $k => $i) {
                 $v = $variantes[$i['variante_id']];
+                $li = $imp['lineas'][$k];
                 $venta->items()->create([
+                    'impuesto' => $li['impuesto'],
+                    'iva_tasa' => $li['tasa'],
+                    'base' => $li['base'],
+                    'iva_valor' => $li['iva'],
                     'producto_variante_id' => $v->id,
                     'descripcion' => $v->producto->nombre,
                     'talla' => $v->talla,
@@ -255,10 +287,14 @@ class posController extends Controller
                 }
             }
 
+            // Factura / POS electrónico: queda registrado y se envía al proveedor apenas se guarde la venta
+            \App\Support\Dian\Facturador::enviarDespues(\App\Support\Dian\Facturador::registrarVenta($venta));
+
             return $venta;
         });
 
         return response()->json([
+            'tipo_doc' => $venta->tipo_doc,
             'id' => $venta->id,
             'numero' => $venta->numero,
             'total' => (float) $venta->total,
@@ -379,7 +415,7 @@ class posController extends Controller
     {
         $this->autorizar($venta);
         return view('pos.ticket', [
-            'venta' => $venta->load(['items', 'pagos.metodo', 'user:id,name']),
+            'venta' => $venta->load(['items', 'pagos.metodo', 'user:id,name', 'documento']),
             'negocio' => Negocio::datos(),
         ]);
     }
@@ -394,7 +430,7 @@ class posController extends Controller
         date_default_timezone_set($zona);
         config(['app.timezone' => $zona]);
         return view('pos.factura', [
-            'venta' => $venta->load(['items', 'pagos.metodo', 'user:id,name']),
+            'venta' => $venta->load(['items', 'pagos.metodo', 'user:id,name', 'documento']),
             'negocio' => Negocio::datos(),
         ]);
     }
@@ -402,7 +438,7 @@ class posController extends Controller
     public function ventas(Request $request)
     {
         $todas = Auth::user()->can('ver-cajas-todas');
-        $ventas = PosVenta::with(['user:id,name', 'pagos.metodo'])
+        $ventas = PosVenta::with(['user:id,name', 'pagos.metodo', 'documento'])
             ->when(!$todas, fn ($q) => $q->where('user_id', Auth::id()))
             ->when($request->get('q'), fn ($q, $t) => $q->where(fn ($w) => $w->where('numero', 'like', "%$t%")->orWhere('cliente_nombre', 'like', "%$t%")->orWhere('cliente_telefono', 'like', "%$t%")))
             ->latest()
@@ -427,8 +463,12 @@ class posController extends Controller
                 }
             }
             $venta->update(['estado' => 'anulada', 'anulada_en' => now(), 'anulada_por' => Auth::id()]);
+            // Si ya salió como documento electrónico, la anulación se hace con nota crédito ante la DIAN
+            $nc = \App\Support\Dian\Facturador::notaCredito($venta, 'Anulación de la venta ' . $venta->numero, '2');
+            \App\Support\Dian\Facturador::enviarDespues($nc);
+            if ($nc) session()->flash('nc', $nc->numero);
         });
-        return back()->with('success', 'Venta anulada y prendas devueltas al inventario.');
+        return back()->with('success', 'Venta anulada y prendas devueltas al inventario.' . (session('nc') ? ' Se generó la nota crédito electrónica ' . session('nc') . ' para la DIAN.' : ''));
     }
 
     private function autorizar(PosVenta $venta): void

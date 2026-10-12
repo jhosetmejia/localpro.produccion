@@ -12,10 +12,16 @@ class Tienda extends Model
     protected $fillable = [
         'nombre', 'departamento', 'slug', 'catalogo_activo', 'mod_medida', 'mod_vencimiento', 'mod_recetas', 'cliente_obligatorio', 'pais', 'tipo_negocio', 'descripcion', 'usa_tallas', 'nit', 'regimen',
         'resolucion_numero', 'resolucion_fecha', 'resolucion_vigencia', 'resolucion_prefijo', 'resolucion_desde', 'resolucion_hasta', 'direccion', 'ciudad', 'telefono',
-        'email', 'logo_path', 'mensaje_tiquete', 'estado', 'onboarding_paso', 'onboarding_completo', 'conj_dia_vence', 'conj_interes_mora', 'conj_zonas',
+        'email', 'logo_path', 'mensaje_tiquete',
+        // Facturación DIAN
+        'razon_social', 'dv', 'tipo_persona', 'responsabilidades', 'ciiu', 'municipio_dane', 'email_facturacion', 'pos_electronico',
+        'fe_activa', 'fe_ambiente', 'fe_resolucion_numero', 'fe_resolucion_fecha', 'fe_resolucion_vigencia', 'fe_prefijo', 'fe_desde', 'fe_hasta', 'fe_clave_tecnica', 'fe_credenciales', 'estado', 'onboarding_paso', 'onboarding_completo', 'conj_dia_vence', 'conj_interes_mora', 'conj_zonas',
     ];
 
-    protected $casts = ['mod_medida' => 'boolean', 'mod_vencimiento' => 'boolean', 'mod_recetas' => 'boolean', 'usa_tallas' => 'boolean', 'onboarding_completo' => 'boolean', 'catalogo_activo' => 'boolean', 'cliente_obligatorio' => 'boolean', 'plan_vence' => 'date', 'resolucion_fecha' => 'date', 'resolucion_vigencia' => 'date'];
+    protected $casts = ['mod_medida' => 'boolean', 'mod_vencimiento' => 'boolean', 'mod_recetas' => 'boolean', 'usa_tallas' => 'boolean', 'onboarding_completo' => 'boolean', 'catalogo_activo' => 'boolean', 'cliente_obligatorio' => 'boolean', 'plan_vence' => 'date', 'resolucion_fecha' => 'date', 'resolucion_vigencia' => 'date', 'pos_electronico' => 'boolean', 'fe_activa' => 'boolean', 'fe_resolucion_fecha' => 'date', 'fe_resolucion_vigencia' => 'date', 'fe_clave_tecnica' => 'encrypted', 'fe_credenciales' => 'encrypted:array'];
+
+    // Las llaves de facturación nunca salen en JSON ni en registros
+    protected $hidden = ['fe_clave_tecnica', 'fe_credenciales'];
 
     // Categorías de negocio que se pueden elegir al registrarse
     // Módulos que se encienden solos según el tipo de negocio (se pueden cambiar en Datos del negocio)
@@ -132,6 +138,17 @@ class Tienda extends Model
         $n = $fila->consecutivo_nc + 1;
         $fila->forceFill(['consecutivo_nc' => $n])->save();
         return 'NC-' . str_pad((string) $n, 6, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Siguiente número de factura electrónica (prefijo y rango de su resolución). Llamar dentro de una transacción.
+     */
+    public function siguienteNumeroFe(): string
+    {
+        $fila = static::whereKey($this->id)->lockForUpdate()->first();
+        $n = max((int) $fila->consecutivo_fe + 1, (int) ($fila->fe_desde ?: 1));
+        $fila->forceFill(['consecutivo_fe' => $n])->save();
+        return ($fila->fe_prefijo ?: 'FE') . '-' . $n;
     }
 
     /**

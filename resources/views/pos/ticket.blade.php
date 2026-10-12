@@ -18,8 +18,6 @@
     @if ($negocio->logo_url)<img class="logo" src="{{ $negocio->logo_url }}" alt="">@endif
     <div class="c b big">{{ $negocio->nombre }}</div>
     <div class="c">
-        @if ($negocio->nit)NIT {{ $negocio->nit }}<br>@endif
-        @if ($negocio->regimen){{ $negocio->regimen }}<br>@endif
         @if ($negocio->direccion){{ $negocio->direccion }}@if($negocio->ciudad), {{ $negocio->ciudad }}@endif<br>@endif
         @if ($negocio->telefono)Tel. {{ $negocio->telefono }}@endif
     </div>
@@ -55,13 +53,8 @@
         @if ($venta->cambio > 0)<tr class="b"><td>Cambio</td><td class="r">{{ dinero($venta->cambio, false) }}</td></tr>@endif
     </table>
     <hr>
-    @if ($negocio->resolucion_numero)
-    <div class="c" style="font-size:10px">Resolución DIAN N.º {{ $negocio->resolucion_numero }}@if($negocio->resolucion_fecha) del {{ $negocio->resolucion_fecha->format('d/m/Y') }}@endif
-        @if($negocio->resolucion_prefijo && $negocio->resolucion_desde)<br>Autoriza del {{ $negocio->resolucion_prefijo }}-{{ $negocio->resolucion_desde }} al {{ $negocio->resolucion_prefijo }}-{{ $negocio->resolucion_hasta }}@endif
-        @if($negocio->resolucion_vigencia)<br>Vigencia hasta {{ $negocio->resolucion_vigencia->format('d/m/Y') }}@endif
-    </div>
+    @include('pos._fiscal')
     <hr>
-    @endif
     <div class="c">{{ $negocio->mensaje_tiquete }}</div>
     <div class="c" style="margin-top:2mm;font-size:10px">Sistema LocalProo · localproo.com</div>
 </div>

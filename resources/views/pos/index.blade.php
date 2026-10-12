@@ -206,6 +206,9 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
   .tbtn{flex:none;flex-direction:column;gap:2px;height:48px;padding:0 .55rem;font-size:.66rem;justify-content:center}
   .tbtn span{display:block;line-height:1}
 }
+.fe-sw{display:flex;gap:10px;align-items:flex-start;background:#f2fbf3;border:1.5px solid #bfeccb;border-radius:14px;padding:10px 12px;margin:10px 0 0;cursor:pointer;font-size:.88rem}
+.fe-sw input{width:20px;height:20px;accent-color:#16b34a;flex:none;margin-top:2px}.fe-sw b{display:block}.fe-sw small{color:#5b665e;font-weight:600}
+.fe-sw.on{cursor:default}.fe-sw.on i{color:#16b34a;margin-top:3px}
 </style>
 </head>
 <body>
@@ -321,6 +324,12 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
             <div><span>Recibido</span><span id="pRec">$0</span></div>
             <div class="big" id="pChgRow"><span id="pChgLbl">Cambio</span><span id="pChg">$0</span></div>
         </div>
+        @php $tFe = \App\Support\TiendaActual::tienda(); @endphp
+        @if ($tFe?->fe_activa)
+        <label class="fe-sw"><input type="checkbox" id="pFe"> <span><b>El cliente pide factura electrónica</b><small>Necesita cliente con cédula o NIT y correo. Le llega a su correo desde la DIAN.</small></span></label>
+        @elseif ($tFe?->pos_electronico)
+        <div class="fe-sw on"><i class="fa-solid fa-receipt"></i> <span><b>POS electrónico</b><small>Esta venta se reporta a la DIAN automáticamente.</small></span></div>
+        @endif
         <div class="err" id="pErr"></div>
         <button class="mbtn" id="pOk">Confirmar venta <kbd>Enter</kbd></button>
     </div>
@@ -731,7 +740,8 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
                 pagos: montos().filter(function (p) { return p.monto > 0; }),
                 cliente_id: clienteId,
                 cliente_nombre: $('cn').value.trim() || null,
-                cliente_telefono: $('ct').value.trim() || null
+                cliente_telefono: $('ct').value.trim() || null,
+                factura_electronica: !!($('pFe') && $('pFe').checked)
             })
         }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
           .then(function (res) {
@@ -743,7 +753,8 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
             }
             ultima = res.d;
             cerrar('ovPay');
-            $('okNum').textContent = ultima.numero + ' · ' + fmt(ultima.total);
+            $('okNum').textContent = ({ fe: 'Factura electrónica ', pos_e: 'POS electrónico ' }[ultima.tipo_doc] || '') + ultima.numero + ' · ' + fmt(ultima.total);
+            if ($('pFe')) $('pFe').checked = false;
             $('okChgW').style.display = ultima.cambio > 0 ? '' : 'none';
             $('okChg').textContent = fmt(ultima.cambio);
             $('okTel').value = $('ct').value.trim();

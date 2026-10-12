@@ -63,6 +63,7 @@
                     </div>
                     @error('precio_venta')<small class="text-danger">{{ $message }}</small>@enderror
                 </div>
+                @include('producto._impuesto')
                 @if (\App\Support\TiendaActual::tienda()?->mod_medida)
                 <div class="col-12">
                     <label for="unidad" class="form-label">Se vende por</label>

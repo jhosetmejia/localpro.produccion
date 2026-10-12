@@ -12,11 +12,17 @@ class PosVenta extends Model
     protected $table = 'pos_ventas';
 
     protected $fillable = [
-        'numero', 'caja_id', 'user_id', 'cliente_id', 'cliente_nombre', 'cliente_telefono', 'subtotal',
+        'numero', 'tipo_doc', 'base_gravable', 'impuestos', 'impuestos_detalle', 'adquiriente', 'caja_id', 'user_id', 'cliente_id', 'cliente_nombre', 'cliente_telefono', 'subtotal',
         'descuento', 'total', 'cambio', 'estado', 'anulada_en', 'anulada_por',
     ];
 
-    protected $casts = ['anulada_en' => 'datetime'];
+    protected $casts = ['anulada_en' => 'datetime', 'impuestos_detalle' => 'array', 'adquiriente' => 'array'];
+
+    // Documento electrónico (factura o POS electrónico) enviado a la DIAN por el proveedor
+    public function documento()
+    {
+        return $this->hasOne(DocumentoElectronico::class)->whereIn('tipo', ['fe', 'pos_e'])->latest('id');
+    }
 
     public function items()
     {

@@ -28,6 +28,7 @@ class StoreProductoRequest extends FormRequest
             'fecha_vencimiento' => 'nullable|date',
             'img_path' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
             'precio_venta' => 'required|numeric|min:0|max:999999999',
+            'impuesto' => ['nullable', \Illuminate\Validation\Rule::in(array_keys(\App\Support\Dian\Catalogos::IMPUESTOS))],
             'precio_costo' => 'nullable|numeric|min:0|max:999999999',
             'controla_inventario' => 'nullable|boolean',
             'cantidad_inicial' => 'nullable|numeric|min:0|max:100000',

@@ -17,6 +17,7 @@ class Producto extends Model
         'codigo',
         'nombre',
         'precio_venta',
+        'impuesto',
         'precio_costo',
         'controla_inventario',
         'descripcion',

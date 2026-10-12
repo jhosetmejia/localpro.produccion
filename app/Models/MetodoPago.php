@@ -11,9 +11,33 @@ class MetodoPago extends Model
 
     protected $table = 'metodos_pago';
 
-    protected $fillable = ['nombre', 'es_efectivo', 'es_credito', 'activo', 'interno', 'orden'];
+    protected $fillable = ['nombre', 'medio_dian', 'es_efectivo', 'es_credito', 'activo', 'interno', 'orden'];
 
     protected $casts = ['es_efectivo' => 'boolean', 'es_credito' => 'boolean', 'activo' => 'boolean'];
+
+    // Medio de pago para la DIAN: si no lo eligen, se deduce del nombre
+    protected static function booted(): void
+    {
+        static::saving(function (self $m) {
+            static $hay = null;
+            $hay ??= \Illuminate\Support\Facades\Schema::hasColumn('metodos_pago', 'medio_dian');
+            if (!$hay) return;
+            if (!$m->medio_dian || $m->isDirty('es_efectivo')) $m->medio_dian = $m->es_efectivo ? '10' : ($m->medio_dian && $m->medio_dian !== '10' ? $m->medio_dian : self::medioDian($m->nombre));
+        });
+    }
+
+    public static function medioDian(?string $nombre): string
+    {
+        $n = mb_strtolower((string) $nombre);
+        return match (true) {
+            str_contains($n, 'efectivo') => '10',
+            str_contains($n, 'débito') || str_contains($n, 'debito') => '49',
+            str_contains($n, 'tarjeta') || str_contains($n, 'crédito') || str_contains($n, 'credito') || str_contains($n, 'datáfono') || str_contains($n, 'datafono') => '48',
+            str_contains($n, 'nequi') || str_contains($n, 'daviplata') || str_contains($n, 'transfer') || str_contains($n, 'bancolombia') || str_contains($n, 'pse') || str_contains($n, 'qr') => '47',
+            str_contains($n, 'consigna') => '42',
+            default => 'ZZZ',
+        };
+    }
 
     // Método interno para pagar con saldo a favor de un cambio (se crea si no existe)
     public static function saldoAFavor(): self

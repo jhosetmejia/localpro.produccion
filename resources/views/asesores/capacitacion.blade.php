@@ -136,6 +136,7 @@
                 <li>Factura o tiquete por WhatsApp o impreso.</li>
                 <li><b>💬 Mis redes</b>: conecta su Facebook e Instagram, responde todos los chats en un solo lugar, envía productos con foto y precio, y publica en las dos redes al tiempo (o programado).</li>
                 <li><b>🏆 Niveles con certificado</b>: el panel le pone tareas al empresario (productos, compartir su tienda, clientes, primera venta y conectar sus redes). Al completar el nivel 1 le sale una celebración y descarga su <b>Certificado en competencias básicas para el manejo de LocalPro</b> para presumirlo en redes.</li>
+                <li><b>🧾 Preparado para la DIAN</b>: separa el IVA de cada venta, maneja las resoluciones de numeración (avisa cuando se acaban o vencen), el POS electrónico y la factura electrónica cuando el cliente la pide, y la anulación con nota crédito. El empresario ve en <b>Facturación DIAN</b> qué le falta, con un porcentaje de avance.</li>
                 <li><b>📦 Separados y abonos</b>: el cliente aparta la prenda, abona por partes (recibo de cada abono por WhatsApp con lo que le falta) y se la lleva al completar. ¡Las tiendas de ropa lo piden mucho!</li>
                 <li><b>Sube sus clientes y ventas anteriores desde Excel</b> para no empezar de cero.</li>
             </ul>

@@ -63,6 +63,7 @@
                         <small class="text-danger d-block">{{'*'.$message}}</small>
                         @enderror
                     </div>
+                    @include('producto._impuesto', ['col' => 'col-md-6'])
                     @if (\App\Support\TiendaActual::tienda()?->mod_medida)
                     <div class="col-md-6">
                         <label for="unidad" class="form-label">Se vende por</label>
