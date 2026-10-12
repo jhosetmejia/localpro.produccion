@@ -258,6 +258,8 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::post('/salir-de-tienda', [adminTiendaController::class, 'salir'])->name('tiendas.salir');
     Route::post('/vista', [adminTiendaController::class, 'vista'])->name('vista');
     Route::get('/importaciones', [adminImportacionController::class, 'index'])->name('importaciones');
+    Route::get('/auditoria', [adminInicioController::class, 'auditoria'])->name('auditoria');
+    Route::post('/auditoria', [adminInicioController::class, 'correrAuditoria'])->middleware('throttle:6,1')->name('auditoria.correr');
     Route::get('/importaciones/{importacion}/archivo', [adminImportacionController::class, 'descargar'])->name('importaciones.archivo');
     Route::post('/importaciones/{importacion}/atender', [adminImportacionController::class, 'atender'])->name('importaciones.atender');
     Route::post('/importaciones/{importacion}/estado', [adminImportacionController::class, 'estado'])->name('importaciones.estado');

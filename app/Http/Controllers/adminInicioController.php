@@ -86,6 +86,23 @@ class adminInicioController extends Controller
         return back()->with('success', 'Clave nueva guardada para ' . $user->name . '.');
     }
 
+    // Auditoría del sistema: muestra el último informe y permite correr una revisión de datos
+    public function auditoria()
+    {
+        $archivos = collect(\Illuminate\Support\Facades\Storage::disk('local')->files('auditoria'))->sort()->values();
+        $ultimo = $archivos->last();
+        return view('admin.auditoria', [
+            'texto' => $ultimo ? \Illuminate\Support\Facades\Storage::disk('local')->get($ultimo) : null,
+            'fecha' => $ultimo ? \Carbon\Carbon::createFromTimestamp(\Illuminate\Support\Facades\Storage::disk('local')->lastModified($ultimo)) : null,
+        ]);
+    }
+
+    public function correrAuditoria()
+    {
+        \Illuminate\Support\Facades\Artisan::call('localpro:auditoria', ['--sin-pantallas' => true]);
+        return redirect()->route('admin.auditoria')->with('success', 'Revisión terminada.');
+    }
+
     // Botón "Revisar con Wompi" en Pagos
     public function verificarPagos()
     {
