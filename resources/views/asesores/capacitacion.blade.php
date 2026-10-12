@@ -65,6 +65,27 @@
         .tabla th{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
         .regla{background:#fff5d6;color:#8a6400;border-radius:16px;padding:12px 14px;font-weight:700;margin-top:10px}
         .dos{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        .mente{background:var(--k);color:#fff;border-radius:26px;padding:26px 22px;margin-bottom:16px;position:relative;overflow:hidden}
+        .mente::after{content:"";position:absolute;left:-80px;bottom:-80px;width:240px;height:240px;border-radius:50%;background:var(--g);opacity:.22;filter:blur(10px)}
+        .mente>*{position:relative;z-index:1}
+        .mente small.k{color:var(--lime);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.75rem}
+        .mente h2{font-size:clamp(1.6rem,5vw,2.3rem);line-height:1.08;letter-spacing:-.03em;margin:.35rem 0 .6rem}
+        .mente h2 em{font-style:normal;background:var(--g);-webkit-background-clip:text;background-clip:text;color:transparent}
+        .mente p{color:#cfd8d2;font-weight:500;margin:0 0 14px;max-width:700px}
+        .mente p b{color:#fff}
+        .red3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}
+        .red3 div{background:#161c18;border:1px solid #26302a;border-radius:18px;padding:14px}
+        .red3 .num{font-size:1.9rem;font-weight:800;color:var(--lime);line-height:1}
+        .red3 b{display:block;margin:.3rem 0 .15rem}
+        .red3 span{color:#aab5ad;font-size:.85rem;font-weight:500}
+        .lnk{background:#161c18;border:1.5px dashed #3c5a46;border-radius:18px;padding:14px;margin-bottom:10px}
+        .lnk small{display:block;color:var(--lime);font-weight:800;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+        .lnk code{display:block;color:#fff;font-size:.95rem;word-break:break-all;margin-bottom:10px;font-family:inherit;font-weight:700}
+        .lnk .bt{display:flex;gap:8px;flex-wrap:wrap}
+        .donde{background:#fff5d6;color:#5c4300;border-radius:16px;padding:12px 14px;font-weight:600;margin-top:12px}
+        .ingreso{background:var(--g);color:var(--k);border-radius:18px;padding:14px 16px;font-weight:700;margin-top:12px}
+        .ingreso b{font-size:1.15rem}
+        @media (max-width:640px){.red3{grid-template-columns:1fr}}
         @media (max-width:640px){.calc,.ej{grid-template-columns:1fr 1fr}.calc div:last-child,.ej div:last-child{grid-column:1/-1}.dos{grid-template-columns:1fr}}
     </style>
 </head>
@@ -80,7 +101,7 @@
         <h1>Cómo ganar un <em>salario mínimo</em> en una semana… o en 3 días.</h1>
         <p>Todo lo que necesita un asesor de LocalPro para vender desde el primer día: cuánto se gana, qué decir, cómo responder dudas y la rutina que funciona.</p>
         <div class="indice">
-            <a href="#meta">💰 La meta</a><a href="#producto">📱 Qué vendemos</a><a href="#conjuntos">🏢 Conjuntos</a><a href="#pasos">🪜 Paso a paso</a><a href="#guiones">💬 Guiones</a><a href="#dudas">🙋 Dudas</a><a href="#rutina">✅ Rutina</a><a href="#crecer">🚀 Crecer</a>
+            <a href="#meta">💰 La meta</a><a href="#producto">📱 Qué vendemos</a><a href="#conjuntos">🏢 Conjuntos</a><a href="#pasos">🪜 Paso a paso</a><a href="#guiones">💬 Guiones</a><a href="#dudas">🙋 Dudas</a><a href="#rutina">✅ Rutina</a><a href="#mentalidad">🧠 Mentalidad</a><a href="#crecer">🚀 Crecer</a>
         </div>
     </section>
 
@@ -213,6 +234,48 @@
         </div>
     </section>
 
+    @php
+        $renAsesor = (float) $valores['renovacion']['venta'];
+        $comZona = (float) $valores['nueva']['lider_zona'];
+        $renZona = (float) $valores['renovacion']['lider_zona'];
+        $enlaceRed = $yo?->enlace_reclutar;
+    @endphp
+    <section class="mente" id="mentalidad">
+        <small class="k">🧠 Mentalidad de líder</small>
+        <h2>Si tienes la mentalidad grande de <em>crecer, liderar y cumplir tus proyectos</em>, esto es para ti.</h2>
+        <p>Vender tú solo te da un ingreso. <b>Armar tu red te da un negocio.</b> Cuando invitas a otras personas a ser asesores con tu enlace, quedan en tu equipo y <b>tú también ganas por el trabajo de toda tu red de trabajo</b>. Así se sube a <b>Líder de zona</b> y después a líder de ciudad, departamento y país.</p>
+        <p>No se trata de trabajar más horas: se trata de <b>multiplicarte</b>. Tú enseñas, tu equipo vende, y todos ganan.</p>
+
+        <div class="red3">
+            <div><span class="num">10</span><b>Negocios o emprendedores</b><span>Inscríbelos con tu enlace de negocios. Cada uno que pague su plan anual te deja {{ $f($com) }} y luego {{ $f($renAsesor) }} cada año que renueve.</span></div>
+            <div><span class="num">10</span><b>Asesores en tu equipo</b><span>Invítalos con tu enlace de asesores. Hacen el curso, reciben su certificado y quedan en tu red automáticamente.</span></div>
+            <div><span class="num">🏆</span><b>Subes de rango</b><span>Con 10 negocios pagos + 10 asesores activos, LocalPro te sube a Líder de zona y ganas por cada venta de tu equipo.</span></div>
+        </div>
+
+        @if ($enlaceRed)
+        <div class="lnk">
+            <small>1 · Tu enlace para sumar asesores a tu red</small>
+            <code id="lnkRed">{{ $enlaceRed }}</code>
+            <div class="bt">
+                <button type="button" class="btn btn-g" onclick="copiarTxt('lnkRed','Enlace de asesores copiado')"><i class="fa-regular fa-copy"></i> Copiar mi enlace</button>
+                <a class="btn btn-w" target="_blank" href="https://wa.me/?text={{ rawurlencode('¡Hola! 🙌 Estoy creciendo con LocalPro y quiero que trabajes conmigo. Ganas ' . $f($com) . ' por cada negocio que inscribas, sin invertir, y te enseño todo. Inscríbete aquí: ' . $enlaceRed) }}"><i class="fa-brands fa-whatsapp"></i> Invitar por WhatsApp</a>
+            </div>
+        </div>
+        @endif
+        <div class="lnk">
+            <small>2 · Tu enlace para inscribir negocios y emprendedores</small>
+            <code id="lnkNeg">{{ $enlace }}</code>
+            <div class="bt">
+                <button type="button" class="btn btn-g" onclick="copiarTxt('lnkNeg','Enlace de negocios copiado')"><i class="fa-regular fa-copy"></i> Copiar mi enlace</button>
+                <a class="btn btn-w" target="_blank" href="https://wa.me/?text={{ rawurlencode('¡Hola! 👋 Te recomiendo LocalPro para manejar tu negocio desde el celular: ventas, caja, inventario y tu tienda en línea. Pruébalo 3 meses gratis aquí: ' . $enlace) }}"><i class="fa-brands fa-whatsapp"></i> Enviar a un negocio</a>
+            </div>
+        </div>
+
+        <div class="donde">📍 <b>¿Dónde encuentro mis enlaces después?</b> Entra a <b>Mi panel</b> de asesor: ahí están siempre en los cuadros <b>"Su enlace para inscribir negocios"</b> y <b>"Suma asesores a tu equipo"</b>, con botones para copiar y compartir por WhatsApp. También los encuentras aquí, en esta capacitación.</div>
+
+        <div class="ingreso">💚 <b>Un ingreso continuo de por vida.</b> Mientras tus negocios sigan vinculados a LocalPro y tú estés activo, cada año que renuevan te dejan {{ $f($renAsesor) }} por negocio, y como líder de zona {{ $f($comZona) }} por cada venta nueva de tu equipo y {{ $f($renZona) }} por cada renovación. Ejemplo: si tus 10 asesores inscriben 10 negocios cada uno, son 100 negocios en tu red trabajando para ti.</div>
+    </section>
+
     <section class="card" id="crecer">
         <h2><span class="n">🚀</span>Cómo crecer y ganar más</h2>
         <p class="sub">Cuando cumples la meta subes de rango y también ganas por tu equipo.</p>
@@ -253,6 +316,10 @@
         document.getElementById('semana').textContent = Math.ceil(p / 6) + ' al día';
     }
     r.addEventListener('input', calc); calc();
+    window.copiarTxt = function (id, msg) {
+        var t = document.getElementById(id).innerText.trim();
+        (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { if (window.LP) LP.toast(msg); }, function () { if (window.LP) LP.toast('Mantenga presionado el enlace para copiarlo'); });
+    };
     window.copiar = function (id) {
         var t = document.getElementById(id).innerText;
         (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { if (window.LP) LP.toast('Guion copiado'); }, function () {});
