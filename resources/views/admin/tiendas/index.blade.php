@@ -55,6 +55,7 @@
                 <div class="d-flex gap-1 align-items-center">
                     @if (!$t->onboarding_completo)<span class="badge bg-warning text-dark">Config.</span>@elseif ($t->activa)<span class="badge bg-success">Activa</span>@else<span class="badge bg-danger">Suspendida</span>@endif
                     <form method="post" action="{{ route('admin.tiendas.entrar', $t) }}" class="d-inline">@csrf<button class="btn btn-sm btn-primary" title="Entrar a la tienda"><i class="fa-solid fa-right-to-bracket"></i></button></form>
+                    <form method="post" action="{{ route('admin.tiendas.eliminar', $t) }}" class="d-inline" data-eliminar="{{ $t->codigo }}" data-nombre="{{ $t->nombre }}">@csrf @method('DELETE')<input type="hidden" name="confirmar"><button class="btn btn-sm btn-outline-danger" title="Eliminar tienda"><i class="fa-solid fa-trash"></i></button></form>
                 </div>
             </li>
             @empty
@@ -92,6 +93,7 @@
                         <td class="text-end text-nowrap">
                             <form method="post" action="{{ route('admin.tiendas.entrar', $t) }}" class="d-inline">@csrf<button class="btn btn-sm btn-primary" title="Entrar a la tienda"><i class="fa-solid fa-right-to-bracket"></i></button></form>
                             <a href="{{ route('admin.tiendas.show', $t) }}" class="btn btn-sm btn-dark"><i class="fa-solid fa-eye"></i></a>
+                            <form method="post" action="{{ route('admin.tiendas.eliminar', $t) }}" class="d-inline" data-eliminar="{{ $t->codigo }}" data-nombre="{{ $t->nombre }}">@csrf @method('DELETE')<input type="hidden" name="confirmar"><button class="btn btn-sm btn-outline-danger" title="Eliminar tienda"><i class="fa-solid fa-trash"></i></button></form>
                         </td>
                     </tr>
                 @empty
@@ -138,6 +140,15 @@
 .asg-bt{display:flex;gap:10px;margin-top:18px}.asg-bt .btn{flex:1;border-radius:14px;font-weight:800;padding:.7rem}
 </style>
 <script>
+// Eliminar tienda: pide escribir el código para confirmar
+document.querySelectorAll('form[data-eliminar]').forEach(function (f) {
+    f.addEventListener('submit', function (e) {
+        var cod = f.dataset.eliminar;
+        var r = prompt('¿Eliminar la tienda "' + f.dataset.nombre + '" con todos sus productos, ventas y usuarios?\nEsto no se puede deshacer.\n\nEscriba el código ' + cod + ' para confirmar:');
+        if (r === null || r.trim().toUpperCase() !== cod.toUpperCase()) { e.preventDefault(); if (r !== null) alert('El código no coincide. No se eliminó.'); return; }
+        f.querySelector('input[name=confirmar]').value = r.trim();
+    });
+});
 (function () {
     var ov = document.getElementById('asgOv'), f = document.getElementById('asgForm'), sel = document.getElementById('asgSel');
     document.addEventListener('click', function (e) {

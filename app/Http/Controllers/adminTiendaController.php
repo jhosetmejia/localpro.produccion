@@ -151,6 +151,41 @@ class adminTiendaController extends Controller
         return $modo === 'tienda' ? redirect()->route('panel') : redirect()->route('admin.inicio');
     }
 
+    // Eliminar una tienda (ej. duplicada). Pide escribir su código para confirmar.
+    // No deja borrar tiendas con pagos reales aprobados: a esas se les suspende.
+    public function eliminar(Request $request, Tienda $tienda)
+    {
+        if (strtoupper(trim((string) $request->input('confirmar'))) !== strtoupper((string) $tienda->codigo)) {
+            return back()->withErrors('No se eliminó: el código escrito no coincide con ' . $tienda->codigo . '.');
+        }
+        $pagosReales = \App\Models\PagoSuscripcion::where('tienda_id', $tienda->id)->where('estado', 'aprobado')
+            ->where('monto', '>', 0)->where('referencia', 'not like', \App\Models\PagoSuscripcion::PREFIJO_PRUEBA . '%')->exists();
+        if ($pagosReales) {
+            return back()->withErrors('La tienda ' . $tienda->nombre . ' tiene pagos aprobados; no se puede eliminar. Puede suspenderla.');
+        }
+
+        $nombre = $tienda->nombre . ' (' . $tienda->codigo . ')';
+        DB::transaction(function () use ($tienda) {
+            $usuarios = User::where('tienda_id', $tienda->id)->get();
+            // Productos, ventas, cajas, clientes, etc. se borran solos con la tienda (en cascada)
+            $tienda->delete();
+            foreach ($usuarios as $u) {
+                // Nunca se borra un superadministrador ni a alguien de la red de asesores: solo queda sin tienda
+                if ($u->es_superadmin || \App\Models\Asesor::where('user_id', $u->id)->exists()) {
+                    continue;
+                }
+                $u->syncRoles([]);
+                $u->tokens()->delete();
+                $u->delete();
+            }
+        });
+        if ((int) $request->session()->get('tienda_visitada') === (int) $tienda->id) {
+            $request->session()->forget('tienda_visitada');
+        }
+
+        return redirect()->route('admin.tiendas.index')->with('success', 'Se eliminó la tienda ' . $nombre . ' con sus usuarios y datos.');
+    }
+
     public function salir(Request $request)
     {
         $request->session()->forget(['tienda_visitada', 'vista_admin']);
