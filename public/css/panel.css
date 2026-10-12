@@ -243,3 +243,17 @@ main h1,main .h1{font-weight:800;letter-spacing:-.03em;font-size:clamp(1.6rem,3v
 @media (max-width:575.98px){.lp-kpis.rp-kpis{grid-template-columns:minmax(0,1fr)}}
 .lp-kpi{min-width:0;overflow:hidden}
 .lp-kpi .val{overflow-wrap:anywhere}
+
+/* ===== Barras de desplazamiento LocalPro (verde, delgadas) ===== */
+.lp-side .sb-sidenav-menu{scrollbar-width:thin;scrollbar-color:#2fd15a transparent}
+.lp-side .sb-sidenav-menu::-webkit-scrollbar{width:6px}
+.lp-side .sb-sidenav-menu::-webkit-scrollbar-track{background:transparent;margin:10px 0}
+.lp-side .sb-sidenav-menu::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#a6f34a,#2fd15a 50%,#16b34a);border-radius:99px;box-shadow:0 0 10px rgba(47,209,90,.45)}
+.lp-side .sb-sidenav-menu::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#c4ff6e,#a6f34a)}
+.lp-side .sb-sidenav-menu::-webkit-scrollbar-button{display:none;height:0}
+html{scrollbar-width:thin;scrollbar-color:#16b34a #eef4ef}
+body::-webkit-scrollbar,.table-responsive::-webkit-scrollbar{width:10px;height:8px}
+body::-webkit-scrollbar-track,.table-responsive::-webkit-scrollbar-track{background:#eef4ef}
+body::-webkit-scrollbar-thumb,.table-responsive::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#2fd15a,#16b34a);border-radius:99px;border:2px solid #eef4ef}
+body::-webkit-scrollbar-thumb:hover,.table-responsive::-webkit-scrollbar-thumb:hover{background:#0b0d0c}
+body::-webkit-scrollbar-button,.table-responsive::-webkit-scrollbar-button{display:none}
