@@ -10,16 +10,16 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
 /**
- * Genera un enlace de pago de PRUEBA (valor bajo, ej. 1.000) para probar Wompi de punta a punta.
+ * Genera un enlace de pago de PRUEBA (valor bajo, ej. 1.500) para probar Wompi de punta a punta.
  * Al aprobarse activa el plan de la tienda igual que un pago real, pero:
  *  - NO genera comisiones para la red comercial.
  *  - NO cuenta como "pago anterior" (la primera venta real sigue siendo VENTA NUEVA).
  * Uso:  php artisan wompi:prueba "Abril Store"          (o el id, o el código LCT-00001)
- *       php artisan wompi:prueba "Abril Store" --monto=1000 --plan=Anual
+ *       php artisan wompi:prueba "Abril Store" --monto=1500 --plan=Anual
  */
 class WompiPrueba extends Command
 {
-    protected $signature = 'wompi:prueba {tienda : id, código LCT-##### o nombre} {--monto=1000} {--plan= : nombre o id del plan (por defecto el anual)}';
+    protected $signature = 'wompi:prueba {tienda : id, código LCT-##### o nombre} {--monto=1500} {--plan= : nombre o id del plan (por defecto el anual)}';
     protected $description = 'Crea un pago de prueba con Wompi para una tienda y muestra el enlace para pagarlo';
 
     public function handle(): int
@@ -55,7 +55,7 @@ class WompiPrueba extends Command
             return self::FAILURE;
         }
 
-        $monto = max(1000, (int) $this->option('monto')); // Wompi no recibe menos de ~1.000 COP
+        $monto = max(1500, (int) $this->option('monto')); // Wompi no recibe menos de 1.500 COP
         $pago = PagoSuscripcion::create([
             'tienda_id' => $tienda->id,
             'plan_id' => $plan->id,
