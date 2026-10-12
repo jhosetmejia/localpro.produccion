@@ -86,8 +86,22 @@ class adminInicioController extends Controller
         return back()->with('success', 'Clave nueva guardada para ' . $user->name . '.');
     }
 
+    // Botón "Revisar con Wompi" en Pagos
+    public function verificarPagos()
+    {
+        if (!config('services.wompi.private_key')) {
+            return back()->withErrors('Falta la llave privada de Wompi en el servidor para revisar los pagos.');
+        }
+        $n = \App\Support\Wompi::verificarPendientes(null, 50);
+        return back()->with('success', $n ? ($n === 1 ? 'Se confirmó 1 pago con Wompi.' : "Se confirmaron $n pagos con Wompi.") : 'Revisado con Wompi: no hay pagos nuevos aprobados.');
+    }
+
     public function pagos(Request $request)
     {
+        // Confirma con Wompi los pagos que siguen pendientes, sin consola
+        try { $aprobados = \App\Support\Wompi::verificarPendientes(null, 10); } catch (\Throwable $e) { report($e); $aprobados = 0; }
+        if ($aprobados) session()->now('success', $aprobados === 1 ? 'Se confirmó 1 pago con Wompi.' : "Se confirmaron $aprobados pagos con Wompi.");
+
         $filtro = fn ($q) => $q
             ->when($request->estado, fn ($w, $e) => $w->where('estado', $e))
             ->when($request->mes, fn ($w, $m) => $w->whereYear('created_at', substr($m, 0, 4))->whereMonth('created_at', substr($m, 5, 2)));

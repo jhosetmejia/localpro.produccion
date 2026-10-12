@@ -61,10 +61,18 @@
                 <button type="button" class="btn btn-sm btn-light" onclick="navigator.clipboard.writeText('{{ $tienda->url_pago }}');this.innerText='¡Copiado!'"><i class="fa-regular fa-copy me-1"></i>Copiar</button>
                 <a class="btn btn-sm btn-dark" target="_blank" href="{{ $tienda->url_pago }}"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
             </div>
-            <h3>Pagos de plan</h3>
+            @if (session('enlace_prueba'))
+            <div class="d-flex gap-2 flex-wrap mb-3 p-2" style="background:#fff8e6;border:1.5px solid #f5d98a;border-radius:14px">
+                <div class="flex-grow-1 small fw-semibold" style="color:#8a5a00;min-width:180px"><i class="fa-solid fa-flask me-1"></i>Enlace de PRUEBA por $1.500 (plan anual, sin comisiones).</div>
+                <a class="btn btn-sm btn-success" target="_blank" href="https://wa.me/{{ $tienda->telefono ? numero_whatsapp($tienda->telefono) : '' }}?text={{ rawurlencode('Hola 👋 Este es el enlace para probar el pago de LocalPro ($1.500): ' . session('enlace_prueba')) }}"><i class="fa-brands fa-whatsapp me-1"></i>Enviar</a>
+                <button type="button" class="btn btn-sm btn-light" onclick="navigator.clipboard.writeText(this.dataset.u);LP.toast('Enlace copiado','ok')" data-u="{{ session('enlace_prueba') }}"><i class="fa-regular fa-copy me-1"></i>Copiar</button>
+                <a class="btn btn-sm btn-dark" target="_blank" href="{{ session('enlace_prueba') }}"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+            </div>
+            @endif
+            <h3><span>Pagos de plan</span><form method="post" action="{{ route('admin.tiendas.pagoPrueba', $tienda) }}" class="d-inline" data-confirm="¿Generar un pago de prueba de $1.500?" data-confirm-texto="Al pagarlo, la tienda queda con el plan anual activo. No genera comisiones y no cuenta como venta." data-confirm-ok="Sí, generar enlace">@csrf<button class="btn btn-sm btn-light"><i class="fa-solid fa-flask me-1"></i>Pago de prueba</button></form></h3>
             <ul class="lp-list">
                 @forelse ($pagosPlan as $pg)
-                <li><div class="av"><i class="fa-solid fa-file-invoice-dollar"></i></div><div class="t"><b>{{ $pg->plan->nombre ?? '' }} · ${{ number_format($pg->monto, 0, ',', '.') }}</b><small>{{ $pg->created_at->format('d/m/Y') }} · {{ ucfirst($pg->metodo) }}{{ $pg->periodo_hasta ? ' · hasta ' . $pg->periodo_hasta->format('d/m/Y') : '' }}</small></div><span class="badge {{ $pg->estado === 'aprobado' ? 'bg-success' : ($pg->estado === 'pendiente' ? 'bg-warning text-dark' : 'bg-danger') }}">{{ ucfirst($pg->estado) }}</span></li>
+                <li><div class="av"><i class="fa-solid fa-file-invoice-dollar"></i></div><div class="t"><b>{{ $pg->plan->nombre ?? '' }} · ${{ number_format($pg->monto, 0, ',', '.') }}@if ($pg->es_prueba) <span class="badge bg-warning text-dark">Prueba</span>@endif</b><small>{{ $pg->created_at->format('d/m/Y') }} · {{ ucfirst($pg->metodo) }}{{ $pg->periodo_hasta ? ' · hasta ' . $pg->periodo_hasta->format('d/m/Y') : '' }}</small></div><span class="badge {{ $pg->estado === 'aprobado' ? 'bg-success' : ($pg->estado === 'pendiente' ? 'bg-warning text-dark' : 'bg-danger') }}">{{ ucfirst($pg->estado) }}</span></li>
                 @empty
                 <li class="lp-empty">Sin pagos registrados.</li>
                 @endforelse

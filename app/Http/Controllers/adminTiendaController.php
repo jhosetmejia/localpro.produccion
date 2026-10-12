@@ -78,6 +78,13 @@ class adminTiendaController extends Controller
 
     public function show(Tienda $tienda)
     {
+        // Si la tienda tiene pagos de Wompi pendientes, se confirman de una vez
+        try {
+            if (\App\Support\Wompi::verificarPendientes($tienda->id, 5)) {
+                $tienda->refresh();
+                session()->now('success', 'Pago confirmado con Wompi: el plan de la tienda ya quedó activo.');
+            }
+        } catch (\Throwable $e) { report($e); }
         $usuarios = User::where('tienda_id', $tienda->id)->orderBy('name')->get();
         $ventas = DB::table('pos_ventas')->where('tienda_id', $tienda->id)->where('estado', 'pagada');
         $metricas = [
@@ -94,6 +101,22 @@ class adminTiendaController extends Controller
         $pagosPlan = \App\Models\PagoSuscripcion::with('plan')->where('tienda_id', $tienda->id)->latest()->limit(10)->get();
         $asesores = \App\Models\Asesor::with('user:id,name,email')->where('activo', true)->get()->sortBy('nombre');
         return view('admin.tiendas.show', compact('tienda', 'usuarios', 'metricas', 'ultimas', 'planes', 'pagosPlan', 'asesores'));
+    }
+
+    // Genera un enlace de pago de PRUEBA (1.500) para probar Wompi con esta tienda
+    public function pagoPrueba(Request $request, Tienda $tienda)
+    {
+        if (!\App\Support\Wompi::activo()) {
+            return back()->withErrors('Faltan las llaves de Wompi en el servidor.');
+        }
+        $plan = \App\Support\Wompi::planAnual();
+        if (!$plan) {
+            return back()->withErrors('No hay un plan anual activo.');
+        }
+        $pago = \App\Support\Wompi::crearPagoPrueba($tienda, $plan, 1500, $request->user()->id);
+        $url = \App\Support\Wompi::urlCheckout($pago, route('pagar.retorno', ['ref' => $pago->referencia]), $tienda->email, $tienda->nombre, $tienda->telefono);
+
+        return back()->with('enlace_prueba', $url)->with('success', 'Enlace de prueba de $1.500 listo. Compártalo o ábralo para pagar.');
     }
 
     public function estado(Tienda $tienda)

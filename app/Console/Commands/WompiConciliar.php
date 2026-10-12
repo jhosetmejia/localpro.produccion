@@ -18,14 +18,7 @@ class WompiConciliar extends Command
             $this->info('Falta WOMPI_PRIVATE_KEY: no se puede conciliar.');
             return self::SUCCESS;
         }
-        $n = 0;
-        PagoSuscripcion::where('metodo', 'wompi')->where('estado', 'pendiente')
-            ->where('created_at', '>=', now()->subDays(3))->orderBy('id')
-            ->each(function ($pago) use (&$n) {
-                if ($tx = Wompi::porReferencia($pago->referencia)) {
-                    $n += Wompi::procesar($tx)?->estado === 'aprobado' ? 1 : 0;
-                }
-            });
+        $n = Wompi::verificarPendientes(null, 200);
         $this->info("Pagos aprobados ahora: $n");
         return self::SUCCESS;
     }

@@ -8,6 +8,7 @@
     <div class="lp-hello">
         <div><small><i class="fa-solid fa-crown me-1"></i>Administrador LocalPro</small><h1>Pagos de <span>planes</span></h1>
             <span class="text-muted fw-semibold">Recibido en este filtro: <b>{{ $f($total) }}</b></span></div>
+        <form method="post" action="{{ route('admin.pagos.verificar') }}">@csrf<button class="btn btn-dark"><i class="fa-solid fa-rotate me-1"></i>Revisar con Wompi</button></form>
     </div>
     <div class="lp-box">
         <form method="get" class="d-flex flex-wrap gap-2 mb-3">
@@ -26,7 +27,7 @@
                 <tr>
                     <td class="small">{{ $p->created_at->format('d/m/Y H:i') }}</td>
                     <td>@if ($p->tienda)<a href="{{ route('admin.tiendas.show', $p->tienda_id) }}">{{ $p->tienda->nombre }}</a>@else — @endif</td>
-                    <td>{{ $p->plan->nombre ?? '—' }}</td>
+                    <td>{{ $p->plan->nombre ?? '—' }}@if ($p->es_prueba) <span class="badge bg-warning text-dark">Prueba</span>@endif</td>
                     <td class="small">{{ ucfirst($p->metodo) }}{{ $p->nota ? ' · ' . $p->nota : '' }}</td>
                     <td class="small">{{ $p->periodo_desde?->format('d/m/Y') }}{{ $p->periodo_hasta ? ' → ' . $p->periodo_hasta->format('d/m/Y') : '' }}</td>
                     <td class="text-end fw-bold">{{ $f($p->monto) }}</td>

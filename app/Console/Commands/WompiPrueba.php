@@ -2,12 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\Models\PagoSuscripcion;
 use App\Models\Plan;
 use App\Models\Tienda;
 use App\Support\Wompi;
 use Illuminate\Console\Command;
-use Illuminate\Support\Str;
 
 /**
  * Genera un enlace de pago de PRUEBA (valor bajo, ej. 1.500) para probar Wompi de punta a punta.
@@ -48,23 +46,15 @@ class WompiPrueba extends Command
 
         $p = trim((string) $this->option('plan'));
         $plan = $p === ''
-            ? Plan::where('activo', true)->whereBetween('dias', [360, 400])->where('precio', '>', 0)->orderBy('orden')->first()
+            ? Wompi::planAnual()
             : (ctype_digit($p) ? Plan::find((int) $p) : Plan::where('nombre', 'like', '%' . $p . '%')->first());
         if (!$plan || $plan->es_gratis) {
             $this->error('No encontré un plan pagado (use --plan=).');
             return self::FAILURE;
         }
 
-        $monto = max(1500, (int) $this->option('monto')); // Wompi no recibe menos de 1.500 COP
-        $pago = PagoSuscripcion::create([
-            'tienda_id' => $tienda->id,
-            'plan_id' => $plan->id,
-            'monto' => $monto,
-            'metodo' => 'wompi',
-            'referencia' => PagoSuscripcion::PREFIJO_PRUEBA . $tienda->id . '-' . now()->format('ymdHis') . '-' . Str::upper(Str::random(4)),
-            'estado' => 'pendiente',
-            'nota' => 'PAGO DE PRUEBA (sin comisiones)',
-        ]);
+        $pago = Wompi::crearPagoPrueba($tienda, $plan, (int) $this->option('monto'));
+        $monto = (int) $pago->monto;
 
         $url = Wompi::urlCheckout($pago, route('pagar.retorno', ['ref' => $pago->referencia]), $tienda->email, $tienda->nombre, $tienda->telefono);
 

@@ -92,6 +92,47 @@ class Wompi
         }
     }
 
+    /**
+     * Revisa en Wompi los pagos que siguen pendientes (últimos 3 días) y aplica los aprobados.
+     * Lo usan el panel del administrador (al abrir Pagos o la ficha de una tienda) y el comando wompi:conciliar.
+     * Devuelve cuántos pagos quedaron aprobados en esta revisión.
+     */
+    public static function verificarPendientes(?int $tiendaId = null, int $max = 25): int
+    {
+        if (!self::activo() || !config('services.wompi.private_key')) return 0;
+        $n = 0;
+        PagoSuscripcion::where('metodo', 'wompi')->where('estado', 'pendiente')
+            ->where('created_at', '>=', now()->subDays(3))
+            ->when($tiendaId, fn ($q) => $q->where('tienda_id', $tiendaId))
+            ->latest('id')->limit($max)->get()
+            ->each(function ($pago) use (&$n) {
+                if ($tx = self::porReferencia($pago->referencia)) {
+                    $n += self::procesar($tx)?->estado === 'aprobado' ? 1 : 0;
+                }
+            });
+        return $n;
+    }
+
+    // Pago de PRUEBA (valor bajo): activa el plan como uno real, sin comisiones ni contar como pago anterior
+    public static function crearPagoPrueba(\App\Models\Tienda $tienda, \App\Models\Plan $plan, int $monto = 1500, ?int $usuario = null): PagoSuscripcion
+    {
+        return PagoSuscripcion::create([
+            'tienda_id' => $tienda->id,
+            'plan_id' => $plan->id,
+            'monto' => max(1500, $monto), // Wompi no recibe menos de 1.500 COP
+            'metodo' => 'wompi',
+            'referencia' => PagoSuscripcion::PREFIJO_PRUEBA . $tienda->id . '-' . now()->format('ymdHis') . '-' . \Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(4)),
+            'estado' => 'pendiente',
+            'registrado_por' => $usuario,
+            'nota' => 'PAGO DE PRUEBA (sin comisiones)',
+        ]);
+    }
+
+    public static function planAnual(): ?\App\Models\Plan
+    {
+        return \App\Models\Plan::where('activo', true)->whereBetween('dias', [360, 400])->where('precio', '>', 0)->orderBy('orden')->first();
+    }
+
     public static function eventoValido(array $evento): bool
     {
         $secreto = (string) config('services.wompi.events_secret');

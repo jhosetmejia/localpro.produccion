@@ -234,6 +234,7 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::get('/usuarios', [adminInicioController::class, 'usuarios'])->name('usuarios');
     Route::post('/usuarios/{user}/clave', [adminInicioController::class, 'clave'])->name('usuarios.clave');
     Route::get('/pagos', [adminInicioController::class, 'pagos'])->name('pagos');
+    Route::post('/pagos/verificar', [adminInicioController::class, 'verificarPagos'])->name('pagos.verificar');
     Route::get('/tiendas', [adminTiendaController::class, 'index'])->name('tiendas.index');
     Route::get('/tiendas/nueva', [adminTiendaController::class, 'create'])->name('tiendas.create');
     Route::post('/tiendas', [adminTiendaController::class, 'store'])->name('tiendas.store');
@@ -243,6 +244,7 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::post('/tiendas/{tienda}/plan', [adminTiendaController::class, 'plan'])->name('tiendas.plan');
     Route::post('/tiendas/{tienda}/pago', [adminTiendaController::class, 'pago'])->name('tiendas.pago');
     Route::delete('/tiendas/{tienda}', [adminTiendaController::class, 'eliminar'])->name('tiendas.eliminar');
+    Route::post('/tiendas/{tienda}/pago-prueba', [adminTiendaController::class, 'pagoPrueba'])->name('tiendas.pagoPrueba');
     Route::get('/planes', [adminPlanController::class, 'index'])->name('planes.index');
     Route::post('/planes', [adminPlanController::class, 'guardar'])->name('planes.guardar');
     Route::post('/salir-de-tienda', [adminTiendaController::class, 'salir'])->name('tiendas.salir');
