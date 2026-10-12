@@ -15,6 +15,59 @@
     </div>
     @include('layouts.partials.lp-flash')
 
+    {{-- Avisos: sus negocios que pagaron en los últimos 7 días --}}
+    @foreach ($recientes as $rp)
+    <div class="lp-box mb-2" style="background:linear-gradient(135deg,#e9fbe9,#f6fff4);border:1.5px solid #bfe8c8">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div style="font-size:1.8rem">🎉</div>
+            <div class="flex-grow-1" style="min-width:200px">
+                <b>{{ $rp->tienda->nombre ?? 'Un negocio' }} pagó su plan {{ $rp->plan->nombre ?? '' }}</b>
+                <div class="small text-muted">{{ $rp->updated_at->diffForHumans() }}</div>
+            </div>
+            @if ($rp->mi_comision > 0)
+            <div class="text-end"><div class="small text-muted">Usted gana</div><div class="fw-bold" style="font-size:1.35rem;color:#11702f">{{ $f($rp->mi_comision) }}</div></div>
+            @else
+            <div class="small text-muted" style="max-width:260px">Este pago no le generó comisión (solo el plan anual paga, y usted debe estar activo con al menos un negocio con pago).</div>
+            @endif
+        </div>
+    </div>
+    @endforeach
+
+    {{-- Mis ganancias del mes --}}
+    @php $g = $ganancias; $mesNombre = ucfirst(now()->locale('es')->isoFormat('MMMM')); @endphp
+    <div class="lp-box mb-3" style="background:#0f1411;color:#fff;border:none">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+                <div class="small" style="color:#9fe3b0"><i class="fa-solid fa-chart-line me-1"></i>Mis ganancias de {{ $mesNombre }}</div>
+                <div style="font-size:2.4rem;font-weight:900;line-height:1.1;color:#2fd15a">{{ $f($g['mes']) }}</div>
+                <div class="small" style="color:#c9d3cc">{{ $g['ventasMes'] }} {{ $g['ventasMes'] === 1 ? 'venta nueva' : 'ventas nuevas' }} este mes · en el año lleva {{ $f($g['anio']) }}</div>
+            </div>
+            <div class="text-end">
+                <div class="small" style="color:#c9d3cc">Si sigue a este ritmo, cierra el mes con</div>
+                <div class="fw-bold" style="font-size:1.4rem">{{ $f($g['proyeccion']) }}</div>
+                <div class="small" style="color:#c9d3cc">Quedan {{ $g['diasRestantes'] }} días</div>
+            </div>
+        </div>
+        <div class="mt-3">
+            <div class="d-flex justify-content-between small mb-1" style="color:#c9d3cc"><span>Meta: un salario mínimo ({{ $f($g['meta']) }})</span><b style="color:#fff">{{ $g['avance'] }}%</b></div>
+            <div style="height:14px;background:#26302a;border-radius:99px;overflow:hidden"><div style="height:100%;width:{{ max(3, $g['avance']) }}%;background:linear-gradient(90deg,#16b34a,#2fd15a);border-radius:99px"></div></div>
+            <div class="mt-2 fw-semibold">
+                @if ($g['faltan'] <= 0)
+                    🏆 ¡Ya se ganó un salario mínimo este mes! Todo lo que venda ahora es extra.
+                @elseif ($g['mes'] <= 0)
+                    🚀 Con solo <b style="color:#2fd15a">{{ $g['ventasFaltan'] }} planes anuales</b> se gana un salario mínimo. Cada negocio que pague le deja <b style="color:#2fd15a">{{ $f($g['porVenta']) }}</b>.
+                @else
+                    💪 Le faltan <b style="color:#2fd15a">{{ $f($g['faltan']) }}</b>: son solo <b style="color:#2fd15a">{{ $g['ventasFaltan'] }} {{ $g['ventasFaltan'] === 1 ? 'plan anual' : 'planes anuales' }}</b> más.
+                @endif
+            </div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap mt-3">
+            <a class="btn btn-success" href="#mis-negocios"><i class="fa-solid fa-hand-holding-dollar me-1"></i>Cobrar a mis negocios</a>
+            <a class="btn btn-light" target="_blank" href="https://wa.me/?text={{ rawurlencode('Hola 👋 Le cuento de LocalPro: un sistema para manejar su negocio desde el celular (ventas, inventario, caja y facturas por WhatsApp). Pruébelo 3 meses gratis aquí: ' . $yo->enlace) }}"><i class="fa-brands fa-whatsapp me-1"></i>Ofrecer LocalPro</a>
+            <a class="btn btn-outline-light" href="{{ route('asesor.comisiones') }}"><i class="fa-solid fa-coins me-1"></i>Ver mis comisiones</a>
+        </div>
+    </div>
+
     <div class="lp-kpis">
         <div class="lp-kpi hero"><div class="ic"><i class="fa-solid fa-sack-dollar"></i></div><div class="lbl">Comisión por cobrar</div><div class="val">{{ $f($resumen['pendiente']) }}</div><div class="sub">Este mes ganó {{ $f($resumen['mes']) }} · ya le pagaron {{ $f($resumen['pagada']) }}</div></div>
         <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-store"></i></div><div class="lbl">Mis negocios</div><div class="val">{{ $negocios->count() }}</div><div class="sub">{{ $yo->cargo === 'asesor' ? 'Negocios que usted inscribió' : $resumen['negociosRed'] . ' en toda su red' }}</div></div>
@@ -98,12 +151,19 @@
 
     <div class="lp-grid mb-3">
         <div class="lp-box">
-            <h3><span><i class="fa-solid fa-store me-1"></i> Mis negocios</span></h3>
+            <h3 id="mis-negocios"><span><i class="fa-solid fa-store me-1"></i> Mis negocios</span></h3>
             <ul class="lp-list">
                 @forelse ($negocios as $t)
                 <li>
                     <div class="av"><i class="fa-solid {{ $t->tipo_icono }}"></i></div>
-                    <div class="t"><b>{{ $t->nombre }}</b><small>{{ $t->ciudad ?: 'Sin ciudad' }} · {{ $t->plan->nombre ?? 'Sin plan' }}{{ $t->plan_vence ? ' · ' . ($t->plan_vence->isPast() ? 'venció ' : 'vence ') . $t->plan_vence->format('d/m/Y') : '' }}</small></div>
+                    <div class="t"><b>{{ $t->nombre }}</b><small>{{ $t->ciudad ?: 'Sin ciudad' }} · {{ $t->plan->nombre ?? 'Sin plan' }}{{ $t->plan_vence ? ' · ' . ($t->plan_vence->isPast() ? 'venció ' : 'vence ') . $t->plan_vence->format('d/m/Y') : '' }}</small>
+                        @php $gn = $porNegocio[$t->id] ?? null; @endphp
+                        @if (isset($pagaron[$t->id]))
+                            <small class="fw-bold" style="color:#11702f"><i class="fa-solid fa-circle-check me-1"></i>Ya pagó{{ $gn ? ' · le ha dejado ' . $f($gn->total) . ($gn->pendiente > 0 ? ' (' . $f($gn->pendiente) . ' por cobrar)' : '') : '' }}</small>
+                        @else
+                            <small class="fw-bold" style="color:#a86b00"><i class="fa-solid fa-gift me-1"></i>Aún no paga · cuando pague el plan anual usted gana {{ $f($ganancias['porVenta']) }}</small>
+                        @endif
+                    </div>
                     @php $msgPago = 'Hola, le escribo de LocalPro 👋 Aquí puede pagar el plan de ' . $t->nombre . ' en línea (tarjeta, PSE o Nequi) y se activa de una vez: ' . $t->url_pago; @endphp
                     <a class="btn btn-sm btn-success" target="_blank" href="https://wa.me/{{ $t->telefono ? numero_whatsapp($t->telefono) : '' }}?text={{ rawurlencode($msgPago) }}" title="Enviar enlace de pago por WhatsApp"><i class="fa-brands fa-whatsapp me-1"></i>Cobrar</a>
                     <a class="btn btn-sm btn-dark" target="_blank" href="{{ $t->url_pago }}" title="Pagar yo el plan de este negocio"><i class="fa-solid fa-credit-card"></i></a>
@@ -148,6 +208,7 @@
 
     <div class="lp-box">
         <h3><span><i class="fa-solid fa-coins me-1"></i> Últimas comisiones</span><a href="{{ route('asesor.comisiones') }}" class="small">Ver todas</a></h3>
+        <p class="small text-muted mb-2"><span class="badge bg-warning text-dark">Pendiente</span> LocalPro se la consigna{{ $yo->banco ? ' a ' . $yo->banco : ' en la cuenta que registró' }} · <span class="badge bg-success">Pagada</span> ya se la consignaron.</p>
         <ul class="lp-list">
             @forelse ($ultimas as $c)
             <li><div class="av"><i class="fa-solid fa-coins"></i></div><div class="t"><b>{{ $f($c->monto) }} · {{ $c->tienda->nombre ?? 'Negocio' }}</b><small>{{ $c->concepto_nombre }} · {{ $c->tipo === 'nueva' ? 'venta nueva' : 'renovación' }} · {{ $c->created_at->format('d/m/Y') }}</small></div>

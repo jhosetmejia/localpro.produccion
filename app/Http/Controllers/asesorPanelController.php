@@ -15,10 +15,50 @@ class asesorPanelController extends Controller
         $yo = $request->attributes->get('asesor')->load('user', 'padre.user');
         $ids = $yo->idsRed();
         $comisiones = Comision::where('asesor_id', $yo->id);
+        $negocios = Tienda::with('plan')->where('asesor_id', $yo->id)->latest()->get();
+
+        // ----- Mis ganancias del mes (motivación: meta = salario mínimo) -----
+        $cfg = \App\Support\Comisiones::valores();
+        $porVenta = (float) $cfg['nueva']['venta'];
+        $salario = (float) \App\Models\Ajuste::valor('red_salario_minimo', 1750000);
+        $mes = (float) (clone $comisiones)->where('estado', '<>', 'anulada')->where('created_at', '>=', now()->startOfMonth())->sum('monto');
+        $ventasMes = (int) (clone $comisiones)->where('estado', '<>', 'anulada')->where('concepto', 'venta')->where('tipo', 'nueva')->where('created_at', '>=', now()->startOfMonth())->count();
+        $diasMes = now()->daysInMonth; $hoy = now()->day;
+        $faltan = max(0, $salario - $mes);
+        $ganancias = [
+            'mes' => $mes,
+            'ventasMes' => $ventasMes,
+            'meta' => $salario,
+            'avance' => $salario > 0 ? min(100, round($mes / $salario * 100)) : 0,
+            'faltan' => $faltan,
+            'ventasFaltan' => $porVenta > 0 ? (int) ceil($faltan / $porVenta) : 0,
+            'porVenta' => $porVenta,
+            'proyeccion' => $hoy > 0 ? round($mes / $hoy * $diasMes, -3) : 0,
+            'diasRestantes' => $diasMes - $hoy,
+            'anio' => (float) (clone $comisiones)->where('estado', '<>', 'anulada')->where('created_at', '>=', now()->startOfYear())->sum('monto'),
+        ];
+
+        // Lo que ya ganó por cada negocio, y quiénes ya pagaron (los pagos de prueba no cuentan)
+        $porNegocio = Comision::where('asesor_id', $yo->id)->where('estado', '<>', 'anulada')
+            ->selectRaw("tienda_id, SUM(monto) total, SUM(CASE WHEN estado = 'pendiente' THEN monto ELSE 0 END) pendiente")
+            ->groupBy('tienda_id')->get()->keyBy('tienda_id');
+        $real = fn ($q) => $q->where('estado', 'aprobado')->where('monto', '>', 0)
+            ->where('referencia', 'not like', \App\Models\PagoSuscripcion::PREFIJO_PRUEBA . '%');
+        $pagaron = $real(\App\Models\PagoSuscripcion::whereIn('tienda_id', $negocios->pluck('id')))->pluck('tienda_id')->unique()->flip();
+
+        // Pagos de los últimos 7 días de SUS negocios, con lo que usted ganó en cada uno
+        $recientes = $real(\App\Models\PagoSuscripcion::with(['tienda:id,nombre,asesor_id', 'plan:id,nombre'])
+            ->whereIn('tienda_id', $negocios->pluck('id'))
+            ->where('updated_at', '>=', now()->subDays(7)))->latest('updated_at')->take(5)->get()
+            ->each(fn ($p) => $p->mi_comision = (float) Comision::where('pago_suscripcion_id', $p->id)->where('asesor_id', $yo->id)->where('estado', '<>', 'anulada')->sum('monto'));
 
         return view('asesor.index', [
+            'ganancias' => $ganancias,
+            'porNegocio' => $porNegocio,
+            'pagaron' => $pagaron,
+            'recientes' => $recientes,
             'yo' => $yo,
-            'negocios' => Tienda::with('plan')->where('asesor_id', $yo->id)->latest()->get(),
+            'negocios' => $negocios,
             'resumen' => [
                 'pendiente' => (float) (clone $comisiones)->where('estado', 'pendiente')->sum('monto'),
                 'pagada' => (float) (clone $comisiones)->where('estado', 'pagada')->sum('monto'),
