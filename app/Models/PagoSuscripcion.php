@@ -8,6 +8,14 @@ class PagoSuscripcion extends Model
 {
     protected $table = 'pagos_suscripcion';
 
+    // Pagos de prueba (php artisan wompi:prueba): activan el plan pero no generan comisiones ni cuentan como pago anterior
+    public const PREFIJO_PRUEBA = 'LP-PRUEBA-';
+
+    public function getEsPruebaAttribute(): bool
+    {
+        return str_starts_with((string) $this->referencia, self::PREFIJO_PRUEBA);
+    }
+
     protected $fillable = ['tienda_id', 'plan_id', 'monto', 'metodo', 'referencia', 'estado', 'periodo_desde', 'periodo_hasta', 'nota', 'registrado_por', 'respuesta'];
 
     protected $casts = ['periodo_desde' => 'date', 'periodo_hasta' => 'date', 'respuesta' => 'array'];

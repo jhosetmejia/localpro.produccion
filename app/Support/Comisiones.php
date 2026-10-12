@@ -27,7 +27,7 @@ class Comisiones
     public static function generar(PagoSuscripcion $pago): void
     {
         $tienda = $pago->tienda;
-        if (!$tienda || !$tienda->asesor_id || (float) $pago->monto <= 0 || $pago->estado !== 'aprobado') {
+        if (!$tienda || !$tienda->asesor_id || (float) $pago->monto <= 0 || $pago->estado !== 'aprobado' || $pago->es_prueba) {
             return;
         }
         // Solo el plan anual paga comisión
@@ -45,7 +45,8 @@ class Comisiones
 
         // Renovación si ya había pagado antes un plan anual
         $anteriores = PagoSuscripcion::with('plan')->where('tienda_id', $tienda->id)->where('estado', 'aprobado')
-            ->where('monto', '>', 0)->where('id', '<>', $pago->id)->get()->contains(fn ($p) => self::esAnual($p));
+            ->where('monto', '>', 0)->where('id', '<>', $pago->id)->where('referencia', 'not like', PagoSuscripcion::PREFIJO_PRUEBA . '%')
+            ->get()->contains(fn ($p) => self::esAnual($p));
         $tipo = $anteriores ? 'renovacion' : 'nueva';
 
         $cfg = self::valores();
