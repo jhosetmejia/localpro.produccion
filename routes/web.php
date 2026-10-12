@@ -163,6 +163,11 @@ Route::middleware(['auth', 'tienda'])->group(function () {
         $msg = '¡Hola! 👋 Le comparto la página de ' . $t->nombre . ': vea nuestros productos y compre por WhatsApp 👉 ' . $t->url_catalogo;
         return redirect()->away('https://wa.me/?text=' . rawurlencode($msg));
     })->name('panel.compartir');
+    Route::get('/certificado/{nivel}', function (int $nivel) {
+        $nv = \App\Support\Niveles::calcular();
+        abort_unless($nivel >= 1 && $nivel <= $nv['logrados'], 404);
+        return view('panel.certificado', ['nivel' => $nivel, 'tienda' => $nv['tienda'], 'nombre' => \App\Support\Niveles::nombre($nivel)]);
+    })->whereNumber('nivel')->name('panel.certificado');
     Route::post('/equipo/{user}/meta', [\App\Http\Controllers\metaController::class, 'guardar'])->name('equipo.meta');
 
     // Importar productos desde Excel (va antes de productos/{producto})

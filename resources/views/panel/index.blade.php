@@ -23,31 +23,12 @@
 
 <div class="lp-dash">
     @php
-        $tPlan = \App\Support\TiendaActual::tienda();
-        $nProd = \App\Models\Producto::count();
-        $nCli = \App\Models\Cliente::count();
-        $compartio = (bool) \App\Models\Ajuste::valor('t' . $tPlan?->id . '_compartio');
-        $tid = (int) $tPlan?->id;
-        $nUsuarios = $tid ? \App\Models\User::where('tienda_id', $tid)->count() : 0;
-        $nVentas = $tid ? \App\Models\PosVenta::where('tienda_id', $tid)->where('estado', 'pagada')->count() : 0;
-        $tieneLogo = filled($tPlan?->logo_path);
-        // Nivel 1: que le lleguen clientes
-        $nivel1 = [
-            ['Crea tus primeros 10 productos', min($nProd, 10) . ' de 10 listos', $nProd >= 10, route('productos.create'), 'Crear producto', 'fa-box-open', min(100, $nProd * 10), route('productos.importar'), '¿Los tiene en Excel?', false],
-            ['Comparte tu tienda en línea con tus contactos', 'Envía tu página por WhatsApp a tus clientes y grupos', $compartio, route('panel.compartir'), 'Compartir por WhatsApp', 'fa-share-nodes', $compartio ? 100 : 0, null, null, true],
-            ['Mete tus contactos al sistema', min($nCli, 10) . ' de 10 clientes · para enviarles mensajes por WhatsApp', $nCli >= 10, route('clientes.create'), 'Agregar cliente', 'fa-address-book', min(100, $nCli * 10), null, null, false],
-        ];
-        // Nivel 2: arme su negocio como un profesional
-        $nivel2 = [
-            ['Crea un usuario para tu vendedor o asesor', $nUsuarios > 1 ? 'Ya tiene ' . ($nUsuarios - 1) . ' en su equipo' : 'Cada uno entra con su clave y vende en su propia caja (no ve sus ganancias)', $nUsuarios > 1, route('users.create'), 'Crear usuario', 'fa-user-plus', 0, null, null, false],
-            ['Pon el logo de tu negocio', 'Sale en sus tiquetes, facturas y en su tienda en línea', $tieneLogo, route('negocio.edit'), 'Subir logo', 'fa-image', 0, null, null, false],
-            ['Haz tu primera venta en la caja', $nVentas > 0 ? $nVentas . ' ventas registradas' : 'Abra la caja y registre una venta: el inventario se descuenta solo', $nVentas > 0, route('cajas.abrir'), 'Abrir caja y vender', 'fa-cash-register', 0, null, null, false],
-        ];
-        $hechos1 = collect($nivel1)->where(2, true)->count();
-        $hechos2 = collect($nivel2)->where(2, true)->count();
-        $nivel = $hechos1 < 3 ? 1 : ($hechos2 < 3 ? 2 : 3);
-        $pasos = $nivel === 1 ? $nivel1 : $nivel2;
-        $hechos = $nivel === 1 ? $hechos1 : $hechos2;
+        $nv = \App\Support\Niveles::calcular();
+        $tPlan = $nv['tienda']; $tid = $nv['tid']; $nivel = $nv['nivel'];
+        $hechos = $nv['hechos']; $total = $nv['total'];
+        // Los pasos ya hechos se quitan de la lista
+        $pasos = collect($nv['pasos'])->map(fn ($p, $i) => array_merge($p, [$i + 1]))->reject(fn ($p) => $p[2])->values();
+        $nombreUsr = \Illuminate\Support\Str::words(auth()->user()->name, 1, '');
     @endphp
     @include('layouts.partials.cuenta-regresiva')
     @include('layouts.partials.limite-plan', ['que' => 'productos'])
@@ -57,30 +38,32 @@
         @if ($nivel === 2)
         <div class="vm-felicita">
             <span class="vm-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></span>
-            <div><b>¡Muy bien! Completó el nivel 1</b><small>Ya tiene productos, compartió su tienda y tiene clientes. Ahora arme su negocio como un profesional.</small></div>
+            <div><b>¡Muy bien! Completó el nivel 1</b><small>Ya tiene productos, clientes, compartió su tienda y conectó sus redes. Ahora arme su negocio como un profesional.</small></div>
+            <a href="{{ route('panel.certificado', 1) }}" class="vm-cert"><i class="fa-solid fa-award me-1"></i>Mi certificado</a>
         </div>
         @endif
-        <div class="vm-h"><div><small>Nivel {{ $nivel }} · {{ $nivel === 1 ? 'Para vender más' : 'Para crecer' }}</small><b>{{ $nivel === 1 ? '3 pasos para que le lleguen más clientes' : '3 pasos para manejar su negocio como un profesional' }}</b></div><span class="vm-n">{{ $hechos }}/3</span></div>
+        <div class="vm-h"><div><small>Nivel {{ $nivel }} · {{ $nivel === 1 ? 'Para vender más' : 'Para crecer' }}</small><b>{{ $nivel === 1 ? $total . ' pasos para que le lleguen más clientes' : $total . ' pasos para manejar su negocio como un profesional' }}</b></div><span class="vm-n">{{ $hechos }}/{{ $total }}</span></div>
+        <div class="vm-prog"><i style="width:{{ round($hechos * 100 / $total) }}%"></i></div>
         <div class="vm-pasos">
-            @foreach ($pasos as $i => [$tit, $sub, $ok, $url, $btn, $ic, $pct, $url2, $btn2, $nueva])
-            <div class="vm-p {{ $ok ? 'ok' : '' }}">
-                <span class="vm-i">@if ($ok)<i class="fa-solid fa-check"></i>@else{{ $i + 1 }}@endif</span>
-                <div class="vm-t"><b>{{ $tit }}</b><small>{{ $sub }}</small>@if (!$ok && $pct > 0)<span class="vm-bar"><i style="width:{{ $pct }}%"></i></span>@endif</div>
-                @if ($ok)
-                <span class="vm-ok"><i class="fa-solid fa-star me-1"></i>¡Listo!</span>
-                @else
-                <div class="vm-a"><a href="{{ $url }}" class="vm-btn" @if ($nueva) target="_blank" rel="noopener" @endif><i class="fa-solid {{ $ic }} me-1"></i>{{ $btn }}</a>@if ($url2)<a href="{{ $url2 }}" class="vm-link">{{ $btn2 }}</a>@endif</div>
-                @endif
+            @foreach ($pasos as [$tit, $sub, $ok, $url, $btn, $ic, $pct, $url2, $btn2, $nueva, $num])
+            <div class="vm-p">
+                <span class="vm-i">{{ $num }}</span>
+                <div class="vm-t"><b>{{ $tit }}</b><small>{{ $sub }}</small>@if ($pct > 0)<span class="vm-bar"><i style="width:{{ $pct }}%"></i></span>@endif</div>
+                <div class="vm-a"><a href="{{ $url }}" class="vm-btn" @if ($nueva) target="_blank" rel="noopener" onclick="setTimeout(function(){location.reload()},1500)" @endif><i class="fa-solid {{ $ic }} me-1"></i>{{ $btn }}</a>@if ($url2)<a href="{{ $url2 }}" class="vm-link">{{ $btn2 }}</a>@endif</div>
             </div>
             @endforeach
+            @if ($hechos > 0)
+            <div class="vm-hechos"><i class="fa-solid fa-star"></i> {{ $hechos }} {{ $hechos === 1 ? 'paso listo' : 'pasos listos' }} · ¡vamos bien!</div>
+            @endif
         </div>
     </div>
     @else
     <div class="vm-fin" id="vm-fin" data-k="lp_fin_{{ $tid }}">
         <button type="button" class="vm-x" aria-label="Cerrar" onclick="try{localStorage.setItem(this.parentNode.dataset.k,'1')}catch(e){};this.parentNode.remove()">&times;</button>
         <span class="vm-stars grande"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></span>
-        <b>¡Felicitaciones, {{ \Illuminate\Support\Str::words(auth()->user()->name, 1, '') }}! 🏆</b>
-        <p>Completó todos los pasos. Usted es una persona que <b>se preocupa por su negocio</b>: tiene productos, clientes, su tienda en línea, su equipo y ya está vendiendo con LocalPro. ¡Siga así!</p>
+        <b>¡Felicitaciones, {{ $nombreUsr }}! 🏆</b>
+        <p>Completó todos los pasos. Usted es una persona que <b>se preocupa por su negocio</b>: tiene productos, clientes, su tienda en línea, sus redes, su equipo y ya está vendiendo con LocalPro. ¡Siga así!</p>
+        <div class="mt-2 d-flex gap-2 justify-content-center flex-wrap"><a href="{{ route('panel.certificado', 1) }}" class="vm-cert"><i class="fa-solid fa-award me-1"></i>Certificado nivel 1</a><a href="{{ route('panel.certificado', 2) }}" class="vm-cert"><i class="fa-solid fa-award me-1"></i>Certificado nivel 2</a></div>
     </div>
     <script>try{if(localStorage.getItem(document.getElementById('vm-fin').dataset.k))document.getElementById('vm-fin').remove()}catch(e){}</script>
     @endif
@@ -114,7 +97,67 @@
     .vm-fin>b{display:block;font-size:1.35rem;font-weight:900;color:#a6f34a}
     .vm-fin p{margin:.3rem auto 0;max-width:36rem;color:#c9d3cc;font-weight:600}.vm-fin p b{color:#fff}
     .vm-x{position:absolute;top:.6rem;right:.8rem;background:none;border:0;color:#9aa69e;font-size:1.6rem;line-height:1;cursor:pointer}
+    .vm-prog{height:8px;border-radius:9px;background:#e8eee9;overflow:hidden;margin:-.2rem 0 .8rem}.vm-prog i{display:block;height:100%;background:linear-gradient(90deg,#a6f34a,#16b34a);transition:width .6s}
+    .vm-hechos{text-align:center;font-weight:800;color:#11702f;font-size:.85rem;padding:.2rem}.vm-hechos i{color:#f5b301}
+    .vm-cert{background:#a6f34a;color:#0b0d0c;font-weight:900;border-radius:999px;padding:.45rem 1rem;text-decoration:none;white-space:nowrap;font-size:.85rem;margin-left:auto}
+    .vm-cert:hover{color:#0b0d0c;filter:brightness(1.07)}.vm-fin .vm-cert{margin-left:0}
+    /* Celebración al subir de nivel */
+    .cel{position:fixed;inset:0;z-index:3000;display:grid;place-items:center;background:rgba(5,10,7,.78);backdrop-filter:blur(4px);animation:celIn .35s ease both;padding:16px}
+    .cel canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+    .cel-card{position:relative;max-width:440px;width:100%;text-align:center;background:linear-gradient(160deg,#0b0d0c,#163020);color:#fff;border-radius:28px;padding:2rem 1.4rem 1.5rem;box-shadow:0 0 0 2px #2fd15a inset,0 30px 80px rgba(0,0,0,.5);animation:celPop .6s cubic-bezier(.2,.9,.3,1.3) both .15s}
+    .cel-trofeo{font-size:4.2rem;line-height:1;display:inline-block;animation:celTrofeo 1.6s ease-in-out infinite}
+    .cel-card small{display:block;letter-spacing:.18em;font-weight:800;color:#a6f34a;font-size:.75rem;margin-top:.6rem}
+    .cel-card h2{font-weight:900;font-size:1.7rem;margin:.3rem 0 .4rem}.cel-card h2 span{color:#a6f34a}
+    .cel-card p{color:#c9d3cc;font-weight:600;margin:0 0 1.1rem}
+    .cel-btns{display:flex;flex-direction:column;gap:.55rem}
+    .cel-b1{background:linear-gradient(90deg,#a3f04a,#16b84e);color:#0b0d0c;font-weight:900;border-radius:999px;padding:.8rem 1rem;text-decoration:none;font-size:1rem}
+    .cel-b1:hover{color:#0b0d0c}
+    .cel-b2{background:none;border:1.5px solid #3c5a46;color:#dfe8e2;font-weight:800;border-radius:999px;padding:.7rem 1rem;cursor:pointer}
+    @keyframes celIn{from{opacity:0}to{opacity:1}}
+    @keyframes celPop{0%{transform:scale(.6) translateY(30px);opacity:0}100%{transform:none;opacity:1}}
+    @keyframes celTrofeo{0%,100%{transform:rotate(-8deg) scale(1)}50%{transform:rotate(8deg) scale(1.12)}}
     </style>
+    @if ($nv['logrados'] >= 1)
+    @php $nCel = $nv['logrados']; @endphp
+    <div class="cel" id="cel" data-k="lp_cel_{{ $tid }}_{{ $nCel }}" style="display:none">
+        <canvas id="cel-cv"></canvas>
+        <div class="cel-card">
+            <span class="cel-trofeo">🏆</span>
+            <small>NIVEL {{ $nCel }} COMPLETADO</small>
+            <h2>¡Felicitaciones, <span>{{ $nombreUsr }}</span>!</h2>
+            <p>Alcanzó el <b>Nivel {{ $nCel }} en LocalPro</b>. {{ $nCel === 1 ? 'Su negocio ya está conectado con sus clientes: productos, tienda en línea, contactos y redes sociales.' : 'Ya maneja su negocio como un profesional: equipo, marca y ventas en caja.' }}</p>
+            <div class="cel-btns">
+                <a href="{{ route('panel.certificado', $nCel) }}" class="cel-b1"><i class="fa-solid fa-award me-1"></i>Descargar mi certificado</a>
+                <button type="button" class="cel-b2" onclick="celCerrar()">{{ $nCel === 1 ? 'Seguir al nivel 2 →' : 'Seguir vendiendo' }}</button>
+            </div>
+        </div>
+    </div>
+    <script>
+    (function () {
+        var el = document.getElementById('cel'), k = el.dataset.k;
+        try { if (localStorage.getItem(k)) { el.remove(); return; } } catch (e) {}
+        el.style.display = '';
+        window.celCerrar = function () { try { localStorage.setItem(k, '1') } catch (e) {} el.remove(); };
+        el.querySelector('.cel-b1').addEventListener('click', function () { try { localStorage.setItem(k, '1') } catch (e) {} });
+        // Confeti
+        var cv = document.getElementById('cel-cv'), cx = cv.getContext('2d'), W, H, ps = [], cols = ['#a6f34a', '#16b34a', '#f5b301', '#ffffff', '#2fd15a', '#ff6b6b'];
+        function tam() { W = cv.width = innerWidth; H = cv.height = innerHeight; } tam(); addEventListener('resize', tam);
+        for (var i = 0; i < 180; i++) ps.push({ x: Math.random() * W, y: -Math.random() * H, w: 6 + Math.random() * 8, h: 4 + Math.random() * 6, vy: 2 + Math.random() * 3.5, vx: -1.5 + Math.random() * 3, r: Math.random() * 6, vr: -.15 + Math.random() * .3, c: cols[i % cols.length] });
+        var t0 = Date.now();
+        (function loop() {
+            if (!document.body.contains(cv)) return;
+            cx.clearRect(0, 0, W, H);
+            var vivo = Date.now() - t0 < 6000;
+            ps.forEach(function (p) {
+                p.y += p.vy; p.x += p.vx + Math.sin(p.y / 40); p.r += p.vr;
+                if (p.y > H && vivo) { p.y = -10; p.x = Math.random() * W; }
+                cx.save(); cx.translate(p.x, p.y); cx.rotate(p.r); cx.fillStyle = p.c; cx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); cx.restore();
+            });
+            requestAnimationFrame(loop);
+        })();
+    })();
+    </script>
+    @endif
     @endif
     <div class="lp-hello">
         <div>

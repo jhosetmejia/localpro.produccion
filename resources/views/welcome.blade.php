@@ -55,8 +55,8 @@
     </section>
 
     <div class="marquee" aria-hidden="true"><div class="marquee-track">
-        <span>Caja POS</span><span>Stock actualizado</span><span>Tienda en línea</span><span>Aparece en Google</span><span>Comprar por WhatsApp</span><span>Importar desde Excel</span><span>Separados y abonos</span><span>Chats de Facebook e Instagram</span><span>Metas de vendedores</span><span>Reportes y ganancias</span>
-        <span>Caja POS</span><span>Stock actualizado</span><span>Tienda en línea</span><span>Aparece en Google</span><span>Comprar por WhatsApp</span><span>Importar desde Excel</span><span>Separados y abonos</span><span>Chats de Facebook e Instagram</span><span>Metas de vendedores</span><span>Reportes y ganancias</span>
+        <span>Caja POS</span><span>Stock actualizado</span><span>Tienda en línea</span><span>Aparece en Google</span><span>Comprar por WhatsApp</span><span>Importar desde Excel</span><span>Separados y abonos</span><span>Chats de Facebook e Instagram</span><span>Metas de vendedores</span><span>Niveles y certificados</span><span>Reportes y ganancias</span>
+        <span>Caja POS</span><span>Stock actualizado</span><span>Tienda en línea</span><span>Aparece en Google</span><span>Comprar por WhatsApp</span><span>Importar desde Excel</span><span>Separados y abonos</span><span>Chats de Facebook e Instagram</span><span>Metas de vendedores</span><span>Niveles y certificados</span><span>Reportes y ganancias</span>
     </div></div>
 
     <section class="section" id="funciones">

@@ -114,6 +114,7 @@
                 <li><b>Importa sus productos desde Excel</b>: si ya tiene 1.000 productos no los crea uno por uno. O nos manda el archivo y el equipo se los carga.</li>
                 <li>Factura o tiquete por WhatsApp o impreso.</li>
                 <li><b>💬 Mis redes</b>: conecta su Facebook e Instagram, responde todos los chats en un solo lugar, envía productos con foto y precio, y publica en las dos redes al tiempo (o programado).</li>
+                <li><b>🏆 Niveles con certificado</b>: el panel le pone tareas al empresario (productos, compartir su tienda, clientes, conectar sus redes…). Al completar cada nivel le sale una celebración y descarga su <b>certificado LocalPro</b> para presumirlo en redes.</li>
                 <li><b>📦 Separados y abonos</b>: el cliente aparta la prenda, abona por partes (recibo de cada abono por WhatsApp con lo que le falta) y se la lleva al completar. ¡Las tiendas de ropa lo piden mucho!</li>
                 <li><b>Sube sus clientes y ventas anteriores desde Excel</b> para no empezar de cero.</li>
             </ul>
