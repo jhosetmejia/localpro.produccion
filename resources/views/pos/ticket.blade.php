@@ -41,7 +41,7 @@
     </table>
     <hr>
     <table>
-        <tr><td>Subtotal</td><td class="r">{{ dinero($venta->subtotal, false) }}</td></tr>
+        <tr><td>Subtotal{{ $venta->impuestos > 0 ? ' (IVA incl.)' : '' }}</td><td class="r">{{ dinero($venta->subtotal, false) }}</td></tr>
         @if ($venta->descuento > 0)<tr><td>Descuento</td><td class="r">-{{ dinero($venta->descuento, false) }}</td></tr>@endif
         <tr class="b xl"><td>TOTAL</td><td class="r">{{ dinero($venta->total) }}</td></tr>
     </table>

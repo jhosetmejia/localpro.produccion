@@ -341,8 +341,8 @@ class posController extends Controller
     public function actualizarCliente(Request $request, \App\Models\Cliente $cliente)
     {
         $d = $request->validate([
-            'documento' => 'nullable|string|max:20',
-            'telefono' => 'nullable|string|max:20',
+            'documento' => ['nullable', 'string', 'max:20', \App\Support\Validar::documento()],
+            'telefono' => ['nullable', 'string', 'max:20', \App\Support\Validar::celular()],
             'email' => 'nullable|email|max:120',
             'direccion' => 'nullable|string|max:80',
         ], ['email.email' => 'El correo no es válido.', 'direccion.max' => 'La dirección es muy larga (máximo 80 letras).']);
@@ -355,8 +355,7 @@ class posController extends Controller
             }
             $cambios['numero_documento'] = $doc;
         }
-        $tel = preg_replace('/\D/', '', (string) ($d['telefono'] ?? ''));
-        if (strlen($tel) === 12 && str_starts_with($tel, '57')) $tel = substr($tel, 2);
+        $tel = \App\Support\Validar::limpiarTel($d['telefono'] ?? '');
         if ($tel !== '') $cambios['telefono'] = $tel;
         if (!empty($d['email'])) $cambios['email'] = mb_strtolower(trim($d['email']));
         if (trim((string) ($d['direccion'] ?? '')) !== '') $cambios['direccion'] = trim($d['direccion']);
@@ -369,8 +368,8 @@ class posController extends Controller
     {
         $d = $request->validate([
             'nombre' => 'required|string|min:2|max:80',
-            'documento' => 'nullable|string|max:20',
-            'telefono' => 'nullable|string|max:20',
+            'documento' => ['nullable', 'string', 'max:20', \App\Support\Validar::documento()],
+            'telefono' => ['nullable', 'string', 'max:20', \App\Support\Validar::celular()],
             'direccion' => 'nullable|string|max:80',
         ], [
             'nombre.required' => 'Escriba el nombre del cliente.',

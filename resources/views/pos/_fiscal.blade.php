@@ -13,7 +13,8 @@
 <div class="fis" style="font-size:{{ ($web ?? false) ? '.82rem' : '10px' }};line-height:1.35">
     @if ($nombreDoc)<div style="text-align:center;font-weight:800;margin-bottom:4px">{{ mb_strtoupper($nombreDoc) }} N.º {{ $venta->numero }}</div>@endif
     @if ($negocio->razon_social && $negocio->razon_social !== $negocio->nombre)<div style="text-align:center">{{ $negocio->razon_social }}</div>@endif
-    @if ($negocio->nit)<div style="text-align:center">NIT {{ $negocio->nit }}@if ($negocio->dv !== null)-{{ $negocio->dv }}@endif @if ($resps) · {{ implode(', ', $resps) }}@endif</div>@endif
+    @if ($negocio->nit && !($web ?? false))<div style="text-align:center">NIT {{ $negocio->nit }}@if ($negocio->dv !== null)-{{ $negocio->dv }}@endif @if ($resps) · {{ implode(', ', $resps) }}@endif</div>@endif
+    @if (($web ?? false) && $resps)<div style="text-align:center">{{ implode(', ', $resps) }}</div>@endif
     @if ($ad && ($ad['numero'] ?? '') !== \App\Support\Dian\Catalogos::CONSUMIDOR_FINAL['numero'])
         <div style="margin-top:4px">Adquiriente: <b>{{ $ad['nombre'] }}</b> · {{ ($ad['tipo_doc'] ?? '') === '31' ? 'NIT' : 'Doc.' }} {{ $ad['numero'] }}@if (!empty($ad['dv']))-{{ $ad['dv'] }}@endif</div>
     @endif

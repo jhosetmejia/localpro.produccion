@@ -69,7 +69,7 @@
 
             <label class="form-label">Foto</label>
             <label class="pb-foto" id="foto">
-                <input type="file" name="imagen" id="img" accept="image/jpeg,image/png,image/webp">
+                <input type="file" name="imagen" id="img" accept="image/jpeg,image/png,image/webp" data-max-kb="7500">
                 <div id="fotoVacia"><i class="fa-regular fa-image"></i><div class="fw-bold mt-1">Toque para subir una foto</div><small class="text-muted">JPG o PNG · Instagram exige foto</small></div>
                 <img id="fotoPrev" alt="" style="display:none">
             </label>
