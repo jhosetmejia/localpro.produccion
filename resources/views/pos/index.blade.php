@@ -280,6 +280,23 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     </div>
 </div>
 
+<!-- Actualizar datos del cliente (pide solo lo que falta) -->
+<div class="ov" id="ovAct">
+    <div class="md">
+        <div class="mh"><div><h3>Actualizar datos</h3><small id="actQuien"></small></div><button class="x" data-close>&times;</button></div>
+        <p style="color:#5b665e;font-weight:600;font-size:.88rem;margin:0 0 .6rem">Pídale al cliente lo que falta: así le envía la factura, le avisa de mercancía nueva y lo tiene completo.</p>
+        <div class="fcli">
+            <label data-f="documento">Cédula<input id="actDoc" maxlength="20" inputmode="numeric" autocomplete="off"></label>
+            <label data-f="telefono">WhatsApp<input id="actTel" maxlength="20" inputmode="tel" autocomplete="off"></label>
+            <label data-f="email">Correo<input id="actMail" maxlength="120" inputmode="email" autocomplete="off"></label>
+            <label data-f="direccion">Dirección<input id="actDir" maxlength="80" autocomplete="off"></label>
+        </div>
+        <div class="err" id="actErr"></div>
+        <button class="mbtn" id="actOk">Guardar datos</button>
+        <button class="mbtn dark" id="actLuego" style="margin-top:8px" data-close>Ahora no</button>
+    </div>
+</div>
+
 <!-- Recordatorio: vender sin cliente -->
 <div class="ov" id="ovSinCli">
     <div class="md" style="width:min(440px,100%)">
@@ -331,6 +348,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     var URL_NUEVO = @json(route('productos.create'));
     var URL_CLIENTES = @json(route('pos.clientes')), URL_SALDO = @json(route('pos.saldo'));
     var URL_CLIENTE_NUEVO = @json(route('pos.clientes.crear'));
+    var URL_CLIENTE_DATOS = @json(url('/pos/clientes')) + '/';
     var CLIENTE_OBLIGATORIO = @json((bool) $negocio->cliente_obligatorio);
     var NEGOCIO = @json($negocio->nombre);
     var METODOS = @json($metodos);
@@ -637,12 +655,39 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         if (!b) { if (e.target.closest('[data-nuevo]')) abrirNuevoCliente(); return; }
         elegirCliente($('cliRes')._l[+b.dataset.i]);
     });
-    function elegirCliente(c) {
-        clienteId = c.id; $('cn').value = c.nombre; $('ct').value = c.telefono || '';
-        $('cliSelTxt').textContent = '👤 ' + c.nombre + (c.documento && c.documento.indexOf('TEL-') !== 0 ? ' · CC ' + c.documento : '') + (c.telefono ? ' · ' + c.telefono : '');
+    var clienteActual = null, NOMBRES_DATO = { documento: 'cédula', telefono: 'WhatsApp', email: 'correo', direccion: 'dirección' };
+    function elegirCliente(c, sinPreguntar) {
+        clienteId = c.id; clienteActual = c; $('cn').value = c.nombre; $('ct').value = c.telefono || '';
+        $('cliSelTxt').innerHTML = esc('👤 ' + c.nombre + (c.documento ? ' · CC ' + c.documento : '') + (c.telefono ? ' · ' + c.telefono : ''))
+            + (c.faltan && c.faltan.length ? ' <a href="#" id="cliAct" style="color:#a86b00;font-weight:800;white-space:nowrap">⚠ Actualizar datos</a>' : '');
         $('cliSel').style.display = 'flex'; $('cliBusca').style.display = 'none'; $('cliBusca').classList.remove('pide'); $('cliRes').style.display = 'none';
+        var a = $('cliAct'); if (a) a.addEventListener('click', function (e) { e.preventDefault(); abrirActualizar(); });
+        if (!sinPreguntar && c.faltan && c.faltan.length) abrirActualizar();
     }
-    function quitarCliente() { clienteId = null; $('cliSel').style.display = 'none'; $('cliBusca').style.display = ''; $('cn').value = ''; $('ct').value = ''; }
+    function abrirActualizar() {
+        var c = clienteActual; if (!c) return;
+        $('actQuien').textContent = c.nombre + ' · le falta: ' + c.faltan.map(function (k) { return NOMBRES_DATO[k]; }).join(', ');
+        document.querySelectorAll('#ovAct [data-f]').forEach(function (l) { l.style.display = c.faltan.indexOf(l.dataset.f) >= 0 ? '' : 'none'; });
+        $('actDoc').value = ''; $('actTel').value = ''; $('actMail').value = ''; $('actDir').value = ''; $('actErr').textContent = '';
+        abrir('ovAct');
+        setTimeout(function () { var l = document.querySelector('#ovAct [data-f]:not([style*="none"]) input'); if (l) l.focus(); }, 50);
+    }
+    $('actOk').addEventListener('click', function () {
+        var btn = this, c = clienteActual; if (!c) return;
+        var datos = { documento: $('actDoc').value.trim(), telefono: $('actTel').value.trim(), email: $('actMail').value.trim(), direccion: $('actDir').value.trim() };
+        if (!datos.documento && !datos.telefono && !datos.email && !datos.direccion) { cerrar('ovAct'); return; }
+        btn.disabled = true; btn.textContent = 'Guardando…'; $('actErr').textContent = '';
+        fetch(URL_CLIENTE_DATOS + c.id + '/datos', {
+            method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': CSRF }, body: JSON.stringify(datos)
+        }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+          .then(function (res) {
+            if (!res.ok) { var m = res.d.message || 'No se pudo guardar.'; if (res.d.errors) m = res.d.errors[Object.keys(res.d.errors)[0]][0]; $('actErr').textContent = m; return; }
+            elegirCliente(res.d, true); cerrar('ovAct');
+            toast(res.d.faltan.length ? 'Datos guardados' : '¡Cliente completo! ✅');
+        }).catch(function () { $('actErr').textContent = 'Sin conexión. Intente de nuevo.'; })
+          .finally(function () { btn.disabled = false; btn.textContent = 'Guardar datos'; });
+    });
+    function quitarCliente() { clienteActual = null; clienteId = null; $('cliSel').style.display = 'none'; $('cliBusca').style.display = ''; $('cn').value = ''; $('ct').value = ''; }
     function abrirNuevoCliente() {
         var t = $('cn').value.trim();
         $('ncNom').value = /^[\d\s+-]+$/.test(t) ? '' : t;
@@ -666,7 +711,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
                 if (res.d.errors) m = res.d.errors[Object.keys(res.d.errors)[0]][0];
                 $('ncErr').textContent = m; return;
             }
-            elegirCliente(res.d); cerrar('ovCli');
+            elegirCliente(res.d, true); cerrar('ovCli');
             toast(res.d.existia ? 'Ese cliente ya estaba registrado: quedó elegido' : 'Cliente guardado y elegido');
         }).catch(function () { $('ncErr').textContent = 'Sin conexión. Intente de nuevo.'; })
           .finally(function () { btn.disabled = false; btn.textContent = 'Guardar cliente'; });

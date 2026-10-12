@@ -191,6 +191,7 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::get('/devoluciones/{devolucion}', [devolucionController::class, 'show'])->name('devoluciones.show');
     Route::get('/pos/clientes', [posController::class, 'clientes'])->name('pos.clientes');
     Route::post('/pos/clientes', [posController::class, 'crearCliente'])->name('pos.clientes.crear');
+    Route::post('/pos/clientes/{cliente}/datos', [posController::class, 'actualizarCliente'])->whereNumber('cliente')->name('pos.clientes.datos');
     Route::get('/pos/saldo', [devolucionController::class, 'saldo'])->name('pos.saldo');
 
     // Caja
@@ -253,6 +254,7 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::post('/tiendas/{tienda}/pago', [adminTiendaController::class, 'pago'])->name('tiendas.pago');
     Route::delete('/tiendas/{tienda}', [adminTiendaController::class, 'eliminar'])->name('tiendas.eliminar');
     Route::post('/tiendas/{tienda}/pago-prueba', [adminTiendaController::class, 'pagoPrueba'])->name('tiendas.pagoPrueba');
+    Route::post('/tiendas/{tienda}/ventas-historicas', [adminTiendaController::class, 'ventasHistoricas'])->name('tiendas.ventasHistoricas');
     Route::get('/planes', [adminPlanController::class, 'index'])->name('planes.index');
     Route::post('/planes', [adminPlanController::class, 'guardar'])->name('planes.guardar');
     Route::post('/salir-de-tienda', [adminTiendaController::class, 'salir'])->name('tiendas.salir');

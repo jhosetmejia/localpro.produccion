@@ -279,8 +279,53 @@ class posController extends Controller
         $lista = \App\Models\Cliente::with('persona')
             ->whereHas('persona', fn ($p) => $p->where(fn ($w) => $w->where('razon_social', 'like', "%$q%")->orWhere('telefono', 'like', "%$q%")->orWhere('numero_documento', 'like', "%$q%")))
             ->limit(8)->get()
-            ->map(fn ($c) => ['id' => $c->id, 'nombre' => $c->persona->razon_social, 'telefono' => $c->persona->telefono, 'documento' => $c->persona->numero_documento]);
+            ->map(fn ($c) => self::datosCliente($c));
         return response()->json($lista);
+    }
+
+    // Datos del cliente para la caja, con la lista de lo que le falta (para pedírselo al comprar)
+    public static function datosCliente(\App\Models\Cliente $c): array
+    {
+        $p = $c->persona;
+        $doc = (string) $p->numero_documento;
+        $sinDoc = $doc === '' || (bool) preg_match('/^(TEL-|IMP-|C-)/', $doc);
+        $faltan = array_keys(array_filter([
+            'documento' => $sinDoc,
+            'telefono' => !$p->telefono,
+            'email' => !$p->email,
+            'direccion' => trim((string) $p->direccion) === '',
+        ]));
+        return [
+            'id' => $c->id, 'nombre' => $p->razon_social, 'telefono' => $p->telefono,
+            'documento' => $sinDoc ? '' : $doc, 'email' => $p->email, 'direccion' => $p->direccion, 'faltan' => $faltan,
+        ];
+    }
+
+    // "Actualizar datos": completa lo que le falta al cliente desde la caja
+    public function actualizarCliente(Request $request, \App\Models\Cliente $cliente)
+    {
+        $d = $request->validate([
+            'documento' => 'nullable|string|max:20',
+            'telefono' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:120',
+            'direccion' => 'nullable|string|max:80',
+        ], ['email.email' => 'El correo no es válido.', 'direccion.max' => 'La dirección es muy larga (máximo 80 letras).']);
+        $p = $cliente->persona;
+        $cambios = [];
+        $doc = preg_replace('/[^0-9A-Za-z-]/', '', (string) ($d['documento'] ?? ''));
+        if ($doc !== '' && $doc !== $p->numero_documento) {
+            if (\App\Models\Persona::where('numero_documento', $doc)->where('id', '<>', $p->id)->exists()) {
+                return response()->json(['message' => 'Esa cédula ya está registrada con otro cliente.'], 422);
+            }
+            $cambios['numero_documento'] = $doc;
+        }
+        $tel = preg_replace('/\D/', '', (string) ($d['telefono'] ?? ''));
+        if (strlen($tel) === 12 && str_starts_with($tel, '57')) $tel = substr($tel, 2);
+        if ($tel !== '') $cambios['telefono'] = $tel;
+        if (!empty($d['email'])) $cambios['email'] = mb_strtolower(trim($d['email']));
+        if (trim((string) ($d['direccion'] ?? '')) !== '') $cambios['direccion'] = trim($d['direccion']);
+        if ($cambios) $p->update($cambios);
+        return response()->json(self::datosCliente($cliente->fresh('persona')));
     }
 
     // Crea un cliente desde la caja (nombre, cédula, WhatsApp y dirección)
@@ -326,13 +371,7 @@ class posController extends Controller
             $existia = false;
         }
 
-        return response()->json([
-            'id' => $c->id,
-            'nombre' => $c->persona->razon_social,
-            'telefono' => $c->persona->telefono,
-            'documento' => $c->persona->numero_documento,
-            'existia' => $existia,
-        ]);
+        return response()->json(self::datosCliente($c) + ['existia' => $existia]);
     }
 
     // Tiquete para impresora térmica de 80 mm

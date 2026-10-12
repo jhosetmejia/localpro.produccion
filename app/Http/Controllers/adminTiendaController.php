@@ -103,6 +103,31 @@ class adminTiendaController extends Controller
         return view('admin.tiendas.show', compact('tienda', 'usuarios', 'metricas', 'ultimas', 'planes', 'pagosPlan', 'asesores'));
     }
 
+    // Subir ventas pasadas del negocio (Excel) como historial: crea/completa clientes, sin mover inventario
+    public function ventasHistoricas(Request $request, Tienda $tienda)
+    {
+        $request->validate(['archivo' => 'required|file|max:10240'], ['archivo.required' => 'Elija el archivo de Excel.']);
+        $f = $request->file('archivo');
+        $ext = strtolower($f->getClientOriginalExtension() ?: $f->extension());
+        if (!in_array($ext, ['xlsx', 'xlsm', 'csv', 'txt'], true)) return back()->withErrors('Suba un archivo .xlsx o .csv.');
+        try {
+            $filas = \App\Support\HojaCalculo::leer($f->getRealPath(), $ext);
+            $l = \App\Support\ImportarVentasHistoricas::leer($filas);
+            if (!$l['ventas']) return back()->withErrors('No encontré ventas válidas (fecha, producto y valor) en el archivo.');
+            $r = \App\Support\ImportarVentasHistoricas::guardar($tienda, $l['ventas']);
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->withErrors('No se pudo subir: ' . $e->getMessage());
+        } finally {
+            \App\Support\TiendaActual::set(null);
+        }
+        $msg = 'Se subieron ' . $r['ventas'] . ' ventas por $' . number_format($r['total'], 0, ',', '.') . ' · ' . $r['clientes_nuevos'] . ' clientes nuevos';
+        if ($r['clientes_completados']) $msg .= ' · ' . $r['clientes_completados'] . ' clientes completados';
+        if ($r['repetidas']) $msg .= ' · ' . $r['repetidas'] . ' ya estaban (no se repitieron)';
+        if ($l['malas']) $msg .= ' · ' . $l['malas'] . ' filas sin fecha/producto/valor se saltaron';
+        return back()->with('success', $msg . '.');
+    }
+
     // Genera un enlace de pago de PRUEBA (1.500) para probar Wompi con esta tienda
     public function pagoPrueba(Request $request, Tienda $tienda)
     {

@@ -69,6 +69,13 @@
                 <a class="btn btn-sm btn-dark" target="_blank" href="{{ session('enlace_prueba') }}"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
             </div>
             @endif
+            <form method="post" action="{{ route('admin.tiendas.ventasHistoricas', $tienda) }}" enctype="multipart/form-data" class="d-flex gap-2 flex-wrap align-items-center mb-3 p-2" style="background:#f6f8f7;border:1.5px dashed #cfd9d3;border-radius:14px" data-confirm="¿Subir estas ventas como historial de {{ $tienda->nombre }}?" data-confirm-texto="Se crean o completan los clientes y las ventas quedan con su fecha en reportes. No se mueve el inventario. Si sube el mismo archivo dos veces no se repiten." data-confirm-ok="Sí, subir">
+                @csrf
+                <div class="flex-grow-1 small fw-semibold" style="min-width:180px"><i class="fa-solid fa-clock-rotate-left me-1"></i>Ventas históricas (Excel): Fecha, Producto, Talla, Método de pago, Valor, Cliente, Celular, Cédula, Vendedor</div>
+                <input type="file" name="archivo" accept=".xlsx,.csv" required class="form-control form-control-sm" style="max-width:240px">
+                <button class="btn btn-sm btn-dark"><i class="fa-solid fa-upload me-1"></i>Subir</button>
+            </form>
+            @if ($errors->any())<div class="alert alert-danger py-2 small">{{ $errors->first() }}</div>@endif
             <h3><span>Pagos de plan</span><form method="post" action="{{ route('admin.tiendas.pagoPrueba', $tienda) }}" class="d-inline" data-confirm="¿Generar un pago de prueba de $1.500?" data-confirm-texto="Al pagarlo, la tienda queda con el plan anual activo. No genera comisiones y no cuenta como venta." data-confirm-ok="Sí, generar enlace">@csrf<button class="btn btn-sm btn-light"><i class="fa-solid fa-flask me-1"></i>Pago de prueba</button></form></h3>
             <ul class="lp-list">
                 @forelse ($pagosPlan as $pg)
