@@ -3,6 +3,7 @@
 <head>
     @include('curso._head')
     <title>Certificado {{ $a->certificado }} · LocalPro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
     @php
         $fecha = $a->curso_aprobado_at;
         $meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
@@ -33,11 +34,15 @@
         .c-mid .linea{width:42%;height:2px;background:var(--g);margin:.6em auto}
         .c-mid .texto{max-width:78%;margin:0 auto;font-size:1.75cqi;font-weight:500}
         .c-bot{display:flex;justify-content:space-between;align-items:flex-end;position:relative;z-index:1;gap:3%}
-        .firma{text-align:center;font-size:1.5cqi;font-weight:700;min-width:26%}
-        .firma .raya{border-top:2px solid var(--k);padding-top:.4em;margin-top:2.4em}
-        .firma span{display:block;color:var(--mut);font-weight:600}
+        .firma{text-align:center;font-size:1.5cqi;font-weight:800;min-width:28%}
+        .firma .autografo{position:relative;height:5.2cqi;margin-bottom:-.6cqi}
+        .firma .autografo span{font-family:'Great Vibes',cursive;font-size:4.6cqi;font-weight:400;color:#0f2a1a;display:inline-block;transform:rotate(-4deg);line-height:1;white-space:nowrap;position:relative;z-index:1}
+        .firma .autografo svg{position:absolute;left:8%;right:8%;bottom:.1cqi;width:84%;height:2.2cqi}
+        .firma .raya{border-top:2px solid var(--k);padding-top:.45em}
+        .firma small{display:block;color:var(--mut);font-weight:600;font-size:1.3cqi}
+        .c-mid .fecha{color:var(--mut);font-weight:700;font-size:1.45cqi;margin:.7em 0 0}
         .sello{width:11cqi;height:11cqi;border-radius:50%;background:var(--k);color:var(--lime);display:grid;place-items:center;text-align:center;font-weight:800;font-size:1.25cqi;line-height:1.15;box-shadow:0 0 0 .5cqi #fff,0 0 0 .8cqi #16b34a}
-        .sello i{font-size:3cqi;display:block;margin-bottom:.15em}
+        .sello i,.sello svg{font-size:3cqi;display:block;margin:0 auto .2em;width:1em;height:1em}
         .qr{text-align:center;font-size:1.1cqi;color:var(--mut);font-weight:700}
         .qr #qr{width:9cqi;height:9cqi;margin:0 auto .3em}
         .qr #qr img,.qr #qr canvas{width:100%!important;height:100%!important}
@@ -86,9 +91,14 @@
                 @if ($a->documento)<div class="cc">C.C. {{ $a->documento }}</div>@endif
                 <div class="linea"></div>
                 <p class="texto">aprobó el <b>Curso Básico de Asesores Comerciales LocalPro</b>, en el que conoció el sistema de ventas, inventario y caja para negocios, el proceso de inscripción de clientes y el modelo comercial de la empresa.</p>
+                <p class="fecha">Expedido {{ $a->ciudad ? 'en ' . $a->ciudad . ', ' : '' }}el {{ $fechaTexto }}</p>
             </div>
             <div class="c-bot">
-                <div class="firma"><div class="raya">LocalPro</div><span>{{ $a->ciudad ? $a->ciudad . ', ' : '' }}{{ $fechaTexto }}</span></div>
+                <div class="firma">
+                    <div class="autografo"><span>Jhoset Mejía</span><svg viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M4 14 C 40 4, 80 18, 120 9 S 180 6, 196 12" fill="none" stroke="#16b34a" stroke-width="2.2" stroke-linecap="round"/></svg></div>
+                    <div class="raya">Jhoset Mejía</div>
+                    <small>Director General · LocalPro</small>
+                </div>
                 <div class="sello"><div><i class="fa-solid fa-award"></i>ASESOR<br>CERTIFICADO</div></div>
                 <div class="qr"><div id="qr"></div>Verifíquelo en<br>localproo.com/certificado</div>
             </div>
