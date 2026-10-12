@@ -55,8 +55,8 @@
     </section>
 
     <div class="marquee" aria-hidden="true"><div class="marquee-track">
-        <span>Caja POS</span><span>Stock actualizado</span><span>Tienda en línea</span><span>Aparece en Google</span><span>Comprar por WhatsApp</span><span>Importar desde Excel</span><span>Metas de vendedores</span><span>Reportes y ganancias</span>
-        <span>Caja POS</span><span>Stock actualizado</span><span>Tienda en línea</span><span>Aparece en Google</span><span>Comprar por WhatsApp</span><span>Importar desde Excel</span><span>Metas de vendedores</span><span>Reportes y ganancias</span>
+        <span>Caja POS</span><span>Stock actualizado</span><span>Tienda en línea</span><span>Aparece en Google</span><span>Comprar por WhatsApp</span><span>Importar desde Excel</span><span>Separados y abonos</span><span>Metas de vendedores</span><span>Reportes y ganancias</span>
+        <span>Caja POS</span><span>Stock actualizado</span><span>Tienda en línea</span><span>Aparece en Google</span><span>Comprar por WhatsApp</span><span>Importar desde Excel</span><span>Separados y abonos</span><span>Metas de vendedores</span><span>Reportes y ganancias</span>
     </div></div>
 
     <section class="section" id="funciones">
@@ -105,7 +105,12 @@
                 <article class="feature">
                     <div class="ico"><i class="fa-solid fa-people-group"></i></div>
                     <h3>Clientes y WhatsApp</h3>
-                    <p>Guarde sus clientes con su historial y envíeles mensajes y promociones por WhatsApp.</p>
+                    <p>Guarde sus clientes con su historial y envíeles mensajes y promociones por WhatsApp. ¿Ya los tiene en Excel? Súbalos en un instante.</p>
+                </article>
+                <article class="feature">
+                    <div class="ico"><i class="fa-solid fa-box-archive"></i></div>
+                    <h3>Separados y abonos</h3>
+                    <p>El cliente separa la prenda y paga por partes. Cada abono con su recibo por WhatsApp, cuánto le falta y la prenda guardada a su nombre.</p>
                 </article>
                 <article class="feature">
                     <div class="ico"><i class="fa-solid fa-mobile-screen"></i></div>

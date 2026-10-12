@@ -113,6 +113,8 @@
                 <li><b>Vende por metro, kilo o litro</b> (vidrio, telas, cables, carnes, granos) con decimales: 1,5 m · 0,250 kg.</li>
                 <li><b>Importa sus productos desde Excel</b>: si ya tiene 1.000 productos no los crea uno por uno. O nos manda el archivo y el equipo se los carga.</li>
                 <li>Factura o tiquete por WhatsApp o impreso.</li>
+                <li><b>📦 Separados y abonos</b>: el cliente aparta la prenda, abona por partes (recibo de cada abono por WhatsApp con lo que le falta) y se la lleva al completar. ¡Las tiendas de ropa lo piden mucho!</li>
+                <li><b>Sube sus clientes y ventas anteriores desde Excel</b> para no empezar de cero.</li>
             </ul>
             <ul style="margin:0;padding-left:1.1rem;font-weight:600">
                 <li><b>🌐 Página web / tienda en línea</b> por categorías, botón <b>Comprar</b> por WhatsApp (le llega el producto exacto) y que <b>aparece en Google</b>.</li>
