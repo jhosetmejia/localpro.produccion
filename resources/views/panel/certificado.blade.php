@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Certificado · Nivel {{ $nivel }} · LocalPro</title>
+<title>Certificado LocalPro · Nivel {{ $nivel }}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
@@ -44,8 +44,9 @@
             ? 'data:' . \Illuminate\Support\Facades\Storage::disk('public')->mimeType($tienda->logo_path) . ';base64,' . base64_encode(\Illuminate\Support\Facades\Storage::disk('public')->get($tienda->logo_path))
             : null,
         'texto' => $nivel === 1
-            ? 'Por crear sus productos, compartir su tienda en línea, registrar a sus clientes y conectar sus redes sociales.'
-            : 'Por armar su equipo de trabajo, poner su marca y vender con caja profesional en LocalPro.',
+            ? 'Por demostrar las competencias básicas para el manejo de LocalPro: crear productos, compartir su tienda en línea, registrar clientes, vender en caja y conectar sus redes sociales.'
+            : 'Por armar su equipo de trabajo, poner su marca y llevar el cierre de caja como un negocio profesional.',
+        'titulo' => $nivel === 1 ? 'C E R T I F I C A D O   E N   C O M P E T E N C I A S   B Á S I C A S' : 'C E R T I F I C A D O   D E   L O G R O',
     ];
 @endphp
 <script>
@@ -70,7 +71,7 @@ function dibujar(logo) {
     x.textAlign = 'center'; x.textBaseline = 'alphabetic';
     // Marca
     x.fillStyle = '#a6f34a'; x.font = '900 64px Outfit, Arial, sans-serif'; x.fillText('LocalPro', W / 2, 220);
-    x.fillStyle = '#9aa69e'; x.font = '700 30px Outfit, Arial, sans-serif'; x.fillText('C E R T I F I C A D O   D E   L O G R O', W / 2, 280);
+    x.fillStyle = '#9aa69e'; x.font = '700 30px Outfit, Arial, sans-serif'; x.fillText(D.titulo, W / 2, 280);
     // Estrellas
     x.fillStyle = '#f5b301'; var n = D.nivel === 1 ? 3 : 5;
     for (var i = 0; i < n; i++) estrella(W / 2 + (i - (n - 1) / 2) * 90, 370, 36, 15);
@@ -84,7 +85,7 @@ function dibujar(logo) {
     }
     x.fillStyle = '#ffffff'; ajustar(D.tienda, W - 400, 120, '900'); x.fillText(D.tienda, W / 2, y);
     x.fillStyle = '#a6f34a'; x.font = '900 60px Outfit, Arial, sans-serif'; x.fillText('Nivel ' + D.nivel + ' completado', W / 2, y + 110);
-    x.fillStyle = '#dfe8e2'; x.font = '700 40px Outfit, Arial, sans-serif'; x.fillText(D.nombre.replace(/^Nivel \d+ · /, ''), W / 2, y + 175);
+    x.fillStyle = '#dfe8e2'; x.font = '700 40px Outfit, Arial, sans-serif'; ajustar(D.nombre.replace(/^Nivel \d+ · /, ''), W - 400, 44, '700'); x.fillText(D.nombre.replace(/^Nivel \d+ · /, ''), W / 2, y + 175);
     x.fillStyle = '#c9d3cc'; x.font = '500 34px Outfit, Arial, sans-serif'; parrafo(D.texto, W / 2, y + 250, W - 520, 48);
     // Pie
     x.strokeStyle = 'rgba(255,255,255,.25)'; x.lineWidth = 2;

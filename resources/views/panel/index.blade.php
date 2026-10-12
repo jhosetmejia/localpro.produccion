@@ -38,11 +38,11 @@
         @if ($nivel === 2)
         <div class="vm-felicita">
             <span class="vm-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></span>
-            <div><b>¡Muy bien! Completó el nivel 1</b><small>Ya tiene productos, clientes, compartió su tienda y conectó sus redes. Ahora arme su negocio como un profesional.</small></div>
+            <div><b>¡Muy bien! Completó el nivel 1</b><small>Ya domina lo básico de LocalPro: productos, clientes, tienda en línea, ventas en caja y redes. Ahora arme su negocio como un profesional.</small></div>
             <a href="{{ route('panel.certificado', 1) }}" class="vm-cert"><i class="fa-solid fa-award me-1"></i>Mi certificado</a>
         </div>
         @endif
-        <div class="vm-h"><div><small>Nivel {{ $nivel }} · {{ $nivel === 1 ? 'Para vender más' : 'Para crecer' }}</small><b>{{ $nivel === 1 ? $total . ' pasos para que le lleguen más clientes' : $total . ' pasos para manejar su negocio como un profesional' }}</b></div><span class="vm-n">{{ $hechos }}/{{ $total }}</span></div>
+        <div class="vm-h"><div><small>Nivel {{ $nivel }} · {{ $nivel === 1 ? 'Competencias básicas' : 'Para crecer' }}</small><b>{{ $nivel === 1 ? $total . ' pasos para dominar lo básico de LocalPro' : $total . ' pasos para manejar su negocio como un profesional' }}</b></div><span class="vm-n">{{ $hechos }}/{{ $total }}</span></div>
         <div class="vm-prog"><i style="width:{{ round($hechos * 100 / $total) }}%"></i></div>
         <div class="vm-pasos">
             @foreach ($pasos as [$tit, $sub, $ok, $url, $btn, $ic, $pct, $url2, $btn2, $nueva, $num])
@@ -125,7 +125,7 @@
             <span class="cel-trofeo">🏆</span>
             <small>NIVEL {{ $nCel }} COMPLETADO</small>
             <h2>¡Felicitaciones, <span>{{ $nombreUsr }}</span>!</h2>
-            <p>Alcanzó el <b>Nivel {{ $nCel }} en LocalPro</b>. {{ $nCel === 1 ? 'Su negocio ya está conectado con sus clientes: productos, tienda en línea, contactos y redes sociales.' : 'Ya maneja su negocio como un profesional: equipo, marca y ventas en caja.' }}</p>
+            <p>Alcanzó el <b>Nivel {{ $nCel }} en LocalPro</b>. {{ $nCel === 1 ? 'Ya tiene las competencias básicas para manejar LocalPro: productos, tienda en línea, clientes, ventas en caja y redes sociales.' : 'Ya maneja su negocio como un profesional: equipo, marca y cierre de caja.' }}</p>
             <div class="cel-btns">
                 <a href="{{ route('panel.certificado', $nCel) }}" class="cel-b1"><i class="fa-solid fa-award me-1"></i>Descargar mi certificado</a>
                 <button type="button" class="cel-b2" onclick="celCerrar()">{{ $nCel === 1 ? 'Seguir al nivel 2 →' : 'Seguir vendiendo' }}</button>
