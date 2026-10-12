@@ -63,7 +63,7 @@
     <hr>
     @endif
     <div class="c">{{ $negocio->mensaje_tiquete }}</div>
-    <div class="c" style="margin-top:2mm;font-size:10px">Desarrollado por Jhoset Mejía - DiCreWeb</div>
+    <div class="c" style="margin-top:2mm;font-size:10px">Sistema LocalProo · localproo.com</div>
 </div>
 
 @if (request('imprimir'))

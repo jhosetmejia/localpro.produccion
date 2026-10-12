@@ -404,9 +404,64 @@
     }
     function revisarSelects(raiz) { (raiz || document).querySelectorAll('select').forEach(prepararSelect); }
 
+    // ---------- Borradores: si se sale de la pantalla (o el celular cierra la app) no se pierde lo escrito ----------
+    function claveBorrador(f) { return 'lp_borrador:' + location.pathname + ':' + (f.getAttribute('action') || '') + ':' + [].indexOf.call(document.forms, f); }
+    function camposDe(f) {
+        return [].filter.call(f.elements, function (e) {
+            if (!e.name || e.disabled || e.name === '_token' || e.name === '_method') return false;
+            var t = (e.type || '').toLowerCase();
+            if (t === 'hidden') return e.hasAttribute('data-dinero');
+            return ['password', 'file', 'submit', 'button', 'reset'].indexOf(t) === -1;
+        });
+    }
+    function prepararBorrador(f) {
+        if (f.__lpB) return; f.__lpB = true;
+        var m = (f.getAttribute('method') || 'get').toLowerCase();
+        if (m !== 'post' || f.hasAttribute('data-sin-borrador') || f.querySelector('input[type=password]') || camposDe(f).length < 3) return;
+        var k = claveBorrador(f);
+        var leer = function () { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (x) { return null; } };
+        var b = leer();
+        if (b && Date.now() - b.t < 3 * 24 * 3600 * 1000) {
+            var cambiados = 0;
+            camposDe(f).forEach(function (e) {
+                if (!(e.name in b.v)) return;
+                var val = b.v[e.name];
+                if (e.type === 'checkbox' || e.type === 'radio') {
+                    var on = Array.isArray(val) ? val.indexOf(e.value) !== -1 : val === e.value;
+                    if (e.checked !== on) { e.checked = on; cambiados++; }
+                } else if (e.tagName === 'SELECT' && e.multiple) {
+                    [].forEach.call(e.options, function (o) { o.selected = (val || []).indexOf(o.value) !== -1; });
+                } else if (e.value !== val) { e.value = val; cambiados++; e.dispatchEvent(new Event('input', { bubbles: true })); }
+            });
+            if (cambiados) {
+                setTimeout(function () { toast('Recuperamos lo que estaba escribiendo ✍️', 'info'); }, 400);
+            }
+        }
+        var tm;
+        var guardar = function () {
+            clearTimeout(tm);
+            tm = setTimeout(function () {
+                var v = {};
+                camposDe(f).forEach(function (e) {
+                    if (e.type === 'checkbox') { if (!Array.isArray(v[e.name])) v[e.name] = []; if (e.checked) v[e.name].push(e.value); }
+                    else if (e.type === 'radio') { if (e.checked) v[e.name] = e.value; }
+                    else if (e.tagName === 'SELECT' && e.multiple) v[e.name] = [].filter.call(e.options, function (o) { return o.selected; }).map(function (o) { return o.value; });
+                    else v[e.name] = e.value;
+                });
+                try { localStorage.setItem(k, JSON.stringify({ t: Date.now(), v: v })); } catch (x) {}
+            }, 300);
+        };
+        f.addEventListener('input', guardar);
+        f.addEventListener('change', guardar);
+        f.addEventListener('submit', function () { clearTimeout(tm); try { localStorage.removeItem(k); } catch (x) {} });
+    }
+    // Si el servidor respondió con errores de validación, el formulario ya viene con lo escrito: se conserva el borrador
+    function revisarBorradores() { [].forEach.call(document.forms, prepararBorrador); }
+
     function revisar(raiz) { (raiz || document).querySelectorAll('input[data-dinero]').forEach(prepararDinero); revisarSelects(raiz); }
     function iniciar() {
         revisar();
+        try { revisarBorradores(); } catch (x) {}
         new MutationObserver(function (ms) {
             ms.forEach(function (m) { m.addedNodes.forEach(function (n) { if (n.nodeType === 1) { if (n.matches('input[data-dinero]')) prepararDinero(n); else if (n.matches('select')) prepararSelect(n); else revisar(n); } }); });
         }).observe(document.body, { childList: true, subtree: true });

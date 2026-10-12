@@ -27,12 +27,12 @@
             <div>
                 <span class="eyebrow rise"><i></i> POS e inventario para cualquier negocio</span>
                 <h1 class="serif rise d1">Te ayudamos a <em>gestionar</em> tu negocio.</h1>
-                <p class="lead rise d2">Punto de venta, inventario, caja y clientes en un solo lugar. Para tiendas de ropa, calzado, restaurantes, minimercados y más. Desde el computador o el celular.</p>
+                <p class="lead rise d2">Caja, inventario con stock actualizado, clientes y su <b>propia tienda en línea que aparece en Google</b>. Para tiendas de ropa, calzado, ferreterías, restaurantes, minimercados y más. Desde el celular o el computador.</p>
                 <div class="hero-actions rise d3">
                     <a class="btn btn-amber" href="{{ route('registro') }}"><i class="fa-solid fa-user-plus"></i> Crear cuenta</a>
                     <a class="btn btn-ghost" href="{{ route('login') }}"><i class="fa-solid fa-arrow-right-to-bracket"></i> Ingresar</a>
                 </div>
-                <p class="hero-note"><span>⚡ Sin instalar nada</span><span>📱 Desde el celular</span><span>☁️ En la nube</span></p>
+                <p class="hero-note"><span>🎁 3 meses gratis</span><span>🌐 Página web en Google</span><span>📱 App en su celular</span></p>
             </div>
 
             <div class="mock rise d2" aria-hidden="true">
@@ -55,8 +55,8 @@
     </section>
 
     <div class="marquee" aria-hidden="true"><div class="marquee-track">
-        <span>Ventas</span><span>Compras</span><span>Inventario</span><span>Clientes</span><span>Proveedores</span><span>Comprobantes</span><span>Usuarios y roles</span>
-        <span>Ventas</span><span>Compras</span><span>Inventario</span><span>Clientes</span><span>Proveedores</span><span>Comprobantes</span><span>Usuarios y roles</span>
+        <span>Caja POS</span><span>Stock actualizado</span><span>Tienda en línea</span><span>Aparece en Google</span><span>Comprar por WhatsApp</span><span>Importar desde Excel</span><span>Metas de vendedores</span><span>Reportes y ganancias</span>
+        <span>Caja POS</span><span>Stock actualizado</span><span>Tienda en línea</span><span>Aparece en Google</span><span>Comprar por WhatsApp</span><span>Importar desde Excel</span><span>Metas de vendedores</span><span>Reportes y ganancias</span>
     </div></div>
 
     <section class="section" id="funciones">
@@ -69,49 +69,58 @@
             <div class="features">
                 <article class="feature">
                     <div class="ico"><i class="fa-solid fa-cash-register"></i></div>
-                    <h3>Ventas</h3>
-                    <p>Registre cada venta en segundos, con el detalle de productos, cliente y forma de comprobante.</p>
-                </article>
-                <article class="feature">
-                    <div class="ico"><i class="fa-solid fa-truck-ramp-box"></i></div>
-                    <h3>Compras</h3>
-                    <p>Lleve el control de lo que le compra a sus proveedores y actualice el inventario automáticamente.</p>
+                    <h3>Caja (POS) rápida</h3>
+                    <p>Venda en segundos con o sin lector de código, varios medios de pago, tiquete o factura por WhatsApp y cuadre de caja exacto.</p>
                 </article>
                 <article class="feature">
                     <div class="ico"><i class="fa-solid fa-boxes-stacked"></i></div>
-                    <h3>Inventario y productos</h3>
-                    <p>Stock al día, organizado por categorías, marcas y presentaciones. Sepa qué le está faltando.</p>
+                    <h3>Stock actualizado al instante</h3>
+                    <p>Cada venta descuenta el inventario. Tallas y colores, alertas de lo que se acaba y entradas de mercancía con su costo.</p>
                 </article>
                 <article class="feature">
-                    <div class="ico"><i class="fa-solid fa-people-group"></i></div>
-                    <h3>Clientes</h3>
-                    <p>Tenga a la mano los datos de sus clientes y su historial de compras.</p>
+                    <div class="ico"><i class="fa-solid fa-globe"></i></div>
+                    <h3>Tienda en línea en Google</h3>
+                    <p>Su página web con productos por categorías, botón Comprar por WhatsApp y cada producto con su propia página para que lo encuentren en Google.</p>
                 </article>
                 <article class="feature">
-                    <div class="ico"><i class="fa-solid fa-handshake"></i></div>
-                    <h3>Proveedores</h3>
-                    <p>Directorio de proveedores con sus documentos y todo lo que les ha comprado.</p>
+                    <div class="ico"><i class="fa-solid fa-file-excel"></i></div>
+                    <h3>Importe sus productos</h3>
+                    <p>¿Ya tiene 1.000 productos en Excel? Súbalo y quedan listos. O envíenos el archivo y nuestro equipo se los carga.</p>
                 </article>
                 <article class="feature">
-                    <div class="ico"><i class="fa-solid fa-file-invoice-dollar"></i></div>
-                    <h3>Comprobantes</h3>
-                    <p>Facturas y boletas numeradas para cada venta, listas para entregar a su cliente.</p>
+                    <div class="ico"><i class="fa-solid fa-ruler-combined"></i></div>
+                    <h3>Vende por metro, kilo o litro</h3>
+                    <p>Vidrio, telas, cables, carnes o granos: venda 1,5 m o 0,250 kg y el inventario queda exacto.</p>
+                </article>
+                <article class="feature">
+                    <div class="ico"><i class="fa-solid fa-bullseye"></i></div>
+                    <h3>Vendedores con metas</h3>
+                    <p>Cree vendedores para su caja: ven sus ventas y cuánto les falta para su meta, sin ver sus ganancias.</p>
                 </article>
                 <article class="feature">
                     <div class="ico"><i class="fa-solid fa-chart-line"></i></div>
-                    <h3>Panel de resumen</h3>
-                    <p>Vea de un vistazo sus clientes, productos, compras y ventas en un solo tablero.</p>
+                    <h3>Reportes y ganancia del día</h3>
+                    <p>Sepa cuánto vendió, cuánto ganó, su hora pico y sus productos estrella. Exporte todo a Excel.</p>
                 </article>
                 <article class="feature">
-                    <div class="ico"><i class="fa-solid fa-user-shield"></i></div>
-                    <h3>Usuarios y roles</h3>
-                    <p>Cree cuentas para sus empleados y decida qué puede ver y hacer cada uno.</p>
+                    <div class="ico"><i class="fa-solid fa-people-group"></i></div>
+                    <h3>Clientes y WhatsApp</h3>
+                    <p>Guarde sus clientes con su historial y envíeles mensajes y promociones por WhatsApp.</p>
                 </article>
                 <article class="feature">
                     <div class="ico"><i class="fa-solid fa-mobile-screen"></i></div>
-                    <h3>Desde cualquier lugar</h3>
-                    <p>Todo en la nube: consulte su negocio desde el celular, la tablet o el computador.</p>
+                    <h3>App en su celular</h3>
+                    <p>Instálela como app en el celular o úsela en el computador. Todo en la nube, sin instalar programas.</p>
                 </article>
+            </div>
+            @php $vp = (float) \App\Models\Ajuste::valor('red_valor_plan', 220000); @endphp
+            <div class="plus">
+                <div class="plus-t">
+                    <span class="eyebrow">El plus de LocalProo</span>
+                    <h3 class="serif">Por solo ${{ number_format($vp, 0, ',', '.') }} al año: sistema completo + su página web en Google.</h3>
+                    <p>Empiece con <b>3 meses gratis con todo</b> (usuarios y productos ilimitados). Si le sirve, sigue con el plan anual: menos de ${{ number_format(ceil($vp / 12 / 100) * 100, 0, ',', '.') }} al mes.</p>
+                </div>
+                <a class="btn btn-amber" href="{{ route('registro') }}"><i class="fa-solid fa-gift"></i> Empezar gratis</a>
             </div>
         </div>
     </section>
@@ -127,7 +136,7 @@
                 <div class="steps-grid">
                     <div class="step"><b>01</b><h3>Cree su cuenta</h3><p>Sus datos como dueño en menos de un minuto.</p></div>
                     <div class="step"><b>02</b><h3>Configure su tienda</h3><p>Tipo de negocio, sus primeros productos y formas de pago, en 3 minutos.</p></div>
-                    <div class="step"><b>03</b><h3>Venda desde hoy</h3><p>Abra su caja y venda en el POS. Funciona en cualquier país y moneda.</p></div>
+                    <div class="step"><b>03</b><h3>Venda y comparta</h3><p>Abra su caja, venda en el POS y comparta su tienda en línea con sus clientes. Funciona en cualquier país y moneda.</p></div>
                 </div>
             </div>
         </div>
@@ -147,8 +156,7 @@
 
 <footer class="footer">
     <div class="wrap">
-        <span>© {{ date('Y') }} LocalPRO</span>
-        <span>Desarrollado por <b>Jhoset Mejía - DiCreWeb</b></span>
+        <span>© {{ date('Y') }} LocalProo · Todos los derechos reservados</span>
     </div>
 </footer>
 

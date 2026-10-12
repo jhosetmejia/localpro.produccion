@@ -120,7 +120,7 @@ button{font:inherit;border:0;background:none;cursor:pointer;color:inherit}
             @if ($tienda->direccion || $lugar)<div>📍 {{ trim($tienda->direccion . ($tienda->direccion && $lugar ? ' · ' : '') . $lugar) }}</div>@endif
             @if ($wa)<div>💬 <a href="https://wa.me/{{ $wa }}" target="_blank" rel="noopener">Escríbanos por WhatsApp</a></div>@endif
         </div>
-        <div class="lp">Tienda en línea creada con <a href="{{ url('/') }}">LocalPro</a> · Desarrollado por Jhoset Mejía - DiCreWeb</div>
+        <div class="lp">Tienda en línea creada con <a href="{{ url('/') }}">LocalPro</a></div>
     </div>
 </footer>
 

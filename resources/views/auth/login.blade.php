@@ -18,7 +18,7 @@
                 <li><span><i class="fa-solid fa-check"></i></span> Acceso desde cualquier dispositivo</li>
             </ul>
         </div>
-        <small>Desarrollado por Jhoset Mejía - DiCreWeb</small>
+        <small>© {{ date('Y') }} LocalProo · Todos los derechos reservados</small>
     </aside>
 
     <main class="auth-main">

@@ -17,8 +17,10 @@ class metaController extends Controller
         $d = $request->validate([
             'meta_dia' => 'nullable|numeric|min:0|max:9999999999',
             'meta_mes' => 'nullable|numeric|min:0|max:9999999999',
+            'meta_tipo' => 'required|in:dinero,ventas',
         ]);
         $user->forceFill([
+            'meta_tipo' => $d['meta_tipo'],
             'meta_dia' => ($d['meta_dia'] ?? 0) > 0 ? $d['meta_dia'] : null,
             'meta_mes' => ($d['meta_mes'] ?? 0) > 0 ? $d['meta_mes'] : null,
         ])->save();

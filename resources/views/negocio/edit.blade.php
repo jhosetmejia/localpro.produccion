@@ -7,7 +7,7 @@
     <div class="lp-hello"><div><small>Configuración</small><h1>Datos del <span>negocio</span></h1><span class="text-muted fw-semibold">Aparecen en el tiquete, la factura y el mensaje de WhatsApp.</span></div></div>
     @include('layouts.partials.lp-flash')
 
-    <form method="post" action="{{ route('negocio.update') }}" enctype="multipart/form-data" class="lp-grid" style="grid-template-columns:1.4fr 1fr">
+    <form method="post" action="{{ route('negocio.update') }}" enctype="multipart/form-data" class="ng-grid">
         @csrf @method('PUT')
         <div class="lp-box">
             <div class="row g-3">
@@ -107,6 +107,13 @@
         </div>
     </form>
 </div>
+<style>
+.ng-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:1rem;align-items:start}
+.ng-grid > div{min-width:0}
+@media (min-width:1100px){.ng-grid{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)}}
+.ng-grid .input-group{flex-wrap:nowrap}
+.ng-grid .input-group-text{max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.85rem}
+</style>
 @endsection
 
 @push('js')

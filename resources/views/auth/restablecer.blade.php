@@ -9,7 +9,7 @@
     <aside class="auth-side">
         <a href="{{ url('/') }}" class="brand"><span class="brand-mark">L</span>LocalPro</a>
         <div><h2 class="serif">Cree su <em>nueva</em> contraseña.</h2><p>Use una que no haya usado antes, con mínimo 8 caracteres.</p></div>
-        <small>Desarrollado por Jhoset Mejía - DiCreWeb</small>
+        <small>© {{ date('Y') }} LocalProo · Todos los derechos reservados</small>
     </aside>
     <main class="auth-main">
         <div class="auth-card rise">

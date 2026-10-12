@@ -12,7 +12,7 @@
             <h2 class="serif">Tranquilo, <em>pasa</em>.</h2>
             <p>Le enviamos un enlace a su correo para que cree una contraseña nueva en segundos.</p>
         </div>
-        <small>Desarrollado por Jhoset Mejía - DiCreWeb</small>
+        <small>© {{ date('Y') }} LocalProo · Todos los derechos reservados</small>
     </aside>
     <main class="auth-main">
         <div class="auth-card rise">

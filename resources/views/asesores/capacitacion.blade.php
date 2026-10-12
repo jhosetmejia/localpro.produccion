@@ -108,18 +108,21 @@
         <p class="sub">LocalPro es el sistema para que cualquier negocio venda, controle su inventario con <b>stock actualizado</b> en tiempo real y su caja desde el celular.</p>
         <div class="dos">
             <ul style="margin:0;padding-left:1.1rem;font-weight:600">
-                <li>Caja (POS) para vender rápido, con o sin lector de código.</li>
-                <li><b>Stock actualizado</b> al instante con cada venta: inventario con tallas, colores y alertas de lo que se acaba.</li>
-                <li>Abrir y cerrar caja con cuadre exacto.</li>
-                <li>Factura por WhatsApp o impresa.</li>
+                <li>Caja (POS) para vender rápido, con o sin lector de código, varios medios de pago y cuadre de caja exacto.</li>
+                <li><b>Stock actualizado</b> al instante con cada venta: tallas, colores y alertas de lo que se acaba.</li>
+                <li><b>Vende por metro, kilo o litro</b> (vidrio, telas, cables, carnes, granos) con decimales: 1,5 m · 0,250 kg.</li>
+                <li><b>Importa sus productos desde Excel</b>: si ya tiene 1.000 productos no los crea uno por uno. O nos manda el archivo y el equipo se los carga.</li>
+                <li>Factura o tiquete por WhatsApp o impreso.</li>
             </ul>
             <ul style="margin:0;padding-left:1.1rem;font-weight:600">
-                <li><b>🌐 Página web / tienda en línea</b> con sus productos por categorías, botón Comprar por WhatsApp y que <b>aparece en Google</b>.</li>
-                <li>Clientes, vendedores y reportes de ventas.</li>
-                <li>Sin instalar nada: funciona en celular y computador.</li>
-                <li><b>3 meses de prueba gratis</b> y luego solo {{ $f($plan) }} al año.</li>
+                <li><b>🌐 Página web / tienda en línea</b> por categorías, botón <b>Comprar</b> por WhatsApp (le llega el producto exacto) y que <b>aparece en Google</b>.</li>
+                <li><b>Vendedores con metas</b>: el dueño les pone meta (en dinero o en número de ventas) y ellos ven cuánto les falta, sin ver las ganancias.</li>
+                <li>Reportes: cuánto vendió, cuánto ganó, hora pico, todo a Excel.</li>
+                <li>Se instala como <b>app en el celular</b>; sin instalar programas.</li>
+                <li><b>3 meses gratis con todo</b> (usuarios y productos ilimitados) y luego solo {{ $f($plan) }} al año.</li>
             </ul>
         </div>
+        <div class="regla" style="background:#fff8e6;color:#7a4b00;margin-bottom:10px">🔜 <b>Muy pronto:</b> recetas e insumos (restaurantes y panaderías) y fechas de vencimiento por lote (droguerías y alimentos). Si su cliente los necesita, inscríbalo ya con la prueba gratis.</div>
         <p class="regla" style="background:#e8f8ec;color:#11702f">💡 Frase clave: <i>"Por solo {{ $f($plan) }} al año tiene su sistema de ventas con stock actualizado y además una página web de su tienda que aparece en Google. Por menos de {{ $f(ceil($plan / 12 / 100) * 100) }} al mes tienes tu negocio organizado y sabes cuánto ganas cada día."</i></p>
     </section>
 
@@ -163,7 +166,7 @@
             $guiones = [
                 ['Primer mensaje por WhatsApp', "¡Hola! 👋 Soy {nombre}, asesor de LocalPro. Ayudamos a negocios como el tuyo a vender más rápido y saber exactamente cuánto ganan cada día, desde el celular.\n\nTe regalo 3 meses gratis para que lo pruebes. ¿Te muestro en 5 minutos cómo funciona? 😊"],
                 ['En persona (en el local)', "Hola, ¿cómo está? Soy {nombre}, de LocalPro. Una pregunta rápida: ¿cómo lleva el control de lo que vende y de lo que tiene en inventario?\n\n(Escuchar)\n\nMire, con esto lo hace desde el celular: vende, ve lo que le queda y al final del día sabe cuánto ganó. ¿Le muestro una venta de ejemplo? Son 2 minutos."],
-                ['Cuando se termina la prueba', "¡Hola {negocio}! 🙌 Ya llevas 3 meses usando LocalPro. Tu prueba gratis termina pronto.\n\nPara seguir con todo (ventas, inventario, caja y catálogo) el plan anual es de {plan}, menos de {mes} al mes. ¿Te ayudo a activarlo hoy?"],
+                ['Cuando se termina la prueba', "¡Hola {negocio}! 🙌 Ya llevas 3 meses usando LocalPro. Tu prueba gratis termina pronto.\n\nPara seguir con todo (ventas, inventario, caja y tu página web en Google) el plan anual es de {plan}, menos de {mes} al mes. ¿Te ayudo a activarlo hoy?"],
                 ['Para sumar asesores a tu equipo', "¡Hola! Estoy trabajando con LocalPro y me está yendo muy bien. Ganas {comision} por cada negocio que inscribes y no necesitas invertir.\n\n¿Te gustaría trabajar conmigo? Te enseño todo. Inscríbete aquí: {enlace_equipo}"],
             ];
             $rep = ['{nombre}' => $yo ? strtok($yo->nombre, ' ') : '(tu nombre)', '{plan}' => $f($plan), '{mes}' => $f(ceil($plan / 12 / 100) * 100), '{comision}' => $f($com), '{enlace_equipo}' => $yo?->enlace_reclutar ?? '(tu enlace)'];
@@ -184,6 +187,10 @@
             ['"No tengo computador ni impresora."', 'Funciona en el celular. La factura se manda por WhatsApp; la impresora es opcional.'],
             ['"Lo voy a pensar."', 'Perfecto, por eso son 3 meses gratis: lo usas sin pagar nada y decides con tu negocio funcionando. Inscribámoslo ya y lo pruebas hoy.'],
             ['"¿Y si se me va el internet?"', 'Tus datos quedan guardados en la nube; apenas vuelve la señal sigues donde ibas. No se pierde nada.'],
+            ['"Tengo muchísimos productos, me da pereza crearlos."', 'No los creas uno por uno: si los tienes en Excel se importan en 2 minutos, y si no, nos mandas el archivo (o fotos) y el equipo de LocalPro te los carga.'],
+            ['"Ya tengo página en Facebook / Instagram."', 'Perfecto, y con LocalPro además tienes tu propia tienda en línea que aparece en Google, con botón Comprar por WhatsApp. La compartes en tus redes y te llegan pedidos con el producto exacto.'],
+            ['"Yo vendo por metros / por kilos."', 'LocalPro vende por metro, kilo o litro con decimales (1,5 m · 0,250 kg) y el inventario queda exacto.'],
+            ['"Tengo empleados y no quiero que vean lo que gano."', 'Los vendedores solo ven sus ventas del día y su meta. Las ganancias solo las ves tú.'],
         ]; @endphp
         @foreach ($dudas as [$p, $r])
         <details class="obj"><summary>{{ $p }}</summary><p>{{ $r }}</p></details>

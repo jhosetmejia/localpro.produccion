@@ -11,6 +11,18 @@ html.lp-cargando::after{content:"";position:fixed;left:50%;top:50%;width:64px;he
 (function () {
     var h = document.documentElement;
     var app = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
+    // App instalada: si el celular la cerró al cambiar de aplicación, vuelve a la última pantalla (no al inicio)
+    try {
+        var K = 'lp_ultima', ahora = Date.now();
+        if (app && location.pathname === '/' && /(^|[?&])app=1/.test(location.search)) {
+            var u = JSON.parse(localStorage.getItem(K) || 'null');
+            if (u && u.url && ahora - u.t < 4 * 3600 * 1000 && u.url !== '/' && u.url.indexOf('/?') !== 0) { location.replace(u.url); return; }
+        }
+        if (!/^\/(login|logout|registro|recuperar|password)/.test(location.pathname)) {
+            var guardar = function () { try { localStorage.setItem(K, JSON.stringify({ url: location.pathname + location.search + location.hash, t: Date.now() })); } catch (x) {} };
+            guardar(); document.addEventListener('visibilitychange', function () { if (document.hidden) guardar(); });
+        }
+    } catch (x) {}
     // En la app instalada: logo animado hasta que la página termine de cargar
     if (app) h.classList.add('lp-cargando');
     var listo = function () { h.classList.remove('lp-cargando', 'lp-navegando'); };

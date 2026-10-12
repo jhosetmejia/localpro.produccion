@@ -254,7 +254,7 @@
         </form>
         @endif
     </div>
-    <p style="text-align:center;color:var(--muted);font-size:.85rem;margin-top:18px">Desarrollado por <b style="color:var(--green-2)">Jhoset Mejía - DiCreWeb</b></p>
+    <p style="text-align:center;color:var(--muted);font-size:.85rem;margin-top:18px">© {{ date('Y') }} LocalProo · Todos los derechos reservados</p>
 </div>
 </body>
 </html>

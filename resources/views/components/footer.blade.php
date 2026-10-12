@@ -1,4 +1,3 @@
 <footer class="lp-footer">
-    <span>© {{ date('Y') }} LocalPro</span>
-    <span>Desarrollado por <b>Jhoset Mejía - DiCreWeb</b></span>
+    <span>© {{ date('Y') }} LocalProo · Todos los derechos reservados</span>
 </footer>

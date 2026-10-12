@@ -45,7 +45,7 @@
     @if ($dev->motivo)<hr><div>Motivo: {{ $dev->motivo }}</div>@endif
     <hr>
     @if ($dev->tipo === 'cambio')<div class="c">Presente el código <b>{{ $dev->codigo }}</b> para usar su saldo en otra compra.</div>@endif
-    <div class="c" style="margin-top:2mm;font-size:10px">Desarrollado por Jhoset Mejía - DiCreWeb</div>
+    <div class="c" style="margin-top:2mm;font-size:10px">Sistema LocalProo · localproo.com</div>
 </div>
 </body>
 </html>

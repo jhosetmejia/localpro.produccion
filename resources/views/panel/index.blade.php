@@ -22,14 +22,59 @@
 @endphp
 
 <div class="lp-dash">
-    @php $tPlan = \App\Support\TiendaActual::tienda(); @endphp
-    @if ($tPlan?->plan && (float) $tPlan->plan->precio <= 0 && $tPlan->plan_vence && !$tPlan->plan_vencido)
+    @php
+        $tPlan = \App\Support\TiendaActual::tienda();
+        $nProd = \App\Models\Producto::count();
+        $nCli = \App\Models\Cliente::count();
+        $compartio = (bool) \App\Models\Ajuste::valor('t' . $tPlan?->id . '_compartio');
+        $pasos = [
+            ['Crea tus primeros 10 productos', min($nProd, 10) . ' de 10 listos', $nProd >= 10, $nProd >= 10 ? null : route('productos.create'), 'Crear producto', 'fa-box-open', min(100, $nProd * 10), route('productos.importar'), '¿Los tiene en Excel?'],
+            ['Comparte tu tienda en línea con tus contactos', 'Envía tu página por WhatsApp a tus clientes y grupos', $compartio, route('panel.compartir'), 'Compartir por WhatsApp', 'fa-share-nodes', $compartio ? 100 : 0, null, null],
+            ['Mete tus contactos al sistema', min($nCli, 10) . ' de 10 clientes · para enviarles mensajes por WhatsApp', $nCli >= 10, route('clientes.create'), 'Agregar cliente', 'fa-address-book', min(100, $nCli * 10), null, null],
+        ];
+        $hechos = collect($pasos)->where(2, true)->count();
+    @endphp
+    @if ($tPlan?->plan && (float) $tPlan->plan->precio <= 0 && $tPlan->plan_vence && !$tPlan->plan_vencido && $tPlan->dias_para_vencer <= 30)
     <div class="lp-limite" style="margin-bottom:.8rem">
-        <div class="lp-limite-t"><b><i class="fa-solid fa-gift me-1" style="color:#a6f34a"></i>Le quedan {{ $tPlan->dias_para_vencer }} {{ $tPlan->dias_para_vencer == 1 ? 'día' : 'días' }} de su prueba gratis</b><small>Úselo con todo su equipo. Al terminar, elija un plan para seguir vendiendo sin perder nada.</small></div>
+        <div class="lp-limite-t"><b><i class="fa-solid fa-gift me-1" style="color:#a6f34a"></i>Le quedan {{ $tPlan->dias_para_vencer }} {{ $tPlan->dias_para_vencer == 1 ? 'día' : 'días' }} de su prueba gratis</b><small>Elija un plan para seguir vendiendo sin perder nada de lo que tiene.</small></div>
         <a href="{{ route('plan.index') }}" class="lp-limite-btn"><i class="fa-solid fa-rocket me-1"></i>Pásate a Pro</a>
     </div>
     @endif
     @include('layouts.partials.limite-plan', ['que' => 'productos'])
+    @if ($hechos < 3 && auth()->user()->can('crear-producto'))
+    <div class="vm-box">
+        <div class="vm-h"><div><small>Para vender más</small><b>3 pasos para que le lleguen más clientes</b></div><span class="vm-n">{{ $hechos }}/3</span></div>
+        <div class="vm-pasos">
+            @foreach ($pasos as $i => [$tit, $sub, $ok, $url, $btn, $ic, $pct, $url2, $btn2])
+            <div class="vm-p {{ $ok ? 'ok' : '' }}">
+                <span class="vm-i">@if ($ok)<i class="fa-solid fa-check"></i>@else{{ $i + 1 }}@endif</span>
+                <div class="vm-t"><b>{{ $tit }}</b><small>{{ $sub }}</small>@if (!$ok && $pct > 0)<span class="vm-bar"><i style="width:{{ $pct }}%"></i></span>@endif</div>
+                @if (!$ok)
+                <div class="vm-a"><a href="{{ $url }}" class="vm-btn" @if ($i === 1) target="_blank" rel="noopener" @endif><i class="fa-solid {{ $ic }} me-1"></i>{{ $btn }}</a>@if ($url2)<a href="{{ $url2 }}" class="vm-link">{{ $btn2 }}</a>@endif</div>
+                @endif
+            </div>
+            @endforeach
+        </div>
+    </div>
+    <style>
+    .vm-box{background:#fff;border:1.5px solid #bfeccb;border-radius:24px;padding:1.1rem 1.2rem;margin-bottom:1.2rem;background:linear-gradient(180deg,#f4fcf6,#fff 60%)}
+    .vm-h{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:.8rem}
+    .vm-h small{display:block;font-size:.72rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#16b34a}
+    .vm-h b{font-size:1.1rem;font-weight:900}
+    .vm-n{background:#0b0d0c;color:#a6f34a;font-weight:900;border-radius:999px;padding:.3rem .8rem;flex:none}
+    .vm-pasos{display:flex;flex-direction:column;gap:.6rem}
+    .vm-p{display:flex;gap:.8rem;align-items:center;background:#fff;border:1.5px solid #e3ebe6;border-radius:18px;padding:.75rem .9rem;flex-wrap:wrap}
+    .vm-p.ok{opacity:.65}
+    .vm-i{width:34px;height:34px;border-radius:50%;background:#0b0d0c;color:#fff;font-weight:900;display:grid;place-items:center;flex:none}
+    .vm-p.ok .vm-i{background:#16b34a}
+    .vm-t{flex:1 1 200px;min-width:0}.vm-t b{display:block;font-size:.95rem}.vm-t small{color:#6b7570;font-weight:600;font-size:.8rem}
+    .vm-bar{display:block;height:6px;border-radius:9px;background:#e8eee9;margin-top:.35rem;overflow:hidden;max-width:220px}.vm-bar i{display:block;height:100%;background:linear-gradient(90deg,#a6f34a,#16b34a)}
+    .vm-a{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+    .vm-btn{background:linear-gradient(90deg,#a3f04a,#16b84e);color:#0b0d0c;font-weight:800;border-radius:999px;padding:.5rem 1rem;text-decoration:none;white-space:nowrap;font-size:.88rem}
+    .vm-btn:hover{color:#0b0d0c;filter:brightness(1.05)}
+    .vm-link{font-weight:700;font-size:.82rem;color:#11702f}
+    </style>
+    @endif
     <div class="lp-hello">
         <div>
             <small>{{ ucfirst(now()->locale('es')->isoFormat('dddd D [de] MMMM')) }}</small>
@@ -83,19 +128,27 @@
         <div class="eq-lista">
             @foreach ($equipo as $u)
             @php
-                $pd = $u->meta_dia > 0 ? min(100, round($u->vendido_dia / $u->meta_dia * 100)) : null;
-                $pm = $u->meta_mes > 0 ? min(100, round($u->vendido_mes / $u->meta_mes * 100)) : null;
+                $pv = ($u->meta_tipo ?? 'dinero') === 'ventas';
+                $lD = $pv ? $u->num_dia : $u->vendido_dia; $lM = $pv ? $u->num_mes : $u->vendido_mes;
+                $pd = $u->meta_dia > 0 ? min(100, round($lD / $u->meta_dia * 100)) : null;
+                $pm = $u->meta_mes > 0 ? min(100, round($lM / $u->meta_mes * 100)) : null;
+                $fm = fn ($n) => $pv ? (int) $n . ' ventas' : dinero($n);
             @endphp
             <div class="eq-f">
-                <div class="eq-n"><span class="eq-av">{{ mb_strtoupper(mb_substr($u->name, 0, 1)) }}</span><div><b>{{ $u->name }}</b><small>Hoy @pesos($u->vendido_dia) · Mes @pesos($u->vendido_mes)</small></div></div>
-                <div class="eq-m"><small>Meta de hoy</small>@if ($pd !== null)<span class="eq-b"><i style="width:{{ $pd }}%"></i></span><em>{{ $pd }}% de @pesos($u->meta_dia)</em>@else<em class="text-muted">Sin meta</em>@endif</div>
-                <div class="eq-m"><small>Meta del mes</small>@if ($pm !== null)<span class="eq-b"><i style="width:{{ $pm }}%"></i></span><em>{{ $pm }}% de @pesos($u->meta_mes)</em>@else<em class="text-muted">Sin meta</em>@endif</div>
-                <button type="button" class="btn btn-sm eq-btn" onclick="this.nextElementSibling.classList.toggle('d-none')"><i class="fa-solid fa-pen me-1"></i>Meta</button>
-                <form method="post" action="{{ route('equipo.meta', $u) }}" class="eq-form d-none">
+                <div class="eq-n"><span class="eq-av">{{ mb_strtoupper(mb_substr($u->name, 0, 1)) }}</span><div><b>{{ $u->name }}</b><small>Hoy {{ $u->num_dia }} {{ $u->num_dia == 1 ? 'venta' : 'ventas' }} · @pesos($u->vendido_dia)</small><small class="d-block"><b style="display:inline;color:#11702f">{{ $u->num_mes }} ventas en el mes</b> · @pesos($u->vendido_mes)</small></div></div>
+                <div class="eq-m"><small>Meta de hoy {{ $pv ? '(ventas)' : '($)' }}</small>@if ($pd !== null)<span class="eq-b"><i style="width:{{ $pd }}%"></i></span><em>{{ $pd }}% de {{ $fm($u->meta_dia) }}</em>@else<em class="text-muted">Sin meta</em>@endif</div>
+                <div class="eq-m"><small>Meta del mes {{ $pv ? '(ventas)' : '($)' }}</small>@if ($pm !== null)<span class="eq-b"><i style="width:{{ $pm }}%"></i></span><em>{{ $pm }}% de {{ $fm($u->meta_mes) }}</em>@else<em class="text-muted">Sin meta</em>@endif</div>
+                <button type="button" class="btn btn-sm eq-btn" onclick="this.nextElementSibling.classList.toggle('d-none')"><i class="fa-solid fa-bullseye me-1"></i>Meta</button>
+                <form method="post" action="{{ route('equipo.meta', $u) }}" class="eq-form d-none" data-sin-borrador>
                     @csrf
-                    <label><small>Meta del día</small><input data-dinero type="number" min="0" name="meta_dia" class="form-control" value="{{ $u->meta_dia ? (int) $u->meta_dia : '' }}" placeholder="0"></label>
-                    <label><small>Meta del mes</small><input data-dinero type="number" min="0" name="meta_mes" class="form-control" value="{{ $u->meta_mes ? (int) $u->meta_mes : '' }}" placeholder="0"></label>
-                    <button class="btn btn-dark">Guardar</button>
+                    <div class="eq-tipo">
+                        <small>¿Cómo quiere medir la meta de {{ strtok($u->name, ' ') }}?</small>
+                        <label><input type="radio" name="meta_tipo" value="dinero" @checked(!$pv)><span>💰 Por dinero vendido</span></label>
+                        <label><input type="radio" name="meta_tipo" value="ventas" @checked($pv)><span>🧾 Por cantidad de ventas</span></label>
+                    </div>
+                    <label><small>Meta del día</small><input type="number" min="0" step="any" name="meta_dia" class="form-control" value="{{ $u->meta_dia ? (float) $u->meta_dia : '' }}" placeholder="Ej: {{ $pv ? '10 ventas' : '500000' }}"></label>
+                    <label><small>Meta del mes <span class="text-muted">(opcional)</span></small><input type="number" min="0" step="any" name="meta_mes" class="form-control" value="{{ $u->meta_mes ? (float) $u->meta_mes : '' }}" placeholder="Ej: {{ $pv ? '250 ventas' : '12000000' }}"></label>
+                    <button class="btn btn-dark">Guardar meta</button>
                 </form>
             </div>
             @endforeach
@@ -117,6 +170,12 @@
     .eq-btn{border:1.5px solid #cfe9d6;background:#f2fbf3;color:#11702f;font-weight:800;border-radius:999px}
     .eq-form{grid-column:1/-1;display:flex;gap:.6rem;align-items:flex-end;flex-wrap:wrap;background:#f7faf8;border-radius:16px;padding:.8rem}
     .eq-form label{flex:1 1 160px;margin:0}.eq-form small{font-weight:700;color:#5b665e}
+    .eq-tipo{flex:1 1 100%;display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+    .eq-tipo small{flex:1 1 100%}
+    .eq-tipo label{flex:0 0 auto;cursor:pointer}
+    .eq-tipo input{position:absolute;opacity:0;pointer-events:none}
+    .eq-tipo span{display:inline-block;border:1.5px solid #dfe6e2;background:#fff;border-radius:999px;padding:.4rem .9rem;font-weight:700;font-size:.85rem}
+    .eq-tipo input:checked + span{background:#0b0d0c;border-color:#0b0d0c;color:#fff}
     @media (max-width:767.98px){.eq-f{grid-template-columns:1fr 1fr}.eq-n{grid-column:1/-1}.eq-btn{grid-column:1/-1}}
     </style>
 

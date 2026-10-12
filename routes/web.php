@@ -139,6 +139,13 @@ Route::middleware(['auth', 'tienda', 'conjunto'])->prefix('conjunto')->name('con
 
 // ===== Pantallas de la tienda =====
 Route::middleware(['auth', 'tienda'])->group(function () {
+    // Paso "comparte tu tienda": se marca hecho y abre WhatsApp con el enlace de la tienda en línea
+    Route::get('/compartir-tienda', function () {
+        $t = \App\Support\TiendaActual::tienda();
+        \App\Models\Ajuste::guardar('t' . $t->id . '_compartio', now()->toDateTimeString());
+        $msg = '¡Hola! 👋 Le comparto la página de ' . $t->nombre . ': vea nuestros productos y compre por WhatsApp 👉 ' . $t->url_catalogo;
+        return redirect()->away('https://wa.me/?text=' . rawurlencode($msg));
+    })->name('panel.compartir');
     Route::post('/equipo/{user}/meta', [\App\Http\Controllers\metaController::class, 'guardar'])->name('equipo.meta');
 
     // Importar productos desde Excel (va antes de productos/{producto})

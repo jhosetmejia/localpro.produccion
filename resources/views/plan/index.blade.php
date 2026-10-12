@@ -16,7 +16,7 @@
     </div>
     @endif
 
-    <div class="lp-kpis" style="grid-template-columns:1.3fr 1fr">
+    <div class="lp-kpis dos">
         <div class="lp-kpi hero">
             <div class="ic"><i class="fa-solid fa-gem"></i></div>
             <div class="lbl">Plan actual</div>

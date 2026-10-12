@@ -77,6 +77,6 @@
     <a class="d" target="_blank" href="https://wa.me/{{ numero_whatsapp($negocio->telefono) }}">Escribir a la tienda</a>
     @endif
 </div>
-<p class="sig">Desarrollado por Jhoset Mejía - DiCreWeb</p>
+<p class="sig">Sistema LocalProo · localproo.com</p>
 </body>
 </html>

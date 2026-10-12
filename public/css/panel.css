@@ -232,3 +232,14 @@ main h1,main .h1{font-weight:800;letter-spacing:-.03em;font-size:clamp(1.6rem,3v
 .lp-limite.lleno .lp-limite-b i{background:#ff5c93}
 .lp-limite-btn{background:linear-gradient(90deg,#a3f04a,#16b84e);color:#0b0d0c;font-weight:900;border-radius:999px;padding:.6rem 1.1rem;text-decoration:none;white-space:nowrap}
 .lp-limite-btn:hover{color:#0b0d0c;filter:brightness(1.05)}
+
+/* KPIs de reportes: 4 en escritorio, 2 en tablet, 1 en celular (nada apachurrado) */
+.lp-kpis.rp-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.lp-kpis.rp-kpis > :first-child{grid-column:auto}
+.lp-kpis.dos{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
+.lp-kpis.dos > :first-child{grid-column:auto}
+@media (max-width:767.98px){.lp-kpis.dos{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:1199.98px){.lp-kpis.rp-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.lp-kpis.rp-kpis > :first-child{grid-column:auto}}
+@media (max-width:575.98px){.lp-kpis.rp-kpis{grid-template-columns:minmax(0,1fr)}}
+.lp-kpi{min-width:0;overflow:hidden}
+.lp-kpi .val{overflow-wrap:anywhere}

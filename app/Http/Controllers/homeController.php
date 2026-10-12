@@ -59,20 +59,15 @@ class homeController extends Controller
         $yo = Auth::user();
         if (!$yo->es_superadmin && !$yo->hasAnyRole(['dueno', 'administrador'])) {
             $mias = fn () => $pos()->where('user_id', $yo->id);
-            $diaV = (float) $mias()->whereDate('created_at', $hoy)->sum('total');
-            $mesV = (float) $mias()->whereBetween('created_at', [$hoy->copy()->startOfMonth(), now()])->sum('total');
+            $mes = [$hoy->copy()->startOfMonth(), now()];
             return view('panel.vendedor', [
                 'yo' => $yo,
-                'ventasHoy' => $diaV,
+                'ventasHoy' => (float) $mias()->whereDate('created_at', $hoy)->sum('total'),
                 'numVentasHoy' => $mias()->whereDate('created_at', $hoy)->count(),
-                'ventasMes' => $mesV,
-                'numVentasMes' => $mias()->whereBetween('created_at', [$hoy->copy()->startOfMonth(), now()])->count(),
+                'ventasMes' => (float) $mias()->whereBetween('created_at', $mes)->sum('total'),
+                'numVentasMes' => $mias()->whereBetween('created_at', $mes)->count(),
                 'caja' => Caja::abiertaDe($yo->id),
-                'semana' => collect(range(6, 0))->map(function ($d) use ($hoy, $mias) {
-                    $dia = $hoy->copy()->subDays($d);
-                    return ['label' => ucfirst($dia->locale('es')->isoFormat('ddd D')), 'total' => (float) $mias()->whereDate('created_at', $dia)->sum('total')];
-                }),
-                'ultimas' => PosVenta::where('user_id', $yo->id)->latest()->take(8)->get(),
+                'ultimas' => PosVenta::where('user_id', $yo->id)->whereDate('created_at', $hoy)->latest()->take(10)->get(),
                 'diasRestantes' => (int) $hoy->diffInDays($hoy->copy()->endOfMonth()) + 1,
             ]);
         }
@@ -96,6 +91,8 @@ class homeController extends Controller
         $equipo = User::role('vendedor')->where('tienda_id', $tienda->id)->orderBy('name')->get()->map(function ($u) use ($pos, $hoy) {
             $u->vendido_dia = (float) $pos()->where('user_id', $u->id)->whereDate('created_at', $hoy)->sum('total');
             $u->vendido_mes = (float) $pos()->where('user_id', $u->id)->whereBetween('created_at', [$hoy->copy()->startOfMonth(), now()])->sum('total');
+            $u->num_dia = $pos()->where('user_id', $u->id)->whereDate('created_at', $hoy)->count();
+            $u->num_mes = $pos()->where('user_id', $u->id)->whereBetween('created_at', [$hoy->copy()->startOfMonth(), now()])->count();
             return $u;
         });
 

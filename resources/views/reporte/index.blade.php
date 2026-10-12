@@ -30,7 +30,7 @@
         </div>
     </form>
 
-    <div class="lp-kpis" style="grid-template-columns:repeat(4,1fr)">
+    <div class="lp-kpis rp-kpis">
         <div class="lp-kpi hero"><div class="ic"><i class="fa-solid fa-sack-dollar"></i></div><div class="lbl">Ventas netas</div><div class="val">@pesos($resumen['neto'])</div><div class="sub">{{ $resumen['num'] }} ventas · promedio @pesos($resumen['promedio'])</div></div>
         <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-chart-line"></i></div><div class="lbl">Ganancia</div><div class="val" style="color:#16b34a">@pesos($resumen['ganancia'])</div><div class="sub">Margen {{ number_format($resumen['margen'], 1, ',', '.') }}%</div></div>
         <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-tags"></i></div><div class="lbl">Descuentos</div><div class="val">@pesos($resumen['descuentos'])</div><div class="sub">Costo de lo vendido @pesos($resumen['costo'])</div></div>
