@@ -28,7 +28,8 @@
 :root{--g:linear-gradient(135deg,#a6f34a,#2fd15a 45%,#16b34a);--g2:#16b34a;--k:#0b0d0c;--ink:#151a17;--bg:#f4f8f5;--line:#e3efe5;--mut:#5b665e;--wa:#25d366}
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;scroll-padding-top:130px}
-body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;padding-bottom:96px}
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;flex-direction:column}
+html{background:var(--k)}
 a{color:inherit;text-decoration:none}
 button{font:inherit;border:0;background:none;cursor:pointer;color:inherit}
 .wrap{width:min(1180px,100% - 24px);margin:0 auto}
@@ -89,7 +90,21 @@ button{font:inherit;border:0;background:none;cursor:pointer;color:inherit}
 .toast{position:fixed;left:50%;top:76px;transform:translate(-50%,-10px);background:var(--k);color:#fff;border-radius:14px;padding:.7rem 1rem;font-weight:700;opacity:0;transition:all .25s;z-index:50;pointer-events:none}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 /* Pie */
-.pie{background:var(--k);color:#a9b5ad;margin-top:40px;padding:30px 0 40px;font-size:.88rem}
+.pie{background:var(--k);color:#a9b5ad;margin-top:auto;padding:30px 0 110px;font-size:.88rem}
+main,.pie-sep{flex:none}
+.pie-sep{height:40px}
+.comp{width:100%;background:linear-gradient(135deg,#16211a,#0f1411);border:1px solid rgba(166,243,74,.18);border-radius:22px;padding:18px 18px 16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.comp .t{flex:1 1 220px;min-width:0}
+.comp .t b{color:#fff;font-size:1.15rem;margin:0}
+.comp .t span{display:block;color:#a9b5ad;font-size:.85rem;margin-top:2px}
+.comp .r{display:flex;gap:8px;flex-wrap:wrap}
+.comp a,.comp button{display:inline-flex;align-items:center;gap:7px;height:44px;padding:0 15px;border-radius:999px;border:0;font:inherit;font-weight:800;font-size:.86rem;cursor:pointer;text-decoration:none;color:#0b0d0c;background:#fff;transition:transform .12s}
+.comp a:hover,.comp button:hover{transform:translateY(-2px)}
+.comp svg{width:18px;height:18px;flex:none}
+.comp .c-main{background:var(--g);color:var(--k)}
+.comp .c-wa{background:#25d366;color:#fff}.comp .c-fb{background:#1877f2;color:#fff}.comp .c-x{background:#fff;color:#000}.comp .c-tg{background:#29a9eb;color:#fff}
+.comp .c-cp{background:#1d2520;color:#a6f34a;border:1px solid rgba(166,243,74,.35)}
+@media (max-width:560px){.comp .r{width:100%}.comp a,.comp button{flex:1 1 auto;justify-content:center}.comp .c-main{width:100%}}
 .pie .wrap{display:flex;gap:24px;flex-wrap:wrap;justify-content:space-between}
 .pie b{color:#fff;display:block;margin-bottom:6px;font-size:1rem}
 .pie a{color:#a6f34a;font-weight:700}
@@ -113,8 +128,24 @@ button{font:inherit;border:0;background:none;cursor:pointer;color:inherit}
 
 @yield('contenido')
 
+<div class="pie-sep"></div>
 <footer class="pie">
     <div class="wrap">
+        @php
+            $urlT = $tienda->url_catalogo;
+            $txtT = '¡Mira la tienda de ' . $tienda->nombre . '! 🛍️ Vea los productos y compre por WhatsApp 👉';
+        @endphp
+        <div class="comp">
+            <div class="t"><b>📣 Comparte esta tienda</b><span>Ayúdanos a llegar a más personas: envíala a tus amigos y grupos.</span></div>
+            <div class="r">
+                <button type="button" class="c-main" id="cShare"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>Comparte tu tienda</button>
+                <a class="c-wa" target="_blank" rel="noopener" href="https://wa.me/?text={{ rawurlencode($txtT . ' ' . $urlT) }}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.4-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.3 5.2 4.6 2.6 1 3.1.8 3.7.8.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.2-.3-.2-.6-.4zM12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.3c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.3 8.3 0 1 1 12 20.3z"/></svg>WhatsApp</a>
+                <a class="c-fb" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u={{ rawurlencode($urlT) }}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 8.5V6.8c0-.8.2-1.3 1.4-1.3H17V2.3C16.7 2.2 15.6 2 14.4 2 11.9 2 10.2 3.5 10.2 6.3v2.2H7.5V12h2.7v10H14V12h2.7l.4-3.5H14z"/></svg>Facebook</a>
+                <a class="c-x" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text={{ rawurlencode($txtT) }}&url={{ rawurlencode($urlT) }}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.8 2.5h3.3l-7.2 8.2 8.5 10.8h-6.6l-5.2-6.6-6 6.6H1.3l7.7-8.8L.9 2.5h6.8l4.7 6.1 5.4-6.1zm-1.2 17h1.8L7.1 4.3H5.2l11.4 15.2z"/></svg>X</a>
+                <a class="c-tg" target="_blank" rel="noopener" href="https://t.me/share/url?url={{ rawurlencode($urlT) }}&text={{ rawurlencode($txtT) }}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3 18.7 19.4c-.2 1-.9 1.3-1.7.8l-4.8-3.5-2.3 2.2c-.3.3-.5.5-1 .5l.3-4.9 8.9-8c.4-.3-.1-.5-.6-.2l-11 6.9-4.7-1.5c-1-.3-1-1 .2-1.5L20.5 3c.9-.3 1.6.2 1.4 1.3z"/></svg>Telegram</a>
+                <button type="button" class="c-cp" id="cCopy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copiar enlace</button>
+            </div>
+        </div>
         <div><b>{{ $tienda->nombre }}</b>{{ $tienda->descripcion ?: $tienda->tipo_nombre }}</div>
         <div>
             @if ($tienda->direccion || $lugar)<div>📍 {{ trim($tienda->direccion . ($tienda->direccion && $lugar ? ' · ' : '') . $lugar) }}</div>@endif
@@ -126,6 +157,22 @@ button{font:inherit;border:0;background:none;cursor:pointer;color:inherit}
 
 <button class="bar" id="bar"><span><span class="n" id="barN">0</span>Ver mi pedido</span><span id="barT"></span></button>
 <div class="toast" id="toast"></div>
+<script>
+(function () {
+    var url = @json($tienda->url_catalogo), txt = @json('¡Mira la tienda de ' . $tienda->nombre . '! 🛍️ Vea los productos y compre por WhatsApp');
+    function aviso(m) { var t = document.getElementById('toast'); if (!t) return; t.textContent = m; t.classList.add('on'); setTimeout(function () { t.classList.remove('on'); }, 2200); }
+    function copiar() {
+        var viejo = function () { var i = document.createElement('input'); i.value = url; document.body.appendChild(i); i.select(); try { document.execCommand('copy'); aviso('✅ Enlace copiado'); } catch (e) { aviso(url); } i.remove(); };
+        if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { aviso('✅ Enlace copiado'); }, viejo); else viejo();
+    }
+    var s = document.getElementById('cShare'), c = document.getElementById('cCopy');
+    if (c) c.addEventListener('click', copiar);
+    if (s) s.addEventListener('click', function () {
+        if (navigator.share) navigator.share({ title: document.title, text: txt, url: url }).catch(function () {});
+        else window.open('https://wa.me/?text=' + encodeURIComponent(txt + ' 👉 ' + url), '_blank');
+    });
+})();
+</script>
 
 <div class="ov" id="ovC"><div class="sheet">
     <div class="sh"><h3>Mi pedido</h3><button class="x" data-close>&times;</button></div>
