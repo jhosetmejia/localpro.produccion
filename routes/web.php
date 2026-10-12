@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\importarController;
+use App\Http\Controllers\importarClientesController;
 use App\Http\Controllers\adminImportacionController;
 use App\Http\Controllers\adminPlanController;
 use App\Http\Controllers\adminRedController;
@@ -161,6 +162,13 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::post('/productos/importar/confirmar', [importarController::class, 'confirmar'])->name('productos.importar.confirmar');
     Route::post('/productos/importar/cancelar', [importarController::class, 'cancelar'])->name('productos.importar.cancelar');
     Route::post('/productos/importar/equipo', [importarController::class, 'solicitar'])->name('productos.importar.solicitar');
+
+    Route::get('/clientes/importar', [importarClientesController::class, 'index'])->name('clientes.importar');
+    Route::get('/clientes/importar/plantilla', [importarClientesController::class, 'plantilla'])->name('clientes.importar.plantilla');
+    Route::post('/clientes/importar', [importarClientesController::class, 'subir'])->name('clientes.importar.subir');
+    Route::get('/clientes/importar/revisar', [importarClientesController::class, 'revisar'])->name('clientes.importar.revisar');
+    Route::post('/clientes/importar/confirmar', [importarClientesController::class, 'confirmar'])->name('clientes.importar.confirmar');
+    Route::post('/clientes/importar/cancelar', [importarClientesController::class, 'cancelar'])->name('clientes.importar.cancelar');
 
     Route::resources([
         'categorias' => categoriaController::class,

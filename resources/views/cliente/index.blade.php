@@ -22,10 +22,14 @@
     </ol>
 
     @can('crear-cliente')
-    <div class="mb-4">
-        <a href="{{route('clientes.create')}}">
-            <button type="button" class="btn btn-primary">Añadir nuevo registro</button>
-        </a>
+    <div class="mb-4 d-flex flex-wrap gap-2 align-items-stretch">
+        <a href="{{ route('clientes.create') }}" class="btn btn-primary d-inline-flex align-items-center"><i class="fa-solid fa-user-plus me-2"></i>Añadir un cliente</a>
+        <a href="{{ route('clientes.importar') }}" class="btn btn-dark d-inline-flex align-items-center"><i class="fa-solid fa-file-excel me-2" style="color:#a6f34a"></i>Añadir base de datos de clientes</a>
+    </div>
+    <div class="mb-4 d-flex gap-3 align-items-center flex-wrap" style="background:linear-gradient(180deg,#f4fcf6,#fff);border:1.5px solid #bfeccb;border-radius:20px;padding:1rem 1.2rem">
+        <div style="width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,#a6f34a,#16b34a);color:#0b0d0c;font-size:1.2rem;flex:none"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+        <div style="flex:1 1 260px;min-width:0"><b>¿Ya tiene sus clientes en Excel?</b><div class="text-muted small fw-semibold">Suba su archivo y no tenga que volver a crearlos. Sirve cualquier Excel con datos de personas: LocalPro busca solo el nombre, la cédula, el celular, el correo y la dirección, y los convierte en clientes en un instante.</div></div>
+        <a href="{{ route('clientes.importar') }}" class="btn btn-primary"><i class="fa-solid fa-upload me-1"></i>Subir mi Excel</a>
     </div>
     @endcan
 
