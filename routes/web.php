@@ -187,6 +187,7 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::post('/clientes/importar/confirmar', [importarClientesController::class, 'confirmar'])->name('clientes.importar.confirmar');
     Route::post('/clientes/importar/cancelar', [importarClientesController::class, 'cancelar'])->name('clientes.importar.cancelar');
 
+    Route::delete('/categorias/{categoria}/eliminar', [categoriaController::class, 'eliminar'])->whereNumber('categoria')->name('categorias.eliminar');
     Route::resources([
         'categorias' => categoriaController::class,
         'productos' => ProductoController::class,

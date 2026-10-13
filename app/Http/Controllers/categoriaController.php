@@ -17,7 +17,7 @@ class categoriaController extends Controller
         $this->middleware('permission:ver-categoria|crear-categoria|editar-categoria|eliminar-categoria', ['only' => ['index']]);
         $this->middleware('permission:crear-categoria', ['only' => ['create', 'store']]);
         $this->middleware('permission:editar-categoria', ['only' => ['edit', 'update']]);
-        $this->middleware('permission:eliminar-categoria', ['only' => ['destroy']]);
+        $this->middleware('permission:eliminar-categoria', ['only' => ['destroy', 'eliminar']]);
     }
 
     /**
@@ -105,5 +105,39 @@ class categoriaController extends Controller
         }
 
         return redirect()->route('categorias.index')->with('success', $message);
+    }
+
+    /**
+     * Eliminar del todo (no solo ocultar). Los productos no se borran: si se quedan sin categoría pasan a "General".
+     */
+    public function eliminar(Categoria $categoria)
+    {
+        $categoria->load('caracteristica');
+        $nombre = $categoria->caracteristica->nombre ?? 'la categoría';
+        if (mb_strtolower($nombre) === 'general' && $categoria->productos()->exists()) {
+            return back()->withErrors('La categoría General no se puede eliminar mientras tenga productos: es donde quedan los productos sin categoría.');
+        }
+
+        $movidos = DB::transaction(function () use ($categoria) {
+            $productos = $categoria->productos()->withCount('categorias')->get();
+            $sinOtra = $productos->filter(fn ($p) => $p->categorias_count <= 1);
+            $movidos = 0;
+            if ($sinOtra->isNotEmpty()) {
+                $general = \App\Support\CrearTienda::categoria('General');
+                if ($general->id !== $categoria->id) {
+                    foreach ($sinOtra as $p) {
+                        $p->categorias()->syncWithoutDetaching([$general->id]);
+                        $movidos++;
+                    }
+                }
+            }
+            $categoria->productos()->detach();
+            $car = $categoria->caracteristica;
+            $categoria->delete();
+            $car?->delete();
+            return $movidos;
+        });
+
+        return redirect()->route('categorias.index')->with('success', 'Categoría ' . $nombre . ' eliminada.' . ($movidos ? ' Sus ' . $movidos . ' producto(s) quedaron en "General".' : ''));
     }
 }

@@ -44,6 +44,10 @@
                         @csrf @method('DELETE')
                         <button class="btn btn-sm {{ $activa ? 'btn-danger' : 'btn-success' }}" title="{{ $activa ? 'Ocultar' : 'Restaurar' }}"><i class="fa-solid {{ $activa ? 'fa-eye-slash' : 'fa-rotate-left' }}"></i></button>
                     </form>
+                    <form method="post" action="{{ route('categorias.eliminar', $c) }}" data-confirm="¿Eliminar la categoría {{ $c->caracteristica->nombre }}?" data-confirm-texto="{{ $c->productos_count ? 'Los productos no se borran: los que no tengan otra categoría quedan en General.' : 'No se puede deshacer.' }}" data-confirm-ok="Sí, eliminar" data-peligro>
+                        @csrf @method('DELETE')
+                        <button class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                    </form>
                     @endcan
                 </div>
             </li>
