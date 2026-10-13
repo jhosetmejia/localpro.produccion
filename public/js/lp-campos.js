@@ -54,6 +54,55 @@
         marcar(el, null); return true;
     }
 
+    // Indicativo fijo delante del campo (+57 si es Colombia): sale solo según el país y cambia si cambian el país
+    var BANDERA = { CO: '🇨🇴', CR: '🇨🇷', SV: '🇸🇻', EC: '🇪🇨', PE: '🇵🇪', MX: '🇲🇽', CL: '🇨🇱', AR: '🇦🇷', VE: '🇻🇪', BO: '🇧🇴', PY: '🇵🇾', UY: '🇺🇾', PA: '🇵🇦', GT: '🇬🇹', HN: '🇭🇳', NI: '🇳🇮', DO: '🇩🇴', ES: '🇪🇸', US: '🇺🇸' };
+    css.textContent += '.lpc-tel{position:relative;display:block;width:100%}.lpc-tel>.lpc-ind{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-weight:800;color:#151a17;pointer-events:none;white-space:nowrap;font-size:.95em;line-height:1}' +
+        '.lpc-tel>.lpc-ind:after{content:"";display:inline-block;width:1px;height:1.1em;background:#cfd8d2;margin-left:8px;vertical-align:middle}';
+    function prefijo(el) {
+        if (el.closest('[data-sin-indicativo]') || el.hasAttribute('data-sin-indicativo')) return;
+        var p = pais(el), r = TEL[p] || [7, 15, ''];
+        var txt = r[2] ? (BANDERA[p] ? BANDERA[p] + ' ' : '') + '+' + r[2] : '';
+        // Que el navegador autocomplete el número nacional (sin +1, +57…)
+        el.setAttribute('autocomplete', 'tel-national');
+        el.setAttribute('inputmode', 'numeric');
+        var grupo = el.closest('.input-group');
+        var chip = el.__lpcInd;
+        if (!chip) {
+            if (grupo) {
+                chip = document.createElement('span'); chip.className = 'input-group-text fw-bold lpc-ind-g';
+                el.insertAdjacentElement('beforebegin', chip);
+            } else {
+                var w = document.createElement('span'); w.className = 'lpc-tel';
+                el.parentNode.insertBefore(w, el); w.appendChild(el);
+                chip = document.createElement('span'); chip.className = 'lpc-ind';
+                w.insertBefore(chip, el);
+                el.__lpcPad = parseFloat(getComputedStyle(el).paddingLeft) || 12;
+            }
+            el.__lpcInd = chip;
+        }
+        chip.textContent = txt;
+        chip.style.display = txt ? '' : 'none';
+        if (!grupo) el.style.paddingLeft = txt ? ((chip.offsetWidth || txt.length * 9) + 22) + 'px' : '';
+        if (!el.placeholder || /^\+?\d/.test(el.placeholder)) el.placeholder = r[0] === r[1] ? r[0] + ' dígitos' : r[0] + ' a ' + r[1] + ' dígitos';
+    }
+    function prepararTels(raiz) {
+        (raiz || document).querySelectorAll(SEL_TEL).forEach(function (t) {
+            if (!esTel(t)) return;
+            prefijo(t);
+            if (t.value) { quitarOtroIndicativo(t); limpiarTel(t); }
+        });
+    }
+    // Si el navegador autocompletó con otro país (+1 207…), se quita ese indicativo
+    function quitarOtroIndicativo(el) {
+        var v = el.value.trim();
+        var r = TEL[pais(el)] || [7, 15, ''];
+        if (!/^\+/.test(v) || !r[2]) return;
+        var d = v.replace(/\D/g, '');
+        if (d.indexOf(r[2]) === 0) return; // ya trae el del país: limpiarTel lo quita
+        // Otro indicativo: se dejan solo los últimos dígitos del número nacional
+        el.value = d.slice(-r[1]);
+    }
+
     // ---------- Cédula / documento ----------
     var SEL_DOC = 'input[name="numero_documento"],input[name="documento"],input[name="cedula"],#ncDoc,#actDoc,input[data-cedula]';
     function tipoDoc(el) {
@@ -89,7 +138,7 @@
 
     document.addEventListener('input', function (e) {
         var el = e.target;
-        if (esTel(el)) { limpiarTel(el); if (el.classList.contains('lpc-mal')) revisarTel(el, false); }
+        if (esTel(el)) { quitarOtroIndicativo(el); limpiarTel(el); if (el.classList.contains('lpc-mal')) revisarTel(el, false); }
         else if (esDoc(el)) { limpiarDoc(el); if (el.classList.contains('lpc-mal')) revisarDoc(el, false); }
     }, true);
     document.addEventListener('blur', function (e) {
@@ -101,9 +150,19 @@
         if (e.target.matches && e.target.matches('select[name="documento_id"],select[name="tipo_documento"],select[name="pais"]')) {
             var f = e.target.form; if (!f) return;
             f.querySelectorAll(SEL_DOC).forEach(function (d) { if (esDoc(d) && d.value) revisarDoc(d, true); });
-            f.querySelectorAll(SEL_TEL).forEach(function (t) { if (esTel(t) && t.value) revisarTel(t, true); });
+            f.querySelectorAll(SEL_TEL).forEach(function (t) { if (esTel(t)) { prefijo(t); if (t.value) revisarTel(t, true); } });
+        } else if (esTel(e.target)) {
+            // Autocompletado del navegador
+            quitarOtroIndicativo(e.target); limpiarTel(e.target);
         }
     }, true);
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { prepararTels(); });
+    else prepararTels();
+    // Campos que aparecen después (ventanas, formularios armados con JS) y autocompletado tardío
+    document.addEventListener('focusin', function (e) { if (esTel(e.target)) prefijo(e.target); }, true);
+    setTimeout(prepararTels, 800);
+    window.LP_prepararTels = prepararTels;
 
     // ---------- Imágenes: se revisan y se achican al elegirlas ----------
     function esImagen(el) {

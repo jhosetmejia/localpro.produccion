@@ -64,7 +64,7 @@
                     <div class="input">
                         <i class="fa-brands fa-whatsapp"></i>
                         <span id="ind" style="position:absolute;left:2.6rem;top:50%;transform:translateY(-50%);font-weight:700;color:var(--muted);z-index:1;line-height:1">+57</span>
-                        <input id="telefono" name="telefono" type="tel" value="{{ old('telefono') }}" placeholder="300 123 4567" autocomplete="tel" required style="padding-left:5rem" />
+                        <input id="telefono" name="telefono" type="tel" value="{{ old('telefono') }}" placeholder="300 123 4567" autocomplete="tel-national" data-sin-indicativo required style="padding-left:5rem" />
                     </div>
                 </div>
                 <div class="field">
