@@ -32,9 +32,27 @@ class adminRedController extends Controller
         $ids = $gente->pluck('id');
         $negocios = Tienda::with('plan:id,nombre')->whereIn('asesor_id', $ids)->orderBy('nombre')->get()->groupBy('asesor_id');
 
+        // De quién cuelga cada uno en el mapa: su líder; si no tiene líder (queda directo con LocalPro),
+        // la persona que lo inscribió con su enlace, para que se vea a quiénes metió cada asesor
+        $enMapa = $ids->flip();
+        $arriba = [];
+        foreach ($gente as $a) {
+            $p = $a->padre_id && isset($enMapa[$a->padre_id]) ? $a->padre_id
+                : ($a->reclutado_por && isset($enMapa[$a->reclutado_por]) ? $a->reclutado_por : null);
+            $arriba[$a->id] = $p;
+        }
+        // Sin ciclos: si subiendo se vuelve a la misma persona, queda arriba con LocalPro
+        foreach (array_keys($arriba) as $id) {
+            $vistos = [$id => true];
+            for ($x = $arriba[$id]; $x !== null; $x = $arriba[$x] ?? null) {
+                if (isset($vistos[$x])) { $arriba[$id] = null; break; }
+                $vistos[$x] = true;
+            }
+        }
+
         return view('admin.red.index', [
-            'raices' => $gente->filter(fn ($a) => !$a->padre_id || !$ids->contains($a->padre_id)),
-            'hijos' => $gente->groupBy('padre_id'),
+            'raices' => $gente->filter(fn ($a) => $arriba[$a->id] === null),
+            'hijos' => $gente->filter(fn ($a) => $arriba[$a->id] !== null)->groupBy(fn ($a) => $arriba[$a->id]),
             'negocios' => $negocios,
             'lideres' => Asesor::with('user:id,name')->whereIn('cargo', ['lider_pais', 'lider_departamento', 'lider_ciudad', 'lider_zona'])->where('activo', true)->get(),
             'departamentos' => Asesor::whereNotNull('departamento')->distinct()->orderBy('departamento')->pluck('departamento'),
