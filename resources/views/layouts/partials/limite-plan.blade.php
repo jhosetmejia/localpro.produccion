@@ -3,10 +3,25 @@
 @if ($errors->any())
 <div class="alert border-0 d-flex gap-2 align-items-center flex-wrap" style="background:#ffe9f3;color:#9b1c5a;border-radius:16px">
     <i class="fa-solid fa-triangle-exclamation"></i><span class="flex-grow-1">{{ $errors->first() }}</span>
-    @if ($uso)<a href="{{ route('plan.index') }}" class="btn btn-sm btn-dark" style="border-radius:999px;font-weight:800">Pásate a Pro</a>@endif
+    @if ($uso && !($que === 'productos' && !$uso['gratis']))<a href="{{ route('plan.index') }}" class="btn btn-sm btn-dark" style="border-radius:999px;font-weight:800">Pásate a Pro</a>@endif
 </div>
 @endif
-@if ($uso && ($uso['gratis'] || $uso['actual'] >= $uso['max'] * 0.8))
+@php
+    // Planes pagos (productos): no se muestra el conteo; solo avisa cuando llega al límite y lo manda a soporte
+    $soloAlLimite = $uso && $que === 'productos' && !$uso['gratis'];
+    $telSoporte = $soloAlLimite ? preg_replace('/\D/', '', (string) \App\Models\Ajuste::valor('soporte_whatsapp')) : '';
+@endphp
+@if ($soloAlLimite)
+@if ($uso['actual'] >= $uso['max'])
+<div class="lp-limite lleno">
+    <div class="lp-limite-t">
+        <b><i class="fa-solid fa-box-open me-1"></i>Llegaste al límite de {{ $uso['max'] }} productos</b>
+        <small>Comunícate con soporte para ampliar la cantidad de productos de tu plan.</small>
+    </div>
+    <a href="{{ $telSoporte ? 'https://wa.me/' . $telSoporte . '?text=' . rawurlencode('Hola LocalPro, llegué al límite de ' . $uso['max'] . ' productos en mi tienda ' . \App\Support\TiendaActual::tienda()?->nombre . ' (#' . \App\Support\TiendaActual::id() . ') y quiero ampliar la cantidad.') : route('plan.index') }}" @if ($telSoporte) target="_blank" rel="noopener" @endif class="lp-limite-btn"><i class="fa-brands fa-whatsapp me-1"></i>Hablar con soporte</a>
+</div>
+@endif
+@elseif ($uso && ($uso['gratis'] || $uso['actual'] >= $uso['max'] * 0.8))
 @php $pct = min(100, round($uso['actual'] / max(1, $uso['max']) * 100)); $lleno = $uso['actual'] >= $uso['max']; @endphp
 <div class="lp-limite {{ $lleno ? 'lleno' : '' }}">
     <div class="lp-limite-t">

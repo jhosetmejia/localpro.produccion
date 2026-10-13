@@ -167,7 +167,7 @@ class ImportarProductos
         };
 
         foreach (array_chunk($grupos, 100, true) as $lote) {
-            DB::transaction(function () use ($lote, &$res, $err, $actualizar, $controla, &$cupo, $categoria) {
+            DB::transaction(function () use ($lote, &$res, $err, $actualizar, $controla, &$cupo, $categoria, $plan) {
                 foreach ($lote as $filasProd) {
                     $p0 = $filasProd[0];
                     $precio = null; $costo = null;
@@ -183,7 +183,7 @@ class ImportarProductos
 
                     if (!$nuevo && !$actualizar) { $err($p0['_num'], '"' . $p0['_nombre'] . '" ya existe (se dejó como estaba).'); continue; }
                     if ($nuevo) {
-                        if ($cupo <= 0) { $err($p0['_num'], 'su plan llegó al límite de productos (Pásate a Pro en "Mi plan" para crear más).'); continue; }
+                        if ($cupo <= 0) { $err($p0['_num'], 'llegaste al límite de ' . (int) $plan?->max_productos . ' productos de tu plan. Comunícate con soporte para ampliar la cantidad de productos.'); continue; }
                         if ($precio === null) { $err($p0['_num'], '"' . $p0['_nombre'] . '" no tiene precio de venta.'); continue; }
                         $producto = Producto::create([
                             'codigo' => $p0['_codigo'] ?: CrearTienda::siguienteCodigo(),
