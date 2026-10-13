@@ -46,5 +46,17 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+
+        // 419 "La página expiró": pasa cuando el formulario se abrió antes de cerrar sesión, de una actualización
+        // o hace mucho rato. En vez de la pantalla de error, se vuelve al formulario con un token nuevo para reintentar.
+        $this->renderable(function (\Illuminate\Session\TokenMismatchException $e, $request) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'La página expiró. Recargue e intente de nuevo.'], 419);
+            }
+            $destino = $request->is('login') || $request->is('logout') ? route('login') : url()->previous();
+            return redirect()->to($destino)
+                ->withInput($request->except(['password', 'password_confirmation', 'current_password', '_token']))
+                ->with('info', 'Pasó mucho tiempo con la página abierta. Intente de nuevo.');
+        });
     }
 }

@@ -30,6 +30,9 @@
             @if (session('registro_ok'))
                 <div class="alert alert-ok">{{ session('registro_ok') }}</div>
             @endif
+            @if (session('info'))
+                <div class="alert alert-ok">{{ session('info') }}</div>
+            @endif
             @if ($errors->any())
                 <div class="alert">{{ $errors->first() }}</div>
             @endif

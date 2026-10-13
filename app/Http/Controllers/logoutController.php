@@ -8,9 +8,11 @@ use Illuminate\Support\Facades\Session;
 
 class logoutController extends Controller
 {
-    public function logout(){
-        Session::flush();
+    public function logout(Request $request){
         Auth::logout();
+        // Sesión nueva con token nuevo: así el formulario de ingreso que se abre después sí funciona (no da 419)
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return redirect()->route('login');
     }
