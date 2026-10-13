@@ -206,6 +206,7 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::post('/alquileres', [alquilerController::class, 'store'])->name('alquileres.store');
     Route::get('/alquileres/{alquiler}/editar', [alquilerController::class, 'edit'])->whereNumber('alquiler')->name('alquileres.edit');
     Route::put('/alquileres/{alquiler}', [alquilerController::class, 'update'])->whereNumber('alquiler')->name('alquileres.update');
+    Route::post('/alquileres/{alquiler}/cobrar', [alquilerController::class, 'cobrar'])->whereNumber('alquiler')->name('alquileres.cobrar');
     Route::post('/alquileres/{alquiler}/estado', [alquilerController::class, 'estado'])->whereNumber('alquiler')->name('alquileres.estado');
     Route::delete('/alquileres/{alquiler}', [alquilerController::class, 'destroy'])->whereNumber('alquiler')->name('alquileres.destroy');
 

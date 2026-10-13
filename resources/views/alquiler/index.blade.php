@@ -41,11 +41,20 @@
         <div class="lp-quick"><a href="{{ route('alquileres.create') }}" class="btn btn-primary btn-lg"><i class="fa-solid fa-plus me-1"></i>Crear servicio en alquiler</a></div>
     </div>
     @include('layouts.partials.lp-flash')
+    @if ($ventaNueva)
+    @php $waF = $ventaNueva->whatsapp_numero ? 'https://wa.me/' . $ventaNueva->whatsapp_numero . '?text=' . rawurlencode('Hola 👋 Gracias por alquilar con ' . $negocio->nombre . '. Aquí está su factura ' . $ventaNueva->numero . ' por ' . dinero($ventaNueva->total) . ': ' . $ventaNueva->url_factura) : null; @endphp
+    <div class="lp-box mb-3 d-flex flex-wrap align-items-center gap-2" style="border-color:#2fd15a;background:#f4fcf6">
+        <div class="flex-grow-1"><b><i class="fa-solid fa-file-invoice me-1"></i>Factura {{ $ventaNueva->numero }} lista.</b> <span class="text-muted">Envíesela al responsable por WhatsApp.</span></div>
+        @if ($waF)<a href="{{ $waF }}" target="_blank" rel="noopener" class="btn btn-success"><i class="fa-brands fa-whatsapp me-1"></i>Enviar factura</a>@endif
+        <a href="{{ $ventaNueva->url_factura }}" target="_blank" class="btn btn-light"><i class="fa-solid fa-eye me-1"></i>Ver factura</a>
+        <a href="{{ route('pos.ticket', $ventaNueva) }}" target="_blank" class="btn btn-light"><i class="fa-solid fa-print me-1"></i>Imprimir</a>
+    </div>
+    @endif
 
     <div class="lp-kpis">
         <div class="lp-kpi hero"><div class="ic"><i class="fa-solid fa-calendar-check"></i></div><div class="lbl">Alquileres próximos</div><div class="val">{{ $kpi['proximos'] }}</div><div class="sub">Por {{ $f($kpi['valorProximos']) }} · hoy: {{ $kpi['hoy'] }}</div></div>
-        <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-sack-dollar"></i></div><div class="lbl">Realizados este mes</div><div class="val">{{ $f($kpi['mes']) }}</div><div class="sub">Valor de los alquileres hechos</div></div>
-        <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-clock-rotate-left"></i></div><div class="lbl">Sin marcar</div><div class="val">{{ $kpi['pendientes'] }}</div><div class="sub">Ya pasó la fecha: márquelos como realizados</div></div>
+        <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-sack-dollar"></i></div><div class="lbl">Ganancia de alquileres este mes</div><div class="val">{{ $f($kpi['gananciaMes']) }}</div><div class="sub">Cobrado {{ $f($kpi['mes']) }} · comisiones {{ $f($kpi['mes'] - $kpi['gananciaMes']) }}</div></div>
+        <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-clock-rotate-left"></i></div><div class="lbl">Sin cobrar</div><div class="val">{{ $kpi['pendientes'] }}</div><div class="sub">Ya pasó la fecha y no se han cobrado</div></div>
     </div>
 
     <div class="lp-box">
@@ -55,7 +64,7 @@
             <button class="btn btn-dark">Buscar</button>
         </form>
         <div class="aq-fil">
-            @foreach (['proximos' => 'Próximos', 'hoy' => 'Hoy', 'pendientes' => 'Sin marcar', 'realizados' => 'Realizados', 'cancelados' => 'Cancelados', 'todos' => 'Todos'] as $k => $v)
+            @foreach (['proximos' => 'Próximos', 'hoy' => 'Hoy', 'pendientes' => 'Sin cobrar', 'realizados' => 'Cobrados', 'cancelados' => 'Cancelados', 'todos' => 'Todos'] as $k => $v)
             <a href="{{ route('alquileres.index', ['ver' => $k, 'q' => $q ?: null]) }}" class="{{ $filtro === $k ? 'on' : '' }}">{{ $v }}</a>
             @endforeach
         </div>
@@ -64,7 +73,9 @@
         @php
             $esHoy = $a->fecha->isToday();
             $est = $a->estado !== 'programado' ? $a->estado : ($esHoy ? 'hoy' : ($a->vencido ? 'pendiente' : 'programado'));
-            $wa = $a->telefono_wa ? 'https://wa.me/' . $a->telefono_wa . '?text=' . rawurlencode('Hola 👋 Le escribimos por el alquiler ' . $a->numero . ': ' . $a->que_alquila . ' el ' . $a->fecha->format('d/m/Y') . ' a las ' . $a->hora_texto . ' en ' . $a->lugar . '.') : null;
+            $wa = !$a->telefono_wa ? null : 'https://wa.me/' . $a->telefono_wa . '?text=' . rawurlencode($a->venta
+                ? 'Hola 👋 Gracias por alquilar con ' . $negocio->nombre . '. Aquí está su factura ' . $a->venta->numero . ' del alquiler ' . $a->numero . ' (' . $a->que_alquila . ') por ' . dinero($a->valor) . ': ' . $a->venta->url_factura
+                : 'Hola 👋 Le escribimos de ' . $negocio->nombre . ' por el alquiler ' . $a->numero . ': ' . $a->que_alquila . ' el ' . $a->fecha->format('d/m/Y') . ' a las ' . $a->hora_texto . ' en ' . $a->lugar . '. Valor: ' . dinero($a->valor) . '.');
         @endphp
         <div class="aq-card">
             <div class="aq-fecha {{ $esHoy && $a->estado === 'programado' ? 'hoy' : '' }}"><small>{{ $meses[$a->fecha->month - 1] }}</small><b>{{ $a->fecha->format('d') }}</b><small>{{ $a->fecha->year != now()->year ? $a->fecha->year : $a->hora_texto }}</small></div>
@@ -77,18 +88,29 @@
             </div>
             <div class="m">
                 <small class="text-muted fw-bold">Valor</small><b>{{ $f($a->valor) }}</b>
-                <span class="aq-est {{ $est }}">{{ ['programado' => 'Programado', 'hoy' => '📅 Es hoy', 'pendiente' => 'Sin marcar', 'realizado' => '✅ Realizado', 'cancelado' => 'Cancelado'][$est] }}</span>
+                @if ($a->con_comision)<small class="d-block text-muted fw-semibold">Comisión −{{ $f($a->comision) }}</small><small class="d-block fw-bold" style="color:#11702f">Ganancia {{ $f($a->ganancia) }}</small>@endif
+                @if ($a->venta)<small class="d-block fw-bold">Venta {{ $a->venta->numero }}</small>@endif
+                <span class="aq-est {{ $est }}">{{ ['programado' => 'Programado', 'hoy' => '📅 Es hoy', 'pendiente' => 'Sin cobrar', 'realizado' => '✅ Cobrado', 'cancelado' => 'Cancelado'][$est] }}</span>
             </div>
             <div class="aq-acc w-100 justify-content-end">
-                @if ($wa)<a href="{{ $wa }}" target="_blank" rel="noopener" class="btn btn-sm btn-success"><i class="fa-brands fa-whatsapp me-1"></i>Responsable</a>@endif
-                @if ($a->estado === 'programado')
-                <form method="post" action="{{ route('alquileres.estado', $a) }}">@csrf<input type="hidden" name="estado" value="realizado"><button class="btn btn-sm btn-dark"><i class="fa-solid fa-check me-1"></i>Realizado</button></form>
+                @if ($wa)<a href="{{ $wa }}" target="_blank" rel="noopener" class="btn btn-sm btn-success"><i class="fa-brands fa-whatsapp me-1"></i>{{ $a->venta ? 'Enviar factura' : 'Responsable' }}</a>@endif
+                @if ($a->venta)
+                <a href="{{ $a->venta->url_factura }}" target="_blank" class="btn btn-sm btn-light"><i class="fa-solid fa-file-invoice me-1"></i>Factura</a>
+                @elseif ($a->estado === 'programado')
+                <form method="post" action="{{ route('alquileres.cobrar', $a) }}" class="d-inline-flex gap-1 align-items-center">@csrf
+                    <select name="metodo_id" class="form-select form-select-sm" style="width:auto" required>
+                        @foreach ($metodos as $m)<option value="{{ $m->id }}" @selected($m->es_efectivo)>{{ $m->nombre }}</option>@endforeach
+                    </select>
+                    <button class="btn btn-sm btn-dark" title="{{ $cajaAbierta ? '' : 'Primero se abre su caja' }}"><i class="fa-solid fa-cash-register me-1"></i>Cobrar y facturar</button>
+                </form>
                 <a href="{{ route('alquileres.edit', $a) }}" class="btn btn-sm btn-light"><i class="fa-solid fa-pen me-1"></i>Editar</a>
                 <form method="post" action="{{ route('alquileres.estado', $a) }}" data-confirm="¿Cancelar el alquiler {{ $a->numero }}?" data-confirm-ok="Sí, cancelar" data-peligro>@csrf<input type="hidden" name="estado" value="cancelado"><button class="btn btn-sm btn-light"><i class="fa-solid fa-ban me-1"></i>Cancelar</button></form>
                 @else
                 <form method="post" action="{{ route('alquileres.estado', $a) }}">@csrf<input type="hidden" name="estado" value="programado"><button class="btn btn-sm btn-light"><i class="fa-solid fa-rotate-left me-1"></i>Volver a programado</button></form>
                 @endif
+                @unless ($a->venta)
                 <form method="post" action="{{ route('alquileres.destroy', $a) }}" data-confirm="¿Eliminar el alquiler {{ $a->numero }}? No se puede deshacer." data-confirm-ok="Sí, eliminar" data-peligro>@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button></form>
+                @endunless
             </div>
         </div>
         @empty

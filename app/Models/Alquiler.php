@@ -12,11 +12,23 @@ class Alquiler extends Model
 
     protected $table = 'alquileres';
 
-    protected $fillable = ['numero', 'que_alquila', 'fecha', 'hora', 'lugar', 'responsable_telefono', 'nota', 'valor', 'estado', 'user_id'];
+    protected $fillable = ['numero', 'que_alquila', 'fecha', 'hora', 'lugar', 'responsable_telefono', 'nota', 'valor', 'con_comision', 'comision', 'estado', 'user_id', 'pos_venta_id', 'cobrado_en'];
 
-    protected $casts = ['fecha' => 'date', 'valor' => 'float'];
+    protected $casts = ['fecha' => 'date', 'valor' => 'float', 'comision' => 'float', 'con_comision' => 'boolean', 'cobrado_en' => 'datetime'];
 
     public function user() { return $this->belongsTo(User::class); }
+    public function venta() { return $this->belongsTo(PosVenta::class, 'pos_venta_id'); }
+
+    // Lo que le queda al local: valor del alquiler menos la comisión (si se paga comisión)
+    public function getGananciaAttribute(): float
+    {
+        return round($this->valor - ($this->con_comision ? $this->comision : 0), 2);
+    }
+
+    public function getCobradoAttribute(): bool
+    {
+        return (bool) $this->pos_venta_id;
+    }
 
     public function getHoraTextoAttribute(): string
     {

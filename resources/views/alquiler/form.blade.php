@@ -42,7 +42,24 @@
             </div>
             <div class="col-sm-6">
                 <label class="form-label fw-bold">Valor del alquiler *</label>
-                <input name="valor" type="number" min="0" class="form-control" required data-dinero placeholder="0" value="{{ old('valor', $alquiler->exists ? $alquiler->valor : '') }}">
+                <input name="valor" id="valor" type="number" min="0" class="form-control" required data-dinero placeholder="0" value="{{ old('valor', $alquiler->exists ? $alquiler->valor : '') }}">
+            </div>
+            <div class="col-12">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="conCom" name="con_comision" value="1" @checked(old('con_comision', $alquiler->con_comision))>
+                    <label class="form-check-label fw-bold" for="conCom">Pago de comisión</label>
+                </div>
+                <small class="text-muted">Actívelo si de este alquiler se paga una comisión (al dueño del equipo, a quien lo consiguió…). La ganancia del local es el valor menos la comisión.</small>
+            </div>
+            <div class="col-sm-6" id="boxCom" style="{{ old('con_comision', $alquiler->con_comision) ? '' : 'display:none' }}">
+                <label class="form-label fw-bold">Valor de la comisión *</label>
+                <input name="comision" id="comision" type="number" min="0" class="form-control" data-dinero placeholder="0" value="{{ old('comision', $alquiler->con_comision ? $alquiler->comision : '') }}">
+            </div>
+            <div class="col-sm-6 d-flex align-items-end" id="boxGan" style="{{ old('con_comision', $alquiler->con_comision) ? '' : 'display:none' }}">
+                <div class="w-100 rounded-4 p-3" style="background:#0b0d0c;color:#fff">
+                    <small class="fw-bold" style="color:#c9d3cc">Ganancia del local</small>
+                    <div class="fs-4 fw-bold" style="color:#2fd15a" id="ganancia">$0</div>
+                </div>
             </div>
             <div class="col-12">
                 <label class="form-label fw-bold">Nota <span class="text-muted fw-normal">(opcional)</span></label>
@@ -57,3 +74,26 @@
     </form>
 </div>
 @endsection
+
+@push('js')
+<script>
+(function () {
+    var chk = document.getElementById('conCom'), val = document.getElementById('valor'), com = document.getElementById('comision');
+    var boxC = document.getElementById('boxCom'), boxG = document.getElementById('boxGan'), out = document.getElementById('ganancia');
+    var M = window.LP_MONEDA || { miles: '.', decimales: 0 };
+    function num(el) { var v = parseFloat(String(el.value || '0').replace(/[^0-9.\-]/g, '')); return isNaN(v) ? 0 : v; }
+    function fmt(n) { return '$' + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, M.miles || '.'); }
+    function calc() {
+        boxC.style.display = boxG.style.display = chk.checked ? '' : 'none';
+        com.required = chk.checked;
+        var g = num(val) - (chk.checked ? num(com) : 0);
+        out.textContent = fmt(g);
+        out.style.color = g < 0 ? '#ff6f9c' : '#2fd15a';
+    }
+    chk.addEventListener('change', calc);
+    document.addEventListener('input', function () { setTimeout(calc, 0); }, true);
+    document.addEventListener('change', function () { setTimeout(calc, 0); }, true);
+    calc();
+})();
+</script>
+@endpush
