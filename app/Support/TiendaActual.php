@@ -48,7 +48,7 @@ class TiendaActual
         }
         return $u['gratis']
             ? "El plan Gratis permite hasta {$u['max']} productos. Pásate a Pro en \"Mi plan\" para crear más productos."
-            : "Su plan {$u['plan']} permite hasta {$u['max']} productos. Mejore su plan en \"Mi plan\" para crear más.";
+            : "Llegaste al límite de {$u['max']} productos de tu plan. Comunícate con soporte para ampliar la cantidad de productos.";
     }
 
     /** ['actual','max','plan','gratis'] o null si el plan no tiene límite */
