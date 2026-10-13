@@ -15,7 +15,7 @@
 @endphp
 <div class="{{ $envoltura }}">
     <label class="{{ $etiqueta }}" for="{{ $uid }}p">País</label>
-    <select class="{{ $claseSel }}" id="{{ $uid }}p" name="pais" required>
+    <select class="{{ $claseSel }}" id="{{ $uid }}p" name="pais" required autocomplete="off">
         @foreach (\App\Support\Paises::LISTA as $codigo => $p)
             <option value="{{ $codigo }}" @selected($paisSel === $codigo)>{{ $p[0] }} · {{ $p[1] }}</option>
         @endforeach
@@ -69,8 +69,18 @@
         Object.keys(g.datos).forEach(function (d) { dS.appendChild(opt(d, d, d === dep)); });
         ciudades(dep, primera ? ini.c : '');
     }
+    var pintado = null;
+    var pintarBase = pintar;
+    pintar = function (primera) { pintado = pais.value; pintarBase(primera); };
     pais.addEventListener('change', function () { pintar(false); });
     dS.addEventListener('change', function () { ciudades(dS.value, ''); });
     pintar(true);
+    // El navegador puede devolver el país que estaba elegido (al recargar o volver atrás) sin avisar:
+    // si el país cambió, se vuelven a cargar sus departamentos y ciudades
+    function revisar() { if (pais.value !== pintado) pintar(pais.value === @json($paisSel)); }
+    document.addEventListener('DOMContentLoaded', revisar);
+    window.addEventListener('pageshow', revisar);
+    window.addEventListener('load', revisar);
+    setTimeout(revisar, 300);
 })();
 </script>
