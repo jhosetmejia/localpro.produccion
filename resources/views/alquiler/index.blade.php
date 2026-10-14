@@ -46,7 +46,7 @@
 <div class="lp-dash">
     <div class="lp-hello">
         <div><small><i class="fa-solid fa-calendar-days me-1"></i>Ventas</small><h1>Alqui<span>ler</span></h1>
-            <span class="text-muted fw-semibold">Ponga en alquiler sus servicios: qué se alquila, fecha, hora, lugar, responsable y valor.</span></div>
+            <span class="text-muted fw-semibold">Ponga en alquiler sus servicios: qué se alquila, fecha, horario, lugar, quién contrata y valor.</span></div>
         <div class="lp-quick"><a href="{{ route('alquileres.create') }}" class="btn btn-primary btn-lg"><i class="fa-solid fa-plus me-1"></i>Crear servicio en alquiler</a></div>
     </div>
     @include('layouts.partials.lp-flash')
@@ -96,13 +96,13 @@
             $est = $a->estado !== 'programado' ? $a->estado : ($esHoy ? 'hoy' : ($a->vencido ? 'pendiente' : 'programado'));
             $wa = !$a->telefono_wa ? null : 'https://wa.me/' . $a->telefono_wa . '?text=' . rawurlencode($a->venta
                 ? 'Hola 👋 Gracias por alquilar con ' . $negocio->nombre . '. Aquí está su factura ' . $a->venta->numero . ' del alquiler ' . $a->numero . ' (' . $a->que_alquila . ') por ' . dinero($a->valor) . ': ' . $a->venta->url_factura
-                : 'Hola 👋 Le escribimos de ' . $negocio->nombre . ' por el alquiler ' . $a->numero . ': ' . $a->que_alquila . ' el ' . $a->fecha->format('d/m/Y') . ' a las ' . $a->hora_texto . ' en ' . $a->lugar . '. Valor: ' . dinero($a->valor) . '.');
+                : 'Hola 👋 Le escribimos de ' . $negocio->nombre . ' por el alquiler ' . $a->numero . ': ' . $a->que_alquila . ' el ' . $a->fecha->format('d/m/Y') . ', ' . $a->horario_texto . ' en ' . $a->lugar . '. Valor: ' . dinero($a->valor) . '.');
         @endphp
         <div class="aq-card">
             <div class="aq-fecha {{ $esHoy && $a->estado === 'programado' ? 'hoy' : '' }}"><small>{{ $meses[$a->fecha->month - 1] }}</small><b>{{ $a->fecha->format('d') }}</b><small>{{ $a->fecha->year != now()->year ? $a->fecha->year : $a->hora_texto }}</small></div>
             <div class="t">
                 <b><span class="num">{{ $a->numero }}</span>{{ $a->que_alquila }}</b>
-                <small><i class="fa-solid fa-clock"></i> {{ $a->fecha->format('d/m/Y') }} · {{ $a->hora_texto }}</small>
+                <small><i class="fa-solid fa-clock"></i> {{ $a->fecha->format('d/m/Y') }} · {{ $a->horario_texto }}</small>
                 <small><i class="fa-solid fa-location-dot"></i> {{ $a->lugar }}</small>
                 <small><i class="fa-solid fa-user"></i> Contrata: {{ $a->responsable_telefono }}</small>
                 @if ($a->encargado_nombre)<small><i class="fa-solid fa-user-gear"></i> Encargado: {{ $a->encargado_nombre }}@if ($a->encargado_telefono) · {{ $a->encargado_telefono }}@endif</small>@endif
