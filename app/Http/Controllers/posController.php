@@ -50,6 +50,14 @@ class posController extends Controller
                         ->orWhereHas('producto', fn ($p) => $p->where('nombre', 'like', "%$q%")->orWhere('codigo', 'like', "%$q%"));
                 });
             })
+            // Lo agotado no se carga (ahorra recursos): solo sale si lo buscan exacto por código o código de barras
+            ->where(function ($w) use ($q) {
+                $w->where('stock', '>', 0)
+                    ->orWhereHas('producto', fn ($p) => $p->where('controla_inventario', 0));
+                if ($q !== '') {
+                    $w->orWhere('codigo_barras', $q)->orWhereHas('producto', fn ($p) => $p->where('codigo', $q));
+                }
+            })
             ->orderByDesc('stock')
             ->limit(120)
             ->get();
@@ -88,9 +96,15 @@ class posController extends Controller
         // Si escanearon un código de barras exacto, el POS lo agrega directo
         $exacta = $q !== '' ? $variantes->firstWhere('codigo_barras', $q) : null;
 
+        // Lo buscaron exacto por código y está agotado: el POS avisa que hay que agregar existencia
+        $agotado = $productos->first(fn ($p) => $p['controla'] && $p['stock'] <= 0);
+        if ($exacta && $exacta->producto?->controla_inventario && (float) $exacta->stock <= 0) $exacta = null;
+
         return response()->json([
             'productos' => $productos,
             'exacta' => $exacta ? $exacta->id : null,
+            'agotado' => $agotado ? ['nombre' => $agotado['nombre'], 'codigo' => $agotado['codigo']] : null,
+            'hay_productos' => $productos->isNotEmpty() || \App\Models\Producto::where('estado', 1)->exists(),
         ]);
     }
 
