@@ -253,7 +253,7 @@ class alquilerController extends Controller
     // Formulario: métodos de pago y si hay caja abierta para recibir el pago ahí mismo
     private function datosPago(): array
     {
-        return ['metodos' => MetodoPago::activos()->get(['id', 'nombre', 'es_efectivo']), 'cajaAbierta' => (bool) Caja::abiertaDe(Auth::id())];
+        return ['metodos' => MetodoPago::activos()->where('es_credito', false)->get(['id', 'nombre', 'es_efectivo']), 'cajaAbierta' => (bool) Caja::abiertaDe(Auth::id())];
     }
 
     // Lo que eligió en "¿Cómo paga?": después, completo o abono. Devuelve null si paga después.
