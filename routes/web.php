@@ -210,6 +210,7 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::put('/alquileres/{alquiler}', [alquilerController::class, 'update'])->whereNumber('alquiler')->name('alquileres.update');
     Route::post('/alquileres/{alquiler}/cobrar', [alquilerController::class, 'cobrar'])->whereNumber('alquiler')->name('alquileres.cobrar');
     Route::post('/alquileres/{alquiler}/abonar', [alquilerController::class, 'abonar'])->whereNumber('alquiler')->name('alquileres.abonar');
+    Route::match(['post', 'put'], '/alquileres/{alquiler}/corregir-pago', [alquilerController::class, 'corregirPago'])->whereNumber('alquiler')->name('alquileres.corregirPago');
     Route::post('/alquileres/{alquiler}/entrega', [alquilerController::class, 'entrega'])->whereNumber('alquiler')->name('alquileres.entrega');
     Route::post('/alquileres/{alquiler}/estado', [alquilerController::class, 'estado'])->whereNumber('alquiler')->name('alquileres.estado');
     Route::delete('/alquileres/{alquiler}', [alquilerController::class, 'destroy'])->whereNumber('alquiler')->name('alquileres.destroy');
