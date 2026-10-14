@@ -12,7 +12,7 @@ class Alquiler extends Model
 
     protected $table = 'alquileres';
 
-    protected $fillable = ['numero', 'que_alquila', 'fecha', 'hora', 'hora_fin', 'lugar', 'responsable_telefono', 'encargado_nombre', 'encargado_telefono', 'encargado_valor', 'nota', 'valor', 'con_comision', 'comision', 'estado', 'user_id', 'pos_venta_id', 'cobrado_en', 'abonado', 'entrega', 'entregado_en', 'devuelto_en', 'devolucion_estado', 'devolucion_nota'];
+    protected $fillable = ['numero', 'que_alquila', 'fecha', 'hora', 'hora_fin', 'lugar', 'responsable_telefono', 'encargado_nombre', 'encargado_telefono', 'encargado_valor', 'encargado_nota', 'nota', 'valor', 'con_comision', 'comision', 'estado', 'user_id', 'pos_venta_id', 'cobrado_en', 'abonado', 'entrega', 'entregado_en', 'devuelto_en', 'devolucion_estado', 'devolucion_nota'];
 
     protected $casts = ['fecha' => 'date', 'valor' => 'float', 'comision' => 'float', 'con_comision' => 'boolean', 'cobrado_en' => 'datetime', 'abonado' => 'float', 'encargado_valor' => 'float', 'entregado_en' => 'datetime', 'devuelto_en' => 'datetime'];
 
@@ -69,7 +69,7 @@ class Alquiler extends Model
             '📍 *Lugar:* ' . $this->lugar,
             '📞 *Cliente:* ' . $this->responsable_telefono];
         if ($this->encargado_valor > 0) $l[] = '💵 *Valor de su turno:* ' . dinero($this->encargado_valor);
-        if ($this->nota) $l[] = '📝 *Nota:* ' . $this->nota;
+        if ($this->encargado_nota) $l[] = '📝 *Indicaciones:* ' . $this->encargado_nota;
         $l[] = '';
         $l[] = '⚠️ Por favor esté *1 hora antes*' . ($llegada ? ' (' . $llegada . ')' : '') . ' para evitar retrasos por el tráfico.';
         $l[] = '— ' . $negocio;
@@ -97,11 +97,12 @@ class Alquiler extends Model
         return $this->hora_fin ? $this->hora_texto . ' a ' . $this->hora_fin_texto : $this->hora_texto;
     }
 
-    // Detalle para la factura: fecha, horario y lugar del servicio
+    // Detalle para la factura: fecha, horario, lugar y la nota para el cliente
     public function getDetalleFacturaAttribute(): string
     {
         return 'Servicio el ' . $this->fecha?->format('d/m/Y') . ', ' . $this->horario_texto . ' · ' . $this->lugar
-            . ($this->encargado_nombre ? ' · Encargado: ' . $this->encargado_nombre : '');
+            . ($this->encargado_nombre ? ' · Encargado: ' . $this->encargado_nombre : '')
+            . ($this->nota ? '. Nota: ' . $this->nota : '');
     }
 
     public function getVencidoAttribute(): bool
