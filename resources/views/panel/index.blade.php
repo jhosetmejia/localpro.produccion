@@ -216,12 +216,13 @@
                 $lD = $pv ? $u->num_dia : $u->vendido_dia; $lM = $pv ? $u->num_mes : $u->vendido_mes;
                 $pd = $u->meta_dia > 0 ? min(100, round($lD / $u->meta_dia * 100)) : null;
                 $pm = $u->meta_mes > 0 ? min(100, round($lM / $u->meta_mes * 100)) : null;
-                $fm = fn ($n) => $pv ? (int) $n . ' ventas' : dinero($n);
+                // "1 de 30 ventas" o "$120.000 de $500.000": lo logrado contra la meta, sin porcentajes
+                $fm = fn ($logrado, $meta) => $pv ? (int) $logrado . ' de ' . (int) $meta . ((int) $meta === 1 ? ' venta' : ' ventas') : dinero($logrado) . ' de ' . dinero($meta);
             @endphp
             <div class="eq-f">
                 <div class="eq-n"><span class="eq-av">{{ mb_strtoupper(mb_substr($u->name, 0, 1)) }}</span><div><b>{{ $u->name }}</b><small>Hoy {{ $u->num_dia }} {{ $u->num_dia == 1 ? 'venta' : 'ventas' }} · @pesos($u->vendido_dia)</small><small class="d-block"><b style="display:inline;color:#11702f">{{ $u->num_mes }} ventas en el mes</b> · @pesos($u->vendido_mes)</small></div></div>
-                <div class="eq-m"><small>Meta de hoy {{ $pv ? '(ventas)' : '($)' }}</small>@if ($pd !== null)<span class="eq-b"><i style="width:{{ $pd }}%"></i></span><em>{{ $pd }}% de {{ $fm($u->meta_dia) }}</em>@else<em class="text-muted">Sin meta</em>@endif</div>
-                <div class="eq-m"><small>Meta del mes {{ $pv ? '(ventas)' : '($)' }}</small>@if ($pm !== null)<span class="eq-b"><i style="width:{{ $pm }}%"></i></span><em>{{ $pm }}% de {{ $fm($u->meta_mes) }}</em>@else<em class="text-muted">Sin meta</em>@endif</div>
+                <div class="eq-m"><small>Meta de hoy {{ $pv ? '(ventas)' : '($)' }}</small>@if ($pd !== null)<span class="eq-b"><i style="width:{{ $pd }}%"></i></span><em>{{ $fm($lD, $u->meta_dia) }}</em>@else<em class="text-muted">Sin meta</em>@endif</div>
+                <div class="eq-m"><small>Meta del mes {{ $pv ? '(ventas)' : '($)' }}</small>@if ($pm !== null)<span class="eq-b"><i style="width:{{ $pm }}%"></i></span><em>{{ $fm($lM, $u->meta_mes) }}</em>@else<em class="text-muted">Sin meta</em>@endif</div>
                 <button type="button" class="btn btn-sm eq-btn" onclick="this.nextElementSibling.classList.toggle('d-none')"><i class="fa-solid fa-bullseye me-1"></i>Meta</button>
                 <form method="post" action="{{ route('equipo.meta', $u) }}" class="eq-form d-none" data-sin-borrador>
                     @csrf
