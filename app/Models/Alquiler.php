@@ -12,9 +12,9 @@ class Alquiler extends Model
 
     protected $table = 'alquileres';
 
-    protected $fillable = ['numero', 'que_alquila', 'fecha', 'hora', 'hora_fin', 'lugar', 'responsable_telefono', 'encargado_nombre', 'encargado_telefono', 'nota', 'valor', 'con_comision', 'comision', 'estado', 'user_id', 'pos_venta_id', 'cobrado_en', 'abonado', 'entrega', 'entregado_en', 'devuelto_en', 'devolucion_estado', 'devolucion_nota'];
+    protected $fillable = ['numero', 'que_alquila', 'fecha', 'hora', 'hora_fin', 'lugar', 'responsable_telefono', 'encargado_nombre', 'encargado_telefono', 'encargado_valor', 'nota', 'valor', 'con_comision', 'comision', 'estado', 'user_id', 'pos_venta_id', 'cobrado_en', 'abonado', 'entrega', 'entregado_en', 'devuelto_en', 'devolucion_estado', 'devolucion_nota'];
 
-    protected $casts = ['fecha' => 'date', 'valor' => 'float', 'comision' => 'float', 'con_comision' => 'boolean', 'cobrado_en' => 'datetime', 'abonado' => 'float', 'entregado_en' => 'datetime', 'devuelto_en' => 'datetime'];
+    protected $casts = ['fecha' => 'date', 'valor' => 'float', 'comision' => 'float', 'con_comision' => 'boolean', 'cobrado_en' => 'datetime', 'abonado' => 'float', 'encargado_valor' => 'float', 'entregado_en' => 'datetime', 'devuelto_en' => 'datetime'];
 
     public function user() { return $this->belongsTo(User::class); }
     public function venta() { return $this->belongsTo(PosVenta::class, 'pos_venta_id'); }
@@ -41,10 +41,39 @@ class Alquiler extends Model
         };
     }
 
-    // Lo que le queda al local: valor del alquiler menos la comisión (si se paga comisión)
+    // Lo que cuesta prestar el servicio: comisión (si hay) + turno del encargado
+    public function getCostoServicioAttribute(): float
+    {
+        return round(($this->con_comision ? $this->comision : 0) + ($this->encargado_nombre ? (float) $this->encargado_valor : 0), 2);
+    }
+
+    // Lo que le queda al local: valor del alquiler menos la comisión y el turno del encargado
     public function getGananciaAttribute(): float
     {
-        return round($this->valor - ($this->con_comision ? $this->comision : 0), 2);
+        return round($this->valor - $this->costo_servicio, 2);
+    }
+
+    public function getEncargadoWaAttribute(): ?string
+    {
+        return $this->encargado_telefono ? numero_whatsapp($this->encargado_telefono) : null;
+    }
+
+    // Mensaje de WhatsApp para el encargado con los detalles del evento
+    public function mensajeEncargado(string $negocio): string
+    {
+        $llegada = $this->hora ? \Carbon\Carbon::parse($this->hora)->subHour()->format('g:i a') : null;
+        $l = ['Hola ' . $this->encargado_nombre . ' 👋 Le comparto los detalles del evento (' . $this->numero . '):', '',
+            '📦 *Servicio:* ' . $this->que_alquila,
+            '📅 *Fecha:* ' . $this->fecha?->format('d/m/Y'),
+            '🕐 *Horario:* ' . $this->horario_texto,
+            '📍 *Lugar:* ' . $this->lugar,
+            '📞 *Cliente:* ' . $this->responsable_telefono];
+        if ($this->encargado_valor > 0) $l[] = '💵 *Valor de su turno:* ' . dinero($this->encargado_valor);
+        if ($this->nota) $l[] = '📝 *Nota:* ' . $this->nota;
+        $l[] = '';
+        $l[] = '⚠️ Por favor esté *1 hora antes*' . ($llegada ? ' (' . $llegada . ')' : '') . ' para evitar retrasos por el tráfico.';
+        $l[] = '— ' . $negocio;
+        return implode("\n", $l);
     }
 
     public function getCobradoAttribute(): bool
