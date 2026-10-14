@@ -73,7 +73,7 @@
 
     <div class="lp-kpis">
         <div class="lp-kpi hero"><div class="ic"><i class="fa-solid fa-calendar-check"></i></div><div class="lbl">Alquileres próximos</div><div class="val">{{ $kpi['proximos'] }}</div><div class="sub">Por {{ $f($kpi['valorProximos']) }} · hoy: {{ $kpi['hoy'] }}</div></div>
-        <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-sack-dollar"></i></div><div class="lbl">Ganancia de alquileres este mes</div><div class="val">{{ $f($kpi['gananciaMes']) }}</div><div class="sub">Cobrado {{ $f($kpi['mes']) }} · comisiones {{ $f($kpi['mes'] - $kpi['gananciaMes']) }}</div></div>
+        <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-sack-dollar"></i></div><div class="lbl">Ganancia de alquileres este mes</div><div class="val">{{ $f($kpi['gananciaMes']) }}</div><div class="sub">Cobrado {{ $f($kpi['mes']) }} · comisiones y turnos {{ $f($kpi['mes'] - $kpi['gananciaMes']) }}</div></div>
         <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-hand-holding-dollar"></i></div><div class="lbl">Abonando</div><div class="val">{{ $kpi['abonando'] }}</div><div class="sub">Les falta {{ $f($kpi['saldoAbonando']) }} · sin cobrar (fecha pasada): {{ $kpi['pendientes'] }}</div></div>
         <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-key"></i></div><div class="lbl">En manos del cliente</div><div class="val">{{ $kpi['alquilados'] }}</div><div class="sub">{{ $kpi['vencidosSinDevolver'] ? $kpi['vencidosSinDevolver'] . ' ya pasaron la fecha y no han devuelto' : 'Pendientes por devolver' }}</div></div>
     </div>
@@ -105,8 +105,11 @@
                 <small><i class="fa-solid fa-clock"></i> {{ $a->fecha->format('d/m/Y') }} · {{ $a->horario_texto }}</small>
                 <small><i class="fa-solid fa-location-dot"></i> {{ $a->lugar }}</small>
                 <small><i class="fa-solid fa-user"></i> Contrata: {{ $a->responsable_telefono }}</small>
-                @if ($a->encargado_nombre)<small><i class="fa-solid fa-user-gear"></i> Encargado: {{ $a->encargado_nombre }}@if ($a->encargado_telefono) · {{ $a->encargado_telefono }}@endif</small>@endif
-                @if ($a->nota)<small class="nota"><i class="fa-solid fa-note-sticky"></i> {{ $a->nota }}</small>@endif
+                @if ($a->encargado_nombre)<small><i class="fa-solid fa-user-gear"></i> Encargado: {{ $a->encargado_nombre }}@if ($a->encargado_telefono) · {{ $a->encargado_telefono }}@endif @if ($a->encargado_valor > 0)· turno {{ $f($a->encargado_valor) }}@endif</small>
+                @if ($a->encargado_wa && $a->estado !== 'cancelado')<a href="https://wa.me/{{ $a->encargado_wa }}?text={{ rawurlencode($a->mensajeEncargado($negocio->nombre)) }}" target="_blank" rel="noopener" class="btn btn-sm btn-light mt-1 align-self-start" style="width:fit-content"><i class="fa-brands fa-whatsapp me-1" style="color:#16b34a"></i>Enviar detalles del evento al encargado</a>@endif
+                @endif
+                @if ($a->nota)<small class="nota"><i class="fa-solid fa-note-sticky"></i> Cliente: {{ $a->nota }}</small>@endif
+                @if ($a->encargado_nota)<small class="nota"><i class="fa-solid fa-clipboard-list"></i> Encargado: {{ $a->encargado_nota }}</small>@endif
             </div>
             <div class="m">
                 <small class="text-muted fw-bold">Valor</small><b>{{ $f($a->valor) }}</b>
