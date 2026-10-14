@@ -104,7 +104,8 @@
                 <b><span class="num">{{ $a->numero }}</span>{{ $a->que_alquila }}</b>
                 <small><i class="fa-solid fa-clock"></i> {{ $a->fecha->format('d/m/Y') }} · {{ $a->hora_texto }}</small>
                 <small><i class="fa-solid fa-location-dot"></i> {{ $a->lugar }}</small>
-                <small><i class="fa-solid fa-user"></i> Responsable: {{ $a->responsable_telefono }}</small>
+                <small><i class="fa-solid fa-user"></i> Contrata: {{ $a->responsable_telefono }}</small>
+                @if ($a->encargado_nombre)<small><i class="fa-solid fa-user-gear"></i> Encargado: {{ $a->encargado_nombre }}@if ($a->encargado_telefono) · {{ $a->encargado_telefono }}@endif</small>@endif
                 @if ($a->nota)<small class="nota"><i class="fa-solid fa-note-sticky"></i> {{ $a->nota }}</small>@endif
             </div>
             <div class="m">
@@ -120,7 +121,7 @@
                 @if ($a->estado !== 'cancelado')<br><span class="aq-ent {{ $a->entrega === 'devuelto' && $a->devolucion_estado === 'con_novedad' ? 'novedad' : $a->entrega }}">{{ $a->entrega_texto }}</span>@endif
             </div>
             <div class="aq-acc w-100 justify-content-end">
-                @if ($wa)<a href="{{ $wa }}" target="_blank" rel="noopener" class="btn btn-sm btn-success"><i class="fa-brands fa-whatsapp me-1"></i>{{ $a->venta ? 'Enviar factura' : 'Responsable' }}</a>@endif
+                @if ($wa)<a href="{{ $wa }}" target="_blank" rel="noopener" class="btn btn-sm btn-success"><i class="fa-brands fa-whatsapp me-1"></i>{{ $a->venta ? 'Enviar factura' : 'Escribir al cliente' }}</a>@endif
                 @if ($a->venta)
                 <a href="{{ $a->venta->url_factura }}" target="_blank" class="btn btn-sm btn-light"><i class="fa-solid fa-file-invoice me-1"></i>Factura</a>
                 @if ($esAdmin)<a href="{{ route('alquileres.edit', $a) }}" class="btn btn-sm btn-light" title="Solo administrador"><i class="fa-solid fa-pen me-1"></i>Editar</a>@endif
