@@ -30,6 +30,7 @@ class negocioController extends Controller
             'mod_medida' => 'nullable|boolean',
             'mod_vencimiento' => 'nullable|boolean',
             'mod_recetas' => 'nullable|boolean',
+            'mod_alquiler' => 'nullable|boolean',
             'pais' => ['required', \Illuminate\Validation\Rule::in(array_keys(\App\Support\Paises::LISTA))],
             'tipo_negocio' => ['required', \Illuminate\Validation\Rule::in(array_keys(\App\Models\Tienda::TIPOS))],
             'nit' => 'nullable|string|max:30',
@@ -65,7 +66,7 @@ class negocioController extends Controller
         unset($datos['logo']);
         $datos['catalogo_activo'] = $request->boolean('catalogo_activo');
         $datos['cliente_obligatorio'] = $request->boolean('cliente_obligatorio');
-        foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas'] as $m) {
+        foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler'] as $m) {
             $datos[$m] = $request->boolean($m);
         }
         $datos['usa_tallas'] = \App\Models\Tienda::TIPOS[$datos['tipo_negocio']][2];

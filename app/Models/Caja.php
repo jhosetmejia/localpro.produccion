@@ -52,18 +52,27 @@ class Caja extends Model
     }
 
     /**
-     * Abonos de separados recibidos en esta caja, por método.
+     * Abonos de separados y de alquileres recibidos en esta caja, por método.
      */
     public function abonosPorMetodo()
     {
-        if (!\Illuminate\Support\Facades\Schema::hasTable('separado_abonos')) return collect();
-        return DB::table('separado_abonos as a')
-            ->join('metodos_pago as m', 'm.id', '=', 'a.metodo_pago_id')
-            ->where('a.caja_id', $this->id)
-            ->where('a.anulado', false)
-            ->groupBy('m.id', 'm.nombre', 'm.es_efectivo')
-            ->select('m.id', 'm.nombre', 'm.es_efectivo', DB::raw('SUM(a.monto) as total'), DB::raw('COUNT(*) as ventas'))
-            ->get();
+        $filas = collect();
+        foreach (['separado_abonos', 'alquiler_abonos'] as $tabla) {
+            if (!\Illuminate\Support\Facades\Schema::hasTable($tabla)) continue;
+            $filas = $filas->concat(DB::table($tabla . ' as a')
+                ->join('metodos_pago as m', 'm.id', '=', 'a.metodo_pago_id')
+                ->where('a.caja_id', $this->id)
+                ->where('a.anulado', false)
+                ->groupBy('m.id', 'm.nombre', 'm.es_efectivo')
+                ->select('m.id', 'm.nombre', 'm.es_efectivo', DB::raw('SUM(a.monto) as total'), DB::raw('COUNT(*) as ventas'))
+                ->get());
+        }
+        return $filas->groupBy('id')->map(function ($g) {
+            $f = clone $g->first();
+            $f->total = $g->sum('total');
+            $f->ventas = $g->sum('ventas');
+            return $f;
+        })->values();
     }
 
     public function totalAbonos(): float

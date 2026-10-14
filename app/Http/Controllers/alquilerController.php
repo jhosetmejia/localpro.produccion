@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Alquiler;
+use App\Models\AlquilerAbono;
 use App\Models\Caja;
 use App\Models\MetodoPago;
 use App\Models\Negocio;
@@ -15,6 +16,7 @@ use App\Support\Validar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 // Alquileres: el negocio pone en alquiler un servicio con fecha, hora, lugar, responsable y valor
 class alquilerController extends Controller
@@ -24,6 +26,10 @@ class alquilerController extends Controller
         $this->middleware(function ($request, $next) {
             $u = $request->user();
             abort_unless($u && ($u->es_superadmin || $u->can('usar-alquileres') || $u->can('usar-pos')), 403);
+            // Solo para negocios que manejan alquiler (se activa en Datos del negocio → Módulos)
+            if (!TiendaActual::tienda()?->mod_alquiler) {
+                return redirect('/')->with('info', 'Su negocio no tiene activado Alquiler. Si lo maneja, actívelo en Datos del negocio → "Módulos de su negocio".');
+            }
             return $next($request);
         });
     }
@@ -32,10 +38,12 @@ class alquilerController extends Controller
     {
         $filtro = $request->get('ver', 'proximos');
         $q = trim((string) $request->get('q'));
-        $lista = Alquiler::with('venta')
+        $lista = Alquiler::with(['venta', 'abonos.metodo'])
             ->when($filtro === 'proximos', fn ($w) => $w->where('estado', 'programado')->whereDate('fecha', '>=', today()))
             ->when($filtro === 'hoy', fn ($w) => $w->where('estado', 'programado')->whereDate('fecha', today()))
             ->when($filtro === 'pendientes', fn ($w) => $w->where('estado', 'programado')->whereDate('fecha', '<', today()))
+            ->when($filtro === 'abonando', fn ($w) => $w->where('estado', 'programado')->where('abonado', '>', 0))
+            ->when($filtro === 'alquilados', fn ($w) => $w->where('estado', '!=', 'cancelado')->where('entrega', 'alquilado'))
             ->when($filtro === 'realizados', fn ($w) => $w->where('estado', 'realizado'))
             ->when($filtro === 'cancelados', fn ($w) => $w->where('estado', 'cancelado'))
             ->when($q !== '', fn ($w) => $w->where(fn ($x) => $x->where('numero', 'like', "%$q%")->orWhere('que_alquila', 'like', "%$q%")->orWhere('lugar', 'like', "%$q%")->orWhere('responsable_telefono', 'like', "%$q%")))
@@ -50,6 +58,10 @@ class alquilerController extends Controller
                 'valorProximos' => (float) (clone $prog)->whereDate('fecha', '>=', today())->sum('valor'),
                 'hoy' => (clone $prog)->whereDate('fecha', today())->count(),
                 'pendientes' => (clone $prog)->whereDate('fecha', '<', today())->count(),
+                'abonando' => (clone $prog)->where('abonado', '>', 0)->count(),
+                'saldoAbonando' => (float) (clone $prog)->where('abonado', '>', 0)->sum(DB::raw('GREATEST(valor - abonado, 0)')),
+                'alquilados' => Alquiler::where('estado', '!=', 'cancelado')->where('entrega', 'alquilado')->count(),
+                'vencidosSinDevolver' => Alquiler::where('estado', '!=', 'cancelado')->where('entrega', 'alquilado')->whereDate('fecha', '<', today())->count(),
                 'mes' => (float) Alquiler::where('estado', 'realizado')->whereYear('fecha', now()->year)->whereMonth('fecha', now()->month)->sum('valor'),
                 'gananciaMes' => (float) Alquiler::where('estado', 'realizado')->whereYear('fecha', now()->year)->whereMonth('fecha', now()->month)
                     ->sum(DB::raw('valor - CASE WHEN con_comision = 1 THEN comision ELSE 0 END')),
@@ -57,6 +69,7 @@ class alquilerController extends Controller
             'metodos' => MetodoPago::activos()->get(['id', 'nombre', 'es_efectivo']),
             'cajaAbierta' => (bool) Caja::abiertaDe(Auth::id()),
             'ventaNueva' => session('alq_venta') ? PosVenta::find(session('alq_venta')) : null,
+            'abonoNuevo' => session('alq_abono') ? AlquilerAbono::with('alquiler', 'metodo')->find(session('alq_abono')) : null,
             'negocio' => Negocio::datos(),
         ]);
     }
@@ -86,85 +99,169 @@ class alquilerController extends Controller
     public function update(Request $request, Alquiler $alquiler)
     {
         if ($alquiler->cobrado) return redirect()->route('alquileres.index')->withErrors('El alquiler ' . $alquiler->numero . ' ya se cobró; no se puede editar.');
-        $alquiler->update($this->validar($request));
+        $d = $this->validar($request);
+        if ($d['valor'] + 0.001 < $alquiler->abonado) {
+            throw ValidationException::withMessages(['valor' => 'Ya abonaron ' . dinero($alquiler->abonado) . '. El valor no puede quedar por debajo de eso.']);
+        }
+        $alquiler->update($d);
         return redirect()->route('alquileres.index', ['ver' => $alquiler->estado === 'programado' ? ($alquiler->fecha->lt(today()) ? 'pendientes' : 'proximos') : $alquiler->estado . 's'])
             ->with('success', 'Alquiler ' . $alquiler->numero . ' actualizado.');
     }
 
     public function estado(Request $request, Alquiler $alquiler)
     {
-        $nuevo = $request->validate(['estado' => 'required|in:programado,cancelado'])['estado'];
+        $nuevo = $request->validate(['estado' => 'required|in:programado,cancelado', 'devolver' => 'nullable|boolean'])['estado'];
         if ($alquiler->cobrado) {
             return back()->withErrors('El alquiler ' . $alquiler->numero . ' ya se cobró con la venta ' . $alquiler->venta?->numero . '. Si hubo un error, anule esa venta en Ventas.');
         }
-        $alquiler->update(['estado' => $nuevo]);
+        $devolver = $nuevo === 'cancelado' && $request->boolean('devolver') && $alquiler->abonado > 0;
+        $caja = Caja::abiertaDe(Auth::id());
+        if ($devolver && !$caja) return redirect()->route('cajas.abrir')->with('info', 'Abra su caja para devolver los abonos del alquiler ' . $alquiler->numero . '.');
+
+        DB::transaction(function () use ($alquiler, $nuevo, $devolver, $caja) {
+            $a = Alquiler::whereKey($alquiler->id)->lockForUpdate()->first();
+            if ($devolver) {
+                $metodo = MetodoPago::activos()->where('es_efectivo', true)->first() ?? MetodoPago::activos()->first();
+                AlquilerAbono::create([
+                    'alquiler_id' => $a->id, 'numero' => AlquilerAbono::siguienteNumero(), 'caja_id' => $caja->id, 'user_id' => Auth::id(),
+                    'metodo_pago_id' => $metodo->id, 'monto' => -$a->abonado, 'saldo_despues' => $a->valor, 'nota' => 'Devolución por cancelación',
+                ]);
+                $a->abonado = 0;
+            }
+            $a->estado = $nuevo;
+            $a->save();
+        });
+        if ($devolver) return back()->with('success', 'El alquiler ' . $alquiler->numero . ' quedó cancelado y se devolvieron ' . dinero($alquiler->abonado) . ' de su caja.');
         $txt = ['programado' => 'vuelve a quedar programado', 'realizado' => 'quedó como realizado', 'cancelado' => 'quedó cancelado'][$nuevo];
         return back()->with('success', 'El alquiler ' . $alquiler->numero . ' ' . $txt . '.');
     }
 
-    // Cobrar: queda registrado como venta en la caja (con su factura / tiquete) y el alquiler pasa a realizado.
-    // El costo de la venta es la comisión, así la ganancia del local = valor del alquiler − comisión.
+    // Pagó todo de una vez: queda como venta en la caja (con su factura) con el método con que pagaron.
     public function cobrar(Request $request, Alquiler $alquiler)
     {
         $d = $request->validate(['metodo_id' => 'required|integer', 'referencia' => 'nullable|string|max:60'], ['metodo_id.required' => 'Elija cómo le pagaron.']);
-        if ($alquiler->cobrado) return back()->withErrors('Este alquiler ya se cobró.');
+        $request->merge(['monto' => $alquiler->saldo]);
+        return $this->abonar($request, $alquiler);
+    }
+
+    // Abono: el cliente paga una parte (o lo que falta). Cada abono entra a la caja.
+    // Si con este pago queda pagado completo, se factura: el alquiler queda como venta y pasa a "Cobrado".
+    public function abonar(Request $request, Alquiler $alquiler)
+    {
+        $d = $request->validate(['monto' => 'required|numeric|min:1', 'metodo_id' => 'required|integer', 'nota' => 'nullable|string|max:255', 'referencia' => 'nullable|string|max:60'],
+            ['monto.required' => 'Escriba cuánto paga.', 'metodo_id.required' => 'Elija cómo le pagaron.']);
+        if ($alquiler->cobrado) return back()->withErrors('Este alquiler ya está pagado y facturado.');
         if ($alquiler->estado === 'cancelado') return back()->withErrors('Este alquiler está cancelado.');
         $caja = Caja::abiertaDe(Auth::id());
-        if (!$caja) return redirect()->route('cajas.abrir')->with('info', 'Abra su caja para cobrar el alquiler ' . $alquiler->numero . '.');
+        if (!$caja) return redirect()->route('cajas.abrir')->with('info', 'Abra su caja para recibir el pago del alquiler ' . $alquiler->numero . '.');
         $metodo = MetodoPago::activos()->whereKey($d['metodo_id'])->first();
         if (!$metodo) return back()->withErrors('Ese método de pago no está disponible.');
 
-        $venta = DB::transaction(function () use ($alquiler, $caja, $metodo, $d) {
+        [$a, $abono, $venta] = DB::transaction(function () use ($alquiler, $caja, $metodo, $d) {
             $a = Alquiler::whereKey($alquiler->id)->lockForUpdate()->first();
-            if ($a->pos_venta_id) return PosVenta::find($a->pos_venta_id);
+            if ($a->pos_venta_id) return [$a, null, PosVenta::find($a->pos_venta_id)];
+            $monto = round((float) $d['monto'], 2);
+            if ($monto > $a->saldo + 0.001) {
+                throw ValidationException::withMessages(['monto' => 'Solo falta ' . dinero($a->saldo) . '. No puede pagar más que eso.']);
+            }
 
-            $tienda = Tienda::whereKey(TiendaActual::id())->lockForUpdate()->first();
-            $tipoDoc = Facturador::tipoDocumento($tienda, false);
-            Facturador::asegurarNumeracion($tienda, $tipoDoc);
-            $impuesto = Facturador::impuestoPorDefecto($tienda);
-            $imp = Impuestos::calcular([['total' => (float) $a->valor, 'impuesto' => $impuesto]], 0);
-            $li = $imp['lineas'][0];
+            // Paga todo de una sola vez y sin abonos antes: venta normal con el método real
+            if ($a->abonado <= 0 && $monto + 0.001 >= $a->valor) {
+                $a->abonado = $a->valor;
+                $venta = $this->facturar($a, $caja, $metodo, $d['referencia'] ?? $a->numero);
+                return [$a, null, $venta];
+            }
 
-            $venta = PosVenta::create([
-                'numero' => $tienda->siguienteNumeroPos(),
-                'tipo_doc' => $tipoDoc,
-                'base_gravable' => $imp['base'],
-                'impuestos' => $imp['impuestos'],
-                'impuestos_detalle' => $imp['detalle'] ?: null,
-                'adquiriente' => $tipoDoc !== 'tiquete' ? Facturador::adquiriente(null) : null,
-                'caja_id' => $caja->id,
-                'user_id' => Auth::id(),
-                'cliente_nombre' => 'Alquiler ' . $a->numero,
-                'cliente_telefono' => $a->responsable_telefono,
-                'subtotal' => $a->valor,
-                'descuento' => 0,
-                'total' => $a->valor,
-                'cambio' => 0,
-                'estado' => 'pagada',
+            $a->abonado = round($a->abonado + $monto, 2);
+            $a->save();
+            $abono = AlquilerAbono::create([
+                'alquiler_id' => $a->id, 'numero' => AlquilerAbono::siguienteNumero(), 'caja_id' => $caja->id, 'user_id' => Auth::id(),
+                'metodo_pago_id' => $metodo->id, 'monto' => $monto, 'saldo_despues' => $a->saldo, 'nota' => $d['nota'] ?? null,
             ]);
-            $venta->items()->create([
-                'descripcion' => mb_substr('Alquiler ' . $a->numero . ': ' . $a->que_alquila, 0, 120),
-                'cantidad' => 1,
-                'precio' => $a->valor,
-                'costo' => $a->con_comision ? $a->comision : 0,
-                'subtotal' => $a->valor,
-                'impuesto' => $li['impuesto'], 'iva_tasa' => $li['tasa'], 'base' => $li['base'], 'iva_valor' => $li['iva'],
-            ]);
-            $venta->pagos()->create(['metodo_pago_id' => $metodo->id, 'monto' => $a->valor, 'referencia' => $d['referencia'] ?? $a->numero]);
-            Facturador::enviarDespues(Facturador::registrarVenta($venta));
-
-            $a->update(['estado' => 'realizado', 'pos_venta_id' => $venta->id, 'cobrado_en' => now()]);
-            return $venta;
+            // Con este abono quedó pagado: se factura (el dinero ya entró con los abonos)
+            $venta = $a->pagado ? $this->facturar($a, $caja, MetodoPago::pagadoConAbonos(), $a->numero) : null;
+            return [$a, $abono, $venta];
         });
 
-        return redirect()->route('alquileres.index', ['ver' => 'realizados'])
-            ->with('success', 'Alquiler ' . $alquiler->numero . ' cobrado: quedó como la venta ' . $venta->numero . ' en su caja.' . ($alquiler->con_comision ? ' Ganancia del local: ' . dinero($alquiler->ganancia) . ' (comisión ' . dinero($alquiler->comision) . ').' : ''))
-            ->with('alq_venta', $venta->id);
+        $r = redirect()->route('alquileres.index', ['ver' => $venta ? 'realizados' : 'abonando']);
+        if ($venta) {
+            return $r->with('success', 'Alquiler ' . $a->numero . ' pagado completo' . ($abono ? ' con el abono ' . $abono->numero : '') . ': quedó como la venta ' . $venta->numero . ' en su caja.'
+                . ($a->con_comision ? ' Ganancia del local: ' . dinero($a->ganancia) . ' (comisión ' . dinero($a->comision) . ').' : ''))
+                ->with('alq_venta', $venta->id);
+        }
+        return $r->with('success', 'Abono ' . $abono->numero . ' de ' . dinero($abono->monto) . ' al alquiler ' . $a->numero . '. Lleva ' . dinero($a->abonado) . ', le falta ' . dinero($a->saldo) . '.')
+            ->with('alq_abono', $abono->id);
+    }
+
+    // Crea la venta (factura / tiquete) del alquiler. El costo es la comisión: ganancia = valor − comisión.
+    private function facturar(Alquiler $a, Caja $caja, MetodoPago $metodo, string $referencia): PosVenta
+    {
+        $tienda = Tienda::whereKey(TiendaActual::id())->lockForUpdate()->first();
+        $tipoDoc = Facturador::tipoDocumento($tienda, false);
+        Facturador::asegurarNumeracion($tienda, $tipoDoc);
+        $impuesto = Facturador::impuestoPorDefecto($tienda);
+        $imp = Impuestos::calcular([['total' => (float) $a->valor, 'impuesto' => $impuesto]], 0);
+        $li = $imp['lineas'][0];
+
+        $venta = PosVenta::create([
+            'numero' => $tienda->siguienteNumeroPos(),
+            'tipo_doc' => $tipoDoc,
+            'base_gravable' => $imp['base'],
+            'impuestos' => $imp['impuestos'],
+            'impuestos_detalle' => $imp['detalle'] ?: null,
+            'adquiriente' => $tipoDoc !== 'tiquete' ? Facturador::adquiriente(null) : null,
+            'caja_id' => $caja->id,
+            'user_id' => Auth::id(),
+            'cliente_nombre' => 'Alquiler ' . $a->numero,
+            'cliente_telefono' => $a->responsable_telefono,
+            'subtotal' => $a->valor,
+            'descuento' => 0,
+            'total' => $a->valor,
+            'cambio' => 0,
+            'estado' => 'pagada',
+        ]);
+        $venta->items()->create([
+            'descripcion' => mb_substr('Alquiler ' . $a->numero . ': ' . $a->que_alquila, 0, 120),
+            'cantidad' => 1,
+            'precio' => $a->valor,
+            'costo' => $a->con_comision ? $a->comision : 0,
+            'subtotal' => $a->valor,
+            'impuesto' => $li['impuesto'], 'iva_tasa' => $li['tasa'], 'base' => $li['base'], 'iva_valor' => $li['iva'],
+        ]);
+        $venta->pagos()->create(['metodo_pago_id' => $metodo->id, 'monto' => $a->valor, 'referencia' => $referencia]);
+        Facturador::enviarDespues(Facturador::registrarVenta($venta));
+
+        $a->update(['estado' => 'realizado', 'pos_venta_id' => $venta->id, 'cobrado_en' => now(), 'abonado' => $a->valor]);
+        return $venta;
+    }
+
+    // Entrega y devolución de lo alquilado: por entregar → alquilado (lo tiene el cliente) → devuelto (en orden o con novedad)
+    public function entrega(Request $request, Alquiler $alquiler)
+    {
+        $d = $request->validate([
+            'accion' => 'required|in:entregar,devolver,deshacer',
+            'devolucion_estado' => 'nullable|required_if:accion,devolver|in:en_orden,con_novedad',
+            'devolucion_nota' => 'nullable|required_if:devolucion_estado,con_novedad|string|max:255',
+        ], ['devolucion_nota.required_if' => 'Escriba qué novedad tuvo (daño, faltante…).']);
+        if ($alquiler->estado === 'cancelado') return back()->withErrors('Este alquiler está cancelado.');
+
+        if ($d['accion'] === 'entregar') {
+            $alquiler->update(['entrega' => 'alquilado', 'entregado_en' => now(), 'devuelto_en' => null, 'devolucion_estado' => null, 'devolucion_nota' => null]);
+            $msg = 'Alquiler ' . $alquiler->numero . ': quedó en manos del cliente (alquilado).' . ($alquiler->pagado ? '' : ' Ojo: aún le falta pagar ' . dinero($alquiler->saldo) . '.');
+        } elseif ($d['accion'] === 'devolver') {
+            $alquiler->update(['entrega' => 'devuelto', 'devuelto_en' => now(), 'entregado_en' => $alquiler->entregado_en ?? now(), 'devolucion_estado' => $d['devolucion_estado'], 'devolucion_nota' => $d['devolucion_nota'] ?? null]);
+            $msg = 'Alquiler ' . $alquiler->numero . ': ' . ($d['devolucion_estado'] === 'en_orden' ? 'devuelto en orden.' : 'devuelto con novedad.') . ($alquiler->pagado ? '' : ' Aún le falta pagar ' . dinero($alquiler->saldo) . '.');
+        } else {
+            $alquiler->update(['entrega' => 'pendiente', 'entregado_en' => null, 'devuelto_en' => null, 'devolucion_estado' => null, 'devolucion_nota' => null]);
+            $msg = 'Alquiler ' . $alquiler->numero . ' vuelve a quedar por entregar.';
+        }
+        return back()->with('success', $msg);
     }
 
     public function destroy(Alquiler $alquiler)
     {
         if ($alquiler->cobrado) return back()->withErrors('El alquiler ' . $alquiler->numero . ' ya se cobró; no se puede eliminar. Si hubo un error, anule la venta ' . $alquiler->venta?->numero . '.');
+        if ($alquiler->abonos()->exists()) return back()->withErrors('El alquiler ' . $alquiler->numero . ' tiene abonos; no se puede eliminar. Cancélelo y devuelva los abonos si es necesario.');
         $num = $alquiler->numero;
         $alquiler->delete();
         return redirect()->route('alquileres.index')->with('success', 'Alquiler ' . $num . ' eliminado.');

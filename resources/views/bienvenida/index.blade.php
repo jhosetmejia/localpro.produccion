@@ -120,6 +120,7 @@
                     'mod_medida' => ['fa-ruler-combined', 'Vendo por metro, kilo o litro', 'Ej: vidrio, telas, cables, carnes, granos. En la caja se venden medidas como 1,5 m o 0,250 kg.'],
                     'mod_vencimiento' => ['fa-calendar-xmark', 'Mis productos tienen fecha de vencimiento', 'Ej: droguería, alimentos, cosméticos. Le avisamos lo que está por vencer.'],
                     'mod_recetas' => ['fa-bowl-food', 'Preparo productos con insumos (recetas)', 'Ej: restaurante, panadería. Al vender se descuentan los ingredientes.'],
+                    'mod_alquiler' => ['fa-calendar-days', '¿Maneja alquiler?', 'Ej: sonido, trajes, salones, carpas, equipos. Lleva fechas, abonos y si ya le devolvieron. Si no alquila, déjelo apagado.'],
                 ] as $k => [$ic, $tit, $txt])
                 <label class="mod">
                     <input type="hidden" name="{{ $k }}" value="0">
@@ -161,7 +162,7 @@
             }
             document.querySelectorAll('input[name=tipo_negocio]').forEach(function (r) { r.addEventListener('change', function () { aplicar(r.value); }); });
             var marcado = document.querySelector('input[name=tipo_negocio]:checked');
-            if (marcado && {{ ($tienda->mod_medida || $tienda->mod_vencimiento || $tienda->mod_recetas || old('mod_medida') !== null) ? 'false' : 'true' }}) aplicar(marcado.value);
+            if (marcado && {{ ($tienda->mod_medida || $tienda->mod_vencimiento || $tienda->mod_recetas || $tienda->mod_alquiler || old('mod_medida') !== null) ? 'false' : 'true' }}) aplicar(marcado.value);
             else if (marcado) mods.style.display = marcado.value === 'conjunto' ? 'none' : '';
         })();
         </script>

@@ -122,11 +122,13 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-box-archive"></i></div>
                     Separados y abonos @if ($sepAct)<span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c">{{ $sepAct }}</span>@endif
                 </a>
-                @php $alqHoy = \Illuminate\Support\Facades\Schema::hasTable('alquileres') ? \App\Models\Alquiler::where('estado', 'programado')->whereDate('fecha', today())->count() : 0; @endphp
+                @if ($tiendaMenu?->mod_alquiler)
+                @php $alqHoy = \App\Models\Alquiler::where('estado', 'programado')->whereDate('fecha', today())->count(); @endphp
                 <a class="nav-link {{ $on('alquileres.*') }}" href="{{ route('alquileres.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-calendar-days"></i></div>
                     Alquiler @if ($alqHoy)<span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c" title="Alquileres para hoy">{{ $alqHoy }}</span>@endif
                 </a>
+                @endif
                 <a class="nav-link {{ $on('cajas.show') || $on('cajas.abrir') || $on('cajas.cerrar') ? 'active' : '' }}" href="{{ route('cajas.actual') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-vault"></i></div>
                     Mi caja

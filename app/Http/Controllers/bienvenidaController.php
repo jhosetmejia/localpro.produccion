@@ -86,6 +86,7 @@ class bienvenidaController extends Controller
             'mod_medida' => 'nullable|boolean',
             'mod_vencimiento' => 'nullable|boolean',
             'mod_recetas' => 'nullable|boolean',
+            'mod_alquiler' => 'nullable|boolean',
         ] + \App\Support\Ubicaciones::reglas($request->input('pais'), $request->input('departamento')),
         ['nombre.required' => 'Escriba el nombre de su negocio.', 'tipo_negocio.required' => 'Elija el tipo de negocio.'] + \App\Support\Ubicaciones::mensajes());
 
@@ -109,7 +110,7 @@ class bienvenidaController extends Controller
         unset($datos['logo']);
 
         $datos['usa_tallas'] = Tienda::TIPOS[$datos['tipo_negocio']][2];
-        foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas'] as $m) {
+        foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler'] as $m) {
             $datos[$m] = $request->has($m) ? $request->boolean($m) : in_array($m, Tienda::MODULOS_POR_TIPO[$datos['tipo_negocio']] ?? [], true);
         }
         $datos['onboarding_paso'] = 3;

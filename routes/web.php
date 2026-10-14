@@ -95,7 +95,8 @@ Route::middleware('auth')->prefix('curso')->name('curso.')->group(function () {
     Route::get('/certificado', [cursoController::class, 'certificado'])->name('certificado');
     Route::post('/reiniciar', [cursoController::class, 'reiniciar'])->name('reiniciar');
 });
-Route::get('/certificado/{codigo}', [cursoController::class, 'verificar'])->where('codigo', '[A-Za-z0-9\-]+')->name('certificado.verificar');
+// El código siempre empieza con letra (CERT-00001); así no se cruza con /certificado/{nivel} del panel
+Route::get('/certificado/{codigo}', [cursoController::class, 'verificar'])->where('codigo', '[A-Za-z][A-Za-z0-9\-]*')->name('certificado.verificar');
 
 // ===== Panel de la red comercial (asesores y líderes) =====
 Route::middleware(['auth', 'asesor'])->prefix('asesor')->name('asesor.')->group(function () {
@@ -208,6 +209,8 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::get('/alquileres/{alquiler}/editar', [alquilerController::class, 'edit'])->whereNumber('alquiler')->name('alquileres.edit');
     Route::put('/alquileres/{alquiler}', [alquilerController::class, 'update'])->whereNumber('alquiler')->name('alquileres.update');
     Route::post('/alquileres/{alquiler}/cobrar', [alquilerController::class, 'cobrar'])->whereNumber('alquiler')->name('alquileres.cobrar');
+    Route::post('/alquileres/{alquiler}/abonar', [alquilerController::class, 'abonar'])->whereNumber('alquiler')->name('alquileres.abonar');
+    Route::post('/alquileres/{alquiler}/entrega', [alquilerController::class, 'entrega'])->whereNumber('alquiler')->name('alquileres.entrega');
     Route::post('/alquileres/{alquiler}/estado', [alquilerController::class, 'estado'])->whereNumber('alquiler')->name('alquileres.estado');
     Route::delete('/alquileres/{alquiler}', [alquilerController::class, 'destroy'])->whereNumber('alquiler')->name('alquileres.destroy');
 
