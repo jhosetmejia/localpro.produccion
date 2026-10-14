@@ -76,18 +76,23 @@ class alquilerController extends Controller
 
     public function create()
     {
-        return view('alquiler.form', ['alquiler' => new Alquiler(['fecha' => today(), 'hora' => '08:00'])]);
+        return view('alquiler.form', ['alquiler' => new Alquiler(['fecha' => today(), 'hora' => '08:00'])] + $this->datosPago());
     }
 
     public function store(Request $request)
     {
         $d = $this->validar($request);
+        $pago = $this->validarPago($request, (float) $d['valor'], 0);
         $d['numero'] = Alquiler::siguienteNumero();
         $d['user_id'] = Auth::id();
         $d['estado'] = 'programado';
         $a = Alquiler::create($d);
+        if ($pago) {
+            [$a, $abono, $venta] = $this->registrarPago($a, $pago['caja'], $pago['metodo'], $pago['monto'], null, $a->numero);
+            return $this->respuestaPago($a, $abono, $venta, 'Alquiler ' . $a->numero . ' creado. ');
+        }
         return redirect()->route('alquileres.index', ['ver' => $a->fecha->lt(today()) ? 'pendientes' : 'proximos'])
-            ->with('success', 'Alquiler ' . $a->numero . ' creado: ' . $a->que_alquila . ' el ' . $a->fecha->format('d/m/Y') . ' a las ' . $a->hora_texto . '.');
+            ->with('success', 'Alquiler ' . $a->numero . ' creado: ' . $a->que_alquila . ' el ' . $a->fecha->format('d/m/Y') . ' a las ' . $a->hora_texto . '. Queda sin pagar: cobre desde la lista cuando le paguen.');
     }
 
     // Dueño / administrador: puede editar (y cambiar el precio de) un alquiler ya cobrado
@@ -100,13 +105,14 @@ class alquilerController extends Controller
     public function edit(Alquiler $alquiler)
     {
         if ($alquiler->cobrado && !self::esAdmin()) return redirect()->route('alquileres.index')->withErrors('El alquiler ' . $alquiler->numero . ' ya se cobró (venta ' . $alquiler->venta?->numero . '); solo el administrador lo puede editar.');
-        return view('alquiler.form', ['alquiler' => $alquiler]);
+        return view('alquiler.form', ['alquiler' => $alquiler] + $this->datosPago());
     }
 
     public function update(Request $request, Alquiler $alquiler)
     {
         if ($alquiler->cobrado && !self::esAdmin()) return redirect()->route('alquileres.index')->withErrors('El alquiler ' . $alquiler->numero . ' ya se cobró; solo el administrador lo puede editar.');
         $d = $this->validar($request);
+        $pago = ($alquiler->cobrado || $alquiler->estado === 'cancelado') ? null : $this->validarPago($request, (float) $d['valor'], (float) $alquiler->abonado);
         $extra = '';
 
         if ($alquiler->cobrado) {
@@ -140,6 +146,10 @@ class alquilerController extends Controller
             throw ValidationException::withMessages(['valor' => 'Ya abonaron ' . dinero($alquiler->abonado) . '. El valor no puede quedar por debajo de eso.']);
         }
         $alquiler->update($d);
+        if ($pago) {
+            [$a, $abono, $venta] = $this->registrarPago($alquiler, $pago['caja'], $pago['metodo'], $pago['monto'], null, $alquiler->numero);
+            return $this->respuestaPago($a, $abono, $venta, 'Alquiler ' . $a->numero . ' actualizado. ');
+        }
         return redirect()->route('alquileres.index', ['ver' => $alquiler->estado === 'programado' ? ($alquiler->fecha->lt(today()) ? 'pendientes' : 'proximos') : $alquiler->estado . 's'])
             ->with('success', 'Alquiler ' . $alquiler->numero . ' actualizado.' . $extra);
     }
@@ -193,10 +203,18 @@ class alquilerController extends Controller
         $metodo = MetodoPago::activos()->whereKey($d['metodo_id'])->first();
         if (!$metodo) return back()->withErrors('Ese método de pago no está disponible.');
 
-        [$a, $abono, $venta] = DB::transaction(function () use ($alquiler, $caja, $metodo, $d) {
+        [$a, $abono, $venta] = $this->registrarPago($alquiler, $caja, $metodo, (float) $d['monto'], $d['nota'] ?? null, $d['referencia'] ?? null);
+        return $this->respuestaPago($a, $abono, $venta);
+    }
+
+    // Registra un pago (completo o abono) en la caja. Si con él queda pagado, se factura.
+    // Devuelve [alquiler, abono|null, venta|null]
+    private function registrarPago(Alquiler $alquiler, Caja $caja, MetodoPago $metodo, float $monto, ?string $nota, ?string $referencia): array
+    {
+        return DB::transaction(function () use ($alquiler, $caja, $metodo, $monto, $nota, $referencia) {
             $a = Alquiler::whereKey($alquiler->id)->lockForUpdate()->first();
             if ($a->pos_venta_id) return [$a, null, PosVenta::find($a->pos_venta_id)];
-            $monto = round((float) $d['monto'], 2);
+            $monto = round($monto, 2);
             if ($monto > $a->saldo + 0.001) {
                 throw ValidationException::withMessages(['monto' => 'Solo falta ' . dinero($a->saldo) . '. No puede pagar más que eso.']);
             }
@@ -204,7 +222,7 @@ class alquilerController extends Controller
             // Paga todo de una sola vez y sin abonos antes: venta normal con el método real
             if ($a->abonado <= 0 && $monto + 0.001 >= $a->valor) {
                 $a->abonado = $a->valor;
-                $venta = $this->facturar($a, $caja, $metodo, $d['referencia'] ?? $a->numero);
+                $venta = $this->facturar($a, $caja, $metodo, $referencia ?: $a->numero);
                 return [$a, null, $venta];
             }
 
@@ -212,21 +230,56 @@ class alquilerController extends Controller
             $a->save();
             $abono = AlquilerAbono::create([
                 'alquiler_id' => $a->id, 'numero' => AlquilerAbono::siguienteNumero(), 'caja_id' => $caja->id, 'user_id' => Auth::id(),
-                'metodo_pago_id' => $metodo->id, 'monto' => $monto, 'saldo_despues' => $a->saldo, 'nota' => $d['nota'] ?? null,
+                'metodo_pago_id' => $metodo->id, 'monto' => $monto, 'saldo_despues' => $a->saldo, 'nota' => $nota,
             ]);
             // Con este abono quedó pagado: se factura (el dinero ya entró con los abonos)
             $venta = $a->pagado ? $this->facturar($a, $caja, MetodoPago::pagadoConAbonos(), $a->numero) : null;
             return [$a, $abono, $venta];
         });
+    }
 
+    private function respuestaPago(Alquiler $a, ?AlquilerAbono $abono, ?PosVenta $venta, string $antes = '')
+    {
         $r = redirect()->route('alquileres.index', ['ver' => $venta ? 'realizados' : 'abonando']);
         if ($venta) {
-            return $r->with('success', 'Alquiler ' . $a->numero . ' pagado completo' . ($abono ? ' con el abono ' . $abono->numero : '') . ': quedó como la venta ' . $venta->numero . ' en su caja.'
+            return $r->with('success', $antes . 'Alquiler ' . $a->numero . ' pagado completo' . ($abono ? ' con el abono ' . $abono->numero : '') . ': quedó como la venta ' . $venta->numero . ' en su caja.'
                 . ($a->con_comision ? ' Ganancia del local: ' . dinero($a->ganancia) . ' (comisión ' . dinero($a->comision) . ').' : ''))
                 ->with('alq_venta', $venta->id);
         }
-        return $r->with('success', 'Abono ' . $abono->numero . ' de ' . dinero($abono->monto) . ' al alquiler ' . $a->numero . '. Lleva ' . dinero($a->abonado) . ', le falta ' . dinero($a->saldo) . '.')
+        return $r->with('success', $antes . 'Abono ' . $abono->numero . ' de ' . dinero($abono->monto) . ' al alquiler ' . $a->numero . '. Lleva ' . dinero($a->abonado) . ', le falta ' . dinero($a->saldo) . '.')
             ->with('alq_abono', $abono->id);
+    }
+
+    // Formulario: métodos de pago y si hay caja abierta para recibir el pago ahí mismo
+    private function datosPago(): array
+    {
+        return ['metodos' => MetodoPago::activos()->get(['id', 'nombre', 'es_efectivo']), 'cajaAbierta' => (bool) Caja::abiertaDe(Auth::id())];
+    }
+
+    // Lo que eligió en "¿Cómo paga?": después, completo o abono. Devuelve null si paga después.
+    private function validarPago(Request $request, float $valor, float $yaAbonado): ?array
+    {
+        $d = $request->validate([
+            'pago' => 'nullable|in:despues,completo,abono',
+            'pago_monto' => 'nullable|required_if:pago,abono|numeric|min:1',
+            'pago_metodo' => 'nullable|required_if:pago,completo,abono|integer',
+        ], [
+            'pago_monto.required_if' => 'Escriba cuánto abona.',
+            'pago_metodo.required_if' => 'Elija cómo le pagaron.',
+        ]);
+        $tipo = $d['pago'] ?? 'despues';
+        if ($tipo === 'despues') return null;
+        $falta = round($valor - $yaAbonado, 2);
+        if ($falta <= 0) return null;
+        $monto = $tipo === 'completo' ? $falta : round((float) $d['pago_monto'], 2);
+        if ($monto > $falta + 0.001) {
+            throw ValidationException::withMessages(['pago_monto' => 'El abono no puede ser mayor a lo que falta (' . dinero($falta) . '). Si paga todo, elija "Paga completo".']);
+        }
+        $caja = Caja::abiertaDe(Auth::id());
+        if (!$caja) throw ValidationException::withMessages(['pago' => 'Para recibir el pago primero abra su caja (Mi caja → Abrir caja), o elija "Paga después".']);
+        $metodo = MetodoPago::activos()->whereKey($d['pago_metodo'])->first();
+        if (!$metodo) throw ValidationException::withMessages(['pago_metodo' => 'Ese método de pago no está disponible.']);
+        return ['caja' => $caja, 'metodo' => $metodo, 'monto' => $monto];
     }
 
     // Crea la venta (factura / tiquete) del alquiler. El costo es la comisión: ganancia = valor − comisión.
