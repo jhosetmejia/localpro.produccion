@@ -12,7 +12,7 @@ class Alquiler extends Model
 
     protected $table = 'alquileres';
 
-    protected $fillable = ['numero', 'que_alquila', 'fecha', 'hora', 'lugar', 'responsable_telefono', 'encargado_nombre', 'encargado_telefono', 'nota', 'valor', 'con_comision', 'comision', 'estado', 'user_id', 'pos_venta_id', 'cobrado_en', 'abonado', 'entrega', 'entregado_en', 'devuelto_en', 'devolucion_estado', 'devolucion_nota'];
+    protected $fillable = ['numero', 'que_alquila', 'fecha', 'hora', 'hora_fin', 'lugar', 'responsable_telefono', 'encargado_nombre', 'encargado_telefono', 'nota', 'valor', 'con_comision', 'comision', 'estado', 'user_id', 'pos_venta_id', 'cobrado_en', 'abonado', 'entrega', 'entregado_en', 'devuelto_en', 'devolucion_estado', 'devolucion_nota'];
 
     protected $casts = ['fecha' => 'date', 'valor' => 'float', 'comision' => 'float', 'con_comision' => 'boolean', 'cobrado_en' => 'datetime', 'abonado' => 'float', 'entregado_en' => 'datetime', 'devuelto_en' => 'datetime'];
 
@@ -55,6 +55,24 @@ class Alquiler extends Model
     public function getHoraTextoAttribute(): string
     {
         return $this->hora ? \Carbon\Carbon::parse($this->hora)->format('g:i a') : '';
+    }
+
+    public function getHoraFinTextoAttribute(): string
+    {
+        return $this->hora_fin ? \Carbon\Carbon::parse($this->hora_fin)->format('g:i a') : '';
+    }
+
+    // "1:00 pm a 6:00 pm" (o solo la de inicio si no hay hora de fin)
+    public function getHorarioTextoAttribute(): string
+    {
+        return $this->hora_fin ? $this->hora_texto . ' a ' . $this->hora_fin_texto : $this->hora_texto;
+    }
+
+    // Detalle para la factura: fecha, horario y lugar del servicio
+    public function getDetalleFacturaAttribute(): string
+    {
+        return 'Servicio el ' . $this->fecha?->format('d/m/Y') . ', ' . $this->horario_texto . ' · ' . $this->lugar
+            . ($this->encargado_nombre ? ' · Encargado: ' . $this->encargado_nombre : '');
     }
 
     public function getVencidoAttribute(): bool
