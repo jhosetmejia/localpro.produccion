@@ -70,9 +70,57 @@
                 </div>
             </div>
 
+            @php
+                $puedePagar = !$alquiler->cobrado && $alquiler->estado !== 'cancelado';
+                $yaAbono = (float) ($alquiler->abonado ?? 0);
+                $pagoSel = old('pago', 'despues');
+            @endphp
+            @if ($puedePagar)
+            <div class="col-12">
+                <div class="lp-pago" id="lpPago" data-abonado="{{ $yaAbono }}">
+                    <div class="lp-pago-top">
+                        <label class="form-label fw-bold mb-0"><i class="fa-solid fa-cash-register me-1"></i> ¿Cómo paga?</label>
+                        @if ($yaAbono > 0)<small class="lp-pago-ya">Ya abonó <b>{{ dinero($yaAbono) }}</b></small>@endif
+                    </div>
+                    <div class="lp-pago-row">
+                        <div class="lp-seg" role="radiogroup">
+                            <input type="radio" class="btn-check" name="pago" id="pagoDesp" value="despues" @checked($pagoSel === 'despues')>
+                            <label for="pagoDesp"><i class="fa-regular fa-clock"></i> Paga después</label>
+                            <input type="radio" class="btn-check" name="pago" id="pagoComp" value="completo" @checked($pagoSel === 'completo')>
+                            <label for="pagoComp"><i class="fa-solid fa-circle-check"></i> {{ $yaAbono > 0 ? 'Paga lo que falta' : 'Paga completo' }}</label>
+                            <input type="radio" class="btn-check" name="pago" id="pagoAbo" value="abono" @checked($pagoSel === 'abono')>
+                            <label for="pagoAbo"><i class="fa-solid fa-hand-holding-dollar"></i> {{ $yaAbono > 0 ? 'Abona otra parte' : 'Abona' }}</label>
+                        </div>
+                        <div class="lp-pago-campos" id="pagoCampos">
+                            <div class="lp-pago-monto" id="pagoMontoBox">
+                                <label class="form-label fw-bold" for="pagoMonto">¿Cuánto abona? *</label>
+                                <input name="pago_monto" id="pagoMonto" type="number" min="1" class="form-control" data-dinero placeholder="0" value="{{ old('pago_monto') }}">
+                            </div>
+                            <div>
+                                <label class="form-label fw-bold" for="pagoMetodo">¿Cómo le pagaron? *</label>
+                                <select name="pago_metodo" id="pagoMetodo" class="form-select">
+                                    @foreach ($metodos as $m)<option value="{{ $m->id }}" @selected(old('pago_metodo') ? old('pago_metodo') == $m->id : $m->es_efectivo)>{{ $m->nombre }}</option>@endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="lp-pago-res" id="pagoRes">
+                            <div><small>Cobra ahora</small><b id="resCobra">$0</b></div>
+                            <div class="falta"><small>Queda debiendo</small><b id="resFalta">$0</b></div>
+                        </div>
+                    </div>
+                    @unless ($cajaAbierta)
+                    <small class="lp-pago-aviso" id="pagoAviso"><i class="fa-solid fa-triangle-exclamation me-1"></i>Para recibir el pago aquí, primero <a href="{{ route('cajas.abrir') }}">abra su caja</a>. Mientras tanto puede guardarlo como "Paga después".</small>
+                    @endunless
+                    @error('pago')<small class="text-danger d-block mt-1">{{ $message }}</small>@enderror
+                    @error('pago_monto')<small class="text-danger d-block mt-1">{{ $message }}</small>@enderror
+                    @error('pago_metodo')<small class="text-danger d-block mt-1">{{ $message }}</small>@enderror
+                </div>
+            </div>
+            @endif
+
             <div class="col-12">
                 <label class="form-label fw-bold">Nota <span class="text-muted fw-normal">(opcional)</span></label>
-                <textarea name="nota" class="form-control" rows="1" maxlength="255" placeholder="Ej: incluye transporte, entregar 1 hora antes, abono pendiente…">{{ old('nota', $alquiler->nota) }}</textarea>
+                <textarea name="nota" class="form-control" rows="1" maxlength="255" placeholder="Ej: incluye transporte, entregar 1 hora antes…">{{ old('nota', $alquiler->nota) }}</textarea>
             </div>
         </div>
 
@@ -104,6 +152,32 @@
     document.addEventListener('input', function () { setTimeout(calc, 0); }, true);
     document.addEventListener('change', function () { setTimeout(calc, 0); }, true);
     calc();
+
+    // ¿Cómo paga?: muestra el monto del abono y calcula cuánto cobra ahora y cuánto queda debiendo
+    var box = document.getElementById('lpPago');
+    if (box) {
+        var ya = parseFloat(box.dataset.abonado || '0') || 0;
+        var monto = document.getElementById('pagoMonto'), campos = document.getElementById('pagoCampos'), res = document.getElementById('pagoRes');
+        var mBox = document.getElementById('pagoMontoBox');
+        function pago() {
+            var sel = (box.querySelector('input[name=pago]:checked') || {}).value || 'despues';
+            var falta = Math.max(0, num(val) - ya), cobra = 0;
+            campos.style.display = sel === 'despues' ? 'none' : '';
+            mBox.style.display = sel === 'abono' ? '' : 'none';
+            monto.required = sel === 'abono';
+            if (sel === 'completo') cobra = falta;
+            if (sel === 'abono') cobra = Math.min(num(monto), falta);
+            document.getElementById('resCobra').textContent = fmt(cobra);
+            document.getElementById('resFalta').textContent = fmt(falta - cobra);
+            res.classList.toggle('ok', falta - cobra <= 0 && sel !== 'despues');
+            var mVis = monto.nextElementSibling && monto.nextElementSibling.hasAttribute('data-dinero-vista') ? monto.nextElementSibling : monto;
+            mVis.classList.toggle('is-invalid', sel === 'abono' && num(monto) > falta);
+            box.dataset.sel = sel;
+        }
+        box.addEventListener('change', pago);
+        document.addEventListener('input', function () { setTimeout(pago, 0); }, true);
+        pago();
+    }
     var nota = document.querySelector('textarea[name=nota]');
     function crecer() { nota.style.height = 'auto'; nota.style.height = Math.min(nota.scrollHeight + 2, 140) + 'px'; }
     if (nota) { nota.addEventListener('input', crecer); crecer(); }
