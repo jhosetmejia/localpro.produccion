@@ -251,17 +251,37 @@
 
             </div>
         </div>
-        <div class="sb-sidenav-footer">
-            <span class="lp-avatar">{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}</span>
-            <div style="min-width:0;flex:1">
-                <div class="small">Sesión iniciada</div>
-                <b style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ auth()->user()->name }}</b>
+        <details class="lp-cuenta" id="lpCuenta">
+            <summary class="sb-sidenav-footer" aria-label="Opciones de la cuenta">
+                <span class="lp-avatar">{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}</span>
+                <div style="min-width:0;flex:1">
+                    <div class="small">Sesión iniciada</div>
+                    <b style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ auth()->user()->name }}</b>
+                </div>
+                <i class="fa-solid fa-chevron-up lp-cuenta-flecha"></i>
+            </summary>
+            <div class="lp-cuenta-menu">
+                <a href="#" class="lp-solo-navegador" onclick="event.preventDefault();window.lpInstalarApp&&window.lpInstalarApp()">
+                    <span class="ic"><i class="fa-solid fa-mobile-screen-button"></i></span>
+                    <span class="tx"><b>Instalar la app</b><small>Úsela en el celular como una app</small></span>
+                </a>
+                <a href="{{ route('cuenta.edit') }}">
+                    <span class="ic"><i class="fa-regular fa-user"></i></span>
+                    <span class="tx"><b>Mi cuenta y clave</b><small>Datos y contraseña</small></span>
+                </a>
+                <a href="{{ route('logout') }}" class="salir">
+                    <span class="ic"><i class="fa-solid fa-arrow-right-from-bracket"></i></span>
+                    <span class="tx"><b>Cerrar sesión</b><small>Salir de LocalPro</small></span>
+                </a>
             </div>
-        </div>
-        <div class="lp-side-acciones">
-            <a href="#" class="lp-solo-navegador" onclick="event.preventDefault();window.lpInstalarApp&&window.lpInstalarApp()"><i class="fa-solid fa-mobile-screen-button"></i> Instalar la app en el celular</a>
-            <a href="{{ route('cuenta.edit') }}"><i class="fa-regular fa-user"></i> Mi cuenta y clave</a>
-            <a href="{{ route('logout') }}" class="salir"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión</a>
-        </div>
+        </details>
+        <script>
+        (function () {
+            var d = document.getElementById('lpCuenta');
+            if (!d) return;
+            document.addEventListener('click', function (e) { if (d.open && !d.contains(e.target)) d.open = false; });
+            document.addEventListener('keydown', function (e) { if (e.key === 'Escape') d.open = false; });
+        })();
+        </script>
     </nav>
 </div>
