@@ -70,31 +70,45 @@
             </div>
             <div class="col-sm-6 col-lg-4 lp-gan-col {{ old('con_comision', $alquiler->con_comision) ? '' : 'd-none' }}" id="boxGan">
                 <div class="lp-gan">
-                    <small>Ganancia del local <span class="fw-normal">(valor − comisión)</span></small>
+                    <small>Ganancia del local <span class="fw-normal">(valor − comisión − turno)</span></small>
                     <b id="ganancia">$0</b>
                 </div>
             </div>
 
             @php $conEnc = (bool) old('con_encargado', $alquiler->encargado_nombre ? 1 : 0); @endphp
-            <div class="col-lg-4">
+            <div class="w-100 m-0"></div>
+            <div class="col-lg-3">
                 <label class="form-label fw-bold d-none d-lg-block">&nbsp;</label>
                 <div class="lp-sw-row">
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" role="switch" id="conEnc" name="con_encargado" value="1" @checked($conEnc)>
                         <label class="form-check-label fw-bold" for="conEnc">Encargado de nuestro lado</label>
                     </div>
-                    <small class="text-muted">Opcional: quien de su negocio presta el servicio.</small>
+                    <small class="text-muted">Opcional: quien presta el servicio.</small>
                 </div>
             </div>
-            <div class="col-sm-6 col-lg-4 lp-enc {{ $conEnc ? '' : 'd-none' }}">
+            <div class="col-sm-6 col-lg-3 lp-enc {{ $conEnc ? '' : 'd-none' }}">
                 <label class="form-label fw-bold" for="encNom">Nombre del encargado *</label>
-                <input id="encNom" name="encargado_nombre" class="form-control" maxlength="80" placeholder="Ej: Carlos (técnico de sonido)" value="{{ old('encargado_nombre', $alquiler->encargado_nombre) }}">
+                <input id="encNom" name="encargado_nombre" class="form-control" maxlength="80" placeholder="Ej: Carlos" value="{{ old('encargado_nombre', $alquiler->encargado_nombre) }}">
                 @error('encargado_nombre')<small class="text-danger">{{ $message }}</small>@enderror
             </div>
-            <div class="col-sm-6 col-lg-4 lp-enc {{ $conEnc ? '' : 'd-none' }}">
-                <label class="form-label fw-bold" for="encTel">Celular del encargado <span class="text-muted fw-normal">(opcional)</span></label>
+            <div class="col-sm-6 col-lg-3 lp-enc {{ $conEnc ? '' : 'd-none' }}">
+                <label class="form-label fw-bold" for="encTel">Celular del encargado</label>
                 <input id="encTel" type="tel" name="encargado_telefono" class="form-control" data-celular value="{{ old('encargado_telefono', $alquiler->encargado_telefono) }}">
                 @error('encargado_telefono')<small class="text-danger">{{ $message }}</small>@enderror
+            </div>
+            <div class="col-sm-6 col-lg-3 lp-enc {{ $conEnc ? '' : 'd-none' }}">
+                <label class="form-label fw-bold" for="encVal">Valor del turno <span class="text-muted fw-normal">(se descuenta de su ganancia)</span></label>
+                <input id="encVal" name="encargado_valor" type="number" min="0" class="form-control" data-dinero placeholder="0" value="{{ old('encargado_valor', $alquiler->encargado_valor > 0 ? $alquiler->encargado_valor : '') }}">
+                @error('encargado_valor')<small class="text-danger">{{ $message }}</small>@enderror
+            </div>
+            <div class="col-12 lp-enc {{ $conEnc ? '' : 'd-none' }}">
+                <label class="form-label fw-bold" for="encNota">Nota para el encargado <span class="text-muted fw-normal">(le llega en el WhatsApp, el cliente no la ve)</span></label>
+                <textarea id="encNota" name="encargado_nota" class="form-control" rows="1" maxlength="255" placeholder="Ej: llegar con ropa negra, llevar extensión, preguntar por Andrea…">{{ old('encargado_nota', $alquiler->encargado_nota) }}</textarea>
+            </div>
+            <div class="col-12 lp-enc {{ $conEnc ? '' : 'd-none' }}">
+                <button type="button" class="btn btn-light btn-sm" id="encWa"><i class="fa-brands fa-whatsapp me-1" style="color:#16b34a"></i>Enviar detalles del evento al encargado</button>
+                <small class="text-muted ms-1" id="encWaTxt">Le llega por WhatsApp con fecha, horario, lugar, valor del turno, su nota y el aviso de estar 1 hora antes.</small>
             </div>
 
             @php
@@ -146,8 +160,8 @@
             @endif
 
             <div class="col-12">
-                <label class="form-label fw-bold">Nota <span class="text-muted fw-normal">(opcional)</span></label>
-                <textarea name="nota" class="form-control" rows="1" maxlength="255" placeholder="Ej: incluye transporte, entregar 1 hora antes…">{{ old('nota', $alquiler->nota) }}</textarea>
+                <label class="form-label fw-bold">Nota para el cliente <span class="text-muted fw-normal">(opcional · sale en su factura)</span></label>
+                <textarea name="nota" class="form-control" rows="1" maxlength="255" placeholder="Ej: el valor incluye transporte, montaje y desmontaje…">{{ old('nota', $alquiler->nota) }}</textarea>
             </div>
         </div>
 
@@ -168,10 +182,12 @@
     function num(el) { var v = parseFloat(String(el.value || '0').replace(/[^0-9.\-]/g, '')); return isNaN(v) ? 0 : v; }
     function fmt(n) { return '$' + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, M.miles || '.'); }
     function calc() {
+        var encOn = document.getElementById('conEnc') && document.getElementById('conEnc').checked;
+        var turno = encOn ? num(document.getElementById('encVal')) : 0;
         boxC.classList.toggle('d-none', !chk.checked);
-        boxG.classList.toggle('d-none', !chk.checked);
+        boxG.classList.toggle('d-none', !chk.checked && turno <= 0);
         com.required = chk.checked;
-        var g = num(val) - (chk.checked ? num(com) : 0);
+        var g = num(val) - (chk.checked ? num(com) : 0) - turno;
         out.textContent = fmt(g);
         out.style.color = g < 0 ? '#ff6f9c' : '#2fd15a';
     }
@@ -186,7 +202,27 @@
         document.querySelectorAll('.lp-enc').forEach(function (e) { e.classList.toggle('d-none', !enc.checked); });
         document.getElementById('encNom').required = enc.checked;
     }
-    if (enc) { enc.addEventListener('change', verEnc); verEnc(); }
+    if (enc) { enc.addEventListener('change', function () { verEnc(); calc(); }); verEnc(); }
+
+    // Enviar detalles del evento al encargado por WhatsApp (con lo que está escrito en el formulario)
+    var encWa = document.getElementById('encWa');
+    if (encWa) encWa.addEventListener('click', function () {
+        var f = encWa.form, v = function (n) { var e = f.elements[n]; return e ? String(e.value || '').trim() : ''; };
+        var tel = v('encargado_telefono').replace(/\D/g, ''), ind = String((window.LP_MONEDA || {}).indicativo || '57');
+        if (!tel) { (window.LP && LP.toast) ? LP.toast('Escriba el celular del encargado.', 'error') : alert('Escriba el celular del encargado.'); return; }
+        if (!(tel.indexOf(ind) === 0 && tel.length > 10)) tel = ind + tel.replace(/^0+/, '');
+        function h12(t) { if (!t) return ''; var p = t.split(':'), hh = +p[0], ap = hh >= 12 ? 'pm' : 'am'; hh = hh % 12 || 12; return hh + ':' + p[1] + ' ' + ap; }
+        var ini = v('hora'), fin = v('hora_fin'), fe = v('fecha').split('-').reverse().join('/');
+        var lleg = ''; if (ini) { var p = ini.split(':'), d = new Date(2000, 0, 1, +p[0], +p[1]); d.setHours(d.getHours() - 1); lleg = h12(('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2)); }
+        var turno = num(document.getElementById('encVal'));
+        var l = ['Hola ' + v('encargado_nombre') + ' 👋 Le comparto los detalles del evento' + (@json($alquiler->numero) ? ' (' + @json($alquiler->numero) + ')' : '') + ':', '',
+            '📦 *Servicio:* ' + v('que_alquila'), '📅 *Fecha:* ' + fe, '🕐 *Horario:* ' + h12(ini) + (fin ? ' a ' + h12(fin) : ''),
+            '📍 *Lugar:* ' + v('lugar'), '📞 *Cliente:* ' + v('responsable_telefono')];
+        if (turno > 0) l.push('💵 *Valor de su turno:* ' + fmt(turno));
+        if (v('encargado_nota')) l.push('📝 *Indicaciones:* ' + v('encargado_nota'));
+        l.push('', '⚠️ Por favor esté *1 hora antes*' + (lleg ? ' (' + lleg + ')' : '') + ' para evitar retrasos por el tráfico.', '— ' + @json(\App\Models\Negocio::datos()->nombre ?? ''));
+        window.open('https://wa.me/' + tel + '?text=' + encodeURIComponent(l.join('\n')), '_blank');
+    });
 
     // ¿Cómo paga?: muestra el monto del abono y calcula cuánto cobra ahora y cuánto queda debiendo
     var box = document.getElementById('lpPago');
@@ -213,9 +249,10 @@
         document.addEventListener('input', function () { setTimeout(pago, 0); }, true);
         pago();
     }
-    var nota = document.querySelector('textarea[name=nota]');
-    function crecer() { nota.style.height = 'auto'; nota.style.height = Math.min(nota.scrollHeight + 2, 140) + 'px'; }
-    if (nota) { nota.addEventListener('input', crecer); crecer(); }
+    document.querySelectorAll('textarea[name=nota], textarea[name=encargado_nota]').forEach(function (t) {
+        function crecer() { t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight + 2, 140) + 'px'; }
+        t.addEventListener('input', crecer); crecer();
+    });
 })();
 </script>
 @endpush
