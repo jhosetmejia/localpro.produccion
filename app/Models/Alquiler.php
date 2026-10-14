@@ -12,7 +12,7 @@ class Alquiler extends Model
 
     protected $table = 'alquileres';
 
-    protected $fillable = ['numero', 'que_alquila', 'fecha', 'hora', 'lugar', 'responsable_telefono', 'nota', 'valor', 'con_comision', 'comision', 'estado', 'user_id', 'pos_venta_id', 'cobrado_en', 'abonado', 'entrega', 'entregado_en', 'devuelto_en', 'devolucion_estado', 'devolucion_nota'];
+    protected $fillable = ['numero', 'que_alquila', 'fecha', 'hora', 'lugar', 'responsable_telefono', 'encargado_nombre', 'encargado_telefono', 'nota', 'valor', 'con_comision', 'comision', 'estado', 'user_id', 'pos_venta_id', 'cobrado_en', 'abonado', 'entrega', 'entregado_en', 'devuelto_en', 'devolucion_estado', 'devolucion_nota'];
 
     protected $casts = ['fecha' => 'date', 'valor' => 'float', 'comision' => 'float', 'con_comision' => 'boolean', 'cobrado_en' => 'datetime', 'abonado' => 'float', 'entregado_en' => 'datetime', 'devuelto_en' => 'datetime'];
 
