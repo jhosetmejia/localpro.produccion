@@ -48,7 +48,7 @@
             $ok = $meta > 0 && $lleva >= $meta;
         @endphp
         <div class="vm-meta {{ $ok ? 'ok' : '' }}">
-            <div class="vm-anillo" style="--p:{{ $pct }}"><span>{{ $meta > 0 ? $pct . '%' : '—' }}</span></div>
+            <div class="vm-anillo" style="--p:{{ $pct }}"><span class="{{ $porVentas && $meta > 0 ? 'num' : '' }}">{{ $meta <= 0 ? '—' : ($porVentas ? (int) $lleva . '/' . (int) $meta : $pct . '%') }}</span></div>
             <div class="vm-t">
                 <small><i class="fa-solid {{ $icono }} me-1"></i>{{ $titulo }}</small>
                 @if ($meta <= 0)
@@ -97,6 +97,7 @@
 .vm-anillo{--p:0;width:92px;height:92px;border-radius:50%;flex:none;display:grid;place-items:center;background:conic-gradient(#16b34a calc(var(--p) * 1%), #e8eee9 0);position:relative}
 .vm-anillo::before{content:"";position:absolute;inset:10px;border-radius:50%;background:#fff}
 .vm-anillo span{position:relative;font-weight:900;font-size:1.25rem}
+.vm-anillo span.num{font-size:1.05rem;letter-spacing:-.02em}
 .vm-meta.ok .vm-anillo{background:conic-gradient(#a6f34a,#16b34a)}
 .vm-t{flex:1;min-width:0}
 .vm-t small{display:block;font-weight:800;color:#6b7570;text-transform:uppercase;letter-spacing:.06em;font-size:.72rem}
