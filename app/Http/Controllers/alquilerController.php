@@ -64,7 +64,7 @@ class alquilerController extends Controller
                 'vencidosSinDevolver' => Alquiler::where('estado', '!=', 'cancelado')->where('entrega', 'alquilado')->whereDate('fecha', '<', today())->count(),
                 'mes' => (float) Alquiler::where('estado', 'realizado')->whereYear('fecha', now()->year)->whereMonth('fecha', now()->month)->sum('valor'),
                 'gananciaMes' => (float) Alquiler::where('estado', 'realizado')->whereYear('fecha', now()->year)->whereMonth('fecha', now()->month)
-                    ->sum(DB::raw('valor - CASE WHEN con_comision = 1 THEN comision ELSE 0 END')),
+                    ->sum(DB::raw('valor - CASE WHEN con_comision = 1 THEN comision ELSE 0 END - CASE WHEN encargado_nombre IS NOT NULL THEN encargado_valor ELSE 0 END')),
             ],
             'metodos' => MetodoPago::activos()->get(['id', 'nombre', 'es_efectivo']),
             'cajaAbierta' => (bool) Caja::abiertaDe(Auth::id()),
@@ -117,7 +117,7 @@ class alquilerController extends Controller
 
         if ($alquiler->cobrado) {
             $venta = $alquiler->venta;
-            $cambiaPrecio = abs($d['valor'] - $alquiler->valor) > 0.001 || ($d['con_comision'] ? $d['comision'] : 0) != ($alquiler->con_comision ? $alquiler->comision : 0);
+            $cambiaPrecio = abs($d['valor'] - $alquiler->valor) > 0.001 || ($d['con_comision'] ? $d['comision'] : 0) != ($alquiler->con_comision ? $alquiler->comision : 0) || (float) $d['encargado_valor'] != (float) ($alquiler->encargado_nombre ? $alquiler->encargado_valor : 0);
             if ($cambiaPrecio && $venta) {
                 if ($venta->estado !== 'pagada') {
                     // La venta se anuló: el precio se cambia solo en el alquiler
@@ -134,7 +134,7 @@ class alquilerController extends Controller
                         $imp = Impuestos::calcular([['total' => (float) $d['valor'], 'impuesto' => $item?->impuesto ?? Facturador::impuestoPorDefecto($tienda)]], 0);
                         $li = $imp['lineas'][0];
                         $venta->update(['subtotal' => $d['valor'], 'total' => $d['valor'], 'base_gravable' => $imp['base'], 'impuestos' => $imp['impuestos'], 'impuestos_detalle' => $imp['detalle'] ?: null]);
-                        $item?->update(['precio' => $d['valor'], 'subtotal' => $d['valor'], 'costo' => $d['con_comision'] ? $d['comision'] : 0,
+                        $item?->update(['precio' => $d['valor'], 'subtotal' => $d['valor'], 'costo' => ($d['con_comision'] ? $d['comision'] : 0) + $d['encargado_valor'],
                             'impuesto' => $li['impuesto'], 'iva_tasa' => $li['tasa'], 'base' => $li['base'], 'iva_valor' => $li['iva']]);
                         $venta->pagos()->first()?->update(['monto' => $d['valor']]);
                     });
@@ -243,7 +243,7 @@ class alquilerController extends Controller
         $r = redirect()->route('alquileres.index', ['ver' => $venta ? 'realizados' : 'abonando']);
         if ($venta) {
             return $r->with('success', $antes . 'Alquiler ' . $a->numero . ' pagado completo' . ($abono ? ' con el abono ' . $abono->numero : '') . ': quedó como la venta ' . $venta->numero . ' en su caja.'
-                . ($a->con_comision ? ' Ganancia del local: ' . dinero($a->ganancia) . ' (comisión ' . dinero($a->comision) . ').' : ''))
+                . ($a->costo_servicio > 0 ? ' Ganancia del local: ' . dinero($a->ganancia) . '.' : ''))
                 ->with('alq_venta', $venta->id);
         }
         return $r->with('success', $antes . 'Abono ' . $abono->numero . ' de ' . dinero($abono->monto) . ' al alquiler ' . $a->numero . '. Lleva ' . dinero($a->abonado) . ', le falta ' . dinero($a->saldo) . '.')
@@ -282,7 +282,7 @@ class alquilerController extends Controller
         return ['caja' => $caja, 'metodo' => $metodo, 'monto' => $monto];
     }
 
-    // Crea la venta (factura / tiquete) del alquiler. El costo es la comisión: ganancia = valor − comisión.
+    // Crea la venta (factura / tiquete) del alquiler. El costo es comisión + turno del encargado: ganancia = valor − costo.
     private function facturar(Alquiler $a, Caja $caja, MetodoPago $metodo, string $referencia): PosVenta
     {
         $tienda = Tienda::whereKey(TiendaActual::id())->lockForUpdate()->first();
@@ -313,7 +313,7 @@ class alquilerController extends Controller
             'descripcion' => mb_substr('Alquiler ' . $a->numero . ': ' . $a->que_alquila . ' · ' . $a->fecha->format('d/m/Y') . ' ' . str_replace([' am', ' pm'], ['am', 'pm'], $a->horario_texto), 0, 120),
             'cantidad' => 1,
             'precio' => $a->valor,
-            'costo' => $a->con_comision ? $a->comision : 0,
+            'costo' => $a->costo_servicio,
             'subtotal' => $a->valor,
             'impuesto' => $li['impuesto'], 'iva_tasa' => $li['tasa'], 'base' => $li['base'], 'iva_valor' => $li['iva'],
         ]);
@@ -368,6 +368,8 @@ class alquilerController extends Controller
             'con_encargado' => 'nullable|boolean',
             'encargado_nombre' => 'nullable|required_if:con_encargado,1|string|min:2|max:80',
             'encargado_telefono' => ['nullable', 'string', 'max:20', Validar::celular()],
+            'encargado_valor' => 'nullable|numeric|min:0|max:999999999999',
+            'encargado_nota' => 'nullable|string|max:255',
             'nota' => 'nullable|string|max:255',
             'valor' => 'required|numeric|min:0|max:999999999999',
             'con_comision' => 'nullable|boolean',
@@ -388,9 +390,16 @@ class alquilerController extends Controller
         if ($request->boolean('con_encargado')) {
             $d['encargado_nombre'] = trim((string) ($d['encargado_nombre'] ?? '')) ?: null;
             $d['encargado_telefono'] = !empty($d['encargado_telefono']) ? Validar::limpiarTel($d['encargado_telefono']) : null;
+            $d['encargado_valor'] = round((float) ($d['encargado_valor'] ?? 0), 2);
+            $d['encargado_nota'] = trim((string) ($d['encargado_nota'] ?? '')) ?: null;
         } else {
+            $d['encargado_nota'] = null;
             $d['encargado_nombre'] = null;
             $d['encargado_telefono'] = null;
+            $d['encargado_valor'] = 0;
+        }
+        if ($d['comision'] + $d['encargado_valor'] > $d['valor'] + 0.001) {
+            throw ValidationException::withMessages(['encargado_valor' => 'La comisión y el turno del encargado suman más que el valor del alquiler.']);
         }
         unset($d['con_encargado']);
         $d['con_comision'] = $request->boolean('con_comision');
