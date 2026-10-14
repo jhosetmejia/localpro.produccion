@@ -41,7 +41,7 @@
                 <input type="time" name="hora" class="form-control" required value="{{ old('hora', $alquiler->hora ? substr($alquiler->hora, 0, 5) : '') }}">
             </div>
             <div class="col-sm-6 col-lg-3">
-                <label class="form-label fw-bold">Número del responsable *</label>
+                <label class="form-label fw-bold">Celular de quien contrata *</label>
                 <input type="tel" name="responsable_telefono" class="form-control" required data-celular value="{{ old('responsable_telefono', $alquiler->responsable_telefono) }}">
             </div>
             <div class="col-sm-6 col-lg-3">
@@ -68,6 +68,28 @@
                     <small>Ganancia del local <span class="fw-normal">(valor − comisión)</span></small>
                     <b id="ganancia">$0</b>
                 </div>
+            </div>
+
+            @php $conEnc = (bool) old('con_encargado', $alquiler->encargado_nombre ? 1 : 0); @endphp
+            <div class="col-lg-4">
+                <label class="form-label fw-bold d-none d-lg-block">&nbsp;</label>
+                <div class="lp-sw-row">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="conEnc" name="con_encargado" value="1" @checked($conEnc)>
+                        <label class="form-check-label fw-bold" for="conEnc">Encargado de nuestro lado</label>
+                    </div>
+                    <small class="text-muted">Opcional: quien de su negocio presta el servicio.</small>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-4 lp-enc {{ $conEnc ? '' : 'd-none' }}">
+                <label class="form-label fw-bold" for="encNom">Nombre del encargado *</label>
+                <input id="encNom" name="encargado_nombre" class="form-control" maxlength="80" placeholder="Ej: Carlos (técnico de sonido)" value="{{ old('encargado_nombre', $alquiler->encargado_nombre) }}">
+                @error('encargado_nombre')<small class="text-danger">{{ $message }}</small>@enderror
+            </div>
+            <div class="col-sm-6 col-lg-4 lp-enc {{ $conEnc ? '' : 'd-none' }}">
+                <label class="form-label fw-bold" for="encTel">Celular del encargado <span class="text-muted fw-normal">(opcional)</span></label>
+                <input id="encTel" type="tel" name="encargado_telefono" class="form-control" data-celular value="{{ old('encargado_telefono', $alquiler->encargado_telefono) }}">
+                @error('encargado_telefono')<small class="text-danger">{{ $message }}</small>@enderror
             </div>
 
             @php
@@ -152,6 +174,14 @@
     document.addEventListener('input', function () { setTimeout(calc, 0); }, true);
     document.addEventListener('change', function () { setTimeout(calc, 0); }, true);
     calc();
+
+    // Encargado de nuestro lado: muestra nombre y celular solo si se activa
+    var enc = document.getElementById('conEnc');
+    function verEnc() {
+        document.querySelectorAll('.lp-enc').forEach(function (e) { e.classList.toggle('d-none', !enc.checked); });
+        document.getElementById('encNom').required = enc.checked;
+    }
+    if (enc) { enc.addEventListener('change', verEnc); verEnc(); }
 
     // ¿Cómo paga?: muestra el monto del abono y calcula cuánto cobra ahora y cuánto queda debiendo
     var box = document.getElementById('lpPago');
