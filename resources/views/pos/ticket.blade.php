@@ -33,6 +33,7 @@
     <table>
         @foreach ($venta->items as $i)
         <tr><td colspan="2" class="b">{{ $i->descripcion }}</td></tr>
+        @if ($loop->first && $venta->alquiler)<tr><td colspan="2">{{ $venta->alquiler->detalle_factura }}</td></tr>@endif
         <tr>
             <td>{{ trim(($i->talla ? 'T:' . $i->talla : '') . ' ' . ($i->color ?? '')) }} &nbsp; {{ cantidad($i->cantidad) }} x {{ dinero($i->precio, false) }}</td>
             <td class="r">{{ dinero($i->subtotal, false) }}</td>
