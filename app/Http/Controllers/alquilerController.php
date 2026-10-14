@@ -364,6 +364,9 @@ class alquilerController extends Controller
             'hora' => 'required|date_format:H:i',
             'lugar' => 'required|string|min:2|max:150',
             'responsable_telefono' => ['required', 'string', 'max:20', Validar::celular()],
+            'con_encargado' => 'nullable|boolean',
+            'encargado_nombre' => 'nullable|required_if:con_encargado,1|string|min:2|max:80',
+            'encargado_telefono' => ['nullable', 'string', 'max:20', Validar::celular()],
             'nota' => 'nullable|string|max:255',
             'valor' => 'required|numeric|min:0|max:999999999999',
             'con_comision' => 'nullable|boolean',
@@ -375,10 +378,20 @@ class alquilerController extends Controller
             'fecha.required' => 'Elija la fecha del alquiler.',
             'hora.required' => 'Elija la hora del alquiler.',
             'lugar.required' => 'Escriba el lugar.',
-            'responsable_telefono.required' => 'Escriba el número del responsable.',
+            'responsable_telefono.required' => 'Escriba el celular de quien contrata.',
+            'encargado_nombre.required_if' => 'Escriba el nombre del encargado de su negocio, o apague "Encargado de nuestro lado".',
             'valor.required' => 'Escriba el valor del alquiler.',
         ]);
         $d['responsable_telefono'] = Validar::limpiarTel($d['responsable_telefono']);
+        // Encargado de nuestro lado (opcional): quien presta el servicio
+        if ($request->boolean('con_encargado')) {
+            $d['encargado_nombre'] = trim((string) ($d['encargado_nombre'] ?? '')) ?: null;
+            $d['encargado_telefono'] = !empty($d['encargado_telefono']) ? Validar::limpiarTel($d['encargado_telefono']) : null;
+        } else {
+            $d['encargado_nombre'] = null;
+            $d['encargado_telefono'] = null;
+        }
+        unset($d['con_encargado']);
         $d['con_comision'] = $request->boolean('con_comision');
         $d['comision'] = $d['con_comision'] ? (float) ($d['comision'] ?? 0) : 0;
         return $d;
