@@ -8,7 +8,7 @@
     <div class="lp-hello">
         <div><small><i class="fa-solid fa-calendar-days me-1"></i>Alquiler</small>
             <h1>@if ($nuevo)Crear servicio en <span>alquiler</span>@else Editar <span>{{ $alquiler->numero }}</span>@endif</h1>
-            <span class="text-muted fw-semibold">Registre qué se alquila, cuándo, dónde y quién responde.</span></div>
+            <span class="text-muted fw-semibold">Qué se alquila, cuándo empieza y termina, dónde y quién responde.</span></div>
         <div class="lp-quick"><a href="{{ route('alquileres.index') }}" class="btn btn-light btn-lg"><i class="fa-solid fa-arrow-left me-1"></i>Alquiler</a></div>
     </div>
     @include('layouts.partials.lp-flash')
@@ -32,13 +32,18 @@
                 <input id="lugarAlq" name="lugar" class="form-control form-control-lg" maxlength="150" required placeholder="Dirección o sitio donde se presta el servicio" value="{{ old('lugar', $alquiler->lugar) }}">
             </div>
 
-            <div class="col-6 col-lg-3">
+            <div class="col-12 col-sm-4 col-lg-2">
                 <label class="form-label fw-bold">Fecha *</label>
                 <input type="date" name="fecha" class="form-control" required value="{{ old('fecha', optional($alquiler->fecha)->format('Y-m-d')) }}">
             </div>
-            <div class="col-6 col-lg-3">
-                <label class="form-label fw-bold">Hora *</label>
-                <input type="time" name="hora" class="form-control" required value="{{ old('hora', $alquiler->hora ? substr($alquiler->hora, 0, 5) : '') }}">
+            <div class="col-6 col-sm-4 col-lg-2">
+                <label class="form-label fw-bold">Hora de inicio *</label>
+                <input type="time" name="hora" id="horaIni" class="form-control" required value="{{ old('hora', $alquiler->hora ? substr($alquiler->hora, 0, 5) : '') }}">
+            </div>
+            <div class="col-6 col-sm-4 col-lg-2">
+                <label class="form-label fw-bold">Hora de fin</label>
+                <input type="time" name="hora_fin" id="horaFin" class="form-control" value="{{ old('hora_fin', $alquiler->hora_fin ? substr($alquiler->hora_fin, 0, 5) : '') }}">
+                @error('hora_fin')<small class="text-danger">{{ $message }}</small>@enderror
             </div>
             <div class="col-sm-6 col-lg-3">
                 <label class="form-label fw-bold">Celular de quien contrata *</label>
