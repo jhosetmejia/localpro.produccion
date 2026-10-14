@@ -240,6 +240,8 @@
             <button class="btn btn-primary btn-lg" id="alqGuardar"><i class="fa-solid fa-floppy-disk me-1"></i>{{ $nuevo ? 'Crear alquiler' : 'Guardar cambios' }}</button>
         </div>
     </form>
+
+    @include('alquiler.corregir-pago')
 </div>
 @endsection
 
