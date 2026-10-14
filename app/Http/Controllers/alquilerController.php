@@ -207,6 +207,50 @@ class alquilerController extends Controller
         return $this->respuestaPago($a, $abono, $venta);
     }
 
+    // Corrige un alquiler que quedó como pagado completo pero en realidad pagaron solo una parte (o nada):
+    // anula la venta (sale del cuadre de la caja) y registra lo que sí pagaron como abono. Solo administrador.
+    public function corregirPago(Request $request, Alquiler $alquiler)
+    {
+        abort_unless(self::esAdmin(), 403);
+        $d = $request->validate([
+            'corr_pagado' => 'required|numeric|min:0',
+            'corr_metodo' => 'nullable|integer',
+        ], ['corr_pagado.required' => 'Escriba cuánto pagó realmente (0 si no ha pagado nada).']);
+        if (!$alquiler->cobrado) return back()->withErrors('Este alquiler no está como pagado; cobre o abone desde la lista.');
+        $pagado = round((float) $d['corr_pagado'], 2);
+        if ($pagado + 0.001 >= $alquiler->valor) return back()->withErrors('Si pagó los ' . dinero($alquiler->valor) . ' completos no hay nada que corregir.');
+
+        $venta = $alquiler->venta;
+        if ($venta && $venta->estado === 'pagada') {
+            if ($venta->tipo_doc !== 'tiquete') return back()->withErrors('La venta ' . $venta->numero . ' salió como documento electrónico ante la DIAN. Anúlela en Ventas (sale nota crédito) y luego registre el abono desde la lista.');
+            if ($venta->caja?->estado !== 'abierta') return back()->withErrors('La caja donde se cobró la venta ' . $venta->numero . ' ya está cerrada; no se puede corregir aquí.');
+        }
+        if ($alquiler->abonos()->where('anulado', false)->exists()) return back()->withErrors('Este alquiler se pagó con abonos; anule la venta ' . $venta?->numero . ' en Ventas si hubo un error.');
+
+        $caja = null; $metodo = null;
+        if ($pagado > 0) {
+            $caja = Caja::abiertaDe(Auth::id());
+            if (!$caja) return redirect()->route('cajas.abrir')->with('info', 'Abra su caja para registrar lo que pagaron del alquiler ' . $alquiler->numero . '.');
+            $metodo = MetodoPago::activos()->whereKey($d['corr_metodo'] ?? 0)->first();
+            if (!$metodo) return back()->withErrors('Elija cómo le pagaron.');
+        }
+
+        DB::transaction(function () use ($alquiler, $venta) {
+            if ($venta && $venta->estado === 'pagada') {
+                $venta->update(['estado' => 'anulada', 'anulada_en' => now(), 'anulada_por' => Auth::id()]);
+                Facturador::enviarDespues(Facturador::notaCredito($venta, 'Corrección del alquiler ' . $alquiler->numero . ': no pagó completo', '2'));
+            }
+            $alquiler->update(['pos_venta_id' => null, 'estado' => 'programado', 'cobrado_en' => null, 'abonado' => 0]);
+        });
+
+        if ($pagado <= 0) {
+            return redirect()->route('alquileres.index', ['ver' => 'proximos'])
+                ->with('success', 'Alquiler ' . $alquiler->numero . ' corregido: se anuló la venta ' . $venta?->numero . ' y queda sin pagar (' . dinero($alquiler->valor) . ').');
+        }
+        [$a, $abono, $v] = $this->registrarPago($alquiler->fresh(), $caja, $metodo, $pagado, 'Corrección: había quedado como pagado completo', null);
+        return $this->respuestaPago($a, $abono, $v, 'Se anuló la venta ' . $venta?->numero . '. ');
+    }
+
     // Registra un pago (completo o abono) en la caja. Si con él queda pagado, se factura.
     // Devuelve [alquiler, abono|null, venta|null]
     private function registrarPago(Alquiler $alquiler, Caja $caja, MetodoPago $metodo, float $monto, ?string $nota, ?string $referencia): array
