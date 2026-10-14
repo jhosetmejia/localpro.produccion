@@ -24,6 +24,12 @@ class PosVenta extends Model
         return $this->hasOne(DocumentoElectronico::class)->whereIn('tipo', ['fe', 'pos_e'])->latest('id');
     }
 
+    // Si la venta salió de un alquiler: sus detalles (fecha, horario, lugar) se muestran en la factura
+    public function alquiler()
+    {
+        return $this->hasOne(Alquiler::class, 'pos_venta_id');
+    }
+
     public function items()
     {
         return $this->hasMany(PosVentaItem::class);
