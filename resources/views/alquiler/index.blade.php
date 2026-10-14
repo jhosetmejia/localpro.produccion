@@ -39,6 +39,7 @@
 
 @section('content')
 @php
+    $esAdmin = \App\Http\Controllers\alquilerController::esAdmin();
     $f = fn ($v) => '$' . number_format((float) $v, 0, ',', '.');
     $meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 @endphp
@@ -122,6 +123,7 @@
                 @if ($wa)<a href="{{ $wa }}" target="_blank" rel="noopener" class="btn btn-sm btn-success"><i class="fa-brands fa-whatsapp me-1"></i>{{ $a->venta ? 'Enviar factura' : 'Responsable' }}</a>@endif
                 @if ($a->venta)
                 <a href="{{ $a->venta->url_factura }}" target="_blank" class="btn btn-sm btn-light"><i class="fa-solid fa-file-invoice me-1"></i>Factura</a>
+                @if ($esAdmin)<a href="{{ route('alquileres.edit', $a) }}" class="btn btn-sm btn-light" title="Solo administrador"><i class="fa-solid fa-pen me-1"></i>Editar</a>@endif
                 @elseif ($a->estado === 'programado')
                 <form method="post" action="{{ route('alquileres.abonar', $a) }}" class="d-inline-flex gap-1 align-items-center flex-wrap">@csrf
                     <input name="monto" type="number" min="1" step="any" class="form-control form-control-sm" style="width:130px" value="{{ $a->saldo }}" required data-dinero title="Deje el valor completo si paga todo, o cambie el valor si deja un abono">

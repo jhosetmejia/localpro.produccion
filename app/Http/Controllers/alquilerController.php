@@ -90,22 +90,58 @@ class alquilerController extends Controller
             ->with('success', 'Alquiler ' . $a->numero . ' creado: ' . $a->que_alquila . ' el ' . $a->fecha->format('d/m/Y') . ' a las ' . $a->hora_texto . '.');
     }
 
+    // Dueño / administrador: puede editar (y cambiar el precio de) un alquiler ya cobrado
+    public static function esAdmin(): bool
+    {
+        $u = Auth::user();
+        return $u && ($u->es_superadmin || $u->hasRole('dueno') || $u->hasRole('administrador'));
+    }
+
     public function edit(Alquiler $alquiler)
     {
-        if ($alquiler->cobrado) return redirect()->route('alquileres.index')->withErrors('El alquiler ' . $alquiler->numero . ' ya se cobró (venta ' . $alquiler->venta?->numero . '); no se puede editar.');
+        if ($alquiler->cobrado && !self::esAdmin()) return redirect()->route('alquileres.index')->withErrors('El alquiler ' . $alquiler->numero . ' ya se cobró (venta ' . $alquiler->venta?->numero . '); solo el administrador lo puede editar.');
         return view('alquiler.form', ['alquiler' => $alquiler]);
     }
 
     public function update(Request $request, Alquiler $alquiler)
     {
-        if ($alquiler->cobrado) return redirect()->route('alquileres.index')->withErrors('El alquiler ' . $alquiler->numero . ' ya se cobró; no se puede editar.');
+        if ($alquiler->cobrado && !self::esAdmin()) return redirect()->route('alquileres.index')->withErrors('El alquiler ' . $alquiler->numero . ' ya se cobró; solo el administrador lo puede editar.');
         $d = $this->validar($request);
-        if ($d['valor'] + 0.001 < $alquiler->abonado) {
+        $extra = '';
+
+        if ($alquiler->cobrado) {
+            $venta = $alquiler->venta;
+            $cambiaPrecio = abs($d['valor'] - $alquiler->valor) > 0.001 || ($d['con_comision'] ? $d['comision'] : 0) != ($alquiler->con_comision ? $alquiler->comision : 0);
+            if ($cambiaPrecio && $venta) {
+                if ($venta->estado !== 'pagada') {
+                    // La venta se anuló: el precio se cambia solo en el alquiler
+                } elseif ($venta->tipo_doc !== 'tiquete') {
+                    throw ValidationException::withMessages(['valor' => 'La venta ' . $venta->numero . ' salió como documento electrónico ante la DIAN y su precio no se puede cambiar. Anúlela en Ventas (sale nota crédito) y vuelva a cobrar el alquiler.']);
+                } elseif ($alquiler->abonos()->exists()) {
+                    throw ValidationException::withMessages(['valor' => 'Este alquiler se pagó con abonos; el precio ya no se puede cambiar. Si hubo un error, anule la venta ' . $venta->numero . ' en Ventas.']);
+                } elseif ($venta->caja?->estado !== 'abierta') {
+                    throw ValidationException::withMessages(['valor' => 'La caja donde se cobró (venta ' . $venta->numero . ') ya está cerrada; el precio no se puede cambiar.']);
+                } else {
+                    DB::transaction(function () use ($venta, $d) {
+                        $tienda = Tienda::find(TiendaActual::id());
+                        $item = $venta->items()->first();
+                        $imp = Impuestos::calcular([['total' => (float) $d['valor'], 'impuesto' => $item?->impuesto ?? Facturador::impuestoPorDefecto($tienda)]], 0);
+                        $li = $imp['lineas'][0];
+                        $venta->update(['subtotal' => $d['valor'], 'total' => $d['valor'], 'base_gravable' => $imp['base'], 'impuestos' => $imp['impuestos'], 'impuestos_detalle' => $imp['detalle'] ?: null]);
+                        $item?->update(['precio' => $d['valor'], 'subtotal' => $d['valor'], 'costo' => $d['con_comision'] ? $d['comision'] : 0,
+                            'impuesto' => $li['impuesto'], 'iva_tasa' => $li['tasa'], 'base' => $li['base'], 'iva_valor' => $li['iva']]);
+                        $venta->pagos()->first()?->update(['monto' => $d['valor']]);
+                    });
+                    $extra = ' La venta ' . $venta->numero . ' quedó por ' . dinero($d['valor']) . '.';
+                }
+            }
+            $d['abonado'] = $d['valor'];
+        } elseif ($d['valor'] + 0.001 < $alquiler->abonado) {
             throw ValidationException::withMessages(['valor' => 'Ya abonaron ' . dinero($alquiler->abonado) . '. El valor no puede quedar por debajo de eso.']);
         }
         $alquiler->update($d);
         return redirect()->route('alquileres.index', ['ver' => $alquiler->estado === 'programado' ? ($alquiler->fecha->lt(today()) ? 'pendientes' : 'proximos') : $alquiler->estado . 's'])
-            ->with('success', 'Alquiler ' . $alquiler->numero . ' actualizado.');
+            ->with('success', 'Alquiler ' . $alquiler->numero . ' actualizado.' . $extra);
     }
 
     public function estado(Request $request, Alquiler $alquiler)

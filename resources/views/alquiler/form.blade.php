@@ -17,6 +17,9 @@
         @csrf
         @unless ($nuevo) @method('PUT') @endunless
 
+        @if ($alquiler->cobrado)
+        <div class="alert border-0 mb-3" style="background:#fff5d6;color:#8a6400"><i class="fa-solid fa-user-shield me-1"></i><b>Edición de administrador.</b> Este alquiler ya se cobró con la venta {{ $alquiler->venta?->numero }}. Si cambia el valor, también se cambia esa venta (solo si es tiquete y la caja sigue abierta).</div>
+        @endif
         <h3><span><i class="fa-solid fa-tag me-1"></i> ¿Qué se alquila?</span></h3>
         <div class="mb-3">
             <input name="que_alquila" class="form-control form-control-lg" maxlength="120" required autofocus
