@@ -355,6 +355,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
 (function () {
     var URL_BUSCAR = @json(route('pos.buscar')), URL_VENTA = @json(route('pos.store'));
     var URL_NUEVO = @json(route('productos.create'));
+    var hayProductos = true;
     var URL_CLIENTES = @json(route('pos.clientes')), URL_SALDO = @json(route('pos.saldo'));
     var URL_CLIENTE_NUEVO = @json(route('pos.clientes.crear'));
     var URL_CLIENTE_DATOS = @json(url('/pos/clientes')) + '/';
@@ -385,7 +386,9 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
             .then(function (r) { return r.json(); })
             .then(function (d) {
                 productos = d.productos;
+                hayProductos = d.hay_productos !== false;
                 pintarGrid();
+                if (d.agotado) toast('Producto agotado: ' + d.agotado.nombre + ' (código ' + d.agotado.codigo + '). Agregue existencia en Entradas para poder venderlo.', true);
                 if (d.exacta) {
                     var v = buscarVariante(d.exacta);
                     if (v) { agregar(v.p, v.v); $('q').value = ''; buscar(''); }
@@ -402,7 +405,8 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         var g = $('grid');
         if (!productos.length) {
             g.innerHTML = $('q').value.trim()
-                ? '<div class="empty"><i class="fa-solid fa-magnifying-glass"></i>No se encontró "' + esc($('q').value.trim()) + '".</div>'
+                ? '<div class="empty"><i class="fa-solid fa-magnifying-glass"></i>No se encontró "' + esc($('q').value.trim()) + '" con existencia.<br><small>Si está agotado, búsquelo exacto por su código o código de barras.</small></div>'
+                : hayProductos ? '<div class="empty"><i class="fa-solid fa-box-open"></i>No hay productos con existencia.<br><small>Los agotados no se muestran: búsquelos por su código para verlos.</small></div>'
                 : '<div class="empty"><i class="fa-solid fa-box-open"></i>Aún no tiene productos para vender.<br><a href="' + URL_NUEVO + '" style="display:inline-block;margin-top:12px;background:#0b0d0c;color:#fff;border-radius:999px;padding:.7rem 1.2rem;font-weight:800;text-decoration:none">+ Crear mi primer producto</a></div>';
             return;
         }
