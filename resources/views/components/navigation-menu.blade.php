@@ -259,6 +259,7 @@
             </div>
         </div>
         <div class="lp-side-acciones">
+            <a href="#" class="lp-solo-navegador" onclick="event.preventDefault();window.lpInstalarApp&&window.lpInstalarApp()"><i class="fa-solid fa-mobile-screen-button"></i> Instalar la app en el celular</a>
             <a href="{{ route('cuenta.edit') }}"><i class="fa-regular fa-user"></i> Mi cuenta y clave</a>
             <a href="{{ route('logout') }}" class="salir"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión</a>
         </div>
