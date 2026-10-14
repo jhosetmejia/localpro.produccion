@@ -58,7 +58,7 @@
         </div>
         @foreach ($venta->items as $i)
         <div class="it">
-            <div><b style="white-space:normal">{{ $i->descripcion }}</b><small>{{ trim(($i->talla ? 'Talla ' . $i->talla : '') . ($i->color ? ' · ' . $i->color : '')) }} — {{ cantidad($i->cantidad) }} × {{ dinero($i->precio) }}</small></div>
+            <div><b style="white-space:normal">{{ $i->descripcion }}</b><small>{{ trim(($i->talla ? 'Talla ' . $i->talla : '') . ($i->color ? ' · ' . $i->color : '')) }} — {{ cantidad($i->cantidad) }} × {{ dinero($i->precio) }}</small>@if ($loop->first && $venta->alquiler)<small style="display:block;color:#11702f;font-weight:600">{{ $venta->alquiler->detalle_factura }}</small>@endif</div>
             <b>{{ dinero($i->subtotal) }}</b>
         </div>
         @endforeach
