@@ -92,7 +92,7 @@ class alquilerController extends Controller
             return $this->respuestaPago($a, $abono, $venta, 'Alquiler ' . $a->numero . ' creado. ');
         }
         return redirect()->route('alquileres.index', ['ver' => $a->fecha->lt(today()) ? 'pendientes' : 'proximos'])
-            ->with('success', 'Alquiler ' . $a->numero . ' creado: ' . $a->que_alquila . ' el ' . $a->fecha->format('d/m/Y') . ' a las ' . $a->hora_texto . '. Queda sin pagar: cobre desde la lista cuando le paguen.');
+            ->with('success', 'Alquiler ' . $a->numero . ' creado: ' . $a->que_alquila . ' el ' . $a->fecha->format('d/m/Y') . ', ' . $a->horario_texto . '. Queda sin pagar: cobre desde la lista cuando le paguen.');
     }
 
     // Dueño / administrador: puede editar (y cambiar el precio de) un alquiler ya cobrado
@@ -310,7 +310,7 @@ class alquilerController extends Controller
             'estado' => 'pagada',
         ]);
         $venta->items()->create([
-            'descripcion' => mb_substr('Alquiler ' . $a->numero . ': ' . $a->que_alquila, 0, 120),
+            'descripcion' => mb_substr('Alquiler ' . $a->numero . ': ' . $a->que_alquila . ' · ' . $a->fecha->format('d/m/Y') . ' ' . str_replace([' am', ' pm'], ['am', 'pm'], $a->horario_texto), 0, 120),
             'cantidad' => 1,
             'precio' => $a->valor,
             'costo' => $a->con_comision ? $a->comision : 0,
@@ -362,6 +362,7 @@ class alquilerController extends Controller
             'que_alquila' => 'required|string|min:2|max:120',
             'fecha' => 'required|date',
             'hora' => 'required|date_format:H:i',
+            'hora_fin' => 'nullable|date_format:H:i',
             'lugar' => 'required|string|min:2|max:150',
             'responsable_telefono' => ['required', 'string', 'max:20', Validar::celular()],
             'con_encargado' => 'nullable|boolean',
@@ -376,7 +377,7 @@ class alquilerController extends Controller
             'comision.lte' => 'La comisión no puede ser mayor que el valor del alquiler.',
             'que_alquila.required' => 'Escriba qué se alquila.',
             'fecha.required' => 'Elija la fecha del alquiler.',
-            'hora.required' => 'Elija la hora del alquiler.',
+            'hora.required' => 'Elija la hora de inicio del servicio.',
             'lugar.required' => 'Escriba el lugar.',
             'responsable_telefono.required' => 'Escriba el celular de quien contrata.',
             'encargado_nombre.required_if' => 'Escriba el nombre del encargado de su negocio, o apague "Encargado de nuestro lado".',
