@@ -353,3 +353,29 @@ textarea.form-control{min-height:calc(1.5em + 1.3rem)}
 .lp-cuenta-menu a.salir .ic{background:rgba(255,95,145,.12);color:#ff8fb1}
 .lp-cuenta-menu a.salir b{color:#ff9fbd}
 .lp-gan-col{display:flex;align-items:flex-end}
+
+/* ===== Alquiler: ¿Cómo paga? (después, completo o abono) ===== */
+.lp-pago{border:1.5px solid var(--lp-line);border-radius:18px;padding:.75rem .9rem;background:#fbfdfb}
+.lp-pago-top{display:flex;align-items:center;justify-content:space-between;gap:.6rem;flex-wrap:wrap;margin-bottom:.55rem}
+.lp-pago-ya{background:#e8f8ec;color:#11702f;border-radius:999px;padding:.15rem .65rem;font-weight:700}
+.lp-pago-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:.75rem;align-items:end}
+.lp-seg{display:inline-flex;background:#eef4ef;border-radius:14px;padding:4px;gap:4px;align-self:end}
+.lp-seg .btn-check{position:absolute;clip:rect(0,0,0,0);pointer-events:none}
+.lp-seg label{margin:0;display:flex;align-items:center;gap:.4rem;padding:.5rem .8rem;border-radius:11px;font-weight:700;font-size:.86rem;color:var(--lp-muted);cursor:pointer;white-space:nowrap;transition:background .12s,color .12s,box-shadow .12s}
+.lp-seg label:hover{color:var(--lp-ink)}
+.lp-seg .btn-check:checked+label{background:#fff;color:var(--lp-ink);box-shadow:0 4px 12px -6px rgba(0,0,0,.25)}
+.lp-seg .btn-check:checked+label i{color:var(--lp-green-2)}
+.lp-seg .btn-check:focus-visible+label{box-shadow:0 0 0 3px rgba(47,209,90,.3)}
+.lp-pago-campos{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.6rem}
+.lp-pago-res{display:flex;gap:.5rem;background:var(--lp-black);color:#fff;border-radius:14px;padding:.45rem .8rem;min-height:46px;align-items:center}
+.lp-pago-res > div{display:flex;flex-direction:column;line-height:1.15;padding-right:.6rem}
+.lp-pago-res > div + div{border-left:1px solid #2a332d;padding-left:.7rem;padding-right:0}
+.lp-pago-res small{color:#a9b5ad;font-weight:700;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em}
+.lp-pago-res b{font-size:1.1rem;color:#2fd15a;white-space:nowrap}
+.lp-pago-res .falta b{color:#ff8fb1}
+.lp-pago-res.ok .falta b{color:#2fd15a}
+.lp-pago[data-sel="despues"] .lp-pago-res .falta b{color:#ffcc33}
+.lp-pago-aviso{display:block;margin-top:.5rem;color:#8a6400;font-weight:600}
+@media (min-width:1200px){.lp-pago-res{grid-column:3}}
+@media (max-width:1199.98px){.lp-pago-row{grid-template-columns:1fr}.lp-seg{width:100%}.lp-seg label{flex:1;justify-content:center}.lp-pago-res{justify-content:space-around}}
+@media (max-width:575.98px){.lp-seg label{flex-direction:column;gap:.15rem;font-size:.78rem;padding:.45rem .3rem;white-space:normal;text-align:center}}
