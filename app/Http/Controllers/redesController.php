@@ -145,16 +145,32 @@ class redesController extends Controller
         return response()->json(['ok' => true, 'cliente_id' => $cliente->id]);
     }
 
+    // "Actualizar": trae los chats de Meta en segundo plano. Meta a veces tarda minutos y la página
+    // no puede esperar (Cloudflare corta a los 100 s con error 524), así que se responde de una vez.
     public function sincronizar()
     {
-        $n = 0; $err = []; $tid = TiendaActual::id();
-        foreach ($this->cuentas() as $c) {
-            try { $n += Meta::sincronizar($c); } catch (Throwable $e) { $err[] = $c->page_nombre . ': ' . $e->getMessage(); $c->update(['estado' => 'error', 'error' => mb_substr($e->getMessage(), 0, 250)]); }
-        }
-        TiendaActual::set($tid);
-        $err = array_values(array_unique(array_map(fn ($x) => Meta::sinLlaves($x), array_merge($err, Meta::$avisos))));
-        $r = back()->with('success', $n ? "Se trajeron $n mensajes nuevos." : 'Todo al día.');
-        return $err ? $r->withErrors(implode(' · ', $err)) : $r;
+        $tid = TiendaActual::id();
+        $ids = $this->cuentas()->pluck('id')->all();
+        if (!$ids) return back()->with('info', 'No hay cuentas de Facebook o Instagram conectadas.');
+
+        dispatch(function () use ($tid, $ids) {
+            @set_time_limit(300);
+            Meta::$hasta = microtime(true) + 240; // máximo 4 minutos en total
+            foreach (RedCuenta::withoutGlobalScopes()->whereIn('id', $ids)->get() as $c) {
+                Meta::$avisos = [];
+                try {
+                    Meta::sincronizar($c);
+                    if (Meta::$avisos) {
+                        $c->update(['error' => mb_substr(Meta::sinLlaves(implode(' · ', array_unique(Meta::$avisos))), 0, 250)]);
+                    }
+                } catch (Throwable $e) {
+                    $c->update(['estado' => 'error', 'error' => mb_substr(Meta::sinLlaves($e->getMessage()), 0, 250)]);
+                }
+            }
+            TiendaActual::set($tid);
+        })->afterResponse();
+
+        return back()->with('info', 'Buscando mensajes nuevos en Facebook e Instagram… Van apareciendo solos en la bandeja en uno o dos minutos.');
     }
 
     // Productos para enviar en el chat o publicar

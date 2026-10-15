@@ -92,6 +92,14 @@ class Meta
     /** Avisos de la última sincronización (para mostrarlos en pantalla). */
     public static array $avisos = [];
 
+    // Hora límite (microtime) para sincronizar; pasada esa hora se detiene y sigue en la próxima actualización
+    public static ?float $hasta = null;
+
+    private static function sinTiempo(): bool
+    {
+        return self::$hasta !== null && microtime(true) > self::$hasta;
+    }
+
     private const CAMPOS_MSJ = 'id,message,from,created_time,attachments{mime_type,image_data,file_url}';
 
     public static function sincronizar(RedCuenta $c, int $limite = 25): int
@@ -108,6 +116,7 @@ class Meta
                 continue;
             }
             foreach ($convs as $conv) {
+                if (self::sinTiempo()) break 2;
                 $otro = collect($conv['participants']['data'] ?? [])->first(fn ($p) => (string) ($p['id'] ?? '') !== (string) $propio && ($p['username'] ?? null) !== $c->ig_usuario);
                 if (!$otro) continue;
                 $cv = self::conversacion($c, $plat, (string) $otro['id'], $otro['name'] ?? null, $otro['username'] ?? null);
@@ -147,6 +156,7 @@ class Meta
             : [[$limite, 'id,updated_time,participants,messages.limit(15){' . self::CAMPOS_MSJ . '}'], [5, 'id,updated_time,participants']];
         $ultimo = null;
         foreach ($intentos as [$lim, $campos]) {
+            if (self::sinTiempo()) break;
             try {
                 $r = self::get($c->page_id . '/conversations', [
                     'platform' => $plataforma, 'limit' => $lim, 'access_token' => $c->page_token, 'fields' => $campos,
