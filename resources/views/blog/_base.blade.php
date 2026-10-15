@@ -40,7 +40,7 @@
     </div>
     @yield('volver')
     @yield('cuerpo')
-    <p style="margin-top:34px;color:#6b7570;font-size:.95rem">LocalProo · Sistema para pequeños negocios · <a href="{{ url('/') }}">localproo.com</a></p>
+    <p style="margin-top:34px;color:#6b7570;font-size:.95rem">LocalProo · Para negocios que piensan en grande · <a href="{{ url('/') }}">localproo.com</a></p>
 </div>
 </body>
 </html>
