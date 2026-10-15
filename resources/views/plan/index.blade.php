@@ -13,7 +13,17 @@
     @if ($tienda->plan_vencido)
     <div class="lp-box mb-3" style="background:#ffe9f3;border-color:#ffc3de">
         <h3 style="color:#9b1c5a"><span><i class="fa-solid fa-circle-exclamation me-1"></i> Su plan venció el {{ $tienda->plan_vence->format('d/m/Y') }}</span></h3>
+        @php
+            $gratisPV = !$tienda->plan || (float) $tienda->plan->precio <= 0;
+            $borraPV = $tienda->plan_vence->copy()->addDays(\App\Console\Commands\DepurarPruebas::diasGracia() + 1);
+        @endphp
+        @if ($tienda->datos_depurados)
+        <p class="mb-0" style="color:#9b1c5a">Como la prueba terminó sin activar un plan, se eliminaron los productos, imágenes y ventas del negocio. Sus datos de contacto siguen guardados: active un plan y vuelva a empezar cuando quiera.</p>
+        @elseif ($gratisPV)
+        <p class="mb-0" style="color:#9b1c5a">Su prueba gratis terminó. Active un plan antes del <b>{{ $borraPV->locale('es')->isoFormat('D [de] MMMM') }}</b>: después de esa fecha se eliminan sus productos, imágenes, ventas y clientes (así lo dicen las <a href="{{ route('legal.terminos') }}" target="_blank" style="color:inherit;font-weight:800">condiciones de uso</a>).</p>
+        @else
         <p class="mb-0" style="color:#9b1c5a">Renuévelo para seguir vendiendo. Sus datos están guardados y seguros.</p>
+        @endif
     </div>
     @endif
 

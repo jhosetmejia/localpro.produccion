@@ -1,0 +1,1 @@
+@include('errors._lp', ['codigo' => 405, 'icono' => '↩️', 'titulo' => 'Esta acción no se puede hacer así', 'texto' => 'Vuelva a la página anterior e intente de nuevo desde el botón correspondiente.'])

@@ -13,7 +13,7 @@
     <div class="lp-cr-txt">
         <small>{{ $gratisCR ? '⏳ Su prueba gratis se está acabando' : '⏳ Su plan está por vencer' }}</small>
         <b>{{ $dCR === 0 ? '¡Hoy es el último día!' : 'Le quedan ' . $dCR . ' ' . ($dCR === 1 ? 'día' : 'días') }}</b>
-        <p>Realice su pago antes del <b>{{ $finCR->locale('es')->isoFormat('D [de] MMMM') }}</b>. Si no, su cuenta se bloquea y no podrá vender ni ver sus productos, ventas ni clientes hasta activar un plan. <b>¡No pierda lo que ya construyó!</b></p>
+        <p>Realice su pago antes del <b>{{ $finCR->locale('es')->isoFormat('D [de] MMMM') }}</b>. Si no, su cuenta se bloquea y no podrá vender ni ver sus productos, ventas ni clientes hasta activar un plan.@if ($gratisCR) Y si pasan {{ \App\Console\Commands\DepurarPruebas::diasGracia() }} días más sin pagar, <b>se eliminan sus productos, imágenes y ventas</b>.@endif <b>¡No pierda lo que ya construyó!</b></p>
     </div>
     <div class="lp-cr-reloj" data-fin="{{ $finCR->timestamp * 1000 }}">
         <div><span data-u="d">{{ $dCR }}</span><small>días</small></div>

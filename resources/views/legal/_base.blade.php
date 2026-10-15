@@ -17,7 +17,7 @@
 <div class="lg">
     <a class="v" href="{{ url('/') }}">← LocalProo</a>
     <h1>@yield('titulo')</h1>
-    <div class="f">Última actualización: 12 de octubre de 2026</div>
+    <div class="f">Última actualización: @yield('fecha', '12 de octubre de 2026')</div>
     @yield('cuerpo')
     <p style="margin-top:30px;color:#6b7570">Responsable: LocalProo · Pasto, Nariño, Colombia · Contacto: <a href="mailto:{{ $correo }}">{{ $correo }}</a></p>
 </div>

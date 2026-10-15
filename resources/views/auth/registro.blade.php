@@ -89,6 +89,10 @@
                         <input id="codigo_asesor" name="codigo_asesor" type="text" maxlength="20" placeholder="Si un asesor le ayudó, su código (ej. LCP-00012)" value="{{ old('codigo_asesor', $codigoAsesor ?? '') }}" style="text-transform:uppercase" autocomplete="off" />
                     </div>
                 </div>
+                <label class="terminos" style="display:flex;gap:.6rem;align-items:flex-start;margin:.4rem 0 .2rem;font-size:.9rem;line-height:1.45;cursor:pointer">
+                    <input type="checkbox" name="acepto" value="1" {{ old('acepto') ? 'checked' : '' }} required style="width:20px;height:20px;flex:none;margin-top:2px;accent-color:#16b34a" />
+                    <span>Acepto las <a href="{{ route('legal.terminos') }}" target="_blank" rel="noopener" style="font-weight:800">condiciones de uso</a> y la <a href="{{ route('legal.privacidad') }}" target="_blank" rel="noopener" style="font-weight:800">política de privacidad</a>. Entiendo que si al terminar la prueba gratis no paso a un plan, se eliminan los productos, imágenes y demás información del negocio, y se conservan solo los datos de contacto.</span>
+                </label>
                 <button class="btn btn-amber btn-block" type="submit" style="margin-top:.6rem">Continuar · Datos del negocio <i class="fa-solid fa-arrow-right"></i></button>
             </form>
 

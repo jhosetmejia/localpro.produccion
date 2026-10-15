@@ -1,6 +1,6 @@
 @if(isset($alquiler) && $alquiler->exists && $alquiler->cobrado && $alquiler->estado !== 'cancelado')
 <form method="POST" action="{{ route('alquileres.corregirPago', $alquiler) }}"
-      onsubmit="return confirm('Esto anula la venta y registra solo lo que pagó. ¿Continuar?')"
+      data-confirm="Esto anula la venta y registra solo lo que pagó. ¿Continuar?" data-confirm-ok="Sí, corregir" data-peligro
       style="margin-top:16px;padding:12px;border:1px solid #f59e0b;border-radius:8px">
     @csrf
     <strong>¿Quedó como pagado completo pero no pagó todo?</strong>

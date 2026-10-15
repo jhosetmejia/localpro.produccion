@@ -40,7 +40,9 @@ class registroController extends Controller
             'pais' => ['required', Rule::in(array_keys(Paises::LISTA))],
             'password' => 'required|string|min:8|confirmed',
             'codigo_asesor' => 'nullable|string|max:20',
+            'acepto' => 'accepted',
         ], [
+            'acepto.accepted' => 'Para crear la cuenta debe aceptar las condiciones de uso.',
             'name.required' => 'Escriba su nombre.',
             'email.required' => 'Escriba su correo electrónico.',
             'email.email' => 'El correo electrónico no es válido.',
@@ -66,6 +68,8 @@ class registroController extends Controller
             $prueba = \App\Models\Plan::where('nombre', 'Prueba 3 meses')->first();
             $user->tienda->forceFill(['asesor_id' => $asesor?->id, 'venta_directa_id' => null] + ($prueba ? ['plan_id' => $prueba->id, 'plan_vence' => today()->addDays(($prueba->dias ?: 90) - 1)] : []))->save();
         }
+
+        $user->forceFill(['terminos_aceptados_at' => now()])->save();
 
         Auth::login($user);
         $request->session()->regenerate();

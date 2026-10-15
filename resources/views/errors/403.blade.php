@@ -1,0 +1,1 @@
+@include('errors._lp', ['codigo' => 403, 'icono' => '🔒', 'peligro' => true, 'titulo' => 'No tiene permiso para entrar aquí', 'texto' => 'Esta sección es solo para usuarios con otro rol. Si cree que debería tener acceso, pídale al dueño o administrador del negocio que le dé el permiso.'])

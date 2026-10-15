@@ -1,0 +1,1 @@
+@include('errors._lp', ['codigo' => 500, 'icono' => '🛠️', 'peligro' => true, 'titulo' => 'Algo salió mal', 'texto' => 'Tuvimos un problema al cargar esta página. Ya quedó registrado; intente de nuevo en un momento.', 'exception' => null])

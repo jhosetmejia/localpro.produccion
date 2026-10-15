@@ -1,0 +1,1 @@
+@include('errors._lp', ['codigo' => 503, 'icono' => '🚧', 'titulo' => 'Estamos actualizando LocalProo', 'texto' => 'En unos minutos vuelve a estar disponible. Gracias por la paciencia.', 'segundos' => 20, 'exception' => null])

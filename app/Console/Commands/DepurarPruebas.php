@@ -1,0 +1,134 @@
+<?php
+
+namespace App\Console\Commands;
+
+use App\Models\Ajuste;
+use App\Models\Tienda;
+use App\Support\CrearTienda;
+use App\Support\TiendaActual;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+
+/**
+ * Negocios que terminaron su prueba gratis (1 mes, 3 meses o lo que diga la promoción) y no pasaron a un plan pago:
+ * se borran productos, imágenes, ventas, clientes, inventario… para no llenar el servidor.
+ * Se conservan los datos de contacto: el negocio (nombre, NIT, teléfono, correo, ciudad, tipo) y sus usuarios.
+ * Así lo dicen las Condiciones de uso que aceptan al registrarse.
+ *
+ * Uso: php artisan localpro:depurar-pruebas            (corre solo cada día)
+ *      php artisan localpro:depurar-pruebas --simular  (muestra qué borraría, sin borrar)
+ *      php artisan localpro:depurar-pruebas --tienda=25
+ */
+class DepurarPruebas extends Command
+{
+    protected $signature = 'localpro:depurar-pruebas {--simular : Solo muestra qué negocios se depurarían} {--tienda= : Depurar solo este negocio (id)}';
+    protected $description = 'Borra los datos de los negocios cuya prueba gratis terminó sin pasar a un plan pago (conserva los datos de contacto)';
+
+    // Tablas que NO se tocan: datos del negocio, usuarios, pagos, red comercial y configuración básica
+    private const CONSERVAR = ['tiendas', 'users', 'pagos_suscripcion', 'comisiones', 'asesores', 'planes', 'ajustes', 'metodos_pago'];
+
+    // Días de espera después de vencer la prueba, para que alcancen a pagar (se puede cambiar en ajustes: dias_gracia_depuracion)
+    public const DIAS_GRACIA = 15;
+
+    public static function diasGracia(): int
+    {
+        return max(0, (int) Ajuste::valor('dias_gracia_depuracion', self::DIAS_GRACIA));
+    }
+
+    public function handle(): int
+    {
+        $gracia = self::diasGracia();
+        $limite = today()->subDays(max(0, $gracia));
+
+        $q = Tienda::query()
+            ->whereNull('datos_depurados_at')
+            ->whereNotNull('plan_vence')
+            ->whereDate('plan_vence', '<', $limite)
+            // Sigue en un plan gratis (prueba) o sin plan
+            ->where(fn ($w) => $w->whereNull('plan_id')->orWhereHas('plan', fn ($p) => $p->where('precio', '<=', 0)))
+            // Nunca ha pagado un plan (los pagos de prueba de Wompi no cuentan)
+            ->whereDoesntHave('pagos', fn ($p) => $p->where('estado', 'aprobado')->where('referencia', 'not like', \App\Models\PagoSuscripcion::PREFIJO_PRUEBA . '%'))
+            // Negocios del súper administrador nunca se depuran
+            ->whereDoesntHave('usuarios', fn ($u) => $u->where('es_superadmin', true));
+
+        if ($this->option('tienda')) {
+            $q->whereKey((int) $this->option('tienda'));
+        }
+
+        $tiendas = $q->get();
+        if ($tiendas->isEmpty()) {
+            $this->info('No hay negocios para depurar.');
+            return self::SUCCESS;
+        }
+
+        $tablas = $this->tablasDeTienda();
+        foreach ($tiendas as $t) {
+            $linea = "$t->codigo $t->nombre (prueba venció " . $t->plan_vence->format('d/m/Y') . ')';
+            if ($this->option('simular')) {
+                $this->line('Se depuraría: ' . $linea . ' · productos: ' . DB::table('productos')->where('tienda_id', $t->id)->count());
+                continue;
+            }
+            try {
+                $this->depurar($t, $tablas);
+                $this->info('Depurado: ' . $linea);
+                Log::info('Depuración de prueba vencida', ['tienda' => $t->id, 'codigo' => $t->codigo]);
+            } catch (\Throwable $e) {
+                $this->error("No se pudo depurar $linea: " . $e->getMessage());
+                Log::error('Depuración de prueba vencida falló', ['tienda' => $t->id, 'error' => $e->getMessage()]);
+            }
+        }
+        return self::SUCCESS;
+    }
+
+    private function depurar(Tienda $t, array $tablas): void
+    {
+        // Archivos a borrar (se borran después de confirmar la base de datos)
+        $imagenes = DB::table('productos')->where('tienda_id', $t->id)->whereNotNull('img_path')->pluck('img_path')->all();
+
+        DB::transaction(function () use ($t, $tablas) {
+            // Se borra en varias vueltas: las tablas que dependen de otras quedan para la siguiente vuelta
+            $pendientes = $tablas;
+            for ($vuelta = 0; $pendientes && $vuelta < 12; $vuelta++) {
+                $siguen = [];
+                foreach ($pendientes as $tabla) {
+                    try {
+                        DB::transaction(fn () => DB::table($tabla)->where('tienda_id', $t->id)->delete());
+                    } catch (\Illuminate\Database\QueryException $e) {
+                        $siguen[] = $tabla;
+                    }
+                }
+                if (count($siguen) === count($pendientes)) {
+                    throw new \RuntimeException('No se pudieron borrar: ' . implode(', ', $siguen));
+                }
+                $pendientes = $siguen;
+            }
+            if ($pendientes) {
+                throw new \RuntimeException('Quedaron tablas sin borrar: ' . implode(', ', $pendientes));
+            }
+
+            $t->forceFill(['datos_depurados_at' => now(), 'catalogo_activo' => false])->save();
+        });
+
+        // Categoría inicial para que pueda volver a empezar si paga después
+        TiendaActual::como($t->id, fn () => CrearTienda::categoria('General'));
+
+        foreach ($imagenes as $img) {
+            Storage::disk('public')->delete('productos/' . $img);
+        }
+        Storage::disk('public')->deleteDirectory('redes/' . $t->id);
+        Storage::disk('local')->deleteDirectory('importaciones/' . $t->id);
+    }
+
+    // Todas las tablas que tienen tienda_id, menos las que se conservan
+    private function tablasDeTienda(): array
+    {
+        $bd = DB::getDatabaseName();
+        $tablas = DB::table('information_schema.columns')
+            ->where('table_schema', $bd)->where('column_name', 'tienda_id')
+            ->selectRaw('TABLE_NAME as t')->pluck('t')->map(fn ($n) => (string) $n)->unique()->all();
+        return array_values(array_filter($tablas, fn ($n) => !in_array($n, self::CONSERVAR, true) && Schema::hasTable($n)));
+    }
+}

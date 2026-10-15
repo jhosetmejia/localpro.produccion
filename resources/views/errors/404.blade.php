@@ -1,0 +1,1 @@
+@include('errors._lp', ['codigo' => 404, 'icono' => '🧭', 'titulo' => 'No encontramos esta página', 'texto' => 'Puede que el enlace esté mal escrito, que la página ya no exista o que se haya movido.'])
