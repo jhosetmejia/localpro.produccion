@@ -16,6 +16,7 @@ use App\Support\Validar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 // Alquileres: el negocio pone en alquiler un servicio con fecha, hora, lugar, responsable y valor
@@ -83,6 +84,7 @@ class alquilerController extends Controller
     {
         $d = $this->validar($request);
         $pago = $this->validarPago($request, (float) $d['valor'], 0);
+        $d = $this->conDocumento($request, $d, null);
         $d['numero'] = Alquiler::siguienteNumero();
         $d['user_id'] = Auth::id();
         $d['estado'] = 'programado';
@@ -111,7 +113,7 @@ class alquilerController extends Controller
     public function update(Request $request, Alquiler $alquiler)
     {
         if ($alquiler->cobrado && !self::esAdmin()) return redirect()->route('alquileres.index')->withErrors('El alquiler ' . $alquiler->numero . ' ya se cobró; solo el administrador lo puede editar.');
-        $d = $this->validar($request);
+        $d = $this->validar($request, $alquiler);
         $pago = ($alquiler->cobrado || $alquiler->estado === 'cancelado') ? null : $this->validarPago($request, (float) $d['valor'], (float) $alquiler->abonado);
         $extra = '';
 
@@ -145,6 +147,7 @@ class alquilerController extends Controller
         } elseif ($d['valor'] + 0.001 < $alquiler->abonado) {
             throw ValidationException::withMessages(['valor' => 'Ya abonaron ' . dinero($alquiler->abonado) . '. El valor no puede quedar por debajo de eso.']);
         }
+        $d = $this->conDocumento($request, $d, $alquiler);
         $alquiler->update($d);
         if ($pago) {
             [$a, $abono, $venta] = $this->registrarPago($alquiler, $pago['caja'], $pago['metodo'], $pago['monto'], null, $alquiler->numero);
@@ -379,13 +382,19 @@ class alquilerController extends Controller
         if ($alquiler->estado === 'cancelado') return back()->withErrors('Este alquiler está cancelado.');
 
         if ($d['accion'] === 'entregar') {
-            $alquiler->update(['entrega' => 'alquilado', 'entregado_en' => now(), 'devuelto_en' => null, 'devolucion_estado' => null, 'devolucion_nota' => null]);
-            $msg = 'Alquiler ' . $alquiler->numero . ': quedó en manos del cliente (alquilado).' . ($alquiler->pagado ? '' : ' Ojo: aún le falta pagar ' . dinero($alquiler->saldo) . '.');
+            // Sin encargado del negocio, el elemento no sale sin un documento de respaldo
+            if ($alquiler->requiere_documento && !$alquiler->tiene_documento) {
+                return redirect()->route('alquileres.edit', $alquiler)->withErrors(['doc_numero' => 'Antes de entregar ' . $alquiler->numero . ' registre el documento de respaldo del cliente (el elemento sale sin encargado de su negocio).']);
+            }
+            $alquiler->update(['entrega' => 'alquilado', 'entregado_en' => now(), 'devuelto_en' => null, 'devolucion_estado' => null, 'devolucion_nota' => null, 'doc_devuelto_en' => null]);
+            $msg = 'Alquiler ' . $alquiler->numero . ': quedó en manos del cliente (alquilado).' . ($alquiler->tiene_documento ? ' Respaldo: ' . $alquiler->documento_texto . ($alquiler->doc_fisico ? ' (documento físico guardado en el local).' : '.') : '') . ($alquiler->pagado ? '' : ' Ojo: aún le falta pagar ' . dinero($alquiler->saldo) . '.');
         } elseif ($d['accion'] === 'devolver') {
-            $alquiler->update(['entrega' => 'devuelto', 'devuelto_en' => now(), 'entregado_en' => $alquiler->entregado_en ?? now(), 'devolucion_estado' => $d['devolucion_estado'], 'devolucion_nota' => $d['devolucion_nota'] ?? null]);
-            $msg = 'Alquiler ' . $alquiler->numero . ': ' . ($d['devolucion_estado'] === 'en_orden' ? 'devuelto en orden.' : 'devuelto con novedad.') . ($alquiler->pagado ? '' : ' Aún le falta pagar ' . dinero($alquiler->saldo) . '.');
+            $devolverDoc = $alquiler->doc_pendiente_devolver;
+            $alquiler->update(['entrega' => 'devuelto', 'devuelto_en' => now(), 'entregado_en' => $alquiler->entregado_en ?? now(), 'devolucion_estado' => $d['devolucion_estado'], 'devolucion_nota' => $d['devolucion_nota'] ?? null]
+                + ($devolverDoc ? ['doc_devuelto_en' => now()] : []));
+            $msg = 'Alquiler ' . $alquiler->numero . ': ' . ($d['devolucion_estado'] === 'en_orden' ? 'devuelto en orden.' : 'devuelto con novedad.') . ($devolverDoc ? ' Entréguele al cliente su ' . $alquiler->documento_texto . '.' : '') . ($alquiler->pagado ? '' : ' Aún le falta pagar ' . dinero($alquiler->saldo) . '.');
         } else {
-            $alquiler->update(['entrega' => 'pendiente', 'entregado_en' => null, 'devuelto_en' => null, 'devolucion_estado' => null, 'devolucion_nota' => null]);
+            $alquiler->update(['entrega' => 'pendiente', 'entregado_en' => null, 'devuelto_en' => null, 'devolucion_estado' => null, 'devolucion_nota' => null, 'doc_devuelto_en' => null]);
             $msg = 'Alquiler ' . $alquiler->numero . ' vuelve a quedar por entregar.';
         }
         return back()->with('success', $msg);
@@ -396,12 +405,37 @@ class alquilerController extends Controller
         if ($alquiler->cobrado) return back()->withErrors('El alquiler ' . $alquiler->numero . ' ya se cobró; no se puede eliminar. Si hubo un error, anule la venta ' . $alquiler->venta?->numero . '.');
         if ($alquiler->abonos()->exists()) return back()->withErrors('El alquiler ' . $alquiler->numero . ' tiene abonos; no se puede eliminar. Cancélelo y devuelva los abonos si es necesario.');
         $num = $alquiler->numero;
+        if ($alquiler->doc_archivo) Storage::disk('local')->delete($alquiler->doc_archivo);
         $alquiler->delete();
         return redirect()->route('alquileres.index')->with('success', 'Alquiler ' . $num . ' eliminado.');
     }
 
-    private function validar(Request $request): array
+    // Guarda la foto / PDF del documento de respaldo en el disco privado (no es público)
+    private function conDocumento(Request $request, array $d, ?Alquiler $antes): array
     {
+        if ($request->hasFile('doc_foto') && $d['doc_numero']) {
+            $ruta = $request->file('doc_foto')->store('alquileres/' . TiendaActual::id(), 'local');
+            if ($antes?->doc_archivo) Storage::disk('local')->delete($antes->doc_archivo);
+            $d['doc_archivo'] = $ruta;
+        } elseif (!$d['doc_numero'] && $antes?->doc_archivo) {
+            // Se quitó el documento: se borra también la foto
+            Storage::disk('local')->delete($antes->doc_archivo);
+            $d['doc_archivo'] = null;
+        }
+        return $d;
+    }
+
+    // Ver la foto / PDF del documento de respaldo (solo usuarios del negocio)
+    public function documento(Alquiler $alquiler)
+    {
+        abort_unless($alquiler->doc_archivo && Storage::disk('local')->exists($alquiler->doc_archivo), 404);
+        return Storage::disk('local')->response($alquiler->doc_archivo, 'documento-' . $alquiler->numero . '.' . pathinfo($alquiler->doc_archivo, PATHINFO_EXTENSION), ['Cache-Control' => 'private, no-store']);
+    }
+
+    private function validar(Request $request, ?Alquiler $alquiler = null): array
+    {
+        // El documento se exige en alquileres nuevos o activos (no en los ya devueltos o cancelados)
+        $req = (!$alquiler || ($alquiler->entrega !== 'devuelto' && $alquiler->estado !== 'cancelado')) ? 'required_unless:con_encargado,1|' : '';
         $d = $request->validate([
             'que_alquila' => 'required|string|min:2|max:120',
             'fecha' => 'required|date',
@@ -415,6 +449,12 @@ class alquilerController extends Controller
             'encargado_valor' => 'nullable|numeric|min:0|max:999999999999',
             'encargado_nota' => 'nullable|string|max:255',
             'nota' => 'nullable|string|max:255',
+            // Documento de respaldo: obligatorio si el elemento sale sin encargado del negocio
+            'doc_tipo' => array_filter(['nullable', rtrim($req, '|'), \Illuminate\Validation\Rule::in(array_keys(Alquiler::DOC_TIPOS))]),
+            'doc_numero' => 'nullable|' . $req . 'string|min:3|max:30',
+            'doc_nombre' => 'nullable|' . $req . 'string|min:2|max:80',
+            'doc_fisico' => 'nullable|boolean',
+            'doc_foto' => 'nullable|file|mimes:jpg,jpeg,png,webp,heic,heif,pdf|max:8192',
             'valor' => 'required|numeric|min:0|max:999999999999',
             'con_comision' => 'nullable|boolean',
             'comision' => 'nullable|required_if:con_comision,1|numeric|min:0|lte:valor',
@@ -428,6 +468,11 @@ class alquilerController extends Controller
             'responsable_telefono.required' => 'Escriba el celular de quien contrata.',
             'encargado_nombre.required_if' => 'Escriba el nombre del encargado de su negocio, o apague "Encargado de nuestro lado".',
             'valor.required' => 'Escriba el valor del alquiler.',
+            'doc_tipo.required_unless' => 'El elemento sale sin encargado de su negocio: elija el tipo de documento de respaldo.',
+            'doc_numero.required_unless' => 'El elemento sale sin encargado de su negocio: escriba el número del documento de respaldo.',
+            'doc_nombre.required_unless' => 'Escriba a nombre de quién está el documento de respaldo.',
+            'doc_foto.mimes' => 'La foto del documento debe ser una imagen (JPG, PNG, WEBP) o un PDF.',
+            'doc_foto.max' => 'La foto del documento no puede pesar más de 8 MB.',
         ]);
         $d['responsable_telefono'] = Validar::limpiarTel($d['responsable_telefono']);
         // Encargado de nuestro lado (opcional): quien presta el servicio
@@ -445,7 +490,12 @@ class alquilerController extends Controller
         if ($d['comision'] + $d['encargado_valor'] > $d['valor'] + 0.001) {
             throw ValidationException::withMessages(['encargado_valor' => 'La comisión y el turno del encargado suman más que el valor del alquiler.']);
         }
-        unset($d['con_encargado']);
+        unset($d['con_encargado'], $d['doc_foto']);
+        $d['doc_tipo'] = $d['doc_tipo'] ?? null;
+        $d['doc_numero'] = trim((string) ($d['doc_numero'] ?? '')) ?: null;
+        $d['doc_nombre'] = trim((string) ($d['doc_nombre'] ?? '')) ?: null;
+        $d['doc_fisico'] = $d['doc_numero'] ? $request->boolean('doc_fisico') : false;
+        if (!$d['doc_numero']) $d['doc_tipo'] = $d['doc_nombre'] = null;
         $d['con_comision'] = $request->boolean('con_comision');
         $d['comision'] = $d['con_comision'] ? (float) ($d['comision'] ?? 0) : 0;
         return $d;

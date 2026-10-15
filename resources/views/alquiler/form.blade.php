@@ -4,6 +4,8 @@
     $nuevo = !$alquiler->exists;
     $conEnc = (bool) old('con_encargado', $alquiler->encargado_nombre ? 1 : 0);
     $conCom = (bool) old('con_comision', $alquiler->con_comision);
+    $docFisico = (bool) old('doc_fisico', $alquiler->exists ? $alquiler->doc_fisico : true);
+    $exigeDoc = !$alquiler->exists || ($alquiler->entrega !== 'devuelto' && $alquiler->estado !== 'cancelado');
     $puedePagar = !$alquiler->cobrado && $alquiler->estado !== 'cancelado';
     $yaAbono = (float) ($alquiler->abonado ?? 0);
     $pagoSel = old('pago', 'despues');
@@ -11,7 +13,7 @@
     // Si hubo un error, se abre la pestaña donde está
     $erroresDe = fn (array $campos) => collect($campos)->contains(fn ($c) => $errors->has($c));
     $tabIni = $erroresDe(['que_alquila', 'lugar', 'fecha', 'hora', 'hora_fin', 'responsable_telefono', 'valor', 'nota']) ? 'evento'
-        : ($erroresDe(['encargado_nombre', 'encargado_telefono', 'encargado_valor', 'encargado_nota']) ? 'encargado'
+        : ($erroresDe(['encargado_nombre', 'encargado_telefono', 'encargado_valor', 'encargado_nota', 'doc_tipo', 'doc_numero', 'doc_nombre', 'doc_foto']) ? 'encargado'
         : ($erroresDe(['pago', 'pago_monto', 'pago_metodo', 'comision']) ? 'pago' : 'evento'));
     $iconoMetodo = function ($m) {
         $n = mb_strtolower($m->nombre);
@@ -34,7 +36,7 @@
     </div>
     @include('layouts.partials.lp-flash')
 
-    <form method="post" action="{{ $nuevo ? route('alquileres.store') : route('alquileres.update', $alquiler) }}" class="lp-box lp-form-wide lp-alq" id="alqForm" novalidate>
+    <form method="post" action="{{ $nuevo ? route('alquileres.store') : route('alquileres.update', $alquiler) }}" class="lp-box lp-form-wide lp-alq" id="alqForm" enctype="multipart/form-data" novalidate>
         @csrf
         @unless ($nuevo) @method('PUT') @endunless
 
@@ -48,7 +50,7 @@
                 <span class="n">1</span><span class="tx"><b><i class="fa-solid fa-calendar-days"></i> Evento</b><small data-res="evento">Qué, cuándo, dónde y valor</small></span>
             </button>
             <button type="button" class="lp-tab" role="tab" data-tab="encargado">
-                <span class="n">2</span><span class="tx"><b><i class="fa-solid fa-user-gear"></i> Encargado</b><small data-res="encargado">Opcional</small></span>
+                <span class="n">2</span><span class="tx"><b><i class="fa-solid fa-user-gear"></i> Encargado y respaldo</b><small data-res="encargado">Encargado o documento</small></span>
             </button>
             <button type="button" class="lp-tab" role="tab" data-tab="pago">
                 <span class="n">3</span><span class="tx"><b><i class="fa-solid fa-cash-register"></i> Pago</b><small data-res="pago">Cómo paga y ganancia</small></span>
@@ -132,6 +134,54 @@
                     <div class="lp-wa-box">
                         <button type="button" class="btn btn-success btn-sm" id="encWa"><i class="fa-brands fa-whatsapp me-1"></i>Enviar detalles del evento al encargado</button>
                         <small class="text-muted">Le llega por WhatsApp con fecha, horario, lugar, valor del turno, su nota y el aviso de estar <b>1 hora antes</b> por el tráfico.</small>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Documento de respaldo: obligatorio si el elemento sale sin encargado del negocio --}}
+            <div class="lp-doc mt-3" id="docBox" data-exige="{{ $exigeDoc ? 1 : 0 }}">
+                <div class="lp-doc-head">
+                    <div class="ic"><i class="fa-solid fa-id-card"></i></div>
+                    <div>
+                        <b>Documento de respaldo <span class="lp-doc-badge" id="docBadge"></span></b>
+                        <small id="docAyuda" class="d-block text-muted"></small>
+                    </div>
+                </div>
+                <div class="row g-3 mt-0">
+                    <div class="col-sm-6 col-lg-3">
+                        <label class="form-label fw-bold" for="docTipo">Tipo de documento <span class="doc-ast">*</span></label>
+                        <select id="docTipo" name="doc_tipo" class="form-select" data-nativo>
+                            <option value="">Elija…</option>
+                            @foreach (\App\Models\Alquiler::DOC_TIPOS as $k => $v)
+                            <option value="{{ $k }}" @selected(old('doc_tipo', $alquiler->doc_tipo ?? ($alquiler->exists ? null : 'cedula')) === $k)>{{ $v }}</option>
+                            @endforeach
+                        </select>
+                        @error('doc_tipo')<small class="text-danger">{{ $message }}</small>@enderror
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <label class="form-label fw-bold" for="docNum">Número <span class="doc-ast">*</span></label>
+                        <input id="docNum" name="doc_numero" class="form-control" maxlength="30" inputmode="text" placeholder="Ej: 1085123456" value="{{ old('doc_numero', $alquiler->doc_numero) }}">
+                        @error('doc_numero')<small class="text-danger">{{ $message }}</small>@enderror
+                    </div>
+                    <div class="col-sm-12 col-lg-6">
+                        <label class="form-label fw-bold" for="docNom">A nombre de <span class="doc-ast">*</span></label>
+                        <input id="docNom" name="doc_nombre" class="form-control" maxlength="80" placeholder="Nombre completo de quien deja el documento" value="{{ old('doc_nombre', $alquiler->doc_nombre) }}">
+                        @error('doc_nombre')<small class="text-danger">{{ $message }}</small>@enderror
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label fw-bold" for="docFoto">Foto o PDF del documento <span class="text-muted fw-normal">(opcional · solo lo ve su negocio)</span></label>
+                        <input id="docFoto" name="doc_foto" type="file" class="form-control" accept="image/*,application/pdf" capture="environment">
+                        @error('doc_foto')<small class="text-danger">{{ $message }}</small>@enderror
+                        @if ($alquiler->doc_archivo)
+                        <small class="d-block mt-1"><a href="{{ route('alquileres.documento', $alquiler) }}" target="_blank" class="fw-bold"><i class="fa-solid fa-paperclip me-1"></i>Ver documento guardado</a> · si sube otro, se reemplaza.</small>
+                        @endif
+                    </div>
+                    <div class="col-sm-6 d-flex align-items-end">
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input" type="checkbox" role="switch" id="docFis" name="doc_fisico" value="1" @checked($docFisico)>
+                            <label class="form-check-label fw-bold" for="docFis">Dejó el documento físico en el local</label>
+                            <small class="d-block text-muted">Al devolver el alquiler le recordamos entregárselo.</small>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -245,6 +295,19 @@
 </div>
 @endsection
 
+@push('css')
+<style>
+.lp-doc{border:1.5px solid var(--lp-line,#e3efe5);border-radius:18px;padding:.9rem 1rem;background:#fff}
+.lp-doc.obligatorio{border-color:#f5b6cf;background:#fff7fb}
+.lp-doc-head{display:flex;gap:.7rem;align-items:center}
+.lp-doc-head .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:#e8f8ec;color:#16b34a;flex:none}
+.lp-doc.obligatorio .lp-doc-head .ic{background:#ffe9f3;color:#d61f69}
+.lp-doc-badge{font-size:.72rem;font-weight:800;border-radius:99px;padding:.15rem .55rem;margin-left:.3rem;vertical-align:middle;background:#eef1ef;color:#45504a}
+.lp-doc.obligatorio .lp-doc-badge{background:#d61f69;color:#fff}
+.lp-doc:not(.obligatorio) .doc-ast{display:none}
+</style>
+@endpush
+
 @push('js')
 <script>
 (function () {
@@ -303,7 +366,8 @@
         var r1 = [val('que_alquila'), fe, h12(val('hora')) + (val('hora_fin') ? ' a ' + h12(val('hora_fin')) : '')].filter(Boolean).join(' · ');
         form.querySelector('[data-res="evento"]').textContent = r1 || 'Qué, cuándo, dónde y valor';
         var enc = $('conEnc').checked;
-        form.querySelector('[data-res="encargado"]').textContent = enc ? ((val('encargado_nombre') || 'Sin nombre') + (num($('encVal')) > 0 ? ' · turno ' + fmt(num($('encVal'))) : '')) : 'Sin encargado (opcional)';
+        var docTxt = val('doc_numero') ? ' · 🪪 ' + val('doc_numero') : '';
+        form.querySelector('[data-res="encargado"]').textContent = enc ? ((val('encargado_nombre') || 'Sin nombre') + (num($('encVal')) > 0 ? ' · turno ' + fmt(num($('encVal'))) : '') + docTxt) : (docTxt ? 'Sin encargado' + docTxt : 'Sin encargado: falta documento');
         var sel = (form.querySelector('input[name=pago]:checked') || {}).value;
         var met = (form.querySelector('input[name=pago_metodo]:checked') || {}).dataset;
         var r3 = @json($alquiler->cobrado) ? 'Pagado completo' : (sel === 'completo' ? 'Paga completo' + (met ? ' · ' + met.nombre : '') : sel === 'abono' ? 'Abona ' + fmt(num($('pagoMonto'))) + (met ? ' · ' + met.nombre : '') : 'Paga después');
@@ -315,6 +379,14 @@
     function verEnc() {
         form.querySelectorAll('.lp-enc').forEach(function (e) { e.classList.toggle('d-none', !enc.checked); });
         $('encNom').required = enc.checked;
+        // Sin encargado del negocio: el documento de respaldo es obligatorio
+        var oblig = !enc.checked && $('docBox').dataset.exige === '1';
+        $('docBox').classList.toggle('obligatorio', oblig);
+        ['docTipo', 'docNum', 'docNom'].forEach(function (id) { $(id).required = oblig; });
+        $('docBadge').textContent = oblig ? 'Obligatorio' : 'Opcional';
+        $('docAyuda').textContent = oblig
+            ? 'El elemento sale sin un encargado de su negocio: pida un documento que respalde el alquiler (cédula, licencia…).'
+            : 'Va un encargado de su negocio con el alquiler. Si quiere, igual puede pedir un documento.';
     }
     enc.addEventListener('change', function () { verEnc(); calc(); resumen(); });
     verEnc();

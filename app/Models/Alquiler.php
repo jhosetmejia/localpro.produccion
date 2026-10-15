@@ -12,11 +12,35 @@ class Alquiler extends Model
 
     protected $table = 'alquileres';
 
-    protected $fillable = ['numero', 'que_alquila', 'fecha', 'hora', 'hora_fin', 'lugar', 'responsable_telefono', 'encargado_nombre', 'encargado_telefono', 'encargado_valor', 'encargado_nota', 'nota', 'valor', 'con_comision', 'comision', 'estado', 'user_id', 'pos_venta_id', 'cobrado_en', 'abonado', 'entrega', 'entregado_en', 'devuelto_en', 'devolucion_estado', 'devolucion_nota'];
+    protected $fillable = ['numero', 'que_alquila', 'fecha', 'hora', 'hora_fin', 'lugar', 'responsable_telefono', 'encargado_nombre', 'encargado_telefono', 'encargado_valor', 'encargado_nota', 'nota', 'valor', 'con_comision', 'comision', 'estado', 'user_id', 'pos_venta_id', 'cobrado_en', 'abonado', 'entrega', 'entregado_en', 'devuelto_en', 'devolucion_estado', 'devolucion_nota', 'doc_tipo', 'doc_numero', 'doc_nombre', 'doc_fisico', 'doc_archivo', 'doc_devuelto_en'];
 
-    protected $casts = ['fecha' => 'date', 'valor' => 'float', 'comision' => 'float', 'con_comision' => 'boolean', 'cobrado_en' => 'datetime', 'abonado' => 'float', 'encargado_valor' => 'float', 'entregado_en' => 'datetime', 'devuelto_en' => 'datetime'];
+    protected $casts = ['fecha' => 'date', 'valor' => 'float', 'comision' => 'float', 'con_comision' => 'boolean', 'cobrado_en' => 'datetime', 'abonado' => 'float', 'encargado_valor' => 'float', 'entregado_en' => 'datetime', 'devuelto_en' => 'datetime', 'doc_fisico' => 'boolean', 'doc_devuelto_en' => 'datetime'];
+
+    public const DOC_TIPOS = ['cedula' => 'Cédula', 'licencia' => 'Licencia de conducción', 'ce' => 'Cédula de extranjería', 'pasaporte' => 'Pasaporte', 'otro' => 'Otro documento'];
 
     public function user() { return $this->belongsTo(User::class); }
+
+    // Sin encargado del negocio, el elemento sale solo con el cliente: se exige documento de respaldo
+    public function getRequiereDocumentoAttribute(): bool
+    {
+        return !$this->encargado_nombre;
+    }
+
+    public function getTieneDocumentoAttribute(): bool
+    {
+        return (bool) ($this->doc_tipo && $this->doc_numero);
+    }
+
+    public function getDocumentoTextoAttribute(): string
+    {
+        return (self::DOC_TIPOS[$this->doc_tipo] ?? 'Documento') . ' ' . $this->doc_numero . ($this->doc_nombre ? ' · ' . $this->doc_nombre : '');
+    }
+
+    // El cliente dejó el documento físico y todavía no se le ha devuelto
+    public function getDocPendienteDevolverAttribute(): bool
+    {
+        return $this->doc_fisico && $this->tiene_documento && !$this->doc_devuelto_en;
+    }
     public function venta() { return $this->belongsTo(PosVenta::class, 'pos_venta_id'); }
     public function abonos() { return $this->hasMany(AlquilerAbono::class)->orderBy('id'); }
 

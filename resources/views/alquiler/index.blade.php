@@ -108,6 +108,12 @@
                 @if ($a->encargado_nombre)<small><i class="fa-solid fa-user-gear"></i> Encargado: {{ $a->encargado_nombre }}@if ($a->encargado_telefono) · {{ $a->encargado_telefono }}@endif @if ($a->encargado_valor > 0)· turno {{ $f($a->encargado_valor) }}@endif</small>
                 @if ($a->encargado_wa && $a->estado !== 'cancelado')<a href="https://wa.me/{{ $a->encargado_wa }}?text={{ rawurlencode($a->mensajeEncargado($negocio->nombre)) }}" target="_blank" rel="noopener" class="btn btn-sm btn-light mt-1 align-self-start" style="width:fit-content"><i class="fa-brands fa-whatsapp me-1" style="color:#16b34a"></i>Enviar detalles del evento al encargado</a>@endif
                 @endif
+                @if ($a->tiene_documento)
+                <small><i class="fa-solid fa-id-card"></i> Respaldo: {{ $a->documento_texto }}@if ($a->doc_fisico) · <b>{{ $a->doc_devuelto_en ? 'documento devuelto ' . $a->doc_devuelto_en->format('d/m/Y') : 'documento físico en el local' }}</b>@endif
+                    @if ($a->doc_archivo) · <a href="{{ route('alquileres.documento', $a) }}" target="_blank" class="fw-bold"><i class="fa-solid fa-paperclip"></i> Ver</a>@endif</small>
+                @elseif ($a->requiere_documento && $a->estado !== 'cancelado' && $a->entrega !== 'devuelto')
+                <small class="fw-bold" style="color:#b0173f"><i class="fa-solid fa-triangle-exclamation"></i> Sin encargado y sin documento de respaldo · <a href="{{ route('alquileres.edit', $a) }}" style="color:inherit">registrarlo</a></small>
+                @endif
                 @if ($a->nota)<small class="nota"><i class="fa-solid fa-note-sticky"></i> Cliente: {{ $a->nota }}</small>@endif
                 @if ($a->encargado_nota)<small class="nota"><i class="fa-solid fa-clipboard-list"></i> Encargado: {{ $a->encargado_nota }}</small>@endif
             </div>
@@ -149,8 +155,13 @@
             <div class="aq-sec">
                 <span class="lbl"><i class="fa-solid fa-box me-1"></i>Entrega</span>
                 @if ($a->entrega === 'pendiente')
+                @if ($a->requiere_documento && !$a->tiene_documento)
+                <a href="{{ route('alquileres.edit', $a) }}" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-id-card me-1"></i>Registrar documento para entregar</a>
+                <small class="text-muted">Sale sin encargado de su negocio: no se entrega sin un documento de respaldo.</small>
+                @else
                 <form method="post" action="{{ route('alquileres.entrega', $a) }}">@csrf<input type="hidden" name="accion" value="entregar"><button class="btn btn-sm btn-primary"><i class="fa-solid fa-key me-1"></i>Entregar (queda alquilado)</button></form>
                 <small class="text-muted">Márquelo cuando el cliente se lleve lo alquilado.</small>
+                @endif
                 @elseif ($a->entrega === 'alquilado')
                 <small class="fw-semibold">Entregado {{ $a->entregado_en?->format('d/m/Y g:i a') }}.</small>
                 <form method="post" action="{{ route('alquileres.entrega', $a) }}" class="d-inline-flex gap-1 align-items-center flex-wrap">@csrf<input type="hidden" name="accion" value="devolver">
@@ -160,6 +171,7 @@
                     <input name="devolucion_nota" class="form-control form-control-sm" style="width:220px;display:none" maxlength="255" placeholder="¿Qué pasó? Daño, faltante…" data-libre>
                     <button class="btn btn-sm btn-success"><i class="fa-solid fa-rotate-left me-1"></i>Recibir devolución</button>
                 </form>
+                @if ($a->doc_pendiente_devolver)<small class="fw-bold" style="color:#1d4ed8"><i class="fa-solid fa-id-card me-1"></i>Al recibir, devuélvale su {{ \App\Models\Alquiler::DOC_TIPOS[$a->doc_tipo] ?? 'documento' }}.</small>@endif
                 @else
                 <small class="fw-semibold">Devuelto {{ $a->devuelto_en?->format('d/m/Y g:i a') }}@if ($a->devolucion_nota) · <span style="color:#a15c00">{{ $a->devolucion_nota }}</span>@endif</small>
                 <form method="post" action="{{ route('alquileres.entrega', $a) }}" data-confirm="¿Deshacer la entrega/devolución de {{ $a->numero }}?" data-confirm-ok="Sí, deshacer">@csrf<input type="hidden" name="accion" value="deshacer"><button class="btn btn-sm btn-light"><i class="fa-solid fa-arrow-rotate-left"></i></button></form>
