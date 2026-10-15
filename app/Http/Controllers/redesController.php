@@ -153,6 +153,14 @@ class redesController extends Controller
         $ids = $this->cuentas()->pluck('id')->all();
         if (!$ids) return back()->with('info', 'No hay cuentas de Facebook o Instagram conectadas.');
 
+        self::sincronizarEnFondo($tid, $ids);
+
+        return back()->with('info', 'Buscando mensajes nuevos en Facebook e Instagram… Van apareciendo solos en la bandeja en uno o dos minutos.');
+    }
+
+    // Trae los chats de Meta después de responder la página (Meta puede tardar minutos; Cloudflare corta a los 100 s)
+    private static function sincronizarEnFondo(?int $tid, array $ids): void
+    {
         dispatch(function () use ($tid, $ids) {
             @set_time_limit(300);
             Meta::$hasta = microtime(true) + 240; // máximo 4 minutos en total
@@ -169,8 +177,6 @@ class redesController extends Controller
             }
             TiendaActual::set($tid);
         })->afterResponse();
-
-        return back()->with('info', 'Buscando mensajes nuevos en Facebook e Instagram… Van apareciendo solos en la bandeja en uno o dos minutos.');
     }
 
     // Productos para enviar en el chat o publicar
@@ -324,7 +330,7 @@ class redesController extends Controller
         $paginas = collect(session('meta_paginas') ? decrypt(session('meta_paginas')) : [])->keyBy('id');
         $ids = collect((array) $request->input('paginas'))->filter(fn ($id) => $paginas->has($id));
         if ($ids->isEmpty()) return back()->withErrors('Elija al menos una página.');
-        $n = 0; $avisos = [];
+        $n = 0; $avisos = []; $conectadas = [];
         foreach ($ids as $id) {
             $p = $paginas[$id];
             $c = RedCuenta::updateOrCreate(['page_id' => $p['id']], [
@@ -333,11 +339,13 @@ class redesController extends Controller
                 'conectado_por' => Auth::id(), 'estado' => 'activa', 'error' => null,
             ]);
             try { Meta::suscribir($c); } catch (Throwable $e) { $avisos[] = $p['nombre'] . ': no se activaron los mensajes en tiempo real (' . $e->getMessage() . ')'; }
-            try { Meta::sincronizar($c); } catch (Throwable $e) { report($e); }
+            $conectadas[] = $c->id;
             $n++;
         }
         session()->forget('meta_paginas');
-        return redirect()->route('redes.index')->with('success', '¡Listo! ' . ($n === 1 ? 'Se conectó 1 página' : "Se conectaron $n páginas") . '.' . ($avisos ? ' ' . implode(' · ', $avisos) : ''));
+        // Los chats anteriores se traen en segundo plano para no dejar la página esperando
+        self::sincronizarEnFondo(TiendaActual::id(), $conectadas);
+        return redirect()->route('redes.index')->with('success', '¡Listo! ' . ($n === 1 ? 'Se conectó 1 página' : "Se conectaron $n páginas") . '. Los chats anteriores van apareciendo en uno o dos minutos.' . ($avisos ? ' ' . implode(' · ', $avisos) : ''));
     }
 
     public function desconectar(RedCuenta $cuenta)
