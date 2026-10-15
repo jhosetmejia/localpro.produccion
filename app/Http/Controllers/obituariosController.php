@@ -60,6 +60,7 @@ class obituariosController extends Controller
         if (!$tienda->mod_obituarios) {
             return view('obituarios.activar', ['tienda' => $tienda]);
         }
+        ObituarioPlantilla::crearPredisenadas();
         if (!$tienda->obituarios_token) {
             $tienda->forceFill(['obituarios_token' => ObituarioSala::nuevoToken()])->save();
         }
@@ -91,6 +92,7 @@ class obituariosController extends Controller
 
     public function create(Request $request)
     {
+        ObituarioPlantilla::crearPredisenadas();
         $plantilla = $request->query('plantilla')
             ? $this->mio(ObituarioPlantilla::find($request->query('plantilla')))
             : (ObituarioPlantilla::find(Obituario::latest('id')->value('plantilla_id')) ?? ObituarioPlantilla::orderBy('id')->first() ?? ObituarioPlantilla::porDefecto());
@@ -243,6 +245,7 @@ class obituariosController extends Controller
 
     public function plantillas()
     {
+        ObituarioPlantilla::crearPredisenadas();
         if (!ObituarioPlantilla::exists()) ObituarioPlantilla::porDefecto();
         return view('obituarios.plantillas', [
             'tienda' => $this->tienda(),
@@ -289,6 +292,7 @@ class obituariosController extends Controller
             'titulo' => 'nullable|string|max:60',
             'frase' => 'nullable|string|max:120',
             'pie' => 'nullable|string|max:150',
+            'cita' => 'nullable|string|max:160',
             'imagen' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:8192',
             'video' => 'nullable|file|mimetypes:video/mp4,video/webm,video/quicktime|max:51200',
         ], [

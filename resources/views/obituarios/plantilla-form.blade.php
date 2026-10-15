@@ -51,11 +51,15 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
 
                 <div class="lp-box mb-3">
                     <h3>Diseño</h3>
+                    @foreach (['Tarjetas prediseñadas' => true, 'Clásicos (3 columnas)' => false] as $grupoTit => $esTarjeta)
+                    <div class="small fw-bold text-muted mb-1 {{ $esTarjeta ? '' : 'mt-3' }}">{{ $grupoTit }}</div>
                     <div class="pf-op">
                         @foreach ($P::DISENOS as $k => [$nom, $desc, $ac, $tx, $bg])
+                        @continue(in_array($k, $P::TARJETAS, true) !== $esTarjeta)
                         <div><input type="radio" name="diseno" id="d-{{ $k }}" value="{{ $k }}" @checked(old('diseno', $plantilla->diseno) === $k)><label for="d-{{ $k }}" style="background:{{ $bg }};color:{{ $tx }}" title="{{ $desc }}">{{ $nom }}</label></div>
                         @endforeach
                     </div>
+                    @endforeach
                 </div>
 
                 <div class="lp-box mb-3">
@@ -121,7 +125,8 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
                     <div class="row g-2">
                         <div class="col-sm-5"><label class="form-label small fw-bold">Título</label><input class="form-control" name="titulo" maxlength="60" value="{{ old('titulo', $plantilla->titulo) }}" placeholder="Obituario"></div>
                         <div class="col-sm-7"><label class="form-label small fw-bold">Frase</label><input class="form-control" name="frase" maxlength="120" value="{{ old('frase', $plantilla->frase) }}" placeholder="{{ $P::FRASE }}"></div>
-                        <div class="col-12"><label class="form-label small fw-bold">Mensaje de la funeraria <span class="text-muted fw-normal">(opcional)</span></label><input class="form-control" name="pie" maxlength="150" value="{{ old('pie', $plantilla->pie) }}" placeholder="Ej: Realice la compra de sus bonos de flores en recepción"></div>
+                        <div class="col-12"><label class="form-label small fw-bold">Frase destacada <span class="text-muted fw-normal">(arriba a la derecha, en las tarjetas prediseñadas)</span></label><input class="form-control" name="cita" maxlength="160" value="{{ old('cita', $plantilla->cita) }}" placeholder="Ej: Tu recuerdo vivirá por siempre en nuestros corazones"></div>
+                        <div class="col-12"><label class="form-label small fw-bold">Mensaje del pie <span class="text-muted fw-normal">(opcional)</span></label><input class="form-control" name="pie" maxlength="150" value="{{ old('pie', $plantilla->pie) }}" placeholder="Ej: Siempre en nuestros corazones"></div>
                     </div>
                     <div class="form-check form-switch mt-3">
                         <input class="form-check-input" type="checkbox" name="mostrar_logo" value="1" id="pf-logo" @checked(old('mostrar_logo', $plantilla->mostrar_logo))>
@@ -157,11 +162,11 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
 @endsection
 
 @push('js')
-<script src="{{ asset('js/obituarios.js') }}?v=2"></script>
+<script src="{{ asset('js/obituarios.js') }}?v=3"></script>
 <script>
 (function () {
     var form = document.getElementById('pf-form'), el = document.querySelector('[data-obi]');
-    var MEDIDAS = @json($P::MEDIDAS), BASE = @json($P::BASE), DISENOS = @json($P::DISENOS);
+    var MEDIDAS = @json($P::MEDIDAS), BASE = @json($P::BASE), DISENOS = @json($P::DISENOS), TARJETAS = @json($P::TARJETAS);
     var imagen = @json($plantilla->fondo_url), video = @json($plantilla->video_url);
     var frasePorDefecto = @json($P::FRASE);
 
@@ -180,7 +185,7 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
             fondo_tipo: tipo, color1: f.fondo_color.value, color2: document.getElementById('pf-deg').checked ? f.fondo_color2.value : '',
             imagen: imagen, video: video, oscurecer: +f.oscurecer.value, anim: val('animacion'), adornos: val('adornos'),
             acento: propios ? f.color_acento.value : dis[2], texto: propios ? f.color_texto.value : dis[3],
-            logo: f.mostrar_logo.checked, titulo: f.titulo.value, frase: f.frase.value, pie: f.pie.value
+            logo: f.mostrar_logo.checked, titulo: f.titulo.value, frase: f.frase.value, pie: f.pie.value, cita: f.cita.value, tarjeta: TARJETAS.indexOf(val('diseno')) !== -1
         });
     }
     // El degradado apagado no se envía (el campo queda deshabilitado)

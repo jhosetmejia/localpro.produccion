@@ -235,3 +235,190 @@
 [data-obi-marco]{position:relative;overflow:hidden;width:100%}
 [data-obi-marco] > .obi{position:absolute;top:0;left:0}
 body.sin-cursor,body.sin-cursor *{cursor:none!important}
+
+/* =====================================================================
+   TARJETAS PREDISEÑADAS (lay-tarjeta): Cielo y cruz · Noche y vela ·
+   Acuarela azul · Amanecer en la montaña · Botánico
+   ===================================================================== */
+.obi-tarjeta{display:none}
+.lay-tarjeta .obi-cuerpo,.lay-tarjeta > .obi-esq,.lay-tarjeta > .obi-ramo,.lay-tarjeta .obi-marco-deco{display:none!important}
+.lay-tarjeta{--t-texto:#233547;--t-acento:#a8844a;--t-titulo:#1f3550;--t-suave:rgba(35,53,71,.75);background:#fbf8f2}
+.lay-tarjeta .obi-tarjeta{position:absolute;inset:0;z-index:2;display:grid;padding:46px 64px 34px;column-gap:30px;
+  grid-template-columns:36% minmax(0,1fr) 17%;grid-template-rows:auto minmax(0,1fr);grid-template-areas:"foto cab cita" "foto main cita";color:var(--t-texto)}
+.o-v.lay-tarjeta .obi-tarjeta{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto minmax(0,1fr);grid-template-areas:"cab" "cita" "foto" "main";padding:60px 70px 46px;row-gap:16px}
+.o-c.lay-tarjeta .obi-tarjeta{grid-template-columns:42% minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);grid-template-areas:"foto cab" "foto main";padding:36px 40px 26px}
+.o-c .ot-cita{display:none!important}
+.ot-deco{position:absolute;inset:0;overflow:hidden;z-index:0;pointer-events:none}
+.ot-deco > *{position:absolute;display:none}
+.ot-foto-col,.ot-cab,.ot-cita,.ot-main{position:relative;z-index:1;min-width:0;min-height:0}
+
+/* Foto */
+.ot-foto-col{grid-area:foto;display:flex;align-items:center;justify-content:center}
+.ot-foto-marco{position:relative;z-index:2;border-radius:50%}
+.lay-tarjeta .ot-foto-marco .obi-foto{width:560px;height:560px;border:0;box-shadow:none;background:linear-gradient(160deg,#dfe7ef,#b9c6d3)}
+.o-v.lay-tarjeta .ot-foto-marco .obi-foto{width:600px;height:600px}
+.o-c.lay-tarjeta .ot-foto-marco .obi-foto{width:380px;height:380px}
+.lay-tarjeta .obi-foto.f-sin{background:transparent}
+.ot-foto-fondo,.ot-lirios-foto,.ot-vela,.ot-rama-foto{position:absolute;display:none;pointer-events:none}
+.ot-lirios-foto{z-index:3;width:400px;left:-30px;bottom:40px}
+.ot-lirios-foto svg,.ot-rama svg,.ot-rama-foto svg,.ot-euca svg{width:100%;height:auto;display:block;overflow:visible}
+.ot-lirios .lp{fill:#fff;stroke:#c9c4b4;stroke-width:1.4}
+.ot-lirios .lv{fill:none;stroke:#e6e0cf;stroke-width:1.6}
+.ot-lirios .le{stroke:#b9a24a;stroke-width:1.4}
+.ot-lirios .la{fill:#b5651d}
+.ot-lirios .lc{fill:#c9d48c}
+.ot-lirios .lh{fill:#6f9a5a;stroke:#4f7a3e;stroke-width:1.2}
+.ot-lirios .ls{fill:none;stroke:#4f7a3e;stroke-width:4;stroke-linecap:round}
+.ot-rama .rs,.ot-rama-foto .rs,.ot-euca .rs{fill:none;stroke:var(--rama-tallo,#6e8d74);stroke-width:4;stroke-linecap:round}
+.ot-rama .rh,.ot-rama-foto .rh,.ot-euca .rh{fill:var(--rama-hoja,#9db5a0);stroke:var(--rama-tallo,#6e8d74);stroke-width:1.5}
+.ot-euca .rv{stroke:var(--rama-tallo,#6e8d74);stroke-width:2}
+
+/* Encabezado, cita y textos */
+.ot-cab{grid-area:cab;display:flex;flex-direction:column;align-items:center;gap:4px;padding-bottom:calc(6px*var(--k))}
+.ot-logo{max-height:calc(150px*var(--k));max-width:440px;object-fit:contain}
+.ot-empresa{font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;font-size:calc(46px*var(--k));color:var(--t-titulo);line-height:1.05;text-align:center}
+.ot-cita{grid-area:cita;align-self:start;margin-top:30px;text-align:center;font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-weight:600;font-size:38px;line-height:1.25;color:var(--t-texto)}
+.o-v .ot-cita{margin:0 auto;max-width:760px;font-size:40px}
+.ot-cor-linea{display:flex;align-items:center;gap:12px;justify-content:center;margin-top:14px}
+.ot-cor-linea i,.ot-sep i,.ot-pie-linea i{display:block;height:2px;flex:1;max-width:140px;background:linear-gradient(90deg,transparent,var(--t-acento))}
+.ot-cor-linea i:last-child,.ot-sep i:last-child,.ot-pie-linea i:last-child{background:linear-gradient(90deg,var(--t-acento),transparent)}
+.ot-cor{width:28px;height:28px;fill:none;stroke:var(--t-acento);stroke-width:1.8}
+.ot-main{grid-area:main;display:flex;flex-direction:column;align-items:center;text-align:center;overflow:hidden}
+.ot-titulo{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-weight:700;font-size:calc(104px*var(--k));line-height:.95;color:var(--t-titulo)}
+.ot-frase{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-weight:600;font-size:calc(40px*var(--k));color:var(--t-suave);margin-top:calc(6px*var(--k))}
+.ot-nombre{margin:calc(18px*var(--k)) 0 0;font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;font-size:calc(64px*var(--k));line-height:1.02;text-transform:uppercase;color:var(--t-titulo);letter-spacing:.01em}
+.ot-anios{font-family:'Cormorant Garamond',Georgia,serif;font-size:calc(34px*var(--k));font-weight:600;color:var(--t-suave);margin-top:4px}
+.ot-sep,.ot-pie-linea{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;margin:calc(14px*var(--k)) 0}
+.ot-hojita{width:54px;height:22px;fill:var(--t-acento)}
+.ot-info{display:grid;grid-template-columns:1fr 1fr;gap:0 34px;width:100%;text-align:left;margin-top:calc(4px*var(--k))}
+.ot-col{display:flex;flex-direction:column;gap:calc(14px*var(--k));min-width:0}
+.ot-col + .ot-col{border-left:2px solid color-mix(in srgb,var(--t-acento) 45%,transparent);padding-left:30px}
+.ot-it{display:flex;gap:14px;align-items:flex-start;line-height:1.2}
+.ot-ic{width:calc(40px*var(--k));height:calc(40px*var(--k));flex:0 0 auto;fill:none;stroke:var(--t-acento);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;margin-top:2px}
+.ot-it b{display:block;font-family:'Montserrat',sans-serif;font-weight:800;font-size:calc(26px*var(--k));color:var(--t-titulo)}
+.ot-it span{display:block;font-family:'Montserrat',sans-serif;font-weight:500;font-size:calc(25px*var(--k));color:var(--t-texto)}
+.ot-grupos{display:flex;flex-direction:column;gap:calc(5px*var(--k))}
+.ot-grupos .obi-grupo b{font-size:calc(21px*var(--k));text-transform:none;letter-spacing:0;font-weight:700}
+.ot-grupos .obi-grupo span{font-size:calc(23px*var(--k))}
+.ot-pie{margin-top:auto;padding-top:calc(10px*var(--k));width:100%;display:flex;flex-direction:column;align-items:center}
+.ot-pie .ot-pie-linea{margin:0 0 6px}
+.ot-pie-empresa{font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;font-size:calc(40px*var(--k));color:var(--t-titulo);line-height:1}
+.ot-pie-slogan{font-family:'Great Vibes',cursive;font-size:calc(38px*var(--k));color:var(--t-acento);line-height:1.1}
+.o-c .ot-titulo{font-size:calc(76px*var(--k))}.o-c .ot-nombre{font-size:calc(46px*var(--k))}
+.o-c .ot-info{grid-template-columns:1fr;gap:10px}.o-c .ot-col + .ot-col{border:0;padding:0}
+.o-v .ot-titulo{font-size:calc(120px*var(--k))}.o-v .ot-nombre{font-size:calc(74px*var(--k))}
+
+/* ---------- 1. Cielo y cruz ---------- */
+.d-cielo_cruz .ot-cielo{display:block;inset:0;background:linear-gradient(180deg,#86b3df 0%,#bcd6ee 34%,#efeae0 70%,#fbf8f2 100%)}
+.d-cielo_cruz .ot-sol{display:block;width:900px;height:900px;right:-160px;top:-260px;background:radial-gradient(circle,rgba(255,244,214,.95),rgba(255,236,190,.45) 35%,transparent 65%)}
+.d-cielo_cruz .ot-nubes,.d-amanecer .ot-nubes{display:block;inset:0}
+.ot-nubes i{position:absolute;border-radius:50%;background:#fff;filter:blur(26px);opacity:.85}
+.ot-nubes i:nth-child(1){width:760px;height:180px;left:-120px;top:40px}
+.ot-nubes i:nth-child(2){width:620px;height:150px;left:420px;top:-30px;opacity:.7}
+.ot-nubes i:nth-child(3){width:900px;height:220px;right:-200px;top:300px;opacity:.6}
+.ot-nubes i:nth-child(4){width:700px;height:200px;left:-160px;bottom:200px;opacity:.75}
+.ot-nubes i:nth-child(5){width:1100px;height:260px;left:300px;bottom:-60px;opacity:.9}
+.ot-nubes i:nth-child(6){width:500px;height:140px;right:120px;top:110px;opacity:.65}
+.d-cielo_cruz .ot-cruz{display:block;right:5%;top:36%;width:260px;height:520px;filter:drop-shadow(0 0 40px rgba(255,226,160,.95))}
+.ot-cruz i{position:absolute;background:linear-gradient(90deg,#9c7a3c,#f3dc9a 45%,#c9a35a 60%,#8f6c30);border-radius:4px}
+.ot-cruz i:first-child{left:calc(50% - 18px);top:0;width:36px;height:100%}
+.ot-cruz i:last-child{left:0;top:24%;width:100%;height:36px;background:linear-gradient(180deg,#9c7a3c,#f3dc9a 45%,#c9a35a 60%,#8f6c30)}
+.d-cielo_cruz .ot-foto-marco{padding:14px;border:5px solid var(--t-acento);box-shadow:0 0 0 14px rgba(255,255,255,.55),0 30px 60px -30px rgba(30,50,80,.6)}
+.d-cielo_cruz .ot-lirios-foto,.d-botanico .ot-lirios-foto{display:block}
+.o-v.d-cielo_cruz .ot-cruz{right:6%;top:30%;height:480px;width:260px;opacity:.85}
+
+/* ---------- 2. Noche y vela ---------- */
+.d-noche_vela{--t-texto:#efe6d2;--t-acento:#d4af5f;--t-titulo:#f1d995;--t-suave:rgba(239,230,210,.85);background:#050505}
+.d-noche_vela .ot-cielo{display:block;inset:0;background:radial-gradient(ellipse at 35% 45%,#1d1b18,#060606 70%)}
+.d-noche_vela .ot-marco{display:block;inset:26px;border:2px solid var(--t-acento)}
+.d-noche_vela .ot-marco::after{content:"";position:absolute;inset:10px;border:1px solid rgba(212,175,95,.5)}
+.d-noche_vela .ot-titulo{background:linear-gradient(180deg,#fff1c2,#d4af5f 60%,#9b7631);-webkit-background-clip:text;background-clip:text;color:transparent}
+.d-noche_vela .ot-foto-fondo{display:block;z-index:1;width:150%;height:115%;left:-25%;top:-6%;background:linear-gradient(135deg,#7fb3ec,#2e5f9e 60%,#1b3c6b);
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M100.0 50.0 L100.3 52.0 L100.5 54.0 L100.4 56.1 L100.1 58.1 L99.6 60.0 L100.4 62.3 L97.9 63.8 L96.7 65.5 L95.4 67.2 L95.2 69.3 L93.7 70.9 L90.6 71.5 L89.4 73.1 L89.0 75.2 L85.3 75.0 L85.0 77.1 L82.8 77.8 L80.1 77.9 L78.4 78.8 L77.0 80.0 L75.2 80.7 L73.6 81.7 L72.0 82.7 L70.4 83.7 L68.8 84.7 L67.2 85.7 L65.5 86.7 L63.8 87.7 L62.0 88.6 L60.1 89.4 L58.2 90.2 L56.2 90.8 L54.2 91.4 L52.1 91.8 L50.0 92.0 L47.9 92.2 L45.7 92.1 L43.6 92.0 L41.5 91.7 L39.4 91.3 L37.3 90.8 L35.2 90.3 L33.2 89.6 L31.3 88.9 L29.3 88.1 L27.4 87.2 L25.5 86.3 L23.7 85.4 L21.8 84.4 L20.0 83.3 L18.3 82.2 L15.0 82.5 L14.9 79.7 L13.3 78.4 L9.9 78.4 L10.5 75.4 L9.3 73.8 L8.2 72.2 L6.3 70.9 L6.0 68.8 L5.0 67.1 L5.4 64.8 L3.1 63.5 L4.1 61.2 L5.1 59.1 L4.3 57.4 L3.3 55.6 L2.9 53.8 L4.0 51.8 L6.7 50.0 L4.8 48.2 L5.8 46.5 L7.8 44.9 L5.6 42.8 L6.5 41.2 L8.9 39.9 L9.2 38.2 L8.4 36.2 L9.6 34.7 L9.9 32.9 L8.3 30.1 L10.6 29.1 L11.1 27.2 L9.6 24.0 L11.7 22.9 L13.3 21.6 L14.4 19.8 L14.1 16.7 L17.0 16.5 L18.2 14.6 L20.3 13.8 L22.2 12.6 L24.2 11.6 L26.2 10.8 L28.4 10.2 L30.5 9.6 L32.8 9.2 L35.0 9.0 L37.2 8.8 L39.4 8.8 L41.6 8.8 L43.7 8.9 L45.8 9.0 L47.9 9.1 L50.0 9.3 L52.1 9.5 L54.1 9.8 L56.1 10.0 L58.1 10.3 L60.1 10.7 L62.1 11.1 L64.1 11.6 L66.0 12.2 L67.9 12.8 L69.8 13.6 L71.6 14.4 L73.4 15.3 L75.0 16.4 L76.7 17.5 L78.3 18.5 L80.6 19.0 L81.0 21.2 L82.4 22.5 L83.6 24.0 L84.8 25.4 L86.5 26.5 L87.1 28.3 L88.2 29.7 L90.4 30.7 L92.8 31.7 L92.9 33.7 L92.7 35.8 L96.0 36.7 L95.0 39.0 L96.0 40.7 L97.0 42.4 L99.4 44.1 L101.6 45.9 L101.0 48.0Z'/%3E%3C/svg%3E") center/100% 100% no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M100.0 50.0 L100.3 52.0 L100.5 54.0 L100.4 56.1 L100.1 58.1 L99.6 60.0 L100.4 62.3 L97.9 63.8 L96.7 65.5 L95.4 67.2 L95.2 69.3 L93.7 70.9 L90.6 71.5 L89.4 73.1 L89.0 75.2 L85.3 75.0 L85.0 77.1 L82.8 77.8 L80.1 77.9 L78.4 78.8 L77.0 80.0 L75.2 80.7 L73.6 81.7 L72.0 82.7 L70.4 83.7 L68.8 84.7 L67.2 85.7 L65.5 86.7 L63.8 87.7 L62.0 88.6 L60.1 89.4 L58.2 90.2 L56.2 90.8 L54.2 91.4 L52.1 91.8 L50.0 92.0 L47.9 92.2 L45.7 92.1 L43.6 92.0 L41.5 91.7 L39.4 91.3 L37.3 90.8 L35.2 90.3 L33.2 89.6 L31.3 88.9 L29.3 88.1 L27.4 87.2 L25.5 86.3 L23.7 85.4 L21.8 84.4 L20.0 83.3 L18.3 82.2 L15.0 82.5 L14.9 79.7 L13.3 78.4 L9.9 78.4 L10.5 75.4 L9.3 73.8 L8.2 72.2 L6.3 70.9 L6.0 68.8 L5.0 67.1 L5.4 64.8 L3.1 63.5 L4.1 61.2 L5.1 59.1 L4.3 57.4 L3.3 55.6 L2.9 53.8 L4.0 51.8 L6.7 50.0 L4.8 48.2 L5.8 46.5 L7.8 44.9 L5.6 42.8 L6.5 41.2 L8.9 39.9 L9.2 38.2 L8.4 36.2 L9.6 34.7 L9.9 32.9 L8.3 30.1 L10.6 29.1 L11.1 27.2 L9.6 24.0 L11.7 22.9 L13.3 21.6 L14.4 19.8 L14.1 16.7 L17.0 16.5 L18.2 14.6 L20.3 13.8 L22.2 12.6 L24.2 11.6 L26.2 10.8 L28.4 10.2 L30.5 9.6 L32.8 9.2 L35.0 9.0 L37.2 8.8 L39.4 8.8 L41.6 8.8 L43.7 8.9 L45.8 9.0 L47.9 9.1 L50.0 9.3 L52.1 9.5 L54.1 9.8 L56.1 10.0 L58.1 10.3 L60.1 10.7 L62.1 11.1 L64.1 11.6 L66.0 12.2 L67.9 12.8 L69.8 13.6 L71.6 14.4 L73.4 15.3 L75.0 16.4 L76.7 17.5 L78.3 18.5 L80.6 19.0 L81.0 21.2 L82.4 22.5 L83.6 24.0 L84.8 25.4 L86.5 26.5 L87.1 28.3 L88.2 29.7 L90.4 30.7 L92.8 31.7 L92.9 33.7 L92.7 35.8 L96.0 36.7 L95.0 39.0 L96.0 40.7 L97.0 42.4 L99.4 44.1 L101.6 45.9 L101.0 48.0Z'/%3E%3C/svg%3E") center/100% 100% no-repeat;transform:rotate(-8deg);opacity:.95}
+.d-noche_vela .ot-foto-marco{border-radius:0}
+.d-noche_vela .ot-foto-marco .obi-foto{border-radius:0;background:transparent;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M100.0 50.0 L100.3 52.0 L100.5 54.0 L100.4 56.1 L100.1 58.1 L99.6 60.0 L100.4 62.3 L97.9 63.8 L96.7 65.5 L95.4 67.2 L95.2 69.3 L93.7 70.9 L90.6 71.5 L89.4 73.1 L89.0 75.2 L85.3 75.0 L85.0 77.1 L82.8 77.8 L80.1 77.9 L78.4 78.8 L77.0 80.0 L75.2 80.7 L73.6 81.7 L72.0 82.7 L70.4 83.7 L68.8 84.7 L67.2 85.7 L65.5 86.7 L63.8 87.7 L62.0 88.6 L60.1 89.4 L58.2 90.2 L56.2 90.8 L54.2 91.4 L52.1 91.8 L50.0 92.0 L47.9 92.2 L45.7 92.1 L43.6 92.0 L41.5 91.7 L39.4 91.3 L37.3 90.8 L35.2 90.3 L33.2 89.6 L31.3 88.9 L29.3 88.1 L27.4 87.2 L25.5 86.3 L23.7 85.4 L21.8 84.4 L20.0 83.3 L18.3 82.2 L15.0 82.5 L14.9 79.7 L13.3 78.4 L9.9 78.4 L10.5 75.4 L9.3 73.8 L8.2 72.2 L6.3 70.9 L6.0 68.8 L5.0 67.1 L5.4 64.8 L3.1 63.5 L4.1 61.2 L5.1 59.1 L4.3 57.4 L3.3 55.6 L2.9 53.8 L4.0 51.8 L6.7 50.0 L4.8 48.2 L5.8 46.5 L7.8 44.9 L5.6 42.8 L6.5 41.2 L8.9 39.9 L9.2 38.2 L8.4 36.2 L9.6 34.7 L9.9 32.9 L8.3 30.1 L10.6 29.1 L11.1 27.2 L9.6 24.0 L11.7 22.9 L13.3 21.6 L14.4 19.8 L14.1 16.7 L17.0 16.5 L18.2 14.6 L20.3 13.8 L22.2 12.6 L24.2 11.6 L26.2 10.8 L28.4 10.2 L30.5 9.6 L32.8 9.2 L35.0 9.0 L37.2 8.8 L39.4 8.8 L41.6 8.8 L43.7 8.9 L45.8 9.0 L47.9 9.1 L50.0 9.3 L52.1 9.5 L54.1 9.8 L56.1 10.0 L58.1 10.3 L60.1 10.7 L62.1 11.1 L64.1 11.6 L66.0 12.2 L67.9 12.8 L69.8 13.6 L71.6 14.4 L73.4 15.3 L75.0 16.4 L76.7 17.5 L78.3 18.5 L80.6 19.0 L81.0 21.2 L82.4 22.5 L83.6 24.0 L84.8 25.4 L86.5 26.5 L87.1 28.3 L88.2 29.7 L90.4 30.7 L92.8 31.7 L92.9 33.7 L92.7 35.8 L96.0 36.7 L95.0 39.0 L96.0 40.7 L97.0 42.4 L99.4 44.1 L101.6 45.9 L101.0 48.0Z'/%3E%3C/svg%3E") center/100% 100% no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M100.0 50.0 L100.3 52.0 L100.5 54.0 L100.4 56.1 L100.1 58.1 L99.6 60.0 L100.4 62.3 L97.9 63.8 L96.7 65.5 L95.4 67.2 L95.2 69.3 L93.7 70.9 L90.6 71.5 L89.4 73.1 L89.0 75.2 L85.3 75.0 L85.0 77.1 L82.8 77.8 L80.1 77.9 L78.4 78.8 L77.0 80.0 L75.2 80.7 L73.6 81.7 L72.0 82.7 L70.4 83.7 L68.8 84.7 L67.2 85.7 L65.5 86.7 L63.8 87.7 L62.0 88.6 L60.1 89.4 L58.2 90.2 L56.2 90.8 L54.2 91.4 L52.1 91.8 L50.0 92.0 L47.9 92.2 L45.7 92.1 L43.6 92.0 L41.5 91.7 L39.4 91.3 L37.3 90.8 L35.2 90.3 L33.2 89.6 L31.3 88.9 L29.3 88.1 L27.4 87.2 L25.5 86.3 L23.7 85.4 L21.8 84.4 L20.0 83.3 L18.3 82.2 L15.0 82.5 L14.9 79.7 L13.3 78.4 L9.9 78.4 L10.5 75.4 L9.3 73.8 L8.2 72.2 L6.3 70.9 L6.0 68.8 L5.0 67.1 L5.4 64.8 L3.1 63.5 L4.1 61.2 L5.1 59.1 L4.3 57.4 L3.3 55.6 L2.9 53.8 L4.0 51.8 L6.7 50.0 L4.8 48.2 L5.8 46.5 L7.8 44.9 L5.6 42.8 L6.5 41.2 L8.9 39.9 L9.2 38.2 L8.4 36.2 L9.6 34.7 L9.9 32.9 L8.3 30.1 L10.6 29.1 L11.1 27.2 L9.6 24.0 L11.7 22.9 L13.3 21.6 L14.4 19.8 L14.1 16.7 L17.0 16.5 L18.2 14.6 L20.3 13.8 L22.2 12.6 L24.2 11.6 L26.2 10.8 L28.4 10.2 L30.5 9.6 L32.8 9.2 L35.0 9.0 L37.2 8.8 L39.4 8.8 L41.6 8.8 L43.7 8.9 L45.8 9.0 L47.9 9.1 L50.0 9.3 L52.1 9.5 L54.1 9.8 L56.1 10.0 L58.1 10.3 L60.1 10.7 L62.1 11.1 L64.1 11.6 L66.0 12.2 L67.9 12.8 L69.8 13.6 L71.6 14.4 L73.4 15.3 L75.0 16.4 L76.7 17.5 L78.3 18.5 L80.6 19.0 L81.0 21.2 L82.4 22.5 L83.6 24.0 L84.8 25.4 L86.5 26.5 L87.1 28.3 L88.2 29.7 L90.4 30.7 L92.8 31.7 L92.9 33.7 L92.7 35.8 L96.0 36.7 L95.0 39.0 L96.0 40.7 L97.0 42.4 L99.4 44.1 L101.6 45.9 L101.0 48.0Z'/%3E%3C/svg%3E") center/100% 100% no-repeat}
+.d-noche_vela .ot-foto-marco .obi-foto.forma-libre{-webkit-mask:none;mask:none}
+.d-noche_vela .ot-vela{display:block;z-index:3;right:10px;bottom:50px;width:110px;height:380px}
+.ot-halo{position:absolute;width:520px;height:520px;left:calc(50% - 260px);top:-150px;border-radius:50%;background:radial-gradient(circle,rgba(255,196,96,.55),rgba(255,160,60,.15) 40%,transparent 65%)}
+.ot-llama{position:absolute;left:calc(50% - 20px);top:0;width:40px;height:92px;border-radius:50% 50% 45% 45%/70% 70% 30% 30%;
+  background:radial-gradient(ellipse at 50% 75%,#fff 0,#fff7c2 25%,#ffc04d 55%,rgba(255,120,30,.2) 85%);filter:drop-shadow(0 0 22px rgba(255,190,80,.95));animation:otLlama 2.6s ease-in-out infinite alternate;transform-origin:50% 90%}
+@keyframes otLlama{0%{transform:scale(1,1) rotate(-2deg)}50%{transform:scale(.94,1.06) rotate(2deg)}100%{transform:scale(1.03,.97) rotate(-1deg)}}
+.ot-mecha{position:absolute;left:calc(50% - 2px);top:84px;width:4px;height:16px;background:#2b2118;border-radius:2px}
+.ot-cirio{position:absolute;left:0;right:0;top:96px;bottom:0;border-radius:12px 12px 6px 6px;background:linear-gradient(90deg,#d9cdb3,#fff8e8 35%,#f2e6cc 70%,#c9b994);box-shadow:inset 0 14px 18px -8px rgba(255,200,120,.7)}
+.d-noche_vela .ot-lirios-foto{display:block;width:290px;left:auto;right:70px;bottom:10px}
+.d-noche_vela .ot-rama{--rama-hoja:rgba(212,175,95,.18);--rama-tallo:#b8954f}
+.d-noche_vela .ot-rama.r1{display:block;width:420px;left:20px;bottom:10px}
+.d-noche_vela .ot-rama.r2{display:block;width:380px;right:20px;bottom:10px;transform:scaleX(-1)}
+.o-c.d-noche_vela .ot-vela{height:300px;width:100px;right:-20px}
+
+/* ---------- 3. Acuarela azul ---------- */
+.d-acuarela{--t-texto:#2b3f5c;--t-acento:#3f73b8;--t-titulo:#1d3a66;--t-suave:#3f5f8c;--rama-hoja:#6f9bd6;--rama-tallo:#3f6fae;background:#fbfcfe}
+.d-acuarela .ot-cielo{display:block;inset:0;background:radial-gradient(circle at 20% 20%,#fff,#f3f6fb 60%,#eef3fa)}
+.ot-acuarela{background:radial-gradient(circle at 40% 40%,rgba(120,170,235,.85),rgba(70,120,200,.55) 45%,rgba(160,200,245,.25) 75%)}
+.d-acuarela .ot-acuarela{display:block;filter:blur(1.5px)}
+.d-acuarela .ot-acuarela.a1{width:900px;height:760px;left:-60px;top:120px;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M99.1 50.0 Q99.1 50.0 101.8 55.9 Q104.4 61.8 100.3 66.4 Q96.1 71.0 90.8 73.6 Q85.4 76.2 86.4 84.4 Q87.5 92.5 78.6 88.7 Q69.7 84.8 67.0 89.8 Q64.3 94.8 59.5 95.0 Q54.7 95.3 48.9 106.0 Q43.1 116.8 38.3 109.4 Q33.5 102.0 32.6 92.1 Q31.8 82.2 26.7 82.2 Q21.6 82.2 19.6 78.1 Q17.6 74.0 15.3 70.4 Q13.0 66.8 5.5 64.0 Q-2.1 61.3 -1.8 55.6 Q-1.5 50.0 -1.0 44.5 Q-0.4 39.1 4.3 35.2 Q9.0 31.4 2.6 20.7 Q-3.9 10.0 3.5 7.8 Q10.9 5.7 20.0 9.3 Q29.1 13.0 33.5 12.5 Q37.9 12.0 41.2 4.7 Q44.6 -2.6 50.1 -3.2 Q55.5 -3.7 62.5 -7.5 Q69.5 -11.3 68.9 3.1 Q68.3 17.6 77.7 12.8 Q87.1 7.9 91.0 12.4 Q94.8 16.8 92.2 24.4 Q89.7 32.0 94.2 35.7 Q98.7 39.4 98.9 44.7Z'/%3E%3C/svg%3E") center/100% 100% no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M99.1 50.0 Q99.1 50.0 101.8 55.9 Q104.4 61.8 100.3 66.4 Q96.1 71.0 90.8 73.6 Q85.4 76.2 86.4 84.4 Q87.5 92.5 78.6 88.7 Q69.7 84.8 67.0 89.8 Q64.3 94.8 59.5 95.0 Q54.7 95.3 48.9 106.0 Q43.1 116.8 38.3 109.4 Q33.5 102.0 32.6 92.1 Q31.8 82.2 26.7 82.2 Q21.6 82.2 19.6 78.1 Q17.6 74.0 15.3 70.4 Q13.0 66.8 5.5 64.0 Q-2.1 61.3 -1.8 55.6 Q-1.5 50.0 -1.0 44.5 Q-0.4 39.1 4.3 35.2 Q9.0 31.4 2.6 20.7 Q-3.9 10.0 3.5 7.8 Q10.9 5.7 20.0 9.3 Q29.1 13.0 33.5 12.5 Q37.9 12.0 41.2 4.7 Q44.6 -2.6 50.1 -3.2 Q55.5 -3.7 62.5 -7.5 Q69.5 -11.3 68.9 3.1 Q68.3 17.6 77.7 12.8 Q87.1 7.9 91.0 12.4 Q94.8 16.8 92.2 24.4 Q89.7 32.0 94.2 35.7 Q98.7 39.4 98.9 44.7Z'/%3E%3C/svg%3E") center/100% 100% no-repeat;opacity:.55}
+.d-acuarela .ot-acuarela.a2{width:700px;height:380px;left:-120px;bottom:-120px;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M107.9 50.0 Q107.9 50.0 103.2 55.3 Q98.5 60.5 99.5 66.7 Q100.5 73.0 91.1 73.2 Q81.7 73.5 79.4 77.1 Q77.1 80.7 74.0 83.8 Q70.9 86.9 66.4 87.3 Q62.0 87.6 58.4 92.3 Q54.9 97.1 50.5 92.1 Q46.2 87.0 41.3 89.8 Q36.5 92.5 30.5 93.7 Q24.6 94.8 19.5 92.6 Q14.4 90.4 14.2 83.5 Q14.0 76.7 8.2 74.1 Q2.5 71.6 2.6 65.9 Q2.7 60.3 -5.6 55.1 Q-14.0 50.0 -13.1 43.2 Q-12.3 36.5 -1.5 34.0 Q9.4 31.5 5.7 23.0 Q2.0 14.4 12.4 16.8 Q22.7 19.1 25.3 15.0 Q27.9 11.0 32.2 9.3 Q36.5 7.7 40.8 4.6 Q45.0 1.5 49.7 4.8 Q54.3 8.1 59.4 6.4 Q64.4 4.7 73.3 -1.0 Q82.1 -6.8 83.3 2.1 Q84.4 11.0 82.6 19.1 Q80.7 27.2 85.7 29.4 Q90.6 31.5 89.1 36.7 Q87.6 41.8 97.7 45.9Z'/%3E%3C/svg%3E") center/100% 100% no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M107.9 50.0 Q107.9 50.0 103.2 55.3 Q98.5 60.5 99.5 66.7 Q100.5 73.0 91.1 73.2 Q81.7 73.5 79.4 77.1 Q77.1 80.7 74.0 83.8 Q70.9 86.9 66.4 87.3 Q62.0 87.6 58.4 92.3 Q54.9 97.1 50.5 92.1 Q46.2 87.0 41.3 89.8 Q36.5 92.5 30.5 93.7 Q24.6 94.8 19.5 92.6 Q14.4 90.4 14.2 83.5 Q14.0 76.7 8.2 74.1 Q2.5 71.6 2.6 65.9 Q2.7 60.3 -5.6 55.1 Q-14.0 50.0 -13.1 43.2 Q-12.3 36.5 -1.5 34.0 Q9.4 31.5 5.7 23.0 Q2.0 14.4 12.4 16.8 Q22.7 19.1 25.3 15.0 Q27.9 11.0 32.2 9.3 Q36.5 7.7 40.8 4.6 Q45.0 1.5 49.7 4.8 Q54.3 8.1 59.4 6.4 Q64.4 4.7 73.3 -1.0 Q82.1 -6.8 83.3 2.1 Q84.4 11.0 82.6 19.1 Q80.7 27.2 85.7 29.4 Q90.6 31.5 89.1 36.7 Q87.6 41.8 97.7 45.9Z'/%3E%3C/svg%3E") center/100% 100% no-repeat;opacity:.5}
+.d-acuarela .ot-acuarela.a3{width:620px;height:420px;right:-160px;top:-140px;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M107.9 50.0 Q107.9 50.0 103.2 55.3 Q98.5 60.5 99.5 66.7 Q100.5 73.0 91.1 73.2 Q81.7 73.5 79.4 77.1 Q77.1 80.7 74.0 83.8 Q70.9 86.9 66.4 87.3 Q62.0 87.6 58.4 92.3 Q54.9 97.1 50.5 92.1 Q46.2 87.0 41.3 89.8 Q36.5 92.5 30.5 93.7 Q24.6 94.8 19.5 92.6 Q14.4 90.4 14.2 83.5 Q14.0 76.7 8.2 74.1 Q2.5 71.6 2.6 65.9 Q2.7 60.3 -5.6 55.1 Q-14.0 50.0 -13.1 43.2 Q-12.3 36.5 -1.5 34.0 Q9.4 31.5 5.7 23.0 Q2.0 14.4 12.4 16.8 Q22.7 19.1 25.3 15.0 Q27.9 11.0 32.2 9.3 Q36.5 7.7 40.8 4.6 Q45.0 1.5 49.7 4.8 Q54.3 8.1 59.4 6.4 Q64.4 4.7 73.3 -1.0 Q82.1 -6.8 83.3 2.1 Q84.4 11.0 82.6 19.1 Q80.7 27.2 85.7 29.4 Q90.6 31.5 89.1 36.7 Q87.6 41.8 97.7 45.9Z'/%3E%3C/svg%3E") center/100% 100% no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M107.9 50.0 Q107.9 50.0 103.2 55.3 Q98.5 60.5 99.5 66.7 Q100.5 73.0 91.1 73.2 Q81.7 73.5 79.4 77.1 Q77.1 80.7 74.0 83.8 Q70.9 86.9 66.4 87.3 Q62.0 87.6 58.4 92.3 Q54.9 97.1 50.5 92.1 Q46.2 87.0 41.3 89.8 Q36.5 92.5 30.5 93.7 Q24.6 94.8 19.5 92.6 Q14.4 90.4 14.2 83.5 Q14.0 76.7 8.2 74.1 Q2.5 71.6 2.6 65.9 Q2.7 60.3 -5.6 55.1 Q-14.0 50.0 -13.1 43.2 Q-12.3 36.5 -1.5 34.0 Q9.4 31.5 5.7 23.0 Q2.0 14.4 12.4 16.8 Q22.7 19.1 25.3 15.0 Q27.9 11.0 32.2 9.3 Q36.5 7.7 40.8 4.6 Q45.0 1.5 49.7 4.8 Q54.3 8.1 59.4 6.4 Q64.4 4.7 73.3 -1.0 Q82.1 -6.8 83.3 2.1 Q84.4 11.0 82.6 19.1 Q80.7 27.2 85.7 29.4 Q90.6 31.5 89.1 36.7 Q87.6 41.8 97.7 45.9Z'/%3E%3C/svg%3E") center/100% 100% no-repeat;opacity:.3}
+.d-acuarela .ot-ola{display:block;left:-5%;right:-5%;bottom:-30px;height:150px;background:linear-gradient(90deg,rgba(90,140,215,.55),rgba(160,200,245,.3) 50%,rgba(90,140,215,.45));-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M99.1 50.0 Q99.1 50.0 101.8 55.9 Q104.4 61.8 100.3 66.4 Q96.1 71.0 90.8 73.6 Q85.4 76.2 86.4 84.4 Q87.5 92.5 78.6 88.7 Q69.7 84.8 67.0 89.8 Q64.3 94.8 59.5 95.0 Q54.7 95.3 48.9 106.0 Q43.1 116.8 38.3 109.4 Q33.5 102.0 32.6 92.1 Q31.8 82.2 26.7 82.2 Q21.6 82.2 19.6 78.1 Q17.6 74.0 15.3 70.4 Q13.0 66.8 5.5 64.0 Q-2.1 61.3 -1.8 55.6 Q-1.5 50.0 -1.0 44.5 Q-0.4 39.1 4.3 35.2 Q9.0 31.4 2.6 20.7 Q-3.9 10.0 3.5 7.8 Q10.9 5.7 20.0 9.3 Q29.1 13.0 33.5 12.5 Q37.9 12.0 41.2 4.7 Q44.6 -2.6 50.1 -3.2 Q55.5 -3.7 62.5 -7.5 Q69.5 -11.3 68.9 3.1 Q68.3 17.6 77.7 12.8 Q87.1 7.9 91.0 12.4 Q94.8 16.8 92.2 24.4 Q89.7 32.0 94.2 35.7 Q98.7 39.4 98.9 44.7Z'/%3E%3C/svg%3E") center/100% 100% no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M99.1 50.0 Q99.1 50.0 101.8 55.9 Q104.4 61.8 100.3 66.4 Q96.1 71.0 90.8 73.6 Q85.4 76.2 86.4 84.4 Q87.5 92.5 78.6 88.7 Q69.7 84.8 67.0 89.8 Q64.3 94.8 59.5 95.0 Q54.7 95.3 48.9 106.0 Q43.1 116.8 38.3 109.4 Q33.5 102.0 32.6 92.1 Q31.8 82.2 26.7 82.2 Q21.6 82.2 19.6 78.1 Q17.6 74.0 15.3 70.4 Q13.0 66.8 5.5 64.0 Q-2.1 61.3 -1.8 55.6 Q-1.5 50.0 -1.0 44.5 Q-0.4 39.1 4.3 35.2 Q9.0 31.4 2.6 20.7 Q-3.9 10.0 3.5 7.8 Q10.9 5.7 20.0 9.3 Q29.1 13.0 33.5 12.5 Q37.9 12.0 41.2 4.7 Q44.6 -2.6 50.1 -3.2 Q55.5 -3.7 62.5 -7.5 Q69.5 -11.3 68.9 3.1 Q68.3 17.6 77.7 12.8 Q87.1 7.9 91.0 12.4 Q94.8 16.8 92.2 24.4 Q89.7 32.0 94.2 35.7 Q98.7 39.4 98.9 44.7Z'/%3E%3C/svg%3E") center/100% 100% no-repeat}
+.d-acuarela .ot-foto-fondo{display:block;z-index:1;width:125%;height:125%;left:-12%;top:-12%;background:radial-gradient(circle at 45% 40%,rgba(110,160,230,.8),rgba(60,110,190,.45) 55%,transparent 75%);
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M99.1 50.0 Q99.1 50.0 101.8 55.9 Q104.4 61.8 100.3 66.4 Q96.1 71.0 90.8 73.6 Q85.4 76.2 86.4 84.4 Q87.5 92.5 78.6 88.7 Q69.7 84.8 67.0 89.8 Q64.3 94.8 59.5 95.0 Q54.7 95.3 48.9 106.0 Q43.1 116.8 38.3 109.4 Q33.5 102.0 32.6 92.1 Q31.8 82.2 26.7 82.2 Q21.6 82.2 19.6 78.1 Q17.6 74.0 15.3 70.4 Q13.0 66.8 5.5 64.0 Q-2.1 61.3 -1.8 55.6 Q-1.5 50.0 -1.0 44.5 Q-0.4 39.1 4.3 35.2 Q9.0 31.4 2.6 20.7 Q-3.9 10.0 3.5 7.8 Q10.9 5.7 20.0 9.3 Q29.1 13.0 33.5 12.5 Q37.9 12.0 41.2 4.7 Q44.6 -2.6 50.1 -3.2 Q55.5 -3.7 62.5 -7.5 Q69.5 -11.3 68.9 3.1 Q68.3 17.6 77.7 12.8 Q87.1 7.9 91.0 12.4 Q94.8 16.8 92.2 24.4 Q89.7 32.0 94.2 35.7 Q98.7 39.4 98.9 44.7Z'/%3E%3C/svg%3E") center/100% 100% no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M99.1 50.0 Q99.1 50.0 101.8 55.9 Q104.4 61.8 100.3 66.4 Q96.1 71.0 90.8 73.6 Q85.4 76.2 86.4 84.4 Q87.5 92.5 78.6 88.7 Q69.7 84.8 67.0 89.8 Q64.3 94.8 59.5 95.0 Q54.7 95.3 48.9 106.0 Q43.1 116.8 38.3 109.4 Q33.5 102.0 32.6 92.1 Q31.8 82.2 26.7 82.2 Q21.6 82.2 19.6 78.1 Q17.6 74.0 15.3 70.4 Q13.0 66.8 5.5 64.0 Q-2.1 61.3 -1.8 55.6 Q-1.5 50.0 -1.0 44.5 Q-0.4 39.1 4.3 35.2 Q9.0 31.4 2.6 20.7 Q-3.9 10.0 3.5 7.8 Q10.9 5.7 20.0 9.3 Q29.1 13.0 33.5 12.5 Q37.9 12.0 41.2 4.7 Q44.6 -2.6 50.1 -3.2 Q55.5 -3.7 62.5 -7.5 Q69.5 -11.3 68.9 3.1 Q68.3 17.6 77.7 12.8 Q87.1 7.9 91.0 12.4 Q94.8 16.8 92.2 24.4 Q89.7 32.0 94.2 35.7 Q98.7 39.4 98.9 44.7Z'/%3E%3C/svg%3E") center/100% 100% no-repeat}
+.d-acuarela .ot-foto-marco{border-radius:0}
+.d-acuarela .ot-foto-marco .obi-foto{border-radius:0;background:transparent;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M93.8 50.0 Q93.8 50.0 94.4 55.7 Q95.0 61.3 93.8 67.0 Q92.6 72.8 87.9 76.4 Q83.2 80.0 78.9 83.2 Q74.7 86.5 69.6 87.7 Q64.4 88.9 60.3 95.4 Q56.2 102.0 50.5 97.5 Q44.9 93.0 37.7 97.7 Q30.5 102.4 26.4 96.7 Q22.3 91.0 17.7 87.1 Q13.2 83.3 9.2 78.7 Q5.2 74.0 7.3 67.1 Q9.5 60.2 4.8 55.1 Q0.1 50.0 2.6 44.3 Q5.0 38.7 5.7 32.7 Q6.4 26.7 11.3 23.0 Q16.2 19.4 21.3 17.2 Q26.3 15.0 29.3 8.6 Q32.2 2.1 38.2 1.8 Q44.2 1.6 49.9 2.2 Q55.6 2.8 62.4 0.5 Q69.2 -1.8 72.9 4.4 Q76.7 10.6 83.2 12.4 Q89.6 14.2 91.6 20.4 Q93.6 26.6 96.1 32.2 Q98.6 37.8 96.2 43.9Z'/%3E%3C/svg%3E") center/100% 100% no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M93.8 50.0 Q93.8 50.0 94.4 55.7 Q95.0 61.3 93.8 67.0 Q92.6 72.8 87.9 76.4 Q83.2 80.0 78.9 83.2 Q74.7 86.5 69.6 87.7 Q64.4 88.9 60.3 95.4 Q56.2 102.0 50.5 97.5 Q44.9 93.0 37.7 97.7 Q30.5 102.4 26.4 96.7 Q22.3 91.0 17.7 87.1 Q13.2 83.3 9.2 78.7 Q5.2 74.0 7.3 67.1 Q9.5 60.2 4.8 55.1 Q0.1 50.0 2.6 44.3 Q5.0 38.7 5.7 32.7 Q6.4 26.7 11.3 23.0 Q16.2 19.4 21.3 17.2 Q26.3 15.0 29.3 8.6 Q32.2 2.1 38.2 1.8 Q44.2 1.6 49.9 2.2 Q55.6 2.8 62.4 0.5 Q69.2 -1.8 72.9 4.4 Q76.7 10.6 83.2 12.4 Q89.6 14.2 91.6 20.4 Q93.6 26.6 96.1 32.2 Q98.6 37.8 96.2 43.9Z'/%3E%3C/svg%3E") center/100% 100% no-repeat}
+.d-acuarela .ot-foto-marco .obi-foto.forma-libre{-webkit-mask:none;mask:none}
+.d-acuarela .ot-rama-foto{display:block;z-index:3;width:360px;left:-70px;bottom:-40px}
+.d-acuarela .ot-rama.r1{display:block;width:480px;left:-30px;bottom:-40px}
+.d-acuarela .ot-cita{font-family:'Great Vibes',cursive;font-style:normal;font-weight:400;font-size:46px;color:var(--t-titulo)}
+.d-acuarela .ot-pie-slogan{color:var(--t-titulo)}
+
+/* ---------- 4. Amanecer en la montaña ---------- */
+.d-amanecer{--t-texto:#fff7ec;--t-acento:#f6c27a;--t-titulo:#ffffff;--t-suave:rgba(255,247,236,.9);background:#24406e}
+.d-amanecer .ot-cielo{display:block;inset:0;background:linear-gradient(180deg,#22406f 0%,#4f6f9f 26%,#c98a6e 50%,#f3a65c 62%,#ffd59a 70%,#f6b878 78%)}
+.d-amanecer .ot-sol{display:block;width:1000px;height:1000px;left:calc(66% - 500px);top:calc(62% - 500px);background:radial-gradient(circle,#fffbe6 0,#ffe7a8 6%,rgba(255,200,110,.75) 18%,rgba(255,170,80,.25) 38%,transparent 60%)}
+.d-amanecer .ot-rayos{display:block;width:2400px;height:2400px;left:calc(66% - 1200px);top:calc(62% - 1200px);background:repeating-conic-gradient(from 0deg,rgba(255,236,190,.22) 0 3deg,transparent 3deg 11deg);-webkit-mask:radial-gradient(circle,#000 0,transparent 45%);mask:radial-gradient(circle,#000 0,transparent 45%)}
+.d-amanecer .ot-nubes i{background:#ffd9b0;opacity:.35}
+.d-amanecer .ot-montes{display:block;left:0;right:0;bottom:0;width:100%;height:56%}
+.ot-montes .m1{fill:#5a6a93}.ot-montes .m2{fill:#3c4c73}.ot-montes .m3{fill:#25344f}.ot-montes .m4{fill:#171c27}
+.d-amanecer .ot-cruz-roca{display:block;right:12%;bottom:21%;width:150px;height:300px}
+.ot-cruz-roca i{position:absolute;background:#141821;border-radius:3px}
+.ot-cruz-roca i:first-child{left:calc(50% - 11px);top:0;width:22px;height:100%}
+.ot-cruz-roca i:last-child{left:0;top:22%;width:100%;height:22px}
+.d-amanecer .ot-foto-marco{border:8px solid rgba(255,255,255,.95);box-shadow:0 0 60px rgba(255,214,150,.8),0 30px 60px -20px rgba(0,0,0,.6)}
+.d-amanecer .ot-main,.d-amanecer .ot-cab,.d-amanecer .ot-cita{text-shadow:0 2px 14px rgba(10,20,40,.55)}
+.d-amanecer .ot-info{background:rgba(12,22,42,.55);border:1.5px solid rgba(255,255,255,.18);border-radius:22px;padding:22px 26px;backdrop-filter:blur(4px)}
+.d-amanecer .ot-logo{background:rgba(255,255,255,.92);padding:10px 22px;border-radius:18px}
+.d-amanecer .ot-cita{color:#fff}
+
+/* ---------- 5. Botánico ---------- */
+.d-botanico{--t-texto:#3d342a;--t-acento:#b08d57;--t-titulo:#2f281f;--t-suave:#5a4e40;--rama-hoja:#9fb5a0;--rama-tallo:#6a8a6e;background:#f6f0e6}
+.d-botanico .ot-cielo{display:block;inset:0;background:radial-gradient(circle at 30% 30%,#fdfaf4,#f4ede1 55%,#ece2d2)}
+.d-botanico .ot-euca{display:block}
+.d-botanico .ot-euca.e1{width:520px;right:-40px;top:-40px;transform:rotate(180deg)}
+.d-botanico .ot-euca.e2{width:520px;left:-60px;bottom:-60px}
+.d-botanico .ot-euca.e3{width:360px;left:-40px;top:-40px;transform:scaleY(-1)}
+.d-botanico .ot-trazo-oro{display:block;right:0;bottom:0;width:24%;height:55%;fill:none;stroke:#c9a35a;stroke-width:3;opacity:.85}
+.d-botanico .ot-foto-marco{border-radius:4px;background:#fff;padding:22px 22px 84px;box-shadow:0 26px 50px -24px rgba(60,40,20,.55);transform:rotate(-4deg)}
+.d-botanico .ot-foto-marco .obi-foto{border-radius:2px;width:470px;height:530px}
+.o-v.d-botanico .ot-foto-marco .obi-foto{width:520px;height:580px}
+.o-c.d-botanico .ot-foto-marco .obi-foto{width:320px;height:360px}
+.d-botanico .ot-lirios-foto{left:-60px;bottom:-20px;width:360px}
+.d-botanico .ot-titulo{font-family:'Great Vibes',cursive;font-style:normal;font-weight:400;font-size:calc(118px*var(--k))}
+.d-botanico .ot-cita{font-family:'Great Vibes',cursive;font-style:normal;font-weight:400;font-size:46px;border-left:2px solid rgba(176,141,87,.5);padding-left:26px;align-self:center;margin-top:0}
+.o-v.d-botanico .ot-cita{border:0;padding:0}
+
+/* Ajustes de adornos en vertical y cuadrado */
+.o-v.d-cielo_cruz .ot-cruz{right:5%;top:3%;height:330px;width:180px}
+.o-v.d-amanecer .ot-montes{height:34%}
+.o-v.d-amanecer .ot-cruz-roca{right:6%;bottom:6%;width:110px;height:220px}
+.o-v.d-amanecer .ot-sol,.o-v.d-amanecer .ot-rayos{top:calc(70% - 500px)}
+.o-v.d-noche_vela .ot-rama,.o-c.d-noche_vela .ot-rama{width:240px!important}
+.o-c.d-botanico .ot-euca.e1{width:300px;right:-60px;top:-60px}
+.o-c.d-botanico .ot-euca.e3{width:260px}
+.o-c.d-botanico .ot-trazo-oro{display:none}
+.o-c .ot-rama-foto{width:240px!important;left:-60px!important;bottom:-70px!important}
+.o-c .ot-lirios-foto{width:280px}
+.o-c.d-cielo_cruz .ot-cruz{display:none}
+
+/* Fondo propio (imagen o video) en una tarjeta: se esconde el dibujo del fondo y se deja la foto */
+.lay-tarjeta.fondo-propio .ot-deco{display:none}
+.lay-tarjeta.fondo-propio{--t-texto:#fff;--t-titulo:#fff;--t-suave:rgba(255,255,255,.9)}
+.lay-tarjeta.fondo-propio .obi-tarjeta{text-shadow:0 2px 12px rgba(0,0,0,.5)}

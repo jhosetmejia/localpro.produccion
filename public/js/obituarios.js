@@ -28,7 +28,7 @@
 
     // ===== Texto: si no cabe (muchos familiares), se reduce un poco hasta que quepa =====
     Obi.ajustar = function (el) {
-        var c = el.querySelector('.obi-centro');
+        var c = el.querySelector(el.classList.contains('lay-tarjeta') ? '.ot-main' : '.obi-centro');
         if (!c) return;
         var g = el.querySelector('.obi-grupos');
         if (g) g.classList.toggle('dos', g.children.length > 6);
@@ -171,31 +171,30 @@
             el.querySelectorAll('[data-o="' + clave + '"]').forEach(function (n) { n.textContent = valor || ''; });
             el.querySelectorAll('[data-fila="' + clave + '"]').forEach(function (n) { n.hidden = !valor; });
         }
-        ['nombre', 'anios', 'frase', 'sala', 'fecha', 'hora', 'lugar', 'destino', 'titulo', 'pie'].forEach(function (k) {
+        ['nombre', 'anios', 'frase', 'sala', 'fecha', 'hora', 'lugar', 'destino', 'titulo', 'pie', 'cita'].forEach(function (k) {
             if (k in d) poner(k, d[k]);
         });
         if ('invitan' in d) {
-            var gs = Obi.grupos(d.invitan), cont = el.querySelector('[data-o="grupos"]');
-            if (cont) cont.innerHTML = gs.map(function (g) { return '<div class="obi-grupo"><b>' + esc(g[0]) + '</b>' + (g[1] ? '<span>' + esc(g[1]) + '</span>' : '') + '</div>'; }).join('');
+            var gs = Obi.grupos(d.invitan);
+            el.querySelectorAll('[data-o="grupos"]').forEach(function (cont) { cont.innerHTML = gs.map(function (g) { return '<div class="obi-grupo"><b>' + esc(g[0]) + '</b>' + (g[1] ? '<span>' + esc(g[1]) + '</span>' : '') + '</div>'; }).join('');
+            });
             el.querySelectorAll('[data-fila="invitan"]').forEach(function (n) { n.hidden = !gs.length; });
         }
-        if ('foto' in d) {
-            var f = el.querySelector('.obi-foto');
-            if (f) {
+        if ('foto' in d) el.querySelectorAll('.obi-foto').forEach(function (f) {
+            {
                 var img = f.querySelector('img'), sil = f.querySelector('svg');
                 if (d.foto) {
                     if (!img) { img = document.createElement('img'); img.alt = ''; f.appendChild(img); }
                     img.src = d.foto; if (sil) sil.style.display = 'none';
                 } else { if (img) img.remove(); if (sil) sil.style.display = ''; }
             }
-        }
+        });
         if ('foto_fondo' in d || 'foto_forma' in d) {
-            var fb = el.querySelector('.obi-foto');
-            if (fb) {
-                var fondo = d.foto_fondo || 'suave', forma = d.foto_forma || 'circulo';
+            var fondo = d.foto_fondo || 'suave', forma = d.foto_forma || 'circulo';
+            el.querySelectorAll('.obi-foto').forEach(function (fb) {
                 fb.className = 'obi-foto f-' + fondo + ' forma-' + forma;
                 fb.style.background = fondo === 'color' && d.foto_color ? d.foto_color : '';
-            }
+            });
         }
         Obi.ajustar(el);
     };
@@ -221,7 +220,7 @@
 
     // ===== Vista previa en vivo: cambia el diseño de la plantilla =====
     Obi.estilo = function (el, c) {
-        el.className = 'obi d-' + c.diseno + ' o-' + c.o + ' adornos-' + (c.adornos || 'muchos') + (c.fondo_tipo !== 'diseno' ? ' fondo-propio' : '');
+        el.className = 'obi d-' + c.diseno + ' o-' + c.o + ' adornos-' + (c.adornos || 'muchos') + (c.tarjeta ? ' lay-tarjeta' : '') + (c.fondo_tipo !== 'diseno' ? ' fondo-propio' : '');
         el.dataset.w = c.w; el.dataset.h = c.h; el.dataset.escala = c.escala;
         el.style.width = c.w + 'px'; el.style.height = c.h + 'px';
         el.style.setProperty('--acento', c.acento);
@@ -241,7 +240,7 @@
         el.querySelector('.obi-velo').style.opacity = (c.fondo_tipo === 'imagen' || c.fondo_tipo === 'video') ? (c.oscurecer / 100) : 0;
         el.querySelectorAll('[data-logo]').forEach(function (n) { n.hidden = !c.logo; });
         el.querySelectorAll('[data-sin-logo]').forEach(function (n) { n.hidden = c.logo; });
-        Obi.datos(el, { titulo: c.titulo, frase: c.frase, pie: c.pie });
+        Obi.datos(el, { titulo: c.titulo, frase: c.frase, pie: c.pie, cita: c.cita ? '“' + c.cita.replace(/^[“"]+|[”"]+$/g, '') + '”' : '' });
         if (el.dataset.anim !== c.anim || c.reanimar) { el.dataset.anim = c.anim; Obi.animar(el); }
         Obi.escalar(el);
         Obi.ajustar(el);
