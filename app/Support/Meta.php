@@ -102,7 +102,7 @@ class Meta
 
     private const CAMPOS_MSJ = 'id,message,from,created_time,attachments{mime_type,image_data,file_url}';
 
-    public static function sincronizar(RedCuenta $c, int $limite = 25): int
+    public static function sincronizar(RedCuenta $c, int $limite = 25, bool $comoNuevos = false): int
     {
         TiendaActual::set($c->tienda_id);
         $n = 0;
@@ -139,7 +139,7 @@ class Meta
                     $adj = $m['attachments']['data'][0] ?? null;
                     $n += self::guardarMensaje($cv, (string) $m['id'], $delCliente, $m['message'] ?? null,
                         $adj ? ($adj['image_data']['url'] ?? $adj['file_url'] ?? null) : null, $adj ? 'imagen' : null,
-                        Carbon::parse($m['created_time'] ?? now()), null, false) ? 1 : 0;
+                        Carbon::parse($m['created_time'] ?? now()), null, $comoNuevos && $delCliente) ? 1 : 0;
                 }
             }
         }
