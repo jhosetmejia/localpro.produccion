@@ -74,7 +74,7 @@
                 <img id="fotoPrev" alt="" style="display:none">
             </label>
             <div class="pb-acc">
-                <button type="button" class="btn btn-dark btn-sm" id="btnProd"><i class="fa-solid fa-shirt me-1"></i>Publicar un producto</button>
+                <button type="button" class="btn btn-dark btn-sm" id="btnProd"><i class="fa-solid {{ \App\Models\Tienda::iconoProducto() }} me-1"></i>Publicar un producto</button>
                 <button type="button" class="btn btn-light btn-sm" id="btnQuitar" style="display:none"><i class="fa-solid fa-xmark me-1"></i>Quitar foto</button>
             </div>
 

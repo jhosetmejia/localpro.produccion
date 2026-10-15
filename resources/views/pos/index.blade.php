@@ -228,7 +228,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         <section class="cat">
             <div class="search">
                 <i class="fa-solid fa-magnifying-glass ic"></i>
-                <input id="q" type="search" placeholder="Buscar prenda o escanear código de barras…" autocomplete="off" autofocus>
+                <input id="q" type="search" placeholder="Buscar {{ \App\Models\Tienda::palabraProducto() }} o escanear código de barras…" autocomplete="off" autofocus>
                 <span class="scan" title="Compatible con lector de código de barras"><i class="fa-solid fa-barcode"></i></span>
             </div>
             <div class="grid" id="grid"></div>

@@ -164,7 +164,8 @@ class bienvenidaController extends Controller
                     if (Producto::where('nombre', $nombre)->exists()) {
                         continue;
                     }
-                    $controla = !in_array($tienda->tipo_negocio, ['restaurante', 'cafeteria'], true);
+                    $controla = !in_array($tienda->tipo_negocio, ['restaurante', 'cafeteria'], true)
+                        && !($tienda->tipo_negocio === 'funeraria' && preg_match('/\\b(plan|servicio)\\b/iu', $nombre)); // en funerarias los planes y servicios no llevan inventario
                     $producto = Producto::create([
                         'codigo' => CrearTienda::siguienteCodigo(),
                         'nombre' => $nombre,

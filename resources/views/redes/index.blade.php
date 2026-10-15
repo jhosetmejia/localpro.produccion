@@ -142,7 +142,7 @@
                     @foreach ($rap as $r)<button type="button" data-t="{{ $r }}">{{ \Illuminate\Support\Str::limit($r, 34) }}</button>@endforeach
                 </div>
                 <div class="ib-f">
-                    <button class="b prod" id="ibProd" type="button" title="Enviar un producto"><i class="fa-solid fa-shirt"></i></button>
+                    <button class="b prod" id="ibProd" type="button" title="Enviar un producto"><i class="fa-solid {{ \App\Models\Tienda::iconoProducto() }}"></i></button>
                     <textarea id="ibTxt" rows="1" maxlength="1900" placeholder="Escriba un mensaje…"></textarea>
                     <button class="b env" id="ibEnv" type="button" title="Enviar"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>

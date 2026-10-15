@@ -93,7 +93,7 @@
             @endif
 
             <div class="lp-box mb-3">
-                <h3><span><i class="fa-solid fa-shirt me-1"></i> Prendas separadas</span></h3>
+                <h3><span><i class="fa-solid {{ \App\Models\Tienda::iconoProducto() }} me-1"></i> {{ ucfirst(\App\Models\Tienda::palabraProducto(true)) }} separados</span></h3>
                 <ul class="lp-list">
                     @foreach ($s->items as $i)
                     <li><div class="av"><i class="fa-solid fa-box"></i></div><div class="t"><b>{{ $i->descripcion }}</b><small>{{ $i->etiqueta ?: 'Única' }} · {{ cantidad($i->cantidad) }} × {{ $f($i->precio) }}</small></div><b>{{ $f($i->subtotal) }}</b></li>

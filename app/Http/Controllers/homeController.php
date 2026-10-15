@@ -106,9 +106,9 @@ class homeController extends Controller
             'caja' => Caja::abiertaDe(Auth::id()),
             'semana' => $semana,
             'ultimasVentas' => PosVenta::with('user:id,name')->latest()->take(6)->get(),
-            'stockBajo' => ProductoVariante::with('producto:id,nombre,unidad')->where('estado', 1)->where('stock', '<=', 3)->orderBy('stock')->take(6)->get(),
+            'stockBajo' => ProductoVariante::with('producto:id,nombre,unidad')->where('estado', 1)->whereHas('producto', fn ($q) => $q->where('controla_inventario', true))->where('stock', '<=', 3)->orderBy('stock')->take(6)->get(),
             'conteos' => [
-                ['Productos', Producto::count(), 'fa-shirt', 'productos.index', 'ver-producto'],
+                ['Productos', Producto::count(), \App\Models\Tienda::iconoProducto(), 'productos.index', 'ver-producto'],
                 ['Clientes', Cliente::count(), 'fa-people-group', 'clientes.index', 'ver-cliente'],
                 ['Proveedores', Proveedore::count(), 'fa-handshake', 'proveedores.index', 'ver-proveedore'],
                 ['Categorías', Categoria::count(), 'fa-tags', 'categorias.index', 'ver-categoria'],

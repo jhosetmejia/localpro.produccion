@@ -41,7 +41,7 @@
     <form method="post" action="{{ route('separados.store') }}" id="fSep" class="ns">
         @csrf
         <div class="lp-box">
-            <h3><span><i class="fa-solid fa-shirt me-1"></i> 1. ¿Qué prenda separa?</span></h3>
+            <h3><span><i class="fa-solid {{ \App\Models\Tienda::iconoProducto() }} me-1"></i> 1. ¿Qué {{ \App\Models\Tienda::palabraProducto() }} separa?</span></h3>
             <input id="qProd" class="form-control" placeholder="Buscar producto por nombre, código o lector de barras…" autocomplete="off">
             <div class="ns-res" id="resProd"></div>
             <div id="items" class="mt-3"></div>

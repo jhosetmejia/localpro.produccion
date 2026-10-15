@@ -67,7 +67,7 @@
 
     @if ($productos->isEmpty())
         <div class="pl-item pl-vacio">
-            <div><i class="fa-solid fa-shirt"></i></div>
+            <div><i class="fa-solid {{ \App\Models\Tienda::iconoProducto() }}"></i></div>
             <b>Aún no tiene productos.</b>
             <span>Cree el primero y quedará listo para vender en la caja.</span>
             @can('crear-producto')

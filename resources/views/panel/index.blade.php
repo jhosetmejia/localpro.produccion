@@ -193,8 +193,8 @@
             <div class="sub">Desde el día 1</div>
         </div>
         <div class="lp-kpi">
-            <div class="ic"><i class="fa-solid fa-shirt"></i></div>
-            <div class="lbl">Prendas en inventario</div>
+            <div class="ic"><i class="fa-solid {{ \App\Models\Tienda::iconoProducto() }}"></i></div>
+            <div class="lbl">{{ ucfirst(\App\Models\Tienda::palabraProducto(true)) }} en inventario</div>
             <div class="val">{{ dinero($unidades, false) }}</div>
             <div class="sub">
                 @if ($caja) <span style="color:#16b34a">● Su caja está abierta</span>
@@ -282,7 +282,7 @@
             <ul class="lp-list">
                 @forelse ($stockBajo as $v)
                 <li>
-                    <div class="av"><i class="fa-solid fa-shirt"></i></div>
+                    <div class="av"><i class="fa-solid {{ \App\Models\Tienda::iconoProducto() }}"></i></div>
                     <div class="t"><b>{{ $v->producto->nombre ?? '' }}</b><small>{{ $v->etiqueta }}</small></div>
                     <span class="lp-pill {{ $v->stock > 0 ? 'warn' : '' }}">{{ $v->stock > 0 ? cantidad($v->stock) . ' ' . ($v->producto?->unidad_corta ?? 'und') : 'Agotado' }}</span>
                 </li>

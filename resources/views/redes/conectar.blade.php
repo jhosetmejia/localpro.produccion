@@ -46,7 +46,7 @@
 
     <div class="cx-ben">
         <div><i class="fa-regular fa-comments"></i><b>Todos los chats juntos</b><p>Messenger e Instagram Direct en una sola bandeja, con aviso de los no leídos.</p></div>
-        <div><i class="fa-solid fa-shirt"></i><b>Envíe productos en un toque</b><p>Busque el producto y mándele al cliente la foto, el precio y el enlace para comprar.</p></div>
+        <div><i class="fa-solid {{ \App\Models\Tienda::iconoProducto() }}"></i><b>Envíe productos en un toque</b><p>Busque el producto y mándele al cliente la foto, el precio y el enlace para comprar.</p></div>
         <div><i class="fa-regular fa-paper-plane"></i><b>Publique en las dos redes</b><p>Una foto, un texto y listo: sale en Facebook e Instagram, ahora o a la hora que programe.</p></div>
         <div><i class="fa-solid fa-user-plus"></i><b>Convierta chats en clientes</b><p>Guarde a quien le escribe como cliente y márquelo: nuevo, interesado, hizo pedido.</p></div>
     </div>

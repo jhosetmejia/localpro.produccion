@@ -159,6 +159,31 @@ class Tienda extends Model
         return self::TIPOS[$this->tipo_negocio][0] ?? 'Otro negocio';
     }
 
+    // Ícono de los productos según el tipo de negocio (camiseta solo para ropa)
+    public const ICONO_PRODUCTO = [
+        'moda' => 'fa-shirt', 'calzado' => 'fa-shoe-prints', 'accesorios' => 'fa-gem', 'restaurante' => 'fa-burger',
+        'cafeteria' => 'fa-mug-hot', 'minimercado' => 'fa-basket-shopping', 'belleza' => 'fa-spa', 'tecnologia' => 'fa-mobile-screen',
+        'papeleria' => 'fa-pen-ruler', 'ferreteria' => 'fa-screwdriver-wrench', 'funeraria' => 'fa-dove', 'conjunto' => 'fa-building',
+    ];
+
+    public function getIconoProductoAttribute(): string
+    {
+        return self::ICONO_PRODUCTO[$this->tipo_negocio] ?? 'fa-box';
+    }
+
+    // Ícono de producto de la tienda con la que se trabaja
+    public static function iconoProducto(): string
+    {
+        return \App\Support\TiendaActual::tienda()?->icono_producto ?? 'fa-box';
+    }
+
+    // "prenda" solo en tiendas de ropa; en las demás "producto"
+    public static function palabraProducto(bool $plural = false): string
+    {
+        $ropa = (bool) \App\Support\TiendaActual::tienda()?->usa_tallas;
+        return ($ropa ? 'prenda' : 'producto') . ($plural ? 's' : '');
+    }
+
     public function getTipoIconoAttribute(): string
     {
         return self::TIPOS[$this->tipo_negocio][1] ?? 'fa-store';

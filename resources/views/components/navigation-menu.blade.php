@@ -171,7 +171,7 @@
                 @endcanany
                 @can('ver-producto')
                 @if ($ver('productos'))<a class="nav-link {{ $on('productos.*') }}" href="{{ route('productos.index') }}">
-                    <div class="sb-nav-link-icon"><i class="fa-solid {{ $tiendaMenu && $tiendaMenu->usa_tallas ? 'fa-shirt' : 'fa-box' }}"></i></div>
+                    <div class="sb-nav-link-icon"><i class="fa-solid {{ $tiendaMenu?->icono_producto ?? 'fa-box' }}"></i></div>
                     Productos
                 </a>@endif
                 @endcan

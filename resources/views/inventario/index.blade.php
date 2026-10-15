@@ -13,7 +13,7 @@
     </div>
 
     <div class="lp-counts mb-3" style="grid-template-columns:repeat(4,1fr)">
-        <a class="lp-count" href="{{ route('inventario.index') }}"><div class="ci"><i class="fa-solid fa-shirt"></i></div><b>{{ dinero($resumen['unidades'], false) }}</b><small>Unidades</small></a>
+        <a class="lp-count" href="{{ route('inventario.index') }}"><div class="ci"><i class="fa-solid {{ \App\Models\Tienda::iconoProducto() }}"></i></div><b>{{ dinero($resumen['unidades'], false) }}</b><small>Unidades</small></a>
         <a class="lp-count" href="{{ route('inventario.index') }}"><div class="ci"><i class="fa-solid fa-layer-group"></i></div><b>{{ $resumen['referencias'] }}</b><small>Tallas/colores</small></a>
         <a class="lp-count" href="{{ route('inventario.index', ['filtro' => 'bajo']) }}"><div class="ci"><i class="fa-solid fa-arrow-trend-down"></i></div><b>{{ $resumen['bajo'] }}</b><small>Stock bajo (1–5)</small></a>
         <a class="lp-count" href="{{ route('inventario.index', ['filtro' => 'agotado']) }}"><div class="ci" style="background:#ff6fb5"><i class="fa-solid fa-ban"></i></div><b>{{ $resumen['agotado'] }}</b><small>Agotados</small></a>
@@ -21,7 +21,7 @@
 
     <div class="lp-box">
         <form class="row g-2 mb-3" method="get">
-            <div class="col-md-6"><input name="q" value="{{ $q }}" class="form-control" placeholder="Buscar prenda, código, talla o color..."></div>
+            <div class="col-md-6"><input name="q" value="{{ $q }}" class="form-control" placeholder="Buscar {{ \App\Models\Tienda::palabraProducto() }}, código{{ \App\Support\TiendaActual::tienda()?->usa_tallas ? ', talla o color' : '' }}..."></div>
             <div class="col-md-3">
                 <select name="filtro" class="form-select" onchange="this.form.submit()">
                     <option value="todos" @selected($filtro === 'todos')>Todos</option>
