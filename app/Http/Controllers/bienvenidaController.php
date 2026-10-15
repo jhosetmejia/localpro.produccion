@@ -115,6 +115,9 @@ class bienvenidaController extends Controller
         foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios'] as $m) {
             $datos[$m] = $request->has($m) ? $request->boolean($m) : in_array($m, Tienda::MODULOS_POR_TIPO[$datos['tipo_negocio']] ?? [], true);
         }
+        if ($tienda->menu_oculto === null && isset(Tienda::MENU_OCULTO_POR_TIPO[$datos['tipo_negocio']])) {
+            $datos['menu_oculto'] = Tienda::MENU_OCULTO_POR_TIPO[$datos['tipo_negocio']];
+        }
         $datos['onboarding_paso'] = 3;
 
         // Un conjunto residencial no vende productos: termina aquí y pasa a su panel de administración

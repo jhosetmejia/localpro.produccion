@@ -74,6 +74,7 @@ class negocioController extends Controller
         // Al pasar a funeraria se enciende solo el módulo de obituarios
         if ($datos['tipo_negocio'] === 'funeraria' && $negocio->tipo_negocio !== 'funeraria') {
             $datos['mod_obituarios'] = true;
+            if ($negocio->menu_oculto === null) $datos['menu_oculto'] = \App\Models\Tienda::MENU_OCULTO_POR_TIPO['funeraria'];
         }
 
         $negocio->update($datos);

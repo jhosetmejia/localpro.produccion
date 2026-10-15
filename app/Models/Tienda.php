@@ -12,13 +12,13 @@ class Tienda extends Model
     protected $fillable = [
         'nombre', 'departamento', 'slug', 'catalogo_activo', 'mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'cliente_obligatorio', 'pais', 'tipo_negocio', 'descripcion', 'usa_tallas', 'nit', 'regimen',
         'resolucion_numero', 'resolucion_fecha', 'resolucion_vigencia', 'resolucion_prefijo', 'resolucion_desde', 'resolucion_hasta', 'direccion', 'ciudad', 'telefono',
-        'email', 'logo_path', 'mensaje_tiquete',
+        'email', 'logo_path', 'mensaje_tiquete', 'menu_oculto',
         // Facturación DIAN
         'razon_social', 'dv', 'tipo_persona', 'responsabilidades', 'ciiu', 'municipio_dane', 'email_facturacion', 'pos_electronico',
         'fe_activa', 'fe_ambiente', 'fe_resolucion_numero', 'fe_resolucion_fecha', 'fe_resolucion_vigencia', 'fe_prefijo', 'fe_desde', 'fe_hasta', 'fe_clave_tecnica', 'fe_credenciales', 'estado', 'onboarding_paso', 'onboarding_completo', 'conj_dia_vence', 'conj_interes_mora', 'conj_zonas',
     ];
 
-    protected $casts = ['mod_medida' => 'boolean', 'mod_vencimiento' => 'boolean', 'mod_recetas' => 'boolean', 'mod_alquiler' => 'boolean', 'mod_obituarios' => 'boolean', 'usa_tallas' => 'boolean', 'onboarding_completo' => 'boolean', 'catalogo_activo' => 'boolean', 'cliente_obligatorio' => 'boolean', 'plan_vence' => 'date', 'datos_depurados_at' => 'datetime', 'resolucion_fecha' => 'date', 'resolucion_vigencia' => 'date', 'pos_electronico' => 'boolean', 'fe_activa' => 'boolean', 'fe_resolucion_fecha' => 'date', 'fe_resolucion_vigencia' => 'date', 'fe_clave_tecnica' => 'encrypted', 'fe_credenciales' => 'encrypted:array', 'enlaces_activo' => 'boolean', 'enlaces_catalogo' => 'boolean', 'enlaces_redes' => 'array'];
+    protected $casts = ['mod_medida' => 'boolean', 'mod_vencimiento' => 'boolean', 'mod_recetas' => 'boolean', 'mod_alquiler' => 'boolean', 'mod_obituarios' => 'boolean', 'usa_tallas' => 'boolean', 'onboarding_completo' => 'boolean', 'catalogo_activo' => 'boolean', 'cliente_obligatorio' => 'boolean', 'plan_vence' => 'date', 'datos_depurados_at' => 'datetime', 'resolucion_fecha' => 'date', 'resolucion_vigencia' => 'date', 'pos_electronico' => 'boolean', 'fe_activa' => 'boolean', 'fe_resolucion_fecha' => 'date', 'fe_resolucion_vigencia' => 'date', 'fe_clave_tecnica' => 'encrypted', 'fe_credenciales' => 'encrypted:array', 'enlaces_activo' => 'boolean', 'enlaces_catalogo' => 'boolean', 'enlaces_redes' => 'array', 'menu_oculto' => 'array'];
 
     // Las llaves de facturación nunca salen en JSON ni en registros
     protected $hidden = ['fe_clave_tecnica', 'fe_credenciales'];
@@ -32,6 +32,36 @@ class Tienda extends Model
         'restaurante' => ['mod_recetas'],
         'cafeteria' => ['mod_recetas', 'mod_vencimiento'],
         'funeraria' => ['mod_obituarios'],
+    ];
+
+    // Secciones del menú que el negocio puede esconder si no las usa: [nombre, ícono, grupo, para qué sirve]
+    // (Panel, Datos del negocio, Mi plan, Usuarios y Personalizar menú siempre se ven)
+    public const MENU_OPCIONAL = [
+        'obituarios' => ['Obituarios', 'fa-dove', 'Inicio', 'Salas de velación y pantallas (funerarias)'],
+        'pos' => ['Vender (POS)', 'fa-cash-register', 'Inicio', 'La caja para cobrar'],
+        'separados' => ['Separados y abonos', 'fa-box-archive', 'Inicio', 'Apartar productos con abonos'],
+        'alquiler' => ['Alquiler', 'fa-calendar-days', 'Inicio', 'Alquiler de equipos, trajes, salones…'],
+        'caja' => ['Mi caja', 'fa-vault', 'Inicio', 'Abrir y cerrar la caja del turno'],
+        'ventas' => ['Ventas', 'fa-receipt', 'Inicio', 'Lista de ventas hechas'],
+        'reportes' => ['Reportes', 'fa-chart-pie', 'Inicio', 'Gráficas y exportar a Excel'],
+        'nomina' => ['Nómina', 'fa-users-gear', 'Inicio', 'Empleados y pago de nómina'],
+        'cierres' => ['Cierres de caja', 'fa-scale-balanced', 'Inicio', 'Cuadres de todas las cajas'],
+        'productos' => ['Productos', 'fa-box', 'Inventario', 'Productos y servicios que vende'],
+        'existencias' => ['Existencias', 'fa-warehouse', 'Inventario', 'Cuánto hay de cada producto'],
+        'entradas' => ['Entradas de mercancía', 'fa-truck-ramp-box', 'Inventario', 'Registrar compras a proveedores'],
+        'categorias' => ['Categorías', 'fa-tags', 'Inventario', 'Grupos de productos'],
+        'redes' => ['Mis redes', 'fa-hashtag', 'Inventario', 'Mensajes de Facebook e Instagram'],
+        'clientes' => ['Clientes', 'fa-people-group', 'Contactos', 'Datos de sus clientes'],
+        'proveedores' => ['Proveedores', 'fa-handshake', 'Contactos', 'A quién le compra'],
+        'facturacion' => ['Facturación DIAN', 'fa-file-invoice-dollar', 'Mi negocio', 'Factura electrónica'],
+        'enlaces' => ['Mis enlaces', 'fa-link', 'Mi negocio', 'Página tipo Linktree'],
+        'catalogo' => ['Mi catálogo en línea', 'fa-globe', 'Mi negocio', 'Enlace a su tienda en línea'],
+        'metodos' => ['Métodos de pago', 'fa-credit-card', 'Mi negocio', 'Efectivo, Nequi, tarjeta…'],
+    ];
+
+    // Lo que se esconde de entrada según el tipo de negocio (el dueño lo puede volver a mostrar)
+    public const MENU_OCULTO_POR_TIPO = [
+        'funeraria' => ['separados', 'existencias', 'entradas', 'categorias'],
     ];
 
     public const TIPOS = [
@@ -217,6 +247,12 @@ class Tienda extends Model
         $n = (int) $fila->consecutivo_rc + 1;
         $fila->forceFill(['consecutivo_rc' => $n])->save();
         return 'RC-' . str_pad((string) $n, 6, '0', STR_PAD_LEFT);
+    }
+
+    // ¿Se muestra esta sección en el menú?
+    public function enMenu(string $clave): bool
+    {
+        return !in_array($clave, (array) ($this->menu_oculto ?? []), true);
     }
 
     // Funerarias: obituarios en las pantallas de las salas de velación

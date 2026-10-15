@@ -318,6 +318,9 @@ Route::middleware(['auth', 'tienda'])->group(function () {
         Route::delete('/{enlace}', 'destroy')->whereNumber('enlace')->name('destroy');
         Route::post('/estadisticas/reiniciar', 'reiniciar')->name('reiniciar');
     });
+    // Personalizar menú (esconder lo que el negocio no usa)
+    Route::get('/negocio/menu', [\App\Http\Controllers\menuController::class, 'edit'])->name('menu.edit');
+    Route::put('/negocio/menu', [\App\Http\Controllers\menuController::class, 'update'])->name('menu.update');
     Route::get('/negocio', [negocioController::class, 'edit'])->name('negocio.edit');
     Route::put('/negocio', [negocioController::class, 'update'])->name('negocio.update');
     // Facturación electrónica DIAN

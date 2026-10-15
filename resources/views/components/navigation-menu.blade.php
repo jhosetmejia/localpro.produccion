@@ -2,6 +2,7 @@
     // Marca como activo el enlace de la sección actual
     $on = fn ($patron) => request()->routeIs($patron) ? 'active' : '';
     $tiendaMenu = \App\Support\TiendaActual::tienda();
+    $ver = fn ($k) => !$tiendaMenu || $tiendaMenu->enMenu($k);
 @endphp
 <div id="layoutSidenav_nav">
     <nav class="sb-sidenav accordion lp-side" id="sidenavAccordion">
@@ -113,108 +114,108 @@
                 @endcan
                 @else
                 @if ($tiendaMenu?->mod_obituarios && (auth()->user()->can('gestionar-obituarios') || auth()->user()->can('editar-negocio')) && \Illuminate\Support\Facades\Route::has('obituarios.index'))
-                <a class="nav-link {{ $on('obituarios.*') }}" href="{{ route('obituarios.index') }}">
+                @if ($ver('obituarios'))<a class="nav-link {{ $on('obituarios.*') }}" href="{{ route('obituarios.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-dove"></i></div>
                     Obituarios
-                </a>
+                </a>@endif
                 @endif
                 @can('usar-pos')
-                <a class="nav-link {{ $on('pos.index') }}" href="{{ route('pos.index') }}">
+                @if ($ver('pos'))<a class="nav-link {{ $on('pos.index') }}" href="{{ route('pos.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-cash-register"></i></div>
                     Vender (POS)
-                </a>
+                </a>@endif
                 @php $sepAct = \Illuminate\Support\Facades\Schema::hasTable('separados') ? \App\Models\Separado::where('estado', 'activo')->count() : 0; @endphp
-                <a class="nav-link {{ $on('separados.*') }}" href="{{ route('separados.index') }}">
+                @if ($ver('separados'))<a class="nav-link {{ $on('separados.*') }}" href="{{ route('separados.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-box-archive"></i></div>
                     Separados y abonos @if ($sepAct)<span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c">{{ $sepAct }}</span>@endif
-                </a>
+                </a>@endif
                 @if ($tiendaMenu?->mod_alquiler)
                 @php $alqHoy = \App\Models\Alquiler::where('estado', 'programado')->whereDate('fecha', today())->count(); @endphp
-                <a class="nav-link {{ $on('alquileres.*') }}" href="{{ route('alquileres.index') }}">
+                @if ($ver('alquiler'))<a class="nav-link {{ $on('alquileres.*') }}" href="{{ route('alquileres.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-calendar-days"></i></div>
                     Alquiler @if ($alqHoy)<span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c" title="Alquileres para hoy">{{ $alqHoy }}</span>@endif
-                </a>
+                </a>@endif
                 @endif
-                <a class="nav-link {{ $on('cajas.show') || $on('cajas.abrir') || $on('cajas.cerrar') ? 'active' : '' }}" href="{{ route('cajas.actual') }}">
+                @if ($ver('caja'))<a class="nav-link {{ $on('cajas.show') || $on('cajas.abrir') || $on('cajas.cerrar') ? 'active' : '' }}" href="{{ route('cajas.actual') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-vault"></i></div>
                     Mi caja
-                </a>
+                </a>@endif
                 @endcan
                 @canany(['usar-pos', 'ver-cajas'])
-                <a class="nav-link {{ $on('pos.ventas') }}" href="{{ route('pos.ventas') }}">
+                @if ($ver('ventas'))<a class="nav-link {{ $on('pos.ventas') }}" href="{{ route('pos.ventas') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-receipt"></i></div>
                     Ventas
-                </a>
+                </a>@endif
                 @endcanany
                 @can('ver-reportes')
-                <a class="nav-link {{ $on('reportes.*') }}" href="{{ route('reportes.index') }}">
+                @if ($ver('reportes'))<a class="nav-link {{ $on('reportes.*') }}" href="{{ route('reportes.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-chart-pie"></i></div>
                     Reportes
-                </a>
+                </a>@endif
                 @endcan
                 @if (auth()->user()->can('gestionar-nomina') || auth()->user()->can('editar-negocio'))
-                <a class="nav-link {{ $on('nomina.*') }}" href="{{ route('nomina.index') }}">
+                @if ($ver('nomina'))<a class="nav-link {{ $on('nomina.*') }}" href="{{ route('nomina.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-users-gear"></i></div>
                     Nómina
-                </a>
+                </a>@endif
                 @endif
                 @can('ver-cajas-todas')
-                <a class="nav-link {{ $on('cajas.index') }}" href="{{ route('cajas.index') }}">
+                @if ($ver('cierres'))<a class="nav-link {{ $on('cajas.index') }}" href="{{ route('cajas.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-scale-balanced"></i></div>
                     Cierres de caja
-                </a>
+                </a>@endif
                 @endcan
 
                 @canany(['ver-inventario', 'ver-producto', 'ver-categoria', 'ver-entradas'])
-                <div class="sb-sidenav-menu-heading">Inventario</div>
+                @if ($ver('productos') || $ver('existencias') || $ver('entradas') || $ver('categorias'))<div class="sb-sidenav-menu-heading">Inventario</div>@endif
                 @endcanany
                 @can('ver-producto')
-                <a class="nav-link {{ $on('productos.*') }}" href="{{ route('productos.index') }}">
+                @if ($ver('productos'))<a class="nav-link {{ $on('productos.*') }}" href="{{ route('productos.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid {{ $tiendaMenu && $tiendaMenu->usa_tallas ? 'fa-shirt' : 'fa-box' }}"></i></div>
                     Productos
-                </a>
+                </a>@endif
                 @endcan
                 @can('ver-inventario')
-                <a class="nav-link {{ $on('inventario.*') }}" href="{{ route('inventario.index') }}">
+                @if ($ver('existencias'))<a class="nav-link {{ $on('inventario.*') }}" href="{{ route('inventario.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-warehouse"></i></div>
                     Existencias
-                </a>
+                </a>@endif
                 @endcan
                 @can('ver-entradas')
-                <a class="nav-link {{ $on('entradas.*') }}" href="{{ route('entradas.index') }}">
+                @if ($ver('entradas'))<a class="nav-link {{ $on('entradas.*') }}" href="{{ route('entradas.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-truck-ramp-box"></i></div>
                     Entradas de mercancía
-                </a>
+                </a>@endif
                 @endcan
                 @can('ver-categoria')
-                <a class="nav-link {{ $on('categorias.*') }}" href="{{ route('categorias.index') }}">
+                @if ($ver('categorias'))<a class="nav-link {{ $on('categorias.*') }}" href="{{ route('categorias.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-tags"></i></div>
                     Categorías
-                </a>
+                </a>@endif
                 @endcan
 
                 @canany(['responder-redes', 'publicar-redes', 'editar-negocio'])
                 @php $redesNl = \Illuminate\Support\Facades\Schema::hasTable('redes_conversaciones') ? \App\Models\RedConversacion::where('no_leidos', '>', 0)->count() : 0; @endphp
-                <a class="nav-link {{ $on('redes.*') }}" href="{{ route('redes.index') }}">
+                @if ($ver('redes'))<a class="nav-link {{ $on('redes.*') }}" href="{{ route('redes.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-hashtag"></i></div>
                     Mis redes @if ($redesNl)<span class="badge rounded-pill ms-auto" style="background:#ff3b6b;color:#fff">{{ $redesNl }}</span>@else<span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c;font-size:.6rem">NUEVO</span>@endif
-                </a>
+                </a>@endif
                 @endcanany
 
                 @canany(['ver-cliente', 'ver-proveedore'])
-                <div class="sb-sidenav-menu-heading">Contactos</div>
+                @if ($ver('clientes') || $ver('proveedores'))<div class="sb-sidenav-menu-heading">Contactos</div>@endif
                 @endcanany
                 @can('ver-cliente')
-                <a class="nav-link {{ $on('clientes.*') }}" href="{{ route('clientes.index') }}">
+                @if ($ver('clientes'))<a class="nav-link {{ $on('clientes.*') }}" href="{{ route('clientes.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-people-group"></i></div>
                     Clientes
-                </a>
+                </a>@endif
                 @endcan
                 @can('ver-proveedore')
-                <a class="nav-link {{ $on('proveedores.*') }}" href="{{ route('proveedores.index') }}">
+                @if ($ver('proveedores'))<a class="nav-link {{ $on('proveedores.*') }}" href="{{ route('proveedores.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-handshake"></i></div>
                     Proveedores
-                </a>
+                </a>@endif
                 @endcan
 
                 @canany(['ver-user', 'ver-metodo-pago', 'editar-negocio'])
@@ -228,33 +229,39 @@
                 @endcan
                 @can('facturacion-dian')
                 @if (!$tiendaMenu?->pais || $tiendaMenu->pais === 'CO')
-                <a class="nav-link {{ $on('facturacion.*') }}" href="{{ route('facturacion.index') }}">
+                @if ($ver('facturacion'))<a class="nav-link {{ $on('facturacion.*') }}" href="{{ route('facturacion.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
                     Facturación DIAN
-                </a>
+                </a>@endif
                 @endif
                 @endcan
                 @can('editar-negocio')
                 @if (\Illuminate\Support\Facades\Route::has('enlaces.index'))
-                <a class="nav-link {{ $on('enlaces.*') }}" href="{{ route('enlaces.index') }}">
+                @if ($ver('enlaces'))<a class="nav-link {{ $on('enlaces.*') }}" href="{{ route('enlaces.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-link"></i></div>
                     Mis enlaces <span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c;font-size:.6rem">NUEVO</span>
-                </a>
+                </a>@endif
                 @endif
                 @endcan
                 @if ($tiendaMenu && $tiendaMenu->catalogo_activo && $tiendaMenu->slug)
-                <a class="nav-link" href="{{ $tiendaMenu->url_catalogo }}" target="_blank">
+                @if ($ver('catalogo'))<a class="nav-link" href="{{ $tiendaMenu->url_catalogo }}" target="_blank">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-globe"></i></div>
                     Mi catálogo en línea
-                </a>
+                </a>@endif
                 @endif
                 @can('ver-metodo-pago')
-                <a class="nav-link {{ $on('metodos-pago.*') }}" href="{{ route('metodos-pago.index') }}">
+                @if ($ver('metodos'))<a class="nav-link {{ $on('metodos-pago.*') }}" href="{{ route('metodos-pago.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-credit-card"></i></div>
                     Métodos de pago
-                </a>
+                </a>@endif
                 @endcan
                 @can('editar-negocio')
+                @if (\Illuminate\Support\Facades\Route::has('menu.edit'))
+                <a class="nav-link {{ $on('menu.*') }}" href="{{ route('menu.edit') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-sliders"></i></div>
+                    Personalizar menú
+                </a>
+                @endif
                 <a class="nav-link {{ $on('plan.*') }}" href="{{ route('plan.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-gem"></i></div>
                     Mi plan
