@@ -3,6 +3,38 @@
 // Artículos del blog público (/blog). Cada uno tiene su vista en resources/views/blog/{slug}.blade.php
 // El más nuevo va de primero: así sale primero en /blog y en la sección Blog de la página de inicio
 return [
+    'obituarios-digitales-para-funerarias' => [
+        'titulo' => 'Obituarios para el televisor de cada sala: la nueva herramienta para funerarias',
+        'resumen' => 'Escriba el nombre, suba la foto y elija la sala: el obituario sale solo en la pantalla. Con plantillas prediseñadas, animaciones, video de fondo y descarga en imagen o video.',
+        'fecha' => '15 de octubre de 2026',
+        'publicado' => '2026-10-15',
+        'minutos' => 5,
+        'icono' => 'fa-dove',
+    ],
+    'personalizar-menu-solo-lo-que-usa' => [
+        'titulo' => 'Personalizar menú: deje en LocalProo solo lo que su negocio usa',
+        'resumen' => 'Apague las secciones que no necesita y su menú queda limpio. Con sugerencias según su tipo de negocio y sin borrar nada.',
+        'fecha' => '15 de octubre de 2026',
+        'publicado' => '2026-10-15',
+        'minutos' => 3,
+        'icono' => 'fa-sliders',
+    ],
+    'tienda-en-linea-solo-productos-con-existencias' => [
+        'titulo' => 'Su tienda en línea, solo con lo que tiene disponible',
+        'resumen' => 'Elija si su catálogo muestra los productos agotados o solo los que tienen existencias, para que sus clientes vean lo que sí pueden comprar.',
+        'fecha' => '15 de octubre de 2026',
+        'publicado' => '2026-10-15',
+        'minutos' => 3,
+        'icono' => 'fa-store',
+    ],
+    'fotos-livianas-automaticas' => [
+        'titulo' => 'Fotos livianas y nítidas: LocalProo las optimiza solo',
+        'resumen' => 'Suba las fotos como las tomó con el celular: el sistema las deja livianas sin perder calidad, para que su tienda en línea abra rápido.',
+        'fecha' => '15 de octubre de 2026',
+        'publicado' => '2026-10-15',
+        'minutos' => 3,
+        'icono' => 'fa-image',
+    ],
     'linktree-gratis-para-negocios-mis-enlaces' => [
         'titulo' => 'Mis enlaces: el "Linktree" de su negocio, gratis dentro de LocalProo',
         'resumen' => 'Un solo enlace para la biografía de Instagram y TikTok con su WhatsApp, redes, promociones y tienda en línea. Con código QR y estadísticas de clics.',
