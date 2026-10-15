@@ -352,3 +352,6 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
 Route::get('/401', fn () => view('pages.401'));
 Route::get('/404', fn () => view('pages.404'));
 Route::get('/500', fn () => view('pages.500'));
+
+// Nómina y nómina electrónica DIAN
+require __DIR__ . '/nomina.php';

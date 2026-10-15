@@ -146,6 +146,12 @@
                     Reportes
                 </a>
                 @endcan
+                @if (auth()->user()->can('gestionar-nomina') || auth()->user()->can('editar-negocio'))
+                <a class="nav-link {{ $on('nomina.*') }}" href="{{ route('nomina.index') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-users-gear"></i></div>
+                    Nómina
+                </a>
+                @endif
                 @can('ver-cajas-todas')
                 <a class="nav-link {{ $on('cajas.index') }}" href="{{ route('cajas.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-scale-balanced"></i></div>
