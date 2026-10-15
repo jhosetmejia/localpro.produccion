@@ -68,7 +68,7 @@
             }
         } else if (tipo === 'palomas') {
             for (var j = 0; j < Math.max(1, Math.round(3 * op.cant)); j++) {
-                var p = document.createElement('div'), d2 = azar(24, 40) / op.vel;
+                var p = document.createElement('div'), d2 = azar(14, 22) / op.vel;
                 p.className = 'obi-paloma';
                 p.innerHTML = PALOMA;
                 p.style.cssText = 'top:' + azar(h * .06, h * .45) + 'px;animation-duration:' + d2 + 's;animation-delay:-' + azar(0, d2) + 's;transform:scale(' + (azar(.6, 1.1) * op.tam).toFixed(2) + ')';
@@ -92,7 +92,7 @@
         for (var i = 0; i < cant; i++) ps.push(nueva(true));
 
         function nueva(inicio) {
-            if (tipo === 'petalos') return { x: azar(0, W), y: inicio ? azar(-H, H) : -20, s: azar(6, 12) * T, vy: azar(.35, .8), fase: azar(0, 6.3), r: azar(0, 6.3), vr: azar(-.02, .02), c: rosas[(Math.random() * rosas.length) | 0] };
+            if (tipo === 'petalos') return { x: azar(0, W), y: inicio ? azar(-H * .15, H) : azar(-60, -10), s: azar(6, 12) * T, vy: azar(.35, .8), fase: azar(0, 6.3), r: azar(0, 6.3), vr: azar(-.02, .02), c: rosas[(Math.random() * rosas.length) | 0] };
             if (tipo === 'destellos') return { x: azar(0, W), y: inicio ? azar(0, H) : H + 10, s: azar(1, 3.2) * T, vy: -azar(.12, .4), fase: azar(0, 6.3), v: azar(.01, .03) };
             return { x: azar(0, W), y: azar(0, H), s: azar(.6, 2.2) * T, fase: azar(0, 6.3), v: azar(.008, .03), brillo: Math.random() < .12 };
         }
@@ -225,7 +225,7 @@
 
     // ===== Vista previa en vivo: cambia el diseño de la plantilla =====
     Obi.estilo = function (el, c) {
-        el.className = 'obi d-' + c.diseno + ' o-' + c.o + ' adornos-' + (c.adornos || 'muchos') + (c.tarjeta ? ' lay-tarjeta' : '') + ' flor-' + ((c.flores && c.flores.pos) || 'abajo') + (c.fondo_tipo !== 'diseno' ? ' fondo-propio' : '');
+        el.className = 'obi d-' + c.diseno + ' o-' + c.o + ' adornos-' + (c.adornos || 'muchos') + (c.tarjeta ? ' lay-tarjeta' : '') + ' flor-' + ((c.flores && c.flores.pos) || 'abajo') + ' esq-' + ((c.flores && c.flores.esq) || 'dos') + (c.fondo_tipo !== 'diseno' ? ' fondo-propio' : '');
         el.dataset.w = c.w; el.dataset.h = c.h; el.dataset.escala = c.escala;
         el.style.width = c.w + 'px'; el.style.height = c.h + 'px';
         el.style.setProperty('--acento', c.acento);

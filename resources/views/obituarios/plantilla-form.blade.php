@@ -121,6 +121,12 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
                     <div class="pf-rango"><label for="pf-fx">Mover ← →</label><input type="range" class="form-range" id="pf-fx" name="flor_x" min="-400" max="400" step="5" value="{{ old('flor_x', $fl['x']) }}"><output data-de="pf-fx"></output></div>
                     <div class="pf-rango"><label for="pf-fy">Mover ↑ ↓</label><input type="range" class="form-range" id="pf-fy" name="flor_y" min="-400" max="400" step="5" value="{{ old('flor_y', $fl['y']) }}"><output data-de="pf-fy"></output></div>
                     <div class="pf-rango"><label for="pf-ft">Tamaño</label><input type="range" class="form-range" id="pf-ft" name="flor_tam" min="40" max="200" step="5" value="{{ old('flor_tam', $fl['tam']) }}"><output data-de="pf-ft" data-suf="%"></output></div>
+                    <label class="form-label small fw-bold mt-3 mb-1">Flores de las esquinas <span class="text-muted fw-normal">(diseños clásicos)</span></label>
+                    <div class="pf-chips">
+                        @foreach ($P::FLOR_ESQ as $k => $nom)
+                        <input type="radio" name="flor_esq" id="fe-{{ $k }}" value="{{ $k }}" @checked(old('flor_esq', $fl['esq']) === $k)><label for="fe-{{ $k }}">{{ $nom }}</label>
+                        @endforeach
+                    </div>
                     <button type="button" class="btn btn-sm btn-light mt-2" id="pf-flor-reset"><i class="fa-solid fa-rotate-left me-1"></i>Volver al lugar original</button>
                 </div>
 
@@ -133,6 +139,12 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
                     </div>
                     <div class="pf-ayuda mt-2">Se mueve en el televisor y en el video que descargue. Va encima del fondo, también del video.</div>
                     @php $an = $plantilla->anim_datos; @endphp
+                    <div class="small fw-bold mt-3 mb-1">¿Cuántos?</div>
+                    <div class="pf-chips mb-1">
+                        @foreach ([50 => 'Pocos', 100 => 'Normal', 220 => 'Muchos', 400 => 'Muchísimos'] as $v => $nom)
+                        <button type="button" class="btn btn-sm btn-light" data-cant="{{ $v }}">{{ $nom }}</button>
+                        @endforeach
+                    </div>
                     <div class="pf-rango"><label for="pf-ac">Cantidad</label><input type="range" class="form-range" id="pf-ac" name="anim_cant" min="20" max="400" step="10" value="{{ old('anim_cant', $an['cant']) }}"><output data-de="pf-ac" data-suf="%"></output></div>
                     <div class="pf-rango"><label for="pf-at">Tamaño</label><input type="range" class="form-range" id="pf-at" name="anim_tam" min="40" max="300" step="10" value="{{ old('anim_tam', $an['tam']) }}"><output data-de="pf-at" data-suf="%"></output></div>
                     <div class="pf-rango"><label for="pf-av">Velocidad</label><input type="range" class="form-range" id="pf-av" name="anim_vel" min="30" max="300" step="10" value="{{ old('anim_vel', $an['vel']) }}"><output data-de="pf-av" data-suf="%"></output></div>
@@ -180,7 +192,7 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
 @endsection
 
 @push('js')
-<script src="{{ asset('js/obituarios.js') }}?v=4"></script>
+<script src="{{ asset('js/obituarios.js') }}?v=3"></script>
 <script>
 (function () {
     var form = document.getElementById('pf-form'), el = document.querySelector('[data-obi]');
@@ -203,7 +215,7 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
             fondo_tipo: tipo, color1: f.fondo_color.value, color2: document.getElementById('pf-deg').checked ? f.fondo_color2.value : '',
             imagen: imagen, video: video, oscurecer: +f.oscurecer.value, anim: val('animacion'), adornos: val('adornos'),
             anim_cant: +f.anim_cant.value, anim_tam: +f.anim_tam.value, anim_vel: +f.anim_vel.value, propios: propios,
-            flores: { pos: val('flor_pos'), x: +f.flor_x.value, y: +f.flor_y.value, tam: +f.flor_tam.value },
+            flores: { pos: val('flor_pos'), esq: val('flor_esq'), x: +f.flor_x.value, y: +f.flor_y.value, tam: +f.flor_tam.value },
             acento: propios ? f.color_acento.value : dis[2], texto: propios ? f.color_texto.value : dis[3],
             logo: f.mostrar_logo.checked, titulo: f.titulo.value, frase: f.frase.value, pie: f.pie.value, cita: f.cita.value, tarjeta: TARJETAS.indexOf(val('diseno')) !== -1
         });
@@ -223,6 +235,13 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
     }
     document.getElementById('pf-flor-reset').addEventListener('click', function () {
         form.elements.flor_x.value = 0; form.elements.flor_y.value = 0; form.elements.flor_tam.value = 100; numeros(); aplicar();
+    });
+    document.querySelectorAll('[data-cant]').forEach(function (b) {
+        b.addEventListener('click', function () {
+            form.elements.anim_cant.value = b.dataset.cant;
+            if (val('animacion') === 'ninguna') { var p = document.getElementById('a-petalos'); if (p) p.checked = true; }
+            numeros(); aplicar();
+        });
     });
     form.addEventListener('input', numeros);
     numeros();

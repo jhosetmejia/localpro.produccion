@@ -115,10 +115,16 @@
 .flor-abajo_der .ot-lirios-foto,.flor-abajo_der .ot-rama-foto{left:auto!important;right:-50px!important}
 .r-c1{left:-40px;top:-40px;width:430px;transform:scaleY(-1)}
 .r-c4{right:-40px;bottom:-40px;width:430px;transform:scaleX(-1)}
+.r-c2{right:-40px;top:-40px;width:430px;transform:rotate(180deg)}
+.r-c3{left:-40px;bottom:-40px;width:430px}
+/* Flores de las esquinas: cuáles se ven */
+.r-c2,.r-c3{display:none}
+.esq-cuatro .r-c2,.esq-cuatro .r-c3,.esq-arriba .r-c2,.esq-abajo .r-c3,.esq-izquierda .r-c3,.esq-derecha .r-c2{display:block}
+.esq-arriba .r-c4,.esq-abajo .r-c1,.esq-izquierda .r-c4,.esq-derecha .r-c1,.esq-ninguna .r-c1,.esq-ninguna .r-c4{display:none}
 .r-d{position:relative;width:300px;margin:-10px 0}
-.o-v .r-c1,.o-v .r-c4{width:400px}
-.o-c .r-c1,.o-c .r-c4{width:300px}
-.adornos-pocos .r-c1,.adornos-pocos .r-c4,.adornos-pocos .r-d{display:none}
+.o-v .r-c1,.o-v .r-c4,.o-v .r-c2,.o-v .r-c3{width:400px}
+.o-c .r-c1,.o-c .r-c4,.o-c .r-c2,.o-c .r-c3{width:300px}
+.adornos-pocos .r-c1,.adornos-pocos .r-c2,.adornos-pocos .r-c3,.adornos-pocos .r-c4,.adornos-pocos .r-d{display:none!important}
 .adornos-ninguno .obi-ramo{display:none}
 /* Colores de las flores por diseño */
 .d-dorado{--flor:rgba(212,175,55,.14);--hoja:rgba(212,175,55,.28)}
@@ -231,7 +237,7 @@
 @keyframes obiGirar{to{transform:translateX(-50%) rotate(360deg)}}
 .obi-nube{position:absolute;border-radius:50%;background:#fff;filter:blur(30px);opacity:.55;animation:obiNube linear infinite}
 @keyframes obiNube{from{left:-45%}to{left:110%}}
-.obi-paloma{position:absolute;width:150px;height:110px;color:#fff;filter:drop-shadow(0 6px 10px rgba(0,0,0,.25));animation:obiVuelo linear infinite}
+.obi-paloma{position:absolute;width:150px;height:110px;color:#fff;filter:drop-shadow(0 0 2px rgba(0,0,0,.35)) drop-shadow(0 8px 12px rgba(0,0,0,.3));animation:obiVuelo linear infinite}
 .obi-paloma svg{width:100%;height:100%}
 .obi-paloma .ala{transform-origin:70px 52px;animation:obiAleteo .9s ease-in-out infinite alternate}
 @keyframes obiAleteo{from{transform:scaleY(1)}to{transform:scaleY(-.35)}}

@@ -76,6 +76,9 @@ class ObituarioPlantilla extends Model
     // Dónde van las flores junto a la foto
     public const FLOR_POS = ['abajo' => 'Abajo, a los dos lados', 'abajo_izq' => 'Abajo a la izquierda', 'abajo_der' => 'Abajo a la derecha', 'diagonal' => 'Arriba y abajo (en diagonal)', 'ninguna' => 'Sin flores en la foto'];
 
+    // Flores de las esquinas de la pantalla (diseños clásicos)
+    public const FLOR_ESQ = ['dos' => 'Arriba izquierda y abajo derecha', 'cuatro' => 'Las 4 esquinas', 'arriba' => 'Solo arriba', 'abajo' => 'Solo abajo', 'izquierda' => 'Solo a la izquierda', 'derecha' => 'Solo a la derecha', 'ninguna' => 'Sin flores en las esquinas'];
+
     public const FRASE = 'Descansó en la paz del Señor';
 
     // Posición de las flores de la foto: pos, x y y (px) y tamaño (%)
@@ -87,6 +90,7 @@ class ObituarioPlantilla extends Model
             'x' => (int) ($f['x'] ?? 0),
             'y' => (int) ($f['y'] ?? 0),
             'tam' => (int) ($f['tam'] ?? 100) ?: 100,
+            'esq' => isset(self::FLOR_ESQ[$f['esq'] ?? '']) ? $f['esq'] : 'dos',
         ];
     }
 
