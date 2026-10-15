@@ -23,6 +23,11 @@
 .pf-rango{display:grid;grid-template-columns:110px 1fr 52px;align-items:center;gap:.6rem;margin-top:.35rem}
 .pf-rango label{font-size:.82rem;font-weight:700;margin:0}
 .pf-rango output{font-size:.8rem;color:#6b7570;text-align:right}
+.pf-logo-box{display:flex;gap:.8rem;align-items:center;border:1.5px dashed #cfe0d4;border-radius:14px;padding:.7rem;margin-top:.6rem}
+.pf-logo-prev{width:120px;height:80px;flex:0 0 120px;border-radius:10px;display:grid;place-items:center;overflow:hidden;
+  background:repeating-conic-gradient(#e9ecea 0 25%,#fff 0 50%) 0 0/16px 16px}
+.pf-logo-prev img{max-width:100%;max-height:100%;object-fit:contain}
+.pf-aviso{border:2px solid #f5b544;background:#fff8e8;border-radius:12px;padding:.6rem .8rem;margin-top:.6rem;font-size:.85rem}
 input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
 @media (max-width:575px){.pf-op{grid-template-columns:repeat(2,1fr)}}
 </style>
@@ -162,7 +167,24 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
                         <input class="form-check-input" type="checkbox" name="mostrar_logo" value="1" id="pf-logo" @checked(old('mostrar_logo', $plantilla->mostrar_logo))>
                         <label class="form-check-label" for="pf-logo">Mostrar logo y nombre de la funeraria</label>
                     </div>
-                    @unless ($tienda->logo_url)<div class="pf-ayuda">Aún no tiene logo: súbalo en <a href="{{ route('negocio.edit') }}">Datos del negocio</a>. Mientras tanto sale el nombre.</div>@endunless
+                    @php $logoObi = $tienda->obituarios_logo_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($tienda->obituarios_logo_path) : null; @endphp
+                    <div class="pf-logo-box">
+                        <div class="pf-logo-prev" id="pf-logo-prev">@if ($logoObi ?: $tienda->logo_url)<img src="{{ $logoObi ?: $tienda->logo_url }}" alt="">@else<small class="text-muted">Sin logo</small>@endif</div>
+                        <div class="flex-grow-1">
+                            <label class="form-label small fw-bold mb-1" for="pf-logo-file">Logo para los obituarios</label>
+                            <input type="file" class="form-control form-control-sm" name="logo_obi" id="pf-logo-file" accept="image/png,image/webp,image/jpeg">
+                            <div class="pf-ayuda mt-1">Mejor un <b>PNG sin fondo</b>. Sirve para todas las plantillas. @if (!$logoObi)Ahora se usa el logo de Datos del negocio.@endif</div>
+                            @if ($logoObi)<div class="form-check small mt-1"><input class="form-check-input" type="checkbox" name="quitar_logo_obi" value="1" id="pf-qlogo"><label class="form-check-label" for="pf-qlogo">Volver al logo de Datos del negocio</label></div>@endif
+                        </div>
+                    </div>
+                    <div class="pf-aviso" id="pf-logo-aviso" hidden>
+                        <b><i class="fa-solid fa-triangle-exclamation me-1"></i>Este logo tiene fondo</b> y se ve como un recuadro encima del obituario. ¿Qué quiere hacer?
+                        <div class="mt-2 d-flex gap-2 flex-wrap">
+                            <button type="button" class="btn btn-sm btn-dark" id="pf-logo-quitar"><i class="fa-solid fa-wand-magic-sparkles me-1"></i>Quitar el fondo automáticamente</button>
+                            <button type="button" class="btn btn-sm btn-light" id="pf-logo-otro"><i class="fa-solid fa-upload me-1"></i>Subir otro logo sin fondo</button>
+                            <button type="button" class="btn btn-sm btn-link" id="pf-logo-dejar">Dejarlo así</button>
+                        </div>
+                    </div>
                     <div class="form-check form-switch mt-2">
                         <input class="form-check-input" type="checkbox" name="colores_propios" value="1" id="pf-col" @checked(old('colores_propios', $plantilla->color_acento || $plantilla->color_texto))>
                         <label class="form-check-label" for="pf-col">Usar mis colores</label>
@@ -192,7 +214,7 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
 @endsection
 
 @push('js')
-<script src="{{ asset('js/obituarios.js') }}?v=6"></script>
+<script src="{{ asset('js/obituarios.js') }}?v=7"></script>
 <script>
 (function () {
     var form = document.getElementById('pf-form'), el = document.querySelector('[data-obi]');
@@ -243,6 +265,37 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
             numeros(); aplicar();
         });
     });
+    // ===== Logo de los obituarios =====
+    var lf = document.getElementById('pf-logo-file'), aviso = document.getElementById('pf-logo-aviso'), archivoLogo = null;
+    function ponerLogo(fileOBlob) {
+        var url = URL.createObjectURL(fileOBlob);
+        document.getElementById('pf-logo-prev').innerHTML = '<img src="' + url + '" alt="">';
+        Obi.logo(el, url, form.elements.mostrar_logo.checked);
+    }
+    function tieneFondo(file) {
+        return Obi.tieneTransparencia(URL.createObjectURL(file)).then(function (t) { return !t; });
+    }
+    lf.addEventListener('change', function () {
+        var file = lf.files[0]; if (!file) return;
+        archivoLogo = file; ponerLogo(file);
+        tieneFondo(file).then(function (con) { aviso.hidden = !con; });
+    });
+    document.getElementById('pf-logo-otro').addEventListener('click', function () { aviso.hidden = true; lf.value = ''; lf.click(); });
+    document.getElementById('pf-logo-dejar').addEventListener('click', function () { aviso.hidden = true; });
+    document.getElementById('pf-logo-quitar').addEventListener('click', function () {
+        var b = this, img = document.querySelector('#pf-logo-prev img');
+        if (!archivoLogo && !img) return;
+        b.disabled = true;
+        (archivoLogo ? Promise.resolve(archivoLogo) : fetch(img.src).then(function (r) { return r.blob(); }))
+        .then(function (f) { return Obi.quitarFondo(f); }).then(function (blob) {
+            var nuevo = new File([blob], 'logo-sin-fondo.png', { type: 'image/png' });
+            var dt = new DataTransfer(); dt.items.add(nuevo); lf.files = dt.files;
+            archivoLogo = nuevo; ponerLogo(nuevo); aviso.hidden = true;
+        }).catch(function () { alert('No se pudo quitar el fondo. Suba un PNG sin fondo.'); }).finally(function () { b.disabled = false; });
+    });
+    // El logo que ya tiene: si trae fondo, se avisa
+    var actual = document.querySelector('#pf-logo-prev img');
+    if (actual) Obi.tieneTransparencia(actual.src).then(function (t) { aviso.hidden = t; });
     form.addEventListener('input', numeros);
     numeros();
     form.addEventListener('input', aplicar);

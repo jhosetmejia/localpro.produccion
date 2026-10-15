@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600;1,700&family=Great+Vibes&family=Montserrat:ital,wght@0,500;0,700;0,800;1,500&display=swap">
-<link rel="stylesheet" href="{{ asset('css/obituarios.css') }}?v=6">
+<link rel="stylesheet" href="{{ asset('css/obituarios.css') }}?v=7">
 @endonce
 @php
     $m = $p->medida_datos;
@@ -42,7 +42,8 @@
     }
     $video = $p->fondo_tipo === 'video' ? $p->video_url : null;
     $velo = in_array($p->fondo_tipo, ['imagen', 'video'], true) ? $p->oscurecer / 100 : 0;
-    $logo = $tienda->logo_url;
+    // Logo propio de los obituarios (sin fondo) o, si no hay, el del negocio
+    $logo = $tienda->obituarios_logo_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($tienda->obituarios_logo_path) : $tienda->logo_url;
     $conLogo = $p->mostrar_logo;
     $fe = \App\Models\Obituario::fotoEstilo($o);
     $tarjeta = $p->es_tarjeta;
@@ -78,8 +79,8 @@
         <section class="obi-centro">
             <div class="obi-esq e1"></div><div class="obi-esq e2"></div><div class="obi-esq e3"></div><div class="obi-esq e4"></div>
             <header class="obi-cab">
-                @if ($logo)<img class="obi-logo" src="{{ $logo }}" alt="" data-logo @unless ($conLogo) hidden @endunless>@endif
-                <div class="obi-empresa" @if ($logo) data-sin-logo @if ($conLogo) hidden @endif @else data-logo @unless ($conLogo) hidden @endunless @endif>{{ $tienda->nombre }}</div>
+                <img class="obi-logo" src="{{ $logo }}" alt="" @if ($logo) data-logo @unless ($conLogo) hidden @endunless @else data-logo-vacio hidden @endif>
+                <div class="obi-empresa" data-empresa @if ($logo) data-sin-logo @if ($conLogo) hidden @endif @else data-logo @unless ($conLogo) hidden @endunless @endif>{{ $tienda->nombre }}</div>
             </header>
             <div class="obi-titulo" data-o="titulo" data-fila="titulo" @if (!$p->titulo) hidden @endif>{{ $p->titulo }}</div>
             <div class="obi-sub">
@@ -105,8 +106,8 @@
             </div>
         </section>
         <section class="obi-der">
-            @if ($logo)<img class="obi-logo" src="{{ $logo }}" alt="" data-logo @unless ($conLogo) hidden @endunless>@endif
-            <div class="obi-empresa" @if ($logo) data-sin-logo @if ($conLogo) hidden @endif @endif>{{ $tienda->nombre }}</div>
+            <img class="obi-logo" src="{{ $logo }}" alt="" @if ($logo) data-logo @unless ($conLogo) hidden @endunless @else data-logo-vacio hidden @endif>
+            <div class="obi-empresa" data-empresa @if ($logo) data-sin-logo @if ($conLogo) hidden @endif @endif>{{ $tienda->nombre }}</div>
             <div class="obi-ramo r-d">@include('obituarios._ramo')</div>
             <div class="obi-pie" data-o="pie" data-fila="pie" @if (!$p->pie) hidden @endif>{{ $p->pie }}</div>
         </section>

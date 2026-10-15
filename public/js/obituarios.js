@@ -204,6 +204,61 @@
         Obi.ajustar(el);
     };
 
+    // ===== Cambiar el logo en la vista previa =====
+    Obi.logo = function (el, url, mostrar) {
+        el.querySelectorAll('.obi-logo, .ot-logo').forEach(function (img) {
+            img.src = url;
+            if (img.hasAttribute('data-logo-vacio')) { img.removeAttribute('data-logo-vacio'); img.setAttribute('data-logo', ''); }
+            img.hidden = !mostrar;
+        });
+        el.querySelectorAll('[data-empresa]').forEach(function (d) {
+            d.removeAttribute('data-logo'); d.setAttribute('data-sin-logo', ''); d.hidden = mostrar;
+        });
+    };
+
+    // ===== Quitar el fondo de un logo (blanco o de un color parejo) =====
+    // Toma el color de las esquinas y borra desde los bordes todo lo que se le parezca; deja lo de adentro.
+    Obi.quitarFondo = function (file) {
+        return new Promise(function (ok, mal) {
+            var im = new Image();
+            im.onload = function () {
+                var max = 1600, s = Math.min(1, max / Math.max(im.width, im.height));
+                var W = Math.round(im.width * s), H = Math.round(im.height * s);
+                var c = document.createElement('canvas'); c.width = W; c.height = H;
+                var x = c.getContext('2d'); x.drawImage(im, 0, 0, W, H);
+                var d = x.getImageData(0, 0, W, H), px = d.data;
+                // color de fondo = promedio de las 4 esquinas
+                var r = 0, g = 0, b = 0, esq = [0, W - 1, (H - 1) * W, H * W - 1];
+                esq.forEach(function (i) { r += px[i * 4]; g += px[i * 4 + 1]; b += px[i * 4 + 2]; });
+                r /= 4; g /= 4; b /= 4;
+                var tol = 48, suave = 90;
+                function dist(i) { var dr = px[i * 4] - r, dg = px[i * 4 + 1] - g, db = px[i * 4 + 2] - b; return Math.sqrt(dr * dr + dg * dg + db * db); }
+                var visto = new Uint8Array(W * H), pila = [];
+                for (var i = 0; i < W; i++) { pila.push(i, (H - 1) * W + i); }
+                for (var j = 0; j < H; j++) { pila.push(j * W, j * W + W - 1); }
+                while (pila.length) {
+                    var k = pila.pop();
+                    if (visto[k]) continue;
+                    visto[k] = 1;
+                    var dd = dist(k);
+                    if (dd > suave) continue;
+                    // cerca del color de fondo: transparente; en el borde del dibujo: semitransparente
+                    px[k * 4 + 3] = dd <= tol ? 0 : Math.min(px[k * 4 + 3], Math.round(255 * (dd - tol) / (suave - tol)));
+                    if (dd > tol) continue;
+                    var xx = k % W, yy = (k - xx) / W;
+                    if (xx > 0) pila.push(k - 1);
+                    if (xx < W - 1) pila.push(k + 1);
+                    if (yy > 0) pila.push(k - W);
+                    if (yy < H - 1) pila.push(k + W);
+                }
+                x.putImageData(d, 0, 0);
+                c.toBlob(function (bl) { bl ? ok(bl) : mal(new Error('sin imagen')); }, 'image/png');
+            };
+            im.onerror = mal;
+            im.src = URL.createObjectURL(file);
+        });
+    };
+
     // ===== ¿La imagen tiene partes transparentes (PNG sin fondo)? =====
     Obi.tieneTransparencia = function (url) {
         return new Promise(function (ok) {

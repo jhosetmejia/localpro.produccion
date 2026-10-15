@@ -303,12 +303,13 @@ class obituariosController extends Controller
             'anim_vel' => 'nullable|integer|min:10|max:500',
             'imagen' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:8192',
             'video' => 'nullable|file|mimetypes:video/mp4,video/webm,video/quicktime|max:51200',
+            'logo_obi' => 'nullable|image|mimes:png,webp,jpg,jpeg|max:4096',
         ], [
             'video.max' => 'El video pesa mucho (máximo 50 MB). Use un video corto que se repita.',
             'video.mimetypes' => 'El video debe ser MP4 o WebM.',
             'imagen.max' => 'La imagen pesa mucho (máximo 8 MB).',
         ]);
-        unset($datos['imagen'], $datos['video']);
+        unset($datos['imagen'], $datos['video'], $datos['logo_obi']);
         // Colores en blanco = los del diseño
         if (!$request->boolean('colores_propios')) { $datos['color_acento'] = null; $datos['color_texto'] = null; }
         $datos['mostrar_logo'] = $request->boolean('mostrar_logo');
@@ -324,6 +325,15 @@ class obituariosController extends Controller
         if ($request->hasFile('imagen')) {
             if ($plantilla->fondo_path) Storage::disk('public')->delete($plantilla->fondo_path);
             $plantilla->fondo_path = $request->file('imagen')->store($this->carpeta('fondos'), 'public');
+        }
+        // Logo de los obituarios (sirve para todas las plantillas del negocio)
+        $tienda = $this->tienda();
+        if ($request->hasFile('logo_obi')) {
+            if ($tienda->obituarios_logo_path) Storage::disk('public')->delete($tienda->obituarios_logo_path);
+            $tienda->forceFill(['obituarios_logo_path' => $request->file('logo_obi')->store($this->carpeta('logo'), 'public')])->save();
+        } elseif ($request->boolean('quitar_logo_obi') && $tienda->obituarios_logo_path) {
+            Storage::disk('public')->delete($tienda->obituarios_logo_path);
+            $tienda->forceFill(['obituarios_logo_path' => null])->save();
         }
         if ($request->hasFile('video')) {
             if ($plantilla->video_path) Storage::disk('public')->delete($plantilla->video_path);
