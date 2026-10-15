@@ -13,6 +13,7 @@
         <nav class="nav-links">
             <a class="link" href="#funciones">Funciones</a>
             <a class="link" href="#como-funciona">Cómo funciona</a>
+            <a class="link link-blog" href="{{ route('blog.index') }}">Blog</a>
             <div class="nav-cta">
                 <a class="btn btn-ghost" href="{{ route('login') }}">Ingresar</a>
                 <a class="btn btn-ink" href="{{ route('registro') }}">Crear cuenta</a>
@@ -123,6 +124,11 @@
                     <p>El cliente separa la prenda y paga por partes. Cada abono con su recibo por WhatsApp, cuánto le falta y la prenda guardada a su nombre.</p>
                 </article>
                 <article class="feature">
+                    <div class="ico"><i class="fa-solid fa-users-gear"></i></div>
+                    <h3>Nómina opcional</h3>
+                    <p>Liquide la quincena o el mes de sus empleados y saque los desprendibles. Solo interna o con nómina electrónica DIAN: usted decide.</p>
+                </article>
+                <article class="feature">
                     <div class="ico"><i class="fa-solid fa-mobile-screen"></i></div>
                     <h3>App en su celular</h3>
                     <p>Instálela como app en el celular o úsela en el computador. Todo en la nube, sin instalar programas.</p>
@@ -157,6 +163,29 @@
         </div>
     </section>
 
+    @php $blog = array_slice(config('blog', []), 0, 3, true); @endphp
+    @if ($blog)
+    <section class="section" id="blog" style="padding-top:0">
+        <div class="wrap">
+            <div class="section-head">
+                <span class="eyebrow">Blog</span>
+                <h2 class="serif">Guías para <span class="grad-text">su negocio.</span></h2>
+                <p>Artículos cortos para vender más y llevar mejor las cuentas.</p>
+            </div>
+            <div class="features">
+                @foreach ($blog as $slug => $a)
+                <a class="feature" href="{{ route('blog.show', $slug) }}" style="text-decoration:none;color:inherit">
+                    <div class="ico"><i class="fa-solid {{ $a['icono'] }}"></i></div>
+                    <h3>{{ $a['titulo'] }}</h3>
+                    <p>{{ $a['resumen'] }}</p>
+                </a>
+                @endforeach
+            </div>
+            <p style="margin-top:22px"><a class="btn btn-ink" href="{{ route('blog.index') }}">Ver todos los artículos</a></p>
+        </div>
+    </section>
+    @endif
+
     <section class="cta">
         <div class="wrap"><div class="box">
             <h2 class="serif">Su negocio, <span class="grad-text">más ordenado</span> desde hoy.</h2>
@@ -172,7 +201,7 @@
 <footer class="footer">
     <div class="wrap">
         <span>© {{ date('Y') }} LocalProo · Todos los derechos reservados</span>
-        <span style="display:flex;gap:14px;flex-wrap:wrap"><a href="{{ route('legal.privacidad') }}">Privacidad</a><a href="{{ route('legal.terminos') }}">Condiciones</a><a href="{{ route('legal.eliminar') }}">Eliminar mis datos</a></span>
+        <span style="display:flex;gap:14px;flex-wrap:wrap"><a href="{{ route('blog.index') }}">Blog</a><a href="{{ route('legal.privacidad') }}">Privacidad</a><a href="{{ route('legal.terminos') }}">Condiciones</a><a href="{{ route('legal.eliminar') }}">Eliminar mis datos</a></span>
     </div>
 </footer>
 

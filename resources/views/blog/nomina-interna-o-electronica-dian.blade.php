@@ -1,7 +1,10 @@
 @extends('blog._base')
 @section('titulo', $a['titulo'])
 @section('descripcion', $a['resumen'])
-@section('volver')<a class="v" href="{{ route('blog.index') }}">← Blog</a>@endsection
+@section('volver')@endsection
+@section('jsonld')
+<script type="application/ld+json">{!! json_encode(['@context' => 'https://schema.org', '@type' => 'BlogPosting', 'headline' => $a['titulo'], 'description' => $a['resumen'], 'datePublished' => $a['publicado'], 'dateModified' => $a['publicado'], 'inLanguage' => 'es-CO', 'mainEntityOfPage' => url()->current(), 'author' => ['@type' => 'Organization', 'name' => 'LocalProo', 'url' => url('/')], 'publisher' => ['@type' => 'Organization', 'name' => 'LocalProo', 'url' => url('/')]], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+@endsection
 @section('cuerpo')
 <h1>{{ $a['titulo'] }}</h1>
 <div class="f">{{ $a['fecha'] }} · {{ $a['minutos'] }} min de lectura</div>

@@ -1,7 +1,7 @@
 @extends('blog._base')
 @section('titulo', 'Blog')
 @section('descripcion', 'Guías cortas para manejar mejor su negocio con LocalProo.')
-@section('volver')<a class="v" href="{{ url('/') }}">← LocalProo</a>@endsection
+@section('volver')@endsection
 @section('cuerpo')
 <h1>Blog LocalProo</h1>
 <div class="f">Guías cortas para manejar mejor su negocio.</div>

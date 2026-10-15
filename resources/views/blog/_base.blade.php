@@ -10,6 +10,8 @@
 <meta property="og:url" content="{{ url()->current() }}">
 <meta property="og:site_name" content="LocalProo">
 <link rel="canonical" href="{{ url()->current() }}">
+<meta name="robots" content="index,follow">
+@yield('jsonld')
 <style>
 .bl{max-width:780px;margin:0 auto;padding:34px 20px 60px;line-height:1.7;color:#151a17;font-size:1.05rem}
 .bl a.v{display:inline-flex;gap:.4rem;font-weight:800;color:#11702f;text-decoration:none;margin-bottom:18px}
@@ -32,6 +34,10 @@
 </head>
 <body style="background:#fff">
 <div class="bl">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px">
+        <a class="v" style="margin:0" href="{{ url('/') }}">← LocalProo</a>
+        <a class="v" style="margin:0" href="{{ route('blog.index') }}">Blog</a>
+    </div>
     @yield('volver')
     @yield('cuerpo')
     <p style="margin-top:34px;color:#6b7570;font-size:.95rem">LocalProo · Sistema para pequeños negocios · <a href="{{ url('/') }}">localproo.com</a></p>
