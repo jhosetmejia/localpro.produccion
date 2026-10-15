@@ -89,6 +89,7 @@ class bienvenidaController extends Controller
             'mod_recetas' => 'nullable|boolean',
             'mod_alquiler' => 'nullable|boolean',
             'mod_obituarios' => 'nullable|boolean',
+            'mod_contable' => 'nullable|boolean',
         ] + \App\Support\Ubicaciones::reglas($request->input('pais'), $request->input('departamento')),
         ['nombre.required' => 'Escriba el nombre de su negocio.', 'tipo_negocio.required' => 'Elija el tipo de negocio.'] + \App\Support\Ubicaciones::mensajes());
 
@@ -112,7 +113,7 @@ class bienvenidaController extends Controller
         unset($datos['logo']);
 
         $datos['usa_tallas'] = Tienda::TIPOS[$datos['tipo_negocio']][2];
-        foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios'] as $m) {
+        foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'mod_contable'] as $m) {
             $datos[$m] = $request->has($m) ? $request->boolean($m) : in_array($m, Tienda::MODULOS_POR_TIPO[$datos['tipo_negocio']] ?? [], true);
         }
         if ($tienda->menu_oculto === null && isset(Tienda::MENU_OCULTO_POR_TIPO[$datos['tipo_negocio']])) {
@@ -121,6 +122,14 @@ class bienvenidaController extends Controller
         $datos['onboarding_paso'] = 3;
 
         // Un conjunto residencial no vende productos: termina aquí y pasa a su panel de administración
+        // Un contador no vende productos: termina aquí y pasa a su módulo de contabilidad
+        if ($datos['tipo_negocio'] === 'contable') {
+            $datos['onboarding_paso'] = 5;
+            $datos['onboarding_completo'] = true;
+            $datos['mod_contable'] = true;
+            $tienda->update($datos);
+            return redirect()->route('contabilidad.index')->with('success', '¡Listo! Registre su primer cliente para empezar.');
+        }
         if ($datos['tipo_negocio'] === 'conjunto') {
             $datos['onboarding_paso'] = 5;
             $datos['onboarding_completo'] = true;

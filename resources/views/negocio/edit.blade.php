@@ -74,6 +74,7 @@
                 'mod_vencimiento' => ['Fechas de vencimiento', 'Lotes con fecha de vencimiento y alertas de lo que está por vencer.', true],
                 'mod_recetas' => ['Recetas e insumos', 'Al vender se descuentan los ingredientes de cada receta.', true],
                 'mod_alquiler' => ['Alquiler', 'Para negocios que alquilan (sonido, trajes, salones, equipos…): fechas, abonos, entrega y devolución. Apagado, no aparece en el menú.', false],
+                'mod_contable' => ['Contabilidad: retenciones e IVA', 'Para contadores y analistas: cruce de facturas de la DIAN con la contabilidad, borrador del 350 y del IVA, certificados de retención.', false],
                 'mod_obituarios' => ['Obituarios (funerarias)', 'Salas de velación y obituarios con foto para los televisores de cada sala. Se enciende solo si el negocio es funeraria.', false],
             ] as $k => [$tit, $txt, $pronto])
             <input type="hidden" name="{{ $k }}" value="0">

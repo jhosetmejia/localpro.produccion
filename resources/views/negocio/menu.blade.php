@@ -31,6 +31,7 @@
         @php
             $items = collect($items)->filter(fn ($x, $k) => match ($k) {
                 'obituarios' => (bool) $tienda->mod_obituarios,
+                'contabilidad' => (bool) $tienda->mod_contable,
                 'alquiler' => (bool) $tienda->mod_alquiler,
                 'facturacion' => !$tienda->pais || $tienda->pais === 'CO',
                 default => true,

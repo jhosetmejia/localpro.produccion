@@ -10,7 +10,7 @@ class Tienda extends Model
     protected $table = 'tiendas';
 
     protected $fillable = [
-        'nombre', 'departamento', 'slug', 'catalogo_activo', 'catalogo_agotados', 'mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'cliente_obligatorio', 'pais', 'tipo_negocio', 'descripcion', 'usa_tallas', 'nit', 'regimen',
+        'nombre', 'departamento', 'slug', 'catalogo_activo', 'catalogo_agotados', 'mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'mod_contable', 'cliente_obligatorio', 'pais', 'tipo_negocio', 'descripcion', 'usa_tallas', 'nit', 'regimen',
         'resolucion_numero', 'resolucion_fecha', 'resolucion_vigencia', 'resolucion_prefijo', 'resolucion_desde', 'resolucion_hasta', 'direccion', 'ciudad', 'telefono',
         'email', 'logo_path', 'mensaje_tiquete', 'menu_oculto',
         // Facturación DIAN
@@ -18,7 +18,7 @@ class Tienda extends Model
         'fe_activa', 'fe_ambiente', 'fe_resolucion_numero', 'fe_resolucion_fecha', 'fe_resolucion_vigencia', 'fe_prefijo', 'fe_desde', 'fe_hasta', 'fe_clave_tecnica', 'fe_credenciales', 'estado', 'onboarding_paso', 'onboarding_completo', 'conj_dia_vence', 'conj_interes_mora', 'conj_zonas',
     ];
 
-    protected $casts = ['mod_medida' => 'boolean', 'mod_vencimiento' => 'boolean', 'mod_recetas' => 'boolean', 'mod_alquiler' => 'boolean', 'mod_obituarios' => 'boolean', 'usa_tallas' => 'boolean', 'onboarding_completo' => 'boolean', 'catalogo_activo' => 'boolean', 'catalogo_agotados' => 'boolean', 'cliente_obligatorio' => 'boolean', 'plan_vence' => 'date', 'datos_depurados_at' => 'datetime', 'resolucion_fecha' => 'date', 'resolucion_vigencia' => 'date', 'pos_electronico' => 'boolean', 'fe_activa' => 'boolean', 'fe_resolucion_fecha' => 'date', 'fe_resolucion_vigencia' => 'date', 'fe_clave_tecnica' => 'encrypted', 'fe_credenciales' => 'encrypted:array', 'enlaces_activo' => 'boolean', 'enlaces_catalogo' => 'boolean', 'enlaces_redes' => 'array', 'menu_oculto' => 'array'];
+    protected $casts = ['mod_medida' => 'boolean', 'mod_vencimiento' => 'boolean', 'mod_recetas' => 'boolean', 'mod_alquiler' => 'boolean', 'mod_obituarios' => 'boolean', 'mod_contable' => 'boolean', 'usa_tallas' => 'boolean', 'onboarding_completo' => 'boolean', 'catalogo_activo' => 'boolean', 'catalogo_agotados' => 'boolean', 'cliente_obligatorio' => 'boolean', 'plan_vence' => 'date', 'datos_depurados_at' => 'datetime', 'resolucion_fecha' => 'date', 'resolucion_vigencia' => 'date', 'pos_electronico' => 'boolean', 'fe_activa' => 'boolean', 'fe_resolucion_fecha' => 'date', 'fe_resolucion_vigencia' => 'date', 'fe_clave_tecnica' => 'encrypted', 'fe_credenciales' => 'encrypted:array', 'enlaces_activo' => 'boolean', 'enlaces_catalogo' => 'boolean', 'enlaces_redes' => 'array', 'menu_oculto' => 'array'];
 
     // Las llaves de facturación nunca salen en JSON ni en registros
     protected $hidden = ['fe_clave_tecnica', 'fe_credenciales'];
@@ -32,12 +32,14 @@ class Tienda extends Model
         'restaurante' => ['mod_recetas'],
         'cafeteria' => ['mod_recetas', 'mod_vencimiento'],
         'funeraria' => ['mod_obituarios'],
+        'contable' => ['mod_contable'],
     ];
 
     // Secciones del menú que el negocio puede esconder si no las usa: [nombre, ícono, grupo, para qué sirve]
     // (Panel, Datos del negocio, Mi plan, Usuarios y Personalizar menú siempre se ven)
     public const MENU_OPCIONAL = [
         'obituarios' => ['Obituarios', 'fa-dove', 'Inicio', 'Salas de velación y pantallas (funerarias)'],
+        'contabilidad' => ['Contabilidad (retenciones e IVA)', 'fa-calculator', 'Inicio', 'Cruce DIAN vs. contabilidad y borrador del 350'],
         'pos' => ['Vender (POS)', 'fa-cash-register', 'Inicio', 'La caja para cobrar'],
         'separados' => ['Separados y abonos', 'fa-box-archive', 'Inicio', 'Apartar productos con abonos'],
         'alquiler' => ['Alquiler', 'fa-calendar-days', 'Inicio', 'Alquiler de equipos, trajes, salones…'],
@@ -62,6 +64,7 @@ class Tienda extends Model
     // Lo que se esconde de entrada según el tipo de negocio (el dueño lo puede volver a mostrar)
     public const MENU_OCULTO_POR_TIPO = [
         'funeraria' => ['separados', 'existencias', 'entradas', 'categorias'],
+        'contable' => ['separados', 'existencias', 'entradas', 'categorias', 'catalogo', 'redes'],
     ];
 
     public const TIPOS = [
@@ -76,6 +79,7 @@ class Tienda extends Model
         'papeleria' => ['Papelería y regalos', 'fa-pen-ruler', false, 'Útiles, piñatería, detalles'],
         'ferreteria' => ['Ferretería', 'fa-screwdriver-wrench', false, 'Herramientas, materiales, eléctricos'],
         'funeraria' => ['Funeraria', 'fa-dove', false, 'Salas de velación, exequias, planes y obituarios'],
+        'contable' => ['Contador / analista contable', 'fa-calculator', false, 'Retenciones, IVA y cruce de facturas con la DIAN para sus clientes'],
         'conjunto' => ['Conjunto residencial / edificio', 'fa-building', false, 'Administración de conjuntos, torres y edificios'],
         'otro' => ['Otro negocio', 'fa-store', false, 'Cualquier otro comercio'],
     ];
@@ -163,7 +167,7 @@ class Tienda extends Model
     public const ICONO_PRODUCTO = [
         'moda' => 'fa-shirt', 'calzado' => 'fa-shoe-prints', 'accesorios' => 'fa-gem', 'restaurante' => 'fa-burger',
         'cafeteria' => 'fa-mug-hot', 'minimercado' => 'fa-basket-shopping', 'belleza' => 'fa-spa', 'tecnologia' => 'fa-mobile-screen',
-        'papeleria' => 'fa-pen-ruler', 'ferreteria' => 'fa-screwdriver-wrench', 'funeraria' => 'fa-dove', 'conjunto' => 'fa-building',
+        'papeleria' => 'fa-pen-ruler', 'ferreteria' => 'fa-screwdriver-wrench', 'funeraria' => 'fa-dove', 'conjunto' => 'fa-building', 'contable' => 'fa-calculator',
     ];
 
     public function getIconoProductoAttribute(): string

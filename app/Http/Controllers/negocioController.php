@@ -33,6 +33,7 @@ class negocioController extends Controller
             'mod_recetas' => 'nullable|boolean',
             'mod_alquiler' => 'nullable|boolean',
             'mod_obituarios' => 'nullable|boolean',
+            'mod_contable' => 'nullable|boolean',
             'pais' => ['required', \Illuminate\Validation\Rule::in(array_keys(\App\Support\Paises::LISTA))],
             'tipo_negocio' => ['required', \Illuminate\Validation\Rule::in(array_keys(\App\Models\Tienda::TIPOS))],
             'nit' => 'nullable|string|max:30',
@@ -69,11 +70,14 @@ class negocioController extends Controller
         $datos['catalogo_activo'] = $request->boolean('catalogo_activo');
         $datos['catalogo_agotados'] = $request->boolean('catalogo_agotados', true);
         $datos['cliente_obligatorio'] = $request->boolean('cliente_obligatorio');
-        foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios'] as $m) {
+        foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'mod_contable'] as $m) {
             $datos[$m] = $request->boolean($m);
         }
         $datos['usa_tallas'] = \App\Models\Tienda::TIPOS[$datos['tipo_negocio']][2];
         // Al pasar a funeraria se enciende solo el módulo de obituarios
+        if ($datos['tipo_negocio'] === 'contable' && $negocio->tipo_negocio !== 'contable') {
+            $datos['mod_contable'] = true;
+        }
         if ($datos['tipo_negocio'] === 'funeraria' && $negocio->tipo_negocio !== 'funeraria') {
             $datos['mod_obituarios'] = true;
             if ($negocio->menu_oculto === null) $datos['menu_oculto'] = \App\Models\Tienda::MENU_OCULTO_POR_TIPO['funeraria'];

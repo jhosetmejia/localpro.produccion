@@ -3,6 +3,14 @@
 // Artículos del blog público (/blog). Cada uno tiene su vista en resources/views/blog/{slug}.blade.php
 // El más nuevo va de primero: así sale primero en /blog y en la sección Blog de la página de inicio
 return [
+    'retenciones-iva-cruce-dian-contadores' => [
+        'titulo' => 'Contadores: crucen las facturas de la DIAN con la contabilidad y armen el 350 en minutos',
+        'resumen' => 'Suba el listado de la DIAN y la base de Contapyme (u otro programa): LocalProo encuentra lo no contabilizado, las diferencias de IVA y las retenciones que faltaron, y deja el borrador del 350 y del IVA.',
+        'fecha' => '15 de octubre de 2026',
+        'publicado' => '2026-10-15',
+        'minutos' => 5,
+        'icono' => 'fa-calculator',
+    ],
     'obituarios-digitales-para-funerarias' => [
         'titulo' => 'Obituarios para el televisor de cada sala: la nueva herramienta para funerarias',
         'resumen' => 'Escriba el nombre, suba la foto y elija la sala: el obituario sale solo en la pantalla. Con plantillas prediseñadas, animaciones, video de fondo y descarga en imagen o video.',
