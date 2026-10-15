@@ -27,6 +27,7 @@ class negocioController extends Controller
             'nombre' => 'required|string|max:80',
             'slug' => ['required', 'string', 'max:60', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/', \Illuminate\Validation\Rule::unique('tiendas', 'slug')->ignore($negocio->id)],
             'catalogo_activo' => 'nullable|boolean',
+            'catalogo_agotados' => 'nullable|boolean',
             'mod_medida' => 'nullable|boolean',
             'mod_vencimiento' => 'nullable|boolean',
             'mod_recetas' => 'nullable|boolean',
@@ -66,6 +67,7 @@ class negocioController extends Controller
         }
         unset($datos['logo']);
         $datos['catalogo_activo'] = $request->boolean('catalogo_activo');
+        $datos['catalogo_agotados'] = $request->boolean('catalogo_agotados', true);
         $datos['cliente_obligatorio'] = $request->boolean('cliente_obligatorio');
         foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios'] as $m) {
             $datos[$m] = $request->boolean($m);

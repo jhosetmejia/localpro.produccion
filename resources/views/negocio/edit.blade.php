@@ -53,6 +53,12 @@
             </div>
             <input type="hidden" name="catalogo_activo" value="0">
             <div class="form-check form-switch d-inline-block mt-3"><input class="form-check-input" type="checkbox" name="catalogo_activo" value="1" id="catAct" @checked(old('catalogo_activo', $negocio->catalogo_activo))><label class="form-check-label" for="catAct">Tienda en línea visible al público</label></div>
+            <div class="mt-2">
+                <label class="form-label small fw-bold mb-1">¿Qué productos se muestran en la tienda en línea?</label>
+                @php $agot = (bool) old('catalogo_agotados', $negocio->catalogo_agotados ?? true); @endphp
+                <div class="form-check"><input class="form-check-input" type="radio" name="catalogo_agotados" value="0" id="agot0" @checked(!$agot)><label class="form-check-label" for="agot0"><b>Solo los que tienen existencias</b> <small class="text-muted d-block">Lo agotado se oculta solo y vuelve a salir cuando entra mercancía. Se ve más ordenado.</small></label></div>
+                <div class="form-check mt-1"><input class="form-check-input" type="radio" name="catalogo_agotados" value="1" id="agot1" @checked($agot)><label class="form-check-label" for="agot1"><b>Todos, también los agotados</b> <small class="text-muted d-block">Los agotados salen al final con la etiqueta "Agotado".</small></label></div>
+            </div>
             @unless ($negocio->telefono)<div class="alert border-0 mt-2 mb-0 small" style="background:#fff5d6;color:#8a6400">Ponga el teléfono / WhatsApp del negocio para recibir los pedidos.</div>@endunless
         </div>
         <div class="lp-box">

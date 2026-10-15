@@ -50,6 +50,8 @@ class catalogoController extends Controller
         return Producto::with(['variantes' => fn ($q) => $q->where('estado', 1)->orderBy('talla')->orderBy('color'), 'categorias.caracteristica'])
             ->where('estado', 1)->orderBy('nombre')->get()
             ->map(fn ($p) => $this->datos($tienda, $p))
+            // El dueño puede elegir mostrar solo lo que tiene existencias
+            ->filter(fn ($p) => $p['disponible'] || $tienda->catalogo_agotados !== false)
             ->sortByDesc('disponible')->values();
     }
 
@@ -77,6 +79,10 @@ class catalogoController extends Controller
         $p = Producto::with(['variantes' => fn ($q) => $q->where('estado', 1)->orderBy('talla')->orderBy('color'), 'categorias.caracteristica'])
             ->where('estado', 1)->findOrFail($id);
         $dato = $this->datos($tienda, $p);
+        // Agotado y la tienda solo muestra lo que hay: vuelve al catálogo
+        if (!$dato['disponible'] && $tienda->catalogo_agotados === false) {
+            return redirect()->route('catalogo.show', $tienda->slug);
+        }
         // Si el nombre cambió, redirige a la dirección correcta (bueno para Google)
         if ('/' . trim(request()->path(), '/') !== rtrim((string) parse_url($dato['url'], PHP_URL_PATH), '/')) {
             return redirect($dato['url'], 301);
