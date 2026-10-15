@@ -311,9 +311,9 @@ class redesController extends Controller
     public function conectar(Request $request)
     {
         if (!Meta::activo()) return redirect()->route('redes.index')->withErrors('La conexión con Facebook e Instagram aún no está habilitada. Comuníquese con LocalPro.');
-        // Cada negocio conecta 1 red; más redes las habilita LocalProo (adicional). Reconectar la misma sí se permite.
+        // Cada negocio conecta 1 red (página de Facebook con su Instagram). Reconectar la misma sí se permite.
         if (!$request->boolean('reconectar') && self::cupoRedes() <= 0) {
-            return redirect()->route('redes.cuentas')->with('red_extra', true);
+            return redirect()->route('redes.cuentas')->withErrors('Su negocio ya tiene su red social conectada. Si falla, use "Reconectar".');
         }
         $state = Str::random(32);
         session(['meta_state' => $state, 'meta_tienda' => TiendaActual::id()]);
@@ -339,7 +339,7 @@ class redesController extends Controller
         return redirect()->route('redes.elegir');
     }
 
-    // Redes que el negocio todavía puede conectar (límite del plan; el superadmin lo amplía)
+    // Redes que el negocio todavía puede conectar (1 por negocio; el superadmin lo puede cambiar en pruebas)
     public static function cupoRedes(): int
     {
         $max = max(1, (int) (TiendaActual::tienda()?->redes_max ?? 1));
@@ -364,8 +364,8 @@ class redesController extends Controller
         $nuevas = $ids->reject(fn ($id) => in_array((string) $id, $activas, true));
         if ($nuevas->count() > self::cupoRedes()) {
             return back()->withErrors(self::cupoRedes() <= 0
-                ? 'Su plan incluye ' . max(1, (int) TiendaActual::tienda()?->redes_max) . ' red social y ya está conectada. Para agregar otra, solicite una red adicional.'
-                : 'Su plan le permite conectar ' . self::cupoRedes() . ' red(es) más. Elija solo esa cantidad, o solicite redes adicionales.')->with('red_extra', true);
+                ? 'Su negocio ya tiene su red social conectada. Elija solo la página que ya tenía para reconectarla.'
+                : 'Puede conectar ' . self::cupoRedes() . ' página. Elija solo esa.');
         }
         $n = 0; $avisos = []; $conectadas = [];
         foreach ($ids as $id) {
