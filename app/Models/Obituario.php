@@ -14,7 +14,7 @@ class Obituario extends Model
 
     protected $table = 'obituarios';
 
-    protected $fillable = ['plantilla_id', 'sala_id', 'nombre', 'nacimiento', 'fallecimiento', 'frase', 'fecha_exequias', 'hora_exequias', 'lugar_exequias', 'destino_final', 'invitan', 'mostrar_hasta', 'estado'];
+    protected $fillable = ['plantilla_id', 'sala_id', 'nombre', 'nacimiento', 'fallecimiento', 'frase', 'fecha_exequias', 'hora_exequias', 'lugar_exequias', 'destino_final', 'invitan', 'mostrar_hasta', 'estado', 'foto_fondo', 'foto_color', 'foto_forma'];
 
     protected $casts = ['nacimiento' => 'date', 'fallecimiento' => 'date', 'fecha_exequias' => 'date', 'mostrar_hasta' => 'datetime'];
 
@@ -90,6 +90,23 @@ class Obituario extends Model
             }
         }
         return $out;
+    }
+
+    // Detrás de la foto: [nombre, ayuda]
+    public const FOTO_FONDOS = [
+        'suave' => ['Fondo suave', 'Un fondo claro detrás de la persona'],
+        'sin' => ['Sin fondo', 'Se ve la tarjeta detrás (para fotos PNG sin fondo)'],
+        'color' => ['Un color', 'Elija el color'],
+    ];
+    public const FOTO_FORMAS = ['circulo' => 'En círculo', 'libre' => 'Recorte libre (sin marco)'];
+
+    // Clases y estilo del recuadro de la foto en el lienzo
+    public static function fotoEstilo(?self $o): array
+    {
+        $fondo = $o->foto_fondo ?? 'suave';
+        $forma = $o->foto_forma ?? 'circulo';
+        $color = $fondo === 'color' && $o?->foto_color ? $o->foto_color : null;
+        return ['clase' => "f-$fondo forma-$forma", 'estilo' => $color ? "background:$color" : ''];
     }
 
     public const INVITAN_EJEMPLO = "Su esposa: \nSus hijos: \nSus hermanos: \nSus nietos\nDemás familiares y amigos";

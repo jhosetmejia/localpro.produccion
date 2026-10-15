@@ -189,7 +189,34 @@
                 } else { if (img) img.remove(); if (sil) sil.style.display = ''; }
             }
         }
+        if ('foto_fondo' in d || 'foto_forma' in d) {
+            var fb = el.querySelector('.obi-foto');
+            if (fb) {
+                var fondo = d.foto_fondo || 'suave', forma = d.foto_forma || 'circulo';
+                fb.className = 'obi-foto f-' + fondo + ' forma-' + forma;
+                fb.style.background = fondo === 'color' && d.foto_color ? d.foto_color : '';
+            }
+        }
         Obi.ajustar(el);
+    };
+
+    // ===== ¿La imagen tiene partes transparentes (PNG sin fondo)? =====
+    Obi.tieneTransparencia = function (url) {
+        return new Promise(function (ok) {
+            var im = new Image();
+            im.onload = function () {
+                try {
+                    var c = document.createElement('canvas'), n = 64;
+                    c.width = n; c.height = n;
+                    var x = c.getContext('2d'); x.drawImage(im, 0, 0, n, n);
+                    var px = x.getImageData(0, 0, n, n).data, vacios = 0;
+                    for (var i = 3; i < px.length; i += 4) if (px[i] < 200) vacios++;
+                    ok(vacios > n * n * 0.03);
+                } catch (e) { ok(false); }
+            };
+            im.onerror = function () { ok(false); };
+            im.src = url;
+        });
     };
 
     // ===== Vista previa en vivo: cambia el diseño de la plantilla =====

@@ -133,12 +133,17 @@ class obituariosController extends Controller
             'destino_final' => 'nullable|string|max:150',
             'invitan' => 'nullable|string|max:3000',
             'mostrar_hasta' => 'nullable|date',
+            'foto_fondo' => ['nullable', Rule::in(array_keys(Obituario::FOTO_FONDOS))],
+            'foto_color' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'foto_forma' => ['nullable', Rule::in(array_keys(Obituario::FOTO_FORMAS))],
         ], [
             'nombre.required' => 'Escriba el nombre del fallecido.',
             'foto.max' => 'La foto pesa mucho (máximo 8 MB).',
             'fallecimiento.after_or_equal' => 'La fecha de fallecimiento no puede ser antes del nacimiento.',
         ]);
         unset($datos['foto']);
+        $datos['foto_fondo'] = $datos['foto_fondo'] ?? 'suave';
+        $datos['foto_forma'] = $datos['foto_forma'] ?? 'circulo';
         return $datos;
     }
 

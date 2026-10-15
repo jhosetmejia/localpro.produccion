@@ -55,7 +55,8 @@
     <div class="obi-esq e1"></div><div class="obi-esq e2"></div><div class="obi-esq e3"></div><div class="obi-esq e4"></div>
     <div class="obi-cuerpo">
         <section class="obi-lado">
-            <div class="obi-foto">
+            @php $fe = \App\Models\Obituario::fotoEstilo($o); @endphp
+            <div class="obi-foto {{ $fe['clase'] }}" style="{{ $fe['estilo'] }}">
                 <svg viewBox="0 0 100 100" @if ($d['foto']) style="display:none" @endif><circle cx="50" cy="38" r="17" fill="#fff" opacity=".85"/><path d="M18 92c2-20 16-30 32-30s30 10 32 30z" fill="#fff" opacity=".85"/></svg>
                 @if ($d['foto'])<img src="{{ $d['foto'] }}" alt="">@endif
             </div>

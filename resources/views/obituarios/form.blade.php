@@ -9,6 +9,13 @@
 .of-foto{width:96px;height:96px;border-radius:50%;overflow:hidden;background:#eef2f0;display:grid;place-items:center;color:#9aa8a0;font-size:2rem;flex:0 0 96px}
 .of-foto img{width:100%;height:100%;object-fit:cover}
 .of-ayuda{font-size:.8rem;color:#6b7570}
+.of-chips{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center}
+.of-chips input[type=radio]{display:none}
+.of-chips label{border:1.5px solid #e3efe5;border-radius:999px;padding:.35rem .8rem;cursor:pointer;font-size:.85rem;font-weight:600;margin:0}
+.of-chips input:checked + label{border-color:#2fd15a;background:#f4fcf6}
+.of-pregunta{border:2px solid #2fd15a;background:#f4fcf6;border-radius:16px;padding:.8rem 1rem;margin-bottom:1rem}
+.of-pregunta .btn{margin:.2rem .2rem 0 0}
+input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px}
 </style>
 @endpush
 
@@ -64,6 +71,31 @@
                             <div class="of-ayuda mt-1">Mejor una foto donde se vea bien la cara (sale en círculo). Máximo 8 MB.</div>
                             @if ($obituario->foto_url)<div class="form-check small mt-1"><input class="form-check-input" type="checkbox" name="quitar_foto" value="1" id="qf"><label class="form-check-label" for="qf">Quitar foto</label></div>@endif
                         </div>
+                    </div>
+                    <div class="of-pregunta" id="of-pregunta" hidden>
+                        <b><i class="fa-solid fa-wand-magic-sparkles me-1"></i>Esta foto no tiene fondo. ¿Cómo la quiere?</b>
+                        <div class="mt-1">
+                            <button type="button" class="btn btn-sm btn-light" data-elige="sin">Sin fondo (se ve la tarjeta)</button>
+                            <button type="button" class="btn btn-sm btn-light" data-elige="suave">Con fondo suave</button>
+                            <button type="button" class="btn btn-sm btn-light" data-elige="color">Con un color</button>
+                        </div>
+                    </div>
+                    <div class="of-pregunta" id="of-con-fondo" hidden style="border-color:#e3efe5;background:#fafafa">
+                        <span class="small">¿Quiere la foto <b>sin fondo</b>? Quítele el fondo gratis en <a href="https://www.remove.bg/es" target="_blank" rel="noopener">remove.bg</a>, descárguela en PNG y súbala aquí. Le preguntamos qué poner detrás.</span>
+                    </div>
+                    @php $ff = old('foto_fondo', $obituario->foto_fondo ?: 'suave'); $fo = old('foto_forma', $obituario->foto_forma ?: 'circulo'); @endphp
+                    <label class="form-label small fw-bold">Detrás de la foto</label>
+                    <div class="of-chips mb-2">
+                        @foreach (\App\Models\Obituario::FOTO_FONDOS as $k => [$nom, $ay])
+                        <input type="radio" name="foto_fondo" id="ff-{{ $k }}" value="{{ $k }}" @checked($ff === $k)><label for="ff-{{ $k }}" title="{{ $ay }}">{{ $nom }}</label>
+                        @endforeach
+                        <input type="color" class="of-color" name="foto_color" id="of-fcolor" value="{{ old('foto_color', $obituario->foto_color ?: '#ffffff') }}" title="Color detrás de la foto">
+                    </div>
+                    <label class="form-label small fw-bold">Forma de la foto</label>
+                    <div class="of-chips mb-3">
+                        @foreach (\App\Models\Obituario::FOTO_FORMAS as $k => $nom)
+                        <input type="radio" name="foto_forma" id="fo-{{ $k }}" value="{{ $k }}" @checked($fo === $k)><label for="fo-{{ $k }}">{{ $nom }}</label>
+                        @endforeach
                     </div>
                     <div class="row g-2">
                         <div class="col-6"><label class="form-label small fw-bold">Nació <span class="text-muted fw-normal">(opcional)</span></label><input type="date" class="form-control" name="nacimiento" data-c="anios" value="{{ old('nacimiento', $obituario->nacimiento?->format('Y-m-d')) }}"></div>
@@ -149,8 +181,12 @@
             hora: Obi.hora(f.hora_exequias.value),
             lugar: f.lugar_exequias.value,
             destino: f.destino_final.value,
-            invitan: f.invitan.value
+            invitan: f.invitan.value,
+            foto_fondo: (form.querySelector('[name=foto_fondo]:checked') || {}).value,
+            foto_color: f.foto_color.value,
+            foto_forma: (form.querySelector('[name=foto_forma]:checked') || {}).value
         });
+        document.getElementById('of-fcolor').style.display = (form.querySelector('[name=foto_fondo]:checked') || {}).value === 'color' ? '' : 'none';
     }
     form.addEventListener('input', vivo);
     form.addEventListener('change', function (e) { if (e.target.id !== 'of-foto') vivo(); });
@@ -159,6 +195,22 @@
         var url = URL.createObjectURL(file);
         document.getElementById('of-foto-prev').innerHTML = '<img src="' + url + '" alt="">';
         Obi.datos(el, { foto: url });
+        // PNG sin fondo: se le pregunta qué poner detrás. Con fondo: se le dice cómo quitarlo.
+        Obi.tieneTransparencia(url).then(function (transp) {
+            document.getElementById('of-pregunta').hidden = !transp;
+            document.getElementById('of-con-fondo').hidden = transp;
+        });
+    });
+    document.querySelectorAll('[data-elige]').forEach(function (b) {
+        b.addEventListener('click', function () {
+            var v = b.dataset.elige;
+            document.getElementById('ff-' + v).checked = true;
+            // Sin fondo se ve mejor como recorte libre (la persona sobre la tarjeta)
+            if (v === 'sin') document.getElementById('fo-libre').checked = true;
+            document.getElementById('of-pregunta').hidden = true;
+            vivo();
+            if (v === 'color') document.getElementById('of-fcolor').click();
+        });
     });
     var qf = document.getElementById('qf');
     if (qf) qf.addEventListener('change', function () { Obi.datos(el, { foto: qf.checked ? '' : @json($obituario->foto_url) }); });
