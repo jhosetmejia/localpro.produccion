@@ -33,7 +33,7 @@ return new class extends Migration
             $t->string('municipio_dane', 5)->nullable();
             $t->string('cargo', 60)->nullable();
             $t->string('tipo', 20)->default('dependiente');
-            $t->string('tipo_contrato', 12)->default('indefinido'); // indefinido · fijo · obra · aprendizaje · practicas
+            $t->string('tipo_contrato', 20)->default('indefinido'); // indefinido · fijo · obra · aprendizaje · practicas
             $t->decimal('salario', 14, 2);
             $t->boolean('salario_integral')->default(false);
             $t->boolean('aux_transporte')->nullable(); // null = automático (hasta 2 SMMLV)
@@ -48,7 +48,7 @@ return new class extends Migration
             $t->string('eps', 60)->nullable();
             $t->string('afp', 60)->nullable();
             $t->string('caja', 60)->nullable();
-            $t->string('forma_pago', 12)->default('transferencia'); // transferencia · efectivo · cheque
+            $t->string('forma_pago', 20)->default('transferencia'); // transferencia · efectivo · cheque
             $t->string('banco', 40)->nullable();
             $t->string('tipo_cuenta', 10)->nullable();
             $t->string('numero_cuenta', 30)->nullable();
