@@ -20,6 +20,9 @@
 .pf-chips label{border:1.5px solid #e3efe5;border-radius:999px;padding:.35rem .8rem;cursor:pointer;font-size:.85rem;font-weight:600}
 .pf-chips input:checked + label{border-color:#2fd15a;background:#f4fcf6}
 .pf-ayuda{font-size:.8rem;color:#6b7570}
+.pf-rango{display:grid;grid-template-columns:110px 1fr 52px;align-items:center;gap:.6rem;margin-top:.35rem}
+.pf-rango label{font-size:.82rem;font-weight:700;margin:0}
+.pf-rango output{font-size:.8rem;color:#6b7570;text-align:right}
 input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
 @media (max-width:575px){.pf-op{grid-template-columns:repeat(2,1fr)}}
 </style>
@@ -107,7 +110,18 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
                         <input type="radio" name="adornos" id="ad-{{ $k }}" value="{{ $k }}" @checked(old('adornos', $plantilla->adornos ?: 'muchos') === $k)><label for="ad-{{ $k }}">{{ $nom }}</label>
                         @endforeach
                     </div>
-                    <div class="pf-ayuda mt-2">Ramos de rosas alrededor de la foto y en las esquinas, con los colores del diseño.</div>
+                    <div class="pf-ayuda mt-2">Ramos de rosas (o lirios y hojas en las tarjetas) junto a la foto y en las esquinas, con los colores del diseño.</div>
+                    @php $fl = $plantilla->flores_datos; @endphp
+                    <label class="form-label small fw-bold mt-3 mb-1">Flores junto a la foto</label>
+                    <div class="pf-chips">
+                        @foreach ($P::FLOR_POS as $k => $nom)
+                        <input type="radio" name="flor_pos" id="fp-{{ $k }}" value="{{ $k }}" @checked(old('flor_pos', $fl['pos']) === $k)><label for="fp-{{ $k }}">{{ $nom }}</label>
+                        @endforeach
+                    </div>
+                    <div class="pf-rango"><label for="pf-fx">Mover ← →</label><input type="range" class="form-range" id="pf-fx" name="flor_x" min="-400" max="400" step="5" value="{{ old('flor_x', $fl['x']) }}"><output data-de="pf-fx"></output></div>
+                    <div class="pf-rango"><label for="pf-fy">Mover ↑ ↓</label><input type="range" class="form-range" id="pf-fy" name="flor_y" min="-400" max="400" step="5" value="{{ old('flor_y', $fl['y']) }}"><output data-de="pf-fy"></output></div>
+                    <div class="pf-rango"><label for="pf-ft">Tamaño</label><input type="range" class="form-range" id="pf-ft" name="flor_tam" min="40" max="200" step="5" value="{{ old('flor_tam', $fl['tam']) }}"><output data-de="pf-ft" data-suf="%"></output></div>
+                    <button type="button" class="btn btn-sm btn-light mt-2" id="pf-flor-reset"><i class="fa-solid fa-rotate-left me-1"></i>Volver al lugar original</button>
                 </div>
 
                 <div class="lp-box mb-3">
@@ -117,7 +131,11 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
                         <input type="radio" name="animacion" id="a-{{ $k }}" value="{{ $k }}" @checked(old('animacion', $plantilla->animacion) === $k)><label for="a-{{ $k }}">{{ $nom }}</label>
                         @endforeach
                     </div>
-                    <div class="pf-ayuda mt-2">Se mueve en el televisor. Va encima del fondo, también del video.</div>
+                    <div class="pf-ayuda mt-2">Se mueve en el televisor y en el video que descargue. Va encima del fondo, también del video.</div>
+                    @php $an = $plantilla->anim_datos; @endphp
+                    <div class="pf-rango"><label for="pf-ac">Cantidad</label><input type="range" class="form-range" id="pf-ac" name="anim_cant" min="20" max="400" step="10" value="{{ old('anim_cant', $an['cant']) }}"><output data-de="pf-ac" data-suf="%"></output></div>
+                    <div class="pf-rango"><label for="pf-at">Tamaño</label><input type="range" class="form-range" id="pf-at" name="anim_tam" min="40" max="300" step="10" value="{{ old('anim_tam', $an['tam']) }}"><output data-de="pf-at" data-suf="%"></output></div>
+                    <div class="pf-rango"><label for="pf-av">Velocidad</label><input type="range" class="form-range" id="pf-av" name="anim_vel" min="30" max="300" step="10" value="{{ old('anim_vel', $an['vel']) }}"><output data-de="pf-av" data-suf="%"></output></div>
                 </div>
 
                 <div class="lp-box mb-3">
@@ -162,7 +180,7 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
 @endsection
 
 @push('js')
-<script src="{{ asset('js/obituarios.js') }}?v=3"></script>
+<script src="{{ asset('js/obituarios.js') }}?v=4"></script>
 <script>
 (function () {
     var form = document.getElementById('pf-form'), el = document.querySelector('[data-obi]');
@@ -184,6 +202,8 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
             diseno: val('diseno'), o: med[3], w: base[0], h: base[1], escala: med[1] / base[0],
             fondo_tipo: tipo, color1: f.fondo_color.value, color2: document.getElementById('pf-deg').checked ? f.fondo_color2.value : '',
             imagen: imagen, video: video, oscurecer: +f.oscurecer.value, anim: val('animacion'), adornos: val('adornos'),
+            anim_cant: +f.anim_cant.value, anim_tam: +f.anim_tam.value, anim_vel: +f.anim_vel.value, propios: propios,
+            flores: { pos: val('flor_pos'), x: +f.flor_x.value, y: +f.flor_y.value, tam: +f.flor_tam.value },
             acento: propios ? f.color_acento.value : dis[2], texto: propios ? f.color_texto.value : dis[3],
             logo: f.mostrar_logo.checked, titulo: f.titulo.value, frase: f.frase.value, pie: f.pie.value, cita: f.cita.value, tarjeta: TARJETAS.indexOf(val('diseno')) !== -1
         });
@@ -195,6 +215,17 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
         if (file.size > 50 * 1024 * 1024) { alert('El video pesa más de 50 MB. Use uno más corto o comprímalo.'); this.value = ''; return; }
         video = URL.createObjectURL(file); aplicar();
     });
+    function numeros() {
+        document.querySelectorAll('output[data-de]').forEach(function (o) {
+            var v = document.getElementById(o.dataset.de).value;
+            o.textContent = v + (o.dataset.suf || 'px');
+        });
+    }
+    document.getElementById('pf-flor-reset').addEventListener('click', function () {
+        form.elements.flor_x.value = 0; form.elements.flor_y.value = 0; form.elements.flor_tam.value = 100; numeros(); aplicar();
+    });
+    form.addEventListener('input', numeros);
+    numeros();
     form.addEventListener('input', aplicar);
     form.addEventListener('change', aplicar);
     aplicar();

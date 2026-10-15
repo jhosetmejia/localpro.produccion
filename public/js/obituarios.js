@@ -50,46 +50,51 @@
         if (prev) prev();
         capa.innerHTML = '';
         var tipo = el.dataset.anim || 'ninguna';
+        // Pétalos, destellos, estrellas y palomas pasan por encima de todo; nubes y rayos van detrás del texto
+        capa.classList.toggle('encima', ['petalos', 'destellos', 'estrellas', 'palomas'].indexOf(tipo) !== -1);
         var w = +el.dataset.w, h = +el.dataset.h;
+        // Cantidad, tamaño y velocidad (100 = normal)
+        var op = { cant: (+el.dataset.animCant || 100) / 100, tam: (+el.dataset.animTam || 100) / 100, vel: (+el.dataset.animVel || 100) / 100 };
         var parar = function () {};
 
         if (tipo === 'luz') {
-            capa.innerHTML = '<div class="obi-rayos"></div>';
+            capa.innerHTML = '<div class="obi-rayos" style="animation-duration:' + (90 / op.vel) + 's;opacity:' + Math.min(1, .5 + op.cant / 2) + '"></div>';
         } else if (tipo === 'nubes') {
-            for (var i = 0; i < 6; i++) {
-                var n = document.createElement('div'), dur = azar(80, 150);
+            for (var i = 0; i < Math.round(6 * op.cant); i++) {
+                var n = document.createElement('div'), dur = azar(80, 150) / op.vel;
                 n.className = 'obi-nube';
-                n.style.cssText = 'width:' + azar(w * .25, w * .45) + 'px;height:' + azar(h * .12, h * .22) + 'px;top:' + azar(0, h * .8) + 'px;animation-duration:' + dur + 's;animation-delay:-' + azar(0, dur) + 's';
+                n.style.cssText = 'width:' + azar(w * .25, w * .45) * op.tam + 'px;height:' + azar(h * .12, h * .22) * op.tam + 'px;top:' + azar(0, h * .8) + 'px;animation-duration:' + dur + 's;animation-delay:-' + azar(0, dur) + 's';
                 capa.appendChild(n);
             }
         } else if (tipo === 'palomas') {
-            for (var j = 0; j < 3; j++) {
-                var p = document.createElement('div'), d2 = azar(24, 40);
+            for (var j = 0; j < Math.max(1, Math.round(3 * op.cant)); j++) {
+                var p = document.createElement('div'), d2 = azar(24, 40) / op.vel;
                 p.className = 'obi-paloma';
                 p.innerHTML = PALOMA;
-                p.style.cssText = 'top:' + azar(h * .06, h * .45) + 'px;animation-duration:' + d2 + 's;animation-delay:-' + azar(0, d2) + 's;transform:scale(' + azar(.6, 1.1).toFixed(2) + ')';
+                p.style.cssText = 'top:' + azar(h * .06, h * .45) + 'px;animation-duration:' + d2 + 's;animation-delay:-' + azar(0, d2) + 's;transform:scale(' + (azar(.6, 1.1) * op.tam).toFixed(2) + ')';
                 p.querySelector('.ala').style.animationDelay = '-' + azar(0, 1).toFixed(2) + 's';
                 capa.appendChild(p);
             }
         } else if (tipo === 'petalos' || tipo === 'destellos' || tipo === 'estrellas') {
-            parar = particulas(capa, tipo, w, h, getComputedStyle(el).getPropertyValue('--acento').trim() || '#d4af37');
+            parar = particulas(capa, tipo, w, h, getComputedStyle(el).getPropertyValue('--acento').trim() || '#d4af37', op);
         }
         anims.set(el, parar);
     };
 
-    function particulas(capa, tipo, w, h, acento) {
+    function particulas(capa, tipo, w, h, acento, op) {
+        op = op || { cant: 1, tam: 1, vel: 1 };
         var cv = document.createElement('canvas'), f = .5; // media resolución: suficiente y liviano para el televisor
         cv.width = Math.round(w * f); cv.height = Math.round(h * f);
         capa.appendChild(cv);
         var ctx = cv.getContext('2d'), W = cv.width, H = cv.height, ps = [], vivo = true, t0 = 0;
-        var cant = tipo === 'petalos' ? 26 : tipo === 'destellos' ? 70 : 110;
+        var cant = Math.round((tipo === 'petalos' ? 45 : tipo === 'destellos' ? 70 : 110) * op.cant), T = op.tam, V = op.vel;
         var rosas = ['#f8c9d4', '#ffffff', '#f3a7ba', '#fde2e7'];
         for (var i = 0; i < cant; i++) ps.push(nueva(true));
 
         function nueva(inicio) {
-            if (tipo === 'petalos') return { x: azar(0, W), y: inicio ? azar(-H, H) : -20, s: azar(5, 10), vy: azar(.35, .8), fase: azar(0, 6.3), r: azar(0, 6.3), vr: azar(-.02, .02), c: rosas[(Math.random() * rosas.length) | 0] };
-            if (tipo === 'destellos') return { x: azar(0, W), y: inicio ? azar(0, H) : H + 10, s: azar(1, 3.2), vy: -azar(.12, .4), fase: azar(0, 6.3), v: azar(.01, .03) };
-            return { x: azar(0, W), y: azar(0, H), s: azar(.6, 2.2), fase: azar(0, 6.3), v: azar(.008, .03), brillo: Math.random() < .12 };
+            if (tipo === 'petalos') return { x: azar(0, W), y: inicio ? azar(-H, H) : -20, s: azar(6, 12) * T, vy: azar(.35, .8), fase: azar(0, 6.3), r: azar(0, 6.3), vr: azar(-.02, .02), c: rosas[(Math.random() * rosas.length) | 0] };
+            if (tipo === 'destellos') return { x: azar(0, W), y: inicio ? azar(0, H) : H + 10, s: azar(1, 3.2) * T, vy: -azar(.12, .4), fase: azar(0, 6.3), v: azar(.01, .03) };
+            return { x: azar(0, W), y: azar(0, H), s: azar(.6, 2.2) * T, fase: azar(0, 6.3), v: azar(.008, .03), brillo: Math.random() < .12 };
         }
 
         function petalo(p) {
@@ -107,7 +112,7 @@
         function cuadro(t) {
             if (!vivo) return;
             if (!document.hidden) {
-                var dt = t0 ? Math.min((t - t0) / 16.7, 3) : 1;
+                var dt = (t0 ? Math.min((t - t0) / 16.7, 3) : 1) * V;
                 t0 = t;
                 ctx.clearRect(0, 0, W, H);
                 for (var i = 0; i < ps.length; i++) {
@@ -220,11 +225,20 @@
 
     // ===== Vista previa en vivo: cambia el diseño de la plantilla =====
     Obi.estilo = function (el, c) {
-        el.className = 'obi d-' + c.diseno + ' o-' + c.o + ' adornos-' + (c.adornos || 'muchos') + (c.tarjeta ? ' lay-tarjeta' : '') + (c.fondo_tipo !== 'diseno' ? ' fondo-propio' : '');
+        el.className = 'obi d-' + c.diseno + ' o-' + c.o + ' adornos-' + (c.adornos || 'muchos') + (c.tarjeta ? ' lay-tarjeta' : '') + ' flor-' + ((c.flores && c.flores.pos) || 'abajo') + (c.fondo_tipo !== 'diseno' ? ' fondo-propio' : '');
         el.dataset.w = c.w; el.dataset.h = c.h; el.dataset.escala = c.escala;
         el.style.width = c.w + 'px'; el.style.height = c.h + 'px';
         el.style.setProperty('--acento', c.acento);
         el.style.setProperty('--texto', c.texto);
+        ['--t-acento', '--t-texto', '--t-titulo'].forEach(function (v) { el.style.removeProperty(v); });
+        if (c.propios) {
+            el.style.setProperty('--t-acento', c.acento); el.style.setProperty('--t-texto', c.texto); el.style.setProperty('--t-titulo', c.texto);
+        }
+        if (c.flores) {
+            el.style.setProperty('--fx', (+c.flores.x || 0) + 'px');
+            el.style.setProperty('--fy', (+c.flores.y || 0) + 'px');
+            el.style.setProperty('--ft', ((+c.flores.tam || 100) / 100).toString());
+        }
         var fondo = el.querySelector('.obi-fondo');
         fondo.style.background = '';
         var v = fondo.querySelector('video');
@@ -241,7 +255,12 @@
         el.querySelectorAll('[data-logo]').forEach(function (n) { n.hidden = !c.logo; });
         el.querySelectorAll('[data-sin-logo]').forEach(function (n) { n.hidden = c.logo; });
         Obi.datos(el, { titulo: c.titulo, frase: c.frase, pie: c.pie, cita: c.cita ? '“' + c.cita.replace(/^[“"]+|[”"]+$/g, '') + '”' : '' });
-        if (el.dataset.anim !== c.anim || c.reanimar) { el.dataset.anim = c.anim; Obi.animar(el); }
+        var clave = [c.anim, c.anim_cant, c.anim_tam, c.anim_vel].join('|');
+        if (el.dataset.animClave !== clave || c.reanimar) {
+            el.dataset.animClave = clave; el.dataset.anim = c.anim;
+            el.dataset.animCant = c.anim_cant || 100; el.dataset.animTam = c.anim_tam || 100; el.dataset.animVel = c.anim_vel || 100;
+            Obi.animar(el);
+        }
         Obi.escalar(el);
         Obi.ajustar(el);
     };
@@ -256,8 +275,26 @@
             document.head.appendChild(s);
         });
     }
-    Obi.exportar = function (el, nombre) {
+    var GIF = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+    function bajar(url, nombre) {
+        var a = document.createElement('a');
+        a.href = url; a.download = nombre;
+        document.body.appendChild(a); a.click(); a.remove();
+        if (url.indexOf('blob:') === 0) setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+    }
+    function opciones(el, escala, extra) {
+        var o = {
+            width: +el.dataset.w, height: +el.dataset.h, pixelRatio: escala, cacheBust: true, imagePlaceholder: GIF,
+            style: { transform: 'none', left: '0', top: '0', margin: '0' }
+        };
+        for (var k in extra) o[k] = extra[k];
+        return o;
+    }
+
+    // ===== Descargar imagen (PNG o JPG) en la medida exacta de la pantalla (4K, Full HD…) =====
+    Obi.exportar = function (el, nombre, formato) {
         var escala = +el.dataset.escala || 1, cambios = [];
+        formato = formato === 'jpg' ? 'jpg' : 'png';
         return cargarLib().then(function () {
             // El video no sale en la foto: se pone el cuadro que se está viendo
             el.querySelectorAll('video').forEach(function (v) {
@@ -270,17 +307,86 @@
             });
             return document.fonts ? document.fonts.ready : null;
         }).then(function () {
-            return window.htmlToImage.toPng(el, {
-                width: +el.dataset.w, height: +el.dataset.h, pixelRatio: escala, cacheBust: true,
-                imagePlaceholder: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
-                style: { transform: 'none', left: '0', top: '0', margin: '0' }
-            });
+            return formato === 'jpg'
+                ? window.htmlToImage.toJpeg(el, opciones(el, escala, { quality: 0.93, backgroundColor: '#ffffff' }))
+                : window.htmlToImage.toPng(el, opciones(el, escala, {}));
         }).then(function (url) {
-            var a = document.createElement('a');
-            a.href = url; a.download = nombre || 'obituario.png';
-            document.body.appendChild(a); a.click(); a.remove();
+            bajar(url, (nombre || 'obituario') + '.' + formato);
         }).finally(function () {
             cambios.forEach(function (x) { x[1].remove(); x[0].style.display = ''; });
+        });
+    };
+
+    // ===== Formatos de video que este navegador puede grabar =====
+    Obi.formatosVideo = function () {
+        var lista = [
+            ['mp4', 'MP4 (WhatsApp, celulares, televisores)', ['video/mp4;codecs=avc1.42E01F', 'video/mp4;codecs=avc1', 'video/mp4']],
+            ['webm', 'WebM (navegadores, YouTube)', ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm']]
+        ], out = [];
+        if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) return out;
+        lista.forEach(function (f) {
+            for (var i = 0; i < f[2].length; i++) {
+                if (MediaRecorder.isTypeSupported(f[2][i])) { out.push({ ext: f[0], nombre: f[1], mime: f[2][i] }); break; }
+            }
+        });
+        return out;
+    };
+
+    // ===== Descargar video: graba el obituario con su animación y su video de fondo =====
+    // El dibujo fijo se toma una vez; en cada cuadro se pinta el video de fondo, el dibujo y la animación encima.
+    Obi.video = function (el, op) {
+        op = op || {};
+        var fmt = op.formato, seg = op.segundos || 10, fps = 30;
+        var escala = +el.dataset.escala || 1;
+        // Para que el navegador no se ahogue, el video sale máximo en Full HD
+        var W = Math.round(+el.dataset.w * escala), H = Math.round(+el.dataset.h * escala);
+        if (Math.max(W, H) > 1920) { var r = 1920 / Math.max(W, H); escala *= r; W = Math.round(W * r); H = Math.round(H * r); }
+        W -= W % 2; H -= H % 2;
+        var capa = el.querySelector('[data-anim-capa]'), vid = el.querySelector('.obi-fondo video'), fondoAntes = el.style.background;
+        var estatico;
+        return cargarLib().then(function () {
+            return document.fonts ? document.fonts.ready : null;
+        }).then(function () {
+            if (capa) capa.style.visibility = 'hidden';
+            if (vid) { vid.style.visibility = 'hidden'; el.style.background = 'transparent'; }
+            return window.htmlToImage.toCanvas(el, opciones(el, escala, { canvasWidth: W, canvasHeight: H, pixelRatio: 1 }));
+        }).then(function (c) {
+            estatico = c;
+        }).finally(function () {
+            if (capa) capa.style.visibility = '';
+            if (vid) vid.style.visibility = '';
+            el.style.background = fondoAntes;
+        }).then(function () {
+            return new Promise(function (ok, mal) {
+                var out = document.createElement('canvas'); out.width = W; out.height = H;
+                var ctx = out.getContext('2d');
+                var particulas = capa && capa.querySelector('canvas');
+                var stream = out.captureStream(fps), trozos = [];
+                var rec;
+                try { rec = new MediaRecorder(stream, { mimeType: fmt.mime, videoBitsPerSecond: 8000000 }); } catch (e) { mal(e); return; }
+                rec.ondataavailable = function (e) { if (e.data && e.data.size) trozos.push(e.data); };
+                rec.onstop = function () { ok(new Blob(trozos, { type: fmt.mime.split(';')[0] })); };
+                if (vid) { try { vid.currentTime = 0; vid.play(); } catch (e) {} }
+                var t0 = performance.now();
+                function cuadro(t) {
+                    var pas = (t - t0) / 1000;
+                    ctx.clearRect(0, 0, W, H);
+                    if (vid && vid.readyState >= 2) {
+                        // video de fondo cubriendo todo
+                        var vw = vid.videoWidth, vh = vid.videoHeight, s = Math.max(W / vw, H / vh);
+                        ctx.drawImage(vid, (W - vw * s) / 2, (H - vh * s) / 2, vw * s, vh * s);
+                    } else if (vid) { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); }
+                    ctx.drawImage(estatico, 0, 0, W, H);
+                    if (particulas) ctx.drawImage(particulas, 0, 0, W, H);
+                    if (op.progreso) op.progreso(Math.min(pas / seg, 1));
+                    if (pas >= seg) { rec.stop(); return; }
+                    requestAnimationFrame(cuadro);
+                }
+                rec.start(500);
+                requestAnimationFrame(cuadro);
+            });
+        }).then(function (blob) {
+            bajar(URL.createObjectURL(blob), (op.nombre || 'obituario') + '.' + fmt.ext);
         });
     };
 

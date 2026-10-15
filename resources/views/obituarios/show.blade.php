@@ -36,14 +36,28 @@
         </div>
         <div class="col-xl-3">
             <div class="lp-box mb-3">
-                <h3><i class="fa-solid fa-download me-1"></i>Descargar imagen</h3>
-                <select class="form-select mb-2" id="os-medida">
+                <h3><i class="fa-solid fa-download me-1"></i>Descargar</h3>
+                <label class="form-label small fw-bold mb-1">Medida</label>
+                <select class="form-select mb-3" id="os-medida">
                     @foreach ($medidas as $k => [$nom, $w, $h])
                     <option value="{{ $w / $m['base_ancho'] }}" data-k="{{ $k }}" @selected($k === $plantilla->medida)>{{ $nom }}</option>
                     @endforeach
                 </select>
-                <button class="btn btn-primary w-100" id="os-bajar"><i class="fa-solid fa-image me-1"></i>Descargar PNG</button>
-                <small class="text-muted d-block mt-2">Para memoria USB, WhatsApp o redes. En la imagen sale el primer cuadro del video y no se mueve.</small>
+                <div class="small fw-bold mb-1"><i class="fa-regular fa-image me-1"></i>Imagen</div>
+                <div class="d-flex gap-2 mb-3">
+                    <button class="btn btn-primary flex-grow-1" data-img="png">PNG</button>
+                    <button class="btn btn-primary flex-grow-1" data-img="jpg">JPG</button>
+                </div>
+                <div class="small fw-bold mb-1"><i class="fa-solid fa-film me-1"></i>Video <span class="text-muted fw-normal">(con la animación y el video de fondo)</span></div>
+                <div class="d-flex gap-2 mb-2">
+                    <select class="form-select" id="os-vformato"></select>
+                    <select class="form-select" id="os-vseg" style="max-width:110px">
+                        @foreach ([5, 10, 15, 30, 60] as $sg)<option value="{{ $sg }}" @selected($sg === 10)>{{ $sg }} seg</option>@endforeach
+                    </select>
+                </div>
+                <button class="btn btn-dark w-100" id="os-video"><i class="fa-solid fa-video me-1"></i>Grabar y descargar video</button>
+                <div class="progress mt-2" id="os-vprog" style="height:8px;display:none"><div class="progress-bar bg-success" style="width:0"></div></div>
+                <small class="text-muted d-block mt-2" id="os-vayuda">El video se graba en tiempo real: deje esta pestaña abierta mientras termina. Sale máximo en Full HD.</small>
             </div>
             @if ($obituario->sala)
             <div class="lp-box mb-3">
@@ -63,17 +77,41 @@
 @endsection
 
 @push('js')
-<script src="{{ asset('js/obituarios.js') }}?v=3"></script>
+<script src="{{ asset('js/obituarios.js') }}?v=4"></script>
 <script>
 (function () {
-    var b = document.getElementById('os-bajar'), sel = document.getElementById('os-medida'), el = document.querySelector('[data-obi]');
-    b.addEventListener('click', function () {
-        var txt = b.innerHTML;
-        b.disabled = true; b.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Preparando…';
+    var sel = document.getElementById('os-medida'), el = document.querySelector('[data-obi]');
+    var base = @json('obituario-' . \Illuminate\Support\Str::slug($obituario->nombre));
+    function nombre() { return base + '-' + sel.options[sel.selectedIndex].dataset.k; }
+    function ocupado(b, si, txt) { b.disabled = si; b.innerHTML = si ? '<i class="fa-solid fa-spinner fa-spin me-1"></i>' + txt : b.dataset.txt; }
+
+    document.querySelectorAll('[data-img]').forEach(function (b) {
+        b.dataset.txt = b.innerHTML;
+        b.addEventListener('click', function () {
+            ocupado(b, true, '');
+            el.dataset.escala = sel.value;
+            Obi.exportar(el, nombre(), b.dataset.img)
+                .catch(function () { alert('No se pudo crear la imagen. Intente de nuevo o use Chrome.'); })
+                .finally(function () { ocupado(b, false); });
+        });
+    });
+
+    var vf = document.getElementById('os-vformato'), vb = document.getElementById('os-video'), prog = document.getElementById('os-vprog');
+    var formatos = Obi.formatosVideo();
+    formatos.forEach(function (f, i) { var o = document.createElement('option'); o.value = i; o.textContent = f.nombre; vf.appendChild(o); });
+    vb.dataset.txt = vb.innerHTML;
+    if (!formatos.length) {
+        vf.innerHTML = '<option>No disponible en este navegador</option>'; vf.disabled = true; vb.disabled = true;
+        document.getElementById('os-vayuda').textContent = 'Este navegador no puede grabar video. Use Chrome o Edge en un computador.';
+    }
+    vb.addEventListener('click', function () {
+        var seg = +document.getElementById('os-vseg').value;
+        ocupado(vb, true, 'Grabando…');
+        prog.style.display = ''; prog.firstElementChild.style.width = '0';
         el.dataset.escala = sel.value;
-        var nombre = 'obituario-' + @json(\Illuminate\Support\Str::slug($obituario->nombre)) + '-' + sel.options[sel.selectedIndex].dataset.k + '.png';
-        Obi.exportar(el, nombre).catch(function () { alert('No se pudo crear la imagen. Intente de nuevo o use otro navegador (Chrome).'); })
-            .finally(function () { b.disabled = false; b.innerHTML = txt; });
+        Obi.video(el, { formato: formatos[+vf.value], segundos: seg, nombre: nombre(), progreso: function (p) { prog.firstElementChild.style.width = Math.round(p * 100) + '%'; } })
+            .catch(function () { alert('No se pudo grabar el video. Intente con el otro formato o use Chrome.'); })
+            .finally(function () { ocupado(vb, false); prog.style.display = 'none'; });
     });
 })();
 </script>

@@ -293,6 +293,13 @@ class obituariosController extends Controller
             'frase' => 'nullable|string|max:120',
             'pie' => 'nullable|string|max:150',
             'cita' => 'nullable|string|max:160',
+            'flor_pos' => ['nullable', Rule::in(array_keys(ObituarioPlantilla::FLOR_POS))],
+            'flor_x' => 'nullable|integer|min:-400|max:400',
+            'flor_y' => 'nullable|integer|min:-400|max:400',
+            'flor_tam' => 'nullable|integer|min:40|max:200',
+            'anim_cant' => 'nullable|integer|min:10|max:500',
+            'anim_tam' => 'nullable|integer|min:10|max:500',
+            'anim_vel' => 'nullable|integer|min:10|max:500',
             'imagen' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:8192',
             'video' => 'nullable|file|mimetypes:video/mp4,video/webm,video/quicktime|max:51200',
         ], [
@@ -307,6 +314,10 @@ class obituariosController extends Controller
         $datos['oscurecer'] = (int) ($datos['oscurecer'] ?? 0);
         $datos['titulo'] = $datos['titulo'] ?? '';
         $datos['adornos'] = $datos['adornos'] ?? 'muchos';
+        $datos['flores'] = ['pos' => $datos['flor_pos'] ?? 'abajo', 'x' => (int) ($datos['flor_x'] ?? 0), 'y' => (int) ($datos['flor_y'] ?? 0), 'tam' => (int) ($datos['flor_tam'] ?? 100)];
+        unset($datos['flor_pos'], $datos['flor_x'], $datos['flor_y'], $datos['flor_tam']);
+        $datos['anim_op'] = ['cant' => (int) ($datos['anim_cant'] ?? 100), 'tam' => (int) ($datos['anim_tam'] ?? 100), 'vel' => (int) ($datos['anim_vel'] ?? 100)];
+        unset($datos['anim_cant'], $datos['anim_tam'], $datos['anim_vel']);
         $plantilla->fill($datos);
 
         if ($request->hasFile('imagen')) {

@@ -100,18 +100,24 @@
 .obi-ramo .rc{fill:var(--trazo)}
 .obi-foto-wrap{position:relative;display:flex;justify-content:center}
 .obi-foto-wrap .obi-foto{z-index:2}
-.obi-foto-wrap .r-f1,.obi-foto-wrap .r-f2{z-index:3;width:380px}
-.r-f1{left:-190px;top:-130px;transform:scaleX(-1)}
-.r-f2{right:-190px;bottom:-120px;transform:scaleY(-1)}
+.obi{--fx:0px;--fy:0px;--ft:1}
+/* Flores junto a la foto: por defecto una en cada esquina de abajo, hacia afuera. Se mueven con --fx/--fy y se agrandan con --ft */
+.obi-foto-wrap .r-f1,.obi-foto-wrap .r-f2{z-index:3;width:300px;top:auto;translate:var(--fx) var(--fy);scale:var(--ft)}
+.r-f1{left:-200px;bottom:-60px;transform:scaleX(-1)}
+.r-f2{right:-200px;bottom:-60px}
+.flor-diagonal .obi-foto-wrap .r-f1{left:-190px;top:-130px;bottom:auto;width:360px;transform:scaleX(-1)}
+.flor-diagonal .obi-foto-wrap .r-f2{right:-190px;bottom:-120px;width:360px;transform:scaleY(-1)}
+.flor-abajo_izq .obi-foto-wrap .r-f2,.flor-abajo_der .obi-foto-wrap .r-f1,.flor-ninguna .obi-foto-wrap .obi-ramo{display:none}
+.o-c .obi-foto-wrap .r-f1,.o-c .obi-foto-wrap .r-f2{width:210px}
+.o-c .r-f1{left:-150px;bottom:-45px}.o-c .r-f2{right:-150px;bottom:-45px}
+.ot-lirios-foto,.ot-rama-foto{translate:var(--fx) var(--fy);scale:var(--ft)}
+.flor-ninguna .ot-lirios-foto,.flor-ninguna .ot-rama-foto{display:none!important}
+.flor-abajo_der .ot-lirios-foto,.flor-abajo_der .ot-rama-foto{left:auto!important;right:-50px!important}
 .r-c1{left:-40px;top:-40px;width:430px;transform:scaleY(-1)}
 .r-c4{right:-40px;bottom:-40px;width:430px;transform:scaleX(-1)}
 .r-d{position:relative;width:300px;margin:-10px 0}
 .o-v .r-c1,.o-v .r-c4{width:400px}
 .o-c .r-c1,.o-c .r-c4{width:300px}
-.o-c .obi-foto-wrap .r-f1,.o-c .obi-foto-wrap .r-f2{width:260px}
-.o-c .r-f1{left:-130px;top:-90px}.o-c .r-f2{right:-130px;bottom:-80px}
-.obi-foto-wrap:has(.forma-libre) .r-f1{top:auto;bottom:60px;left:-160px}
-.obi-foto-wrap:has(.forma-libre) .r-f2{right:-160px;bottom:-30px}
 .adornos-pocos .r-c1,.adornos-pocos .r-c4,.adornos-pocos .r-d{display:none}
 .adornos-ninguno .obi-ramo{display:none}
 /* Colores de las flores por diseño */
@@ -417,6 +423,14 @@ body.sin-cursor,body.sin-cursor *{cursor:none!important}
 .o-c .ot-rama-foto{width:240px!important;left:-60px!important;bottom:-70px!important}
 .o-c .ot-lirios-foto{width:280px}
 .o-c.d-cielo_cruz .ot-cruz{display:none}
+
+/* En las tarjetas la animación va encima del dibujo del fondo (si no, el cielo la tapa) */
+.lay-tarjeta .obi-anim-capa,.obi-anim-capa.encima{z-index:3}
+.lay-tarjeta .obi-nube{opacity:.3}
+/* Flores y adornos también en las tarjetas */
+.lay-tarjeta.adornos-pocos .ot-euca,.lay-tarjeta.adornos-pocos .ot-rama,.lay-tarjeta.adornos-pocos .ot-trazo-oro{display:none!important}
+.lay-tarjeta.adornos-ninguno .ot-euca,.lay-tarjeta.adornos-ninguno .ot-rama,.lay-tarjeta.adornos-ninguno .ot-trazo-oro,
+.lay-tarjeta.adornos-ninguno .ot-lirios-foto,.lay-tarjeta.adornos-ninguno .ot-rama-foto{display:none!important}
 
 /* Fondo propio (imagen o video) en una tarjeta: se esconde el dibujo del fondo y se deja la foto */
 .lay-tarjeta.fondo-propio .ot-deco{display:none}

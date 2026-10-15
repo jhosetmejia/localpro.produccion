@@ -14,9 +14,9 @@ class ObituarioPlantilla extends Model
 
     protected $table = 'obituario_plantillas';
 
-    protected $fillable = ['nombre', 'diseno', 'medida', 'fondo_tipo', 'fondo_color', 'fondo_color2', 'oscurecer', 'animacion', 'color_acento', 'color_texto', 'mostrar_logo', 'titulo', 'frase', 'pie', 'adornos', 'cita', 'base'];
+    protected $fillable = ['nombre', 'diseno', 'medida', 'fondo_tipo', 'fondo_color', 'fondo_color2', 'oscurecer', 'animacion', 'color_acento', 'color_texto', 'mostrar_logo', 'titulo', 'frase', 'pie', 'adornos', 'cita', 'base', 'flores', 'anim_op'];
 
-    protected $casts = ['mostrar_logo' => 'boolean', 'oscurecer' => 'integer'];
+    protected $casts = ['mostrar_logo' => 'boolean', 'oscurecer' => 'integer', 'flores' => 'array', 'anim_op' => 'array'];
 
     // Diseños: [nombre, descripción, acento, texto, fondo para la miniatura]
     public const DISENOS = [
@@ -73,7 +73,30 @@ class ObituarioPlantilla extends Model
 
     public const ADORNOS = ['muchos' => 'Muchas flores', 'pocos' => 'Pocas (solo en la foto)', 'ninguno' => 'Sin flores'];
 
+    // Dónde van las flores junto a la foto
+    public const FLOR_POS = ['abajo' => 'Abajo, a los dos lados', 'abajo_izq' => 'Abajo a la izquierda', 'abajo_der' => 'Abajo a la derecha', 'diagonal' => 'Arriba y abajo (en diagonal)', 'ninguna' => 'Sin flores en la foto'];
+
     public const FRASE = 'Descansó en la paz del Señor';
+
+    // Posición de las flores de la foto: pos, x y y (px) y tamaño (%)
+    public function getFloresDatosAttribute(): array
+    {
+        $f = (array) ($this->flores ?? []);
+        return [
+            'pos' => isset(self::FLOR_POS[$f['pos'] ?? '']) ? $f['pos'] : 'abajo',
+            'x' => (int) ($f['x'] ?? 0),
+            'y' => (int) ($f['y'] ?? 0),
+            'tam' => (int) ($f['tam'] ?? 100) ?: 100,
+        ];
+    }
+
+    // Animación: cantidad, tamaño y velocidad en % (100 = normal)
+    public function getAnimDatosAttribute(): array
+    {
+        $a = (array) ($this->anim_op ?? []);
+        $n = fn ($k) => max(10, min(500, (int) ($a[$k] ?? 100) ?: 100));
+        return ['cant' => $n('cant'), 'tam' => $n('tam'), 'vel' => $n('vel')];
+    }
 
     public function getEsTarjetaAttribute(): bool
     {
