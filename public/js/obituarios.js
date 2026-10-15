@@ -1,0 +1,309 @@
+/* Obituarios LocalProo: escala el lienzo, ajusta el texto, anima el fondo,
+   actualiza la vista previa en vivo y descarga la imagen en la medida de la pantalla. */
+(function () {
+    'use strict';
+    var Obi = window.Obi = window.Obi || {};
+    var anims = new WeakMap();
+
+    function todos(raiz) { return [].slice.call((raiz || document).querySelectorAll('[data-obi]')); }
+    function azar(a, b) { return a + Math.random() * (b - a); }
+    function esc(t) { var d = document.createElement('div'); d.textContent = t == null ? '' : String(t); return d.innerHTML; }
+
+    // ===== Escala: el lienzo se diseña en tamaño fijo y se ajusta al contenedor =====
+    Obi.escalar = function (el) {
+        var marco = el.parentElement;
+        if (!marco || !marco.hasAttribute('data-obi-marco')) return;
+        var w = +el.dataset.w, h = +el.dataset.h, s;
+        if (marco.getAttribute('data-obi-marco') === 'pantalla') {
+            s = Math.min(marco.clientWidth / w, marco.clientHeight / h);
+            el.style.left = ((marco.clientWidth - w * s) / 2) + 'px';
+            el.style.top = ((marco.clientHeight - h * s) / 2) + 'px';
+        } else {
+            s = marco.clientWidth / w;
+            marco.style.height = (h * s) + 'px';
+            el.style.left = '0'; el.style.top = '0';
+        }
+        el.style.transform = 'scale(' + s + ')';
+    };
+
+    // ===== Texto: si no cabe (muchos familiares), se reduce un poco hasta que quepa =====
+    Obi.ajustar = function (el) {
+        var c = el.querySelector('.obi-centro');
+        if (!c) return;
+        var g = el.querySelector('.obi-grupos');
+        if (g) g.classList.toggle('dos', g.children.length > 6);
+        var k = 1;
+        el.style.setProperty('--k', '1');
+        for (var i = 0; i < 18 && c.scrollHeight > c.clientHeight + 2; i++) {
+            k -= 0.035;
+            el.style.setProperty('--k', k.toFixed(3));
+        }
+    };
+
+    // ===== Animaciones de fondo =====
+    var PALOMA = '<svg viewBox="0 0 150 110"><path fill="currentColor" d="M8 66c18-6 34-8 50-8 14 0 26-4 38-12 8-6 14-14 22-16 7-2 13 2 12 8-4-1-8 0-11 3 4 10 2 22-8 30-12 10-32 14-52 12-10-1-18-4-26-8L8 90l10-14-12-6z"/><path class="ala" fill="currentColor" d="M64 56C58 34 66 14 96 4c-6 12-6 24-4 34-8 10-16 16-28 18z"/></svg>';
+
+    Obi.animar = function (el) {
+        var capa = el.querySelector('[data-anim-capa]');
+        if (!capa) return;
+        var prev = anims.get(el);
+        if (prev) prev();
+        capa.innerHTML = '';
+        var tipo = el.dataset.anim || 'ninguna';
+        var w = +el.dataset.w, h = +el.dataset.h;
+        var parar = function () {};
+
+        if (tipo === 'luz') {
+            capa.innerHTML = '<div class="obi-rayos"></div>';
+        } else if (tipo === 'nubes') {
+            for (var i = 0; i < 6; i++) {
+                var n = document.createElement('div'), dur = azar(80, 150);
+                n.className = 'obi-nube';
+                n.style.cssText = 'width:' + azar(w * .25, w * .45) + 'px;height:' + azar(h * .12, h * .22) + 'px;top:' + azar(0, h * .8) + 'px;animation-duration:' + dur + 's;animation-delay:-' + azar(0, dur) + 's';
+                capa.appendChild(n);
+            }
+        } else if (tipo === 'palomas') {
+            for (var j = 0; j < 3; j++) {
+                var p = document.createElement('div'), d2 = azar(24, 40);
+                p.className = 'obi-paloma';
+                p.innerHTML = PALOMA;
+                p.style.cssText = 'top:' + azar(h * .06, h * .45) + 'px;animation-duration:' + d2 + 's;animation-delay:-' + azar(0, d2) + 's;transform:scale(' + azar(.6, 1.1).toFixed(2) + ')';
+                p.querySelector('.ala').style.animationDelay = '-' + azar(0, 1).toFixed(2) + 's';
+                capa.appendChild(p);
+            }
+        } else if (tipo === 'petalos' || tipo === 'destellos' || tipo === 'estrellas') {
+            parar = particulas(capa, tipo, w, h, getComputedStyle(el).getPropertyValue('--acento').trim() || '#d4af37');
+        }
+        anims.set(el, parar);
+    };
+
+    function particulas(capa, tipo, w, h, acento) {
+        var cv = document.createElement('canvas'), f = .5; // media resolución: suficiente y liviano para el televisor
+        cv.width = Math.round(w * f); cv.height = Math.round(h * f);
+        capa.appendChild(cv);
+        var ctx = cv.getContext('2d'), W = cv.width, H = cv.height, ps = [], vivo = true, t0 = 0;
+        var cant = tipo === 'petalos' ? 26 : tipo === 'destellos' ? 70 : 110;
+        var rosas = ['#f8c9d4', '#ffffff', '#f3a7ba', '#fde2e7'];
+        for (var i = 0; i < cant; i++) ps.push(nueva(true));
+
+        function nueva(inicio) {
+            if (tipo === 'petalos') return { x: azar(0, W), y: inicio ? azar(-H, H) : -20, s: azar(5, 10), vy: azar(.35, .8), fase: azar(0, 6.3), r: azar(0, 6.3), vr: azar(-.02, .02), c: rosas[(Math.random() * rosas.length) | 0] };
+            if (tipo === 'destellos') return { x: azar(0, W), y: inicio ? azar(0, H) : H + 10, s: azar(1, 3.2), vy: -azar(.12, .4), fase: azar(0, 6.3), v: azar(.01, .03) };
+            return { x: azar(0, W), y: azar(0, H), s: azar(.6, 2.2), fase: azar(0, 6.3), v: azar(.008, .03), brillo: Math.random() < .12 };
+        }
+
+        function petalo(p) {
+            ctx.save();
+            ctx.translate(p.x, p.y); ctx.rotate(p.r);
+            ctx.fillStyle = p.c; ctx.globalAlpha = .9;
+            ctx.beginPath();
+            ctx.moveTo(0, -p.s);
+            ctx.bezierCurveTo(p.s, -p.s, p.s, p.s * .6, 0, p.s);
+            ctx.bezierCurveTo(-p.s, p.s * .6, -p.s, -p.s, 0, -p.s);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function cuadro(t) {
+            if (!vivo) return;
+            if (!document.hidden) {
+                var dt = t0 ? Math.min((t - t0) / 16.7, 3) : 1;
+                t0 = t;
+                ctx.clearRect(0, 0, W, H);
+                for (var i = 0; i < ps.length; i++) {
+                    var p = ps[i];
+                    if (tipo === 'petalos') {
+                        p.fase += .012 * dt; p.y += p.vy * dt; p.x += Math.sin(p.fase) * .5 * dt; p.r += p.vr * dt;
+                        if (p.y > H + 20) ps[i] = nueva(false);
+                        petalo(p);
+                    } else if (tipo === 'destellos') {
+                        p.fase += p.v * dt; p.y += p.vy * dt; p.x += Math.sin(p.fase) * .15 * dt;
+                        if (p.y < -10) ps[i] = nueva(false);
+                        ctx.globalAlpha = .35 + .65 * Math.abs(Math.sin(p.fase));
+                        ctx.shadowColor = acento; ctx.shadowBlur = 8;
+                        ctx.fillStyle = acento;
+                        ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, 6.283); ctx.fill();
+                    } else {
+                        p.fase += p.v * dt;
+                        var a = .2 + .8 * Math.abs(Math.sin(p.fase));
+                        ctx.globalAlpha = a; ctx.shadowBlur = 0; ctx.fillStyle = '#ffffff';
+                        ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, 6.283); ctx.fill();
+                        if (p.brillo) {
+                            ctx.strokeStyle = 'rgba(255,255,255,' + (a * .8) + ')'; ctx.lineWidth = .8;
+                            ctx.beginPath(); ctx.moveTo(p.x - p.s * 5, p.y); ctx.lineTo(p.x + p.s * 5, p.y); ctx.moveTo(p.x, p.y - p.s * 5); ctx.lineTo(p.x, p.y + p.s * 5); ctx.stroke();
+                        }
+                    }
+                }
+                ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+            }
+            requestAnimationFrame(cuadro);
+        }
+        requestAnimationFrame(cuadro);
+        return function () { vivo = false; };
+    }
+
+    // ===== Textos con formato =====
+    var DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+    var MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    Obi.fecha = function (iso) {
+        if (!iso) return '';
+        var p = iso.split('-');
+        var d = new Date(+p[0], +p[1] - 1, +p[2]);
+        var t = DIAS[d.getDay()] + ' ' + d.getDate() + ' de ' + MESES[d.getMonth()] + ' de ' + d.getFullYear();
+        return t.charAt(0).toUpperCase() + t.slice(1);
+    };
+    Obi.hora = function (hhmm) {
+        if (!hhmm) return '';
+        var p = hhmm.split(':'), h = +p[0], m = +p[1];
+        var h12 = h % 12 || 12;
+        return h12 + (m ? ':' + (m < 10 ? '0' : '') + m : '') + (h < 12 ? ' a. m.' : ' p. m.');
+    };
+    Obi.grupos = function (texto) {
+        return String(texto || '').split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean).map(function (l) {
+            var i = l.indexOf(':');
+            return i === -1 ? [l, ''] : [l.slice(0, i).trim(), l.slice(i + 1).trim()];
+        });
+    };
+
+    // ===== Vista previa en vivo: cambia los datos del fallecido =====
+    Obi.datos = function (el, d) {
+        function poner(clave, valor) {
+            el.querySelectorAll('[data-o="' + clave + '"]').forEach(function (n) { n.textContent = valor || ''; });
+            el.querySelectorAll('[data-fila="' + clave + '"]').forEach(function (n) { n.hidden = !valor; });
+        }
+        ['nombre', 'anios', 'frase', 'sala', 'fecha', 'hora', 'lugar', 'destino', 'titulo', 'pie'].forEach(function (k) {
+            if (k in d) poner(k, d[k]);
+        });
+        if ('invitan' in d) {
+            var gs = Obi.grupos(d.invitan), cont = el.querySelector('[data-o="grupos"]');
+            if (cont) cont.innerHTML = gs.map(function (g) { return '<div class="obi-grupo"><b>' + esc(g[0]) + '</b>' + (g[1] ? '<span>' + esc(g[1]) + '</span>' : '') + '</div>'; }).join('');
+            el.querySelectorAll('[data-fila="invitan"]').forEach(function (n) { n.hidden = !gs.length; });
+        }
+        if ('foto' in d) {
+            var f = el.querySelector('.obi-foto');
+            if (f) {
+                var img = f.querySelector('img'), sil = f.querySelector('svg');
+                if (d.foto) {
+                    if (!img) { img = document.createElement('img'); img.alt = ''; f.appendChild(img); }
+                    img.src = d.foto; if (sil) sil.style.display = 'none';
+                } else { if (img) img.remove(); if (sil) sil.style.display = ''; }
+            }
+        }
+        Obi.ajustar(el);
+    };
+
+    // ===== Vista previa en vivo: cambia el diseño de la plantilla =====
+    Obi.estilo = function (el, c) {
+        el.className = 'obi d-' + c.diseno + ' o-' + c.o + (c.fondo_tipo !== 'diseno' ? ' fondo-propio' : '');
+        el.dataset.w = c.w; el.dataset.h = c.h; el.dataset.escala = c.escala;
+        el.style.width = c.w + 'px'; el.style.height = c.h + 'px';
+        el.style.setProperty('--acento', c.acento);
+        el.style.setProperty('--texto', c.texto);
+        var fondo = el.querySelector('.obi-fondo');
+        fondo.style.background = '';
+        var v = fondo.querySelector('video');
+        if (c.fondo_tipo === 'color' && c.color1) {
+            fondo.style.background = c.color2 ? 'linear-gradient(160deg,' + c.color1 + ',' + c.color2 + ')' : c.color1;
+        } else if (c.fondo_tipo === 'imagen' && c.imagen) {
+            fondo.style.background = "url('" + c.imagen + "') center/cover no-repeat";
+        }
+        if (c.fondo_tipo === 'video' && c.video) {
+            if (!v) { v = document.createElement('video'); v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true; v.setAttribute('muted', ''); fondo.appendChild(v); }
+            if (v.getAttribute('src') !== c.video) { v.src = c.video; v.play().catch(function () {}); }
+        } else if (v) { v.remove(); }
+        el.querySelector('.obi-velo').style.opacity = (c.fondo_tipo === 'imagen' || c.fondo_tipo === 'video') ? (c.oscurecer / 100) : 0;
+        el.querySelectorAll('[data-logo]').forEach(function (n) { n.hidden = !c.logo; });
+        el.querySelectorAll('[data-sin-logo]').forEach(function (n) { n.hidden = c.logo; });
+        Obi.datos(el, { titulo: c.titulo, frase: c.frase, pie: c.pie });
+        if (el.dataset.anim !== c.anim || c.reanimar) { el.dataset.anim = c.anim; Obi.animar(el); }
+        Obi.escalar(el);
+        Obi.ajustar(el);
+    };
+
+    // ===== Descargar la imagen en la medida exacta de la pantalla (4K, Full HD…) =====
+    function cargarLib() {
+        if (window.htmlToImage) return Promise.resolve();
+        return new Promise(function (ok, mal) {
+            var s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js';
+            s.onload = ok; s.onerror = mal;
+            document.head.appendChild(s);
+        });
+    }
+    Obi.exportar = function (el, nombre) {
+        var escala = +el.dataset.escala || 1, cambios = [];
+        return cargarLib().then(function () {
+            // El video no sale en la foto: se pone el cuadro que se está viendo
+            el.querySelectorAll('video').forEach(function (v) {
+                var c = document.createElement('canvas');
+                c.width = v.videoWidth || 1280; c.height = v.videoHeight || 720;
+                try { c.getContext('2d').drawImage(v, 0, 0, c.width, c.height); } catch (e) {}
+                c.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block';
+                v.parentNode.insertBefore(c, v); v.style.display = 'none';
+                cambios.push([v, c]);
+            });
+            return document.fonts ? document.fonts.ready : null;
+        }).then(function () {
+            return window.htmlToImage.toPng(el, {
+                width: +el.dataset.w, height: +el.dataset.h, pixelRatio: escala, cacheBust: true,
+                imagePlaceholder: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+                style: { transform: 'none', left: '0', top: '0', margin: '0' }
+            });
+        }).then(function (url) {
+            var a = document.createElement('a');
+            a.href = url; a.download = nombre || 'obituario.png';
+            document.body.appendChild(a); a.click(); a.remove();
+        }).finally(function () {
+            cambios.forEach(function (x) { x[1].remove(); x[0].style.display = ''; });
+        });
+    };
+
+    // ===== Pantalla del televisor: rota obituarios, se actualiza sola y no deja apagar la pantalla =====
+    Obi.pantalla = function (op) {
+        var slides = [].slice.call(document.querySelectorAll('[data-obi-slide]')), i = 0;
+        function mostrar(n) {
+            slides.forEach(function (s, k) { s.classList.toggle('on', k === n); });
+            var el = slides[n] && slides[n].querySelector('[data-obi]');
+            if (el) { Obi.escalar(el); Obi.ajustar(el); var v = el.querySelector('video'); if (v) v.play().catch(function () {}); }
+        }
+        if (slides.length) mostrar(0);
+        if (slides.length > 1) setInterval(function () { i = (i + 1) % slides.length; mostrar(i); }, (op.rotar || 12) * 1000);
+
+        if (op.version) {
+            setInterval(function () {
+                fetch(op.version, { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+                    if (j && j.v && j.v !== op.actual) location.reload();
+                }).catch(function () {});
+            }, 30000);
+        }
+        // Que el televisor no se duerma
+        var lock = null;
+        function pedir() { if (navigator.wakeLock && document.visibilityState === 'visible') navigator.wakeLock.request('screen').then(function (l) { lock = l; }).catch(function () {}); }
+        pedir();
+        document.addEventListener('visibilitychange', pedir);
+        setTimeout(function () { document.body.classList.add('sin-cursor'); }, 8000);
+        // Ocultar el cursor
+        var tm;
+        document.addEventListener('mousemove', function () { document.body.classList.remove('sin-cursor'); clearTimeout(tm); tm = setTimeout(function () { document.body.classList.add('sin-cursor'); }, 2500); });
+        // Pantalla completa con un clic
+        document.addEventListener('click', function () {
+            var d = document.documentElement;
+            if (!document.fullscreenElement && d.requestFullscreen) d.requestFullscreen().catch(function () {});
+        });
+        // Por si se cae el internet o algo falla: recargar cada 6 horas
+        setTimeout(function () { location.reload(); }, 6 * 3600 * 1000);
+    };
+
+    // ===== Arranque =====
+    function iniciar() {
+        todos().forEach(function (el) {
+            Obi.escalar(el);
+            Obi.animar(el);
+            Obi.ajustar(el);
+            if (window.ResizeObserver && el.parentElement) new ResizeObserver(function () { Obi.escalar(el); }).observe(el.parentElement);
+        });
+        if (document.fonts) document.fonts.ready.then(function () { todos().forEach(Obi.ajustar); });
+        window.addEventListener('resize', function () { todos().forEach(Obi.escalar); });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar); else iniciar();
+})();

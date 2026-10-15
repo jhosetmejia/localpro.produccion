@@ -10,7 +10,7 @@ class Tienda extends Model
     protected $table = 'tiendas';
 
     protected $fillable = [
-        'nombre', 'departamento', 'slug', 'catalogo_activo', 'mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'cliente_obligatorio', 'pais', 'tipo_negocio', 'descripcion', 'usa_tallas', 'nit', 'regimen',
+        'nombre', 'departamento', 'slug', 'catalogo_activo', 'mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'cliente_obligatorio', 'pais', 'tipo_negocio', 'descripcion', 'usa_tallas', 'nit', 'regimen',
         'resolucion_numero', 'resolucion_fecha', 'resolucion_vigencia', 'resolucion_prefijo', 'resolucion_desde', 'resolucion_hasta', 'direccion', 'ciudad', 'telefono',
         'email', 'logo_path', 'mensaje_tiquete',
         // Facturación DIAN
@@ -18,7 +18,7 @@ class Tienda extends Model
         'fe_activa', 'fe_ambiente', 'fe_resolucion_numero', 'fe_resolucion_fecha', 'fe_resolucion_vigencia', 'fe_prefijo', 'fe_desde', 'fe_hasta', 'fe_clave_tecnica', 'fe_credenciales', 'estado', 'onboarding_paso', 'onboarding_completo', 'conj_dia_vence', 'conj_interes_mora', 'conj_zonas',
     ];
 
-    protected $casts = ['mod_medida' => 'boolean', 'mod_vencimiento' => 'boolean', 'mod_recetas' => 'boolean', 'mod_alquiler' => 'boolean', 'usa_tallas' => 'boolean', 'onboarding_completo' => 'boolean', 'catalogo_activo' => 'boolean', 'cliente_obligatorio' => 'boolean', 'plan_vence' => 'date', 'datos_depurados_at' => 'datetime', 'resolucion_fecha' => 'date', 'resolucion_vigencia' => 'date', 'pos_electronico' => 'boolean', 'fe_activa' => 'boolean', 'fe_resolucion_fecha' => 'date', 'fe_resolucion_vigencia' => 'date', 'fe_clave_tecnica' => 'encrypted', 'fe_credenciales' => 'encrypted:array', 'enlaces_activo' => 'boolean', 'enlaces_catalogo' => 'boolean', 'enlaces_redes' => 'array'];
+    protected $casts = ['mod_medida' => 'boolean', 'mod_vencimiento' => 'boolean', 'mod_recetas' => 'boolean', 'mod_alquiler' => 'boolean', 'mod_obituarios' => 'boolean', 'usa_tallas' => 'boolean', 'onboarding_completo' => 'boolean', 'catalogo_activo' => 'boolean', 'cliente_obligatorio' => 'boolean', 'plan_vence' => 'date', 'datos_depurados_at' => 'datetime', 'resolucion_fecha' => 'date', 'resolucion_vigencia' => 'date', 'pos_electronico' => 'boolean', 'fe_activa' => 'boolean', 'fe_resolucion_fecha' => 'date', 'fe_resolucion_vigencia' => 'date', 'fe_clave_tecnica' => 'encrypted', 'fe_credenciales' => 'encrypted:array', 'enlaces_activo' => 'boolean', 'enlaces_catalogo' => 'boolean', 'enlaces_redes' => 'array'];
 
     // Las llaves de facturación nunca salen en JSON ni en registros
     protected $hidden = ['fe_clave_tecnica', 'fe_credenciales'];
@@ -31,6 +31,7 @@ class Tienda extends Model
         'ferreteria' => ['mod_medida'],
         'restaurante' => ['mod_recetas'],
         'cafeteria' => ['mod_recetas', 'mod_vencimiento'],
+        'funeraria' => ['mod_obituarios'],
     ];
 
     public const TIPOS = [
@@ -44,6 +45,7 @@ class Tienda extends Model
         'tecnologia' => ['Tecnología y celulares', 'fa-mobile-screen', false, 'Celulares, accesorios, reparación'],
         'papeleria' => ['Papelería y regalos', 'fa-pen-ruler', false, 'Útiles, piñatería, detalles'],
         'ferreteria' => ['Ferretería', 'fa-screwdriver-wrench', false, 'Herramientas, materiales, eléctricos'],
+        'funeraria' => ['Funeraria', 'fa-dove', false, 'Salas de velación, exequias, planes y obituarios'],
         'conjunto' => ['Conjunto residencial / edificio', 'fa-building', false, 'Administración de conjuntos, torres y edificios'],
         'otro' => ['Otro negocio', 'fa-store', false, 'Cualquier otro comercio'],
     ];
@@ -215,6 +217,12 @@ class Tienda extends Model
         $n = (int) $fila->consecutivo_rc + 1;
         $fila->forceFill(['consecutivo_rc' => $n])->save();
         return 'RC-' . str_pad((string) $n, 6, '0', STR_PAD_LEFT);
+    }
+
+    // Funerarias: obituarios en las pantallas de las salas de velación
+    public function getEsFunerariaAttribute(): bool
+    {
+        return $this->tipo_negocio === 'funeraria';
     }
 
     public function getZonasComunesAttribute(): array

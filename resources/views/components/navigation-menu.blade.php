@@ -112,6 +112,12 @@
                 <a class="nav-link {{ $on('users.*') }}" href="{{ route('users.index') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-user-gear"></i></div>Usuarios</a>
                 @endcan
                 @else
+                @if ($tiendaMenu?->mod_obituarios && (auth()->user()->can('gestionar-obituarios') || auth()->user()->can('editar-negocio')) && \Illuminate\Support\Facades\Route::has('obituarios.index'))
+                <a class="nav-link {{ $on('obituarios.*') }}" href="{{ route('obituarios.index') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-dove"></i></div>
+                    Obituarios
+                </a>
+                @endif
                 @can('usar-pos')
                 <a class="nav-link {{ $on('pos.index') }}" href="{{ route('pos.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-cash-register"></i></div>

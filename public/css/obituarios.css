@@ -1,0 +1,195 @@
+/* Obituarios LocalProo: lienzo para pantallas de salas de velación.
+   El lienzo se diseña a 1920×1080 (horizontal), 1080×1920 (vertical) o 1080×1080 (cuadrado)
+   y se escala a la medida de la pantalla (4K, Full HD…). */
+.obi{--acento:#b08d57;--texto:#3b3127;--k:1;--esq:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cg fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M30 30 C80 22 140 26 196 44'/%3E%3Cpath d='M30 30 C22 80 26 140 44 196'/%3E%3Cpath d='M70 28 C90 50 110 52 128 46'/%3E%3Cpath d='M28 70 C50 90 52 110 46 128'/%3E%3C/g%3E%3Cg fill='%23000'%3E%3Cellipse cx='73.2' cy='35.3' rx='11.0' ry='4.5' transform='rotate%28-25 73.2 35.3%29'/%3E%3Cellipse cx='35.3' cy='73.2' rx='11.0' ry='4.5' transform='rotate%28115 35.3 73.2%29'/%3E%3Cellipse cx='97.9' cy='17.3' rx='10.1' ry='4.1' transform='rotate%2845 97.9 17.3%29'/%3E%3Cellipse cx='17.3' cy='97.9' rx='10.1' ry='4.1' transform='rotate%2845 17.3 97.9%29'/%3E%3Cellipse cx='123.2' cy='37.0' rx='9.2' ry='3.8' transform='rotate%28-25 123.2 37.0%29'/%3E%3Cellipse cx='37.0' cy='123.2' rx='9.2' ry='3.8' transform='rotate%28115 37.0 123.2%29'/%3E%3Cellipse cx='148.9' cy='22.5' rx='8.4' ry='3.4' transform='rotate%2845 148.9 22.5%29'/%3E%3Cellipse cx='22.5' cy='148.9' rx='8.4' ry='3.4' transform='rotate%2845 22.5 148.9%29'/%3E%3Cellipse cx='174.6' cy='45.8' rx='7.5' ry='3.1' transform='rotate%28-25 174.6 45.8%29'/%3E%3Cellipse cx='45.8' cy='174.6' rx='7.5' ry='3.1' transform='rotate%28115 45.8 174.6%29'/%3E%3Ccircle cx='130' cy='46' r='5'/%3E%3Ccircle cx='46' cy='130' r='5'/%3E%3Ccircle cx='196' cy='44' r='4'/%3E%3Ccircle cx='44' cy='196' r='4'/%3E%3C/g%3E%3Cg fill='none' stroke='%23000' stroke-width='2.6'%3E%3Cellipse cx='30' cy='14' rx='9' ry='15' transform='rotate%280 30 30%29'/%3E%3Cellipse cx='30' cy='14' rx='9' ry='15' transform='rotate%2860 30 30%29'/%3E%3Cellipse cx='30' cy='14' rx='9' ry='15' transform='rotate%28120 30 30%29'/%3E%3Cellipse cx='30' cy='14' rx='9' ry='15' transform='rotate%28180 30 30%29'/%3E%3Cellipse cx='30' cy='14' rx='9' ry='15' transform='rotate%28240 30 30%29'/%3E%3Cellipse cx='30' cy='14' rx='9' ry='15' transform='rotate%28300 30 30%29'/%3E%3Ccircle cx='30' cy='30' r='9'/%3E%3Cpath d='M24 30 a6 6 0 0 1 12 0 a4 4 0 0 1 -8 0'/%3E%3C/g%3E%3C/svg%3E");
+  position:relative;overflow:hidden;transform-origin:0 0;color:var(--texto);
+  font-family:'Montserrat',system-ui,sans-serif;background:#f4f1ec;box-sizing:border-box;text-rendering:geometricPrecision}
+.obi *,.obi *::before,.obi *::after{box-sizing:border-box}
+.obi [hidden]{display:none!important}
+.obi-fondo,.obi-velo,.obi-anim-capa,.obi-marco-deco{position:absolute;inset:0;pointer-events:none}
+.obi-fondo video,.obi-fondo canvas{width:100%;height:100%;object-fit:cover;display:block}
+.obi-velo{background:#000;opacity:0}
+.obi-anim-capa{overflow:hidden}
+.obi-anim-capa canvas{position:absolute;inset:0;width:100%;height:100%}
+
+/* ===== Estructura ===== */
+.obi-cuerpo{position:absolute;inset:0;display:grid;z-index:2}
+.o-h .obi-cuerpo{grid-template-columns:31% 1fr 23%}
+.o-v .obi-cuerpo{grid-template-columns:1fr;grid-template-rows:auto 1fr auto}
+.o-c .obi-cuerpo{grid-template-columns:40% 1fr}
+.obi-lado,.obi-der,.obi-centro{position:relative;min-width:0;min-height:0}
+.obi-lado{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 40px}
+.obi-centro{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:calc(56px*var(--k)) 64px;overflow:hidden}
+.obi-der{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px 48px;gap:34px}
+.o-v .obi-der,.o-c .obi-der{display:none}
+.o-v .obi-lado{padding:110px 80px 10px}
+.o-v .obi-centro{padding:30px 90px 40px;justify-content:flex-start}
+.o-c .obi-lado{padding:40px 24px 40px 48px}
+.o-c .obi-centro{padding:40px 50px}
+
+.obi-foto{width:480px;height:480px;border-radius:50%;overflow:hidden;flex:0 0 auto;position:relative;
+  border:10px solid #fff;box-shadow:0 18px 50px -18px rgba(0,0,0,.45);background:linear-gradient(160deg,#dfe7ef,#b9c6d3)}
+.obi-foto img{width:100%;height:100%;object-fit:cover;display:block}
+.obi-foto svg{width:100%;height:100%;display:block}
+.o-v .obi-foto{width:560px;height:560px}
+.o-c .obi-foto{width:340px;height:340px;border-width:8px}
+.obi-memoria{margin-top:42px;text-align:center;line-height:1.15}
+.obi-memoria .obi-script{display:block;font-size:46px;color:var(--acento)}
+.obi-memoria b{display:block;font-size:34px;font-weight:800;text-transform:uppercase;letter-spacing:.02em;margin-top:8px}
+.o-v .obi-memoria{display:none}
+.o-c .obi-memoria{margin-top:26px}
+.o-c .obi-memoria .obi-script{font-size:34px}
+.o-c .obi-memoria b{display:none}
+
+.obi-script{font-family:'Great Vibes','Brush Script MT',cursive;font-weight:400;letter-spacing:0;text-transform:none}
+.obi-cab{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:calc(14px*var(--k))}
+.obi-logo{max-height:calc(150px*var(--k));max-width:420px;object-fit:contain;display:block}
+.obi-empresa{font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;font-size:calc(40px*var(--k));line-height:1.1}
+.o-h .obi-centro .obi-cab{display:flex}
+.obi-titulo{font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;font-size:calc(66px*var(--k));line-height:1;color:var(--texto)}
+.obi-sub{display:flex;align-items:center;justify-content:center;gap:22px;margin-top:calc(8px*var(--k));flex-wrap:wrap}
+.obi-sala{font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;font-size:calc(50px*var(--k));letter-spacing:.06em;text-transform:uppercase;color:var(--acento);line-height:1}
+.obi-frase{font-family:'Great Vibes',cursive;font-size:calc(46px*var(--k));color:var(--acento);line-height:1.1}
+.obi-linea{width:78%;height:3px;background:var(--texto);opacity:.75;margin:calc(14px*var(--k)) 0 calc(18px*var(--k))}
+.obi-nombre{margin:0;font-weight:800;font-size:calc(54px*var(--k));line-height:1.08;text-transform:uppercase;letter-spacing:.01em;color:var(--texto)}
+.obi-anios{font-family:'Cormorant Garamond',Georgia,serif;font-size:calc(34px*var(--k));font-weight:600;margin-top:4px;opacity:.85}
+.obi-datos{display:flex;flex-direction:column;align-items:center;gap:calc(6px*var(--k));margin-top:calc(14px*var(--k))}
+.obi-dato{display:flex;flex-direction:column;align-items:center;line-height:1.15}
+.obi-et{font-family:'Great Vibes',cursive;font-size:calc(42px*var(--k));color:var(--texto);line-height:1.05}
+.obi-val{font-size:calc(29px*var(--k));font-weight:500}
+.obi-invitan{margin-top:calc(14px*var(--k));display:flex;flex-direction:column;align-items:center}
+.obi-invitan > .obi-et{font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;font-size:calc(42px*var(--k))}
+.obi-grupos{display:flex;flex-direction:column;align-items:center;gap:calc(8px*var(--k));margin-top:calc(4px*var(--k))}
+.obi-grupo{line-height:1.2}
+.obi-grupo b{display:block;font-size:calc(21px*var(--k));font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+.obi-grupo span{display:block;font-size:calc(25px*var(--k));font-weight:500}
+.o-h .obi-grupos.dos{display:grid;grid-template-columns:1fr 1fr;column-gap:40px;row-gap:calc(8px*var(--k))}
+
+.obi-der .obi-logo{max-height:220px;max-width:100%}
+.obi-der .obi-empresa{font-size:44px}
+.obi-pie{font-size:30px;font-weight:500;line-height:1.3;font-style:italic}
+.obi-pie-v{position:relative;z-index:3;text-align:center;font-size:28px;font-style:italic;padding:0 80px 70px}
+.o-h .obi-pie-v,.o-c .obi-pie-v{display:none}
+.o-c .obi-cab .obi-logo{max-height:calc(110px*var(--k))}
+.o-c .obi-titulo{font-size:calc(52px*var(--k))}
+.o-c .obi-nombre{font-size:calc(42px*var(--k))}
+.o-v .obi-titulo{font-size:calc(80px*var(--k))}
+.o-v .obi-nombre{font-size:calc(64px*var(--k))}
+.o-v .obi-val{font-size:calc(34px*var(--k))}
+.o-v .obi-et{font-size:calc(50px*var(--k))}
+.o-v .obi-grupo b{font-size:calc(25px*var(--k))}
+.o-v .obi-grupo span{font-size:calc(30px*var(--k))}
+
+/* Adornos de esquina (flores) */
+.obi-esq{position:absolute;width:230px;height:230px;background:var(--acento);
+  -webkit-mask:var(--esq) no-repeat center/contain;mask:var(--esq) no-repeat center/contain;opacity:.85;pointer-events:none;display:none}
+.obi-esq.e2{transform:scaleX(-1)}.obi-esq.e3{transform:scaleY(-1)}.obi-esq.e4{transform:scale(-1,-1)}
+.obi-centro .obi-esq.e1{top:16px;left:16px}.obi-centro .obi-esq.e2{top:16px;right:16px}
+.obi-centro .obi-esq.e3{bottom:16px;left:16px}.obi-centro .obi-esq.e4{bottom:16px;right:16px}
+
+/* ===== Diseño: Clásico mármol ===== */
+.d-clasico{background:
+  radial-gradient(ellipse at 18% 30%,rgba(255,255,255,.9),transparent 40%),
+  radial-gradient(ellipse at 70% 80%,rgba(214,210,203,.55),transparent 45%),
+  repeating-linear-gradient(115deg,rgba(150,145,140,.07) 0 2px,transparent 2px 60px),
+  linear-gradient(135deg,#fbfaf8,#e7e3dc)}
+.d-clasico .obi-centro{background:linear-gradient(180deg,#ffffff,#f3f2ef);box-shadow:0 0 60px rgba(0,0,0,.18)}
+.d-clasico.o-h .obi-centro{margin:28px 0}
+.d-clasico .obi-centro .obi-esq{display:block;width:190px;height:190px}
+.d-clasico .obi-centro .obi-esq.e3,.d-clasico .obi-centro .obi-esq.e4{width:130px;height:130px}
+.d-clasico.o-h .obi-centro{padding-left:100px;padding-right:100px}
+.d-clasico .obi-lado::before,.d-clasico .obi-der::before{content:"";position:absolute;inset:34px;border:3px solid var(--acento);opacity:.55;pointer-events:none}
+.d-clasico .obi-lado::after,.d-clasico .obi-der::after{content:"";position:absolute;inset:48px;border:1.5px solid var(--acento);opacity:.4;pointer-events:none}
+.d-clasico.o-v .obi-lado::before,.d-clasico.o-v .obi-lado::after{display:none}
+.d-clasico.o-v .obi-centro{margin:0 50px 30px;border-radius:6px}
+.d-clasico.o-c .obi-centro{margin:30px 30px 30px 0}
+
+/* ===== Diseño: Negro y dorado ===== */
+.d-dorado{background:radial-gradient(circle at 50% 40%,#2a241b,#0a0907 70%)}
+.d-dorado .obi-marco-deco{inset:30px;border:3px solid var(--acento)}
+.d-dorado .obi-marco-deco::after{content:"";position:absolute;inset:10px;border:1.5px solid var(--acento);opacity:.6}
+.d-dorado .obi-nombre,.d-dorado .obi-titulo,.d-dorado .obi-empresa{background:linear-gradient(180deg,#fff3c4,var(--acento) 55%,#8a6a1c);-webkit-background-clip:text;background-clip:text;color:transparent}
+.d-dorado .obi-et,.d-dorado .obi-frase,.d-dorado .obi-sala{color:var(--acento)}
+.d-dorado .obi-linea{background:linear-gradient(90deg,transparent,var(--acento),transparent);opacity:1}
+.d-dorado .obi-foto{border-color:var(--acento)}
+.d-dorado .obi-centro .obi-esq{display:block;width:150px;height:150px;opacity:.7}
+.d-dorado .obi-centro .obi-esq.e1,.d-dorado .obi-centro .obi-esq.e2{top:50px}.d-dorado .obi-centro .obi-esq.e3,.d-dorado .obi-centro .obi-esq.e4{bottom:50px}
+.d-dorado .obi-der{border-left:1.5px solid rgba(212,175,55,.35);margin:90px 0}
+.d-dorado .obi-lado{border-right:1.5px solid rgba(212,175,55,.35);margin:90px 0}
+.d-dorado.o-v .obi-lado,.d-dorado.o-c .obi-lado{border:0;margin:0}
+
+/* ===== Diseño: Cielo sereno ===== */
+.d-cielo{background:linear-gradient(180deg,#5b97d1 0%,#8fbde6 45%,#dcecf8 100%)}
+.d-cielo .obi-fondo::before,.d-cielo .obi-fondo::after{content:"";position:absolute;border-radius:50%;background:#fff;filter:blur(40px);opacity:.7}
+.d-cielo .obi-fondo::before{width:900px;height:220px;left:-120px;bottom:60px}
+.d-cielo .obi-fondo::after{width:1000px;height:260px;right:-200px;bottom:-40px}
+.d-cielo.fondo-propio .obi-fondo::before,.d-cielo.fondo-propio .obi-fondo::after{display:none}
+.d-cielo .obi-centro{background:rgba(255,255,255,.16);border:2px solid rgba(255,255,255,.55);border-radius:40px;margin:60px 10px;backdrop-filter:blur(6px)}
+.d-cielo.o-v .obi-centro{margin:20px 60px 30px}
+.d-cielo.o-c .obi-centro{margin:40px 40px 40px 0}
+.d-cielo .obi-centro,.d-cielo .obi-der,.d-cielo .obi-memoria,.d-cielo .obi-pie-v{text-shadow:0 2px 12px rgba(20,50,90,.45)}
+.d-cielo .obi-linea{background:#fff}
+.d-cielo .obi-et,.d-cielo .obi-frase,.d-cielo .obi-memoria .obi-script,.d-cielo .obi-sala{color:#fff}
+
+/* ===== Diseño: Floral ===== */
+.d-floral{background:radial-gradient(circle at 10% 10%,#ffffff,transparent 40%),linear-gradient(135deg,#fff8f3,#f5dfe3)}
+.d-floral .obi-esq{display:block}
+.d-floral .obi-marco-deco{inset:26px;border:2px solid var(--acento);border-radius:30px;opacity:.5}
+.d-floral > .obi-esq{display:block;width:300px;height:300px;opacity:.5}
+.d-floral > .obi-esq.e1{top:0;left:0}.d-floral > .obi-esq.e2{top:0;right:0}.d-floral > .obi-esq.e3{bottom:0;left:0}.d-floral > .obi-esq.e4{bottom:0;right:0}
+.d-floral .obi-centro .obi-esq{display:none}
+.d-floral .obi-foto{border-color:#fff;box-shadow:0 0 0 6px var(--acento),0 20px 50px -20px rgba(90,30,50,.5)}
+.d-floral .obi-titulo{font-family:'Great Vibes',cursive;font-weight:400;font-size:calc(84px*var(--k))}
+.d-floral .obi-linea{background:var(--acento)}
+
+/* ===== Diseño: Luz de vela ===== */
+.d-vela{background:radial-gradient(circle at 50% 75%,#6a3a17 0%,#2a160a 45%,#0d0704 80%)}
+.d-vela .obi-marco-deco{background:radial-gradient(circle at 50% 80%,rgba(255,170,70,.28),transparent 45%);animation:obiLlama 3.2s ease-in-out infinite alternate}
+.d-vela .obi-et,.d-vela .obi-frase,.d-vela .obi-sala{color:var(--acento)}
+.d-vela .obi-linea{background:linear-gradient(90deg,transparent,var(--acento),transparent);opacity:1}
+.d-vela .obi-foto{border-color:#f7d9a8;box-shadow:0 0 80px rgba(255,170,70,.45)}
+.d-vela .obi-titulo,.d-vela .obi-nombre{color:#fff3e0}
+@keyframes obiLlama{0%{opacity:.75}40%{opacity:1}70%{opacity:.85}100%{opacity:1}}
+
+/* ===== Diseño: Sencillo ===== */
+.d-sencillo{background:linear-gradient(135deg,#f7f8f6,#e5ebe7)}
+.d-sencillo .obi-centro{background:#fff;border-radius:34px;margin:70px 10px;box-shadow:0 30px 70px -40px rgba(0,0,0,.35)}
+.d-sencillo.o-v .obi-centro{margin:20px 60px 30px}
+.d-sencillo.o-c .obi-centro{margin:40px 40px 40px 0}
+.d-sencillo .obi-titulo,.d-sencillo .obi-empresa{font-family:'Montserrat',sans-serif;font-weight:800;letter-spacing:.02em}
+.d-sencillo .obi-titulo{font-size:calc(54px*var(--k))}
+.d-sencillo .obi-et{font-family:'Montserrat',sans-serif;font-size:calc(20px*var(--k));font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--acento);margin-top:6px}
+.d-sencillo .obi-frase{font-family:'Montserrat',sans-serif;font-style:italic;font-size:calc(28px*var(--k))}
+.d-sencillo .obi-sala{font-family:'Montserrat',sans-serif;font-weight:800;font-size:calc(30px*var(--k));background:var(--acento);color:#fff;padding:8px 22px;border-radius:999px}
+.d-sencillo .obi-linea{background:var(--acento);height:4px;width:120px;border-radius:4px}
+.d-sencillo .obi-memoria .obi-script{font-family:'Montserrat',sans-serif;font-size:24px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+.d-sencillo .obi-invitan > .obi-et{font-size:calc(22px*var(--k))}
+
+/* En cuadrado y vertical las flores de abajo estorban el texto */
+.o-c .obi-centro .obi-esq.e3,.o-c .obi-centro .obi-esq.e4{display:none!important}
+
+/* Logos oscuros sobre fondos oscuros: se ponen sobre una placa clara */
+.d-dorado .obi-logo,.d-vela .obi-logo,.fondo-propio .obi-logo{background:rgba(255,255,255,.92);padding:14px 24px;border-radius:20px}
+
+/* Fondo propio: los paneles se vuelven transparentes para que se vea la imagen o el video */
+.fondo-propio.d-dorado,.fondo-propio.d-vela,.fondo-propio.d-clasico,.fondo-propio.d-floral,.fondo-propio.d-sencillo,.fondo-propio.d-cielo{background:#000}
+.fondo-propio.d-clasico .obi-centro{background:rgba(255,255,255,.9)}
+
+/* ===== Animaciones con CSS ===== */
+.obi-rayos{position:absolute;left:50%;top:-60%;width:220%;height:220%;transform:translateX(-50%);
+  background:repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,255,255,.07) 0 4deg,transparent 4deg 14deg);
+  -webkit-mask:radial-gradient(circle at 50% 50%,#000 0,transparent 55%);mask:radial-gradient(circle at 50% 50%,#000 0,transparent 55%);
+  animation:obiGirar 90s linear infinite}
+@keyframes obiGirar{to{transform:translateX(-50%) rotate(360deg)}}
+.obi-nube{position:absolute;border-radius:50%;background:#fff;filter:blur(30px);opacity:.55;animation:obiNube linear infinite}
+@keyframes obiNube{from{left:-45%}to{left:110%}}
+.obi-paloma{position:absolute;width:150px;height:110px;color:#fff;filter:drop-shadow(0 6px 10px rgba(0,0,0,.25));animation:obiVuelo linear infinite}
+.obi-paloma svg{width:100%;height:100%}
+.obi-paloma .ala{transform-origin:70px 52px;animation:obiAleteo .9s ease-in-out infinite alternate}
+@keyframes obiAleteo{from{transform:scaleY(1)}to{transform:scaleY(-.35)}}
+@keyframes obiVuelo{0%{left:-10%;margin-top:0}50%{margin-top:-40px}100%{left:108%;margin-top:10px}}
+
+/* Contenedores */
+[data-obi-marco]{position:relative;overflow:hidden;width:100%}
+[data-obi-marco] > .obi{position:absolute;top:0;left:0}
+body.sin-cursor,body.sin-cursor *{cursor:none!important}

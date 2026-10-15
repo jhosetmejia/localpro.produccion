@@ -126,6 +126,7 @@ class DepurarPruebas extends Command
         Storage::disk('public')->deleteDirectory('redes/' . $t->id);
         Storage::disk('local')->deleteDirectory('importaciones/' . $t->id);
         Storage::disk('local')->deleteDirectory('alquileres/' . $t->id); // fotos de documentos de respaldo
+        Storage::disk('public')->deleteDirectory('obituarios/' . $t->id); // fotos, fondos y videos de obituarios
     }
 
     // Todas las tablas que tienen tienda_id, menos las que se conservan

@@ -32,6 +32,7 @@ class bienvenidaController extends Controller
         'tecnologia' => [['Cargador USB-C', 25000, '', '', 10], ['Audífonos bluetooth', 59900, '', '', 8], ['Protector de pantalla', 15000, '', '', 20], ['Cable USB', 12000, '', '', 15]],
         'papeleria' => [['Cuaderno 100 hojas', 5500, '', '', 30], ['Lapicero', 1500, '', '', 50], ['Colores x12', 12000, '', '', 20], ['Tarjeta de regalo', 3000, '', '', 40]],
         'ferreteria' => [['Martillo', 25000, '', '', 10], ['Destornillador', 12000, '', '', 15], ['Cinta aislante', 4000, '', '', 30], ['Tornillos x100', 9000, '', '', 20]],
+        'funeraria' => [['Plan exequial mensual', 25000, '', '', 0], ['Arreglo floral', 120000, '', '', 5], ['Cofre fúnebre básico', 1800000, '', '', 2], ['Servicio de cremación', 1500000, '', '', 0]],
         'otro' => [['Producto 1', 10000, '', '', 10], ['Producto 2', 15000, '', '', 10], ['Producto 3', 20000, '', '', 10], ['Producto 4', 25000, '', '', 10]],
     ];
 
@@ -87,6 +88,7 @@ class bienvenidaController extends Controller
             'mod_vencimiento' => 'nullable|boolean',
             'mod_recetas' => 'nullable|boolean',
             'mod_alquiler' => 'nullable|boolean',
+            'mod_obituarios' => 'nullable|boolean',
         ] + \App\Support\Ubicaciones::reglas($request->input('pais'), $request->input('departamento')),
         ['nombre.required' => 'Escriba el nombre de su negocio.', 'tipo_negocio.required' => 'Elija el tipo de negocio.'] + \App\Support\Ubicaciones::mensajes());
 
@@ -110,7 +112,7 @@ class bienvenidaController extends Controller
         unset($datos['logo']);
 
         $datos['usa_tallas'] = Tienda::TIPOS[$datos['tipo_negocio']][2];
-        foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler'] as $m) {
+        foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios'] as $m) {
             $datos[$m] = $request->has($m) ? $request->boolean($m) : in_array($m, Tienda::MODULOS_POR_TIPO[$datos['tipo_negocio']] ?? [], true);
         }
         $datos['onboarding_paso'] = 3;
