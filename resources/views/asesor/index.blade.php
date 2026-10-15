@@ -33,6 +33,38 @@
     </div>
     @endforeach
 
+    {{-- Mi curso de asesor y certificado --}}
+    @php
+        $yoA = auth()->user()->asesor;
+        $totLec = count(\App\Support\CursoAsesor::lecciones());
+        $hechas = min($totLec, count((array) ($yoA->curso_modulos ?? [])));
+        $pctCurso = $yoA?->curso_aprobado_at ? 100 : ($totLec ? (int) round($hechas / ($totLec + 1) * 100) : 0);
+    @endphp
+    @if ($yoA)
+    <div class="lp-box mb-3" style="{{ $yoA->curso_aprobado_at ? 'border-color:#bfeccb;background:#f7fdf8' : 'border:2px solid #f5b544;background:#fff8e8' }}">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div style="font-size:2rem">{{ $yoA->curso_aprobado_at ? '🎓' : '📚' }}</div>
+            <div class="flex-grow-1" style="min-width:220px">
+                <b>Mi curso de asesor LocalPro</b>
+                <div class="small text-muted">
+                    @if ($yoA->curso_aprobado_at)
+                        Aprobado el {{ $yoA->curso_aprobado_at->format('d/m/Y') }}@if ($yoA->curso_nota) con {{ $yoA->curso_nota }}%@endif · Certificado {{ $yoA->certificado }}
+                    @else
+                        {{ $hechas }} de {{ $totLec }} lecciones y el examen final. Al aprobar recibe su certificado.
+                    @endif
+                </div>
+                <div class="progress mt-2" style="height:8px"><div class="progress-bar bg-success" style="width:{{ $pctCurso }}%"></div></div>
+            </div>
+            @if ($yoA->curso_aprobado_at)
+            <a href="{{ route('curso.certificado') }}" class="btn btn-success"><i class="fa-solid fa-award me-1"></i>Ver mi certificado</a>
+            <a href="{{ route('curso.index') }}" class="btn btn-light"><i class="fa-solid fa-book-open me-1"></i>Repasar el curso</a>
+            @else
+            <a href="{{ route('curso.index') }}" class="btn btn-dark"><i class="fa-solid fa-play me-1"></i>{{ $hechas ? 'Seguir el curso' : 'Empezar el curso' }}</a>
+            @endif
+        </div>
+    </div>
+    @endif
+
     {{-- Mis ganancias del mes --}}
     @php $g = $ganancias; $mesNombre = ucfirst(now()->locale('es')->isoFormat('MMMM')); @endphp
     <div class="lp-box mb-3" style="background:#0f1411;color:#fff;border:none">

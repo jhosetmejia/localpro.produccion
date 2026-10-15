@@ -72,6 +72,10 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-coins"></i></div>
                     Mis comisiones
                 </a>
+                <a class="nav-link {{ $on('curso.*') }}" href="{{ route('curso.index') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-user-graduate"></i></div>
+                    Mi curso y certificado @if (auth()->user()->asesor->curso_aprobado_at)<i class="fa-solid fa-circle-check ms-auto" style="color:#a6f34a"></i>@else<span class="badge rounded-pill ms-auto" style="background:#f5b544;color:#0b0d0c;font-size:.6rem">PENDIENTE</span>@endif
+                </a>
                 <a class="nav-link" href="{{ route('asesor.simulador') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-calculator"></i></div>
                     Simulador de ganancias
