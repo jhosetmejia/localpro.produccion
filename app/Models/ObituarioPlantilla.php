@@ -14,7 +14,7 @@ class ObituarioPlantilla extends Model
 
     protected $table = 'obituario_plantillas';
 
-    protected $fillable = ['nombre', 'diseno', 'medida', 'fondo_tipo', 'fondo_color', 'fondo_color2', 'oscurecer', 'animacion', 'color_acento', 'color_texto', 'mostrar_logo', 'titulo', 'frase', 'pie'];
+    protected $fillable = ['nombre', 'diseno', 'medida', 'fondo_tipo', 'fondo_color', 'fondo_color2', 'oscurecer', 'animacion', 'color_acento', 'color_texto', 'mostrar_logo', 'titulo', 'frase', 'pie', 'adornos'];
 
     protected $casts = ['mostrar_logo' => 'boolean', 'oscurecer' => 'integer'];
 
@@ -52,6 +52,8 @@ class ObituarioPlantilla extends Model
         'nubes' => 'Nubes',
         'palomas' => 'Palomas',
     ];
+
+    public const ADORNOS = ['muchos' => 'Muchas flores', 'pocos' => 'Pocas (solo en la foto)', 'ninguno' => 'Sin flores'];
 
     public const FRASE = 'Descansó en la paz del Señor';
 
@@ -92,7 +94,7 @@ class ObituarioPlantilla extends Model
     {
         return static::firstOrCreate(['nombre' => 'Clásica'], [
             'diseno' => 'clasico', 'medida' => 'fhd', 'fondo_tipo' => 'diseno', 'animacion' => 'destellos',
-            'mostrar_logo' => true, 'titulo' => 'Obituario', 'frase' => self::FRASE,
+            'mostrar_logo' => true, 'titulo' => 'Obituario', 'frase' => self::FRASE, 'adornos' => 'muchos',
         ]);
     }
 }

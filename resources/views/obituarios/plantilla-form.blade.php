@@ -97,6 +97,16 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
                 </div>
 
                 <div class="lp-box mb-3">
+                    <h3>Flores y adornos</h3>
+                    <div class="pf-chips">
+                        @foreach ($P::ADORNOS as $k => $nom)
+                        <input type="radio" name="adornos" id="ad-{{ $k }}" value="{{ $k }}" @checked(old('adornos', $plantilla->adornos ?: 'muchos') === $k)><label for="ad-{{ $k }}">{{ $nom }}</label>
+                        @endforeach
+                    </div>
+                    <div class="pf-ayuda mt-2">Ramos de rosas alrededor de la foto y en las esquinas, con los colores del diseño.</div>
+                </div>
+
+                <div class="lp-box mb-3">
                     <h3>Animación de fondo</h3>
                     <div class="pf-chips">
                         @foreach ($P::ANIMACIONES as $k => $nom)
@@ -147,7 +157,7 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
 @endsection
 
 @push('js')
-<script src="{{ asset('js/obituarios.js') }}?v=1"></script>
+<script src="{{ asset('js/obituarios.js') }}?v=2"></script>
 <script>
 (function () {
     var form = document.getElementById('pf-form'), el = document.querySelector('[data-obi]');
@@ -168,7 +178,7 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
         Obi.estilo(el, {
             diseno: val('diseno'), o: med[3], w: base[0], h: base[1], escala: med[1] / base[0],
             fondo_tipo: tipo, color1: f.fondo_color.value, color2: document.getElementById('pf-deg').checked ? f.fondo_color2.value : '',
-            imagen: imagen, video: video, oscurecer: +f.oscurecer.value, anim: val('animacion'),
+            imagen: imagen, video: video, oscurecer: +f.oscurecer.value, anim: val('animacion'), adornos: val('adornos'),
             acento: propios ? f.color_acento.value : dis[2], texto: propios ? f.color_texto.value : dis[3],
             logo: f.mostrar_logo.checked, titulo: f.titulo.value, frase: f.frase.value, pie: f.pie.value
         });

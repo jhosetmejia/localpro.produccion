@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Great+Vibes&family=Montserrat:ital,wght@0,500;0,700;0,800;1,500&display=swap">
-<link rel="stylesheet" href="{{ asset('css/obituarios.css') }}?v=1">
+<link rel="stylesheet" href="{{ asset('css/obituarios.css') }}?v=2">
 @endonce
 @php
     $m = $p->medida_datos;
@@ -45,7 +45,7 @@
     $logo = $tienda->logo_url;
     $conLogo = $p->mostrar_logo;
 @endphp
-<div class="obi d-{{ $p->diseno }} o-{{ $m['orientacion'] }} {{ $p->fondo_tipo !== 'diseno' ? 'fondo-propio' : '' }}" data-obi
+<div class="obi d-{{ $p->diseno }} o-{{ $m['orientacion'] }} adornos-{{ $p->adornos ?: 'muchos' }} {{ $p->fondo_tipo !== 'diseno' ? 'fondo-propio' : '' }}" data-obi
      data-w="{{ $m['base_ancho'] }}" data-h="{{ $m['base_alto'] }}" data-escala="{{ $m['escala'] }}" data-anim="{{ $p->animacion }}"
      style="width:{{ $m['base_ancho'] }}px;height:{{ $m['base_alto'] }}px;--acento:{{ $p->acento }};--texto:{{ $p->texto_color }}">
     <div class="obi-fondo" style="{{ $fondoCss }}">@if ($video)<video src="{{ $video }}" autoplay muted loop playsinline></video>@endif</div>
@@ -53,12 +53,18 @@
     <div class="obi-marco-deco"></div>
     <div class="obi-anim-capa" data-anim-capa></div>
     <div class="obi-esq e1"></div><div class="obi-esq e2"></div><div class="obi-esq e3"></div><div class="obi-esq e4"></div>
+    <div class="obi-ramo r-c1">@include('obituarios._ramo')</div>
+    <div class="obi-ramo r-c4">@include('obituarios._ramo')</div>
     <div class="obi-cuerpo">
         <section class="obi-lado">
-            @php $fe = \App\Models\Obituario::fotoEstilo($o); @endphp
-            <div class="obi-foto {{ $fe['clase'] }}" style="{{ $fe['estilo'] }}">
-                <svg viewBox="0 0 100 100" @if ($d['foto']) style="display:none" @endif><circle cx="50" cy="38" r="17" fill="#fff" opacity=".85"/><path d="M18 92c2-20 16-30 32-30s30 10 32 30z" fill="#fff" opacity=".85"/></svg>
-                @if ($d['foto'])<img src="{{ $d['foto'] }}" alt="">@endif
+            <div class="obi-foto-wrap">
+                <div class="obi-ramo r-f1">@include('obituarios._ramo')</div>
+                @php $fe = \App\Models\Obituario::fotoEstilo($o); @endphp
+                <div class="obi-foto {{ $fe['clase'] }}" style="{{ $fe['estilo'] }}">
+                    <svg viewBox="0 0 100 100" @if ($d['foto']) style="display:none" @endif><circle cx="50" cy="38" r="17" fill="#fff" opacity=".85"/><path d="M18 92c2-20 16-30 32-30s30 10 32 30z" fill="#fff" opacity=".85"/></svg>
+                    @if ($d['foto'])<img src="{{ $d['foto'] }}" alt="">@endif
+                </div>
+                <div class="obi-ramo r-f2">@include('obituarios._ramo')</div>
             </div>
             <div class="obi-memoria"><span class="obi-script">En memoria de</span><b data-o="nombre">{{ $d['nombre'] }}</b></div>
         </section>
@@ -94,6 +100,7 @@
         <section class="obi-der">
             @if ($logo)<img class="obi-logo" src="{{ $logo }}" alt="" data-logo @unless ($conLogo) hidden @endunless>@endif
             <div class="obi-empresa" @if ($logo) data-sin-logo @if ($conLogo) hidden @endif @endif>{{ $tienda->nombre }}</div>
+            <div class="obi-ramo r-d">@include('obituarios._ramo')</div>
             <div class="obi-pie" data-o="pie" data-fila="pie" @if (!$p->pie) hidden @endif>{{ $p->pie }}</div>
         </section>
         <div class="obi-pie-v" data-o="pie" data-fila="pie" @if (!$p->pie) hidden @endif>{{ $p->pie }}</div>

@@ -90,6 +90,38 @@
 .o-v .obi-foto.forma-libre{width:600px;height:680px}
 .o-c .obi-foto.forma-libre{width:380px;height:440px}
 
+/* ===== Ramos de flores (rosas, hojas y botones) ===== */
+.obi{--flor:#fbf6ee;--hoja:#e9dcc4;--trazo:var(--acento)}
+.obi-ramo{position:absolute;pointer-events:none;width:440px;z-index:1}
+.obi-ramo svg{width:100%;height:auto;display:block;overflow:visible}
+.obi-ramo .rp{fill:var(--flor);stroke:var(--trazo);stroke-width:2.2;stroke-linejoin:round}
+.obi-ramo .rh{fill:var(--hoja);stroke:var(--trazo);stroke-width:2}
+.obi-ramo .rl{fill:none;stroke:var(--trazo);stroke-width:2.2;stroke-linecap:round}
+.obi-ramo .rc{fill:var(--trazo)}
+.obi-foto-wrap{position:relative;display:flex;justify-content:center}
+.obi-foto-wrap .obi-foto{z-index:2}
+.obi-foto-wrap .r-f1,.obi-foto-wrap .r-f2{z-index:3;width:380px}
+.r-f1{left:-190px;top:-130px;transform:scaleX(-1)}
+.r-f2{right:-190px;bottom:-120px;transform:scaleY(-1)}
+.r-c1{left:-40px;top:-40px;width:430px;transform:scaleY(-1)}
+.r-c4{right:-40px;bottom:-40px;width:430px;transform:scaleX(-1)}
+.r-d{position:relative;width:300px;margin:-10px 0}
+.o-v .r-c1,.o-v .r-c4{width:400px}
+.o-c .r-c1,.o-c .r-c4{width:300px}
+.o-c .obi-foto-wrap .r-f1,.o-c .obi-foto-wrap .r-f2{width:260px}
+.o-c .r-f1{left:-130px;top:-90px}.o-c .r-f2{right:-130px;bottom:-80px}
+.obi-foto-wrap:has(.forma-libre) .r-f1{top:auto;bottom:60px;left:-160px}
+.obi-foto-wrap:has(.forma-libre) .r-f2{right:-160px;bottom:-30px}
+.adornos-pocos .r-c1,.adornos-pocos .r-c4,.adornos-pocos .r-d{display:none}
+.adornos-ninguno .obi-ramo{display:none}
+/* Colores de las flores por diseño */
+.d-dorado{--flor:rgba(212,175,55,.14);--hoja:rgba(212,175,55,.28)}
+.d-cielo{--flor:rgba(255,255,255,.92);--hoja:rgba(255,255,255,.55);--trazo:#5f93c7}
+.d-floral{--flor:#fde4eb;--hoja:#efd3d8}
+.d-vela{--flor:rgba(240,180,90,.16);--hoja:rgba(240,180,90,.3)}
+.d-sencillo{--flor:#ffffff;--hoja:#dbe7e1}
+.fondo-propio{--flor:rgba(255,255,255,.9);--hoja:rgba(255,255,255,.6)}
+
 /* Adornos de esquina (flores) */
 .obi-esq{position:absolute;width:230px;height:230px;background:var(--acento);
   -webkit-mask:var(--esq) no-repeat center/contain;mask:var(--esq) no-repeat center/contain;opacity:.85;pointer-events:none;display:none}

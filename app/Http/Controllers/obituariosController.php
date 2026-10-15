@@ -257,7 +257,7 @@ class obituariosController extends Controller
         } else {
             $plantilla = new ObituarioPlantilla([
                 'nombre' => 'Plantilla ' . (ObituarioPlantilla::count() + 1), 'diseno' => 'clasico', 'medida' => 'fhd', 'fondo_tipo' => 'diseno',
-                'animacion' => 'ninguna', 'mostrar_logo' => true, 'titulo' => 'Obituario', 'frase' => ObituarioPlantilla::FRASE, 'oscurecer' => 30,
+                'animacion' => 'ninguna', 'mostrar_logo' => true, 'titulo' => 'Obituario', 'frase' => ObituarioPlantilla::FRASE, 'oscurecer' => 30, 'adornos' => 'muchos',
             ]);
         }
         return view('obituarios.plantilla-form', [
@@ -285,6 +285,7 @@ class obituariosController extends Controller
             'color_texto' => $color,
             'oscurecer' => 'nullable|integer|min:0|max:80',
             'animacion' => ['required', Rule::in(array_keys(ObituarioPlantilla::ANIMACIONES))],
+            'adornos' => ['nullable', Rule::in(array_keys(ObituarioPlantilla::ADORNOS))],
             'titulo' => 'nullable|string|max:60',
             'frase' => 'nullable|string|max:120',
             'pie' => 'nullable|string|max:150',
@@ -301,6 +302,7 @@ class obituariosController extends Controller
         $datos['mostrar_logo'] = $request->boolean('mostrar_logo');
         $datos['oscurecer'] = (int) ($datos['oscurecer'] ?? 0);
         $datos['titulo'] = $datos['titulo'] ?? '';
+        $datos['adornos'] = $datos['adornos'] ?? 'muchos';
         $plantilla->fill($datos);
 
         if ($request->hasFile('imagen')) {
