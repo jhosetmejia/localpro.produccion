@@ -121,7 +121,7 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
                     <div class="pf-rango"><label for="pf-fx">Mover ← →</label><input type="range" class="form-range" id="pf-fx" name="flor_x" min="-400" max="400" step="5" value="{{ old('flor_x', $fl['x']) }}"><output data-de="pf-fx"></output></div>
                     <div class="pf-rango"><label for="pf-fy">Mover ↑ ↓</label><input type="range" class="form-range" id="pf-fy" name="flor_y" min="-400" max="400" step="5" value="{{ old('flor_y', $fl['y']) }}"><output data-de="pf-fy"></output></div>
                     <div class="pf-rango"><label for="pf-ft">Tamaño</label><input type="range" class="form-range" id="pf-ft" name="flor_tam" min="40" max="200" step="5" value="{{ old('flor_tam', $fl['tam']) }}"><output data-de="pf-ft" data-suf="%"></output></div>
-                    <label class="form-label small fw-bold mt-3 mb-1">Flores de las esquinas <span class="text-muted fw-normal">(diseños clásicos)</span></label>
+                    <label class="form-label small fw-bold mt-3 mb-1">Flores de las esquinas</label>
                     <div class="pf-chips">
                         @foreach ($P::FLOR_ESQ as $k => $nom)
                         <input type="radio" name="flor_esq" id="fe-{{ $k }}" value="{{ $k }}" @checked(old('flor_esq', $fl['esq']) === $k)><label for="fe-{{ $k }}">{{ $nom }}</label>
@@ -192,7 +192,7 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
 @endsection
 
 @push('js')
-<script src="{{ asset('js/obituarios.js') }}?v=5"></script>
+<script src="{{ asset('js/obituarios.js') }}?v=6"></script>
 <script>
 (function () {
     var form = document.getElementById('pf-form'), el = document.querySelector('[data-obi]');

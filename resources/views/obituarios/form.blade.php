@@ -144,7 +144,7 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
 @endsection
 
 @push('js')
-<script src="{{ asset('js/obituarios.js') }}?v=5"></script>
+<script src="{{ asset('js/obituarios.js') }}?v=6"></script>
 <script>
 (function () {
     var form = document.getElementById('of-form'), el = document.querySelector('[data-obi]');

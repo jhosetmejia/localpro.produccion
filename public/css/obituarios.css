@@ -253,7 +253,7 @@ body.sin-cursor,body.sin-cursor *{cursor:none!important}
    Acuarela azul · Amanecer en la montaña · Botánico
    ===================================================================== */
 .obi-tarjeta{display:none}
-.lay-tarjeta .obi-cuerpo,.lay-tarjeta > .obi-esq,.lay-tarjeta > .obi-ramo,.lay-tarjeta .obi-marco-deco{display:none!important}
+.lay-tarjeta .obi-cuerpo,.lay-tarjeta > .obi-esq,.lay-tarjeta:not(.d-cielo_cruz):not(.d-amanecer) > .obi-ramo,.lay-tarjeta .obi-marco-deco{display:none!important}
 .lay-tarjeta{--t-texto:#233547;--t-acento:#a8844a;--t-titulo:#1f3550;--t-suave:rgba(35,53,71,.75);background:#fbf8f2}
 .lay-tarjeta .obi-tarjeta{position:absolute;inset:0;z-index:2;display:grid;padding:46px 64px 34px;column-gap:30px;
   grid-template-columns:36% minmax(0,1fr) 17%;grid-template-rows:auto minmax(0,1fr);grid-template-areas:"foto cab cita" "foto main cita";color:var(--t-texto)}
@@ -437,6 +437,25 @@ body.sin-cursor,body.sin-cursor *{cursor:none!important}
 .lay-tarjeta.adornos-pocos .ot-euca,.lay-tarjeta.adornos-pocos .ot-rama,.lay-tarjeta.adornos-pocos .ot-trazo-oro{display:none!important}
 .lay-tarjeta.adornos-ninguno .ot-euca,.lay-tarjeta.adornos-ninguno .ot-rama,.lay-tarjeta.adornos-ninguno .ot-trazo-oro,
 .lay-tarjeta.adornos-ninguno .ot-lirios-foto,.lay-tarjeta.adornos-ninguno .ot-rama-foto{display:none!important}
+
+/* ===== Los mismos controles funcionan en todas las plantillas ===== */
+/* Cielo y cruz / Amanecer no traen adornos propios en las esquinas: usan los ramos de rosas con sus colores */
+.d-cielo_cruz{--flor:#ffffff;--hoja:#efe3c8;--trazo:#b8955a}
+.d-amanecer{--flor:rgba(255,232,196,.3);--hoja:rgba(255,212,150,.32);--trazo:#f6c27a}
+.lay-tarjeta .obi-tarjeta{z-index:auto}
+.lay-tarjeta .ot-deco{z-index:0}
+.lay-tarjeta > .obi-ramo{z-index:1}
+.lay-tarjeta :is(.ot-foto-col,.ot-cab,.ot-cita,.ot-main){z-index:2}
+/* Amanecer también lleva lirios junto a la foto */
+.d-amanecer .ot-lirios-foto{display:block}
+/* Flores de las esquinas en las tarjetas: cada adorno según su esquina */
+.esq-arriba :is(.ot-euca.e2,.ot-rama.r1,.ot-rama.r2,.ot-trazo-oro),
+.esq-abajo :is(.ot-euca.e1,.ot-euca.e3),
+.esq-izquierda :is(.ot-euca.e1,.ot-rama.r2,.ot-trazo-oro),
+.esq-derecha :is(.ot-euca.e3,.ot-euca.e2,.ot-rama.r1),
+.esq-ninguna :is(.ot-euca,.ot-rama,.ot-trazo-oro){display:none!important}
+.esq-cuatro.d-noche_vela .ot-rama.r1,.esq-cuatro.d-noche_vela .ot-rama.r2{display:block}
+.esq-cuatro.d-acuarela .ot-rama.r2{display:block;width:420px;right:-30px;bottom:-40px;transform:scaleX(-1)}
 
 /* Fondo propio (imagen o video) en una tarjeta: se esconde el dibujo del fondo y se deja la foto */
 .lay-tarjeta.fondo-propio .ot-deco{display:none}
