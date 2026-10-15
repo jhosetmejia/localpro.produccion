@@ -40,7 +40,10 @@ class redesController extends Controller
 
         $filtro = $request->get('ver', 'todos');
         $q = trim((string) $request->get('q'));
+        // Con varias cuentas conectadas, cada una tiene su pestaña y solo se ven sus chats
+        $cuentaSel = $this->cuentaElegida($request, $cuentas);
         $convs = RedConversacion::with('cuenta')
+            ->when($cuentaSel, fn ($w) => $w->where('cuenta_id', $cuentaSel))
             ->when($filtro === 'facebook' || $filtro === 'instagram', fn ($w) => $w->where('plataforma', $filtro))
             ->when($filtro === 'sin_leer', fn ($w) => $w->where('no_leidos', '>', 0))
             ->when(isset(RedConversacion::ETIQUETAS[$filtro]), fn ($w) => $w->where('etiqueta', $filtro))
@@ -50,7 +53,9 @@ class redesController extends Controller
         return view('redes.index', [
             'cuentas' => $cuentas, 'convs' => $convs, 'filtro' => $filtro, 'q' => $q,
             'actual' => $request->integer('c') ?: null,
-            'sinLeer' => RedConversacion::where('no_leidos', '>', 0)->count(),
+            'sinLeer' => RedConversacion::where('no_leidos', '>', 0)->when($cuentaSel, fn ($w) => $w->where('cuenta_id', $cuentaSel))->count(),
+            'cuentaSel' => $cuentaSel,
+            'sinLeerPorCuenta' => RedConversacion::where('no_leidos', '>', 0)->selectRaw('cuenta_id, COUNT(*) n')->groupBy('cuenta_id')->pluck('n', 'cuenta_id'),
             'tienda' => TiendaActual::tienda(),
         ]);
     }
@@ -60,12 +65,24 @@ class redesController extends Controller
     {
         $filtro = $request->get('ver', 'todos');
         $q = trim((string) $request->get('q'));
+        $cuentaSel = $this->cuentaElegida($request, $this->cuentas());
         return response()->json(RedConversacion::query()
+            ->when($cuentaSel, fn ($w) => $w->where('cuenta_id', $cuentaSel))
             ->when($filtro === 'facebook' || $filtro === 'instagram', fn ($w) => $w->where('plataforma', $filtro))
             ->when($filtro === 'sin_leer', fn ($w) => $w->where('no_leidos', '>', 0))
             ->when(isset(RedConversacion::ETIQUETAS[$filtro]), fn ($w) => $w->where('etiqueta', $filtro))
             ->when($q !== '', fn ($w) => $w->where(fn ($x) => $x->where('contacto_nombre', 'like', "%$q%")->orWhere('contacto_usuario', 'like', "%$q%")->orWhere('ultimo_texto', 'like', "%$q%")))
             ->orderByDesc('ultimo_en')->limit(150)->get()->map(fn ($c) => $this->convJson($c)));
+    }
+
+    // Cuenta elegida en las pestañas (si hay más de una conectada); se recuerda en la sesión
+    private function cuentaElegida(Request $request, $cuentas): ?int
+    {
+        if ($cuentas->count() < 2) return null;
+        $id = $request->integer('cuenta') ?: (int) session('redes_cuenta');
+        if (!$cuentas->contains('id', $id)) $id = (int) $cuentas->first()->id;
+        session(['redes_cuenta' => $id]);
+        return $id;
     }
 
     private function convJson(RedConversacion $c): array

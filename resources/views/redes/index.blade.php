@@ -4,6 +4,17 @@
 
 @push('css')
 <style>
+.rc-tabs{display:flex;gap:.6rem;overflow-x:auto;margin:0 0 1rem;padding-bottom:.2rem;scrollbar-width:none}
+.rc-tab{display:flex;align-items:center;gap:.6rem;padding:.55rem .9rem .55rem .55rem;border-radius:18px;border:1.5px solid #e3ebe6;background:#fff;color:#151a17;text-decoration:none;white-space:nowrap;flex:none;transition:all .15s}
+.rc-tab:hover{border-color:#2fd15a}
+.rc-tab.on{background:#0b0d0c;border-color:#0b0d0c;color:#fff}
+.rc-tab img,.rc-tab .rc-ini{width:38px;height:38px;border-radius:12px;object-fit:cover;flex:none}
+.rc-tab .rc-ini{display:grid;place-items:center;background:#e8f8ec;color:#16b34a;font-weight:900}
+.rc-tx{display:flex;flex-direction:column;line-height:1.15}
+.rc-tx b{font-weight:800;font-size:.95rem}
+.rc-tx small{font-weight:600;font-size:.76rem;opacity:.7}
+.rc-tab.on .rc-tx small{color:#a6f34a;opacity:1}
+.rc-nl{min-width:22px;height:22px;border-radius:99px;background:#d61f69;color:#fff;font-weight:800;font-size:.75rem;display:grid;place-items:center;padding:0 .4rem}
 .ib{display:grid;grid-template-columns:340px minmax(0,1fr);background:#fff;border:1.5px solid #e3ebe6;border-radius:24px;overflow:hidden;height:calc(100vh - 230px);min-height:520px}
 .ib-l{border-right:1.5px solid #eef3ef;display:flex;flex-direction:column;min-height:0}
 .ib-lh{padding:.8rem;border-bottom:1.5px solid #eef3ef}
@@ -70,12 +81,27 @@
 <div class="lp-dash">
     <div class="lp-hello">
         <div><small><i class="fa-solid fa-hashtag me-1"></i>Mis redes</small><h1>Mensajes de <span>sus redes</span></h1>
-            <span class="text-muted fw-semibold">{{ $cuentas->map(fn ($c) => $c->page_nombre . ($c->ig_usuario ? ' · @' . $c->ig_usuario : ''))->implode(' — ') }}</span></div>
+            @php $sel = $cuentaSel ? $cuentas->firstWhere('id', $cuentaSel) : null; @endphp
+            <span class="text-muted fw-semibold">{{ $sel ? $sel->page_nombre . ($sel->ig_usuario ? ' · @' . $sel->ig_usuario : '') : $cuentas->map(fn ($c) => $c->page_nombre . ($c->ig_usuario ? ' · @' . $c->ig_usuario : ''))->implode(' — ') }}</span></div>
         <form method="post" action="{{ route('redes.sincronizar') }}" class="lp-quick">@csrf<button class="btn btn-light btn-lg"><i class="fa-solid fa-rotate me-1"></i>Actualizar</button></form>
     </div>
     @include('layouts.partials.lp-flash')
     @if ($errors->any())<div class="alert alert-danger">{{ $errors->first() }}</div>@endif
     @include('redes._tabs')
+
+    @if ($cuentas->count() > 1)
+    {{-- Una pestaña por cuenta conectada: cada una muestra solo sus chats --}}
+    <div class="rc-tabs" role="tablist">
+        @foreach ($cuentas as $c)
+        @php $nl = (int) ($sinLeerPorCuenta[$c->id] ?? 0); @endphp
+        <a href="{{ route('redes.index', ['cuenta' => $c->id]) }}" class="rc-tab {{ (int) $cuentaSel === (int) $c->id ? 'on' : '' }}" role="tab">
+            @if ($c->page_foto || $c->ig_foto)<img src="{{ $c->ig_foto ?: $c->page_foto }}" alt="" loading="lazy">@else<span class="rc-ini">{{ mb_substr($c->page_nombre, 0, 1) }}</span>@endif
+            <span class="rc-tx"><b>{{ $c->page_nombre }}</b><small>{{ $c->ig_usuario ? '@' . $c->ig_usuario : 'Facebook' }}</small></span>
+            @if ($nl)<span class="rc-nl">{{ $nl }}</span>@endif
+        </a>
+        @endforeach
+    </div>
+    @endif
 
     <div class="ib" id="ib">
         <div class="ib-l">
@@ -140,13 +166,13 @@
     var R = { lista: @json(route('redes.lista')), base: @json(url('/mis-redes/chats')) + '/', prod: @json(route('redes.productos')), cliente: @json(url('/clientes')) + '/' };
     @php $etJs = collect($et)->map(fn ($e) => ['n' => $e[0], 'c' => $e[1]]); @endphp
     var ET = @json($etJs);
-    var filtro = @json($filtro), actual = @json($actual), ultimo = 0, conv = null, tl, tm;
+    var filtro = @json($filtro), actual = @json($actual), cuenta = @json($cuentaSel), ultimo = 0, conv = null, tl, tm;
     var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); };
     var av = function (c) { return (c.foto ? '<img src="' + esc(c.foto) + '" alt="" onerror="this.outerHTML=\'<span class=ini>' + esc((c.nombre || '?').charAt(0)) + '</span>\'">' : '<span class="ini">' + esc((c.nombre || '?').charAt(0).toUpperCase()) + '</span>') + '<span class="rd-ico ' + c.plataforma + '"><i class="fa-brands fa-' + (c.plataforma === 'instagram' ? 'instagram' : 'facebook-f') + '"></i></span>'; };
     var json = function (url, opt) { return fetch(url, Object.assign({ headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF } }, opt || {})).then(function (r) { return r.json().then(function (d) { if (!r.ok) throw d; return d; }); }); };
 
     function cargarLista() {
-        json(R.lista + '?ver=' + encodeURIComponent(filtro) + '&q=' + encodeURIComponent($('ibQ').value.trim())).then(function (l) {
+        json(R.lista + '?ver=' + encodeURIComponent(filtro) + '&q=' + encodeURIComponent($('ibQ').value.trim()) + (cuenta ? '&cuenta=' + cuenta : '')).then(function (l) {
             $('ibLista').innerHTML = l.length ? l.map(function (c) {
                 var e = c.etiqueta && ET[c.etiqueta] ? '<span class="ib-et" style="background:' + ET[c.etiqueta].c + '">' + esc(ET[c.etiqueta].n) + '</span>' : '';
                 return '<div class="ib-c' + (c.id === actual ? ' on' : '') + (c.no_leidos ? ' nl' : '') + '" data-id="' + c.id + '"><div class="ib-av">' + av(c) + '</div><div class="ib-ct"><b><span>' + esc(c.nombre) + e + '</span><small>' + esc(c.cuando || '') + '</small></b><p>' + esc(c.texto || '') + '</p></div>' + (c.no_leidos ? '<span class="ib-nl">' + c.no_leidos + '</span>' : '') + '</div>';
