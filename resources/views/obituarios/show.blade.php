@@ -68,7 +68,7 @@
             @endif
             <div class="lp-box">
                 <a class="btn btn-success w-100 mb-2" target="_blank" href="https://wa.me/?text={{ rawurlencode($texto) }}"><i class="fa-brands fa-whatsapp me-1"></i>Enviar datos por WhatsApp</a>
-                <form method="post" action="{{ route('obituarios.estado', $obituario) }}" class="mb-2">@csrf<button class="btn btn-light w-100">@if ($obituario->estado === 'activo')<i class="fa-solid fa-flag-checkered me-1"></i>Finalizar (sacar de la pantalla)@else<i class="fa-solid fa-rotate-left me-1"></i>Volver a mostrar@endif</button></form>
+                <form method="post" action="{{ route('obituarios.estado', $obituario) }}" class="mb-2">@csrf<button class="btn btn-light w-100">@if ($obituario->estado === 'activo')<i class="fa-solid fa-flag-checkered me-1"></i>Finalizar (sacar de la pantalla)@else<i class="fa-solid fa-rotate-left me-1"></i>Volver a mostrar @endif</button></form>
                 <form method="post" action="{{ route('obituarios.destroy', $obituario) }}" data-confirm="¿Eliminar el obituario de {{ $obituario->nombre }}?" data-confirm-ok="Sí, eliminar" data-peligro>@csrf @method('delete')<button class="btn btn-link text-danger w-100">Eliminar</button></form>
             </div>
         </div>
