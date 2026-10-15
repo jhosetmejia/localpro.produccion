@@ -26,7 +26,7 @@ class StoreProductoRequest extends FormRequest
             'nombre' => ['required', 'max:80', \Illuminate\Validation\Rule::unique('productos', 'nombre')->where('tienda_id', \App\Support\TiendaActual::id())],
             'descripcion' => 'nullable|max:255',
             'fecha_vencimiento' => 'nullable|date',
-            'img_path' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
+            'img_path' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:4096',
             'precio_venta' => 'required|numeric|min:0|max:999999999',
             'impuesto' => ['nullable', \Illuminate\Validation\Rule::in(array_keys(\App\Support\Dian\Catalogos::IMPUESTOS))],
             'precio_costo' => 'nullable|numeric|min:0|max:999999999',

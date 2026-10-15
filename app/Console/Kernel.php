@@ -25,6 +25,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('localpro:avisos-plan')->dailyAt('08:10')->withoutOverlapping();
         // Negocios que terminaron la prueba sin pagar: se borran productos, imágenes, ventas… (quedan los datos de contacto)
         $schedule->command('localpro:depurar-pruebas')->dailyAt('04:30')->withoutOverlapping();
+        // Comprime las imágenes pesadas que hayan quedado guardadas (libera espacio)
+        $schedule->command('imagenes:optimizar --dias=2')->dailyAt('03:40')->withoutOverlapping(120)->runInBackground();
     }
 
     /**
