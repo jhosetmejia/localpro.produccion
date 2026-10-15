@@ -70,6 +70,11 @@ Route::get('/webhooks/meta', [metaWebhookController::class, 'verificar']);
 foreach (['privacidad' => 'privacidad', 'terminos' => 'terminos', 'eliminar-datos' => 'eliminar'] as $ruta => $vista) {
     Route::get('/' . $ruta, fn () => view('legal.' . $vista, ['correo' => \App\Models\Ajuste::valor('correo_legal') ?: config('mail.from.address')]))->name('legal.' . $vista);
 }
+// Mis enlaces: página tipo Linktree de cada negocio (localproo.com/@negocio)
+Route::get('/@{slug}', [\App\Http\Controllers\enlacesController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('enlaces.publico');
+Route::get('/@{slug}/ir/{enlace}', [\App\Http\Controllers\enlacesController::class, 'ir'])->where(['slug' => '[a-z0-9-]+', 'enlace' => '[0-9]+'])->middleware('throttle:120,1')->name('enlaces.ir');
+Route::get('/l/{slug}', fn (string $slug) => redirect('/@' . $slug, 301))->where('slug', '[a-z0-9-]+');
+
 // Blog público (artículos para compartir con negocios y asesores)
 Route::get('/blog', fn () => view('blog.index', ['articulos' => config('blog')]))->name('blog.index');
 Route::get('/blog/{slug}', function (string $slug) {
@@ -302,6 +307,17 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::get('/metodos-pago', [metodoPagoController::class, 'index'])->name('metodos-pago.index');
     Route::post('/metodos-pago', [metodoPagoController::class, 'store'])->name('metodos-pago.store');
     Route::put('/metodos-pago/{metodo}', [metodoPagoController::class, 'update'])->name('metodos-pago.update');
+    // Mis enlaces (página tipo Linktree del negocio)
+    Route::prefix('mis-enlaces')->name('enlaces.')->controller(\App\Http\Controllers\enlacesController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::put('/perfil', 'perfil')->name('perfil');
+        Route::post('/', 'store')->name('store');
+        Route::put('/{enlace}', 'update')->whereNumber('enlace')->name('update');
+        Route::post('/{enlace}/alternar', 'alternar')->whereNumber('enlace')->name('alternar');
+        Route::post('/{enlace}/mover/{dir}', 'mover')->whereNumber('enlace')->whereIn('dir', ['arriba', 'abajo'])->name('mover');
+        Route::delete('/{enlace}', 'destroy')->whereNumber('enlace')->name('destroy');
+        Route::post('/estadisticas/reiniciar', 'reiniciar')->name('reiniciar');
+    });
     Route::get('/negocio', [negocioController::class, 'edit'])->name('negocio.edit');
     Route::put('/negocio', [negocioController::class, 'update'])->name('negocio.update');
     // Facturación electrónica DIAN

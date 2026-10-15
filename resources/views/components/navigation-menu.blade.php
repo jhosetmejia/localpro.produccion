@@ -228,6 +228,14 @@
                 </a>
                 @endif
                 @endcan
+                @can('editar-negocio')
+                @if (\Illuminate\Support\Facades\Route::has('enlaces.index'))
+                <a class="nav-link {{ $on('enlaces.*') }}" href="{{ route('enlaces.index') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-link"></i></div>
+                    Mis enlaces <span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c;font-size:.6rem">NUEVO</span>
+                </a>
+                @endif
+                @endcan
                 @if ($tiendaMenu && $tiendaMenu->catalogo_activo && $tiendaMenu->slug)
                 <a class="nav-link" href="{{ $tiendaMenu->url_catalogo }}" target="_blank">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-globe"></i></div>
