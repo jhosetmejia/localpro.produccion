@@ -61,6 +61,7 @@ class CursoAsesor
                     '<b>Factura:</b> se imprime o se envía por WhatsApp si el negocio no tiene impresora.',
                     '<b>Página web del negocio:</b> sus productos por categorías con botón "Comprar por WhatsApp" y que aparece en Google.',
                     '<b>Reportes:</b> ventas del día, productos más vendidos, clientes y metas para los vendedores.',
+                    '<b>Nómina (opcional):</b> si el negocio tiene empleados, liquida el mes o la quincena y saca los desprendibles. El negocio escoge: <b>sin DIAN</b> (solo interna) o <b>nómina electrónica DIAN</b>. También sirve si paga más o menos del mínimo.',
                 ],
                 'clave' => 'Si una persona sabe usar WhatsApp, sabe usar LocalPro.',
             ],
@@ -118,6 +119,8 @@ class CursoAsesor
             12 => ['Acaba de inscribir un negocio. ¿Qué es lo mejor que puede hacer en ese momento?', ['Irse y volver cuando termine la prueba', 'Ayudarle a subir sus primeros productos y hacer su primera venta', 'Cobrarle de una vez'], 1],
             13 => ['El negocio que usted inscribió renueva su plan al año siguiente. ¿Qué pasa con usted?', ['Gana una comisión de renovación', 'Pierde su comisión', 'No pasa nada'], 0],
             14 => ['El dueño del negocio que usted inscribió tiene 2 vendedores. ¿Cómo controla la plata de cada uno?', ['No se puede', 'Cada vendedor abre y cierra su caja con cuadre exacto', 'Anotándolo en un cuaderno'], 1],
+            15 => ['Un negocio quiere llevar la nómina de sus empleados en LocalPro, pero no quiere enviarla a la DIAN. ¿Se puede?', ['No, toda nómina se envía obligatoriamente a la DIAN', 'Sí, escoge "Nómina sin DIAN" y la maneja solo de forma interna', 'Solo si paga un plan adicional'], 1],
+            16 => ['El negocio que usted inscribió le paga a un empleado menos del salario mínimo por medio tiempo. ¿Puede liquidarlo en LocalPro?', ['No, el sistema solo acepta el salario mínimo', 'Sí, con la liquidación personalizada pone el salario que pagan', 'Solo si lo envía a la DIAN'], 1],
         ];
     }
 

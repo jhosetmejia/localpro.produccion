@@ -70,6 +70,13 @@ Route::get('/webhooks/meta', [metaWebhookController::class, 'verificar']);
 foreach (['privacidad' => 'privacidad', 'terminos' => 'terminos', 'eliminar-datos' => 'eliminar'] as $ruta => $vista) {
     Route::get('/' . $ruta, fn () => view('legal.' . $vista, ['correo' => \App\Models\Ajuste::valor('correo_legal') ?: config('mail.from.address')]))->name('legal.' . $vista);
 }
+// Blog público (artículos para compartir con negocios y asesores)
+Route::get('/blog', fn () => view('blog.index', ['articulos' => config('blog')]))->name('blog.index');
+Route::get('/blog/{slug}', function (string $slug) {
+    $a = config('blog.' . $slug);
+    abort_unless($a, 404);
+    return view('blog.' . $slug, ['a' => $a, 'slug' => $slug]);
+})->where('slug', '[a-z0-9-]+')->name('blog.show');
 Route::post('/webhooks/meta', [metaWebhookController::class, 'evento'])->middleware('throttle:600,1');
 // Enlace de pago de un negocio (firmado): lo usa el dueño o su asesor para pagar el plan con Wompi sin entrar al sistema
 Route::get('/pagar/retorno', [pagarController::class, 'retorno'])->name('pagar.retorno');
