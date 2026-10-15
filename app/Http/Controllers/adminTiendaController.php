@@ -100,7 +100,10 @@ class adminTiendaController extends Controller
         $planes = \App\Models\Plan::orderBy('orden')->get();
         $pagosPlan = \App\Models\PagoSuscripcion::with('plan')->where('tienda_id', $tienda->id)->latest()->limit(10)->get();
         $asesores = \App\Models\Asesor::with('user:id,name,email')->where('activo', true)->get()->sortBy('nombre');
-        return view('admin.tiendas.show', compact('tienda', 'usuarios', 'metricas', 'ultimas', 'planes', 'pagosPlan', 'asesores'));
+        // Constancia de avisos de fin de prueba (correos y pantalla vista) y fecha de eliminación
+        $avisos = \App\Models\AvisoPlan::with('user:id,name')->where('tienda_id', $tienda->id)->latest()->limit(20)->get();
+        $fechaBorrado = $tienda->datos_depurados ? null : \App\Support\AvisosPlan::fechaBorrado($tienda);
+        return view('admin.tiendas.show', compact('tienda', 'usuarios', 'metricas', 'ultimas', 'planes', 'pagosPlan', 'asesores', 'avisos', 'fechaBorrado'));
     }
 
     // Subir ventas pasadas del negocio (Excel) como historial: crea/completa clientes, sin mover inventario

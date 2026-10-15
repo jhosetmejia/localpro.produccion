@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Ajuste;
 use App\Models\Tienda;
 use App\Support\CrearTienda;
+use App\Support\AvisosPlan;
 use App\Support\TiendaActual;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -28,9 +29,9 @@ class DepurarPruebas extends Command
     protected $description = 'Borra los datos de los negocios cuya prueba gratis terminó sin pasar a un plan pago (conserva los datos de contacto)';
 
     // Tablas que NO se tocan: datos del negocio, usuarios, pagos, red comercial y configuración básica
-    private const CONSERVAR = ['tiendas', 'users', 'pagos_suscripcion', 'comisiones', 'asesores', 'planes', 'ajustes', 'metodos_pago'];
+    private const CONSERVAR = ['tiendas', 'users', 'avisos_plan', 'pagos_suscripcion', 'comisiones', 'asesores', 'planes', 'ajustes', 'metodos_pago'];
 
-    // Días de espera después de vencer la prueba, para que alcancen a pagar (se puede cambiar en ajustes: dias_gracia_depuracion)
+    // Días para pagar, contados desde que se le notificó que la prueba terminó (se puede cambiar en ajustes: dias_gracia_depuracion)
     public const DIAS_GRACIA = 15;
 
     public static function diasGracia(): int
@@ -40,17 +41,12 @@ class DepurarPruebas extends Command
 
     public function handle(): int
     {
-        $gracia = self::diasGracia();
-        $limite = today()->subDays(max(0, $gracia));
-
         $q = Tienda::query()
             ->whereNull('datos_depurados_at')
             ->whereNotNull('plan_vence')
-            ->whereDate('plan_vence', '<', $limite)
+            ->whereDate('plan_vence', '<', today()->subDays(self::diasGracia()))
             // Sigue en un plan gratis (prueba) o sin plan
             ->where(fn ($w) => $w->whereNull('plan_id')->orWhereHas('plan', fn ($p) => $p->where('precio', '<=', 0)))
-            // Nunca ha pagado un plan (los pagos de prueba de Wompi no cuentan)
-            ->whereDoesntHave('pagos', fn ($p) => $p->where('estado', 'aprobado')->where('referencia', 'not like', \App\Models\PagoSuscripcion::PREFIJO_PRUEBA . '%'))
             // Negocios del súper administrador nunca se depuran
             ->whereDoesntHave('usuarios', fn ($u) => $u->where('es_superadmin', true));
 
@@ -58,7 +54,14 @@ class DepurarPruebas extends Command
             $q->whereKey((int) $this->option('tienda'));
         }
 
-        $tiendas = $q->get();
+        // Solo si nunca pagó, ya se le notificó (correo enviado o pantalla vista) y pasaron los días avisados
+        $tiendas = $q->get()->filter(function (Tienda $t) {
+            if (!AvisosPlan::esPrueba($t) || !AvisosPlan::primeraNotificacion($t)) {
+                return false;
+            }
+            $f = AvisosPlan::fechaBorrado($t);
+            return $f && $f->lte(today());
+        });
         if ($tiendas->isEmpty()) {
             $this->info('No hay negocios para depurar.');
             return self::SUCCESS;
@@ -72,7 +75,9 @@ class DepurarPruebas extends Command
                 continue;
             }
             try {
+                $fecha = AvisosPlan::fechaBorrado($t);
                 $this->depurar($t, $tablas);
+                AvisosPlan::enviar($t->fresh(), 'datos_eliminados', $fecha);
                 $this->info('Depurado: ' . $linea);
                 Log::info('Depuración de prueba vencida', ['tienda' => $t->id, 'codigo' => $t->codigo]);
             } catch (\Throwable $e) {

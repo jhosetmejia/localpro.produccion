@@ -14,8 +14,10 @@
 <h2>3. Prueba gratis</h2>
 <ul>
     <li>Cada negocio nuevo tiene un tiempo de prueba gratis. Su duración depende de la promoción vigente al momento del registro (por ejemplo, unos días, un mes o tres meses) y se muestra dentro del sistema.</li>
-    <li>Si al terminar la prueba el negocio no pasa a un plan pago, el acceso se bloquea y tiene <strong>15 días</strong> para pagar y conservar toda su información.</li>
-    <li>Pasado ese plazo sin pago, LocalProo <strong>elimina de forma definitiva el contenido del negocio</strong> para no ocupar espacio en el servidor con información que no se va a usar: productos, imágenes, videos, inventario, ventas, cajas, clientes, proveedores, separados, alquileres, publicaciones y demás registros. Esta información no se puede recuperar.</li>
+    <li>Al terminar la prueba, el sistema se bloquea y muestra la opción de pagar el plan (mensual o anual). LocalProo le avisa por <strong>correo electrónico</strong> a los correos registrados del negocio y de sus dueños o administradores, y con un aviso dentro del sistema. Antes de que termine la prueba también se envía un recordatorio.</li>
+    <li>Desde ese aviso, el negocio tiene <strong>15 días calendario</strong> para pagar y conservar toda su información. Unos días antes de vencer ese plazo se envía un último aviso. LocalProo guarda constancia de la fecha, hora y destinatario de cada aviso enviado y de cuándo se vio el aviso en el sistema.</li>
+    <li>Pasado ese plazo sin pago, LocalProo <strong>elimina de forma definitiva el contenido del negocio</strong> para no ocupar espacio en el servidor con información que no se va a usar: productos, imágenes, videos, inventario, ventas, cajas, clientes, proveedores, separados, alquileres, publicaciones y demás registros. Esta información no se puede recuperar. Al eliminarla se envía un correo informándolo.</li>
+    <li>Es responsabilidad del negocio mantener actualizado su correo electrónico para recibir estos avisos.</li>
     <li>Se <strong>conservan los datos de contacto</strong>: nombre y datos del negocio (NIT, teléfono, correo, ciudad, tipo de negocio) y los datos de sus usuarios (nombre, correo y celular). LocalProo puede usarlos para contactarle con ofrecimientos del servicio, promociones o para reactivar su cuenta, y puede pedir que se borren en "Eliminar mis datos".</li>
     <li>Si después paga un plan, podrá seguir usando su cuenta, pero empezará con el negocio vacío.</li>
 </ul>

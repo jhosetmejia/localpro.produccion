@@ -286,6 +286,7 @@ Route::middleware(['auth', 'tienda'])->group(function () {
 
     // Plan de LocalPro
     Route::get('/mi-plan', [planController::class, 'index'])->name('plan.index');
+    Route::get('/mi-plan/vencido', [planController::class, 'vencido'])->name('plan.vencido');
     Route::post('/mi-plan/{plan}/pagar', [planController::class, 'pagar'])->name('plan.pagar');
     Route::get('/mi-plan/retorno', [planController::class, 'retorno'])->name('plan.retorno');
 

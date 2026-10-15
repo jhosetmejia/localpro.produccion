@@ -33,9 +33,11 @@ class RequiereTienda
             return redirect()->route('login')->withErrors('La tienda ' . $tienda->nombre . ' está suspendida. Comuníquese con LocalPro.');
         }
 
-        // Plan pagado vencido: solo puede ver "Mi plan" para renovarlo
+        // Prueba o plan vencido: pantalla "Pague su plan" (solo puede ver eso y "Mi plan" para pagar)
         if ($tienda->plan_vencido && !$user->es_superadmin && !$request->routeIs('plan.*')) {
-            return redirect()->route('plan.index');
+            return $request->expectsJson()
+                ? response()->json(['message' => 'Su plan venció. Active su plan para seguir usando LocalProo.'], 402)
+                : redirect()->route('plan.vencido');
         }
 
         // Mientras no termine los pasos de configuración, el dueño sigue en el asistente

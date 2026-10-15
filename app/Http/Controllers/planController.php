@@ -15,7 +15,7 @@ class planController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:editar-negocio')->except('index');
+        $this->middleware('permission:editar-negocio')->except('index', 'vencido');
     }
 
     public function index()
@@ -27,6 +27,30 @@ class planController extends Controller
             'pagos' => PagoSuscripcion::with('plan')->where('tienda_id', $tienda->id)->latest()->limit(12)->get(),
             'wompi' => self::wompiActivo(),
             'soporte' => Ajuste::valor('soporte_whatsapp'),
+        ]);
+    }
+
+    // Pantalla completa al terminar la prueba (o vencer el plan): pagar mensual o anual, y fecha en que se borra la información
+    public function vencido(Request $request)
+    {
+        $tienda = TiendaActual::tienda()->load('plan');
+        if (!$tienda->plan_vencido) {
+            return redirect()->route('panel');
+        }
+        $user = Auth::user();
+        $puedePagar = $user->can('editar-negocio');
+        if ($puedePagar) {
+            \App\Support\AvisosPlan::registrarVisto($tienda, $user, $request->ip());
+        }
+        $esPrueba = \App\Support\AvisosPlan::esPrueba($tienda);
+        return view('plan.vencido', [
+            'tienda' => $tienda,
+            'planes' => Plan::where('activo', true)->where('precio', '>', 0)->orderBy('orden')->get(),
+            'esPrueba' => $esPrueba,
+            'fechaBorrado' => $tienda->datos_depurados ? null : \App\Support\AvisosPlan::fechaBorrado($tienda),
+            'puedePagar' => $puedePagar,
+            'wompi' => self::wompiActivo(),
+            'soporte' => preg_replace('/\D/', '', (string) Ajuste::valor('soporte_whatsapp')),
         ]);
     }
 

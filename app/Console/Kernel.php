@@ -19,6 +19,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('wompi:conciliar')->everyTenMinutes()->withoutOverlapping();
         $schedule->command('redes:publicar-programadas')->everyMinute()->withoutOverlapping();
         $schedule->command('dian:enviar')->everyMinute()->withoutOverlapping();
+        // Correos de fin de prueba (por vencer, vencida, último aviso) con constancia de envío
+        $schedule->command('localpro:avisos-plan')->dailyAt('08:10')->withoutOverlapping();
         // Negocios que terminaron la prueba sin pagar: se borran productos, imágenes, ventas… (quedan los datos de contacto)
         $schedule->command('localpro:depurar-pruebas')->dailyAt('04:30')->withoutOverlapping();
     }

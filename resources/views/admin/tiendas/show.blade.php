@@ -109,5 +109,24 @@
             </ul>
         </div>
     </div>
+
+    <div class="lp-box mt-3">
+        <h3><span>Avisos de fin de prueba <small class="text-muted fw-semibold">(constancia de notificación)</small></span></h3>
+        @if ($tienda->datos_depurados)
+            <p class="small fw-bold mb-2" style="color:#9b1c5a"><i class="fa-solid fa-broom me-1"></i>Información eliminada el {{ $tienda->datos_depurados_at->format('d/m/Y H:i') }} (se conservan negocio y usuarios).</p>
+        @elseif ($fechaBorrado && $tienda->plan_vencido)
+            <p class="small fw-bold mb-2" style="color:#9b1c5a"><i class="fa-solid fa-clock me-1"></i>Se elimina la información el {{ $fechaBorrado->format('d/m/Y') }} si no paga{{ \App\Support\AvisosPlan::primeraNotificacion($tienda) ? '' : ' (fecha tentativa: aún no se ha notificado)' }}.</p>
+        @endif
+        <ul class="lp-list">
+            @forelse ($avisos as $a)
+            <li><div class="av"><i class="fa-solid {{ $a->canal === 'correo' ? 'fa-envelope' : 'fa-display' }}"></i></div>
+                <div class="t"><b>{{ \App\Models\AvisoPlan::TIPOS[$a->tipo] ?? $a->tipo }}</b>
+                    <small>{{ $a->created_at->format('d/m/Y H:i') }} · {{ $a->canal === 'correo' ? 'Correo a ' . $a->destinatario : 'Visto en el sistema por ' . ($a->user->name ?? $a->destinatario) . ($a->ip ? ' (IP ' . $a->ip . ')' : '') }}{{ $a->fecha_borrado ? ' · borrado anunciado: ' . $a->fecha_borrado->format('d/m/Y') : '' }}</small></div>
+                <span class="badge {{ $a->estado === 'fallido' ? 'bg-danger' : 'bg-success' }}" @if($a->estado === 'fallido') title="{{ $a->detalle }}" @endif>{{ ucfirst($a->estado) }}</span></li>
+            @empty
+            <li class="lp-empty">Sin avisos enviados.</li>
+            @endforelse
+        </ul>
+    </div>
 </div>
 @endsection

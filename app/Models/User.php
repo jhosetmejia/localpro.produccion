@@ -49,6 +49,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'es_superadmin' => 'boolean',
+        'terminos_aceptados_at' => 'datetime',
     ];
 
     public function ventas(){
