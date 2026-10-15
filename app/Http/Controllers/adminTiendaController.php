@@ -159,8 +159,9 @@ class adminTiendaController extends Controller
         $datos = $request->validate([
             'plan_id' => 'required|exists:planes,id',
             'plan_vence' => 'nullable|date',
+            'redes_max' => 'nullable|integer|min:1|max:20',
         ]);
-        $tienda->forceFill(['plan_id' => $datos['plan_id'], 'plan_vence' => $datos['plan_vence'] ?? null])->save();
+        $tienda->forceFill(['plan_id' => $datos['plan_id'], 'plan_vence' => $datos['plan_vence'] ?? null, 'redes_max' => $datos['redes_max'] ?? $tienda->redes_max ?? 1])->save();
         return back()->with('success', 'Plan actualizado.');
     }
 

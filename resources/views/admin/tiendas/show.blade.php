@@ -31,9 +31,10 @@
             <h3>Plan: {{ $tienda->plan->nombre ?? 'Sin plan' }} {!! $tienda->plan_vence ? '<small class="text-muted fw-semibold">' . ($tienda->plan_vencido ? 'venció' : 'vence') . ' el ' . $tienda->plan_vence->format('d/m/Y') . '</small>' : '' !!}</h3>
             <form method="post" action="{{ route('admin.tiendas.plan', $tienda) }}" class="row g-2 align-items-end mb-3">
                 @csrf
-                <div class="col-md-5"><label class="form-label">Plan</label><select name="plan_id" class="form-select">@foreach ($planes as $p)<option value="{{ $p->id }}" @selected((int) $tienda->plan_id === (int) $p->id)>{{ $p->nombre }}</option>@endforeach</select></div>
-                <div class="col-md-4"><label class="form-label">Vence</label><input type="date" name="plan_vence" class="form-control" value="{{ $tienda->plan_vence?->format('Y-m-d') }}"></div>
-                <div class="col-md-3 d-grid"><button class="btn btn-dark">Asignar</button></div>
+                <div class="col-md-4"><label class="form-label">Plan</label><select name="plan_id" class="form-select">@foreach ($planes as $p)<option value="{{ $p->id }}" @selected((int) $tienda->plan_id === (int) $p->id)>{{ $p->nombre }}</option>@endforeach</select></div>
+                <div class="col-md-3"><label class="form-label">Vence</label><input type="date" name="plan_vence" class="form-control" value="{{ $tienda->plan_vence?->format('Y-m-d') }}"></div>
+                <div class="col-md-3"><label class="form-label" title="Página de Facebook con su Instagram">Redes sociales</label><input type="number" min="1" max="20" name="redes_max" class="form-control" value="{{ $tienda->redes_max ?? 1 }}"></div>
+                <div class="col-md-2 d-grid"><button class="btn btn-dark">Guardar</button></div>
             </form>
             <form method="post" action="{{ route('admin.tiendas.pago', $tienda) }}" class="row g-2 align-items-end" data-confirm="¿Registrar el pago?" data-confirm-texto="Se extiende el plan de la tienda según los meses indicados." data-confirm-ok="Sí, registrar">
                 @csrf

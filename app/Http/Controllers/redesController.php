@@ -311,6 +311,10 @@ class redesController extends Controller
     public function conectar(Request $request)
     {
         if (!Meta::activo()) return redirect()->route('redes.index')->withErrors('La conexión con Facebook e Instagram aún no está habilitada. Comuníquese con LocalPro.');
+        // Cada negocio conecta 1 red; más redes las habilita LocalProo (adicional). Reconectar la misma sí se permite.
+        if (!$request->boolean('reconectar') && self::cupoRedes() <= 0) {
+            return redirect()->route('redes.cuentas')->with('red_extra', true);
+        }
         $state = Str::random(32);
         session(['meta_state' => $state, 'meta_tienda' => TiendaActual::id()]);
         return redirect()->away(Meta::urlLogin(route('redes.callback'), $state));
@@ -335,11 +339,19 @@ class redesController extends Controller
         return redirect()->route('redes.elegir');
     }
 
+    // Redes que el negocio todavía puede conectar (límite del plan; el superadmin lo amplía)
+    public static function cupoRedes(): int
+    {
+        $max = max(1, (int) (TiendaActual::tienda()?->redes_max ?? 1));
+        return $max - RedCuenta::where('estado', '<>', 'desconectada')->count();
+    }
+
     public function elegir()
     {
         $paginas = session('meta_paginas') ? decrypt(session('meta_paginas')) : [];
         if (!$paginas) return redirect()->route('redes.index');
-        return view('redes.elegir', ['paginas' => $paginas, 'ya' => RedCuenta::pluck('page_id')->all()]);
+        return view('redes.elegir', ['paginas' => $paginas, 'ya' => RedCuenta::pluck('page_id')->all(), 'cupo' => self::cupoRedes(),
+            'activas' => RedCuenta::where('estado', '<>', 'desconectada')->pluck('page_id')->all()]);
     }
 
     public function guardarPaginas(Request $request)
@@ -347,6 +359,14 @@ class redesController extends Controller
         $paginas = collect(session('meta_paginas') ? decrypt(session('meta_paginas')) : [])->keyBy('id');
         $ids = collect((array) $request->input('paginas'))->filter(fn ($id) => $paginas->has($id));
         if ($ids->isEmpty()) return back()->withErrors('Elija al menos una página.');
+        // Las páginas que ya estaban conectadas se pueden reconectar; las nuevas cuentan contra el cupo
+        $activas = RedCuenta::where('estado', '<>', 'desconectada')->pluck('page_id')->map(fn ($x) => (string) $x)->all();
+        $nuevas = $ids->reject(fn ($id) => in_array((string) $id, $activas, true));
+        if ($nuevas->count() > self::cupoRedes()) {
+            return back()->withErrors(self::cupoRedes() <= 0
+                ? 'Su plan incluye ' . max(1, (int) TiendaActual::tienda()?->redes_max) . ' red social y ya está conectada. Para agregar otra, solicite una red adicional.'
+                : 'Su plan le permite conectar ' . self::cupoRedes() . ' red(es) más. Elija solo esa cantidad, o solicite redes adicionales.')->with('red_extra', true);
+        }
         $n = 0; $avisos = []; $conectadas = [];
         foreach ($ids as $id) {
             $p = $paginas[$id];
