@@ -56,6 +56,7 @@ button{font:inherit;border:0;background:none;cursor:pointer;color:inherit}
 .card .ph{aspect-ratio:1/1;background:var(--bg);display:grid;place-items:center;font-size:2.6rem;font-weight:800;color:var(--g2);overflow:hidden;position:relative}
 .card .ph img{width:100%;height:100%;object-fit:contain;object-position:center;background:#fff;transition:transform .3s}
 .card:hover .ph img{transform:scale(1.04)}
+.moda .card .ph{aspect-ratio:3/4}
 .card .tag{position:absolute;left:10px;top:10px;background:#fff;border-radius:999px;padding:.2rem .6rem;font-size:.7rem;font-weight:800;box-shadow:0 4px 10px -6px rgba(0,0,0,.4)}
 .card .tag.agot{background:#b0206a;color:#fff}
 .card .b{padding:10px 12px 12px;display:flex;flex-direction:column;gap:4px;flex:1}
@@ -113,7 +114,8 @@ main,.pie-sep{flex:none}
 @stack('css')
 </style>
 </head>
-<body>
+{{-- Tiendas de ropa y calzado: fotos verticales 3:4 (como las tiendas de moda); los demás negocios en cuadrado --}}
+<body class="{{ ($tienda->usa_tallas ?? false) ? 'moda' : '' }}">
 <header class="top">
     <div class="wrap">
         <a class="marca" href="{{ $tienda->url_catalogo }}">
