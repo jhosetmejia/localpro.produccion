@@ -205,6 +205,7 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::post('/productos/importar/equipo', [importarController::class, 'solicitar'])->name('productos.importar.solicitar');
 
     Route::get('/clientes/importar', [importarClientesController::class, 'index'])->name('clientes.importar');
+    Route::get('/clientes/crear-base', [importarClientesController::class, 'contactos'])->name('clientes.contactos');
     Route::get('/clientes/importar/plantilla', [importarClientesController::class, 'plantilla'])->name('clientes.importar.plantilla');
     Route::post('/clientes/importar', [importarClientesController::class, 'subir'])->name('clientes.importar.subir');
     Route::get('/clientes/importar/revisar', [importarClientesController::class, 'revisar'])->name('clientes.importar.revisar');

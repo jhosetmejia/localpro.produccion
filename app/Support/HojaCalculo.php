@@ -19,8 +19,53 @@ class HojaCalculo
         $extension = strtolower($extension);
         if ($extension === 'xlsx' || $extension === 'xlsm') return self::leerXlsx($ruta);
         if (in_array($extension, ['csv', 'txt', 'tsv'], true)) return self::leerCsv($ruta);
+        if ($extension === 'vcf' || $extension === 'vcard') return self::leerVcf($ruta);
         if ($extension === 'xls') throw new RuntimeException('Ese archivo es de Excel antiguo (.xls). Ábralo en Excel y use "Guardar como" → "Libro de Excel (.xlsx)" o "CSV", y súbalo de nuevo.');
         throw new RuntimeException('Formato no soportado. Suba un archivo de Excel (.xlsx) o CSV.');
+    }
+
+    // ---------- Contactos del celular (.vcf / vCard) ----------
+    // Lo que exportan Android, iPhone (iCloud) y Google Contactos. Devuelve filas con títulos.
+    private static function leerVcf(string $ruta): array
+    {
+        $txt = file_get_contents($ruta);
+        if ($txt === false) throw new RuntimeException('No se pudo leer el archivo de contactos.');
+        if (str_starts_with($txt, "\xEF\xBB\xBF")) $txt = substr($txt, 3);
+        if (!mb_check_encoding($txt, 'UTF-8')) $txt = mb_convert_encoding($txt, 'UTF-8', 'Windows-1252');
+        $txt = str_replace(["\r\n", "\r"], "\n", $txt);
+        // Líneas partidas: las que siguen empiezan con espacio (vCard) o la anterior termina en "=" (quoted-printable)
+        $txt = preg_replace("/\n[ \t]/", '', $txt);
+        $txt = preg_replace("/=\n/", '', $txt);
+        if (stripos($txt, 'BEGIN:VCARD') === false) throw new RuntimeException('Ese archivo no tiene contactos. Exporte los contactos como archivo .vcf y súbalo de nuevo.');
+
+        $filas = [['Nombre', 'Celular', 'Correo', 'Dirección']];
+        foreach (preg_split('/BEGIN:VCARD/i', $txt) as $bloque) {
+            if (!preg_match('/END:VCARD/i', $bloque)) continue;
+            $nombre = $n = $correo = $dir = ''; $tels = [];
+            foreach (explode("\n", $bloque) as $linea) {
+                if (!str_contains($linea, ':')) continue;
+                [$cab, $valor] = explode(':', $linea, 2);
+                $partes = explode(';', $cab);
+                $prop = strtoupper(preg_replace('/^item\d+\./i', '', $partes[0]));
+                $cabU = strtoupper($cab);
+                if (str_contains($cabU, 'QUOTED-PRINTABLE')) $valor = quoted_printable_decode($valor);
+                $valor = trim(str_replace(['\\,', '\\;', '\\n'], [',', ';', ' '], $valor));
+                if ($prop === 'FN' && $valor !== '') $nombre = $valor;
+                elseif ($prop === 'N' && $valor !== '') { $p = explode(';', $valor); $n = trim(($p[1] ?? '') . ' ' . ($p[2] ?? '') . ' ' . ($p[0] ?? '')); }
+                elseif ($prop === 'TEL' && $valor !== '') {
+                    // Primero el celular
+                    if (str_contains($cabU, 'CELL') || str_contains($cabU, 'MOBILE')) array_unshift($tels, $valor); else $tels[] = $valor;
+                }
+                elseif ($prop === 'EMAIL' && $correo === '') $correo = $valor;
+                elseif ($prop === 'ADR' && $dir === '') $dir = trim(preg_replace('/\s*;+\s*/', ' ', $valor));
+            }
+            $nombre = $nombre !== '' ? $nombre : preg_replace('/\s+/', ' ', $n);
+            if ($nombre === '' && !$tels && $correo === '') continue;
+            $filas[] = [$nombre, $tels[0] ?? '', $correo, $dir];
+            if (count($filas) > self::MAX_FILAS) break;
+        }
+        if (count($filas) < 2) throw new RuntimeException('No se encontraron contactos en el archivo.');
+        return $filas;
     }
 
     // ---------- CSV ----------

@@ -78,6 +78,8 @@ class ImportarClientes
             if ($t === '') continue;
             foreach (self::SINONIMOS as $campo => $lista) {
                 if (isset($mapa[$campo])) continue;
+                // Google Contactos trae "Phone 1 - Label" antes de "Phone 1 - Value": el tipo no es el número
+                if (in_array($campo, ['telefono', 'email'], true) && preg_match('/\b(label|type|tipo|etiqueta)\b/', $t)) continue;
                 foreach ($lista as $s) {
                     if ($t === $s || (str_contains($t, $s) && strlen($s) > 3)) {
                         // "Nombres y apellidos" es nombre completo; "Apellidos" solo es apellido

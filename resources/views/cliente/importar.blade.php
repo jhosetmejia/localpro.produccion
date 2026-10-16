@@ -48,7 +48,7 @@
             <p class="mb-0">Sirve el Excel de su sistema anterior, una lista de WhatsApp, una base de datos de un evento… <b>cualquier archivo con datos de personas</b>. LocalPro busca solo las columnas importantes:</p>
             <div class="ic-cols"><span>Nombre</span><span>Cédula / NIT</span><span>Celular</span><span>Correo</span><span>Dirección</span></div>
             <label class="ic-drop" id="drop">
-                <input type="file" name="archivo" accept=".xlsx,.xlsm,.csv,.txt,.xls" required onchange="var d=document.getElementById('drop');d.classList.toggle('lleno',!!this.files.length);d.querySelector('.nom').textContent=this.files.length?this.files[0].name:''">
+                <input type="file" name="archivo" accept=".xlsx,.xlsm,.csv,.txt,.xls,.vcf" required onchange="var d=document.getElementById('drop');d.classList.toggle('lleno',!!this.files.length);d.querySelector('.nom').textContent=this.files.length?this.files[0].name:''">
                 <i class="fa-solid fa-file-excel"></i>
                 <b>Toque aquí o arrastre su archivo</b>
                 <small>Excel (.xlsx) o CSV · hasta 5.000 personas</small>

@@ -23,6 +23,12 @@ class importarClientesController extends Controller
         return view('cliente.importar');
     }
 
+    // Crear una base de datos desde cero con los contactos del celular
+    public function contactos()
+    {
+        return view('cliente.contactos');
+    }
+
     public function plantilla()
     {
         $filas = [
@@ -46,13 +52,13 @@ class importarClientesController extends Controller
     public function subir(Request $request)
     {
         $request->validate(['archivo' => 'required|file|max:10240'], [
-            'archivo.required' => 'Elija el archivo de Excel o CSV.',
+            'archivo.required' => 'Elija el archivo de Excel, CSV o de contactos (.vcf).',
             'archivo.max' => 'El archivo pesa más de 10 MB.',
         ]);
         $f = $request->file('archivo');
         $ext = strtolower($f->getClientOriginalExtension() ?: $f->extension());
-        if (!in_array($ext, ['xlsx', 'xlsm', 'xls', 'csv', 'txt', 'tsv'], true)) {
-            return back()->withErrors('Suba un archivo de Excel (.xlsx) o CSV.');
+        if (!in_array($ext, ['xlsx', 'xlsm', 'xls', 'csv', 'txt', 'tsv', 'vcf', 'vcard'], true)) {
+            return back()->withErrors('Suba un archivo de Excel (.xlsx), CSV o de contactos del celular (.vcf).');
         }
         $ruta = $f->storeAs('importaciones/' . TiendaActual::id(), 'clientes-' . now()->format('Ymd-His') . '-' . Str::random(6) . '.' . $ext, 'local');
         try {
