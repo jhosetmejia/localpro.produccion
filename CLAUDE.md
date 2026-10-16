@@ -15,7 +15,9 @@ Sitio en vivo: https://localproo.com
 ## Stack y despliegue
 - Laravel 12, PHP 8.2, Blade, Spatie Permission, Sanctum. BD MySQL en el VPS.
 - Repo `jhosetmejia/localpro.produccion`, rama **`master`**.
-- VPS Hostinger (CloudPanel): `/home/localproo/htdocs/localproo.com`, PHP 8.2.
+- VPS Hostinger (CloudPanel, 2.25.153.240): **PRODUCCIÓN REAL = `/home/localpro/htdocs/localpro.narinoexposhow.com`** (site user `localpro`, BD MySQL `localpro`).
+  Aunque la carpeta se llame "narinoexposhow", su nginx atiende `localproo.com` y `www.localproo.com` (DNS en Cloudflare). NUNCA borrar esa carpeta, ese sitio de CloudPanel ni la BD `localpro`.
+  (Verificado 2026-10-16: `/home/localproo` NO existe en el VPS. El subdominio DNS `localpro.narinoexposhow.com` se quitó, pero el sitio sigue siendo el de producción.)
 - Actualizar producción (como root en la consola web de hPanel), hace respaldo de BD + código y vuelve atrás si falla:
   `curl -fsSL https://raw.githubusercontent.com/jhosetmejia/localpro.produccion/master/deploy/actualizar.sh | bash`
 - Otros scripts en `deploy/` (instalar VPS, correo, respaldo diario, dominio nuevo, reset admin).
