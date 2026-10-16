@@ -124,6 +124,9 @@ main,.pie-sep{flex:none}
 .pie b{color:#fff;display:block;margin-bottom:6px;font-size:1rem}
 .pie a{color:#a6f34a;font-weight:700}
 .pie .lp{width:100%;text-align:center;border-top:1px solid rgba(255,255,255,.1);padding-top:18px;margin-top:6px;font-size:.78rem}
+.pie .lp b{color:#a6f34a}
+.pie .lp a.crear{display:inline-block;margin-left:4px;background:#a6f34a;color:#0b0d0c;border-radius:999px;padding:.3rem .8rem;font-weight:800;text-decoration:none}
+.pie .lp a.crear:hover{background:#fff}
 @stack('css')
 </style>
 </head>
@@ -169,7 +172,8 @@ main,.pie-sep{flex:none}
             @if ($tienda->direccion || $lugar)<div>📍 {{ trim($tienda->direccion . ($tienda->direccion && $lugar ? ' · ' : '') . $lugar) }}</div>@endif
             @if ($wa)<div>💬 <a href="https://wa.me/{{ $wa }}" target="_blank" rel="noopener">Escríbanos por WhatsApp</a></div>@endif
         </div>
-        <div class="lp">Tienda en línea creada con <a href="{{ url('/') }}">LocalPro</a></div>
+        @php $urlCrear = (app()->environment('production') && config('app.dominio') ? 'https://' . config('app.dominio') . '/registro' : route('registro')) . '?desde=' . rawurlencode('tienda:' . \Illuminate\Support\Str::limit($tienda->slug, 70, '')) . ($tienda->tipo_negocio ? '&tipo=' . rawurlencode($tienda->tipo_negocio) : ''); @endphp
+        <div class="lp">Tienda en línea creada con <b>LocalPro</b> · <a class="crear" href="{{ $urlCrear }}">¿Tiene un negocio? Cree su tienda aquí →</a></div>
     </div>
 </footer>
 
