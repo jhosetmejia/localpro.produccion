@@ -120,7 +120,9 @@ class catalogoController extends Controller
         $relacionados = Producto::with(['variantes' => fn ($q) => $q->where('estado', 1), 'categorias.caracteristica'])
             ->where('estado', 1)->where('id', '<>', $p->id)
             ->when($catIds->isNotEmpty(), fn ($q) => $q->whereHas('categorias', fn ($c) => $c->whereIn('categorias.id', $catIds)))
-            ->inRandomOrder()->take(8)->get()->map(fn ($r) => $this->datos($tienda, $r))->filter(fn ($r) => $r['disponible'])->values();
+            ->inRandomOrder()->take(12)->get()->map(fn ($r) => $this->datos($tienda, $r))->filter(fn ($r) => $r['disponible'])
+            // Primero los que tienen foto (se ven mejor al lado del producto)
+            ->sortByDesc(fn ($r) => (bool) $r['img'])->take(8)->values();
 
         return view('catalogo.producto', ['tienda' => $tienda, 'p' => $dato, 'relacionados' => $relacionados]);
     }

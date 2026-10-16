@@ -51,8 +51,26 @@
 .pp{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:28px;align-items:start}
 @media(max-width:800px){.pp{grid-template-columns:minmax(0,1fr);gap:16px}}
 .foto{background:#fff;border:1.5px solid var(--line);border-radius:26px;aspect-ratio:1/1;overflow:hidden;display:grid;place-items:center;font-size:5rem;font-weight:800;color:var(--g2);position:sticky;top:80px}
-.moda .foto{aspect-ratio:3/4;width:100%;max-width:calc((100vh - 110px) * .75);margin-inline:auto}
-@media(max-width:800px){.foto{position:static}.moda .foto{max-width:none}}
+.foto{width:100%;max-width:calc(100vh - 170px);margin-inline:auto}
+.moda .foto{aspect-ratio:3/4;max-width:calc((100vh - 170px) * .75)}
+@media(max-width:800px){.foto{position:static;max-width:none}.moda .foto{max-width:none}}
+/* En computador, al lado del producto se ven otros para seguir mirando sin bajar */
+.rel-lado{display:none;margin-top:22px;padding-top:16px;border-top:1.5px solid var(--line)}
+.rel-lado h2{font-size:1rem;font-weight:800;margin-bottom:10px;display:flex;align-items:baseline;justify-content:space-between}
+.rel-lado h2 a{font-size:.8rem;color:var(--g2)}
+.mini{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.mini a{display:block;background:#fff;border:1.5px solid var(--line);border-radius:14px;overflow:hidden;transition:transform .15s,box-shadow .15s}
+.mini a:hover{transform:translateY(-2px);box-shadow:0 10px 20px -14px rgba(0,0,0,.4)}
+.mini .mf{aspect-ratio:1/1;background:#fff;display:grid;place-items:center;font-weight:800;font-size:1.6rem;color:var(--g2);position:relative}
+.moda .mini .mf{aspect-ratio:3/4}
+.mini .mf img{width:100%;height:100%;object-fit:contain}
+.mini .mf .tag-promo{top:6px;right:6px;font-size:.65rem;padding:.1rem .4rem}
+.mini .mt{padding:6px 8px 8px;font-size:.75rem;font-weight:700;line-height:1.2}
+.mini .mt span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mini .mt b{display:block;margin-top:3px;font-size:.82rem}
+.mini .mt b.ahora-promo{color:#e11d48}
+.rel .t-d{display:none}
+@media(min-width:1000px){.rel-lado{display:block}.rel.con-lado{margin-top:28px}.rel .t-m{display:none}.rel .t-d{display:inline}}
 .foto img{width:100%;height:100%;object-fit:contain;object-position:center;background:#fff}
 .info h1{font-size:clamp(1.5rem,4vw,2.2rem);font-weight:800;letter-spacing:-.02em;line-height:1.15}
 .info .cod{color:var(--mut);font-weight:700;font-size:.85rem;margin-top:6px}
@@ -110,12 +128,26 @@
                 @endif
             @endif
             <button class="compartir" id="ppCompartir">↗ Compartir este producto</button>
+
+            @if ($relacionados->isNotEmpty())
+            <div class="rel-lado">
+                <h2>También le puede gustar @if ($relacionados->count() > 4)<a href="#rel">Ver más ↓</a>@endif</h2>
+                <div class="mini">
+                    @foreach ($relacionados->take(4) as $r)
+                    <a href="{{ $r['url'] }}">
+                        <div class="mf">@if ($r['img'])<img src="{{ $r['img'] }}" alt="{{ $r['nombre'] }}" loading="lazy">@else{{ mb_strtoupper(mb_substr($r['nombre'], 0, 1)) }}@endif @if ($r['descuento'])<span class="tag-promo">-{{ $r['descuento'] }}%</span>@endif</div>
+                        <div class="mt"><span>{{ $r['nombre'] }}</span><b class="{{ $r['antes'] ? 'ahora-promo' : '' }}">{{ dinero($r['desde'] ?? $r['precio']) }}</b></div>
+                    </a>
+                    @endforeach
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 
     @if ($relacionados->isNotEmpty())
-    <section class="rel">
-        <h2>También le puede gustar</h2>
+    <section class="rel con-lado" id="rel">
+        <h2><span class="t-m">También le puede gustar</span><span class="t-d">Más productos de {{ $tienda->nombre }}</span></h2>
         <div class="grid">
             @foreach ($relacionados as $r)
             <article class="card">
