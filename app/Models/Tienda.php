@@ -115,6 +115,17 @@ class Tienda extends Model
         return url('/t/' . $this->slug);
     }
 
+    // Para los botones "Ver mi tienda en línea" del panel: con www para que el navegador lo abra en
+    // una pestaña normal y no dentro de la app instalada de LocalPro (la app solo abarca localproo.com).
+    // Lo que se comparte sigue saliendo sin www (url_catalogo).
+    public function getUrlCatalogoNavegadorAttribute(): string
+    {
+        $dominio = config('app.dominio');
+        return app()->environment('production') && $dominio
+            ? 'https://www.' . $dominio . '/t/' . $this->slug
+            : $this->url_catalogo;
+    }
+
     public function plan()
     {
         return $this->belongsTo(Plan::class);

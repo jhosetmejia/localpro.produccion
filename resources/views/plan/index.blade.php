@@ -49,7 +49,7 @@
                 <b style="font-size:1.15rem">Plus: su página web con tienda en línea que aparece en Google</b>
                 <div style="color:#b9c6be;font-weight:600">Sus productos por categorías, botón <b style="color:#a6f34a">Comprar</b> por WhatsApp y cada producto con su propia página para que lo encuentren en los resultados de búsqueda. Incluida en los planes pagos.</div>
             </div>
-            <a href="{{ $tienda->url_catalogo }}" target="_blank" class="btn" style="background:#a6f34a;color:#0b0d0c;font-weight:800;border-radius:999px">Ver mi tienda en línea</a>
+            <a href="{{ $tienda->url_catalogo_navegador }}" target="_blank" rel="noopener" class="btn" style="background:#a6f34a;color:#0b0d0c;font-weight:800;border-radius:999px">Ver mi tienda en línea</a>
         </div>
     </div>
 

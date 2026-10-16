@@ -49,7 +49,7 @@
             <input class="form-control mb-2 text-center" id="urlCat" value="{{ $negocio->url_catalogo }}" readonly onclick="this.select()">
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-dark flex-fill" onclick="navigator.clipboard && navigator.clipboard.writeText(document.getElementById('urlCat').value); this.textContent='¡Copiado!'"><i class="fa-regular fa-copy me-1"></i>Copiar</button>
-                <a class="btn btn-primary flex-fill" target="_blank" href="{{ $negocio->url_catalogo }}"><i class="fa-solid fa-up-right-from-square me-1"></i>Ver</a>
+                <a class="btn btn-primary flex-fill" target="_blank" rel="noopener" href="{{ $negocio->url_catalogo_navegador }}"><i class="fa-solid fa-up-right-from-square me-1"></i>Ver</a>
             </div>
             <input type="hidden" name="catalogo_activo" value="0">
             <div class="form-check form-switch d-inline-block mt-3"><input class="form-check-input" type="checkbox" name="catalogo_activo" value="1" id="catAct" @checked(old('catalogo_activo', $negocio->catalogo_activo))><label class="form-check-label" for="catAct">Tienda en línea visible al público</label></div>

@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 
 // Todo funciona en un solo dominio (APP_URL). El dominio de pruebas y el www redirigen allá.
 class DominioPrincipal
@@ -14,6 +15,13 @@ class DominioPrincipal
     {
         $principal = app()->environment('production') ? config('app.dominio') : parse_url((string) config('app.url'), PHP_URL_HOST);
         $host = strtolower($request->getHost());
+
+        // La tienda en línea también abre con www (botón del panel), así sale en el navegador y no en la
+        // app instalada. Los enlaces internos se quedan en www; el canonical apunta al dominio sin www.
+        if ($principal && $host === 'www.' . $principal && $request->is('t', 't/*')) {
+            URL::forceRootUrl('https://www.' . $principal);
+            return $next($request);
+        }
 
         if ($principal && $host !== $principal
             && (in_array($host, self::VIEJOS, true) || $host === 'www.' . $principal)

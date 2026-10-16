@@ -10,13 +10,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>@yield('titulo')</title>
 <meta name="description" content="@yield('descripcion')">
-<link rel="canonical" href="@yield('canonical')">
+@php $canonico = str_replace('://www.', '://', trim($__env->yieldContent('canonical'))); @endphp
+<link rel="canonical" href="{{ $canonico }}">
 <meta name="robots" content="{{ $tienda->en_google ? 'index, follow, max-image-preview:large' : 'noindex, follow' }}">
 <meta property="og:type" content="@yield('og_tipo', 'website')">
 <meta property="og:site_name" content="{{ $tienda->nombre }}">
 <meta property="og:title" content="@yield('titulo')">
 <meta property="og:description" content="@yield('descripcion')">
-<meta property="og:url" content="@yield('canonical')">
+<meta property="og:url" content="{{ $canonico }}">
 @hasSection('imagen')<meta property="og:image" content="@yield('imagen')">@elseif ($tienda->logo_url)<meta property="og:image" content="{{ $tienda->logo_url }}">@endif
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0b0d0c">

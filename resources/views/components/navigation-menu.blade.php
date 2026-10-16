@@ -264,7 +264,7 @@
                 @endif
                 @endcan
                 @if ($tiendaMenu && $tiendaMenu->catalogo_activo && $tiendaMenu->slug)
-                @if ($ver('catalogo'))<a class="nav-link" href="{{ $tiendaMenu->url_catalogo }}" target="_blank">
+                @if ($ver('catalogo'))<a class="nav-link" href="{{ $tiendaMenu->url_catalogo_navegador }}" target="_blank" rel="noopener">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-globe"></i></div>
                     Mi catálogo en línea
                 </a>@endif
