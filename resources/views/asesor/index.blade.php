@@ -45,7 +45,8 @@
         <div class="d-flex align-items-center gap-3 flex-wrap">
             <div style="font-size:2rem">{{ $yoA->curso_aprobado_at ? '🎓' : '📚' }}</div>
             <div class="flex-grow-1" style="min-width:220px">
-                <b>Mi curso de asesor LocalPro</b>
+                @php $lecNuevas = collect(\App\Support\CursoAsesor::lecciones())->filter(fn ($l, $n) => !empty($l['nuevo']) && !in_array($n, array_map('intval', (array) ($yoA->curso_modulos ?? [])), true))->count(); @endphp
+                <b>Mi curso de asesor LocalPro</b>@if ($yoA->curso_aprobado_at && $lecNuevas) <span class="badge rounded-pill" style="background:#a6f34a;color:#0b0d0c;font-size:.65rem">{{ $lecNuevas }} {{ $lecNuevas === 1 ? 'LECCIÓN NUEVA' : 'LECCIONES NUEVAS' }}</span>@endif
                 <div class="small text-muted">
                     @if ($yoA->curso_aprobado_at)
                         Aprobado el {{ $yoA->curso_aprobado_at->format('d/m/Y') }}@if ($yoA->curso_nota) con {{ $yoA->curso_nota }}%@endif · Certificado {{ $yoA->certificado }}
@@ -57,7 +58,7 @@
             </div>
             @if ($yoA->curso_aprobado_at)
             <a href="{{ route('curso.certificado') }}" class="btn btn-success"><i class="fa-solid fa-award me-1"></i>Ver mi certificado</a>
-            <a href="{{ route('curso.index') }}" class="btn btn-light"><i class="fa-solid fa-book-open me-1"></i>Repasar el curso</a>
+            <a href="{{ route('curso.index') }}" class="btn {{ $lecNuevas ? 'btn-warning' : 'btn-light' }}"><i class="fa-solid fa-book-open me-1"></i>{{ $lecNuevas ? 'Ver lecciones nuevas' : 'Repasar el curso' }}</a>
             @else
             <a href="{{ route('curso.index') }}" class="btn btn-dark"><i class="fa-solid fa-play me-1"></i>{{ $hechas ? 'Seguir el curso' : 'Empezar el curso' }}</a>
             @endif
@@ -76,6 +77,11 @@
             </div>
             <a href="{{ route('contabilidad.index') }}" class="btn btn-dark"><i class="fa-solid fa-file-invoice-dollar me-1"></i>Abrir Contabilidad</a>
             <a href="{{ route('contabilidad.guia') }}" class="btn btn-light"><i class="fa-solid fa-book me-1"></i>Guía</a>
+        </div>
+        @php $enlaceContador = url('/contadores/' . $yoA->codigo); @endphp
+        <div class="mt-2 small d-flex align-items-center gap-2 flex-wrap">
+            <span class="text-muted">Su enlace para contadores:</span> <code>{{ $enlaceContador }}</code>
+            <a class="btn btn-success btn-sm" target="_blank" href="https://wa.me/?text={{ rawurlencode('Hola 👋 ¿Eres contador? En LocalPro subes el listado de facturas de la DIAN y la contabilidad de tu cliente y en minutos ves lo que no está contabilizado, las diferencias de IVA y las retenciones, con el borrador del 350 y el calendario tributario de tus clientes. Crea tu cuenta gratis aquí: ' . $enlaceContador) }}"><i class="fa-brands fa-whatsapp me-1"></i>Compartir</a>
         </div>
     </div>
     @endif

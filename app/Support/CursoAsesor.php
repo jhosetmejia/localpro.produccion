@@ -6,8 +6,9 @@ use App\Models\Ajuste;
 
 /**
  * Curso básico para aspirantes a asesor: corto y sencillo.
- * 4 lecciones (se pasan con "Entendido") + examen fácil de 10 preguntas (intentos ilimitados) + certificado.
+ * Lecciones cortas (se pasan con "Entendido") + examen fácil de 10 preguntas (intentos ilimitados) + certificado.
  * Quien aprueba queda como asesor activo automáticamente.
+ * Cada función nueva del sistema se agrega aquí (lección y preguntas) con 'nuevo' => 'AAAA-MM' para que la red la conozca.
  */
 class CursoAsesor
 {
@@ -94,6 +95,38 @@ class CursoAsesor
                 ],
                 'clave' => 'Entre más negocios inscriba y acompañe, más gana, y las renovaciones le siguen pagando cada año.',
             ],
+            5 => [
+                'titulo' => 'Funciones nuevas para cada tipo de negocio',
+                'icono' => 'fa-wand-magic-sparkles',
+                'minutos' => 3,
+                'nuevo' => '2026-10',
+                'intro' => 'LocalPro se adapta al tipo de negocio. Estas funciones le ayudan a convencer a negocios que antes pensaban que el sistema no era para ellos.',
+                'puntos' => [
+                    '<b>Funerarias – Obituarios:</b> escriben el nombre, suben la foto y eligen la sala de velación; el obituario sale solo en el televisor de cada sala. Trae plantillas listas (con flores, palomas, cielo), animaciones, video de fondo, logo sin fondo y descarga en imagen o video para redes. Se activa solo al elegir el tipo "Funeraria".',
+                    '<b>Personalizar menú:</b> el dueño apaga las secciones que no usa y su menú queda limpio. Por ejemplo, una funeraria no necesita tallas ni separados. No se borra nada: se puede volver a prender.',
+                    '<b>Palabras e íconos según el negocio:</b> una tienda de ropa ve "prendas", una ferretería "productos", una funeraria "planes y servicios". Los servicios no salen como "Agotado".',
+                    '<b>Tienda en línea solo con existencias:</b> el dueño escoge si su página muestra todos los productos o solo los que tiene en inventario, para no recibir pedidos de lo que no hay.',
+                    '<b>Fotos livianas automáticas:</b> las fotos que suben se achican solas sin perder calidad, para que la página cargue rápido en el celular.',
+                ],
+                'clave' => 'Antes de mostrar LocalPro, pregunte qué tipo de negocio es: así le enseña justo la función que le resuelve su problema.',
+            ],
+            6 => [
+                'titulo' => 'Contabilidad para contadores',
+                'icono' => 'fa-calculator',
+                'minutos' => 4,
+                'nuevo' => '2026-10',
+                'intro' => 'Los contadores son un gran cliente: cada uno lleva muchos negocios. LocalPro tiene una herramienta hecha para ellos.',
+                'puntos' => [
+                    '<b>Qué hace:</b> el contador sube el listado de facturas de la DIAN y la contabilidad de su cliente (Contapyme, Siigo, World Office, en Excel). LocalPro cruza factura por factura y le muestra lo que no está contabilizado, las diferencias de IVA y las retenciones que faltaron o sobraron.',
+                    '<b>Qué le deja listo:</b> el borrador de la declaración de retenciones (Formulario 350), el resumen del IVA, un Excel de papel de trabajo y los certificados de retención.',
+                    '<b>Calendario tributario:</b> le muestra cuándo vence la retención y el IVA de cada cliente según su NIT y le avisa al correo 3 días antes y el mismo día.',
+                    '<b>Datos de ejemplo:</b> con el botón "Probar con datos de ejemplo" el contador ve todo funcionando en un minuto, sin subir nada suyo. Úselo para hacer la demostración.',
+                    '<b>Cómo inscribirlo:</b> mándele su enlace para contadores <b>localproo.com/contadores/SU-CÓDIGO</b> (está en su panel). La cuenta queda como contador, con la herramienta lista y a su nombre.',
+                    '<b>Usted también la tiene:</b> en su panel, en Red comercial → Contabilidad, con su propio espacio, para mostrarla o para llevar clientes de un analista contable.',
+                    '<b>Lo que no hace:</b> no presenta la declaración en la DIAN. Deja el borrador listo; la presenta el contador con su firma electrónica.',
+                ],
+                'clave' => 'Un contador que usa LocalPro le puede recomendar el sistema a todos los negocios que atiende.',
+            ],
         ];
     }
 
@@ -123,6 +156,14 @@ class CursoAsesor
             15 => ['Un negocio quiere llevar la nómina de sus empleados en LocalPro, pero no quiere enviarla a la DIAN. ¿Se puede?', ['No, toda nómina se envía obligatoriamente a la DIAN', 'Sí, escoge "Nómina sin DIAN" y la maneja solo de forma interna', 'Solo si paga un plan adicional'], 1],
             17 => ['Un negocio quiere un solo enlace para poner en la biografía de Instagram con su WhatsApp, su ubicación y sus promociones. ¿Qué le muestra?', ['Mis enlaces: su página localproo.com/@negocio', 'Que cree una página web aparte', 'No se puede'], 0],
             18 => ['En "Mis enlaces", el negocio quiere que una promoción desaparezca sola cuando se acabe. ¿Qué hace?', ['La borra a mano ese día', 'Programa el enlace con fecha "hasta"', 'Cambia de tema'], 1],
+            19 => ['Una funeraria le pregunta si LocalPro le sirve para mostrar los obituarios en los televisores de sus salas. ¿Qué le responde?', ['No, solo sirve para tiendas', 'Sí: con Obituarios elige la sala, sube la foto y el obituario sale solo en el televisor de esa sala', 'Solo si compra un televisor especial'], 1],
+            20 => ['El dueño de un negocio dice que el menú tiene muchas opciones que no usa. ¿Qué le muestra?', ['Personalizar menú: apaga lo que no usa sin borrar nada', 'Que cree otra cuenta', 'Que no se puede cambiar'], 0],
+            21 => ['Un negocio no quiere que en su página aparezcan productos que ya no tiene. ¿Qué hace?', ['Borra los productos', 'En los datos del negocio elige mostrar solo los productos con existencias', 'Desactiva la página'], 1],
+            22 => ['Un contador le pregunta qué hace la herramienta de Contabilidad de LocalPro. ¿Qué le responde?', ['Cruza las facturas de la DIAN con su contabilidad, revisa IVA y retenciones y le deja el borrador del 350', 'Le presenta las declaraciones en la DIAN sin revisar', 'Solo sirve para imprimir facturas'], 0],
+            23 => ['¿Cuál es la mejor forma de mostrarle la herramienta de Contabilidad a un contador en pocos minutos?', ['Pedirle todos los archivos de sus clientes primero', 'Usar el botón "Probar con datos de ejemplo"', 'Mandarle un PDF'], 1],
+            24 => ['¿Con qué enlace inscribe a un contador para que su cuenta quede como contador y a su nombre?', ['localproo.com/contadores/SU-CÓDIGO', 'Cualquier enlace de internet', 'No se puede inscribir contadores'], 0],
+            25 => ['Un contador le pregunta si LocalPro presenta la declaración en la DIAN por él. ¿Qué le responde?', ['Sí, la envía sola', 'No: deja el borrador listo y él la presenta en la DIAN con su firma electrónica', 'Sí, pero solo los lunes'], 1],
+            26 => ['¿Cómo le ayuda el calendario tributario al contador?', ['Le muestra cuándo vence la retención y el IVA de cada cliente y le avisa al correo antes del vencimiento', 'Le cambia las fechas de la DIAN', 'No sirve para contadores'], 0],
             16 => ['El negocio que usted inscribió le paga a un empleado menos del salario mínimo por medio tiempo. ¿Puede liquidarlo en LocalPro?', ['No, el sistema solo acepta el salario mínimo', 'Sí, con la liquidación personalizada pone el salario que pagan', 'Solo si lo envía a la DIAN'], 1],
         ];
     }

@@ -25,15 +25,21 @@ class registroController extends Controller
     }
 
     // Enlace del asesor: guarda su código (60 días) y abre el registro
-    public function referido(string $codigo)
+    public function referido(string $codigo, array $query = [])
     {
         $asesor = \App\Models\Asesor::porCodigo($codigo)->aceptaNegocios()->first();
         $guardar = $asesor?->codigo ?? (\App\Models\Asesor::esCodigoLocalpro($codigo) ? \App\Models\Asesor::CODIGO_LOCALPRO : null);
         if (!$guardar) {
-            return redirect()->route('registro');
+            return redirect()->route('registro', $query);
         }
         session(['codigo_asesor' => $guardar]);
-        return redirect()->route('registro')->withCookie(cookie('lp_asesor', $guardar, 60 * 24 * 60));
+        return redirect()->route('registro', $query)->withCookie(cookie('lp_asesor', $guardar, 60 * 24 * 60));
+    }
+
+    // Enlace del asesor para contadores (/contadores/LCP-00012): queda a su nombre y la cuenta nace como contador
+    public function referidoContador(string $codigo)
+    {
+        return $this->referido($codigo, ['tipo' => 'contable']);
     }
 
     public function store(Request $request)

@@ -15,14 +15,19 @@
         $listos = $vistas + ($aprobado ? 2 : 0);
         $siguiente = collect(array_keys($lecciones))->first(fn ($n) => !in_array($n, $hechas, true));
         $res = session('resultado');
+        $minutos = array_sum(array_column($lecciones, 'minutos'));
+        $nuevas = array_filter($lecciones, fn ($l, $n) => !empty($l['nuevo']) && !in_array($n, $hechas, true), ARRAY_FILTER_USE_BOTH);
     @endphp
 
     <div class="hero">
         <small>Curso básico de asesores</small>
         <h1>Hola {{ strtok($yo->nombre, ' ') }}, <em>bienvenido</em> 👋</h1>
-        <p>Son {{ $total }} lecciones cortas (unos 10 minutos) y un examen fácil de {{ $preguntas }} preguntas. Al terminar recibes tu <b>certificado de Asesor Comercial LocalPro</b> para tu hoja de vida y quedas listo para empezar a ganar.</p>
+        <p>Son {{ $total }} lecciones cortas (unos {{ $minutos }} minutos) y un examen fácil de {{ $preguntas }} preguntas. Al terminar recibes tu <b>certificado de Asesor Comercial LocalPro</b> para tu hoja de vida y quedas listo para empezar a ganar.</p>
     </div>
 
+    @if ($aprobado && $nuevas)
+        <div class="msg ok"><i class="fa-solid fa-star"></i> Hay {{ count($nuevas) === 1 ? '1 lección nueva' : count($nuevas) . ' lecciones nuevas' }} con las funciones más recientes de LocalPro. Repásalas para saber mostrarlas: tu certificado sigue vigente.</div>
+    @endif
     @if (session('bienvenida'))
         <div class="msg ok"><i class="fa-solid fa-circle-check"></i> ¡Tu inscripción quedó lista{{ $yo->reclutador ? ' en el equipo de ' . $yo->reclutador->nombre : '' }}! Empecemos.</div>
     @endif
@@ -49,7 +54,7 @@
             @php $ok = in_array($n, $hechas, true); $abierta = $ok || $n === $siguiente || $aprobado; @endphp
             <a href="{{ route('curso.leccion', $n) }}" class="paso {{ $ok ? 'ok' : ($abierta ? '' : 'bloq') }}">
                 <div class="ic"><i class="fa-solid {{ $ok ? 'fa-check' : $l['icono'] }}"></i></div>
-                <div class="t"><b>{{ $n }}. {{ $l['titulo'] }}</b><small>{{ $ok ? 'Vista ✓' : $l['minutos'] . ' min de lectura' }}</small></div>
+                <div class="t"><b>{{ $n }}. {{ $l['titulo'] }}@if (!empty($l['nuevo']) && !$ok) <span style="background:#a6f34a;color:#0b0d0c;border-radius:20px;padding:1px 8px;font-size:.62rem;vertical-align:middle">NUEVO</span>@endif</b><small>{{ $ok ? 'Vista ✓' : $l['minutos'] . ' min de lectura' }}</small></div>
                 @if (!$ok && $abierta)<i class="fa-solid fa-chevron-right" style="color:#16b34a"></i>@endif
             </a>
         @endforeach
