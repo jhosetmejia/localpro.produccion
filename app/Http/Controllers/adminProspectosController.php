@@ -130,7 +130,7 @@ class adminProspectosController extends Controller
     public function correr(Request $request)
     {
         $cmd = $request->input('que') === 'buscar' ? 'prospectos:buscar' : 'prospectos:enviar';
-        Artisan::call($cmd, $cmd === 'prospectos:enviar' ? ['--todo' => true] : []);
+        Artisan::call($cmd, $cmd === 'prospectos:enviar' ? ['--todo' => true] : ['--webs' => 15]);
         $salida = trim(Artisan::output());
         return back()->with('success', mb_substr($salida, -1500) ?: 'Listo.');
     }
