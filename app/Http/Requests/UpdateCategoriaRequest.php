@@ -14,6 +14,14 @@ class UpdateCategoriaRequest extends FormRequest
         return true;
     }
 
+    // Categorías: nombre parejo ("CHAQUETA NACIONAL" → "Chaqueta nacional")
+    protected function prepareForValidation(): void
+    {
+        if ($this->routeIs('categorias.*') && $this->filled('nombre')) {
+            $this->merge(['nombre' => \App\Support\Textos::nombre($this->input('nombre'))]);
+        }
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *

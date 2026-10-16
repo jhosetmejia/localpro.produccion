@@ -40,7 +40,7 @@ class catalogoController extends Controller
             'img' => $p->img_path ? asset('storage/productos/' . rawurlencode($p->img_path)) : null,
             'url' => self::urlProducto($tienda, $p),
             'categorias' => $cats = $p->categorias->map(fn ($c) => $c->caracteristica->nombre ?? null)->filter()->values()->all(),
-            'para' => self::para($p->nombre . ' ' . implode(' ', $cats)),
+            'para' => $p->para ? ($p->para === 'todos' ? '' : $p->para) : self::para($p->nombre . ' ' . implode(' ', $cats)),
             'disponible' => $vars->isNotEmpty(),
             'variantes' => $vars->map(fn ($v) => ['id' => $v->id, 'etiqueta' => $v->etiqueta, 'talla' => $v->talla, 'color' => $v->color, 'precio' => (float) ($v->precio ?? $p->precio_venta)])->all(),
         ];

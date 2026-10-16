@@ -16,6 +16,7 @@ class Producto extends Model
     protected $fillable = [
         'codigo',
         'nombre',
+        'para',
         'precio_venta',
         'impuesto',
         'precio_costo',
@@ -27,6 +28,9 @@ class Producto extends Model
         'img_path',
         'unidad'
     ];
+
+    // Para quién es (filtro Mujer / Hombre / Niños del catálogo). Vacío = para todos.
+    public const PARA = ['mujer' => ['👩', 'Mujer'], 'hombre' => ['👨', 'Hombre'], 'ninos' => ['🧒', 'Niños']];
 
     // Cómo se vende: por unidad o por medida (metro, kilo, litro…). [nombre, abreviatura, plural]
     public const UNIDADES = [

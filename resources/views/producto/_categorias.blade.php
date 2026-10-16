@@ -20,7 +20,35 @@
         </div>
         <small class="text-danger d-block mt-1" id="lpNuevaCatError"></small>
     </div>
+    <small class="mt-1 fw-bold" id="lpNuevaCatAviso" style="display:none;color:#11702f"></small>
     <small class="text-muted">Si no elige ninguna, el producto queda en "General".</small>
+    @if (\App\Support\TiendaActual::tienda()?->usa_tallas)
+    @php $paraSel = old('para', $para ?? ''); @endphp
+    <label class="form-label mt-3 mb-1">¿Para quién es? <span class="text-muted fw-normal">(así sus clientes lo encuentran en el catálogo)</span></label>
+    <div class="lp-chips" id="lpPara">
+        @foreach (\App\Models\Producto::PARA + ['todos' => ['👪', 'Para todos']] as $k => [$ico, $nom])
+        <input type="radio" class="btn-check" name="para" id="para-{{ $k }}" value="{{ $k }}" autocomplete="off" @checked($paraSel === $k)>
+        <label class="lp-chip" for="para-{{ $k }}">{{ $ico }} {{ $nom }}</label>
+        @endforeach
+    </div>
+    <script>
+    // Mientras no elija, se marca solo según el nombre ("Chaqueta dama" → Mujer)
+    (function () {
+        var caja = document.getElementById('lpPara'), nombre = document.getElementById('nombre'), tocado = !!caja.querySelector(':checked');
+        if (!nombre) return;
+        caja.addEventListener('click', function (e) { if (e.target.closest('label,input')) tocado = true; });
+        function adivinar() {
+            if (tocado) return;
+            var t = ' ' + nombre.value.toLowerCase() + ' ', k = '';
+            if (/[^a-zñ](niñ[oa]s?|nin[oa]s?|infantil|beb[eé]s?)[^a-zñ]/.test(t)) k = 'ninos';
+            else if (/[^a-zñ](damas?|mujer(es)?|femenin[oa]s?)[^a-zñ]/.test(t)) k = 'mujer';
+            else if (/[^a-zñ](caballeros?|hombres?|masculin[oa]s?)[^a-zñ]/.test(t)) k = 'hombre';
+            caja.querySelectorAll('input').forEach(function (r) { r.checked = r.value === k; });
+        }
+        nombre.addEventListener('input', adivinar);
+    })();
+    </script>
+    @endif
     @error('categorias')
     <small class="text-danger d-block">{{'*'.$message}}</small>
     @enderror
@@ -56,6 +84,17 @@
                 if (res.d.errors && res.d.errors.nombre) m = res.d.errors.nombre[0];
                 if (/taken|already|ya ha sido/i.test(m)) m = 'Ya existe una categoría con ese nombre.';
                 err.textContent = m; return;
+            }
+            // Ya existía (ej. "Chaquetas" y "CHAQUETA"): se elige esa en vez de repetirla
+            var ya = document.getElementById('cat' + res.d.id);
+            if (ya) {
+                ya.checked = true;
+                inp.value = ''; box.style.display = 'none'; btn.style.display = '';
+                err.textContent = '';
+                var aviso = document.getElementById('lpNuevaCatAviso');
+                aviso.textContent = 'Ya tenía la categoría "' + res.d.nombre + '": quedó elegida.';
+                aviso.style.display = "block"; setTimeout(function () { aviso.style.display = 'none'; }, 5000);
+                return;
             }
             // Se agrega como botón ya elegido, antes de "Nueva categoría"
             var c = document.createElement('input');

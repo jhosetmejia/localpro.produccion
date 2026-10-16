@@ -74,12 +74,23 @@ class CrearTienda
     // Categoría de la tienda actual (la crea si no existe)
     public static function categoria(string $nombre): Categoria
     {
-        $c = Categoria::whereHas('caracteristica', fn ($q) => $q->where('nombre', $nombre))->first();
+        $nombre = Textos::nombre($nombre) ?: 'General';
+        // Si ya hay una igual o parecida (Chaquetas = CHAQUETA), se usa esa
+        $c = self::categoriaParecida($nombre);
         if ($c) {
             return $c;
         }
         $car = Caracteristica::create(['nombre' => $nombre, 'descripcion' => null, 'estado' => 1]);
         return Categoria::create(['caracteristica_id' => $car->id]);
+    }
+
+    // Categoría ya existente con el mismo nombre, sin importar mayúsculas, tildes ni plural
+    public static function categoriaParecida(string $nombre, ?int $ignorar = null): ?Categoria
+    {
+        $clave = Textos::clave($nombre);
+        if ($clave === '') return null;
+        return Categoria::with('caracteristica')->when($ignorar, fn ($q) => $q->where('id', '<>', $ignorar))->get()
+            ->first(fn ($c) => $c->caracteristica && Textos::clave($c->caracteristica->nombre) === $clave);
     }
 
     // Código consecutivo para productos creados sin código (P-0001, P-0002…)

@@ -44,6 +44,15 @@ class categoriaController extends Controller
      */
     public function store(StoreCaracteristicaRequest $request)
     {
+        // Ya existe una igual o parecida (Chaquetas = CHAQUETA): se usa esa en vez de repetirla
+        if ($igual = \App\Support\CrearTienda::categoriaParecida($request->validated()['nombre'])) {
+            $nombreIgual = $igual->caracteristica->nombre;
+            if ($request->expectsJson()) {
+                return response()->json(['id' => $igual->id, 'nombre' => $nombreIgual, 'existente' => true]);
+            }
+            return back()->withInput()->withErrors(['nombre' => 'Ya tiene la categoría "' . $nombreIgual . '". Use esa para no repetirla.']);
+        }
+
         $categoria = DB::transaction(function () use ($request) {
             $caracteristica = Caracteristica::create($request->validated());
             return $caracteristica->categoria()->create(['caracteristica_id' => $caracteristica->id]);
@@ -77,6 +86,9 @@ class categoriaController extends Controller
      */
     public function update(UpdateCategoriaRequest $request, Categoria $categoria)
     {
+        if ($igual = \App\Support\CrearTienda::categoriaParecida($request->validated()['nombre'], $categoria->id)) {
+            return back()->withInput()->withErrors(['nombre' => 'Ya tiene la categoría "' . $igual->caracteristica->nombre . '". Si son lo mismo, mueva los productos a esa y borre esta.']);
+        }
         Caracteristica::where('id', $categoria->caracteristica->id)
             ->update($request->validated());
 

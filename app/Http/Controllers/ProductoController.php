@@ -73,6 +73,7 @@ class ProductoController extends Controller
             $producto->fill([
                 'codigo' => $request->codigo ?: \App\Support\CrearTienda::siguienteCodigo(),
                 'nombre' => $request->nombre,
+                'para' => $request->para ?: null,
                 'precio_venta' => $request->precio_venta,
                 'precio_costo' => $request->precio_costo ?: 0,
                 'controla_inventario' => $request->boolean('controla_inventario'),
@@ -102,7 +103,7 @@ class ProductoController extends Controller
             if (\App\Support\TiendaActual::tienda()->usa_tallas && $request->boolean('con_tallas')) {
                 $vistas = [];
                 foreach ((array) $request->input('variantes', []) as $fila) {
-                    $talla = mb_strtoupper(trim((string) ($fila['talla'] ?? ''))) ?: null;
+                    $talla = \App\Support\Tallas::normalizar($fila['talla'] ?? '');
                     $color = \App\Support\Colores::normalizar($fila['color'] ?? '');
                     $clave = $talla . '|' . $color;
                     if ($clave === '|' || isset($vistas[$clave])) {
@@ -187,6 +188,7 @@ class ProductoController extends Controller
             $producto->fill([
                 'codigo' => $request->codigo,
                 'nombre' => $request->nombre,
+                'para' => $request->para ?: null,
                 'precio_venta' => $request->precio_venta,
                 'precio_costo' => $request->precio_costo ?: 0,
                 'controla_inventario' => $request->boolean('controla_inventario'),

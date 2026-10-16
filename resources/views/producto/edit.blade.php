@@ -102,7 +102,7 @@
                     </div>
 
                     <!---Categorías---->
-                    @include('producto._categorias', ['seleccionadas' => $producto->categorias->pluck('id')->all()])
+                    @include('producto._categorias', ['seleccionadas' => $producto->categorias->pluck('id')->all(), 'para' => $producto->para])
                 </div>
 
             </div>

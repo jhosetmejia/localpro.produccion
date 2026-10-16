@@ -98,12 +98,8 @@
 
             <div id="bloqueTallas">
                 <label class="form-label">1) Escriba las tallas <span class="text-muted fw-normal">(separadas por coma)</span></label>
-                <input type="text" id="tallas" class="form-control" placeholder="Ej: S, M, L, XL" value="{{ old('tallas_txt') }}" name="tallas_txt" autocomplete="off">
-                <div class="pf-pres">
-                    @foreach (['S, M, L, XL', 'XS, S, M, L, XL, XXL', '6, 8, 10, 12, 14, 16', '28, 30, 32, 34, 36', '35, 36, 37, 38, 39, 40', 'Única'] as $p)
-                    <button type="button" data-t="{{ $p }}">{{ $p }}</button>
-                    @endforeach
-                </div>
+                <input type="text" id="tallas" class="form-control" placeholder="Toque las tallas de abajo o escríbalas" value="{{ old('tallas_txt') }}" name="tallas_txt" autocomplete="off">
+                @include('producto._tallas', ['para' => 'tallas'])
 
                 <label class="form-label mt-3">2) Colores <span class="text-muted fw-normal">(opcional, separados por coma)</span></label>
                 <input type="text" id="colores" class="form-control" placeholder="Toque los colores de abajo o escríbalos" value="{{ old('colores_txt') }}" name="colores_txt" autocomplete="off">
@@ -209,7 +205,7 @@
         function generar() {
             // Conserva lo que ya escribió al cambiar tallas o colores
             filas.querySelectorAll('.pf-fila').forEach(function (r) { guardadas[r.dataset.k] = r.querySelector('input[type=number]').value; });
-            var ts = lista(tallas.value), cs = window.LPColores ? LPColores.lista(colores.value) : lista(colores.value);
+            var ts = window.LPTallas ? LPTallas.lista(tallas.value) : lista(tallas.value), cs = window.LPColores ? LPColores.lista(colores.value) : lista(colores.value);
             if (!ts.length && !cs.length) { filas.innerHTML = ''; document.getElementById('tablaWrap').style.display = 'none'; total(); return; }
             ts = ts.length ? ts : [''];
             cs = cs.length ? cs : [''];

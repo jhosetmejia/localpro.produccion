@@ -209,7 +209,7 @@ class ImportarProductos
                     // Variantes (talla/color) o una sola
                     $vistas = [];
                     foreach ($filasProd as $x) {
-                        $talla = ($t = self::texto($x['talla'] ?? null, 20)) ? mb_strtoupper($t) : null;
+                        $talla = ($t = self::texto($x['talla'] ?? null, 20)) ? Tallas::normalizar($t) : null;
                         $color = ($c = self::texto($x['color'] ?? null, 30)) ? Colores::normalizar($c) : null;
                         $k = $talla . '|' . $color;
                         if (isset($vistas[$k])) { $err($x['_num'], 'fila repetida de "' . $x['_nombre'] . '"' . ($k !== '|' ? ' (' . trim($talla . ' ' . $color) . ')' : '') . '.'); continue; }

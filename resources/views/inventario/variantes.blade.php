@@ -26,12 +26,7 @@
             @csrf
             <div class="col-md-4">
                 <label class="form-label">Tallas <span class="text-muted fw-normal">(separadas por coma)</span></label>
-                <input name="tallas" class="form-control" placeholder="S, M, L, XL   ó   28, 30, 32" value="{{ old('tallas') }}">
-                <div class="d-flex gap-1 mt-2 flex-wrap">
-                    @foreach (['XS, S, M, L, XL', '6, 8, 10, 12, 14', '28, 30, 32, 34, 36', 'ÚNICA'] as $preset)
-                    <button type="button" class="btn btn-sm btn-info py-0 px-2" onclick="this.form.tallas.value='{{ $preset }}'">{{ $preset }}</button>
-                    @endforeach
-                </div>
+                <input name="tallas" id="tallas" class="form-control" placeholder="Toque las tallas o escríbalas" value="{{ old('tallas') }}">
             </div>
             <div class="col-md-3">
                 <label class="form-label">Colores <span class="text-muted fw-normal">(separados por coma)</span></label>
@@ -48,7 +43,8 @@
             <div class="col-md-1 d-grid">
                 <button class="btn btn-primary"><i class="fa-solid fa-plus"></i></button>
             </div>
-            <div class="col-12 mt-1">@include('producto._paleta', ['para' => 'colores'])</div>
+            <div class="col-md-6 mt-1"><label class="form-label small fw-bold mb-0">Tallas</label>@include('producto._tallas', ['para' => 'tallas'])</div>
+            <div class="col-md-6 mt-1"><label class="form-label small fw-bold mb-0">Colores</label>@include('producto._paleta', ['para' => 'colores'])</div>
             <div class="col-12"><small class="text-muted">Se crea cada combinación. Ej: 3 tallas × 2 colores = 6 referencias, cada una con su cantidad.</small></div>
         </form>
     </div>
