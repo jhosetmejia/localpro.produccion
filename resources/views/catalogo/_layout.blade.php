@@ -60,6 +60,14 @@ button{font:inherit;border:0;background:none;cursor:pointer;color:inherit}
 .card .tag{position:absolute;left:10px;top:10px;background:#fff;border-radius:999px;padding:.2rem .6rem;font-size:.7rem;font-weight:800;box-shadow:0 4px 10px -6px rgba(0,0,0,.4)}
 .card .tag.agot{background:#b0206a;color:#fff}
 .card .tag-promo{position:absolute;right:10px;top:10px;background:#e11d48;color:#fff;border-radius:999px;padding:.22rem .6rem;font-size:.75rem;font-weight:900;box-shadow:0 4px 10px -6px rgba(0,0,0,.5)}
+/* Lápiz para editar (solo lo ve el dueño de la tienda con sesión iniciada) */
+.card .b.con-edit{position:relative}
+.lp-edit{position:absolute;right:10px;top:-46px;z-index:3;width:36px;height:36px;border-radius:50%;background:var(--k);color:#fff;display:grid;place-items:center;font-size:.95rem;box-shadow:0 6px 14px -6px rgba(0,0,0,.6);text-decoration:none}
+.lp-edit:hover{background:#16b34a;color:#fff}
+.lp-edit-pp{display:inline-flex;align-items:center;gap:6px;background:var(--k);color:#fff;border-radius:999px;padding:.4rem .9rem;font-weight:800;font-size:.85rem;margin-top:10px;text-decoration:none}
+.lp-edit-pp:hover{background:#16b34a;color:#fff}
+.lp-dueno{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;z-index:60;background:var(--k);color:#fff;border-radius:999px;padding:.5rem .6rem .5rem 1rem;font-size:.82rem;font-weight:700;display:flex;gap:10px;align-items:center;box-shadow:0 12px 30px -12px rgba(0,0,0,.6);white-space:nowrap}
+.lp-dueno a{background:#16b34a;color:#fff;border-radius:999px;padding:.3rem .8rem;text-decoration:none;font-weight:800}
 .antes{color:var(--mut);text-decoration:line-through;font-weight:600;font-size:.8em;margin-right:4px}
 .pr .ahora-promo{color:#e11d48}
 .card .b{padding:10px 12px 12px;display:flex;flex-direction:column;gap:4px;flex:1}
@@ -261,5 +269,41 @@ window.LPC = (function () {
 })();
 </script>
 @stack('js')
+@php $edUrl = \App\Http\Controllers\catalogoController::puedeEditar($tienda) ? url('/productos/__ID__/edit') : null; @endphp
+<script>
+// Si quien mira es el dueño (o alguien de la tienda) con sesión iniciada, sale un lápiz para editar cada producto
+(function () {
+    function pintar(ed, panel) {
+        document.querySelectorAll('.card[data-id] .b').forEach(function (b) {
+            if (b.querySelector('.lp-edit')) return;
+            var a = document.createElement('a');
+            a.className = 'lp-edit'; a.href = ed.replace('__ID__', b.closest('.card').dataset.id);
+            a.title = 'Editar producto'; a.setAttribute('aria-label', 'Editar producto'); a.textContent = '✏️';
+            b.classList.add('con-edit'); b.appendChild(a);
+        });
+        var h = document.querySelector('[data-editar-id]');
+        if (h && !document.querySelector('.lp-edit-pp')) {
+            var e = document.createElement('a');
+            e.className = 'lp-edit-pp'; e.href = ed.replace('__ID__', h.dataset.editarId); e.textContent = '✏️ Editar este producto';
+            h.insertAdjacentElement('afterend', e);
+        }
+        if (panel && !document.querySelector('.lp-dueno')) {
+            var d = document.createElement('div');
+            d.className = 'lp-dueno';
+            d.innerHTML = '👀 Así ven su tienda sus clientes <a href="' + panel + '">Ir al panel</a>';
+            document.body.appendChild(d);
+        }
+    }
+    var ed = @json($edUrl), panel = @json($edUrl ? route('productos.index') : null);
+    if (ed) return pintar(ed, panel);
+    // Abierta con www: se pregunta al dominio principal, donde está la sesión
+    if (/^www\./.test(location.hostname)) {
+        fetch(@json('https://' . config('app.dominio') . '/t/' . $tienda->slug . '/yo'), { credentials: 'include' })
+            .then(function (r) { return r.ok ? r.json() : {}; })
+            .then(function (d) { if (d && d.editar) pintar(d.editar, d.panel); })
+            .catch(function () {});
+    }
+})();
+</script>
 </body>
 </html>

@@ -6,6 +6,7 @@ use App\Models\Producto;
 use App\Models\Tienda;
 use App\Support\TiendaActual;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 // Tienda en línea de cada negocio: productos por categoría, botón Comprar (WhatsApp con el producto exacto)
@@ -18,6 +19,29 @@ class catalogoController extends Controller
         abort_unless($tienda->catalogo_activo && $tienda->activa && $tienda->onboarding_completo, 404);
         TiendaActual::set($tienda->id);
         return $tienda;
+    }
+
+    // ¿Quien mira la tienda es el dueño o alguien de la tienda que puede editar productos?
+    public static function puedeEditar(Tienda $tienda): bool
+    {
+        $u = auth()->user();
+        return $u && (int) $u->tienda_id === (int) $tienda->id && $u->can('editar-producto');
+    }
+
+    // Para la tienda abierta con www (sin la sesión): el navegador pregunta al dominio principal
+    // si la persona es de la tienda, y así se muestra el lápiz de editar.
+    public function yo(Request $request, string $slug)
+    {
+        $tienda = Tienda::where('slug', $slug)->firstOrFail();
+        $ok = self::puedeEditar($tienda);
+        $origen = $request->headers->get('Origin');
+        $dominio = config('app.dominio');
+        $resp = response()->json($ok ? ['editar' => url('/productos/__ID__/edit'), 'panel' => route('productos.index')] : ['editar' => null])
+            ->header('Cache-Control', 'private, no-store');
+        if ($origen && $dominio && in_array($origen, ['https://www.' . $dominio, 'https://' . $dominio], true)) {
+            $resp->header('Access-Control-Allow-Origin', $origen)->header('Access-Control-Allow-Credentials', 'true')->header('Vary', 'Origin');
+        }
+        return $resp;
     }
 
     public static function urlProducto(Tienda $t, $p): string

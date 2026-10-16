@@ -65,6 +65,7 @@ Route::post('/recuperar', [recuperarController::class, 'enviar'])->middleware('t
 Route::get('/restablecer/{token}', [recuperarController::class, 'formularioNueva'])->name('password.reset');
 Route::post('/restablecer', [recuperarController::class, 'guardarNueva'])->middleware('throttle:10,1')->name('password.update');
 Route::get('/t/{slug}', [catalogoController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('catalogo.show');
+Route::get('/t/{slug}/yo', [catalogoController::class, 'yo'])->where('slug', '[a-z0-9-]+')->middleware('throttle:60,1')->name('catalogo.yo');
 Route::get('/t/{slug}/p/{producto}', [catalogoController::class, 'producto'])->where(['slug' => '[a-z0-9-]+', 'producto' => '[0-9]+(-[a-z0-9-]*)?'])->name('catalogo.producto');
 Route::get('/sitemap.xml', [catalogoController::class, 'sitemap'])->name('sitemap');
 Route::post('/webhooks/wompi', [wompiController::class, 'evento'])->middleware('throttle:60,1');

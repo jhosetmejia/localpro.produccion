@@ -117,7 +117,7 @@
     <div class="pp">
         <div class="foto">@if ($p['img'])<img src="{{ $p['img'] }}" alt="{{ $p['nombre'] }}">@else{{ mb_strtoupper(mb_substr($p['nombre'], 0, 1)) }}@endif</div>
         <div class="info">
-            <h1>{{ $p['nombre'] }}</h1>
+            <h1 data-editar-id="{{ $p['id'] }}">{{ $p['nombre'] }}</h1>
             @if ($p['codigo'])<div class="cod">Código: {{ $p['codigo'] }}</div>@endif
             @if ($p['antes'] && $p['disponible'])<div class="promo-pp"><span class="antes">{{ dinero($p['antes']) }}</span><b>-{{ $p['descuento'] }}% 🔥 Promoción</b></div>@endif
             <div class="precio {{ $p['antes'] ? 'ahora-promo' : '' }}" id="ppPrecio">@if ($p['desde'])<small>Desde</small>@endif{{ $precioTxt }}@if ($p['unidad'])<small> / {{ $p['unidad'] }}</small>@endif</div>
