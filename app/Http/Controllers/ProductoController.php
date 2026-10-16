@@ -215,12 +215,28 @@ class ProductoController extends Controller
             }
             $producto->categorias()->sync($categorias);
 
+            // Cantidades escritas en el mismo formulario: solo las que la persona cambió.
+            // Se deja la cantidad exacta que escribió (queda en movimientos como "ajuste").
+            $ajustadas = 0;
+            if ($producto->controla_inventario && $request->user()?->can('ajustar-inventario')) {
+                $antes = (array) $request->input('stock_antes', []);
+                foreach ((array) $request->input('stock', []) as $id => $nuevo) {
+                    if ($nuevo === null || $nuevo === '' || !is_numeric($nuevo) || (float) $nuevo < 0 || (float) $nuevo > 100000) continue;
+                    if (isset($antes[$id]) && abs((float) $antes[$id] - (float) $nuevo) < 0.0005) continue;
+                    $v = $producto->variantes()->whereKey((int) $id)->lockForUpdate()->first();
+                    if (!$v) continue;
+                    $delta = round((float) $nuevo - (float) $v->stock, 3);
+                    if (abs($delta) > 0.0005) { $v->moverStock($delta, 'ajuste', null, 'Ajuste al editar el producto'); $ajustadas++; }
+                }
+            }
+
             DB::commit();
         }catch(Exception $e){
             DB::rollBack();
+            return back()->withInput()->withErrors('No se pudo guardar el producto. Intente de nuevo.');
         }
 
-        return redirect()->route('productos.index')->with('success','Producto editado');
+        return redirect()->route('productos.index')->with('success', 'Producto editado' . ($ajustadas ? ' y cantidades actualizadas.' : '.'));
     }
 
     /**
