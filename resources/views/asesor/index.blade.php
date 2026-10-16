@@ -136,6 +136,13 @@
             <button type="button" class="btn btn-dark btn-sm" onclick="navigator.clipboard && navigator.clipboard.writeText(document.getElementById('miEnlace').textContent.trim()); LP.toast('Enlace copiado')"><i class="fa-regular fa-copy me-1"></i>Copiar</button>
             <a class="btn btn-success btn-sm" target="_blank" href="https://wa.me/?text={{ rawurlencode('¡Hola! Te recomiendo LocalPro para manejar tu negocio: ventas, caja, inventario y catálogo desde el celular. Inscríbete aquí: ' . $yo->enlace) }}"><i class="fa-brands fa-whatsapp me-1"></i>Compartir</a>
         </div>
+        @php $miEnlaceCont = url('/contadores/' . $yo->codigo); @endphp
+        <div class="small fw-bold mt-3 mb-1"><i class="fa-solid fa-calculator me-1"></i>Para contadores <span class="fw-normal text-muted">(la cuenta queda como contador, a su nombre)</span></div>
+        <div class="lp-link">
+            <code id="miEnlaceCont">{{ $miEnlaceCont }}</code>
+            <button type="button" class="btn btn-dark btn-sm" onclick="navigator.clipboard && navigator.clipboard.writeText(document.getElementById('miEnlaceCont').textContent.trim()); LP.toast('Enlace copiado')"><i class="fa-regular fa-copy me-1"></i>Copiar</button>
+            <a class="btn btn-success btn-sm" target="_blank" href="https://wa.me/?text={{ rawurlencode('Hola 👋 ¿Eres contador? En LocalPro subes el listado de facturas de la DIAN y la contabilidad de tu cliente y en minutos ves lo que no está contabilizado, las diferencias de IVA y las retenciones, con el borrador del 350 y el calendario tributario de tus clientes. Pruébalo gratis aquí: ' . $miEnlaceCont) }}"><i class="fa-brands fa-whatsapp me-1"></i>Compartir</a>
+        </div>
     </div>
 
     @if ($aspirantes->isNotEmpty())
