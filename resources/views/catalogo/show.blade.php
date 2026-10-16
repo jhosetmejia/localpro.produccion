@@ -49,8 +49,6 @@
 .cats .on{background:var(--k);color:#fff;border-color:var(--k)}
 .cats .promo-chip{border-color:#fecdd3;color:#e11d48;background:#fff1f2}
 .cats .promo-chip.on{background:#e11d48;border-color:#e11d48;color:#fff}
-.banner-promo{width:100%;margin-top:12px;display:flex;align-items:center;gap:8px;background:linear-gradient(90deg,#e11d48,#f97316);color:#fff;border:0;border-radius:16px;padding:.8rem 1rem;font-size:1rem;cursor:pointer;text-align:left}
-.banner-promo span{margin-left:auto;font-weight:800;white-space:nowrap}
 .sec{margin-top:18px}
 .sec h2{font-size:1.25rem;font-weight:800;margin:6px 2px 12px;display:flex;align-items:baseline;gap:8px}
 .sec h2 small{color:var(--mut);font-size:.8rem;font-weight:700}
@@ -68,9 +66,6 @@
 
 <main class="wrap panel">
     <div class="search"><span style="padding-left:6px">🔎</span><input id="q" type="search" placeholder="¿Qué está buscando?" autocomplete="off" aria-label="Buscar productos"></div>
-    @if ($enPromo)
-    <button type="button" class="banner-promo" id="verPromos">🔥 <b>{{ $enPromo }} {{ $enPromo == 1 ? 'producto en promoción' : 'productos en promoción' }}</b><span>Ver ofertas →</span></button>
-    @endif
     @if ($categorias->count() > 1 || $publicos->isNotEmpty() || $enPromo)
     <div class="filtros">
         @if ($publicos->isNotEmpty())
@@ -144,8 +139,10 @@
     }
     q.addEventListener('input', filtrar);
     var cats = document.getElementById('cats'), pub = document.getElementById('pub');
-    var vp = document.getElementById('verPromos');
-    if (vp && cats) vp.addEventListener('click', function () { var b = cats.querySelector('[data-c="__promo"]'); if (b) b.click(); });
+    // Botón "Promociones" de arriba: en esta página filtra sin recargar
+    var vp = document.getElementById('btnPromos'), chipPromo = cats && cats.querySelector('[data-c="__promo"]');
+    if (vp && chipPromo) vp.addEventListener('click', function (e) { e.preventDefault(); chipPromo.click(); });
+    if (chipPromo && new URLSearchParams(location.search).get('ver') === 'promos') setTimeout(function () { chipPromo.click(); }, 50);
     function elegirPara(v) {
         para = v;
         pub.querySelectorAll('[data-p]').forEach(function (x) { x.classList.toggle('on', x.dataset.p === v); });

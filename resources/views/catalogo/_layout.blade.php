@@ -44,6 +44,8 @@ button{font:inherit;border:0;background:none;cursor:pointer;color:inherit}
 .top .acc{display:flex;gap:8px}
 .top .ib{height:40px;border-radius:12px;background:rgba(255,255,255,.1);display:flex;align-items:center;gap:6px;padding:0 12px;font-weight:700;font-size:.88rem;color:#fff;position:relative}
 .top .ib.wa{background:var(--wa)}
+.top .ib.promo{background:rgba(225,29,72,.18);border:1px solid rgba(225,29,72,.5);color:#ffd5dd}
+.top .ib.promo:hover{background:rgba(225,29,72,.3)}
 .top .ib .n{position:absolute;top:-5px;right:-5px;background:#a6f34a;color:var(--k);border-radius:999px;font-size:.7rem;font-weight:800;min-width:20px;height:20px;display:none;place-items:center;padding:0 5px}
 .top .ib .n.on{display:grid}
 @media(max-width:520px){.top .d-sm{display:none}}
@@ -134,6 +136,8 @@ main,.pie-sep{flex:none}
             <b>{{ $tienda->nombre }}</b>
         </a>
         <div class="acc">
+            @php $nPromo = \App\Models\Producto::where('estado', 1)->whereNotNull('precio_antes')->whereColumn('precio_antes', '>', 'precio_venta')->count(); @endphp
+            @if ($nPromo)<a class="ib promo" id="btnPromos" href="{{ $tienda->url_catalogo }}?ver=promos" aria-label="Promociones">🔥 <span class="d-sm">Promociones</span></a>@endif
             @if ($wa)<a class="ib wa" href="https://wa.me/{{ $wa }}" target="_blank" rel="noopener" aria-label="WhatsApp">💬 <span class="d-sm">WhatsApp</span></a>@endif
             <button class="ib" id="btnCarrito" aria-label="Carrito">🛒<span class="n" id="topN">0</span></button>
         </div>
