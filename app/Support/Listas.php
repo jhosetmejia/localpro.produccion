@@ -13,7 +13,7 @@ class Listas
     public static function valores(?string $texto, int $max, string $que): array
     {
         $lista = collect(preg_split('/\s*(?:[,;\n\/]|\s+y\s+)\s*/iu', (string) $texto))
-            ->map(fn ($x) => mb_strtoupper(trim($x)))
+            ->map(fn ($x) => $que === 'colores' ? (string) Colores::normalizar($x) : mb_strtoupper(trim($x)))
             ->filter()
             ->unique()
             ->values()

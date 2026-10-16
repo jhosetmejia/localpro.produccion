@@ -103,7 +103,7 @@ class ProductoController extends Controller
                 $vistas = [];
                 foreach ((array) $request->input('variantes', []) as $fila) {
                     $talla = mb_strtoupper(trim((string) ($fila['talla'] ?? ''))) ?: null;
-                    $color = mb_strtoupper(trim((string) ($fila['color'] ?? ''))) ?: null;
+                    $color = \App\Support\Colores::normalizar($fila['color'] ?? '');
                     $clave = $talla . '|' . $color;
                     if ($clave === '|' || isset($vistas[$clave])) {
                         continue;

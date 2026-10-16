@@ -106,7 +106,8 @@
                 </div>
 
                 <label class="form-label mt-3">2) Colores <span class="text-muted fw-normal">(opcional, separados por coma)</span></label>
-                <input type="text" id="colores" class="form-control" placeholder="Ej: Negro, Café" value="{{ old('colores_txt') }}" name="colores_txt" autocomplete="off">
+                <input type="text" id="colores" class="form-control" placeholder="Toque los colores de abajo o escríbalos" value="{{ old('colores_txt') }}" name="colores_txt" autocomplete="off">
+                @include('producto._paleta', ['para' => 'colores'])
 
                 <div id="tablaWrap" style="display:none">
                     <label class="form-label mt-3 mb-0">3) ¿Cuántas hay de cada una?</label>
@@ -208,7 +209,7 @@
         function generar() {
             // Conserva lo que ya escribió al cambiar tallas o colores
             filas.querySelectorAll('.pf-fila').forEach(function (r) { guardadas[r.dataset.k] = r.querySelector('input[type=number]').value; });
-            var ts = lista(tallas.value), cs = lista(colores.value);
+            var ts = lista(tallas.value), cs = window.LPColores ? LPColores.lista(colores.value) : lista(colores.value);
             if (!ts.length && !cs.length) { filas.innerHTML = ''; document.getElementById('tablaWrap').style.display = 'none'; total(); return; }
             ts = ts.length ? ts : [''];
             cs = cs.length ? cs : [''];

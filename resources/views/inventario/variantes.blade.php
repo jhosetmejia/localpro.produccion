@@ -35,7 +35,7 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label">Colores <span class="text-muted fw-normal">(separados por coma)</span></label>
-                <input name="colores" class="form-control" placeholder="Negro, Blanco, Azul" value="{{ old('colores') }}">
+                <input name="colores" id="colores" class="form-control" placeholder="Toque los colores o escríbalos" value="{{ old('colores') }}">
             </div>
             <div class="col-md-2">
                 <label class="form-label">Cantidad de cada una</label>
@@ -48,6 +48,7 @@
             <div class="col-md-1 d-grid">
                 <button class="btn btn-primary"><i class="fa-solid fa-plus"></i></button>
             </div>
+            <div class="col-12 mt-1">@include('producto._paleta', ['para' => 'colores'])</div>
             <div class="col-12"><small class="text-muted">Se crea cada combinación. Ej: 3 tallas × 2 colores = 6 referencias, cada una con su cantidad.</small></div>
         </form>
     </div>
