@@ -42,7 +42,7 @@ input{font:inherit}
 .search input{width:100%;min-width:0;text-overflow:ellipsis;height:56px;border-radius:18px;border:2px solid var(--line);background:#fff;padding:0 56px 0 52px;font-size:1.05rem;font-weight:600;outline:none;transition:border-color .15s,box-shadow .15s}
 .search input:focus{border-color:#2fd15a;box-shadow:0 0 0 5px rgba(47,209,90,.15)}
 .search .ic{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:#93a097;font-size:1.1rem}
-.search .scan{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:var(--bg);width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:var(--g2)}
+.search .scan{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:var(--k,#0b0d0c);width:42px;height:38px;border-radius:12px;display:grid;place-items:center;color:#a6f34a;border:0;cursor:pointer;font-size:1rem}
 .grid{flex:1;overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;align-content:start;padding-bottom:90px}
 .card{background:#fff;border:1.5px solid var(--line);border-radius:20px;padding:12px;text-align:left;transition:transform .15s,box-shadow .15s,border-color .15s;display:flex;flex-direction:column;gap:8px;position:relative}
 .card:hover{transform:translateY(-3px);border-color:#bfeccb;box-shadow:0 18px 30px -22px rgba(22,179,74,.9)}
@@ -228,8 +228,9 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         <section class="cat">
             <div class="search">
                 <i class="fa-solid fa-magnifying-glass ic"></i>
-                <input id="q" type="search" placeholder="Buscar {{ \App\Models\Tienda::palabraProducto() }} o escanear código de barras…" autocomplete="off" autofocus>
-                <span class="scan" title="Compatible con lector de código de barras"><i class="fa-solid fa-barcode"></i></span>
+                <input id="q" type="search" placeholder="Buscar {{ \App\Models\Tienda::palabraProducto() }} o escanear el código con la cámara 📷…" autocomplete="off" autofocus>
+                <button type="button" class="scan" data-escanear="q" data-continuo data-titulo="Escanee las prendas que va a vender" title="Escanear con la cámara del celular"><i class="fa-solid fa-camera"></i></button>
+                <script src="{{ asset('js/escaner.js') }}?v=1"></script>
             </div>
             <div class="grid" id="grid"></div>
         </section>

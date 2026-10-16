@@ -21,7 +21,9 @@
 
     <div class="lp-box">
         <form class="row g-2 mb-3" method="get">
-            <div class="col-md-6"><input name="q" value="{{ $q }}" class="form-control" placeholder="Buscar {{ \App\Models\Tienda::palabraProducto() }}, código{{ \App\Support\TiendaActual::tienda()?->usa_tallas ? ', talla o color' : '' }}..."></div>
+            <div class="col-md-6"><div class="input-group"><input name="q" id="invQ" value="{{ $q }}" class="form-control" placeholder="Buscar {{ \App\Models\Tienda::palabraProducto() }}, código{{ \App\Support\TiendaActual::tienda()?->usa_tallas ? ', talla o color' : '' }}..."><button type="button" class="btn btn-dark" data-escanear="invQ" data-enviar data-titulo="Escanee la etiqueta de la prenda" title="Escanear con la cámara"><i class="fa-solid fa-camera me-1"></i>Escanear</button></div>
+                <small class="text-muted">📷 Puede escanear el código de la prenda con la cámara del celular.</small>
+                <script src="{{ asset('js/escaner.js') }}?v=1"></script></div>
             <div class="col-md-3">
                 <select name="filtro" class="form-select" onchange="this.form.submit()">
                     <option value="todos" @selected($filtro === 'todos')>Todos</option>

@@ -13,6 +13,9 @@
 @media (max-width:420px){.pl-top .pl-imp,.pl-top .pl-nuevo{flex:1 1 auto;text-align:center}}
 .pl-buscar{position:relative;margin-bottom:.7rem}
 .pl-buscar input{border-radius:16px;padding:.8rem 1rem .8rem 2.6rem;font-size:1rem}
+.pl-scan{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:#0b0d0c;color:#a6f34a;border-radius:12px;padding:.5rem .8rem;font-weight:800;font-size:.85rem;display:flex;align-items:center;gap:6px}
+.pl-buscar input{padding-right:7.5rem!important}
+@media (max-width:420px){.pl-scan span{display:none}.pl-buscar input{padding-right:3.5rem!important}}
 .pl-buscar > i,.pl-buscar > svg{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:#7a8580;pointer-events:none}
 .pl-filtros{display:flex;gap:.4rem;overflow-x:auto;padding-bottom:.4rem;margin-bottom:.6rem}
 .pl-filtros button{border:1.5px solid #dfe6e2;background:#fff;border-radius:999px;padding:.4rem .9rem;font-weight:700;font-size:.85rem;white-space:nowrap;color:#33403a}
@@ -88,7 +91,10 @@
         <div class="pl-buscar">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="search" id="plQ" class="form-control" placeholder="Buscar por nombre, código o categoría" autocomplete="off">
+            <button type="button" class="pl-scan" data-escanear="plQ" data-titulo="Escanee la etiqueta de la prenda" title="Escanear con la cámara"><i class="fa-solid fa-camera"></i> <span>Escanear</span></button>
         </div>
+        <small class="d-block text-muted mb-2" style="margin-top:-.3rem">📷 Puede escanear el código de barras de la prenda con la cámara del celular para encontrarla.</small>
+        <script src="{{ asset('js/escaner.js') }}?v=1"></script>
         <div class="pl-filtros" id="plF">
             <button type="button" class="on" data-f="activos">Activos ({{ $activos }})</button>
             <button type="button" data-f="bajo">Poco stock</button>
@@ -108,7 +114,7 @@
                 $conVar = $item->variantes->filter(fn ($v) => $v->talla || $v->color);
             @endphp
             <div class="pl-item {{ $item->estado == 1 ? '' : 'off' }}"
-                 data-q="{{ mb_strtolower($item->nombre . ' ' . $item->codigo . ' ' . $cats) }}"
+                 data-q="{{ mb_strtolower($item->nombre . ' ' . $item->codigo . ' ' . $cats . ' ' . $item->variantes->pluck('codigo_barras')->filter()->implode(' ')) }}"
                  data-estado="{{ $item->estado == 1 ? 1 : 0 }}" data-st="{{ $controla ? $st : -1 }}">
                 <div class="pl-cab">
                     <div class="pl-foto">
