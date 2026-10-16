@@ -73,14 +73,30 @@ class importarClientesController extends Controller
         if (!$a['datos']) {
             return back()->withErrors('El archivo está vacío o no tiene filas con datos.');
         }
-        if (count($a['datos']) > 5000) {
-            return back()->withErrors('El archivo tiene más de 5.000 personas. Divídalo en partes y súbalas una por una.');
-        }
+        // Archivos grandes: el sistema los divide solo y los importa de a 5.000
+        $a['desde'] = 0;
         $clave = 'clientes-' . Str::random(16) . '.json';
         Storage::disk('local')->put('importaciones/' . TiendaActual::id() . '/' . $clave, json_encode($a, JSON_UNESCAPED_UNICODE));
         session(['importar_clientes' => $clave, 'importar_clientes_nombre' => mb_substr($f->getClientOriginalName(), 0, 120)]);
 
-        return redirect()->route('clientes.importar.revisar');
+        $total = count($a['datos']);
+        return redirect()->route('clientes.importar.revisar')->with($total > self::LOTE ? 'info' : 'ninguno',
+            'Su archivo tiene ' . number_format($total, 0, ',', '.') . ' contactos. Los importamos por partes de ' . number_format(self::LOTE, 0, ',', '.') . ': primero estos ' . number_format(self::LOTE, 0, ',', '.') . ' y luego le mostramos los siguientes.');
+    }
+
+    private const LOTE = 5000;
+
+    // La parte que toca ahora (de a 5.000)
+    private function lote(array $a): array
+    {
+        return array_slice($a['datos'], (int) ($a['desde'] ?? 0), self::LOTE);
+    }
+
+    private function parte(array $a): array
+    {
+        $total = count($a['datos']);
+        $desde = (int) ($a['desde'] ?? 0);
+        return ['total' => $total, 'desde' => $desde + 1, 'hasta' => min($total, $desde + self::LOTE), 'partes' => (int) ceil($total / self::LOTE), 'n' => intdiv($desde, self::LOTE) + 1];
     }
 
     // Paso 2: ver qué encontró y ajustar las columnas si hace falta
@@ -94,7 +110,7 @@ class importarClientesController extends Controller
             $mapa = collect((array) $request->query('m'))->only(array_keys(ImportarClientes::CAMPOS))
                 ->filter(fn ($v) => $v !== '' && $v !== null)->map(fn ($v) => (int) $v)->all();
         }
-        $clientes = ImportarClientes::filas($a['datos'], $mapa);
+        $clientes = ImportarClientes::filas($this->lote($a), $mapa);
         $validos = collect($clientes)->filter(fn ($c) => $c['nombre'] !== '' && ($c['documento'] !== '' || $c['telefono'] !== '' || $c['email'] !== ''));
 
         return view('cliente.importar-revisar', [
@@ -106,6 +122,7 @@ class importarClientesController extends Controller
             'conTel' => $validos->where('telefono', '<>', '')->count(),
             'conMail' => $validos->where('email', '<>', '')->count(),
             'archivo' => session('importar_clientes_nombre'),
+            'parte' => $this->parte($a),
         ]);
     }
 
@@ -119,12 +136,22 @@ class importarClientesController extends Controller
         if (!isset($mapa['nombre'])) {
             return back()->withErrors('Elija cuál columna tiene el nombre.');
         }
-        $r = ImportarClientes::guardar(ImportarClientes::filas($a['datos'], $mapa));
-        $this->borrar();
+        $r = ImportarClientes::guardar(ImportarClientes::filas($this->lote($a), $mapa));
 
         $msg = $r['creados'] === 1 ? '¡Listo! Se creó 1 cliente.' : '¡Listo! Se crearon ' . number_format($r['creados'], 0, ',', '.') . ' clientes.';
         if ($r['repetidos']) $msg .= ' ' . $r['repetidos'] . ' ya existían y no se duplicaron.';
         if ($r['sin_datos']) $msg .= ' ' . $r['sin_datos'] . ' filas sin nombre o sin cédula/celular/correo se saltaron.';
+
+        // ¿Quedan más? Se pasa a la siguiente parte con las mismas columnas
+        $sig = (int) ($a['desde'] ?? 0) + self::LOTE;
+        if ($sig < count($a['datos'])) {
+            $a['desde'] = $sig;
+            $a['mapa'] = $mapa;
+            Storage::disk('local')->put('importaciones/' . TiendaActual::id() . '/' . session('importar_clientes'), json_encode($a, JSON_UNESCAPED_UNICODE));
+            $faltan = count($a['datos']) - $sig;
+            return redirect()->route('clientes.importar.revisar')->with('success', $msg . ' Faltan ' . number_format($faltan, 0, ',', '.') . ' contactos: revise la siguiente parte y toque importar.');
+        }
+        $this->borrar();
         return redirect()->route('clientes.index')->with('success', $msg);
     }
 

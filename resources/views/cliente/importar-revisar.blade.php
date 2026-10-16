@@ -29,6 +29,14 @@
             <span class="text-muted fw-semibold">Revise que cada dato esté en su lugar y toque "Crear clientes".</span></div>
     </div>
     @if ($errors->any())<div class="alert alert-danger">{{ $errors->first() }}</div>@endif
+    @if (session('success'))<div class="alert alert-success fw-bold">{{ session('success') }}</div>@endif
+    @if ($parte['partes'] > 1)
+    <div class="alert fw-bold" style="background:#fffbeb;border:1.5px solid #fde68a;color:#78501a;border-radius:16px">
+        📦 Su archivo tiene {{ number_format($parte['total'], 0, ',', '.') }} contactos. Los importamos por partes de 5.000:
+        esta es la <b>parte {{ $parte['n'] }} de {{ $parte['partes'] }}</b> (contactos {{ number_format($parte['desde'], 0, ',', '.') }} a {{ number_format($parte['hasta'], 0, ',', '.') }}).
+        Al terminar le mostramos la siguiente.
+    </div>
+    @elseif (session('info'))<div class="alert alert-info fw-bold">{{ session('info') }}</div>@endif
 
     <div class="ir-res">
         <div class="v"><b>{{ number_format($validos, 0, ',', '.') }}</b><small>clientes listos para crear</small></div>
