@@ -69,6 +69,12 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
                             <label class="form-label small fw-bold">Foto</label>
                             <input type="file" class="form-control" name="foto" id="of-foto" accept="image/png,image/jpeg,image/webp">
                             <div class="of-ayuda mt-1">Mejor una foto donde se vea bien la cara (sale en círculo). Máximo 8 MB.</div>
+                            <div class="of-girar mt-2" id="of-girar" @if (!$obituario->foto_url) hidden @endif>
+                                <span class="small text-muted me-1">¿Quedó chueca?</span>
+                                <button type="button" class="btn btn-sm btn-light" data-girar="-90" title="Girar a la izquierda"><i class="fa-solid fa-rotate-left me-1"></i>Girar</button>
+                                <button type="button" class="btn btn-sm btn-light" data-girar="90" title="Girar a la derecha"><i class="fa-solid fa-rotate-right me-1"></i>Girar</button>
+                                <input type="hidden" name="foto_giro" id="of-giro" value="0">
+                            </div>
                             @if ($obituario->foto_url)<div class="form-check small mt-1"><input class="form-check-input" type="checkbox" name="quitar_foto" value="1" id="qf"><label class="form-check-label" for="qf">Quitar foto</label></div>@endif
                         </div>
                     </div>
@@ -190,11 +196,42 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
     }
     form.addEventListener('input', vivo);
     form.addEventListener('change', function (e) { if (e.target.id !== 'of-foto') vivo(); });
+    // Girar la foto: se ve girada al instante y al guardar el servidor la deja así para siempre
+    var qf = document.getElementById('qf');
+    var fotoBase = @json($obituario->foto_url), giro = 0, giroInput = document.getElementById('of-giro');
+    function mostrarFoto(url) {
+        document.getElementById('of-foto-prev').innerHTML = '<img src="' + url + '" alt="">';
+        Obi.datos(el, { foto: url });
+    }
+    function fotoGirada() {
+        giroInput.value = giro;
+        if (!fotoBase) return;
+        if (!giro) { mostrarFoto(fotoBase); return; }
+        var im = new Image();
+        im.onload = function () {
+            var c = document.createElement('canvas'), x = c.getContext('2d'), lado = giro % 180 !== 0;
+            c.width = lado ? im.naturalHeight : im.naturalWidth;
+            c.height = lado ? im.naturalWidth : im.naturalHeight;
+            x.translate(c.width / 2, c.height / 2);
+            x.rotate(giro * Math.PI / 180);
+            x.drawImage(im, -im.naturalWidth / 2, -im.naturalHeight / 2);
+            c.toBlob(function (b) { if (b) mostrarFoto(URL.createObjectURL(b)); }, 'image/png');
+        };
+        im.src = fotoBase;
+    }
+    document.querySelectorAll('[data-girar]').forEach(function (b) {
+        b.addEventListener('click', function () {
+            giro = ((giro + parseInt(b.dataset.girar, 10)) % 360 + 360) % 360;
+            fotoGirada();
+        });
+    });
     document.getElementById('of-foto').addEventListener('change', function () {
         var file = this.files[0]; if (!file) return;
         var url = URL.createObjectURL(file);
-        document.getElementById('of-foto-prev').innerHTML = '<img src="' + url + '" alt="">';
-        Obi.datos(el, { foto: url });
+        fotoBase = url; giro = 0; giroInput.value = 0;
+        document.getElementById('of-girar').hidden = false;
+        if (qf) { qf.checked = false; }
+        mostrarFoto(url);
         // PNG sin fondo: se le pregunta qué poner detrás. Con fondo: se le dice cómo quitarlo.
         Obi.tieneTransparencia(url).then(function (transp) {
             document.getElementById('of-pregunta').hidden = !transp;
@@ -212,8 +249,10 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
             if (v === 'color') document.getElementById('of-fcolor').click();
         });
     });
-    var qf = document.getElementById('qf');
-    if (qf) qf.addEventListener('change', function () { Obi.datos(el, { foto: qf.checked ? '' : @json($obituario->foto_url) }); });
+    if (qf) qf.addEventListener('change', function () {
+        document.getElementById('of-girar').hidden = qf.checked;
+        if (qf.checked) Obi.datos(el, { foto: '' }); else fotoGirada();
+    });
     vivo();
 })();
 </script>

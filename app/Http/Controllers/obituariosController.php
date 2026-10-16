@@ -6,9 +6,11 @@ use App\Models\Obituario;
 use App\Models\ObituarioPlantilla;
 use App\Models\ObituarioSala;
 use App\Models\Tienda;
+use App\Support\Imagenes;
 use App\Support\TiendaActual;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 /**
@@ -157,6 +159,24 @@ class obituariosController extends Controller
         } elseif ($request->boolean('quitar_foto') && $o->foto_path) {
             Storage::disk('public')->delete($o->foto_path);
             $o->foto_path = null;
+        }
+        $this->girarFoto($request, $o);
+    }
+
+    // La foto quedó chueca: se gira a la derecha 90, 180 o 270 grados.
+    // Se guarda con nombre nuevo para que las pantallas no muestren la vieja guardada en caché.
+    private function girarFoto(Request $request, Obituario $o): void
+    {
+        $giro = (((int) $request->input('foto_giro', 0) % 360) + 360) % 360;
+        if (!$giro || !$o->foto_path || !Storage::disk('public')->exists($o->foto_path)) return;
+
+        $disco = Storage::disk('public');
+        $ext = pathinfo($o->foto_path, PATHINFO_EXTENSION) ?: 'jpg';
+        $nueva = $this->carpeta('fotos') . '/' . Str::random(40) . '.' . strtolower($ext);
+        $disco->makeDirectory(dirname($nueva));
+        if (Imagenes::girar($disco->path($o->foto_path), $giro, $disco->path($nueva))) {
+            $disco->delete($o->foto_path);
+            $o->foto_path = $nueva;
         }
     }
 

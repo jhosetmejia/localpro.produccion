@@ -87,6 +87,68 @@ class Imagenes
         return [$antes, $despues];
     }
 
+    /**
+     * Gira la imagen a la derecha (sentido del reloj) 90, 180 o 270 grados y la guarda en $destino
+     * (puede ser la misma ruta). Primero la endereza según la foto del celular (EXIF), para que el
+     * giro parta de lo mismo que la persona vio en pantalla. Mantiene formato y transparencia.
+     */
+    public static function girar(string $ruta, int $grados, ?string $destino = null): bool
+    {
+        $grados = (($grados % 360) + 360) % 360;
+        if (!self::disponible() || !is_file($ruta) || !in_array($grados, [90, 180, 270], true)) return false;
+
+        $info = @getimagesize($ruta);
+        if (!$info) return false;
+        [$w, $h, $tipo] = $info;
+        if (!in_array($tipo, [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_WEBP], true)) return false;
+        if ($w * $h > 40_000_000) return false;
+
+        $img = match ($tipo) {
+            IMAGETYPE_JPEG => @imagecreatefromjpeg($ruta),
+            IMAGETYPE_PNG => @imagecreatefrompng($ruta),
+            IMAGETYPE_WEBP => function_exists('imagecreatefromwebp') ? @imagecreatefromwebp($ruta) : false,
+        };
+        if (!$img) return false;
+
+        // GD gira en contra del reloj; la orientación del celular se suma al giro pedido
+        $giro = -$grados;
+        if ($tipo === IMAGETYPE_JPEG && function_exists('exif_read_data')) {
+            $exif = @exif_read_data($ruta);
+            $giro += match ((int) ($exif['Orientation'] ?? 1)) { 3 => 180, 6 => -90, 8 => 90, default => 0 };
+        }
+        $giro = (($giro % 360) + 360) % 360;
+
+        if ($tipo !== IMAGETYPE_JPEG) {
+            imagealphablending($img, false);
+            imagesavealpha($img, true);
+        }
+        if ($giro) {
+            $fondo = $tipo === IMAGETYPE_JPEG ? 0 : imagecolorallocatealpha($img, 0, 0, 0, 127);
+            $r = imagerotate($img, $giro, $fondo);
+            if (!$r) { imagedestroy($img); return false; }
+            imagedestroy($img);
+            $img = $r;
+        }
+        if ($tipo !== IMAGETYPE_JPEG) {
+            imagealphablending($img, false);
+            imagesavealpha($img, true);
+        }
+
+        $destino = $destino ?: $ruta;
+        $tmp = $destino . '.giro';
+        $ok = match ($tipo) {
+            IMAGETYPE_JPEG => imagejpeg($img, $tmp, 90),
+            IMAGETYPE_PNG => imagepng($img, $tmp, 9),
+            IMAGETYPE_WEBP => imagewebp($img, $tmp, 90),
+        };
+        imagedestroy($img);
+        clearstatcache(true, $tmp);
+        if (!$ok || !is_file($tmp)) { @unlink($tmp); return false; }
+        if (!@rename($tmp, $destino)) { @copy($tmp, $destino); @unlink($tmp); }
+        clearstatcache(true, $destino);
+        return true;
+    }
+
     // Lado máximo según para qué es la imagen (nombre del campo del formulario o carpeta)
     public static function maxPara(string $clave): int
     {
