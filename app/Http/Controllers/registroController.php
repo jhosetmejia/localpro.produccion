@@ -70,8 +70,11 @@ class registroController extends Controller
         ]);
 
         $primerNombre = strtok(trim($datos['name']), ' ');
+        // Contador: lo decide la casilla "Crear mi cuenta como contador" (viene marcada si llegó por un enlace de contadores);
+        // otros tipos (ej. funeraria) vienen del enlace con ?tipo=
         $tipo = session('tipo_registro');
-        $tipo = $tipo && isset(\App\Models\Tienda::TIPOS[$tipo]) ? $tipo : null;
+        $tipo = $tipo && $tipo !== 'contable' && isset(\App\Models\Tienda::TIPOS[$tipo]) ? $tipo : null;
+        if ($request->boolean('como_contador')) $tipo = 'contable';
         [, $user] = CrearTienda::crear(
             ['nombre' => ($tipo === 'contable' ? 'Oficina contable de ' : 'Tienda de ') . $primerNombre, 'pais' => $datos['pais'], 'telefono' => $datos['telefono']] + ($tipo ? ['tipo_negocio' => $tipo] : []),
             $datos

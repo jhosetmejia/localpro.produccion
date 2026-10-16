@@ -24,14 +24,12 @@
     <main class="auth-main">
         <div class="auth-card rise">
             <a href="{{ url('/') }}" class="back"><i class="fa-solid fa-arrow-left"></i> Volver al inicio</a>
-            @if (($tipoRegistro ?? null) === 'contable')
-            <h1 class="serif">Crear cuenta de contador</h1>
-            <p class="sub">Paso 1 · Sus datos. Al terminar entra directo a <b>Contabilidad</b>: cruce de facturas DIAN, IVA, retenciones y borrador del 350.</p>
-            @elseif (($tipoRegistro ?? null) && isset(\App\Models\Tienda::TIPOS[$tipoRegistro]))
-            <h1 class="serif">Crear cuenta</h1>
+            @php $comoContador = $errors->any() ? (bool) old('como_contador') : ($tipoRegistro ?? null) === 'contable'; @endphp
+            @if (($tipoRegistro ?? null) && $tipoRegistro !== 'contable' && isset(\App\Models\Tienda::TIPOS[$tipoRegistro]))
+            <h1 class="serif">Crear cuenta de empresa</h1>
             <p class="sub">Paso 1 de 4 · Su cuenta queda lista para <b>{{ \App\Models\Tienda::TIPOS[$tipoRegistro][0] }}</b>. Prueba gratis, sin tarjeta.</p>
             @else
-            <h1 class="serif">Crear cuenta</h1>
+            <h1 class="serif">Crear cuenta de empresa</h1>
             <p class="sub">Paso 1 de 4 · Sus datos como dueño del negocio. En 3 minutos estará vendiendo.</p>
             @endif
 
@@ -97,11 +95,20 @@
                         <input id="codigo_asesor" name="codigo_asesor" type="text" maxlength="20" placeholder="Si un asesor le ayudó, su código (ej. LCP-00012)" value="{{ old('codigo_asesor', $codigoAsesor ?? '') }}" style="text-transform:uppercase" autocomplete="off" />
                     </div>
                 </div>
+                {{-- Sección para contadores: crean su cuenta como contador (herramienta de Contabilidad) --}}
+                <div id="caja-contador" style="border:2px solid {{ $comoContador ? '#16b34a' : 'var(--line)' }};background:{{ $comoContador ? '#f2fbf4' : '#fafdfb' }};border-radius:16px;padding:14px 16px;margin:.4rem 0 .9rem">
+                    <div style="font-weight:800;margin-bottom:4px"><i class="fa-solid fa-calculator" style="color:#16b34a"></i> ¿Eres contador o analista contable?</div>
+                    <div style="font-size:.88rem;color:var(--muted);line-height:1.45;margin-bottom:8px">Crea tu cuenta como contador: cruce de facturas de la DIAN con la contabilidad de tus clientes, IVA, retenciones, borrador del 350 y calendario tributario.</div>
+                    <label style="display:flex;gap:.6rem;align-items:center;font-weight:800;cursor:pointer;margin:0">
+                        <input type="checkbox" id="como_contador" name="como_contador" value="1" @checked($comoContador) style="width:20px;height:20px;flex:none;accent-color:#16b34a" />
+                        Crear mi cuenta como contador
+                    </label>
+                </div>
                 <label class="terminos" style="display:flex;gap:.6rem;align-items:flex-start;margin:.4rem 0 .2rem;font-size:.9rem;line-height:1.45;cursor:pointer">
                     <input type="checkbox" name="acepto" value="1" {{ old('acepto') ? 'checked' : '' }} required style="width:20px;height:20px;flex:none;margin-top:2px;accent-color:#16b34a" />
                     <span>Acepto las <a href="{{ route('legal.terminos') }}" target="_blank" rel="noopener" style="font-weight:800">condiciones de uso</a> y la <a href="{{ route('legal.privacidad') }}" target="_blank" rel="noopener" style="font-weight:800">política de privacidad</a>. Entiendo que si al terminar la prueba gratis no paso a un plan, se eliminan los productos, imágenes y demás información del negocio, y se conservan solo los datos de contacto.</span>
                 </label>
-                <button class="btn btn-amber btn-block" type="submit" style="margin-top:.6rem">Continuar · Datos del negocio <i class="fa-solid fa-arrow-right"></i></button>
+                <button class="btn btn-amber btn-block" type="submit" style="margin-top:.6rem"><span id="txt-continuar">{{ $comoContador ? 'Continuar como contador' : 'Continuar · Datos del negocio' }}</span> <i class="fa-solid fa-arrow-right"></i></button>
             </form>
 
             <script>
@@ -109,6 +116,12 @@
                     var s = document.getElementById('pais'), i = document.getElementById('ind');
                     var f = function () { i.textContent = '+' + s.options[s.selectedIndex].dataset.ind; };
                     s.addEventListener('change', f); f();
+                    var c = document.getElementById('como_contador'), caja = document.getElementById('caja-contador'), t = document.getElementById('txt-continuar');
+                    c.addEventListener('change', function () {
+                        caja.style.borderColor = c.checked ? '#16b34a' : 'var(--line)';
+                        caja.style.background = c.checked ? '#f2fbf4' : '#fafdfb';
+                        t.textContent = c.checked ? 'Continuar como contador' : 'Continuar · Datos del negocio';
+                    });
                 })();
             </script>
             <p class="alt">¿Ya tiene cuenta? <a href="{{ route('login') }}">Ingresar</a></p>
