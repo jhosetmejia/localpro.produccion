@@ -95,7 +95,8 @@
                     <!---Imagen---->
                     <div class="col-md-6">
                         <label for="img_path" class="form-label">Imagen:</label>
-                        <input type="file" name="img_path" id="img_path" class="form-control" accept="image/*">
+                        <input type="file" name="img_path" id="img_path" class="form-control" accept="image/*" data-foto-lista>
+                        <script src="{{ asset('js/foto-lista.js') }}?v=2"></script>
                         @error('img_path')
                         <small class="text-danger">{{'*'.$message}}</small>
                         @enderror

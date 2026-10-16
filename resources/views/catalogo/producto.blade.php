@@ -52,7 +52,7 @@
 @media(max-width:800px){.pp{grid-template-columns:minmax(0,1fr);gap:16px}}
 .foto{background:#fff;border:1.5px solid var(--line);border-radius:26px;aspect-ratio:1/1;overflow:hidden;display:grid;place-items:center;font-size:5rem;font-weight:800;color:var(--g2);position:sticky;top:80px}
 @media(max-width:800px){.foto{position:static}}
-.foto img{width:100%;height:100%;object-fit:cover}
+.foto img{width:100%;height:100%;object-fit:contain;object-position:center;background:#fff}
 .info h1{font-size:clamp(1.5rem,4vw,2.2rem);font-weight:800;letter-spacing:-.02em;line-height:1.15}
 .info .cod{color:var(--mut);font-weight:700;font-size:.85rem;margin-top:6px}
 .info .precio{font-size:2rem;font-weight:800;margin-top:12px}

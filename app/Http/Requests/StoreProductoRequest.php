@@ -48,6 +48,7 @@ class StoreProductoRequest extends FormRequest
     public function attributes()
     {
         return [
+            'img_path' => 'foto',
             'marca_id' => 'marca',
             'presentacione_id' => 'presentación',
             'variantes.*.talla' => 'talla',
@@ -59,6 +60,9 @@ class StoreProductoRequest extends FormRequest
     public function messages()
     {
         return [
+            'img_path.image' => 'Esa foto no se pudo leer. Súbala en JPG, PNG o WebP (o tómele un pantallazo y suba el pantallazo).',
+            'img_path.mimes' => 'Esa foto no se pudo leer. Súbala en JPG, PNG o WebP (o tómele un pantallazo y suba el pantallazo).',
+            'img_path.max' => 'La foto pesa mucho (máximo 4 MB).',
             'codigo.required' => 'Se necesita un campo código',
             'nombre.unique' => 'Ya tiene un producto con ese nombre.',
             'variantes.*.talla.max' => 'Una talla es muy larga (máximo 40 letras).',

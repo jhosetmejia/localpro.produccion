@@ -49,7 +49,7 @@ input{font:inherit}
 .card:active{transform:scale(.97)}
 .card.off{opacity:.45}
 .thumb{aspect-ratio:1/1;border-radius:14px;background:var(--bg);display:grid;place-items:center;overflow:hidden;font-weight:800;font-size:2rem;color:var(--g2)}
-.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb img{width:100%;height:100%;object-fit:contain;background:#fff}
 .card b{font-size:.92rem;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .card .row{display:flex;justify-content:space-between;align-items:center;gap:6px}
 .price{font-weight:800}

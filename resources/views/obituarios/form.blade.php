@@ -67,7 +67,8 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
                         <div class="of-foto" id="of-foto-prev">@if ($obituario->foto_url)<img src="{{ $obituario->foto_url }}" alt="">@else<i class="fa-solid fa-user"></i>@endif</div>
                         <div class="flex-grow-1">
                             <label class="form-label small fw-bold">Foto</label>
-                            <input type="file" class="form-control" name="foto" id="of-foto" accept="image/png,image/jpeg,image/webp">
+                            <input type="file" class="form-control" name="foto" id="of-foto" accept="image/*" data-foto-lista>
+                            <script src="{{ asset('js/foto-lista.js') }}?v=2"></script>
                             <div class="of-ayuda mt-1">Mejor una foto donde se vea bien la cara (sale en círculo). Máximo 8 MB.</div>
                             <div class="of-girar mt-2" id="of-girar" @if (!$obituario->foto_url) hidden @endif>
                                 <span class="small text-muted me-1">¿Quedó chueca?</span>

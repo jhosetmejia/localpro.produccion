@@ -22,7 +22,7 @@
 .pl-item.off{opacity:.6}
 .pl-cab{display:flex;gap:.8rem;align-items:center;min-width:0}
 .pl-foto{width:64px;height:64px;border-radius:14px;background:#eef3ef;flex:none;overflow:hidden;display:grid;place-items:center;font-weight:900;font-size:1.4rem;color:#16b84e}
-.pl-foto img{width:100%;height:100%;object-fit:cover}
+.pl-foto img{width:100%;height:100%;object-fit:contain;background:#fff}
 .pl-txt{min-width:0;flex:1}
 .pl-txt b{display:block;font-size:1rem;line-height:1.2;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .pl-txt small{color:#6b7570;display:block;margin-top:.15rem}

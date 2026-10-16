@@ -9,7 +9,7 @@
     .pf-num{width:28px;height:28px;border-radius:9px;background:var(--lp-black);color:var(--lp-lime);display:inline-grid;place-items:center;font-size:.85rem;flex:none}
     .pf-foto{display:flex;gap:12px;align-items:center;border:2px dashed var(--lp-line);border-radius:18px;padding:10px;cursor:pointer;background:#fafdfb}
     .pf-foto .ph{width:76px;height:76px;border-radius:14px;background:var(--lp-bg);display:grid;place-items:center;overflow:hidden;flex:none;color:#bfeccb;font-size:1.6rem}
-    .pf-foto .ph img{width:100%;height:100%;object-fit:cover}
+    .pf-foto .ph img{width:100%;height:100%;object-fit:contain;background:#fff}
     .pf-foto b{display:block}
     .pf-foto small{color:var(--lp-muted)}
     .pf-pres{display:flex;flex-wrap:wrap;gap:6px;margin-top:.5rem}
@@ -79,7 +79,8 @@
                         <span class="ph" id="fotoPrev"><i class="fa-regular fa-image"></i></span>
                         <span><b id="fotoTxt">Tomar o elegir una foto</b><small>Así la ven sus clientes en el catálogo</small></span>
                     </label>
-                    <input type="file" name="img_path" id="img_path" accept="image/*" class="d-none">
+                    <input type="file" name="img_path" id="img_path" accept="image/*" class="d-none" data-foto-lista>
+                    <script src="{{ asset('js/foto-lista.js') }}?v=2"></script>
                     @error('img_path')<small class="text-danger">{{ $message }}</small>@enderror
                 </div>
             </div>

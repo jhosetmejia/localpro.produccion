@@ -54,7 +54,7 @@ button{font:inherit;border:0;background:none;cursor:pointer;color:inherit}
 .card:hover{transform:translateY(-3px);box-shadow:0 18px 30px -22px rgba(22,179,74,.9)}
 .card.off{opacity:.55}
 .card .ph{aspect-ratio:1/1;background:var(--bg);display:grid;place-items:center;font-size:2.6rem;font-weight:800;color:var(--g2);overflow:hidden;position:relative}
-.card .ph img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
+.card .ph img{width:100%;height:100%;object-fit:contain;object-position:center;background:#fff;transition:transform .3s}
 .card:hover .ph img{transform:scale(1.04)}
 .card .tag{position:absolute;left:10px;top:10px;background:#fff;border-radius:999px;padding:.2rem .6rem;font-size:.7rem;font-weight:800;box-shadow:0 4px 10px -6px rgba(0,0,0,.4)}
 .card .tag.agot{background:#b0206a;color:#fff}
