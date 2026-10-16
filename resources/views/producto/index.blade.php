@@ -24,6 +24,7 @@
 .pl-foto{width:64px;height:64px;border-radius:14px;background:#eef3ef;flex:none;overflow:hidden;display:grid;place-items:center;font-weight:900;font-size:1.4rem;color:#16b84e}
 .pl-foto img{width:100%;height:100%;object-fit:contain;background:#fff}
 .pl-txt{min-width:0;flex:1}
+.pl-web{color:inherit;text-decoration:none}.pl-web:hover b{color:#16b34a}.pl-web i{font-size:.65em;opacity:.45;vertical-align:middle}
 .pl-txt b{display:block;font-size:1rem;line-height:1.2;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .pl-txt small{color:#6b7570;display:block;margin-top:.15rem}
 .pl-precio{font-weight:900;font-size:1.05rem;white-space:nowrap}
@@ -51,6 +52,11 @@
 
 @php
     $tallas = (bool) \App\Support\TiendaActual::tienda()?->usa_tallas;
+    // Tocar el nombre abre el producto en la tienda en línea (en el navegador, con www, no dentro de la app)
+    $tiendaCat = \App\Support\TiendaActual::tienda();
+    $verWeb = $tiendaCat && $tiendaCat->catalogo_activo && $tiendaCat->slug;
+    $u = $verWeb ? parse_url($tiendaCat->url_catalogo_navegador) : null;
+    $baseWeb = $u ? ($u['scheme'] ?? 'https') . '://' . $u['host'] . (isset($u['port']) ? ':' . $u['port'] : '') : '';
     $activos = $productos->where('estado', 1)->count();
     $ocultos = $productos->count() - $activos;
 @endphp
@@ -110,7 +116,11 @@
                         @endif
                     </div>
                     <div class="pl-txt">
+                        @if ($verWeb && $item->estado == 1)
+                        <a class="pl-web" href="{{ $baseWeb ? $baseWeb . parse_url(\App\Http\Controllers\catalogoController::urlProducto($tiendaCat, $item), PHP_URL_PATH) : \App\Http\Controllers\catalogoController::urlProducto($tiendaCat, $item) }}" target="_blank" rel="noopener" title="Ver en la tienda en línea"><b>{{ $item->nombre }} <i class="fa-solid fa-arrow-up-right-from-square"></i></b></a>
+                        @else
                         <b>{{ $item->nombre }}</b>
+                        @endif
                         <small>{{ $item->codigo }}{{ $cats ? ' · ' . $cats : '' }}</small>
                         <span class="pl-stk {{ $clase }}">
                             @if ($item->estado != 1) Oculto
