@@ -23,6 +23,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('dian:enviar')->everyMinute()->withoutOverlapping();
         // Correos de fin de prueba (por vencer, vencida, último aviso) con constancia de envío
         $schedule->command('localpro:avisos-plan')->dailyAt('08:10')->withoutOverlapping();
+        // Recordatorio a los contadores: declaraciones de sus clientes que vencen hoy o en 3 días
+        $schedule->command('contabilidad:recordatorios')->dailyAt('07:20')->withoutOverlapping();
         // Negocios que terminaron la prueba sin pagar: se borran productos, imágenes, ventas… (quedan los datos de contacto)
         $schedule->command('localpro:depurar-pruebas')->dailyAt('04:30')->withoutOverlapping();
         // Comprime las imágenes pesadas que hayan quedado guardadas (libera espacio)

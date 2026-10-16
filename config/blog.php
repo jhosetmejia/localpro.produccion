@@ -3,6 +3,14 @@
 // Artículos del blog público (/blog). Cada uno tiene su vista en resources/views/blog/{slug}.blade.php
 // El más nuevo va de primero: así sale primero en /blog y en la sección Blog de la página de inicio
 return [
+    'calendario-tributario-contadores-recordatorios' => [
+        'titulo' => 'Contadores: el calendario tributario de todos sus clientes, con aviso al correo',
+        'resumen' => 'LocalProo le muestra cuándo vence la retención en la fuente y el IVA de cada cliente según su NIT y le avisa 3 días antes y el mismo día. Además: pruebe la herramienta con datos de ejemplo y retención de IVA bien calculada.',
+        'fecha' => '15 de octubre de 2026',
+        'publicado' => '2026-10-15',
+        'minutos' => 4,
+        'icono' => 'fa-calendar-days',
+    ],
     'eres-contador-localproo-lo-hace-por-ti' => [
         'titulo' => '¿Eres contador y necesitas cuadrar facturas de la DIAN, IVA y retenciones? LocalProo lo hace por ti',
         'resumen' => 'Deja de cruzar factura por factura en Excel. Subes el listado de la DIAN y tu contabilidad, y LocalProo te dice qué falta, qué no cuadra y te deja el borrador del 350 y del IVA.',

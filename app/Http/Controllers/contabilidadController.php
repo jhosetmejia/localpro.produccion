@@ -7,6 +7,7 @@ use App\Models\ContableDocumento;
 use App\Models\ContablePeriodo;
 use App\Models\ContableTarifa;
 use App\Models\ContableTercero;
+use App\Support\CalendarioTributario;
 use App\Support\EspacioContable;
 use App\Support\HojaCalculo;
 use App\Support\Retenciones;
@@ -48,6 +49,65 @@ class contabilidadController extends Controller
         return EspacioContable::carpeta();
     }
 
+    // ===================== Calendario tributario =====================
+
+    public function calendario(Request $r)
+    {
+        $clientes = ContableCliente::where('activo', true)->orderBy('nombre')->get();
+        $dias = in_array((int) $r->query('dias'), [15, 30, 60, 90], true) ? (int) $r->query('dias') : 60;
+        $lista = CalendarioTributario::proximos($clientes, $dias, 15);
+        $porFecha = collect($lista)->groupBy(fn ($v) => $v['fecha']->toDateString());
+        return view('contabilidad.calendario', [
+            'porFecha' => $porFecha, 'clientes' => $clientes, 'dias' => $dias,
+            'pendientes' => count(array_filter($lista, fn ($v) => !$v['presentado'] && $v['dias'] <= 5)),
+            'ultimoMes' => CalendarioTributario::ultimoMes(),
+        ]);
+    }
+
+    // ===================== Datos de ejemplo =====================
+
+    // Crea un cliente y un mes de ejemplo con los archivos de muestra, para ver el cruce sin subir nada propio
+    public function ejemplo()
+    {
+        $nit = '900123456';
+        $c = ContableCliente::firstOrCreate(['nit' => $nit], [
+            'nombre' => 'EMPRESA DE EJEMPLO SAS', 'dv' => '7', 'tipo_persona' => 'juridica', 'agente_retenedor' => true,
+            'autorretenedor' => false, 'agente_rete_iva' => false, 'periodicidad_iva' => 'bimestral', 'ciudad' => 'Ejemplo',
+            'notas' => 'Cliente de ejemplo creado por LocalProo para conocer la herramienta. Puede eliminarlo cuando quiera.',
+            'activo' => true, 'recordatorios' => false,
+        ]);
+        $p = ContablePeriodo::firstOrCreate(['cliente_id' => $c->id, 'anio' => 2026, 'mes' => 9]);
+
+        $carpeta = $this->carpeta() . '/' . $c->id;
+        $rutaDian = $carpeta . '/2026-9-dian.xlsx';
+        $rutaCont = $carpeta . '/2026-9-contable.xlsx';
+        Storage::disk('local')->put($rutaDian, file_get_contents(resource_path('contabilidad/ejemplo-dian.xlsx')));
+        Storage::disk('local')->put($rutaCont, file_get_contents(resource_path('contabilidad/ejemplo-contable.xlsx')));
+
+        $docsDian = Retenciones::leerDian(Storage::disk('local')->path($rutaDian), 'xlsx', $c->nit);
+        $vista = Retenciones::vistaContable(Storage::disk('local')->path($rutaCont), 'xlsx');
+        $docsCont = Retenciones::leerContable(Storage::disk('local')->path($rutaCont), 'xlsx', $vista['mapa'], $vista['fila']);
+
+        DB::transaction(function () use ($p, $docsDian, $docsCont, $rutaDian, $rutaCont, $vista) {
+            ContableDocumento::where('periodo_id', $p->id)->delete();
+            foreach ($docsDian as $d) ContableDocumento::create($d + ['periodo_id' => $p->id]);
+            foreach ($docsCont as $d) ContableDocumento::create($d + ['periodo_id' => $p->id]);
+            $p->update(['archivo_dian' => $rutaDian, 'archivo_contable' => $rutaCont, 'estado' => 'abierto',
+                'mapeo_contable' => ['titulos' => $vista['titulos'], 'mapa' => $vista['mapa']]]);
+        });
+        Retenciones::cruzar($p);
+
+        return redirect()->route('contabilidad.periodo', $p)->with('success',
+            'Este es un cliente de ejemplo con los archivos ya cargados: revise el cruce, el borrador del 350 y el IVA. Pruebe cambiar el concepto de ASEO TOTAL a "Servicios generales" y vea cómo cambia la retención.');
+    }
+
+    // Archivos de muestra para ver el formato esperado
+    public function ejemploArchivo(string $archivo)
+    {
+        return response()->download(resource_path('contabilidad/ejemplo-' . $archivo . '.xlsx'),
+            $archivo === 'dian' ? 'ejemplo-listado-facturas-DIAN.xlsx' : 'ejemplo-auxiliar-contable.xlsx');
+    }
+
     // Guía de uso con las normas y fuentes
     public function guia()
     {
@@ -63,7 +123,11 @@ class contabilidadController extends Controller
         Retenciones::asegurarTarifas();
         $clientes = ContableCliente::withCount('periodos')->orderByDesc('activo')->orderBy('nombre')->get();
         $ultimos = ContablePeriodo::with('cliente')->latest('updated_at')->take(8)->get();
-        return view('contabilidad.index', compact('tienda', 'clientes', 'ultimos'));
+        $vencimientos = array_slice(array_values(array_filter(
+            CalendarioTributario::proximos($clientes->where('activo', true), 30, 10),
+            fn ($v) => !$v['presentado']
+        )), 0, 6);
+        return view('contabilidad.index', compact('tienda', 'clientes', 'ultimos', 'vencimientos'));
     }
 
     public function activar()
@@ -87,6 +151,8 @@ class contabilidadController extends Controller
         $d['nit'] = Retenciones::nit($d['nit']);
         $d['agente_retenedor'] = $r->boolean('agente_retenedor');
         $d['autorretenedor'] = $r->boolean('autorretenedor');
+        $d['agente_rete_iva'] = $r->boolean('agente_rete_iva');
+        $d['recordatorios'] = $r->boolean('recordatorios', true);
         $d['activo'] = $r->boolean('activo', true);
         return $d;
     }
@@ -116,7 +182,8 @@ class contabilidadController extends Controller
         $this->mio($cliente);
         $periodos = $cliente->periodos()->withCount('documentos')->orderByDesc('anio')->orderByDesc('mes')->get();
         $terceros = $cliente->terceros()->orderBy('nombre')->get();
-        return view('contabilidad.cliente', compact('cliente', 'periodos', 'terceros'));
+        $vencimientos = CalendarioTributario::proximos(collect([$cliente]), 75, 10);
+        return view('contabilidad.cliente', compact('cliente', 'periodos', 'terceros', 'vencimientos'));
     }
 
     public function periodoStore(Request $r, ContableCliente $cliente)
@@ -140,7 +207,7 @@ class contabilidadController extends Controller
                 'ventas' => $f['direccion'] === 'emitida',
                 'revisar' => !empty($f['obs']),
                 'sin_contabilizar' => (bool) array_filter($f['obs'], fn ($o) => $o[0] === 'solo_dian'),
-                'retencion' => (bool) array_filter($f['obs'], fn ($o) => in_array($o[0], ['falta_retencion', 'sobra_retencion'], true)),
+                'retencion' => (bool) array_filter($f['obs'], fn ($o) => in_array($o[0], ['falta_retencion', 'sobra_retencion', 'falta_rete_iva', 'sobra_rete_iva'], true)),
                 default => true,
             };
         }));
@@ -149,7 +216,7 @@ class contabilidadController extends Controller
             'contable' => ContableDocumento::where('periodo_id', $periodo->id)->where('origen', 'contable')->count(),
             'revisar' => count(array_filter($filas, fn ($f) => !empty($f['obs']))),
             'sin_contabilizar' => count(array_filter($filas, fn ($f) => (bool) array_filter($f['obs'], fn ($o) => $o[0] === 'solo_dian'))),
-            'retencion' => count(array_filter($filas, fn ($f) => (bool) array_filter($f['obs'], fn ($o) => in_array($o[0], ['falta_retencion', 'sobra_retencion'], true)))),
+            'retencion' => count(array_filter($filas, fn ($f) => (bool) array_filter($f['obs'], fn ($o) => in_array($o[0], ['falta_retencion', 'sobra_retencion', 'falta_rete_iva', 'sobra_rete_iva'], true)))),
         ];
 
         // IVA del periodo de IVA completo (bimestre o cuatrimestre) al que pertenece este mes
@@ -279,7 +346,7 @@ class contabilidadController extends Controller
             'tipo_persona' => ['required', Rule::in(['juridica', 'natural'])],
             'concepto' => ['nullable', Rule::in(array_keys(Retenciones::CONCEPTOS))],
         ]);
-        $tercero->update($d + ['declarante' => $r->boolean('declarante'), 'autorretenedor' => $r->boolean('autorretenedor')]);
+        $tercero->update($d + ['declarante' => $r->boolean('declarante'), 'autorretenedor' => $r->boolean('autorretenedor'), 'gran_contribuyente' => $r->boolean('gran_contribuyente')]);
         return back()->with('success', 'Datos de ' . ($tercero->nombre ?: $tercero->nit) . ' guardados. Los cálculos ya se actualizaron.');
     }
 

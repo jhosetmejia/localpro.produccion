@@ -15,7 +15,7 @@
 .ct-tabla .num{text-align:right;font-variant-numeric:tabular-nums}
 .ct-obs{display:inline-block;font-size:.7rem;font-weight:700;border-radius:99px;padding:.15rem .5rem;margin:.1rem 0;white-space:normal}
 .ct-obs.solo_dian{background:#fde2e2;color:#a61b1b}.ct-obs.solo_contable{background:#fff1d6;color:#8a5a00}
-.ct-obs.iva,.ct-obs.base{background:#e7efff;color:#24489b}.ct-obs.falta_retencion{background:#fde2e2;color:#a61b1b}.ct-obs.sobra_retencion{background:#fff1d6;color:#8a5a00}
+.ct-obs.iva,.ct-obs.base{background:#e7efff;color:#24489b}.ct-obs.falta_retencion,.ct-obs.falta_rete_iva{background:#fde2e2;color:#a61b1b}.ct-obs.sobra_retencion,.ct-obs.sobra_rete_iva{background:#fff1d6;color:#8a5a00}
 .ct-350 td{font-variant-numeric:tabular-nums}
 </style>
 @endpush
@@ -124,7 +124,7 @@
                             <td class="num">{{ $n($f['iva']) }}@if ($f['iva_dian'] !== null && $f['iva_cont'] !== null && abs($f['iva_dian'] - $f['iva_cont']) > 1000)<div class="text-danger">DIAN {{ $n($f['iva_dian']) }}</div>@endif</td>
                             <td class="num">{{ $f['direccion'] === 'recibida' ? $n($f['practicada']) : '' }}</td>
                             <td class="num">@if ($f['direccion'] === 'recibida'){{ $n($f['esperada']) }}<div class="text-muted">{{ $f['tarifa'] }}</div>@endif</td>
-                            <td class="num">{{ $f['rete_iva'] ? $n($f['rete_iva']) : '' }}@if ($f['rete_iva_esperada'] && !$f['rete_iva'])<div class="text-muted" title="15 % del IVA: confirme si aplica">¿{{ $n($f['rete_iva_esperada']) }}?</div>@endif</td>
+                            <td class="num">{{ $f['rete_iva'] ? $n($f['rete_iva']) : '' }}@if ($f['rete_iva_esperada'] && abs($f['rete_iva_esperada'] - $f['rete_iva']) > 1000)<div class="text-muted" title="15 % del IVA según la tabla">Debe: {{ $n($f['rete_iva_esperada']) }}</div>@endif</td>
                             <td style="white-space:normal;min-width:170px">@foreach ($f['obs'] as [$k, $txt])<span class="ct-obs {{ $k }}">{{ $txt }}</span> @endforeach</td>
                         </tr>
                         @empty

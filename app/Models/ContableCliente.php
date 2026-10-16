@@ -12,9 +12,9 @@ class ContableCliente extends Model
 
     protected $table = 'contable_clientes';
 
-    protected $fillable = ['nombre', 'nit', 'dv', 'tipo_persona', 'agente_retenedor', 'autorretenedor', 'periodicidad_iva', 'ciudad', 'notas', 'activo'];
+    protected $fillable = ['nombre', 'nit', 'dv', 'tipo_persona', 'agente_retenedor', 'autorretenedor', 'agente_rete_iva', 'periodicidad_iva', 'ciudad', 'notas', 'activo', 'recordatorios'];
 
-    protected $casts = ['agente_retenedor' => 'boolean', 'autorretenedor' => 'boolean', 'activo' => 'boolean'];
+    protected $casts = ['agente_retenedor' => 'boolean', 'autorretenedor' => 'boolean', 'agente_rete_iva' => 'boolean', 'activo' => 'boolean', 'recordatorios' => 'boolean'];
 
     public const PERIODICIDAD = ['bimestral' => 'IVA bimestral', 'cuatrimestral' => 'IVA cuatrimestral', 'no_responsable' => 'No responsable de IVA'];
 

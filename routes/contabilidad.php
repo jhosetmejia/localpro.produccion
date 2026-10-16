@@ -8,6 +8,9 @@ Route::middleware(['auth', 'contable'])->prefix('contabilidad')->name('contabili
     Route::get('/', 'index')->name('index');
     Route::post('/activar', 'activar')->name('activar');
     Route::get('/guia', 'guia')->name('guia');
+    Route::get('/calendario', 'calendario')->name('calendario');
+    Route::post('/ejemplo', 'ejemplo')->name('ejemplo');
+    Route::get('/ejemplo/{archivo}', 'ejemploArchivo')->whereIn('archivo', ['dian', 'contable'])->name('ejemplo.archivo');
 
     Route::post('/clientes', 'clienteStore')->name('clientes.store');
     Route::get('/clientes/{cliente}', 'cliente')->whereNumber('cliente')->name('cliente');

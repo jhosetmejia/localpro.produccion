@@ -13,7 +13,7 @@ class ContableTercero extends Model
 
     protected $table = 'contable_terceros';
 
-    protected $fillable = ['cliente_id', 'nit', 'nombre', 'tipo_persona', 'declarante', 'autorretenedor', 'concepto'];
+    protected $fillable = ['cliente_id', 'nit', 'nombre', 'tipo_persona', 'declarante', 'autorretenedor', 'gran_contribuyente', 'concepto'];
 
-    protected $casts = ['declarante' => 'boolean', 'autorretenedor' => 'boolean'];
+    protected $casts = ['declarante' => 'boolean', 'autorretenedor' => 'boolean', 'gran_contribuyente' => 'boolean'];
 }

@@ -29,6 +29,19 @@
                 </div>
             </form>
             <div class="lp-box mb-3">
+                <div class="d-flex justify-content-between align-items-center"><h3 class="mb-2"><i class="fa-solid fa-calendar-days me-1"></i>Vencimientos</h3><a href="{{ route('contabilidad.calendario') }}" class="small">Calendario</a></div>
+                @forelse (array_slice($vencimientos, 0, 4) as $v)
+                @php [$txt, $color] = \App\Support\CalendarioTributario::falta($v['dias']); @endphp
+                <div class="d-flex justify-content-between gap-2 small border-bottom py-1">
+                    <span><b>{{ $v['fecha']->locale('es')->isoFormat('D MMM') }}</b> · {{ $v['nombre'] }} <span class="text-muted">· {{ $v['periodo'] }}</span></span>
+                    @if ($v['presentado'])<span class="text-success fw-bold text-nowrap"><i class="fa-solid fa-check"></i> Presentado</span>@else<span class="text-{{ $color }} fw-bold text-nowrap">{{ $txt }}</span>@endif
+                </div>
+                @empty
+                <p class="small text-muted mb-0">Sin vencimientos próximos. Revise que el NIT, si es agente de retención y la periodicidad del IVA estén bien.</p>
+                @endforelse
+                <small class="text-muted">Según el último dígito del NIT: {{ \App\Support\CalendarioTributario::digito($cliente->nit) ?? '—' }}.</small>
+            </div>
+            <div class="lp-box mb-3">
                 <h3>Meses</h3>
                 @forelse ($periodos as $p)
                 <a href="{{ route('contabilidad.periodo', $p) }}" class="d-flex justify-content-between align-items-center border rounded-3 p-2 mb-2 text-reset text-decoration-none">
@@ -52,10 +65,10 @@
         <div class="col-lg-7">
             <div class="lp-box">
                 <h3>Proveedores y clientes del cliente ({{ $terceros->count() }})</h3>
-                <p class="small text-muted">Se crean solos al cargar facturas. Aquí indica si son persona natural o jurídica, si declaran renta, si son autorretenedores y su concepto habitual: se recuerda para todos los meses.</p>
+                <p class="small text-muted">Se crean solos al cargar facturas. Aquí indica si son persona natural o jurídica, si declaran renta, si son autorretenedores o grandes contribuyentes y su concepto habitual: se recuerda para todos los meses.</p>
                 <div class="table-responsive">
                 <table class="table table-sm align-middle small">
-                    <thead><tr><th>Tercero</th><th>Tipo</th><th>Concepto habitual</th><th>Declarante</th><th>Autorret.</th><th></th></tr></thead>
+                    <thead><tr><th>Tercero</th><th>Tipo</th><th>Concepto habitual</th><th>Declarante</th><th>Autorret.</th><th title="Gran contribuyente: no se le practica retención de IVA si el cliente también lo es">Gran contrib.</th><th></th></tr></thead>
                     <tbody>
                     @forelse ($terceros as $t)
                     <tr>
@@ -64,11 +77,12 @@
                         <td><select form="t-{{ $t->id }}" class="form-select form-select-sm" name="concepto"><option value="">—</option>@foreach ($C as $k => [$n])<option value="{{ $k }}" @selected($t->concepto === $k)>{{ $n }}</option>@endforeach</select></td>
                         <td class="text-center"><input form="t-{{ $t->id }}" type="checkbox" class="form-check-input" name="declarante" value="1" @checked($t->declarante)></td>
                         <td class="text-center"><input form="t-{{ $t->id }}" type="checkbox" class="form-check-input" name="autorretenedor" value="1" @checked($t->autorretenedor)></td>
+                        <td class="text-center"><input form="t-{{ $t->id }}" type="checkbox" class="form-check-input" name="gran_contribuyente" value="1" @checked($t->gran_contribuyente)></td>
                         <td class="text-nowrap"><form id="t-{{ $t->id }}" method="post" action="{{ route('contabilidad.tercero', $t) }}" class="d-inline">@csrf @method('put')<button class="btn btn-sm btn-dark" title="Guardar"><i class="fa-solid fa-check"></i></button></form>
                             <a class="btn btn-sm btn-light" title="Certificado de retención" target="_blank" href="{{ route('contabilidad.certificado', [$cliente, 'nit' => $t->nit, 'anio' => now()->year]) }}"><i class="fa-solid fa-file-signature"></i></a></td>
                     </tr>
                     @empty
-                    <tr><td colspan="6" class="text-muted">Aparecen al cargar las facturas del primer mes.</td></tr>
+                    <tr><td colspan="7" class="text-muted">Aparecen al cargar las facturas del primer mes.</td></tr>
                     @endforelse
                     </tbody>
                 </table>

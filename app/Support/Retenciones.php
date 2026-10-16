@@ -463,9 +463,9 @@ class Retenciones
                     if (abs($base) >= $minimo) {
                         $esperada = round($base * $pct / 100);
                         $tarifaTxt = rtrim(rtrim(number_format($pct, 2, ',', ''), '0'), ',') . '%';
-                        // Rete IVA: lo practica el responsable de IVA que compra a quien también lo es; aquí se sugiere
-                        // cuando el cliente es persona jurídica y el proveedor no es gran contribuyente (el analista revisa)
-                        if ($iva && $cliente->tipo_persona === 'juridica') $reteIvaEsp = round($iva * self::RETE_IVA / 100);
+                        // Rete IVA (art. 437-2 ET): la practica el agente de retención de IVA (gran contribuyente, entidad
+                        // pública o designado por la DIAN), desde la misma base mínima; entre grandes contribuyentes no se practica
+                        if ($iva > 0 && $cliente->agente_rete_iva && !($t?->gran_contribuyente)) $reteIvaEsp = round($iva * self::RETE_IVA / 100);
                     } else {
                         $tarifaTxt = 'Base menor a ' . rtrim(rtrim(number_format($tar->base_uvt, 2, ',', ''), '0'), ',') . ' UVT';
                     }
@@ -482,6 +482,13 @@ class Retenciones
             }
             if ($ref->direccion === 'recibida' && abs($esperada - $practicada) > self::TOLERANCIA) {
                 $obs[] = [$practicada < $esperada ? 'falta_retencion' : 'sobra_retencion', $practicada < $esperada ? 'Faltó practicar retención' : 'Se retuvo más de lo que da la tabla'];
+            }
+            if ($ref->direccion === 'recibida' && $cont) {
+                if ($reteIvaEsp && abs($reteIvaEsp - $reteIvaPract) > self::TOLERANCIA) {
+                    $obs[] = [$reteIvaPract < $reteIvaEsp ? 'falta_rete_iva' : 'sobra_rete_iva', $reteIvaPract < $reteIvaEsp ? 'Faltó practicar retención de IVA (15 %)' : 'La retención de IVA no es el 15 % del IVA'];
+                } elseif (!$reteIvaEsp && $reteIvaPract > self::TOLERANCIA) {
+                    $obs[] = ['sobra_rete_iva', $cliente->agente_rete_iva ? 'Retención de IVA practicada sin que aplique (revise base o proveedor gran contribuyente)' : 'Practicó retención de IVA pero el cliente no está marcado como agente de retención de IVA'];
+                }
             }
             $filas[] = [
                 'id' => $ref->id, 'dian_id' => $dian?->id, 'cont_id' => $cont?->id,

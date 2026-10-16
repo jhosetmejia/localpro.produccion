@@ -30,6 +30,8 @@
             <li><b>Asesores de la red LocalPro</b>: con el curso aprobado, la tienen en su panel (menú <b>Red comercial → Contabilidad</b>). Cada asesor tiene su propio espacio con sus clientes, sin crear un negocio aparte; nadie más ve esa información.</li>
         </ul>
 
+        <div class="alert alert-success small mb-3"><b>¿Primera vez?</b> En la pantalla de clientes toque <b>Probar con datos de ejemplo</b>: se crea un cliente de ejemplo con los dos archivos ya cargados. También puede descargar los archivos de muestra para ver el formato: <a href="{{ route('contabilidad.ejemplo.archivo', 'dian') }}">listado de la DIAN</a> · <a href="{{ route('contabilidad.ejemplo.archivo', 'contable') }}">auxiliar contable</a>.</div>
+
         <h2>1. Prepare los archivos del mes</h2>
         <div class="paso"><b class="n">A</b><div><b>Listado de la DIAN.</b> Entre al portal de facturación electrónica de la DIAN con el usuario del cliente, vaya a la consulta de documentos, filtre el mes (emitidos y recibidos) y descargue el listado en Excel. Súbalo tal cual, sin cambiar los títulos. Trae por cada documento: tipo, CUFE, prefijo y folio, fecha, NIT y nombre de emisor y receptor, IVA, otros impuestos, rete IVA, rete renta, rete ICA y total.</div></div>
         <div class="paso"><b class="n">B</b><div><b>Base contable.</b> En Contapyme (u otro programa: Siigo, World Office, Helisa…) exporte a Excel o CSV el auxiliar de compras y gastos del mes con sus retenciones. Sirve de dos formas: <i>en columnas</i> (una fila por factura con base, IVA y retenciones) o <i>auxiliar por cuenta</i> (una fila por movimiento con cuenta y débito/crédito). Debe traer el NIT del tercero y el número de la factura.</div></div>
@@ -59,7 +61,7 @@
         <ul>
             <li><b>Concepto:</b> marque facturas y cámbieles el concepto (compras, servicios, honorarios, arrendamientos…). Con "Recordar para ese proveedor" queda para los meses siguientes. Si la contabilidad usa cuentas 2365, el concepto se toma de la subcuenta.</li>
             <li><b>Proveedores:</b> en la ficha del cliente indique para cada tercero si es persona natural o jurídica, si es <b>declarante</b> (cambia la tarifa) y si es <b>autorretenedor</b> (no se le retiene).</li>
-            <li><b>Rete IVA:</b> el sistema sugiere el 15 % del IVA cuando el cliente es persona jurídica; confirme si aplica según la calidad de comprador y vendedor (art. 437-2 ET).</li>
+            <li><b>Rete IVA:</b> marque en los datos del cliente <b>Practica retención de IVA</b> si es agente de retención de IVA (gran contribuyente, entidad pública o designado por la DIAN, art. 437-2 ET). Entonces el sistema calcula el 15 % del IVA desde la misma base mínima del concepto y avisa si faltó o sobró. Marque como <b>Gran contrib.</b> a los proveedores grandes contribuyentes: entre ellos no se practica.</li>
         </ul>
 
         <h2>5. Borrador del 350 y del IVA</h2>
@@ -72,7 +74,11 @@
             <li>Marque el mes como <b>Revisado</b> o <b>Presentado en la DIAN</b> para llevar el control.</li>
         </ul>
 
-        <h2>6. Tabla de retenciones (manténgala al día)</h2>
+        <h2>6. Calendario tributario y recordatorios</h2>
+        <p>En <b>Calendario</b> ve los vencimientos de la retención en la fuente (350) y del IVA (300) de todos sus clientes, según el último dígito del NIT (sin el dígito de verificación). Aparecen los que vencen en los próximos días y los vencidos sin presentar. Cuando marca el mes como <b>Presentado en la DIAN</b>, el vencimiento queda en verde.</p>
+        <p>LocalProo le envía un <b>correo 3 días antes y el mismo día</b> de cada vencimiento pendiente. Se apaga por cliente en sus datos. La retención solo aparece si el cliente es agente de retención o autorretenedor; el IVA según su periodicidad. Las fechas cargadas son las del calendario 2026; el del año siguiente se agrega cuando la DIAN lo publica.</p>
+
+        <h2>7. Tabla de retenciones (manténgala al día)</h2>
         <p>En <b>Tabla de retenciones</b> están las bases en UVT y las tarifas por concepto, con fechas de vigencia. UVT cargadas:
             @foreach ($uvt as $a => $v)<b>{{ $a }}</b>: ${{ number_format($v, 0, ',', '.') }}{{ $loop->last ? '.' : ' · ' }}@endforeach</p>
         <div class="alert alert-warning small">El <b>Decreto 572 de 2025</b> modificó bases y tarifas de retención. El <b>Consejo de Estado suspendió provisionalmente sus artículos 2 al 8</b> (auto del 7 de mayo de 2026) y desde el <b>8 de mayo de 2026</b> volvieron a aplicarse las bases y tarifas anteriores: esas son las que trae la tabla por defecto (compras 27 UVT, servicios 4 UVT…). Para los meses en que rigió el decreto, agregue las filas con sus fechas. Revise la norma vigente antes de cada cierre.</div>
@@ -84,6 +90,7 @@
             <li>Decreto Único Reglamentario en materia tributaria 1625 de 2016 (bases y tarifas de retención). <a href="https://normograma.dian.gov.co/dian/compilacion/docs/decreto_1625_2016.htm" target="_blank" rel="noopener">Normograma DIAN – DUR 1625</a></li>
             <li>UVT 2026: $52.374, Resolución DIAN 000238 de 2025. <a href="https://incp.org.co/publicaciones/infoincp-publicaciones/impuestos/2025/12/dian-fijo-en-52-374-en-valor-de-la-uvt-para-el-ano-gravable-2026/" target="_blank" rel="noopener">INCP</a></li>
             <li>Suspensión del Decreto 572 de 2025 y ajustes del Formulario 350 desde junio de 2026. <a href="https://siemprealdia.co/colombia/impuestos/formulario-350-declaracion-retencion-fuente/" target="_blank" rel="noopener">Siempre al día</a> · <a href="https://incp.org.co/publicaciones/infoincp-publicaciones/impuestos/2026/07/dian-habilito-el-formulario-350-para-declarar-las-retenciones-en-la-fuente-de-junio/" target="_blank" rel="noopener">INCP</a></li>
+            <li>Calendario tributario: Decreto 1625 de 2016, arts. 1.6.1.13.2.30 (IVA bimestral), 1.6.1.13.2.31 (IVA cuatrimestral) y 1.6.1.13.2.33 (retención en la fuente), modificados por el Decreto 2229 de 2023. <a href="https://actualicese.com/plazos-para-declaracion-y-pago-de-retencion-en-la-fuente-2026/" target="_blank" rel="noopener">Actualícese – retención 2026</a> · <a href="https://actualicese.com/plazos-para-la-declaracion-del-iva-2026/" target="_blank" rel="noopener">Actualícese – IVA 2026</a></li>
             <li>Formulario 350 – Declaración de retenciones en la fuente. <a href="https://www.dian.gov.co/Prensa/Paginas/ng-formulario-350-declaracion-retencion-fuente.aspx" target="_blank" rel="noopener">DIAN</a></li>
         </ul>
         <p class="small text-muted mb-0">LocalProo es una herramienta de apoyo; no reemplaza el criterio profesional del contador público ni constituye asesoría tributaria.</p>

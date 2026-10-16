@@ -17,11 +17,15 @@
         <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="agente_retenedor" value="1" id="ar-{{ $c->id ?: 'n' }}" @checked(old('agente_retenedor', $c->agente_retenedor))><label class="form-check-label" for="ar-{{ $c->id ?: 'n' }}">Es agente de retención</label></div>
         <input type="hidden" name="autorretenedor" value="0">
         <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="autorretenedor" value="1" id="au-{{ $c->id ?: 'n' }}" @checked(old('autorretenedor', $c->autorretenedor))><label class="form-check-label" for="au-{{ $c->id ?: 'n' }}">Practica autorretención</label></div>
+        <input type="hidden" name="agente_rete_iva" value="0">
+        <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="agente_rete_iva" value="1" id="ri-{{ $c->id ?: 'n' }}" @checked(old('agente_rete_iva', $c->agente_rete_iva))><label class="form-check-label" for="ri-{{ $c->id ?: 'n' }}">Practica retención de IVA <span class="text-muted">(gran contribuyente, entidad pública o designado por la DIAN)</span></label></div>
+        <input type="hidden" name="recordatorios" value="0">
+        <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="recordatorios" value="1" id="rc-{{ $c->id ?: 'n' }}" @checked(old('recordatorios', $c->exists ? $c->recordatorios : true))><label class="form-check-label" for="rc-{{ $c->id ?: 'n' }}">Recordarme sus vencimientos por correo</label></div>
         @if ($c->exists)
         <input type="hidden" name="activo" value="0">
         <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="activo" value="1" id="ac-{{ $c->id }}" @checked(old('activo', $c->activo))><label class="form-check-label" for="ac-{{ $c->id }}">Cliente activo</label></div>
         @endif
     </div>
-    <div class="col-12"><small class="text-muted">Persona natural: es agente de retención si el año anterior tuvo ingresos brutos o patrimonio de 30.000 UVT o más. Las empresas siempre lo son.</small></div>
+    <div class="col-12"><small class="text-muted">Persona natural: es agente de retención si el año anterior tuvo ingresos brutos o patrimonio de 30.000 UVT o más. Las empresas siempre lo son. La retención de IVA (15 %) solo la practican los agentes de retención de IVA del art. 437-2 del ET.</small></div>
     <div class="col-12"><label class="form-label small fw-bold">Notas</label><textarea class="form-control" name="notas" rows="2" maxlength="2000">{{ old('notas', $c->notas) }}</textarea></div>
 </div>
