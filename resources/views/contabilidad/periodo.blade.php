@@ -189,7 +189,7 @@
                     <tr class="table-success fw-bold"><td>Total del periodo</td>@foreach ($tot as $v)<td class="text-end">{{ $n($v) }}</td>@endforeach</tr>
                     </tbody>
                 </table>
-                <small class="text-muted">Saldo positivo: IVA a pagar antes de retenciones que le practicaron (reteIVA) y saldos a favor anteriores. Úselo como borrador del Formulario 300; los ajustes (IVA no descontable, proporcionalidad, devoluciones) los define el contador.</small>
+                <small class="text-muted">Saldo positivo = IVA a pagar; negativo = saldo a favor. Es antes de retenciones que le practicaron (reteIVA) y saldos a favor anteriores. Úselo como borrador del Formulario 300; los ajustes (IVA no descontable, proporcionalidad, devoluciones) los define el contador.</small>
             </div>
         </div>
 
