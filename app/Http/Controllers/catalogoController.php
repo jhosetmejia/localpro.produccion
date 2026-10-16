@@ -53,6 +53,7 @@ class catalogoController extends Controller
     {
         $vars = $p->variantes->filter(fn ($v) => !$p->controla_inventario || $v->stock > 0)->values();
         $precios = $vars->map(fn ($v) => (float) ($v->precio ?? $p->precio_venta));
+        $fotosColor = $p->relationLoaded('fotos') ? $p->fotos->filter(fn ($f) => $f->color)->mapWithKeys(fn ($f) => [$f->color => $f->url])->all() : [];
         return [
             'id' => $p->id,
             // Para el público: "CHAQUETA ROMPE VIENTOS" → "Chaqueta rompe vientos" (se lee mejor y Google lo prefiere)
@@ -65,7 +66,10 @@ class catalogoController extends Controller
             'antes' => $p->descuento ? (float) $p->precio_antes : null,
             'descuento' => $p->descuento,
             'desde' => $precios->count() > 1 && $precios->min() < $precios->max() ? (float) $precios->min() : null,
-            'img' => $p->img_path ? asset('storage/productos/' . rawurlencode($p->img_path)) : null,
+            // Foto principal; si no tiene, la del primer color
+            'img' => $p->img_path ? asset('storage/productos/' . rawurlencode($p->img_path)) : ($fotosColor ? reset($fotosColor) : null),
+            // Foto de cada color: {"NEGRO": url, ...}
+            'fotos' => $fotosColor,
             'url' => self::urlProducto($tienda, $p),
             'categorias' => $cats = $p->categorias->map(fn ($c) => $c->caracteristica->nombre ?? null)->filter()->values()->all(),
             'para' => $p->para ? ($p->para === 'todos' ? '' : $p->para) : self::para($p->nombre . ' ' . implode(' ', $cats)),
@@ -87,7 +91,7 @@ class catalogoController extends Controller
 
     private function productos(Tienda $tienda)
     {
-        return Producto::with(['variantes' => fn ($q) => $q->where('estado', 1)->orderBy('talla')->orderBy('color'), 'categorias.caracteristica'])
+        return Producto::with(['variantes' => fn ($q) => $q->where('estado', 1)->orderBy('talla')->orderBy('color'), 'categorias.caracteristica', 'fotos'])
             ->where('estado', 1)->orderBy('nombre')->get()
             ->map(fn ($p) => $this->datos($tienda, $p))
             // El dueño puede elegir mostrar solo lo que tiene existencias
@@ -130,7 +134,7 @@ class catalogoController extends Controller
     {
         $tienda = $this->tienda($slug);
         $id = (int) $producto;
-        $p = Producto::with(['variantes' => fn ($q) => $q->where('estado', 1)->orderBy('talla')->orderBy('color'), 'categorias.caracteristica'])
+        $p = Producto::with(['variantes' => fn ($q) => $q->where('estado', 1)->orderBy('talla')->orderBy('color'), 'categorias.caracteristica', 'fotos'])
             ->where('estado', 1)->findOrFail($id);
         $dato = $this->datos($tienda, $p);
         // Agotado y la tienda solo muestra lo que hay: vuelve al catálogo
@@ -142,7 +146,7 @@ class catalogoController extends Controller
             return redirect($dato['url'], 301);
         }
         $catIds = $p->categorias->pluck('id');
-        $relacionados = Producto::with(['variantes' => fn ($q) => $q->where('estado', 1), 'categorias.caracteristica'])
+        $relacionados = Producto::with(['variantes' => fn ($q) => $q->where('estado', 1), 'categorias.caracteristica', 'fotos'])
             ->where('estado', 1)->where('id', '<>', $p->id)
             ->when($catIds->isNotEmpty(), fn ($q) => $q->whereHas('categorias', fn ($c) => $c->whereIn('categorias.id', $catIds)))
             ->inRandomOrder()->take(12)->get()->map(fn ($r) => $this->datos($tienda, $r))->filter(fn ($r) => $r['disponible'])

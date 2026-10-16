@@ -215,6 +215,26 @@ class ProductoController extends Controller
             }
             $producto->categorias()->sync($categorias);
 
+            // Fotos por color
+            foreach ((array) $request->input('foto_color_nombre', []) as $i => $color) {
+                // Mismo texto que tiene la talla/color guardada, para que coincida en la tienda
+                $color = trim((string) $color);
+                if ($color === '' || !$producto->variantes()->where('color', $color)->exists()) continue;
+                $actual = $producto->fotos()->where('color', $color)->first();
+                if ($request->hasFile("foto_color.$i")) {
+                    $nombre = $producto->handleUploadImage($request->file("foto_color.$i"));
+                    if ($actual) {
+                        Storage::disk('public')->delete('productos/' . $actual->path);
+                        $actual->update(['path' => $nombre]);
+                    } else {
+                        $producto->fotos()->create(['color' => $color, 'path' => $nombre]);
+                    }
+                } elseif ($request->boolean("quitar_foto_color.$i") && $actual) {
+                    Storage::disk('public')->delete('productos/' . $actual->path);
+                    $actual->delete();
+                }
+            }
+
             // Cantidades escritas en el mismo formulario: solo las que la persona cambió.
             // Se deja la cantidad exacta que escribió (queda en movimientos como "ajuste").
             $ajustadas = 0;

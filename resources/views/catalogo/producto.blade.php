@@ -77,7 +77,7 @@
 .mini a{display:block;background:#fff;border:1.5px solid var(--line);border-radius:14px;overflow:hidden;transition:transform .15s,box-shadow .15s}
 .mini a:hover{transform:translateY(-2px);box-shadow:0 10px 20px -14px rgba(0,0,0,.4)}
 .mini .mf{aspect-ratio:1/1;background:#fff;display:grid;place-items:center;font-weight:800;font-size:1.6rem;color:var(--g2);position:relative}
-.moda .mini .mf{aspect-ratio:3/4}
+.moda .mini .mf{aspect-ratio:1/1}
 .mini .mf img{width:100%;height:100%;object-fit:contain}
 .mini .mf .tag-promo{top:6px;right:6px;font-size:.65rem;padding:.1rem .4rem}
 .mini .mt{padding:6px 8px 8px;font-size:.75rem;font-weight:700;line-height:1.2}
@@ -86,7 +86,14 @@
 .mini .mt b.ahora-promo{color:#e11d48}
 .rel .t-d{display:none}
 @media(min-width:1000px){.rel-lado{display:block}.rel.con-lado{margin-top:28px}.rel .t-m{display:none}.rel .t-d{display:inline}}
-.foto img{width:100%;height:100%;object-fit:contain;object-position:center;background:#fff}
+.foto img{width:100%;height:100%;object-fit:contain;object-position:center;background:#fff;transition:opacity .2s}
+.foto-col{position:sticky;top:80px}
+.foto-col .foto{position:static}
+@media(max-width:800px){.foto-col{position:static}}
+.thumbs{display:flex;gap:8px;margin-top:10px;justify-content:center;flex-wrap:wrap}
+.thumbs button{width:58px;height:70px;border-radius:12px;border:2px solid var(--line);background:#fff;overflow:hidden;padding:0}
+.thumbs button.on{border-color:var(--k)}
+.thumbs img{width:100%;height:100%;object-fit:contain}
 .info h1{font-size:clamp(1.5rem,4vw,2.2rem);font-weight:800;letter-spacing:-.02em;line-height:1.15}
 .info .cod{color:var(--mut);font-weight:700;font-size:.85rem;margin-top:6px}
 .info .precio{font-size:2rem;font-weight:800;margin-top:12px}
@@ -101,6 +108,16 @@
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{border:2px solid var(--line);border-radius:14px;padding:.6rem .95rem;font-weight:800;background:#fff}
 .chip.on{background:var(--k);border-color:var(--k);color:#fff}
+.chip{padding:.45rem .8rem;font-size:.9rem;border-radius:12px}
+.chip-c{display:inline-flex;align-items:center;gap:6px}
+.chip-c i{width:16px;height:16px;border-radius:50%;border:1px solid rgba(0,0,0,.2);flex:none}
+.chip.no{opacity:.35;text-decoration:line-through}
+.lbl{margin:14px 0 6px}
+.lbl .elegido{text-transform:none;letter-spacing:0;color:var(--k);margin-left:4px}
+.fila-compra{display:flex;gap:10px;align-items:center;margin-top:16px;max-width:520px}
+.fila-compra .btn{margin-top:0;flex:1;height:52px}
+.agregar{margin-top:8px;font-weight:800;font-size:.92rem;color:var(--k);background:none;padding:.3rem 0}
+.agregar:hover{color:var(--g2)}
 .qty{display:inline-flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:4px}
 .qty button{width:42px;height:42px;border-radius:12px;background:var(--bg);font-size:1.3rem;font-weight:800}
 .qty span{font-weight:800;font-size:1.2rem;min-width:30px;text-align:center}
@@ -115,7 +132,15 @@
     <nav class="migas" aria-label="Ruta"><a href="{{ $tienda->url_catalogo }}">{{ $tienda->nombre }}</a>@if ($cat)<span>›</span><a href="{{ $tienda->url_catalogo }}#cat-{{ \Illuminate\Support\Str::slug($cat) }}">{{ $cat }}</a>@endif<span>›</span><span>{{ \Illuminate\Support\Str::limit($p['nombre'], 40) }}</span></nav>
 
     <div class="pp">
-        <div class="foto">@if ($p['img'])<img src="{{ $p['img'] }}" alt="{{ $p['nombre'] }}">@else{{ mb_strtoupper(mb_substr($p['nombre'], 0, 1)) }}@endif</div>
+        <div class="foto-col">
+            <div class="foto" id="ppFoto">@if ($p['img'] ?: (array_values($p['fotos'])[0] ?? null))<img src="{{ $p['img'] ?: array_values($p['fotos'])[0] }}" alt="{{ $p['nombre'] }}" id="ppImg">@else{{ mb_strtoupper(mb_substr($p['nombre'], 0, 1)) }}@endif</div>
+            @if (count($p['fotos']) + ($p['img'] ? 1 : 0) > 1)
+            <div class="thumbs" id="ppThumbs">
+                @if ($p['img'])<button type="button" class="on" data-src="{{ $p['img'] }}" data-color=""><img src="{{ $p['img'] }}" alt="" loading="lazy"></button>@endif
+                @foreach ($p['fotos'] as $col => $url)<button type="button" data-src="{{ $url }}" data-color="{{ $col }}" title="{{ ucfirst(mb_strtolower($col)) }}"><img src="{{ $url }}" alt="{{ $p['nombre'] }} {{ mb_strtolower($col) }}" loading="lazy"></button>@endforeach
+            </div>
+            @endif
+        </div>
         <div class="info">
             <h1 data-editar-id="{{ $p['id'] }}">{{ $p['nombre'] }}</h1>
             @if ($p['codigo'])<div class="cod">Código: {{ $p['codigo'] }}</div>@endif
@@ -125,18 +150,41 @@
             @if ($p['descripcion'])<p class="desc">{{ $p['descripcion'] }}</p>@endif
 
             @if ($p['disponible'])
-                @if (count($p['variantes']) > 1)
-                <div class="lbl">{{ collect($p['variantes'])->contains(fn ($v) => $v['talla'] || $v['color']) ? 'Elija talla / color' : 'Elija una opción' }}</div>
-                <div class="chips" id="ppVars">
-                    @foreach ($p['variantes'] as $i => $v)<button class="chip" data-v="{{ $i }}">{{ $v['etiqueta'] }}</button>@endforeach
+                @php
+                    $vs = collect($p['variantes']);
+                    $colsV = $vs->pluck('color')->filter()->unique()->values();
+                    $talV = $vs->pluck('talla')->filter()->unique()->values();
+                    // Color y talla por separado (más compacto y al tocar el color cambia la foto)
+                    $separado = $vs->count() > 1 && ($colsV->isNotEmpty() || $talV->isNotEmpty()) && $vs->every(fn ($v) => $v['talla'] || $v['color']);
+                @endphp
+                @if ($vs->count() > 1)
+                <div id="ppVars">
+                    @if ($separado)
+                        @if ($colsV->isNotEmpty())
+                        <div class="lbl">Color <span class="elegido" id="ppColTxt"></span></div>
+                        <div class="chips">
+                            @foreach ($colsV as $c)<button type="button" class="chip chip-c" data-color="{{ $c }}" title="{{ ucfirst(mb_strtolower($c)) }}"><i style="background:{{ \App\Support\Colores::PALETA[\App\Support\Colores::normalizar($c)] ?? '#ddd' }}"></i>{{ ucfirst(mb_strtolower($c)) }}</button>@endforeach
+                        </div>
+                        @endif
+                        @if ($talV->isNotEmpty())
+                        <div class="lbl">Talla</div>
+                        <div class="chips">
+                            @foreach ($talV as $t)<button type="button" class="chip chip-t" data-talla="{{ $t }}">{{ $t === 'ÚNICA' ? 'Única' : $t }}</button>@endforeach
+                        </div>
+                        @endif
+                    @else
+                        <div class="lbl">Elija una opción</div>
+                        <div class="chips">
+                            @foreach ($p['variantes'] as $i => $v)<button type="button" class="chip" data-v="{{ $i }}">{{ $v['etiqueta'] }}</button>@endforeach
+                        </div>
+                    @endif
                 </div>
                 @endif
-                <div class="lbl">Cantidad</div>
-                <div class="qty"><button id="qMenos" aria-label="Menos">−</button><span id="qN">1</span><button id="qMas" aria-label="Más">+</button></div>
-                <div class="acc">
+                <div class="fila-compra">
+                    <div class="qty"><button id="qMenos" aria-label="Menos">−</button><span id="qN">1</span><button id="qMas" aria-label="Más">+</button></div>
                     <button class="btn btn-wa" id="ppComprar">💬 Comprar por WhatsApp</button>
-                    <button class="btn btn-l" id="ppAgregar">🛒 Agregar al pedido</button>
                 </div>
+                <button class="agregar" id="ppAgregar">🛒 Agregar al pedido</button>
             @else
                 @if (numero_whatsapp($tienda->telefono))
                 <a class="btn btn-wa" style="max-width:460px" target="_blank" rel="noopener" href="https://wa.me/{{ numero_whatsapp($tienda->telefono) }}?text={{ rawurlencode('Hola ' . $tienda->nombre . ', ¿cuándo les llega ' . $p['nombre'] . ($p['codigo'] ? ' (código ' . $p['codigo'] . ')' : '') . '? ' . $p['url'] . "\n\n_🛍️ Visto en LocalProo Marketplace_") }}">💬 Preguntar cuándo llega</a>
@@ -182,10 +230,28 @@
 (function () {
     var p = @json($p), sel = p.variantes.length === 1 ? p.variantes[0] : null, cant = 1;
     var $ = function (id) { return document.getElementById(id); };
+    var fotoBase = p.img || null;
+    function verFoto(src, color) {
+        var img = $('ppImg'); if (!img || !src || img.getAttribute('src') === src) { marcarThumb(color); return; }
+        img.style.opacity = .3;
+        var n = new Image(); n.onload = function () { img.src = src; img.style.opacity = 1; }; n.src = src;
+        marcarThumb(color);
+    }
+    function marcarThumb(color) {
+        document.querySelectorAll('#ppThumbs button').forEach(function (b) { b.classList.toggle('on', b.dataset.color === (color || '')); });
+    }
+    if ($('ppThumbs')) $('ppThumbs').addEventListener('click', function (e) {
+        var b = e.target.closest('button'); if (!b) return;
+        verFoto(b.dataset.src, b.dataset.color);
+    });
     function pintar() {
+        // Al elegir un color, se muestra la foto de ese color (si el negocio la subió)
+        if (sel && sel.color && p.fotos && p.fotos[sel.color]) verFoto(p.fotos[sel.color], sel.color);
         if ($('qN')) $('qN').textContent = cant;
         if (sel) $('ppPrecio').textContent = LPC.fmt(sel.precio * cant);
-        document.querySelectorAll('#ppVars .chip').forEach(function (c) { c.classList.toggle('on', p.variantes[+c.dataset.v] === sel); });
+        document.querySelectorAll('#ppVars .chip[data-v]').forEach(function (c) { c.classList.toggle('on', p.variantes[+c.dataset.v] === sel); });
+        document.querySelectorAll('#ppVars .chip-c').forEach(function (c) { c.classList.toggle('on', c.dataset.color === colSel); });
+        document.querySelectorAll('#ppVars .chip-t').forEach(function (c) { c.classList.toggle('on', c.dataset.talla === talSel); });
     }
     function falta() {
         if (sel) return false;
@@ -193,7 +259,30 @@
         v.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(0)' }], { duration: 300 });
         return true;
     }
-    if ($('ppVars')) $('ppVars').addEventListener('click', function (e) { var b = e.target.closest('.chip'); if (!b) return; sel = p.variantes[+b.dataset.v]; pintar(); });
+    // Color y talla por separado: con los dos elegidos queda la opción exacta
+    var colSel = null, talSel = null;
+    var hayCol = !!document.querySelector('#ppVars .chip-c'), hayTal = !!document.querySelector('#ppVars .chip-t');
+    function buscar() {
+        sel = p.variantes.find(function (v) { return (!hayCol || v.color === colSel) && (!hayTal || v.talla === talSel); }) || null;
+        // Marca las combinaciones que no existen
+        document.querySelectorAll('#ppVars .chip-t').forEach(function (b) { b.classList.toggle('no', !!colSel && !p.variantes.some(function (v) { return v.talla === b.dataset.talla && v.color === colSel; })); });
+        document.querySelectorAll('#ppVars .chip-c').forEach(function (b) { b.classList.toggle('no', !!talSel && !p.variantes.some(function (v) { return v.color === b.dataset.color && v.talla === talSel; })); });
+        if ($('ppColTxt')) $('ppColTxt').textContent = colSel ? '· ' + colSel.charAt(0) + colSel.slice(1).toLowerCase() : '';
+    }
+    if ($('ppVars')) $('ppVars').addEventListener('click', function (e) {
+        var b = e.target.closest('.chip'); if (!b) return;
+        if (b.dataset.color) {
+            colSel = b.dataset.color;
+            if (p.fotos && p.fotos[colSel]) verFoto(p.fotos[colSel], colSel);
+            if (talSel && !p.variantes.some(function (v) { return v.color === colSel && v.talla === talSel; })) talSel = null;
+            buscar();
+        } else if (b.dataset.talla) {
+            talSel = b.dataset.talla;
+            if (colSel && !p.variantes.some(function (v) { return v.color === colSel && v.talla === talSel; })) colSel = null;
+            buscar();
+        } else sel = p.variantes[+b.dataset.v];
+        pintar();
+    });
     if ($('qMenos')) $('qMenos').addEventListener('click', function () { if (cant > 1) { cant--; pintar(); } });
     if ($('qMas')) $('qMas').addEventListener('click', function () { if (cant < 99) { cant++; pintar(); } });
     if ($('ppComprar')) $('ppComprar').addEventListener('click', function () { if (!falta()) LPC.comprar(p, sel, cant); });

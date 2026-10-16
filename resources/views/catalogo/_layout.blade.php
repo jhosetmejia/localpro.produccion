@@ -66,9 +66,9 @@ button{font:inherit;border:0;background:none;cursor:pointer;color:inherit}
 .card .b.con-edit{position:relative}
 .lp-edit{position:absolute;right:10px;top:-46px;z-index:3;width:36px;height:36px;border-radius:50%;background:var(--k);color:#fff;display:grid;place-items:center;font-size:.95rem;box-shadow:0 6px 14px -6px rgba(0,0,0,.6);text-decoration:none}
 .lp-edit:hover{background:#16b34a;color:#fff}
-.lp-edit-pp{display:inline-flex;align-items:center;gap:6px;background:var(--k);color:#fff;border-radius:999px;padding:.4rem .9rem;font-weight:800;font-size:.85rem;margin-top:10px;text-decoration:none}
+.lp-edit-pp{display:inline-flex;align-items:center;gap:6px;background:var(--k);color:#fff;border-radius:999px;padding:.25rem .7rem;font-weight:800;font-size:.75rem;margin-top:6px;text-decoration:none}
 .lp-edit-pp:hover{background:#16b34a;color:#fff}
-.lp-dueno{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;z-index:60;background:var(--k);color:#fff;border-radius:999px;padding:.5rem .6rem .5rem 1rem;font-size:.82rem;font-weight:700;display:flex;gap:10px;align-items:center;box-shadow:0 12px 30px -12px rgba(0,0,0,.6);white-space:nowrap}
+.lp-dueno{position:fixed;left:14px;bottom:14px;z-index:60;background:var(--k);color:#fff;border-radius:999px;padding:.5rem .6rem .5rem 1rem;font-size:.82rem;font-weight:700;display:flex;gap:10px;align-items:center;box-shadow:0 12px 30px -12px rgba(0,0,0,.6);white-space:nowrap}
 .lp-dueno a{background:#16b34a;color:#fff;border-radius:999px;padding:.3rem .8rem;text-decoration:none;font-weight:800}
 .antes{color:var(--mut);text-decoration:line-through;font-weight:600;font-size:.8em;margin-right:4px}
 .pr .ahora-promo{color:#e11d48}

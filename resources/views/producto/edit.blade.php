@@ -18,6 +18,13 @@
     .pe-fila input{width:90px;text-align:center;font-weight:800}
     .pe-fila input.cambio{border-color:#16b34a;background:#ecfbf0}
     .pe-tot{display:flex;justify-content:space-between;font-weight:800;font-size:.85rem;margin-top:.5rem;color:var(--lp-muted)}
+    .pe-cgrid{display:flex;flex-wrap:wrap;gap:8px}
+    .pe-c{width:84px;cursor:pointer;text-align:center}
+    .pe-c .ph{width:84px;height:100px;border-radius:12px;border:2px dashed var(--lp-line);background:#fafdfb;display:grid;place-items:center;overflow:hidden;color:#9ab3a3}
+    .pe-c .ph img{width:100%;height:100%;object-fit:contain;background:#fff}
+    .pe-c:hover .ph{border-color:#16b34a}
+    .pe-c .nm{display:flex;align-items:center;justify-content:center;gap:4px;font-size:.72rem;font-weight:800;margin-top:3px}
+    .pe-c .nm i{width:10px;height:10px;border-radius:50%;border:1px solid rgba(0,0,0,.2);flex:none}
     .pe-guardar{position:sticky;bottom:10px;z-index:5;display:flex;gap:8px}
 </style>
 @endpush
@@ -103,6 +110,32 @@
                             @error('img_path')<small class="text-danger d-block">{{ $message }}</small>@enderror
                         </div>
                     </div>
+                    @php
+                        $coloresProd = $variantes->pluck('color')->filter()->unique()->values();
+                        $fotosColor = $producto->fotos->keyBy('color');
+                    @endphp
+                    @if ($coloresProd->isNotEmpty())
+                    <div class="pe-colores">
+                        <div class="small fw-bold mt-3 mb-1">Foto de cada color <span class="text-muted fw-normal">(en la tienda, al tocar el color cambia la foto)</span></div>
+                        <div class="pe-cgrid">
+                            @foreach ($coloresProd as $i => $col)
+                            @php $fc = $fotosColor->get($col); $hex = \App\Support\Colores::PALETA[$col] ?? '#e3ebe6'; @endphp
+                            <label class="pe-c" for="fc{{ $i }}" title="Subir foto {{ ucfirst(mb_strtolower($col)) }}">
+                                <span class="ph" id="fcPrev{{ $i }}">@if ($fc)<img src="{{ $fc->url }}" alt="">@else<i class="fa-solid fa-camera"></i>@endif</span>
+                                <span class="nm"><i style="background:{{ $hex }}"></i>{{ ucfirst(mb_strtolower($col)) }}</span>
+                                <input type="hidden" name="foto_color_nombre[{{ $i }}]" value="{{ $col }}">
+                                <input type="file" name="foto_color[{{ $i }}]" id="fc{{ $i }}" accept="image/*" class="d-none" data-foto-lista data-prev="fcPrev{{ $i }}">
+                            </label>
+                            @endforeach
+                        </div>
+                        @if ($fotosColor->isNotEmpty())
+                        <div class="small mt-1">
+                            @foreach ($coloresProd as $i => $col)@if ($fotosColor->get($col))<label class="me-2 text-muted"><input type="checkbox" name="quitar_foto_color[{{ $i }}]" value="1"> Quitar {{ mb_strtolower($col) }}</label>@endif @endforeach
+                        </div>
+                        @endif
+                        @error('foto_color.*')<small class="text-danger d-block">{{ $message }}</small>@enderror
+                    </div>
+                    @endif
                 </div>
 
                 <div class="pe-sec">
@@ -151,6 +184,13 @@
     foto.addEventListener('change', function () {
         var a = this.files[0]; if (!a) return;
         document.getElementById('pePrev').innerHTML = '<img src="' + URL.createObjectURL(a) + '" alt="">';
+    });
+    // Vista previa de las fotos por color
+    document.querySelectorAll('input[data-prev]').forEach(function (i) {
+        i.addEventListener('change', function () {
+            var a = i.files[0]; if (!a) return;
+            document.getElementById(i.dataset.prev).innerHTML = '<img src="' + URL.createObjectURL(a) + '" alt="">';
+        });
     });
     // Cantidades: marca las que cambió y suma el total
     var st = document.getElementById('peStock');

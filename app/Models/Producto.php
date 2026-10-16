@@ -97,6 +97,12 @@ class Producto extends Model
         return $this->belongsTo(Presentacione::class);
     }
 
+    // Fotos por color (al tocar el color en la tienda en línea cambia la foto)
+    public function fotos()
+    {
+        return $this->hasMany(ProductoFoto::class)->orderBy('orden')->orderBy('id');
+    }
+
     public function handleUploadImage($image)
     {
         $file = $image;
