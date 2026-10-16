@@ -3,6 +3,14 @@
 // Artículos del blog público (/blog). Cada uno tiene su vista en resources/views/blog/{slug}.blade.php
 // El más nuevo va de primero: así sale primero en /blog y en la sección Blog de la página de inicio
 return [
+    'eres-contador-localproo-lo-hace-por-ti' => [
+        'titulo' => '¿Eres contador y necesitas cuadrar facturas de la DIAN, IVA y retenciones? LocalProo lo hace por ti',
+        'resumen' => 'Deja de cruzar factura por factura en Excel. Subes el listado de la DIAN y tu contabilidad, y LocalProo te dice qué falta, qué no cuadra y te deja el borrador del 350 y del IVA.',
+        'fecha' => '15 de octubre de 2026',
+        'publicado' => '2026-10-15',
+        'minutos' => 6,
+        'icono' => 'fa-user-tie',
+    ],
     'retenciones-iva-cruce-dian-contadores' => [
         'titulo' => 'Contadores: crucen las facturas de la DIAN con la contabilidad y armen el 350 en minutos',
         'resumen' => 'Suba el listado de la DIAN y la base de Contapyme (u otro programa): LocalProo encuentra lo no contabilizado, las diferencias de IVA y las retenciones que faltaron, y deja el borrador del 350 y del IVA.',

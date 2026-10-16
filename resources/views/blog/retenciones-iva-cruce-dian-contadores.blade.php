@@ -38,7 +38,7 @@
 </ul>
 
 <div class="box">
-    <b>Tabla de retenciones al día:</b> las bases y tarifas tienen fecha de vigencia y usted las puede ajustar. Así se maneja, por ejemplo, la suspensión del Decreto 572 de 2025 desde el 8 de mayo de 2026: cada factura se calcula con la tabla que regía en su fecha. Trae la UVT de 2026 (2.374).
+    <b>Tabla de retenciones al día:</b> las bases y tarifas tienen fecha de vigencia y usted las puede ajustar. Así se maneja, por ejemplo, la suspensión del Decreto 572 de 2025 desde el 8 de mayo de 2026: cada factura se calcula con la tabla que regía en su fecha. Trae la UVT de 2026 (52.374).
 </div>
 
 <h2>Importante</h2>
