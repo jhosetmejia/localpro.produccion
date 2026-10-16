@@ -19,7 +19,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('wompi:conciliar')->everyTenMinutes()->withoutOverlapping();
         $schedule->command('redes:publicar-programadas')->everyMinute()->withoutOverlapping();
         // Plan B de mensajes: revisa chats nuevos aunque los avisos en tiempo real de Meta no lleguen
-        $schedule->command('redes:sincronizar')->everyFiveMinutes()->withoutOverlapping(10)->runInBackground();
+        $schedule->command('redes:sincronizar --limite=10')->everyTwoMinutes()->withoutOverlapping(10)->runInBackground();
         $schedule->command('dian:enviar')->everyMinute()->withoutOverlapping();
         // Correos de fin de prueba (por vencer, vencida, último aviso) con constancia de envío
         $schedule->command('localpro:avisos-plan')->dailyAt('08:10')->withoutOverlapping();

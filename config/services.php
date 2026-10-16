@@ -39,6 +39,8 @@ return [
         'verify_token' => env('META_VERIFY_TOKEN'),
         'config_id' => env('META_CONFIG_ID'),
         'version' => env('META_GRAPH_VERSION', 'v24.0'),
+        // true cuando la app de Meta ya está publicada (modo en vivo); mientras no, Meta no avisa en tiempo real los mensajes de los clientes
+        'en_vivo' => (bool) env('META_EN_VIVO', false),
     ],
 
     'wompi' => [

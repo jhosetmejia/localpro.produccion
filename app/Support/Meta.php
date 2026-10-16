@@ -157,7 +157,9 @@ class Meta
                 }
             }
         }
-        $c->update(['sincronizado_en' => now(), 'estado' => 'activa', 'error' => null]);
+        // Si algo falló (ej. Instagram tardó), queda anotado para mostrarlo en la bandeja; la cuenta sigue activa
+        $c->update(['sincronizado_en' => now(), 'estado' => 'activa',
+            'error' => self::$avisos ? mb_substr(self::sinLlaves(implode(' · ', array_unique(self::$avisos))), 0, 250) : null]);
         return $n;
     }
 

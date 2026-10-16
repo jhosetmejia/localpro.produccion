@@ -89,6 +89,22 @@
     @if ($errors->any())<div class="alert alert-danger">{{ $errors->first() }}</div>@endif
     @include('redes._tabs')
 
+    {{-- Estado real de la conexión: así el negocio sabe por qué no le llega un mensaje --}}
+    @foreach ($cuentas as $c)
+        @if ($c->estado === 'error')
+        <div class="alert alert-danger d-flex align-items-center gap-2 flex-wrap"><i class="fa-solid fa-triangle-exclamation"></i>
+            <span><b>{{ $c->page_nombre }}</b>: {{ $c->error ?: 'la conexión con Meta falló.' }}</span>
+            @can('editar-negocio')<a href="{{ route('redes.conectar') }}" class="btn btn-sm btn-dark ms-auto">Volver a conectar</a>@endcan
+        </div>
+        @elseif ($c->error)
+        <div class="alert alert-warning small mb-2"><i class="fa-solid fa-circle-exclamation me-1"></i><b>{{ $c->page_nombre }}</b>: {{ $c->error }}
+            <span class="text-muted">· última revisión {{ $c->sincronizado_en?->locale('es')->diffForHumans() ?? 'pendiente' }}</span></div>
+        @endif
+    @endforeach
+    @if (!config('services.meta.en_vivo'))
+    <div class="alert alert-light border small mb-3"><i class="fa-solid fa-clock me-1"></i>Los mensajes nuevos de sus clientes se revisan automáticamente cada 2 minutos. Si espera uno, toque <b>Actualizar</b>.</div>
+    @endif
+
     @if ($cuentas->count() > 1)
     {{-- Una pestaña por cuenta conectada: cada una muestra solo sus chats --}}
     <div class="rc-tabs" role="tablist">
