@@ -36,6 +36,7 @@ class StoreProductoRequest extends FormRequest
             'marca_id' => 'nullable|integer|exists:marcas,id',
             'presentacione_id' => 'nullable|integer|exists:presentaciones,id',
             'categorias' => 'nullable|array',
+            'precio_antes' => 'nullable|numeric|min:0|max:999999999',
             'para' => ['nullable', \Illuminate\Validation\Rule::in([...array_keys(\App\Models\Producto::PARA), 'todos'])],
             'con_tallas' => 'nullable|boolean',
             'variantes' => 'nullable|array|max:300',

@@ -36,6 +36,9 @@ class catalogoController extends Controller
             'unidad' => $p->es_fraccion ? $p->unidad_corta : null,
             'descripcion' => $p->descripcion,
             'precio' => (float) $p->precio_venta,
+            // Promoción: precio antes tachado y % de descuento
+            'antes' => $p->descuento ? (float) $p->precio_antes : null,
+            'descuento' => $p->descuento,
             'desde' => $precios->count() > 1 && $precios->min() < $precios->max() ? (float) $precios->min() : null,
             'img' => $p->img_path ? asset('storage/productos/' . rawurlencode($p->img_path)) : null,
             'url' => self::urlProducto($tienda, $p),
@@ -93,7 +96,9 @@ class catalogoController extends Controller
         $publicos = collect($grupos)->filter(fn ($g, $k) => $productos->where('para', $k)->isNotEmpty());
         if ($publicos->count() < 2) $publicos = collect();
 
-        return view('catalogo.show', compact('tienda', 'productos', 'categorias', 'secciones', 'catPara', 'publicos'));
+        $enPromo = $productos->where('disponible', true)->where('descuento', '>', 0)->count();
+
+        return view('catalogo.show', compact('tienda', 'productos', 'categorias', 'secciones', 'catPara', 'publicos', 'enPromo'));
     }
 
     public function producto(string $slug, string $producto)

@@ -59,6 +59,9 @@ button{font:inherit;border:0;background:none;cursor:pointer;color:inherit}
 .moda .card .ph{aspect-ratio:3/4}
 .card .tag{position:absolute;left:10px;top:10px;background:#fff;border-radius:999px;padding:.2rem .6rem;font-size:.7rem;font-weight:800;box-shadow:0 4px 10px -6px rgba(0,0,0,.4)}
 .card .tag.agot{background:#b0206a;color:#fff}
+.card .tag-promo{position:absolute;right:10px;top:10px;background:#e11d48;color:#fff;border-radius:999px;padding:.22rem .6rem;font-size:.75rem;font-weight:900;box-shadow:0 4px 10px -6px rgba(0,0,0,.5)}
+.antes{color:var(--mut);text-decoration:line-through;font-weight:600;font-size:.8em;margin-right:4px}
+.pr .ahora-promo{color:#e11d48}
 .card .b{padding:10px 12px 12px;display:flex;flex-direction:column;gap:4px;flex:1}
 .card h3{font-size:.95rem;font-weight:700;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .card .pr{font-weight:800;font-size:1.08rem}

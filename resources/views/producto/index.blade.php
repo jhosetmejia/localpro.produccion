@@ -131,7 +131,7 @@
                             @endif
                         </span>
                     </div>
-                    <div class="pl-precio">{{ dinero($item->precio_venta) }}@if ($item->es_fraccion)<small style="font-weight:700;color:#6b7570">/{{ $item->unidad_corta }}</small>@endif</div>
+                    <div class="pl-precio">@if ($item->descuento)<span style="display:block;font-size:.72rem;font-weight:700;color:#8a948e;text-decoration:line-through">{{ dinero($item->precio_antes) }}</span><span style="display:inline-block;background:#e11d48;color:#fff;border-radius:999px;padding:0 .45rem;font-size:.7rem;font-weight:900;margin-right:4px">-{{ $item->descuento }}%</span>@endif{{ dinero($item->precio_venta) }}@if ($item->es_fraccion)<small style="font-weight:700;color:#6b7570">/{{ $item->unidad_corta }}</small>@endif</div>
                 </div>
 
                 @if ($conVar->isNotEmpty())

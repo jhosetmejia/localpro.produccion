@@ -74,6 +74,8 @@ class ProductoController extends Controller
                 'codigo' => $request->codigo ?: \App\Support\CrearTienda::siguienteCodigo(),
                 'nombre' => $request->nombre,
                 'para' => $request->para ?: null,
+                // Promoción: solo cuenta si el precio antes es mayor que el de venta
+                'precio_antes' => $request->boolean('en_promo') && (float) $request->precio_antes > (float) $request->precio_venta ? $request->precio_antes : null,
                 'precio_venta' => $request->precio_venta,
                 'precio_costo' => $request->precio_costo ?: 0,
                 'controla_inventario' => $request->boolean('controla_inventario'),
@@ -189,6 +191,8 @@ class ProductoController extends Controller
                 'codigo' => $request->codigo,
                 'nombre' => $request->nombre,
                 'para' => $request->para ?: null,
+                // Promoción: solo cuenta si el precio antes es mayor que el de venta
+                'precio_antes' => $request->boolean('en_promo') && (float) $request->precio_antes > (float) $request->precio_venta ? $request->precio_antes : null,
                 'precio_venta' => $request->precio_venta,
                 'precio_costo' => $request->precio_costo ?: 0,
                 'controla_inventario' => $request->boolean('controla_inventario'),

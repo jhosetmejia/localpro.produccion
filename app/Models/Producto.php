@@ -18,6 +18,7 @@ class Producto extends Model
         'nombre',
         'para',
         'precio_venta',
+        'precio_antes',
         'impuesto',
         'precio_costo',
         'controla_inventario',
@@ -28,6 +29,14 @@ class Producto extends Model
         'img_path',
         'unidad'
     ];
+
+    // % de descuento si está en promoción (precio antes mayor que el de venta); 0 si no
+    public function getDescuentoAttribute(): int
+    {
+        $antes = (float) $this->precio_antes;
+        $venta = (float) $this->precio_venta;
+        return $antes > $venta && $antes > 0 ? (int) round((1 - $venta / $antes) * 100) : 0;
+    }
 
     // Para quién es (filtro Mujer / Hombre / Niños del catálogo). Vacío = para todos.
     public const PARA = ['mujer' => ['👩', 'Mujer'], 'hombre' => ['👨', 'Hombre'], 'ninos' => ['🧒', 'Niños']];

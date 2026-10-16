@@ -63,6 +63,7 @@
                         <small class="text-danger d-block">{{'*'.$message}}</small>
                         @enderror
                     </div>
+                    @include('producto._promo', ['col' => 'col-12 mb-2'])
                     @include('producto._impuesto', ['col' => 'col-md-6'])
                     @if (\App\Support\TiendaActual::tienda()?->mod_medida)
                     <div class="col-md-6">

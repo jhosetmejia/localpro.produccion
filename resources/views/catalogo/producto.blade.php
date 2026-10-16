@@ -58,6 +58,9 @@
 .info .cod{color:var(--mut);font-weight:700;font-size:.85rem;margin-top:6px}
 .info .precio{font-size:2rem;font-weight:800;margin-top:12px}
 .info .precio small{font-size:.9rem;color:var(--mut);margin-right:6px}
+.info .precio.ahora-promo{color:#e11d48;margin-top:4px}
+.promo-pp{margin-top:12px;display:flex;align-items:center;gap:10px;font-size:1.05rem}
+.promo-pp b{background:#e11d48;color:#fff;border-radius:999px;padding:.2rem .7rem;font-size:.85rem}
 .info .disp{display:inline-flex;align-items:center;gap:6px;font-weight:800;font-size:.85rem;margin-top:6px;color:#14753a}
 .info .disp.no{color:#b0206a}
 .info .desc{color:var(--mut);margin-top:14px;line-height:1.6;white-space:pre-line}
@@ -83,7 +86,8 @@
         <div class="info">
             <h1>{{ $p['nombre'] }}</h1>
             @if ($p['codigo'])<div class="cod">Código: {{ $p['codigo'] }}</div>@endif
-            <div class="precio" id="ppPrecio">@if ($p['desde'])<small>Desde</small>@endif{{ $precioTxt }}@if ($p['unidad'])<small> / {{ $p['unidad'] }}</small>@endif</div>
+            @if ($p['antes'] && $p['disponible'])<div class="promo-pp"><span class="antes">{{ dinero($p['antes']) }}</span><b>-{{ $p['descuento'] }}% 🔥 Promoción</b></div>@endif
+            <div class="precio {{ $p['antes'] ? 'ahora-promo' : '' }}" id="ppPrecio">@if ($p['desde'])<small>Desde</small>@endif{{ $precioTxt }}@if ($p['unidad'])<small> / {{ $p['unidad'] }}</small>@endif</div>
             <div class="disp {{ $p['disponible'] ? '' : 'no' }}">{{ $p['disponible'] ? '● Disponible' : '● Agotado por ahora' }}</div>
             @if ($p['descripcion'])<p class="desc">{{ $p['descripcion'] }}</p>@endif
 
@@ -115,8 +119,8 @@
         <div class="grid">
             @foreach ($relacionados as $r)
             <article class="card">
-                <a href="{{ $r['url'] }}" class="ph">@if ($r['img'])<img src="{{ $r['img'] }}" alt="{{ $r['nombre'] }}" loading="lazy">@else{{ mb_strtoupper(mb_substr($r['nombre'], 0, 1)) }}@endif</a>
-                <div class="b"><a href="{{ $r['url'] }}"><h3>{{ $r['nombre'] }}</h3></a><div class="pr">@if ($r['desde'])<small>Desde</small>@pesos($r['desde'])@else @pesos($r['precio'])@endif</div>
+                <a href="{{ $r['url'] }}" class="ph">@if ($r['img'])<img src="{{ $r['img'] }}" alt="{{ $r['nombre'] }}" loading="lazy">@else{{ mb_strtoupper(mb_substr($r['nombre'], 0, 1)) }}@endif @if ($r['descuento'])<span class="tag-promo">-{{ $r['descuento'] }}%</span>@endif</a>
+                <div class="b"><a href="{{ $r['url'] }}"><h3>{{ $r['nombre'] }}</h3></a><div class="pr">@if ($r['antes'])<span class="antes">@pesos($r['antes'])</span>@endif<span class="{{ $r['antes'] ? 'ahora-promo' : '' }}">@if ($r['desde'])<small>Desde</small>@pesos($r['desde'])@else @pesos($r['precio'])@endif</span></div>
                     <div class="bt"><a class="btn-c" href="{{ $r['url'] }}">Ver</a></div></div>
             </article>
             @endforeach

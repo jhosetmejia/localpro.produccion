@@ -63,6 +63,7 @@
                     </div>
                     @error('precio_venta')<small class="text-danger">{{ $message }}</small>@enderror
                 </div>
+                @include('producto._promo')
                 @include('producto._impuesto')
                 @if (\App\Support\TiendaActual::tienda()?->mod_medida)
                 <div class="col-12">

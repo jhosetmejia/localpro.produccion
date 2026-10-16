@@ -35,6 +35,7 @@ class UpdateProductoRequest extends FormRequest
             'controla_inventario' => 'nullable|boolean',
             'marca_id' => 'nullable|integer|exists:marcas,id',
             'presentacione_id' => 'nullable|integer|exists:presentaciones,id',
+            'precio_antes' => 'nullable|numeric|min:0|max:999999999',
             'para' => ['nullable', \Illuminate\Validation\Rule::in([...array_keys(\App\Models\Producto::PARA), 'todos'])],
             'categorias' => 'nullable|array'
         ];

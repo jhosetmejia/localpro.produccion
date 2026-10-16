@@ -47,6 +47,10 @@
 @media (min-width:768px){.cats{flex-wrap:wrap;overflow:visible;-webkit-mask-image:none;mask-image:none}}
 .cats a,.cats button{white-space:nowrap;background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:.5rem .95rem;font-weight:700;font-size:.88rem}
 .cats .on{background:var(--k);color:#fff;border-color:var(--k)}
+.cats .promo-chip{border-color:#fecdd3;color:#e11d48;background:#fff1f2}
+.cats .promo-chip.on{background:#e11d48;border-color:#e11d48;color:#fff}
+.banner-promo{width:100%;margin-top:12px;display:flex;align-items:center;gap:8px;background:linear-gradient(90deg,#e11d48,#f97316);color:#fff;border:0;border-radius:16px;padding:.8rem 1rem;font-size:1rem;cursor:pointer;text-align:left}
+.banner-promo span{margin-left:auto;font-weight:800;white-space:nowrap}
 .sec{margin-top:18px}
 .sec h2{font-size:1.25rem;font-weight:800;margin:6px 2px 12px;display:flex;align-items:baseline;gap:8px}
 .sec h2 small{color:var(--mut);font-size:.8rem;font-weight:700}
@@ -64,7 +68,10 @@
 
 <main class="wrap panel">
     <div class="search"><span style="padding-left:6px">🔎</span><input id="q" type="search" placeholder="¿Qué está buscando?" autocomplete="off" aria-label="Buscar productos"></div>
-    @if ($categorias->count() > 1 || $publicos->isNotEmpty())
+    @if ($enPromo)
+    <button type="button" class="banner-promo" id="verPromos">🔥 <b>{{ $enPromo }} {{ $enPromo == 1 ? 'producto en promoción' : 'productos en promoción' }}</b><span>Ver ofertas →</span></button>
+    @endif
+    @if ($categorias->count() > 1 || $publicos->isNotEmpty() || $enPromo)
     <div class="filtros">
         @if ($publicos->isNotEmpty())
         <nav class="pub" id="pub" aria-label="¿Para quién?">
@@ -72,9 +79,10 @@
             @foreach ($publicos as $k => [$ico, $nom])<button data-p="{{ $k }}">{{ $ico }} {{ $nom }}</button>@endforeach
         </nav>
         @endif
-        @if ($categorias->count() > 1)
+        @if ($categorias->count() > 1 || $enPromo)
         <nav class="cats" id="cats" aria-label="Categorías">
             <button class="on" data-c="">Todo</button>
+            @if ($enPromo)<button data-c="__promo" class="promo-chip">🔥 Promociones ({{ $enPromo }})</button>@endif
             @foreach ($categorias as $c)<a href="#cat-{{ \Illuminate\Support\Str::slug($c) }}" data-c="{{ $c }}" data-para="{{ $catPara[$c] ?? 'todos' }}">{{ $c }}</a>@endforeach
         </nav>
         @endif
@@ -90,10 +98,11 @@
                 <a href="{{ $p['url'] }}" class="ph">
                     @if ($p['img'])<img src="{{ $p['img'] }}" alt="{{ $p['nombre'] }}" loading="lazy">@else{{ mb_strtoupper(mb_substr($p['nombre'], 0, 1)) }}@endif
                     @if (!$p['disponible'])<span class="tag agot">Agotado</span>@elseif (count($p['variantes']) > 1)<span class="tag">{{ count($p['variantes']) }} opciones</span>@endif
+                    @if ($p['descuento'] && $p['disponible'])<span class="tag-promo">-{{ $p['descuento'] }}%</span>@endif
                 </a>
                 <div class="b">
                     <a href="{{ $p['url'] }}"><h3>{{ $p['nombre'] }}</h3></a>
-                    <div class="pr">@if ($p['desde'])<small>Desde</small>@pesos($p['desde'])@else @pesos($p['precio'])@endif @if ($p['unidad'])<small>/ {{ $p['unidad'] }}</small>@endif</div>
+                    <div class="pr">@if ($p['antes'])<span class="antes">@pesos($p['antes'])</span>@endif<span class="{{ $p['antes'] ? 'ahora-promo' : '' }}">@if ($p['desde'])<small>Desde</small>@pesos($p['desde'])@else @pesos($p['precio'])@endif</span> @if ($p['unidad'])<small>/ {{ $p['unidad'] }}</small>@endif</div>
                     @if ($p['disponible'])
                     <div class="bt">
                         @if (count($p['variantes']) > 1)
@@ -126,7 +135,7 @@
         document.querySelectorAll('.sec').forEach(function (s) {
             var n = 0;
             s.querySelectorAll('.card').forEach(function (c) {
-                var p = P[c.dataset.id], ok = (!t || c.dataset.q.indexOf(t) !== -1) && (!cat || p.categorias.indexOf(cat) !== -1 || (!p.categorias.length && cat === 'General')) && (!para || !p.para || p.para === para);
+                var p = P[c.dataset.id], ok = (!t || c.dataset.q.indexOf(t) !== -1) && (!cat || (cat === '__promo' ? p.descuento > 0 : (p.categorias.indexOf(cat) !== -1 || (!p.categorias.length && cat === 'General')))) && (!para || !p.para || p.para === para);
                 c.style.display = ok ? '' : 'none'; if (ok) n++;
             });
             s.style.display = n ? '' : 'none'; hay += n;
@@ -135,6 +144,8 @@
     }
     q.addEventListener('input', filtrar);
     var cats = document.getElementById('cats'), pub = document.getElementById('pub');
+    var vp = document.getElementById('verPromos');
+    if (vp && cats) vp.addEventListener('click', function () { var b = cats.querySelector('[data-c="__promo"]'); if (b) b.click(); });
     function elegirPara(v) {
         para = v;
         pub.querySelectorAll('[data-p]').forEach(function (x) { x.classList.toggle('on', x.dataset.p === v); });

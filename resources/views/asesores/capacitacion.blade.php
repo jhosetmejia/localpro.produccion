@@ -142,6 +142,7 @@
             </ul>
             <ul style="margin:0;padding-left:1.1rem;font-weight:600">
                 <li><b>🌐 Página web / tienda en línea</b> por categorías, botón <b>Comprar</b> por WhatsApp (le llega el producto exacto) y que <b>aparece en Google</b>.</li>
+                <li><b>🔥 Promociones y liquidaciones</b>: el negocio pone "precio antes" y "precio ahora" y la tienda en línea muestra solo el precio tachado, el % de descuento y una sección de ofertas.</li>
                 <li><b>Vendedores con metas</b>: el dueño les pone meta (en dinero o en número de ventas) y ellos ven cuánto les falta, sin ver las ganancias.</li>
                 <li>Reportes: cuánto vendió, cuánto ganó, hora pico, todo a Excel.</li>
                 <li>Se instala como <b>app en el celular</b>; sin instalar programas.</li>
