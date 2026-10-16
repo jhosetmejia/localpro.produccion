@@ -151,7 +151,7 @@ main,.pie-sep{flex:none}
     <div class="wrap">
         @php
             $urlT = $tienda->url_catalogo;
-            $txtT = '¡Mira la tienda de ' . $tienda->nombre . '! 🛍️ Vea los productos y compre por WhatsApp 👉';
+            $txtT = '¡Mira la tienda de ' . $tienda->nombre . '! Vea los productos y compre por WhatsApp:';
         @endphp
         <div class="comp">
             <div class="t"><b>📣 Comparte esta tienda</b><span>Ayúdanos a llegar a más personas: envíala a tus amigos y grupos.</span></div>
@@ -177,7 +177,7 @@ main,.pie-sep{flex:none}
 <div class="toast" id="toast"></div>
 <script>
 (function () {
-    var url = @json($tienda->url_catalogo), txt = @json('¡Mira la tienda de ' . $tienda->nombre . '! 🛍️ Vea los productos y compre por WhatsApp');
+    var url = @json($tienda->url_catalogo), txt = @json('¡Mira la tienda de ' . $tienda->nombre . '! Vea los productos y compre por WhatsApp');
     function aviso(m) { var t = document.getElementById('toast'); if (!t) return; t.textContent = m; t.classList.add('on'); setTimeout(function () { t.classList.remove('on'); }, 2200); }
     function copiar() {
         var viejo = function () { var i = document.createElement('input'); i.value = url; document.body.appendChild(i); i.select(); try { document.execCommand('copy'); aviso('✅ Enlace copiado'); } catch (e) { aviso(url); } i.remove(); };
@@ -187,7 +187,7 @@ main,.pie-sep{flex:none}
     if (c) c.addEventListener('click', copiar);
     if (s) s.addEventListener('click', function () {
         if (navigator.share) navigator.share({ title: document.title, text: txt, url: url }).catch(function () {});
-        else window.open('https://wa.me/?text=' + encodeURIComponent(txt + ' 👉 ' + url), '_blank');
+        else window.open('https://wa.me/?text=' + encodeURIComponent(txt + ': ' + url), '_blank');
     });
 })();
 </script>
@@ -205,11 +205,13 @@ main,.pie-sep{flex:none}
     @endif
 </div></div>
 
+<script src="{{ asset('js/wa-limpio.js') }}?v=1"></script>
 <script>
 // Carrito y botón Comprar (WhatsApp con el producto exacto). Compartido entre la tienda y cada producto.
 window.LPC = (function () {
     // Así el negocio sabe que el cliente llegó por la tienda en línea
-    var FIRMA = '\n\n_🛍️ Visto en LocalProo Marketplace_';
+    // Sin emojis: algunos WhatsApp (computador) los muestran como "�"
+    var FIRMA = '\n\n_Visto en LocalProo Marketplace_';
     var M = @json($M), WA = @json($wa), TIENDA = @json($tienda->nombre), KEY = 'lp_pedido_' + @json($tienda->slug);
     var $ = function (id) { return document.getElementById(id); };
     var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); };
@@ -243,8 +245,8 @@ window.LPC = (function () {
     document.querySelectorAll('.ov').forEach(function (o) { o.addEventListener('click', function (e) { if (e.target === o) o.classList.remove('on'); }); });
     if ($('cEnviar')) $('cEnviar').addEventListener('click', function () {
         var nom = $('cNom').value.trim(), nota = $('cNota').value.trim();
-        var msg = '¡Hola ' + TIENDA + '! 👋 Quiero hacer este pedido:\n\n' +
-            cart.map(function (i) { return '• ' + i.cant + ' × ' + i.nombre + (i.op ? ' (' + i.op + ')' : '') + (i.codigo ? ' [Cód. ' + i.codigo + ']' : '') + ' — ' + fmt(i.precio * i.cant); }).join('\n') +
+        var msg = '¡Hola ' + TIENDA + '! Quiero hacer este pedido:\n\n' +
+            cart.map(function (i) { return '- ' + i.cant + ' × ' + i.nombre + (i.op ? ' (' + i.op + ')' : '') + (i.codigo ? ' [Cód. ' + i.codigo + ']' : '') + ' — ' + fmt(i.precio * i.cant); }).join('\n') +
             '\n\n*Total: ' + fmt(total()) + '*' + (nom ? '\nNombre: ' + nom : '') + (nota ? '\nEntrega / nota: ' + nota : '') + FIRMA;
         window.open('https://wa.me/' + WA + '?text=' + encodeURIComponent(msg), '_blank');
     });
@@ -261,8 +263,8 @@ window.LPC = (function () {
         comprar: function (p, v, cant) {
             if (!WA) { toast('Esta tienda aún no tiene WhatsApp'); return; }
             cant = cant || 1;
-            var msg = '¡Hola ' + TIENDA + '! 👋 Quiero este producto:\n\n' +
-                '🛍️ *' + p.nombre + '*\n' +
+            var msg = '¡Hola ' + TIENDA + '! Quiero este producto:\n\n' +
+                '*' + p.nombre + '*\n' +
                 (p.codigo ? 'Código: ' + p.codigo + '\n' : '') +
                 (v && p.variantes.length > 1 ? 'Opción: ' + v.etiqueta + '\n' : '') +
                 'Cantidad: ' + cant + (p.unidad ? ' ' + p.unidad : '') + '\n' +

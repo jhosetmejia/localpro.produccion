@@ -187,7 +187,7 @@
                 <button class="agregar" id="ppAgregar">🛒 Agregar al pedido</button>
             @else
                 @if (numero_whatsapp($tienda->telefono))
-                <a class="btn btn-wa" style="max-width:460px" target="_blank" rel="noopener" href="https://wa.me/{{ numero_whatsapp($tienda->telefono) }}?text={{ rawurlencode('Hola ' . $tienda->nombre . ', ¿cuándo les llega ' . $p['nombre'] . ($p['codigo'] ? ' (código ' . $p['codigo'] . ')' : '') . '? ' . $p['url'] . "\n\n_🛍️ Visto en LocalProo Marketplace_") }}">💬 Preguntar cuándo llega</a>
+                <a class="btn btn-wa" style="max-width:460px" target="_blank" rel="noopener" href="https://wa.me/{{ numero_whatsapp($tienda->telefono) }}?text={{ rawurlencode('Hola ' . $tienda->nombre . ', ¿cuándo les llega ' . $p['nombre'] . ($p['codigo'] ? ' (código ' . $p['codigo'] . ')' : '') . '? ' . $p['url'] . "\n\n_Visto en LocalProo Marketplace_") }}">💬 Preguntar cuándo llega</a>
                 @endif
             @endif
             <button class="compartir" id="ppCompartir">↗ Compartir este producto</button>
