@@ -106,6 +106,7 @@ class CursoAsesor
                     '<b>Personalizar menú:</b> el dueño apaga las secciones que no usa y su menú queda limpio. Por ejemplo, una funeraria no necesita tallas ni separados. No se borra nada: se puede volver a prender.',
                     '<b>Palabras e íconos según el negocio:</b> una tienda de ropa ve "prendas", una ferretería "productos", una funeraria "planes y servicios". Los servicios no salen como "Agotado".',
                     '<b>Tienda en línea solo con existencias:</b> el dueño escoge si su página muestra todos los productos o solo los que tiene en inventario, para no recibir pedidos de lo que no hay.',
+                    '<b>Permisos del vendedor:</b> el dueño decide qué más puede hacer cada vendedor además de vender: crear o editar productos, registrar entradas de mercancía, hacer devoluciones, ver reportes, etc. Se hace en Usuarios → menú del vendedor → Permisos. Nunca puede manejar usuarios, datos del negocio ni el plan.',
                     '<b>Fotos livianas automáticas:</b> las fotos que suben se achican solas sin perder calidad, para que la página cargue rápido en el celular.',
                 ],
                 'clave' => 'Antes de mostrar LocalPro, pregunte qué tipo de negocio es: así le enseña justo la función que le resuelve su problema.',
@@ -164,6 +165,7 @@ class CursoAsesor
             24 => ['¿Con qué enlace inscribe a un contador para que su cuenta quede como contador y a su nombre?', ['localproo.com/contadores/SU-CÓDIGO', 'Cualquier enlace de internet', 'No se puede inscribir contadores'], 0],
             25 => ['Un contador le pregunta si LocalPro presenta la declaración en la DIAN por él. ¿Qué le responde?', ['Sí, la envía sola', 'No: deja el borrador listo y él la presenta en la DIAN con su firma electrónica', 'Sí, pero solo los lunes'], 1],
             26 => ['¿Cómo le ayuda el calendario tributario al contador?', ['Le muestra cuándo vence la retención y el IVA de cada cliente y le avisa al correo antes del vencimiento', 'Le cambia las fechas de la DIAN', 'No sirve para contadores'], 0],
+            27 => ['El dueño quiere que su vendedor de confianza también pueda crear productos, pero no ver las ganancias. ¿Qué hace?', ['Le da su propia clave de dueño', 'En Usuarios → Permisos le activa "Crear productos" y deja apagado "Ver reportes"', 'No se puede: solo el dueño crea productos'], 1],
             16 => ['El negocio que usted inscribió le paga a un empleado menos del salario mínimo por medio tiempo. ¿Puede liquidarlo en LocalPro?', ['No, el sistema solo acepta el salario mínimo', 'Sí, con la liquidación personalizada pone el salario que pagan', 'Solo si lo envía a la DIAN'], 1],
         ];
     }

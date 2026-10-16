@@ -210,6 +210,10 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::post('/clientes/importar/confirmar', [importarClientesController::class, 'confirmar'])->name('clientes.importar.confirmar');
     Route::post('/clientes/importar/cancelar', [importarClientesController::class, 'cancelar'])->name('clientes.importar.cancelar');
 
+    // Permisos extra de cada vendedor (los da el dueño)
+    Route::get('/users/{user}/permisos', [userController::class, 'permisos'])->whereNumber('user')->name('users.permisos');
+    Route::put('/users/{user}/permisos', [userController::class, 'guardarPermisos'])->whereNumber('user')->name('users.permisos.guardar');
+
     Route::delete('/categorias/{categoria}/eliminar', [categoriaController::class, 'eliminar'])->whereNumber('categoria')->name('categorias.eliminar');
     Route::resources([
         'categorias' => categoriaController::class,

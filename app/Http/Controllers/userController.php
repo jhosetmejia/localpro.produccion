@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
+use App\Support\PermisosVendedor;
 use App\Support\TiendaActual;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -20,7 +22,7 @@ class userController extends Controller
     {
         $this->middleware('permission:ver-user|crear-user|editar-user|eliminar-user', ['only' => ['index']]);
         $this->middleware('permission:crear-user', ['only' => ['create', 'store']]);
-        $this->middleware('permission:editar-user', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:editar-user', ['only' => ['edit', 'update', 'permisos', 'guardarPermisos']]);
         $this->middleware('permission:eliminar-user', ['only' => ['destroy']]);
     }
 
@@ -80,6 +82,8 @@ class userController extends Controller
             // El superadministrador conserva su rol de plataforma
             if (!$user->es_superadmin) {
                 $user->syncRoles([$request->role]);
+                // El dueño ya tiene todo por su rol: se limpian los permisos extra
+                if ($request->role !== 'vendedor') $user->syncPermissions([]);
             }
         });
 
@@ -97,6 +101,35 @@ class userController extends Controller
         $user->delete();
 
         return redirect()->route('users.index')->with('success', 'Usuario eliminado');
+    }
+
+    // Permisos extra del vendedor: el dueño elige qué más puede hacer (crear productos, etc.)
+    public function permisos(User $user)
+    {
+        $this->deMiTienda($user);
+        if (!$user->hasRole('vendedor') || $user->es_superadmin) {
+            return redirect()->route('users.index')->withErrors('Los permisos extra solo se asignan a vendedores. El dueño ya tiene todos.');
+        }
+        return view('user.permisos', [
+            'user' => $user,
+            'grupos' => PermisosVendedor::disponibles(),
+            'actuales' => $user->getDirectPermissions()->pluck('name')->all(),
+        ]);
+    }
+
+    public function guardarPermisos(Request $request, User $user)
+    {
+        $this->deMiTienda($user);
+        abort_unless($user->hasRole('vendedor') && !$user->es_superadmin, 404);
+
+        $elegidos = PermisosVendedor::completar((array) $request->input('permisos', []));
+        $user->syncPermissions($elegidos);
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $n = count($elegidos);
+        return redirect()->route('users.index')->with('success', $n
+            ? "Permisos de {$user->name} guardados ({$n} extra)"
+            : "{$user->name} quedó solo con los permisos de caja");
     }
 
     // Solo los roles de tienda, con nombre legible

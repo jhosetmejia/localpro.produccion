@@ -55,6 +55,9 @@
                         <td>
                             @php $rol = $item->getRoleNames()->first(); @endphp
                             {{ $item->es_superadmin ? 'Administrador LocalPro' : (\App\Http\Controllers\userController::ROLES_TIENDA[$rol] ?? $rol) }}
+                            @if ($rol === 'vendedor' && !$item->es_superadmin && ($extra = $item->getDirectPermissions()->count()))
+                            <span class="badge bg-info text-dark ms-1" title="Permisos extra dados por el dueño">+{{ $extra }} permisos</span>
+                            @endif
                         </td>
                         <td>
                             <div class="d-flex justify-content-around">
@@ -68,6 +71,9 @@
                                         <!-----Editar usuarios--->
                                         @can('editar-user')
                                         <li><a class="dropdown-item" href="{{route('users.edit',['user'=>$item])}}">Editar</a></li>
+                                        @if ($rol === 'vendedor' && !$item->es_superadmin)
+                                        <li><a class="dropdown-item" href="{{route('users.permisos',['user'=>$item])}}"><i class="fa-solid fa-key me-1"></i>Permisos</a></li>
+                                        @endif
                                         @endcan
                                     </ul>
                                 </div>

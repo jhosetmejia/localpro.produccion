@@ -123,6 +123,9 @@
 
             </div>
             <div class="card-footer text-center">
+                @if ($user->hasRole('vendedor') && !$user->es_superadmin)
+                <a href="{{ route('users.permisos', ['user' => $user]) }}" class="btn btn-outline-primary me-2"><i class="fa-solid fa-key me-1"></i>Permisos del vendedor</a>
+                @endif
                 <button type="submit" class="btn btn-primary">Actualizar</button>
             </div>
         </form>

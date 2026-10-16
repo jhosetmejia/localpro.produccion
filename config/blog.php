@@ -6,6 +6,23 @@
 // palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
+    'permisos-vendedores-control-de-empleados' => [
+        'titulo' => 'Permisos para vendedores: decida qué puede hacer cada empleado en su negocio',
+        'resumen' => 'Su vendedor de confianza puede crear productos o registrar mercancía sin ver sus ganancias ni tocar la configuración. Usted activa solo lo que quiera, uno por uno.',
+        'fecha' => '16 de octubre de 2026',
+        'publicado' => '2026-10-16',
+        'minutos' => 4,
+        'icono' => 'fa-user-shield',
+        'rol' => 'negocios',
+        'seo_titulo' => 'Permisos por empleado en su sistema POS | LocalProo',
+        'descripcion' => 'Controle qué hace cada vendedor: crear productos, entradas, devoluciones o reportes, sin darle su clave. Sistema POS con roles y permisos por usuario.',
+        'keywords' => ['permisos para empleados sistema POS', 'control de vendedores en tienda', 'programa de ventas con usuarios y permisos', 'que el vendedor no vea las ganancias', 'roles de usuario punto de venta'],
+        'faq' => [
+            ['¿Mi vendedor puede crear productos sin ver mis ganancias?', 'Sí. En Usuarios → Permisos le activa "Crear productos" y deja apagado "Ver reportes". Solo verá lo que usted le habilite.'],
+            ['¿El vendedor puede crear otros usuarios o cambiar mi plan?', 'No. Manejar usuarios, los datos del negocio y el plan es solo del dueño y no se puede delegar.'],
+            ['¿Puedo quitarle un permiso después?', 'Sí, en cualquier momento: apaga el interruptor, guarda y el cambio aplica de inmediato.'],
+        ],
+    ],
     'calendario-tributario-contadores-recordatorios' => [
         'titulo' => 'Contadores: el calendario tributario de todos sus clientes, con aviso al correo',
         'resumen' => 'LocalProo le muestra cuándo vence la retención en la fuente y el IVA de cada cliente según su NIT y le avisa 3 días antes y el mismo día. Además: pruebe la herramienta con datos de ejemplo y retención de IVA bien calculada.',
