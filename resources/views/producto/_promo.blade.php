@@ -11,7 +11,7 @@
         </div>
         <div class="lp-promo-body" @if (!$enPromo) hidden @endif>
             <label class="form-label small fw-bold mt-2 mb-1" for="precio_antes">Precio antes ({{ moneda()['moneda'] }})</label>
-            <input data-dinero type="number" min="0" step="{{ paso_dinero() }}" name="precio_antes" id="precio_antes" class="form-control" value="{{ $antesVal }}" placeholder="Ej: {{ moneda()['decimales'] ? '39.90' : '150000' }}" inputmode="decimal" @disabled(!$enPromo)>
+            <input data-dinero type="number" min="0" step="{{ paso_dinero() }}" name="precio_antes" id="precio_antes" class="form-control" value="{{ $antesVal }}" placeholder="¿Cuánto costaba antes?" inputmode="decimal">
             <small class="d-block mt-1" id="promoTxt">El <b>precio de venta</b> de arriba es el precio de ahora (el rebajado).</small>
             @error('precio_antes')<small class="text-danger d-block">{{ $message }}</small>@enderror
         </div>
@@ -31,7 +31,7 @@
     var base = txt.innerHTML;
     function fmt(n) { return (window.LPC && LPC.fmt) ? LPC.fmt(n) : '$' + Math.round(n).toLocaleString('es-CO'); }
     function pintar() {
-        caja.classList.toggle('on', sw.checked); cuerpo.hidden = !sw.checked; antes.disabled = !sw.checked;
+        caja.classList.toggle('on', sw.checked); cuerpo.hidden = !sw.checked;
         var a = parseFloat(antes.value) || 0, v = parseFloat(venta.value) || 0;
         if (!sw.checked || !a) { txt.innerHTML = base; txt.style.color = ''; return; }
         if (a <= v) { txt.innerHTML = 'El precio antes debe ser <b>mayor</b> que el precio de venta (' + fmt(v) + ').'; txt.style.color = '#b42318'; return; }
