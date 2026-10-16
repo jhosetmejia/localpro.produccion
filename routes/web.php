@@ -56,6 +56,8 @@ Route::get('/login', [loginController::class, 'index'])->name('login');
 Route::post('/login', [loginController::class, 'login'])->middleware('throttle:10,1');
 Route::get('/logout', [logoutController::class, 'logout'])->name('logout');
 Route::get('/registro', [registroController::class, 'index'])->name('registro');
+// Enlace corto para contadores: abre el registro con el tipo "Contador / analista contable" y la herramienta activa
+Route::get('/contadores', fn () => redirect()->route('registro', ['tipo' => 'contable']))->name('registro.contadores');
 Route::post('/registro', [registroController::class, 'store'])->middleware('throttle:5,1');
 Route::get('/recuperar', [recuperarController::class, 'formulario'])->name('password.request');
 Route::post('/recuperar', [recuperarController::class, 'enviar'])->middleware('throttle:5,1')->name('password.email');

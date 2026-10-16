@@ -16,7 +16,12 @@ class registroController extends Controller
         if (Auth::check()) {
             return redirect()->route('panel');
         }
-        return view('auth.registro', ['paises' => Paises::LISTA, 'codigoAsesor' => session('codigo_asesor', request()->cookie('lp_asesor'))]);
+        // Enlace por tipo de negocio (ej. /contadores → ?tipo=contable): la cuenta nace con ese tipo y su herramienta activa
+        $tipo = request()->query('tipo');
+        if ($tipo && isset(\App\Models\Tienda::TIPOS[$tipo])) {
+            session(['tipo_registro' => $tipo]);
+        }
+        return view('auth.registro', ['paises' => Paises::LISTA, 'codigoAsesor' => session('codigo_asesor', request()->cookie('lp_asesor')), 'tipoRegistro' => session('tipo_registro')]);
     }
 
     // Enlace del asesor: guarda su código (60 días) y abre el registro
@@ -54,10 +59,18 @@ class registroController extends Controller
         ]);
 
         $primerNombre = strtok(trim($datos['name']), ' ');
+        $tipo = session('tipo_registro');
+        $tipo = $tipo && isset(\App\Models\Tienda::TIPOS[$tipo]) ? $tipo : null;
         [, $user] = CrearTienda::crear(
-            ['nombre' => 'Tienda de ' . $primerNombre, 'pais' => $datos['pais'], 'telefono' => $datos['telefono']],
+            ['nombre' => ($tipo === 'contable' ? 'Oficina contable de ' : 'Tienda de ') . $primerNombre, 'pais' => $datos['pais'], 'telefono' => $datos['telefono']] + ($tipo ? ['tipo_negocio' => $tipo] : []),
             $datos
         );
+        if ($tipo) {
+            // Deja activos los módulos de ese tipo (para el contador: Contabilidad) desde el primer momento
+            $mods = array_fill_keys(\App\Models\Tienda::MODULOS_POR_TIPO[$tipo] ?? [], true);
+            if ($mods) $user->tienda->forceFill($mods)->save();
+            $request->session()->forget('tipo_registro');
+        }
 
         // Si llegó por un asesor (enlace o código), el negocio queda en su red
         $codigo = strtoupper(trim((string) ($datos['codigo_asesor'] ?? '') ?: (string) session('codigo_asesor', $request->cookie('lp_asesor'))));

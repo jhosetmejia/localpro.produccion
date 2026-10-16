@@ -21,6 +21,7 @@
     <li>Tienes diez clientes y el cierre te consume la semana entera.</li>
 </ul>
 <p>Si dijiste que sí a una, esta herramienta es para ti.</p>
+<a class="cta" href="{{ route('registro.contadores') }}">Crear mi cuenta de contador gratis</a>
 
 <h2>Qué hace LocalProo por ti</h2>
 <div class="tw"><table class="tabla">
@@ -63,6 +64,8 @@
 <h2>¿Eres asesor de la red LocalPro?</h2>
 <p>También la tienes en tu panel, en <b>Red comercial → Contabilidad</b>, para llevar los clientes de un analista contable con tu propio espacio, sin crear un negocio aparte.</p>
 
-<a class="cta" href="{{ route('registro') }}">Pruébala gratis con tus clientes</a>
-<p style="text-align:center;color:#6b7570">Al registrarte elige <b>Contador / analista contable</b>. Si ya tienes LocalProo, actívala en <b>Datos del negocio → Módulos</b>.</p>
+<h2>Regístrate aquí mismo</h2>
+<p>Con este botón tu cuenta queda creada como <b>contador</b> y la herramienta de Contabilidad sale activa desde el primer momento. Solo pones tus datos, el nombre de tu oficina y empiezas a registrar clientes.</p>
+<a class="cta" href="{{ route('registro.contadores') }}">Crear mi cuenta de contador gratis</a>
+<p style="text-align:center;color:#6b7570">Enlace directo para compartir: <b>{{ url('/contadores') }}</b><br>¿Ya tienes LocalProo? Actívala en <b>Datos del negocio → Módulos</b>.</p>
 @endsection

@@ -24,8 +24,13 @@
     <main class="auth-main">
         <div class="auth-card rise">
             <a href="{{ url('/') }}" class="back"><i class="fa-solid fa-arrow-left"></i> Volver al inicio</a>
+            @if (($tipoRegistro ?? null) === 'contable')
+            <h1 class="serif">Crear cuenta de contador</h1>
+            <p class="sub">Paso 1 · Sus datos. Al terminar entra directo a <b>Contabilidad</b>: cruce de facturas DIAN, IVA, retenciones y borrador del 350.</p>
+            @else
             <h1 class="serif">Crear cuenta</h1>
             <p class="sub">Paso 1 de 4 · Sus datos como dueño del negocio. En 3 minutos estará vendiendo.</p>
+            @endif
 
             @if ($errors->any())
                 <div class="alert">{{ $errors->first() }}</div>
