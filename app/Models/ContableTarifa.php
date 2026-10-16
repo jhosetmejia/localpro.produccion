@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\PerteneceATienda;
+use App\Models\Concerns\PerteneceAEspacioContable;
 use Illuminate\Database\Eloquent\Model;
 
 // Tarifa de retención en la fuente con vigencia (desde / hasta), editable por el analista
 class ContableTarifa extends Model
 {
-    use PerteneceATienda;
+    use PerteneceAEspacioContable;
 
     protected $table = 'contable_tarifas';
 

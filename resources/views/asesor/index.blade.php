@@ -65,6 +65,21 @@
     </div>
     @endif
 
+    {{-- Contabilidad: retenciones e IVA (también para el asesor, sin negocio aparte) --}}
+    @if ($yoA?->curso_aprobado_at && \Illuminate\Support\Facades\Route::has('contabilidad.index'))
+    <div class="lp-box mb-3">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div style="font-size:2rem">🧾</div>
+            <div class="flex-grow-1" style="min-width:220px">
+                <b>Contabilidad: retenciones e IVA</b> <span class="badge rounded-pill" style="background:#a6f34a;color:#0b0d0c;font-size:.65rem">NUEVO</span>
+                <div class="small text-muted">Lleve los clientes de un analista contable: cruce las facturas de la DIAN con Contapyme, Siigo o World Office, revise retenciones e IVA y saque el borrador del 350.</div>
+            </div>
+            <a href="{{ route('contabilidad.index') }}" class="btn btn-dark"><i class="fa-solid fa-file-invoice-dollar me-1"></i>Abrir Contabilidad</a>
+            <a href="{{ route('contabilidad.guia') }}" class="btn btn-light"><i class="fa-solid fa-book me-1"></i>Guía</a>
+        </div>
+    </div>
+    @endif
+
     {{-- Mis ganancias del mes --}}
     @php $g = $ganancias; $mesNombre = ucfirst(now()->locale('es')->isoFormat('MMMM')); @endphp
     <div class="lp-box mb-3" style="background:#0f1411;color:#fff;border:none">

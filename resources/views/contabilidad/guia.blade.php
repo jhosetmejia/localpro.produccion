@@ -23,6 +23,13 @@
     <div class="lp-box">
         <div class="alert alert-info small mb-3"><b>Qué hace y qué no:</b> LocalProo cruza, calcula y arma el borrador. <b>No presenta la declaración</b>: el Formulario 350 y el 300 se presentan en el portal MUISCA de la DIAN con la firma electrónica del declarante. La revisión final y la firma son del contador o del revisor fiscal.</div>
 
+        <h2>Quién la puede usar</h2>
+        <ul>
+            <li><b>Contadores y analistas contables</b>: al registrarse eligen el tipo de negocio <b>Contador / analista contable</b>.</li>
+            <li><b>Cualquier negocio</b>: la activa en <b>Datos del negocio → Módulos</b>.</li>
+            <li><b>Asesores de la red LocalPro</b>: con el curso aprobado, la tienen en su panel (menú <b>Red comercial → Contabilidad</b>). Cada asesor tiene su propio espacio con sus clientes, sin crear un negocio aparte; nadie más ve esa información.</li>
+        </ul>
+
         <h2>1. Prepare los archivos del mes</h2>
         <div class="paso"><b class="n">A</b><div><b>Listado de la DIAN.</b> Entre al portal de facturación electrónica de la DIAN con el usuario del cliente, vaya a la consulta de documentos, filtre el mes (emitidos y recibidos) y descargue el listado en Excel. Súbalo tal cual, sin cambiar los títulos. Trae por cada documento: tipo, CUFE, prefijo y folio, fecha, NIT y nombre de emisor y receptor, IVA, otros impuestos, rete IVA, rete renta, rete ICA y total.</div></div>
         <div class="paso"><b class="n">B</b><div><b>Base contable.</b> En Contapyme (u otro programa: Siigo, World Office, Helisa…) exporte a Excel o CSV el auxiliar de compras y gastos del mes con sus retenciones. Sirve de dos formas: <i>en columnas</i> (una fila por factura con base, IVA y retenciones) o <i>auxiliar por cuenta</i> (una fila por movimiento con cuenta y débito/crédito). Debe traer el NIT del tercero y el número de la factura.</div></div>

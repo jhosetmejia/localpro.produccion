@@ -7,6 +7,7 @@ use App\Models\ContableDocumento;
 use App\Models\ContablePeriodo;
 use App\Models\ContableTarifa;
 use App\Models\ContableTercero;
+use App\Support\EspacioContable;
 use App\Support\HojaCalculo;
 use App\Support\Retenciones;
 use App\Support\TiendaActual;
@@ -27,8 +28,9 @@ class contabilidadController extends Controller
     {
         $this->middleware(function ($request, $next) {
             $u = $request->user();
-            abort_unless($u && ($u->es_superadmin || $u->can('contabilidad') || $u->can('editar-negocio')), 403);
-            if (!TiendaActual::tienda()?->mod_contable && !$request->routeIs('contabilidad.index', 'contabilidad.activar', 'contabilidad.guia')) {
+            // El asesor de la red tiene su propio espacio contable desde su panel
+            abort_unless($u && ($u->es_superadmin || EspacioContable::esAsesor() || $u->can('contabilidad') || $u->can('editar-negocio')), 403);
+            if (!EspacioContable::activo() && !$request->routeIs('contabilidad.index', 'contabilidad.activar', 'contabilidad.guia')) {
                 return redirect()->route('contabilidad.index');
             }
             return $next($request);
@@ -37,13 +39,13 @@ class contabilidadController extends Controller
 
     private function mio($m)
     {
-        abort_unless($m && (int) $m->tienda_id === (int) TiendaActual::id(), 404);
+        abort_unless(EspacioContable::esMio($m), 404);
         return $m;
     }
 
     private function carpeta(): string
     {
-        return 'contabilidad/' . TiendaActual::id();
+        return EspacioContable::carpeta();
     }
 
     // Guía de uso con las normas y fuentes
@@ -57,7 +59,7 @@ class contabilidadController extends Controller
     public function index()
     {
         $tienda = TiendaActual::tienda();
-        if (!$tienda->mod_contable) return view('contabilidad.activar', ['tienda' => $tienda]);
+        if (!EspacioContable::activo()) return view('contabilidad.activar', ['tienda' => $tienda]);
         Retenciones::asegurarTarifas();
         $clientes = ContableCliente::withCount('periodos')->orderByDesc('activo')->orderBy('nombre')->get();
         $ultimos = ContablePeriodo::with('cliente')->latest('updated_at')->take(8)->get();
@@ -66,7 +68,7 @@ class contabilidadController extends Controller
 
     public function activar()
     {
-        abort_unless(auth()->user()->can('editar-negocio') || auth()->user()->es_superadmin, 403);
+        abort_unless((auth()->user()->can('editar-negocio') || auth()->user()->es_superadmin) && TiendaActual::tienda(), 403);
         TiendaActual::tienda()->forceFill(['mod_contable' => true])->save();
         return redirect()->route('contabilidad.index')->with('success', 'Contabilidad activada. Registre su primer cliente.');
     }

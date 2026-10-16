@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\PerteneceATienda;
+use App\Models\Concerns\PerteneceAEspacioContable;
 use Illuminate\Database\Eloquent\Model;
 
 // Un mes de un cliente contable: sus facturas de la DIAN, su base contable y el cruce
 class ContablePeriodo extends Model
 {
-    use PerteneceATienda;
+    use PerteneceAEspacioContable;
 
     protected $table = 'contable_periodos';
 

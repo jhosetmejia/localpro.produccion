@@ -45,5 +45,5 @@
 <p>LocalProo es una herramienta de apoyo para el contador: cruza, calcula y deja el borrador. La declaración se presenta en el portal de la DIAN con la firma electrónica del declarante, y la revisión final es del contador público.</p>
 
 <a class="cta" href="{{ route('registro') }}">Pruébelo gratis con sus clientes</a>
-<p style="text-align:center;color:#6b7570">Al registrarse elija el tipo de negocio <b>Contador / analista contable</b>. Si ya tiene LocalProo, actívelo en <b>Datos del negocio → Módulos</b>.</p>
+<p style="text-align:center;color:#6b7570">Al registrarse elija el tipo de negocio <b>Contador / analista contable</b>. Si ya tiene LocalProo, actívelo en <b>Datos del negocio → Módulos</b>. ¿Es asesor de la red LocalPro? Ya la tiene en su panel, en <b>Red comercial → Contabilidad</b>, para llevar los clientes de un analista contable.</p>
 @endsection

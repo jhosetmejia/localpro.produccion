@@ -4,7 +4,7 @@ use App\Http\Controllers\contabilidadController;
 use Illuminate\Support\Facades\Route;
 
 // ===== Contabilidad: retenciones e IVA para analistas contables =====
-Route::middleware(['auth', 'tienda'])->prefix('contabilidad')->name('contabilidad.')->controller(contabilidadController::class)->group(function () {
+Route::middleware(['auth', 'contable'])->prefix('contabilidad')->name('contabilidad.')->controller(contabilidadController::class)->group(function () {
     Route::get('/', 'index')->name('index');
     Route::post('/activar', 'activar')->name('activar');
     Route::get('/guia', 'guia')->name('guia');

@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\PerteneceATienda;
+use App\Models\Concerns\PerteneceAEspacioContable;
 use Illuminate\Database\Eloquent\Model;
 
 // Cliente del analista contable (persona natural o empresa) al que se le revisan retenciones e IVA
 class ContableCliente extends Model
 {
-    use PerteneceATienda;
+    use PerteneceAEspacioContable;
 
     protected $table = 'contable_clientes';
 

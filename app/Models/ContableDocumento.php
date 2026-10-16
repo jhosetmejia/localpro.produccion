@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\PerteneceATienda;
+use App\Models\Concerns\PerteneceAEspacioContable;
 use Illuminate\Database\Eloquent\Model;
 
 // Factura, nota o documento soporte de un periodo: viene de la DIAN o de la contabilidad
 class ContableDocumento extends Model
 {
-    use PerteneceATienda;
+    use PerteneceAEspacioContable;
 
     protected $table = 'contable_documentos';
 

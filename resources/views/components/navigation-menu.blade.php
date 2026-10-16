@@ -84,6 +84,12 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-graduation-cap"></i></div>
                     Capacitación del equipo
                 </a>
+                @if (auth()->user()->asesor->curso_aprobado_at && auth()->user()->asesor->activo && !$tiendaMenu?->mod_contable && \Illuminate\Support\Facades\Route::has('contabilidad.index'))
+                <a class="nav-link {{ $on('contabilidad.*') }}" href="{{ route('contabilidad.index') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                    Contabilidad <span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c;font-size:.6rem">NUEVO</span>
+                </a>
+                @endif
                 @endif
 
                 @if ($tiendaMenu || (!auth()->user()->asesor && !auth()->user()->es_superadmin))

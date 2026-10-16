@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\PerteneceATienda;
+use App\Models\Concerns\PerteneceAEspacioContable;
 use Illuminate\Database\Eloquent\Model;
 
 // Proveedor o cliente de un cliente contable: se recuerda si es persona natural o jurídica,
 // si es declarante, si es autorretenedor y su concepto habitual de retención
 class ContableTercero extends Model
 {
-    use PerteneceATienda;
+    use PerteneceAEspacioContable;
 
     protected $table = 'contable_terceros';
 
