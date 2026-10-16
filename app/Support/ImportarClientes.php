@@ -79,7 +79,8 @@ class ImportarClientes
             foreach (self::SINONIMOS as $campo => $lista) {
                 if (isset($mapa[$campo])) continue;
                 // Google Contactos trae "Phone 1 - Label" antes de "Phone 1 - Value": el tipo no es el número
-                if (in_array($campo, ['telefono', 'email'], true) && preg_match('/\b(label|type|tipo|etiqueta)\b/', $t)) continue;
+                // También "Phonetic First Name" (contiene "phone" pero es otra cosa)
+                if (in_array($campo, ['telefono', 'email', 'direccion'], true) && preg_match('/\b(label|type|tipo|etiqueta|phonetic)\b/', $t)) continue;
                 foreach ($lista as $s) {
                     if ($t === $s || (str_contains($t, $s) && strlen($s) > 3)) {
                         // "Nombres y apellidos" es nombre completo; "Apellidos" solo es apellido
@@ -121,15 +122,28 @@ class ImportarClientes
         return $s;
     }
 
+    // Quita emojis, símbolos y caracteres invisibles de los nombres de contactos del celular
+    private static function nombreLimpio(string $t): string
+    {
+        $t = preg_replace('/[\x{1F000}-\x{1FAFF}\x{2600}-\x{27BF}\x{2B00}-\x{2BFF}\x{FE0F}\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2060}-\x{206F}\x{FEFF}]/u', '', $t);
+        $t = preg_replace('/[^\p{L}\p{N}\s\.\'&-]/u', ' ', $t);
+        $t = trim(preg_replace('/\s+/', ' ', $t), " .-'");
+        return preg_match('/\p{L}/u', $t) ? $t : '';
+    }
+
     /** Arma los clientes con el mapa elegido. */
     public static function filas(array $datos, array $mapa): array
     {
         $val = fn ($f, $campo) => isset($mapa[$campo]) && $mapa[$campo] !== '' ? trim((string) ($f[(int) $mapa[$campo]] ?? '')) : '';
         $out = [];
         foreach ($datos as $f) {
-            $nombre = trim(preg_replace('/\s+/', ' ', $val($f, 'nombre') . ' ' . $val($f, 'apellido')));
-            $tel = preg_replace('/\D/', '', $val($f, 'telefono'));
+            $nombre = self::nombreLimpio($val($f, 'nombre') . ' ' . $val($f, 'apellido'));
+            // Varios números en la misma celda ("+57 300… ::: 315…"): se toma el primero
+            $telTxt = preg_split('/\s*(?::::|,|;|\/|\|)\s*/', $val($f, 'telefono'))[0] ?? '';
+            $tel = preg_replace('/\D/', '', $telTxt);
             if (strlen($tel) === 12 && str_starts_with($tel, '57')) $tel = substr($tel, 2);
+            // Contacto sin nombre pero con celular: se guarda igual para no perderlo
+            if ($nombre === '' && strlen($tel) >= 7) $nombre = 'Contacto ' . $tel;
             $email = mb_strtolower($val($f, 'email'));
             $out[] = [
                 'nombre' => mb_substr(Str::title(mb_strtolower($nombre)), 0, 80),
