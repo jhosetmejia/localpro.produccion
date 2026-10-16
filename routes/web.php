@@ -383,7 +383,17 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::get('/red/{asesor}', [adminRedController::class, 'show'])->name('red.show');
     Route::put('/red/{asesor}', [adminRedController::class, 'update'])->name('red.update');
     Route::post('/tiendas/{tienda}/asesor', [adminRedController::class, 'asignar'])->name('tiendas.asesor');
+    // Prospección automática (firmas contables): envío diario, lista y resultados
+    Route::get('/prospectos', [\App\Http\Controllers\adminProspectosController::class, 'index'])->name('prospectos');
+    Route::post('/prospectos/ajustes', [\App\Http\Controllers\adminProspectosController::class, 'guardar'])->name('prospectos.guardar');
+    Route::post('/prospectos/agregar', [\App\Http\Controllers\adminProspectosController::class, 'agregar'])->name('prospectos.agregar');
+    Route::post('/prospectos/prueba', [\App\Http\Controllers\adminProspectosController::class, 'prueba'])->middleware('throttle:6,1')->name('prospectos.prueba');
+    Route::post('/prospectos/correr', [\App\Http\Controllers\adminProspectosController::class, 'correr'])->middleware('throttle:6,1')->name('prospectos.correr');
+    Route::post('/prospectos/{prospecto}/estado', [\App\Http\Controllers\adminProspectosController::class, 'estado'])->name('prospectos.estado');
 });
+
+// Enlace de baja de los correos comerciales (un clic; también POST para el botón "Cancelar suscripción" del correo)
+Route::match(['get', 'post'], '/baja/{token}', [\App\Http\Controllers\adminProspectosController::class, 'baja'])->where('token', '[A-Za-z0-9]{10,40}')->middleware('throttle:30,1')->name('prospectos.baja');
 
 Route::get('/401', fn () => view('pages.401'));
 Route::get('/404', fn () => view('pages.404'));

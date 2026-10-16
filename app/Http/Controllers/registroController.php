@@ -44,7 +44,7 @@ class registroController extends Controller
     // Enlace del asesor para contadores (/contadores/LCP-00012): queda a su nombre y la cuenta nace como contador
     public function referidoContador(string $codigo)
     {
-        return $this->referido($codigo, ['tipo' => 'contable']);
+        return $this->referido($codigo, ['tipo' => 'contable'] + request()->only('desde'));
     }
 
     public function store(Request $request)
@@ -83,6 +83,10 @@ class registroController extends Controller
             $user->tienda->forceFill(['origen' => $origen])->save();
             $request->session()->forget('origen_registro');
         }
+        // Si era un prospecto de los correos comerciales, se le deja de escribir
+        $prospectoId = preg_match('/^correo:p(\d+)$/', (string) $origen, $mm) ? (int) $mm[1] : 0;
+        \App\Models\Prospecto::where(fn ($q) => $q->where('correo', strtolower($datos['email']))->orWhere('id', $prospectoId))
+            ->whereNotIn('estado', ['baja'])->update(['estado' => 'registrado', 'proximo_envio' => null]);
         if ($tipo) {
             // Deja activos los módulos de ese tipo (para el contador: Contabilidad) desde el primer momento
             $mods = array_fill_keys(\App\Models\Tienda::MODULOS_POR_TIPO[$tipo] ?? [], true);

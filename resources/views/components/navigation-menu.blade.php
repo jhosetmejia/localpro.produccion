@@ -44,6 +44,10 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-users"></i></div>
                     Usuarios del sistema
                 </a>
+                <a class="nav-link {{ $on('admin.prospectos*') }}" href="{{ route('admin.prospectos') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-bullhorn"></i></div>
+                    Prospectos
+                </a>
                 <a class="nav-link {{ $on('admin.red.*') }}" href="{{ route('admin.red.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-sitemap"></i></div>
                     Red comercial

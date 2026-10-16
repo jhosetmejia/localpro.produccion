@@ -25,6 +25,10 @@ class Kernel extends ConsoleKernel
         $schedule->command('localpro:avisos-plan')->dailyAt('08:10')->withoutOverlapping();
         // Recordatorio a los contadores: declaraciones de sus clientes que vencen hoy o en 3 días
         $schedule->command('contabilidad:recordatorios')->dailyAt('07:20')->withoutOverlapping();
+        // Prospección: busca firmas contables y su correo; envía la secuencia repartida en el día (lunes a viernes, 8 a 5)
+        $schedule->command('prospectos:buscar')->dailyAt('06:30')->withoutOverlapping(60)->runInBackground();
+        $schedule->command('prospectos:enviar')->weekdays()->everyFifteenMinutes()->between('08:00', '16:59')->withoutOverlapping(14);
+        $schedule->command('prospectos:respuestas')->everyThirtyMinutes()->between('07:00', '21:00')->withoutOverlapping(25);
         // Negocios que terminaron la prueba sin pagar: se borran productos, imágenes, ventas… (quedan los datos de contacto)
         $schedule->command('localpro:depurar-pruebas')->dailyAt('04:30')->withoutOverlapping();
         // Comprime las imágenes pesadas que hayan quedado guardadas (libera espacio)
