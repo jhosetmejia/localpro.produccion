@@ -47,6 +47,6 @@
     <li>Revisa que cada cliente tenga bien su NIT (sin el dígito de verificación), si es agente de retención y su periodicidad de IVA: de eso dependen las fechas.</li>
 </ul>
 
-<a class="cta" href="{{ route('registro.contadores') }}">Crear mi cuenta de contador gratis</a>
+<a class="cta" href="{{ route('registro', ['tipo' => 'contable', 'desde' => 'blog:' . $slug]) }}">Crear mi cuenta de contador gratis</a>
 <p style="text-align:center;color:#6b7570">¿Ya tienes LocalProo? Entra a <b>Contabilidad → Calendario</b>. ¿Eres asesor de la red? Lo tienes en <b>Red comercial → Contabilidad</b>.</p>
 @endsection

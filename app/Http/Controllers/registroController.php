@@ -21,6 +21,11 @@ class registroController extends Controller
         if ($tipo && isset(\App\Models\Tienda::TIPOS[$tipo])) {
             session(['tipo_registro' => $tipo]);
         }
+        // De dónde viene (ej. un artículo del blog): para saber qué trae clientes
+        $desde = (string) request()->query('desde', '');
+        if (preg_match('/^[a-z0-9:\-]{2,80}$/', $desde)) {
+            session(['origen_registro' => $desde]);
+        }
         return view('auth.registro', ['paises' => Paises::LISTA, 'codigoAsesor' => session('codigo_asesor', request()->cookie('lp_asesor')), 'tipoRegistro' => session('tipo_registro')]);
     }
 
@@ -71,6 +76,10 @@ class registroController extends Controller
             ['nombre' => ($tipo === 'contable' ? 'Oficina contable de ' : 'Tienda de ') . $primerNombre, 'pais' => $datos['pais'], 'telefono' => $datos['telefono']] + ($tipo ? ['tipo_negocio' => $tipo] : []),
             $datos
         );
+        if ($origen = session('origen_registro')) {
+            $user->tienda->forceFill(['origen' => $origen])->save();
+            $request->session()->forget('origen_registro');
+        }
         if ($tipo) {
             // Deja activos los módulos de ese tipo (para el contador: Contabilidad) desde el primer momento
             $mods = array_fill_keys(\App\Models\Tienda::MODULOS_POR_TIPO[$tipo] ?? [], true);

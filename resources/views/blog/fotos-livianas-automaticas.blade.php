@@ -33,5 +33,5 @@
     <b>No tiene que hacer nada:</b> funciona en productos, logo, Mis enlaces, obituarios y en todo lugar donde suba una imagen.
 </div>
 
-<a class="cta" href="{{ route('registro') }}">Pruebe LocalProo gratis</a>
+<a class="cta" href="{{ route('registro', array_filter(['tipo' => config('blog_roles.' . ($a['rol'] ?? 'negocios') . '.tipo'), 'desde' => 'blog:' . $slug])) }}">Pruebe LocalProo gratis</a>
 @endsection

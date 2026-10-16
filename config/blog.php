@@ -2,6 +2,9 @@
 
 // Artículos del blog público (/blog). Cada uno tiene su vista en resources/views/blog/{slug}.blade.php
 // El más nuevo va de primero: así sale primero en /blog y en la sección Blog de la página de inicio
+// SEO: cada artículo lleva 'rol' (contadores · funerarias · negocios, ver config/blog_roles.php), 'seo_titulo' (máx. ~60 caracteres,
+// palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
+// El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
     'calendario-tributario-contadores-recordatorios' => [
         'titulo' => 'Contadores: el calendario tributario de todos sus clientes, con aviso al correo',
@@ -10,6 +13,15 @@ return [
         'publicado' => '2026-10-15',
         'minutos' => 4,
         'icono' => 'fa-calendar-days',
+        'rol' => 'contadores',
+        'seo_titulo' => 'Calendario tributario 2026 por NIT para contadores | LocalProo',
+        'descripcion' => 'Vencimientos de retención en la fuente y IVA 2026 de todos sus clientes según el último dígito del NIT, con aviso al correo. Pruébelo gratis.',
+        'keywords' => ['calendario tributario 2026', 'vencimientos DIAN por NIT', 'fechas retención en la fuente 2026', 'fechas IVA bimestral 2026', 'recordatorio vencimientos tributarios'],
+        'faq' => [
+            ['¿Cómo se sabe cuándo vence la retención en la fuente de un cliente?', 'Por el último dígito del NIT, sin el dígito de verificación. LocalProo calcula la fecha de cada cliente con el calendario oficial 2026 y la muestra en una sola pantalla.'],
+            ['¿El IVA bimestral vence el mismo día que la retención?', 'Sí. Según el Decreto 1625 de 2016, modificado por el Decreto 2229 de 2023, el IVA bimestral y cuatrimestral vence el mismo día que la retención en la fuente de ese mes.'],
+            ['¿LocalProo me avisa antes del vencimiento?', 'Sí: envía un correo 3 días antes y el mismo día de cada vencimiento que no esté marcado como presentado.'],
+        ],
     ],
     'eres-contador-localproo-lo-hace-por-ti' => [
         'titulo' => '¿Eres contador y necesitas cuadrar facturas de la DIAN, IVA y retenciones? LocalProo lo hace por ti',
@@ -18,6 +30,15 @@ return [
         'publicado' => '2026-10-15',
         'minutos' => 6,
         'icono' => 'fa-user-tie',
+        'rol' => 'contadores',
+        'seo_titulo' => 'Software para contadores: DIAN, IVA y retenciones | LocalProo',
+        'descripcion' => '¿Eres contador? Cruza el listado de facturas de la DIAN con Contapyme, Siigo o World Office, revisa IVA y retenciones y saca el borrador del 350.',
+        'keywords' => ['software para contadores Colombia', 'conciliar facturas DIAN con contabilidad', 'cuadrar IVA y retenciones', 'programa para contadores independientes', 'borrador formulario 350'],
+        'faq' => [
+            ['¿Con qué programas contables funciona?', 'Con cualquiera que exporte a Excel o CSV: Contapyme, Siigo, World Office, Helisa y otros. La primera vez se elige qué columna es cada dato y el sistema lo recuerda.'],
+            ['¿LocalProo presenta la declaración en la DIAN?', 'No. Deja el borrador del Formulario 350 y del IVA listo; la declaración se presenta en MUISCA con la firma electrónica del declarante.'],
+            ['¿Puedo probarlo sin subir los archivos de mis clientes?', 'Sí, con el botón "Probar con datos de ejemplo" ves el cruce, las alertas y el borrador del 350 en un minuto.'],
+        ],
     ],
     'retenciones-iva-cruce-dian-contadores' => [
         'titulo' => 'Contadores: crucen las facturas de la DIAN con la contabilidad y armen el 350 en minutos',
@@ -26,6 +47,15 @@ return [
         'publicado' => '2026-10-15',
         'minutos' => 5,
         'icono' => 'fa-calculator',
+        'rol' => 'contadores',
+        'seo_titulo' => 'Cruce de facturas DIAN vs contabilidad y 350 | LocalProo',
+        'descripcion' => 'Cruce las facturas electrónicas de la DIAN con la contabilidad: lo no contabilizado, diferencias de IVA, retenciones que faltaron y borrador del 350.',
+        'keywords' => ['cruce facturas DIAN contabilidad', 'facturas electrónicas sin contabilizar', 'revisión retención en la fuente', 'formulario 350 borrador', 'IVA descontable diferencias'],
+        'faq' => [
+            ['¿Qué archivo de la DIAN se sube?', 'El listado de documentos que se descarga del portal de facturación electrónica de la DIAN (emitidos y recibidos), en Excel, sin cambiarle los títulos.'],
+            ['¿Cómo sabe la retención que debía practicarse?', 'Con la tabla de retenciones vigente en la fecha de cada factura, la UVT del año, el concepto y si el proveedor es persona jurídica, natural o declarante. La tabla es editable.'],
+            ['¿Sirve para varios clientes?', 'Sí, cada cliente con sus meses, sus proveedores y su concepto habitual de retención.'],
+        ],
     ],
     'obituarios-digitales-para-funerarias' => [
         'titulo' => 'Obituarios para el televisor de cada sala: la nueva herramienta para funerarias',
@@ -34,6 +64,15 @@ return [
         'publicado' => '2026-10-15',
         'minutos' => 5,
         'icono' => 'fa-dove',
+        'rol' => 'funerarias',
+        'seo_titulo' => 'Obituarios digitales para funerarias en TV y redes | LocalProo',
+        'descripcion' => 'Muestre el obituario en el televisor de cada sala de velación: plantillas con flores y palomas, animaciones, video de fondo y descarga para redes.',
+        'keywords' => ['obituarios digitales', 'pantalla de obituarios para funeraria', 'plantillas de obituarios', 'software para funerarias', 'obituario para redes sociales'],
+        'faq' => [
+            ['¿Necesito un televisor especial?', 'No. Cualquier televisor o pantalla con navegador sirve: cada sala tiene su propia dirección que se abre en la pantalla.'],
+            ['¿Puedo descargar el obituario para WhatsApp o Facebook?', 'Sí, en imagen (PNG o JPG) o en video, listo para compartir en redes.'],
+            ['¿Trae plantillas listas?', 'Sí, plantillas prediseñadas con flores, palomas y fondos; solo cambia el nombre, la foto y la sala.'],
+        ],
     ],
     'personalizar-menu-solo-lo-que-usa' => [
         'titulo' => 'Personalizar menú: deje en LocalProo solo lo que su negocio usa',
@@ -42,6 +81,13 @@ return [
         'publicado' => '2026-10-15',
         'minutos' => 3,
         'icono' => 'fa-sliders',
+        'rol' => 'negocios',
+        'seo_titulo' => 'Programa para negocios con menú a su medida | LocalProo',
+        'descripcion' => 'Apague las secciones que su negocio no usa y deje LocalProo solo con lo que necesita: ventas, inventario y caja. Sin borrar nada.',
+        'keywords' => ['programa para negocios fácil', 'sistema POS sencillo', 'software de ventas e inventario', 'personalizar menú sistema'],
+        'faq' => [
+            ['¿Se borra algo al ocultar una sección?', 'No. Solo deja de aparecer en el menú; se puede volver a mostrar cuando quiera.'],
+        ],
     ],
     'tienda-en-linea-solo-productos-con-existencias' => [
         'titulo' => 'Su tienda en línea, solo con lo que tiene disponible',
@@ -50,6 +96,13 @@ return [
         'publicado' => '2026-10-15',
         'minutos' => 3,
         'icono' => 'fa-store',
+        'rol' => 'negocios',
+        'seo_titulo' => 'Tienda en línea solo con productos disponibles | LocalProo',
+        'descripcion' => 'Su catálogo en línea con botón de compra por WhatsApp que muestra solo los productos con existencias, para no recibir pedidos de lo que no tiene.',
+        'keywords' => ['tienda en línea para negocios Colombia', 'catálogo con pedidos por WhatsApp', 'tienda virtual con inventario', 'catálogo digital para negocios'],
+        'faq' => [
+            ['¿Los servicios salen como agotados?', 'No. Los productos que no manejan inventario, como los servicios, siempre se muestran disponibles.'],
+        ],
     ],
     'fotos-livianas-automaticas' => [
         'titulo' => 'Fotos livianas y nítidas: LocalProo las optimiza solo',
@@ -58,6 +111,13 @@ return [
         'publicado' => '2026-10-15',
         'minutos' => 3,
         'icono' => 'fa-image',
+        'rol' => 'negocios',
+        'seo_titulo' => 'Fotos livianas para su tienda en línea | LocalProo',
+        'descripcion' => 'LocalProo achica y comprime solas las fotos de sus productos sin perder calidad, para que su catálogo cargue rápido en el celular.',
+        'keywords' => ['optimizar fotos de productos', 'catálogo rápido en celular', 'fotos para tienda en línea'],
+        'faq' => [
+            ['¿Pierden calidad las fotos?', 'Se reducen al tamaño que se ve en pantalla y se comprimen manteniendo la nitidez.'],
+        ],
     ],
     'linktree-gratis-para-negocios-mis-enlaces' => [
         'titulo' => 'Mis enlaces: el "Linktree" de su negocio, gratis dentro de LocalProo',
@@ -66,6 +126,13 @@ return [
         'publicado' => '2026-10-15',
         'minutos' => 4,
         'icono' => 'fa-link',
+        'rol' => 'negocios',
+        'seo_titulo' => 'Página de enlaces tipo Linktree para negocios | LocalProo',
+        'descripcion' => 'Una página de enlaces para la biografía de Instagram y TikTok: WhatsApp, redes, promociones y su tienda en línea, con estadísticas de visitas.',
+        'keywords' => ['linktree para negocios', 'página de enlaces para Instagram', 'link en bio para negocios', 'alternativa a linktree'],
+        'faq' => [
+            ['¿Cuál es la dirección de mi página?', 'localproo.com/@su-negocio, para ponerla en la biografía o en un código QR.'],
+        ],
     ],
     'nomina-interna-o-electronica-dian' => [
         'titulo' => 'Nómina en LocalProo: ¿interna o electrónica con la DIAN? Usted decide',
@@ -74,5 +141,12 @@ return [
         'publicado' => '2026-10-15',
         'minutos' => 4,
         'icono' => 'fa-users-gear',
+        'rol' => 'negocios',
+        'seo_titulo' => 'Nómina electrónica DIAN para pequeños negocios | LocalProo',
+        'descripcion' => 'Liquide la nómina mensual o quincenal y saque los desprendibles. Elija nómina interna o nómina electrónica DIAN. Para pequeños negocios en Colombia.',
+        'keywords' => ['nómina electrónica DIAN pequeños negocios', 'liquidar nómina quincenal', 'desprendibles de nómina', 'programa de nómina sencillo'],
+        'faq' => [
+            ['¿Estoy obligado a enviar la nómina a la DIAN?', 'Depende de su obligación tributaria. En LocalProo puede elegir nómina interna o nómina electrónica DIAN; consulte a su contador.'],
+        ],
     ],
 ];

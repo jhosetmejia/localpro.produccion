@@ -60,6 +60,6 @@
     <li>Incluido en LocalProo, junto con su punto de venta, inventario y planes exequiales.</li>
 </ul>
 
-<a class="cta" href="{{ route('registro') }}">Pruebe LocalProo en su funeraria</a>
+<a class="cta" href="{{ route('registro', array_filter(['tipo' => config('blog_roles.' . ($a['rol'] ?? 'negocios') . '.tipo'), 'desde' => 'blog:' . $slug])) }}">Pruebe LocalProo en su funeraria</a>
 <p style="text-align:center;color:#6b7570">Al registrarse elija el tipo de negocio <b>Funeraria</b> y el módulo de Obituarios se activa solo.</p>
 @endsection

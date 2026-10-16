@@ -57,7 +57,7 @@ Route::post('/login', [loginController::class, 'login'])->middleware('throttle:1
 Route::get('/logout', [logoutController::class, 'logout'])->name('logout');
 Route::get('/registro', [registroController::class, 'index'])->name('registro');
 // Enlace corto para contadores: abre el registro con el tipo "Contador / analista contable" y la herramienta activa
-Route::get('/contadores', fn () => redirect()->route('registro', ['tipo' => 'contable']))->name('registro.contadores');
+Route::get('/contadores', fn () => redirect()->route('registro', ['tipo' => 'contable'] + request()->only('desde')))->name('registro.contadores');
 Route::get('/contadores/{codigo}', [registroController::class, 'referidoContador'])->where('codigo', '[A-Za-z0-9\-]+')->name('registro.contadores.asesor');
 Route::post('/registro', [registroController::class, 'store'])->middleware('throttle:5,1');
 Route::get('/recuperar', [recuperarController::class, 'formulario'])->name('password.request');
@@ -80,6 +80,13 @@ Route::get('/l/{slug}', fn (string $slug) => redirect('/@' . $slug, 301))->where
 
 // Blog público (artículos para compartir con negocios y asesores)
 Route::get('/blog', fn () => view('blog.index', ['articulos' => config('blog')]))->name('blog.index');
+// Páginas del blog por tipo de cliente (contadores, funerarias, negocios): atraen búsquedas y llevan al registro con el tipo elegido
+Route::get('/blog/para/{rol}', function (string $rol) {
+    $r = config('blog_roles.' . $rol);
+    abort_unless($r, 404);
+    $articulos = collect(config('blog'))->filter(fn ($a) => ($a['rol'] ?? 'negocios') === $rol)->all();
+    return view('blog.rol', ['r' => $r, 'rolKey' => $rol, 'articulos' => $articulos]);
+})->where('rol', '[a-z]+')->name('blog.rol');
 Route::get('/blog/{slug}', function (string $slug) {
     $a = config('blog.' . $slug);
     abort_unless($a, 404);

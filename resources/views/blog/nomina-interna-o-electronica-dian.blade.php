@@ -64,6 +64,6 @@
     </ul>
 </div>
 
-<a class="cta" href="{{ route('registro') }}">Pruebe LocalProo gratis</a>
+<a class="cta" href="{{ route('registro', array_filter(['tipo' => config('blog_roles.' . ($a['rol'] ?? 'negocios') . '.tipo'), 'desde' => 'blog:' . $slug])) }}">Pruebe LocalProo gratis</a>
 <p style="text-align:center;color:#6b7570">¿Ya tiene LocalProo? Entre a su cuenta y busque <b>Nómina</b> en el menú.</p>
 @endsection

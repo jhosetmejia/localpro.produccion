@@ -32,6 +32,6 @@
 <h2>Fotos que cargan rápido</h2>
 <p>Además, ahora LocalProo <b>achica las fotos automáticamente</b> cuando las sube, sin perder calidad: una foto de 4 MB del celular queda en unos 200 KB. Su tienda en línea abre más rápido y sus clientes gastan menos datos.</p>
 
-<a class="cta" href="{{ route('registro') }}">Cree su tienda en línea con LocalProo</a>
+<a class="cta" href="{{ route('registro', array_filter(['tipo' => config('blog_roles.' . ($a['rol'] ?? 'negocios') . '.tipo'), 'desde' => 'blog:' . $slug])) }}">Cree su tienda en línea con LocalProo</a>
 <p style="text-align:center;color:#6b7570">¿Ya tiene LocalProo? Búsquelo en <b>Mi negocio → Datos del negocio</b>.</p>
 @endsection

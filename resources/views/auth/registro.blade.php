@@ -27,6 +27,9 @@
             @if (($tipoRegistro ?? null) === 'contable')
             <h1 class="serif">Crear cuenta de contador</h1>
             <p class="sub">Paso 1 · Sus datos. Al terminar entra directo a <b>Contabilidad</b>: cruce de facturas DIAN, IVA, retenciones y borrador del 350.</p>
+            @elseif (($tipoRegistro ?? null) && isset(\App\Models\Tienda::TIPOS[$tipoRegistro]))
+            <h1 class="serif">Crear cuenta</h1>
+            <p class="sub">Paso 1 de 4 · Su cuenta queda lista para <b>{{ \App\Models\Tienda::TIPOS[$tipoRegistro][0] }}</b>. Prueba gratis, sin tarjeta.</p>
             @else
             <h1 class="serif">Crear cuenta</h1>
             <p class="sub">Paso 1 de 4 · Sus datos como dueño del negocio. En 3 minutos estará vendiendo.</p>

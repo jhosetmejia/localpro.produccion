@@ -51,6 +51,6 @@
     <li>Incluido en LocalProo, junto con su punto de venta, inventario y tienda en línea.</li>
 </ul>
 
-<a class="cta" href="{{ route('registro') }}">Cree su página gratis con LocalProo</a>
+<a class="cta" href="{{ route('registro', array_filter(['tipo' => config('blog_roles.' . ($a['rol'] ?? 'negocios') . '.tipo'), 'desde' => 'blog:' . $slug])) }}">Cree su página gratis con LocalProo</a>
 <p style="text-align:center;color:#6b7570">¿Ya tiene LocalProo? Búsquela en <b>Mi negocio → Mis enlaces</b>.</p>
 @endsection

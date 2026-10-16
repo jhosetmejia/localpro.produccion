@@ -9,7 +9,7 @@
         <div>
             <small><a href="{{ route('admin.tiendas.index') }}" class="text-decoration-none" style="color:inherit"><i class="fa-solid fa-arrow-left me-1"></i>Tiendas</a></small>
             <h1>{{ $tienda->nombre }} <small style="font-size:.9rem;font-family:ui-monospace,Menlo,monospace;background:#eaf8ee;color:#11702f;border-radius:8px;padding:.15rem .5rem;vertical-align:middle">{{ $tienda->codigo }}</small></h1>
-            <span class="text-muted fw-semibold"><i class="fa-solid {{ $tienda->tipo_icono }} me-1"></i>{{ $tienda->tipo_nombre }} · {{ $m['nombre'] }} ({{ $m['moneda'] }}){{ $tienda->ciudad ? ' · ' . $tienda->ciudad : '' }} · Inscrita {{ $tienda->created_at->locale('es')->isoFormat('D MMM YYYY') }}</span>
+            <span class="text-muted fw-semibold"><i class="fa-solid {{ $tienda->tipo_icono }} me-1"></i>{{ $tienda->tipo_nombre }} · {{ $m['nombre'] }} ({{ $m['moneda'] }}){{ $tienda->ciudad ? ' · ' . $tienda->ciudad : '' }} · Inscrita {{ $tienda->created_at->locale('es')->isoFormat('D MMM YYYY') }}@if ($tienda->origen) · Llegó por <b>{{ str_starts_with($tienda->origen, 'blog:') ? 'el blog (' . substr($tienda->origen, 5) . ')' : $tienda->origen }}</b>@endif</span>
         </div>
         <div class="lp-quick">
             <form method="post" action="{{ route('admin.tiendas.entrar', $tienda) }}">@csrf<button class="btn btn-primary"><i class="fa-solid fa-right-to-bracket me-1"></i>Entrar a la tienda</button></form>
