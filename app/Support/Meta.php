@@ -7,6 +7,7 @@ use App\Models\RedCuenta;
 use App\Models\RedMensaje;
 use App\Models\RedPublicacion;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -108,10 +109,23 @@ class Meta
         $n = 0;
         foreach (array_filter(['facebook' => 'messenger', 'instagram' => $c->ig_id ? 'instagram' : null]) as $plat => $param) {
             $propio = $plat === 'instagram' ? $c->ig_id : $c->page_id;
+            // Si Meta viene fallando con esta cuenta, la revision automatica (cada 5 min) espera un rato
+            // en vez de insistir y llenar el log; los mensajes nuevos igual llegan por el webhook.
+            $clavePausa = 'meta_pausa:' . $c->id . ':' . $plat;
+            if ($comoNuevos && Cache::has($clavePausa)) continue;
             try {
                 $convs = self::listaConversaciones($c, $param, $plat === 'instagram' ? min($limite, 15) : $limite);
+                Cache::forget($clavePausa);
+                Cache::forget($clavePausa . ':fallos');
             } catch (\Throwable $e) {
-                Log::error('Meta sincronizar ' . $plat . ': ' . $e->getMessage());
+                $fallos = (int) Cache::get($clavePausa . ':fallos', 0) + 1;
+                Cache::put($clavePausa . ':fallos', $fallos, now()->addDay());
+                // Pausa creciente: 15, 30, 60 min... hasta 3 horas
+                Cache::put($clavePausa, true, now()->addMinutes(min(180, 15 * 2 ** min(4, $fallos - 1))));
+                // En el log solo el primer fallo y luego uno de cada 6 (no cada 5 minutos)
+                if ($fallos === 1 || $fallos % 6 === 0) {
+                    Log::warning('Meta sincronizar ' . $plat . ' (cuenta ' . $c->id . ', fallo #' . $fallos . '): ' . $e->getMessage());
+                }
                 self::$avisos[] = ($plat === 'instagram' ? 'Instagram' : 'Facebook') . ': ' . $e->getMessage();
                 continue;
             }
@@ -152,7 +166,7 @@ class Meta
     {
         $ig = $plataforma === 'instagram';
         $intentos = $ig
-            ? [[$limite, 'id,updated_time,participants'], [5, 'id,updated_time,participants'], [2, 'id,updated_time,participants'], [10, 'id,updated_time'], [3, 'id']]
+            ? [[$limite, 'id,updated_time,participants'], [3, 'id,updated_time'], [2, 'id']]
             : [[$limite, 'id,updated_time,participants,messages.limit(15){' . self::CAMPOS_MSJ . '}'], [5, 'id,updated_time,participants']];
         $ultimo = null;
         foreach ($intentos as [$lim, $campos]) {
@@ -160,7 +174,7 @@ class Meta
             try {
                 $r = self::get($c->page_id . '/conversations', [
                     'platform' => $plataforma, 'limit' => $lim, 'access_token' => $c->page_token, 'fields' => $campos,
-                ], 30);
+                ], 20);
                 $convs = $r['data'] ?? [];
                 // Si no vinieron los participantes, se piden chat por chat
                 foreach ($convs as &$cv) {
@@ -176,7 +190,8 @@ class Meta
             } catch (\Throwable $e) {
                 $ultimo = $e;
                 $m = strtolower($e->getMessage());
-                if (!str_contains($m, 'timeout') && !str_contains($m, 'reduce the amount') && !str_contains($m, 'unknown error')) throw $e;
+                if (!str_contains($m, 'timeout') && !str_contains($m, 'reduce the amount') && !str_contains($m, 'unknown error')
+                    && !str_contains($m, 'fatal') && !str_contains($m, 'no hubo conexión')) throw $e;
             }
         }
         throw new RuntimeException('Meta está tardando demasiado en entregar los chats antiguos. Los mensajes nuevos sí le llegan solos; intente Actualizar más tarde.');
