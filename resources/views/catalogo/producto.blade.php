@@ -4,22 +4,36 @@
     $lugarT = trim(implode(', ', array_filter([$tienda->ciudad, $tienda->departamento !== $tienda->ciudad ? $tienda->departamento : null])));
     $cat = $p['categorias'][0] ?? null;
     $precioTxt = dinero($p['desde'] ?? $p['precio']);
-    $desc = \Illuminate\Support\Str::limit(($p['descripcion'] ? $p['descripcion'] . '. ' : '') . $p['nombre'] . ($p['desde'] ? ' desde ' : ' a ') . $precioTxt . ' en ' . $tienda->nombre . ($lugarT ? ', ' . $lugarT : '') . '. Cómprelo por WhatsApp.', 158);
     $tallas = collect($p['variantes'])->pluck('talla')->filter()->unique()->values();
+    $colores = collect($p['variantes'])->pluck('color')->filter()->unique()->map(fn ($c) => \App\Support\Textos::nombre($c))->values();
+    // SEO: lo que la gente busca en Google = producto + ciudad. Ej: "Chaqueta rompe vientos hombre | Abril Store, Pasto"
+    $ciudad = $tienda->ciudad;
+    $catEnNombre = $cat && str_contains(\App\Support\Textos::clave($p['nombre']), \App\Support\Textos::clave($cat));
+    $tituloSeo = $p['nombre'] . ($cat && !$catEnNombre && mb_strlen($p['nombre']) < 40 ? ' · ' . $cat : '') . ' | ' . $tienda->nombre . ($ciudad ? ', ' . $ciudad : '');
+    $desc = \Illuminate\Support\Str::limit(
+        $p['nombre'] . ($p['desde'] ? ' desde ' : ' por ') . $precioTxt
+        . ($p['descuento'] ? ' (-' . $p['descuento'] . '% en promoción)' : '')
+        . ' en ' . $tienda->nombre . ($ciudad ? ', ' . $ciudad : '') . '.'
+        . ($tallas->isNotEmpty() ? ' Tallas: ' . $tallas->take(8)->implode(', ') . '.' : '')
+        . ($colores->isNotEmpty() ? ' Colores: ' . $colores->take(5)->implode(', ') . '.' : '')
+        . ($p['descripcion'] ? ' ' . $p['descripcion'] : '')
+        . ' Compre fácil por WhatsApp.', 158);
 @endphp
 
-@section('titulo', $p['nombre'] . ' · ' . $tienda->nombre)
+@section('titulo', $tituloSeo)
 @section('descripcion', $desc)
 @section('canonical', $p['url'])
 @section('og_tipo', 'product')
 @if ($p['img'])@section('imagen', $p['img'])@endif
 
 @push('jsonld')
-<script type="application/ld+json">{!! json_encode([
+<script type="application/ld+json">{!! json_encode(array_filter([
     '@context' => 'https://schema.org',
     '@type' => 'Product',
     'name' => $p['nombre'],
-    'description' => $p['descripcion'] ?: $p['nombre'] . ' en ' . $tienda->nombre,
+    'description' => $p['descripcion'] ?: $desc,
+    'color' => $colores->isNotEmpty() ? $colores->implode(', ') : null,
+    'size' => $tallas->isNotEmpty() ? $tallas->implode(', ') : null,
     'image' => $p['img'] ? [$p['img']] : null,
     'sku' => $p['codigo'],
     'category' => $cat,
@@ -29,11 +43,12 @@
         'url' => $p['url'],
         'priceCurrency' => moneda()['moneda'],
         'price' => $p['desde'] ?? $p['precio'],
+        'priceValidUntil' => now()->addMonths(3)->toDateString(),
         'availability' => $p['disponible'] ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
         'itemCondition' => 'https://schema.org/NewCondition',
         'seller' => ['@type' => 'Organization', 'name' => $tienda->nombre],
     ],
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}</script>
+], fn ($v) => $v !== null), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}</script>
 <script type="application/ld+json">{!! json_encode([
     '@context' => 'https://schema.org',
     '@type' => 'BreadcrumbList',
@@ -124,7 +139,7 @@
                 </div>
             @else
                 @if (numero_whatsapp($tienda->telefono))
-                <a class="btn btn-wa" style="max-width:460px" target="_blank" rel="noopener" href="https://wa.me/{{ numero_whatsapp($tienda->telefono) }}?text={{ rawurlencode('Hola ' . $tienda->nombre . ', ¿cuándo les llega ' . $p['nombre'] . ($p['codigo'] ? ' (código ' . $p['codigo'] . ')' : '') . '? ' . $p['url']) }}">💬 Preguntar cuándo llega</a>
+                <a class="btn btn-wa" style="max-width:460px" target="_blank" rel="noopener" href="https://wa.me/{{ numero_whatsapp($tienda->telefono) }}?text={{ rawurlencode('Hola ' . $tienda->nombre . ', ¿cuándo les llega ' . $p['nombre'] . ($p['codigo'] ? ' (código ' . $p['codigo'] . ')' : '') . '? ' . $p['url'] . "\n\n_🛍️ Visto en LocalProo Marketplace_") }}">💬 Preguntar cuándo llega</a>
                 @endif
             @endif
             <button class="compartir" id="ppCompartir">↗ Compartir este producto</button>

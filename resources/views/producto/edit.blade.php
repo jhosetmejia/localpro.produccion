@@ -48,6 +48,7 @@
                             <input type="text" name="nombre" id="nombre" class="form-control fw-bold" value="{{ old('nombre', $producto->nombre) }}" maxlength="80" required>
                             @error('nombre')<small class="text-danger">{{ $message }}</small>@enderror
                         </div>
+                        <div class="col-12 mt-0">@include('producto._seo')</div>
                         <div class="col-md-4">
                             <label for="codigo" class="form-label">Código</label>
                             <input type="text" name="codigo" id="codigo" class="form-control" value="{{ old('codigo', $producto->codigo) }}" maxlength="50">

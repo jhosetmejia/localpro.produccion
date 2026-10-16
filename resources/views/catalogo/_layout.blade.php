@@ -196,6 +196,8 @@ main,.pie-sep{flex:none}
 <script>
 // Carrito y botón Comprar (WhatsApp con el producto exacto). Compartido entre la tienda y cada producto.
 window.LPC = (function () {
+    // Así el negocio sabe que el cliente llegó por la tienda en línea
+    var FIRMA = '\n\n_🛍️ Visto en LocalProo Marketplace_';
     var M = @json($M), WA = @json($wa), TIENDA = @json($tienda->nombre), KEY = 'lp_pedido_' + @json($tienda->slug);
     var $ = function (id) { return document.getElementById(id); };
     var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); };
@@ -231,7 +233,7 @@ window.LPC = (function () {
         var nom = $('cNom').value.trim(), nota = $('cNota').value.trim();
         var msg = '¡Hola ' + TIENDA + '! 👋 Quiero hacer este pedido:\n\n' +
             cart.map(function (i) { return '• ' + i.cant + ' × ' + i.nombre + (i.op ? ' (' + i.op + ')' : '') + (i.codigo ? ' [Cód. ' + i.codigo + ']' : '') + ' — ' + fmt(i.precio * i.cant); }).join('\n') +
-            '\n\n*Total: ' + fmt(total()) + '*' + (nom ? '\nNombre: ' + nom : '') + (nota ? '\nEntrega / nota: ' + nota : '');
+            '\n\n*Total: ' + fmt(total()) + '*' + (nom ? '\nNombre: ' + nom : '') + (nota ? '\nEntrega / nota: ' + nota : '') + FIRMA;
         window.open('https://wa.me/' + WA + '?text=' + encodeURIComponent(msg), '_blank');
     });
     barra();
@@ -252,7 +254,7 @@ window.LPC = (function () {
                 (p.codigo ? 'Código: ' + p.codigo + '\n' : '') +
                 (v && p.variantes.length > 1 ? 'Opción: ' + v.etiqueta + '\n' : '') +
                 'Cantidad: ' + cant + (p.unidad ? ' ' + p.unidad : '') + '\n' +
-                'Precio: ' + fmt((v ? v.precio : p.precio) * cant) + '\n\n' + p.url;
+                'Precio: ' + fmt((v ? v.precio : p.precio) * cant) + '\n\n' + p.url + FIRMA;
             window.open('https://wa.me/' + WA + '?text=' + encodeURIComponent(msg), '_blank');
         }
     };

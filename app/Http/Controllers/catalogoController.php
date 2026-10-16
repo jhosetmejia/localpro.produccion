@@ -31,7 +31,8 @@ class catalogoController extends Controller
         $precios = $vars->map(fn ($v) => (float) ($v->precio ?? $p->precio_venta));
         return [
             'id' => $p->id,
-            'nombre' => $p->nombre,
+            // Para el público: "CHAQUETA ROMPE VIENTOS" → "Chaqueta rompe vientos" (se lee mejor y Google lo prefiere)
+            'nombre' => \App\Support\Textos::nombre($p->nombre),
             'codigo' => $p->codigo,
             'unidad' => $p->es_fraccion ? $p->unidad_corta : null,
             'descripcion' => $p->descripcion,

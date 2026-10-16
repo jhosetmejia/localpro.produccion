@@ -54,6 +54,7 @@
                     <label for="nombre" class="form-label">Nombre del producto</label>
                     <input type="text" name="nombre" id="nombre" class="form-control form-control-lg" value="{{ old('nombre') }}" placeholder="{{ $moda ? 'Ej: Chaqueta de cuero con ovejero' : 'Ej: Hamburguesa sencilla' }}" maxlength="80" required autofocus>
                     @error('nombre')<small class="text-danger">{{ $message }}</small>@enderror
+                    @include('producto._seo')
                 </div>
                 <div class="col-12">
                     <label for="precio_venta" class="form-label">Precio de venta ({{ moneda()['moneda'] }})</label>
