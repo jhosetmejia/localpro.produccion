@@ -17,8 +17,8 @@
 .pl-filtros{display:flex;gap:.4rem;overflow-x:auto;padding-bottom:.4rem;margin-bottom:.6rem}
 .pl-filtros button{border:1.5px solid #dfe6e2;background:#fff;border-radius:999px;padding:.4rem .9rem;font-weight:700;font-size:.85rem;white-space:nowrap;color:#33403a}
 .pl-filtros button.on{background:#0b0d0c;border-color:#0b0d0c;color:#fff}
-.pl-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:.8rem}
-.pl-item{background:#fff;border-radius:20px;padding:.9rem;box-shadow:0 6px 22px -14px rgba(0,0,0,.35);border:1px solid #edf1ee;display:flex;flex-direction:column;gap:.7rem;min-width:0}
+.pl-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:.8rem;align-items:start}
+.pl-item{background:#fff;border-radius:18px;padding:.75rem;box-shadow:0 6px 22px -14px rgba(0,0,0,.35);border:1px solid #edf1ee;display:flex;flex-direction:column;gap:.5rem;min-width:0}
 .pl-item.off{opacity:.6}
 .pl-cab{display:flex;gap:.8rem;align-items:center;min-width:0}
 .pl-foto{width:64px;height:64px;border-radius:14px;background:#eef3ef;flex:none;overflow:hidden;display:grid;place-items:center;font-weight:900;font-size:1.4rem;color:#16b84e}
@@ -33,13 +33,13 @@
 .pl-tallas{display:flex;gap:.3rem;flex-wrap:wrap}
 .pl-tallas span{background:#f3f6f4;border-radius:8px;padding:.15rem .45rem;font-size:.75rem;font-weight:700;color:#33403a}
 .pl-tallas span.cero{color:#b3bab6;text-decoration:line-through}
-.pl-acc{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem}
-.pl-acc a,.pl-acc button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.2rem;border:0;border-radius:14px;padding:.55rem .2rem;font-size:.75rem;font-weight:800;text-decoration:none;background:#f1f5f2;color:#0b0d0c;min-height:58px}
+.pl-acc{display:grid;grid-template-columns:repeat(auto-fit,minmax(56px,1fr));gap:.3rem}
+.pl-acc a,.pl-acc button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1rem;border:0;border-radius:12px;padding:.4rem .15rem;font-size:.7rem;font-weight:800;text-decoration:none;background:#f1f5f2;color:#0b0d0c;min-height:46px;line-height:1.1}
 .pl-acc a:hover,.pl-acc button:hover{background:#e3ebe6;color:#0b0d0c}
 .pl-acc .pri{background:#0b0d0c;color:#fff}
 .pl-acc .pri:hover{background:#222;color:#fff}
 .pl-acc .del{color:#b0173f}
-.pl-acc i,.pl-acc svg{font-size:1.05rem}
+.pl-acc i,.pl-acc svg{font-size:.95rem}
 .pl-vacio{text-align:center;padding:2.5rem 1rem;color:#6b7570}
 .pl-vacio i,.pl-vacio svg{font-size:2.4rem;margin-bottom:.6rem;color:#16b84e}
 @media (max-width:420px){.pl-lista{grid-template-columns:minmax(0,1fr)}.pl-top h1{font-size:1.35rem}}
@@ -148,7 +148,7 @@
 
                 <div class="pl-acc">
                     @can('editar-producto')
-                    <a href="{{ route('productos.variantes', ['producto' => $item]) }}" class="pri"><i class="fa-solid fa-boxes-stacked"></i>{{ $tallas ? 'Tallas y stock' : 'Stock' }}</a>
+                    <a href="{{ route('productos.variantes', ['producto' => $item]) }}" class="pri"><i class="fa-solid fa-boxes-stacked"></i>{{ $tallas ? 'Tallas' : 'Stock' }}</a>
                     <a href="{{ route('productos.edit', ['producto' => $item]) }}"><i class="fa-solid fa-pen"></i>Editar</a>
                     @endcan
                     <a href="{{ route('etiquetas.producto', ['producto' => $item]) }}"><i class="fa-solid fa-barcode"></i>Etiquetas</a>
@@ -163,6 +163,14 @@
                         <button type="submit"><i class="fa-solid fa-rotate-left"></i>Restaurar</button>
                         @endif
                     </form>
+                    @if (auth()->user()?->hasAnyRole(['dueno', 'administrador']))
+                    <form action="{{ route('productos.eliminar', ['producto' => $item->id]) }}" method="post" style="display:contents"
+                          data-confirm="¿Eliminar «{{ \Illuminate\Support\Str::limit($item->nombre, 40) }}» para siempre?" data-confirm-texto="Se borran sus tallas, cantidades y fotos. Las ventas ya hechas se conservan. Esto no se puede deshacer; si solo no lo quiere mostrar, use Ocultar." data-confirm-ok="Sí, eliminar" data-peligro>
+                        @method('DELETE')
+                        @csrf
+                        <button type="submit" class="del"><i class="fa-solid fa-trash"></i>Eliminar</button>
+                    </form>
+                    @endif
                     @endcan
                 </div>
             </div>

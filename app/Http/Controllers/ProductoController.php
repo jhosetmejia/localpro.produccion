@@ -19,7 +19,7 @@ class ProductoController extends Controller
         $this->middleware('permission:ver-producto|crear-producto|editar-producto|eliminar-producto', ['only' => ['index']]);
         $this->middleware('permission:crear-producto', ['only' => ['create', 'store']]);
         $this->middleware('permission:editar-producto', ['only' => ['edit', 'update']]);
-        $this->middleware('permission:eliminar-producto', ['only' => ['destroy']]);
+        $this->middleware('permission:eliminar-producto', ['only' => ['destroy', 'eliminar']]);
     }
     /**
      * Display a listing of the resource.
@@ -257,6 +257,23 @@ class ProductoController extends Controller
         }
 
         return redirect()->route('productos.index')->with('success', 'Producto editado' . ($ajustadas ? ' y cantidades actualizadas.' : '.'));
+    }
+
+    // Borrar el producto para siempre (solo dueño o administrador de la tienda).
+    // Las ventas ya hechas se conservan con su descripción; se borran sus tallas, stock y fotos.
+    public function eliminar(Producto $producto)
+    {
+        abort_unless(auth()->user()?->hasAnyRole(['dueno', 'administrador']), 403, 'Solo el dueño o el administrador pueden eliminar productos.');
+        $nombre = $producto->nombre;
+        $archivos = array_filter(array_merge([$producto->img_path], $producto->fotos()->pluck('path')->all()));
+        DB::transaction(function () use ($producto) {
+            $producto->categorias()->detach();
+            $producto->fotos()->delete();
+            $producto->variantes()->delete();
+            $producto->delete();
+        });
+        foreach ($archivos as $a) Storage::disk('public')->delete('productos/' . $a);
+        return redirect()->route('productos.index')->with('success', 'Producto "' . $nombre . '" eliminado.');
     }
 
     /**

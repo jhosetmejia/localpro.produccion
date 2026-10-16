@@ -215,6 +215,7 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::get('/users/{user}/permisos', [userController::class, 'permisos'])->whereNumber('user')->name('users.permisos');
     Route::put('/users/{user}/permisos', [userController::class, 'guardarPermisos'])->whereNumber('user')->name('users.permisos.guardar');
 
+    Route::delete('/productos/{producto}/eliminar', [ProductoController::class, 'eliminar'])->whereNumber('producto')->name('productos.eliminar');
     Route::delete('/categorias/{categoria}/eliminar', [categoriaController::class, 'eliminar'])->whereNumber('categoria')->name('categorias.eliminar');
     Route::resources([
         'categorias' => categoriaController::class,
