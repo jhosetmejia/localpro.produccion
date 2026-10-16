@@ -206,13 +206,28 @@
         });
         document.getElementById('plNada').style.display = n ? 'none' : '';
     }
-    q.addEventListener('input', aplicar);
+    // Se recuerda el filtro, la búsqueda y dónde iba (al eliminar u ocultar, la página vuelve igual)
+    var K = 'lp_productos_vista';
+    function guardar() { try { sessionStorage.setItem(K, JSON.stringify({ f: filtro, q: q.value, y: window.scrollY })); } catch (e) {} }
+    function marcar(f) {
+        [].forEach.call(document.getElementById('plF').children, function (x) { x.classList.toggle('on', x.dataset.f === f); });
+    }
+    q.addEventListener('input', function () { aplicar(); guardar(); });
     document.getElementById('plF').addEventListener('click', function (e) {
         var b = e.target.closest('button'); if (!b) return;
-        [].forEach.call(this.children, function (x) { x.classList.remove('on'); });
-        b.classList.add('on'); filtro = b.dataset.f; aplicar();
+        marcar(b.dataset.f); filtro = b.dataset.f; aplicar(); guardar();
     });
+    document.addEventListener('submit', guardar, true);
+    document.addEventListener('click', function (e) { if (e.target.closest('#plL a')) guardar(); }, true);
+    try {
+        var v = JSON.parse(sessionStorage.getItem(K) || 'null');
+        if (v) {
+            if (v.f && document.querySelector('#plF [data-f="' + v.f + '"]')) { filtro = v.f; marcar(v.f); }
+            if (v.q) q.value = v.q;
+        }
+    } catch (e) {}
     aplicar();
+    try { if (v && v.y) setTimeout(function () { window.scrollTo(0, v.y); }, 30); } catch (e) {}
 })();
 </script>
 @endpush

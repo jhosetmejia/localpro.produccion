@@ -273,7 +273,7 @@ class ProductoController extends Controller
             $producto->delete();
         });
         foreach ($archivos as $a) Storage::disk('public')->delete('productos/' . $a);
-        return redirect()->route('productos.index')->with('success', 'Producto "' . $nombre . '" eliminado.');
+        return redirect()->back(302, [], route('productos.index'))->with('success', 'Producto "' . $nombre . '" eliminado.');
     }
 
     /**
@@ -297,6 +297,6 @@ class ProductoController extends Controller
             $message = 'Producto restaurado';
         }
 
-        return redirect()->route('productos.index')->with('success', $message);
+        return redirect()->back(302, [], route('productos.index'))->with('success', $message);
     }
 }
