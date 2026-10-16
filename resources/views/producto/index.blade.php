@@ -68,6 +68,7 @@
     <div class="pt-3">@include('layouts.partials.limite-plan', ['que' => 'productos'])</div>
     <div class="pl-top">
         <h1>Productos <small class="text-muted fw-bold" style="font-size:.9rem">({{ $activos }})</small></h1>
+        <a href="{{ route('etiquetas.todas') }}" class="pl-imp"><i class="fa-solid fa-barcode"></i> Ver todas las etiquetas</a>
         @if ($verWeb)
         <a href="{{ $tiendaCat->url_catalogo_navegador }}" target="_blank" rel="noopener" class="pl-imp"><i class="fa-solid fa-globe"></i> Ver mi catálogo en línea</a>
         @endif

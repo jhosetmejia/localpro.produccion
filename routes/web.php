@@ -298,6 +298,7 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::resource('entradas', entradaController::class)->only(['index', 'create', 'store', 'show']);
 
     // Etiquetas con código de barras
+    Route::get('/etiquetas', [etiquetaController::class, 'todas'])->name('etiquetas.todas');
     Route::get('/productos/{producto}/etiquetas', [etiquetaController::class, 'producto'])->name('etiquetas.producto');
     Route::get('/entradas/{entrada}/etiquetas', [etiquetaController::class, 'entrada'])->name('etiquetas.entrada');
 
