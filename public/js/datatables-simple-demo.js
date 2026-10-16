@@ -2,6 +2,7 @@
 window.LP_TABLA_ES = {
     labels: {
         placeholder: 'Buscar...',
+        searchLabel: 'Buscar',
         searchTitle: 'Buscar en la tabla',
         pageTitle: 'Página {page}',
         perPage: 'registros por página',

@@ -220,7 +220,7 @@
     var t = document.getElementById('todas');
     if (t) t.addEventListener('change', function () { document.querySelectorAll('.ct-chk').forEach(function (c) { c.checked = t.checked; }); });
     var f = document.getElementById('f-concepto');
-    if (f) f.addEventListener('submit', function (e) { if (!f.querySelector('.ct-chk:checked')) { e.preventDefault(); alert('Marque al menos una factura.'); } });
+    if (f) f.addEventListener('submit', function (e) { if (!f.querySelector('.ct-chk:checked')) { e.preventDefault(); LP.toast('Marque al menos una factura.', 'error'); } });
     // Recordar la pestaña abierta
     var tab = location.hash && document.querySelector('[data-bs-target="' + location.hash.replace('#', '#t-') + '"]');
     if (tab && window.bootstrap) new bootstrap.Tab(tab).show();

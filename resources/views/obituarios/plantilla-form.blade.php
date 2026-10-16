@@ -246,7 +246,7 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
     document.getElementById('pf-imagen').addEventListener('change', function () { if (this.files[0]) { imagen = URL.createObjectURL(this.files[0]); aplicar(); } });
     document.getElementById('pf-video').addEventListener('change', function () {
         var file = this.files[0]; if (!file) return;
-        if (file.size > 50 * 1024 * 1024) { alert('El video pesa más de 50 MB. Use uno más corto o comprímalo.'); this.value = ''; return; }
+        if (file.size > 50 * 1024 * 1024) { LP.toast('El video pesa más de 50 MB. Use uno más corto o comprímalo.', 'error'); this.value = ''; return; }
         video = URL.createObjectURL(file); aplicar();
     });
     function numeros() {
@@ -291,7 +291,7 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
             var nuevo = new File([blob], 'logo-sin-fondo.png', { type: 'image/png' });
             var dt = new DataTransfer(); dt.items.add(nuevo); lf.files = dt.files;
             archivoLogo = nuevo; ponerLogo(nuevo); aviso.hidden = true;
-        }).catch(function () { alert('No se pudo quitar el fondo. Suba un PNG sin fondo.'); }).finally(function () { b.disabled = false; });
+        }).catch(function () { LP.toast('No se pudo quitar el fondo. Suba un PNG sin fondo.', 'error'); }).finally(function () { b.disabled = false; });
     });
     // El logo que ya tiene: si trae fondo, se avisa
     var actual = document.querySelector('#pf-logo-prev img');

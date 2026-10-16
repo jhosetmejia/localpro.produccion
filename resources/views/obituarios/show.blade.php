@@ -91,7 +91,7 @@
             ocupado(b, true, '');
             el.dataset.escala = sel.value;
             Obi.exportar(el, nombre(), b.dataset.img)
-                .catch(function () { alert('No se pudo crear la imagen. Intente de nuevo o use Chrome.'); })
+                .catch(function () { LP.toast('No se pudo crear la imagen. Intente de nuevo o use Chrome.', 'error'); })
                 .finally(function () { ocupado(b, false); });
         });
     });
@@ -110,7 +110,7 @@
         prog.style.display = ''; prog.firstElementChild.style.width = '0';
         el.dataset.escala = sel.value;
         Obi.video(el, { formato: formatos[+vf.value], segundos: seg, nombre: nombre(), progreso: function (p) { prog.firstElementChild.style.width = Math.round(p * 100) + '%'; } })
-            .catch(function () { alert('No se pudo grabar el video. Intente con el otro formato o use Chrome.'); })
+            .catch(function () { LP.toast('No se pudo grabar el video. Intente con el otro formato o use Chrome.', 'error'); })
             .finally(function () { ocupado(vb, false); prog.style.display = 'none'; });
     });
 })();

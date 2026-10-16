@@ -445,3 +445,19 @@ textarea.form-control{min-height:calc(1.5em + 1.3rem)}
 .lp-opc3 label span{display:flex;flex-direction:column;line-height:1.2}
 @media (max-width:991.98px){.lp-pago-grid{grid-template-columns:1fr}}
 @media (max-width:575.98px){#pagoCampos{grid-template-columns:1fr;gap:10px}}
+
+/* Acciones de las tablas: botones claros, del mismo tamaño y fáciles de tocar en el celular */
+.lp-acc{display:flex;gap:.4rem;justify-content:flex-end;align-items:center;flex-wrap:nowrap}
+.lp-acc>a,.lp-acc>button,.lp-acc>span{width:36px;height:36px;flex:none;border-radius:11px;display:inline-grid;place-items:center;padding:0;border:1.5px solid #e3ebe6;background:#fff;color:#151a17;font-size:.95rem;line-height:1;text-decoration:none;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
+.lp-acc>a:hover,.lp-acc>button:hover{border-color:#2fd15a;background:#f4fcf6;color:#0b0d0c}
+.lp-acc .wa{background:#25d366;border-color:#25d366;color:#fff;font-size:1.1rem}
+.lp-acc .wa:hover{background:#1ebe5b;border-color:#1ebe5b;color:#fff}
+.lp-acc .del:hover{background:#ffe9f3;border-color:#f7c4d6;color:#b0173f}
+.lp-acc .off{opacity:.35;cursor:not-allowed}
+.lp-acc svg{width:1em;height:1em}
+/* Íconos viejos de tablas que aún usen el botón pequeño */
+.btn-datatable{width:32px!important;height:32px!important;display:inline-grid!important;place-items:center}
+.btn-datatable svg{width:14px;height:14px}
+/* Buscador de las tablas */
+.datatable-top{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;justify-content:space-between}
+.datatable-search label{display:none}

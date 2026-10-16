@@ -20,12 +20,17 @@
 .sp-card .m small{color:#6b7570;font-weight:700}
 .sp-est{font-size:.72rem;font-weight:800;border-radius:999px;padding:.2rem .6rem;white-space:nowrap}
 .sp-est.listo{background:#dcfce7;color:#14753a}.sp-est.vencido{background:#ffe9f3;color:#b0173f}.sp-est.activo{background:#fff5d6;color:#8a6400}
+.sp-row{display:flex;gap:.5rem;align-items:stretch;margin-bottom:.6rem}
+.sp-row .sp-card{flex:1 1 auto;margin-bottom:0;min-width:0}
+.sp-wa{flex:none;width:54px;border-radius:20px;background:#25d366;color:#fff;display:grid;place-items:center;font-size:1.45rem;text-decoration:none;transition:background .15s}
+.sp-wa:hover{background:#1ebe5b;color:#fff}
+.sp-wa.off{background:#eef1ef;color:#a3aca7;cursor:not-allowed;font-size:1.2rem}
 .sp-est.entregado{background:#e8f8ec;color:#11702f}.sp-est.cancelado{background:#eef1ef;color:#6b7570}
 </style>
 @endpush
 
 @section('content')
-@php $f = fn ($v) => '$' . number_format((float) $v, 0, ',', '.'); @endphp
+@php $f = fn ($v) => '$' . number_format((float) $v, 0, ',', '.'); $negocioNombre = \App\Models\Negocio::datos()->nombre ?? 'nuestro negocio'; @endphp
 <div class="lp-dash">
     <div class="lp-hello">
         <div><small><i class="fa-solid fa-box-archive me-1"></i>Ventas</small><h1>Separados y <span>abonos</span></h1>
@@ -53,6 +58,15 @@
         </div>
         @forelse ($lista as $s)
         @php $est = $s->estado !== 'activo' ? $s->estado : ($s->pagado ? 'listo' : ($s->vencido ? 'vencido' : 'activo')); @endphp
+        @php
+            $nom = strtok((string) $s->cliente_nombre, ' ');
+            $msgWa = match ($est) {
+                'listo' => "Hola {$nom} 👋 Su separado {$s->numero} en {$negocioNombre} ya está pagado y listo para recoger. ¡Lo esperamos!",
+                'activo', 'vencido' => "Hola {$nom} 👋 Le recordamos su separado {$s->numero} en {$negocioNombre}: le falta " . $f($s->saldo) . ($s->vence_en ? ' y tiene plazo hasta el ' . $s->vence_en->format('d/m/Y') : '') . '. Vea sus abonos aquí: ' . \App\Http\Controllers\separadoController::urlPublica($s),
+                default => "Hola {$nom} 👋, le escribimos de {$negocioNombre} por su separado {$s->numero}.",
+            };
+        @endphp
+        <div class="sp-row">
         <a class="sp-card" href="{{ route('separados.show', $s) }}">
             <span class="num">{{ $s->numero }}</span>
             <div class="t">
@@ -69,6 +83,12 @@
             </div>
             <span class="sp-est {{ $est }}">{{ ['listo' => '✅ Listo para entregar', 'vencido' => 'Vencido', 'activo' => 'Abonando', 'entregado' => 'Entregado', 'cancelado' => 'Cancelado'][$est] }}</span>
         </a>
+        @if ($s->telefono_wa)
+        <a class="sp-wa" target="_blank" rel="noopener" title="Escribirle por WhatsApp" href="https://wa.me/{{ $s->telefono_wa }}?text={{ rawurlencode($msgWa) }}"><i class="fa-brands fa-whatsapp"></i></a>
+        @else
+        <span class="sp-wa off" title="Este separado no tiene celular del cliente"><i class="fa-brands fa-whatsapp"></i></span>
+        @endif
+        </div>
         @empty
         <div class="lp-empty text-center py-4">
             <div style="font-size:2.2rem">📦</div>

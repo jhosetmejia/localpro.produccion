@@ -141,7 +141,7 @@ document.querySelectorAll('[data-copiar]').forEach(function (b) {
         var t = b.getAttribute('data-copiar');
         (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () {
             b.innerHTML = '<i class="fa-solid fa-check"></i>'; setTimeout(function () { b.innerHTML = '<i class="fa-regular fa-copy"></i>'; }, 1500);
-        }).catch(function () { prompt('Copie la dirección:', t); });
+        }).catch(function () { LP.toast('No se pudo copiar. La dirección es: ' + t, 'error'); });
     });
 });
 </script>
