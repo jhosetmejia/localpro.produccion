@@ -39,10 +39,22 @@ class catalogoController extends Controller
             'desde' => $precios->count() > 1 && $precios->min() < $precios->max() ? (float) $precios->min() : null,
             'img' => $p->img_path ? asset('storage/productos/' . rawurlencode($p->img_path)) : null,
             'url' => self::urlProducto($tienda, $p),
-            'categorias' => $p->categorias->map(fn ($c) => $c->caracteristica->nombre ?? null)->filter()->values()->all(),
+            'categorias' => $cats = $p->categorias->map(fn ($c) => $c->caracteristica->nombre ?? null)->filter()->values()->all(),
+            'para' => self::para($p->nombre . ' ' . implode(' ', $cats)),
             'disponible' => $vars->isNotEmpty(),
             'variantes' => $vars->map(fn ($v) => ['id' => $v->id, 'etiqueta' => $v->etiqueta, 'talla' => $v->talla, 'color' => $v->color, 'precio' => (float) ($v->precio ?? $p->precio_venta)])->all(),
         ];
+    }
+
+    // Para quién es el producto según su nombre y categorías: mujer, hombre, ninos o '' (para todos)
+    public static function para(string $texto): string
+    {
+        $t = ' ' . mb_strtolower($texto) . ' ';
+        if (preg_match('/\b(niñ[oa]s?|nin[oa]s?|infantil(es)?|beb[eé]s?|kids?|junior)\b/u', $t)) return 'ninos';
+        $mujer = (bool) preg_match('/\b(damas?|mujer(es)?|femenin[oa]s?|señoras?|chicas?|ladies)\b/u', $t);
+        $hombre = (bool) preg_match('/\b(caballeros?|hombres?|masculin[oa]s?|señor(es)?|chicos?|men)\b/u', $t);
+        if (preg_match('/\bunisex\b/u', $t) || $mujer === $hombre) return '';
+        return $mujer ? 'mujer' : 'hombre';
     }
 
     private function productos(Tienda $tienda)
@@ -69,7 +81,19 @@ class catalogoController extends Controller
         uksort($secciones, fn ($a, $b) => ($a === 'General') <=> ($b === 'General') ?: count($secciones[$b]) <=> count($secciones[$a]));
         $categorias = collect(array_keys($secciones));
 
-        return view('catalogo.show', compact('tienda', 'productos', 'categorias', 'secciones'));
+        // Para quién es cada categoría (para el filtro Mujer / Hombre / Niños)
+        $catPara = [];
+        foreach ($productos as $p) {
+            foreach ($p['categorias'] ?: ['General'] as $c) $catPara[$c][$p['para'] ?: 'todos'] = true;
+        }
+        $catPara = array_map(fn ($g) => implode(' ', array_keys($g)), $catPara);
+
+        // Solo se muestra el filtro si hay al menos dos grupos (ej. ropa de dama y de caballero)
+        $grupos = ['mujer' => ['👩', 'Mujer'], 'hombre' => ['👨', 'Hombre'], 'ninos' => ['🧒', 'Niños']];
+        $publicos = collect($grupos)->filter(fn ($g, $k) => $productos->where('para', $k)->isNotEmpty());
+        if ($publicos->count() < 2) $publicos = collect();
+
+        return view('catalogo.show', compact('tienda', 'productos', 'categorias', 'secciones', 'catPara', 'publicos'));
     }
 
     public function producto(string $slug, string $producto)

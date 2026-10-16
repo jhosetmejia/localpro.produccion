@@ -38,7 +38,13 @@
 .panel{margin-top:-50px;position:relative;z-index:2}
 .search{background:#fff;border-radius:20px;box-shadow:0 20px 40px -24px rgba(0,0,0,.35);padding:10px;display:flex;gap:8px;align-items:center}
 .search input{flex:1;border:0;outline:none;font:inherit;font-weight:600;font-size:1rem;padding:.6rem .7rem;min-width:0}
-.cats{position:sticky;top:64px;z-index:20;background:var(--bg);display:flex;gap:8px;overflow-x:auto;padding:12px 2px;scrollbar-width:none}
+.filtros{position:sticky;top:64px;z-index:20;background:var(--bg);padding:12px 0 2px}
+.pub{display:flex;gap:8px;margin-bottom:10px}
+.pub button{flex:1;max-width:170px;background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:.65rem .5rem;font-weight:800;font-size:.95rem;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer}
+.pub button.on{background:var(--k);color:#fff;border-color:var(--k)}
+.cats{display:flex;gap:8px;overflow-x:auto;padding:0 2px 10px;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}
+.cats::-webkit-scrollbar{display:none}
+@media (min-width:768px){.cats{flex-wrap:wrap;overflow:visible;-webkit-mask-image:none;mask-image:none}}
 .cats a,.cats button{white-space:nowrap;background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:.5rem .95rem;font-weight:700;font-size:.88rem}
 .cats .on{background:var(--k);color:#fff;border-color:var(--k)}
 .sec{margin-top:18px}
@@ -58,11 +64,21 @@
 
 <main class="wrap panel">
     <div class="search"><span style="padding-left:6px">🔎</span><input id="q" type="search" placeholder="¿Qué está buscando?" autocomplete="off" aria-label="Buscar productos"></div>
-    @if ($categorias->count() > 1)
-    <nav class="cats" id="cats" aria-label="Categorías">
-        <button class="on" data-c="">Todo</button>
-        @foreach ($categorias as $c)<a href="#cat-{{ \Illuminate\Support\Str::slug($c) }}" data-c="{{ $c }}">{{ $c }}</a>@endforeach
-    </nav>
+    @if ($categorias->count() > 1 || $publicos->isNotEmpty())
+    <div class="filtros">
+        @if ($publicos->isNotEmpty())
+        <nav class="pub" id="pub" aria-label="¿Para quién?">
+            <button class="on" data-p="">Todo</button>
+            @foreach ($publicos as $k => [$ico, $nom])<button data-p="{{ $k }}">{{ $ico }} {{ $nom }}</button>@endforeach
+        </nav>
+        @endif
+        @if ($categorias->count() > 1)
+        <nav class="cats" id="cats" aria-label="Categorías">
+            <button class="on" data-c="">Todo</button>
+            @foreach ($categorias as $c)<a href="#cat-{{ \Illuminate\Support\Str::slug($c) }}" data-c="{{ $c }}" data-para="{{ $catPara[$c] ?? 'todos' }}">{{ $c }}</a>@endforeach
+        </nav>
+        @endif
+    </div>
     @endif
 
     @forelse ($secciones as $cat => $items)
@@ -104,13 +120,13 @@
 <script>
 (function () {
     var P = {}; @json($productos).forEach(function (p) { P[p.id] = p; });
-    var q = document.getElementById('q'), cat = '';
+    var q = document.getElementById('q'), cat = '', para = '';
     function filtrar() {
         var t = q.value.trim().toLowerCase(), hay = 0;
         document.querySelectorAll('.sec').forEach(function (s) {
             var n = 0;
             s.querySelectorAll('.card').forEach(function (c) {
-                var p = P[c.dataset.id], ok = (!t || c.dataset.q.indexOf(t) !== -1) && (!cat || p.categorias.indexOf(cat) !== -1 || (!p.categorias.length && cat === 'General'));
+                var p = P[c.dataset.id], ok = (!t || c.dataset.q.indexOf(t) !== -1) && (!cat || p.categorias.indexOf(cat) !== -1 || (!p.categorias.length && cat === 'General')) && (!para || !p.para || p.para === para);
                 c.style.display = ok ? '' : 'none'; if (ok) n++;
             });
             s.style.display = n ? '' : 'none'; hay += n;
@@ -118,7 +134,32 @@
         document.getElementById('nada').style.display = hay ? 'none' : '';
     }
     q.addEventListener('input', filtrar);
-    var cats = document.getElementById('cats');
+    var cats = document.getElementById('cats'), pub = document.getElementById('pub');
+    function elegirPara(v) {
+        para = v;
+        pub.querySelectorAll('[data-p]').forEach(function (x) { x.classList.toggle('on', x.dataset.p === v); });
+        // Solo quedan las categorías de ese grupo
+        if (cats) {
+            cats.querySelectorAll('[data-para]').forEach(function (x) {
+                var g = x.dataset.para.split(' ');
+                x.style.display = !v || g.indexOf(v) !== -1 || g.indexOf('todos') !== -1 ? '' : 'none';
+            });
+            var actual = cats.querySelector('.on');
+            if (actual && actual.style.display === 'none') { cat = ''; cats.querySelectorAll('[data-c]').forEach(function (x) { x.classList.toggle('on', x.dataset.c === ''); }); }
+        }
+        try { var u = new URL(location.href); v ? u.searchParams.set('para', v) : u.searchParams.delete('para'); history.replaceState(null, '', u); } catch (e) {}
+        filtrar();
+    }
+    if (pub) {
+        pub.addEventListener('click', function (e) {
+            var b = e.target.closest('[data-p]'); if (!b) return;
+            elegirPara(b.dataset.p);
+            window.scrollTo({ top: document.querySelector('.panel').offsetTop - 70, behavior: 'smooth' });
+        });
+        // Enlace compartido con ?para=mujer abre ya filtrado
+        var inicial = new URLSearchParams(location.search).get('para');
+        if (inicial && pub.querySelector('[data-p="' + inicial + '"]')) elegirPara(inicial);
+    }
     if (cats) cats.addEventListener('click', function (e) {
         var b = e.target.closest('[data-c]'); if (!b) return;
         if (q.value) { q.value = ''; }
