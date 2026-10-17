@@ -33,7 +33,14 @@
   .et .o{font-size:6.8pt;display:flex;justify-content:space-between;gap:4px;white-space:nowrap}
   .et .o span:first-child{overflow:hidden;text-overflow:ellipsis}
   .et .pr{font-weight:800;font-size:8.5pt}
-  .et svg{width:100%;height:11mm}
+  .et svg{width:100%;height:11mm;flex:1 1 auto;min-height:6mm}
+  .et .t{font-size:6pt;font-weight:800;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .et .ds{font-size:6.2pt;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#222}
+  .campos{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;padding:10px 12px;background:#f7faf8;border:1.5px solid #e3efe5;border-radius:14px;align-items:center}
+  .campos b{font-size:13px;margin-right:4px}
+  .campos label{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.5px solid #d6e5d9;border-radius:999px;padding:6px 12px;font-weight:700;font-size:13px;cursor:pointer;user-select:none}
+  .campos label:has(input:checked){border-color:#16b34a;background:#ecfaef;color:#11702f}
+  .campos input{accent-color:#16b34a}
   body.rollo #hoja{grid-template-columns:50mm;gap:3mm}
   body.c4 #hoja{width:200mm;grid-template-columns:repeat(4,50mm)}
   body.c3 #hoja{width:198mm;grid-template-columns:repeat(3,66mm)}
@@ -95,9 +102,18 @@
         @endforeach
     </table>
     @if (!empty($todas))</div>@endif
+    <div class="campos" id="campos">
+        <b>¿Qué lleva la etiqueta?</b>
+        <label><input type="checkbox" data-campo="nombre" checked> Nombre</label>
+        <label><input type="checkbox" data-campo="precio" checked> Precio</label>
+        <label><input type="checkbox" data-campo="ref" checked> Código del producto</label>
+        <label><input type="checkbox" data-campo="op" checked> Talla / color</label>
+        <label><input type="checkbox" data-campo="numero" checked> Número bajo las barras</label>
+        <label><input type="checkbox" data-campo="desc"> Descripción</label>
+        <label><input type="checkbox" data-campo="tienda"> Nombre del negocio</label>
+    </div>
     <div class="row">
         <label>Papel: <select id="papel"><option value="c4">Hoja carta/A4 · 40 por hoja (4 × 10)</option><option value="c3">Hoja carta/A4 · 24 por hoja, más grandes (3 × 8)</option><option value="rollo">Rollo 50 × 25 mm (impresora de etiquetas)</option></select></label>
-        <label><input type="checkbox" id="conPrecio" checked> Mostrar precio</label>
         <span style="flex:1"></span>
         <button class="p" onclick="window.print()">🖨 Imprimir</button>
         <button class="d" onclick="alert_pdf()">⬇ Descargar PDF</button>
@@ -116,6 +132,7 @@
             'op' => $it['v']->etiqueta !== 'Única' ? $it['v']->etiqueta : '',
             'codigo' => $it['v']->codigo_barras,
             'precio' => dinero($it['v']->precio_final),
+            'desc' => (string) $it['v']->producto->descripcion,
         ])->values();
     @endphp
     var ITEMS = @json($itemsJs);
@@ -123,6 +140,13 @@
     var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); };
     var estiloPagina = document.createElement('style'); document.head.appendChild(estiloPagina);
     try { var guardado = localStorage.getItem('lp_etq_papel'); if (guardado) document.getElementById('papel').value = guardado; } catch (e) {}
+    // Lo que el negocio elige que salga en la etiqueta (se recuerda en este equipo)
+    try { var gc = JSON.parse(localStorage.getItem('lp_etq_campos') || 'null'); if (gc) document.querySelectorAll('[data-campo]').forEach(function (i) { if (i.dataset.campo in gc) i.checked = !!gc[i.dataset.campo]; }); } catch (e) {}
+    function campos() {
+        var c = {}; document.querySelectorAll('[data-campo]').forEach(function (i) { c[i.dataset.campo] = i.checked; });
+        try { localStorage.setItem('lp_etq_campos', JSON.stringify(c)); } catch (e) {}
+        return c;
+    }
     function pintar() {
         var papel = document.getElementById('papel').value || 'c4';
         document.body.classList.remove('rollo', 'c4', 'c3', 'a4');
@@ -130,16 +154,22 @@
         // Tamaño de página: en rollo cada página es una etiqueta; en carta, hoja carta con margen pequeño
         estiloPagina.textContent = papel === 'rollo' ? '@page{size:50mm 25mm;margin:0}' : '@page{size:letter;margin:8mm 7mm}';
         try { localStorage.setItem('lp_etq_papel', papel); } catch (e) {}
-        var conPrecio = document.getElementById('conPrecio').checked, html = '', n = 0;
+        var C = campos(), html = '', n = 0;
         document.querySelectorAll('.cant').forEach(function (inp) {
             var it = ITEMS[+inp.dataset.k], c = Math.min(500, +inp.value || 0);
             for (var i = 0; i < c; i++) {
-                html += '<div class="et"><div class="n">' + esc(it.nombre) + '</div><div class="o"><span>' + esc([it.ref, it.op].filter(Boolean).join(' · ')) + '</span>' + (conPrecio ? '<span class="pr">' + esc(it.precio) + '</span>' : '') + '</div><svg class="bc" data-c="' + esc(it.codigo) + '"></svg></div>';
+                var linea = [C.ref ? it.ref : '', C.op ? it.op : ''].filter(Boolean).join(' · ');
+                html += '<div class="et">'
+                    + (C.tienda ? '<div class="t">' + esc(TIENDA) + '</div>' : '')
+                    + (C.nombre ? '<div class="n">' + esc(it.nombre) + '</div>' : '')
+                    + (C.desc && it.desc ? '<div class="ds">' + esc(it.desc) + '</div>' : '')
+                    + (linea || C.precio ? '<div class="o"><span>' + esc(linea) + '</span>' + (C.precio ? '<span class="pr">' + esc(it.precio) + '</span>' : '') + '</div>' : '')
+                    + '<svg class="bc" data-c="' + esc(it.codigo) + '"></svg></div>';
                 n++;
             }
         });
         document.getElementById('hoja').innerHTML = html;
-        if (window.JsBarcode) document.querySelectorAll('.bc').forEach(function (s) { JsBarcode(s, s.dataset.c, { format: 'CODE128', displayValue: true, fontSize: 11, height: 40, margin: 0, textMargin: 0 }); });
+        if (window.JsBarcode) document.querySelectorAll('.bc').forEach(function (s) { JsBarcode(s, s.dataset.c, { format: 'CODE128', displayValue: C.numero, fontSize: 11, height: 40, margin: 0, textMargin: 0 }); });
     }
     var tot = document.getElementById('totEt');
     var pintarBase = pintar;
@@ -148,7 +178,7 @@
         var m = document.getElementById('avisoPdf'); if (m) m.style.display = 'flex';
         setTimeout(function () { if (m) m.style.display = 'none'; window.print(); }, 1600);
     };
-    document.querySelectorAll('.cant, #papel, #conPrecio').forEach(function (el) { el.addEventListener('input', pintar); el.addEventListener('change', pintar); });
+    document.querySelectorAll('.cant, #papel, [data-campo]').forEach(function (el) { el.addEventListener('input', pintar); el.addEventListener('change', pintar); });
     pintar();
 })();
 </script>
