@@ -190,6 +190,32 @@ Route::middleware(['auth', 'tienda', 'conjunto'])->prefix('conjunto')->name('con
     Route::post('/configuracion', 'config')->name('config');
 });
 
+// ===== Consultorio (salud particular): pacientes, agenda e historia clínica =====
+Route::middleware(['auth', 'tienda'])->prefix('consultorio')->name('consultorio.')->controller(\App\Http\Controllers\consultorioController::class)->group(function () {
+    Route::get('/', 'inicio')->name('inicio');
+    Route::get('/agenda', 'agenda')->name('agenda');
+    Route::post('/citas', 'citaGuardar')->name('citas.store');
+    Route::put('/citas/{cita}', 'citaGuardar')->whereNumber('cita')->name('citas.update');
+    Route::post('/citas/{cita}/estado', 'citaEstado')->whereNumber('cita')->name('citas.estado');
+    Route::get('/pacientes', 'pacientes')->name('pacientes');
+    Route::get('/pacientes/nuevo', 'pacienteForm')->name('pacientes.create');
+    Route::post('/pacientes', 'pacienteGuardar')->name('pacientes.store');
+    Route::get('/pacientes/{paciente}', 'paciente')->whereNumber('paciente')->name('paciente');
+    Route::get('/pacientes/{paciente}/editar', 'pacienteForm')->whereNumber('paciente')->name('pacientes.edit');
+    Route::put('/pacientes/{paciente}', 'pacienteGuardar')->whereNumber('paciente')->name('pacientes.update');
+    Route::delete('/pacientes/{paciente}', 'pacienteBorrar')->whereNumber('paciente')->name('pacientes.destroy');
+    Route::post('/pacientes/{paciente}/atencion', 'atencionNueva')->whereNumber('paciente')->name('atencion.nueva');
+    Route::get('/pacientes/{paciente}/historia', 'historiaCompleta')->whereNumber('paciente')->name('historia');
+    Route::get('/atenciones/{atencion}', 'atencion')->whereNumber('atencion')->name('atencion');
+    Route::put('/atenciones/{atencion}', 'atencionGuardar')->whereNumber('atencion')->name('atencion.guardar');
+    Route::post('/atenciones/{atencion}/cerrar', 'atencionCerrar')->whereNumber('atencion')->name('atencion.cerrar');
+    Route::post('/atenciones/{atencion}/nota', 'atencionNota')->whereNumber('atencion')->name('atencion.nota');
+    Route::get('/atenciones/{atencion}/imprimir', 'imprimir')->whereNumber('atencion')->name('atencion.imprimir');
+    Route::get('/cie10', 'cie')->name('cie');
+    Route::get('/configuracion', 'configuracion')->name('configuracion');
+    Route::post('/configuracion', 'configuracionGuardar')->name('configuracion.guardar');
+});
+
 // ===== Pantallas de la tienda =====
 // "Aprende LocalPro": cursos para el dueño, su equipo y los asesores
 Route::middleware('auth')->prefix('aprende')->name('aprende.')->group(function () {

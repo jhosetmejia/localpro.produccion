@@ -123,6 +123,7 @@
                     'mod_alquiler' => ['fa-calendar-days', '¿Maneja alquiler?', 'Ej: sonido, trajes, salones, carpas, equipos. Lleva fechas, abonos y si ya le devolvieron. Si no alquila, déjelo apagado.'],
                     'mod_contable' => ['fa-calculator', 'Llevo la contabilidad de otros', 'Para contadores: cruce de facturas DIAN, retenciones y borrador del 350.'],
                     'mod_obituarios' => ['fa-dove', 'Obituarios para pantallas', 'Para funerarias: salas de velación y obituarios con foto en el televisor de cada sala.'],
+                    'mod_consultorio' => ['fa-user-doctor', 'Atiendo pacientes (consultorio)', 'Para psicología, odontología, estética, fisioterapia, nutrición o medicina: pacientes, agenda de citas e historia clínica.'],
                 ] as $k => [$ic, $tit, $txt])
                 <label class="mod">
                     <input type="hidden" name="{{ $k }}" value="0">
@@ -164,7 +165,7 @@
             }
             document.querySelectorAll('input[name=tipo_negocio]').forEach(function (r) { r.addEventListener('change', function () { aplicar(r.value); }); });
             var marcado = document.querySelector('input[name=tipo_negocio]:checked');
-            if (marcado && {{ ($tienda->mod_medida || $tienda->mod_vencimiento || $tienda->mod_recetas || $tienda->mod_alquiler || $tienda->mod_obituarios || $tienda->mod_contable || old('mod_medida') !== null) ? 'false' : 'true' }}) aplicar(marcado.value);
+            if (marcado && {{ ($tienda->mod_medida || $tienda->mod_vencimiento || $tienda->mod_recetas || $tienda->mod_alquiler || $tienda->mod_obituarios || $tienda->mod_contable || $tienda->mod_consultorio || old('mod_medida') !== null) ? 'false' : 'true' }}) aplicar(marcado.value);
             else if (marcado) mods.style.display = marcado.value === 'conjunto' ? 'none' : '';
         })();
         </script>

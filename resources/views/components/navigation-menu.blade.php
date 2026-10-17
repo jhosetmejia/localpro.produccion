@@ -116,9 +116,10 @@
 
                 @if ($tiendaMenu || (!auth()->user()->asesor && !auth()->user()->es_superadmin))
                 <div class="sb-sidenav-menu-heading">{{ $tiendaMenu ? \Illuminate\Support\Str::limit($tiendaMenu->nombre, 22) : 'Inicio' }}</div>
-                <a class="nav-link {{ $on('panel') }}" href="{{ route('panel') }}">
-                    <div class="sb-nav-link-icon"><i class="fa-solid fa-house"></i></div>
-                    Panel
+                @php $esConsultorio = $tiendaMenu?->tipo_negocio === 'consultorio' && $tiendaMenu?->mod_consultorio; @endphp
+                <a class="nav-link {{ $on('panel') }}" href="{{ $esConsultorio ? route('panel', ['ventas' => 1]) : route('panel') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid {{ $esConsultorio ? 'fa-chart-line' : 'fa-house' }}"></i></div>
+                    {{ $esConsultorio ? 'Ventas del consultorio' : 'Panel' }}
                 </a>
 
                 @if ($tiendaMenu && $tiendaMenu->es_conjunto)
@@ -150,6 +151,12 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-calculator"></i></div>
                     Contabilidad <span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c;font-size:.6rem">NUEVO</span>
                 </a>
+                @endif
+                @if ($tiendaMenu?->mod_consultorio && (auth()->user()->can('agenda-consultorio') || auth()->user()->can('historia-clinica')) && $ver('consultorio'))
+                <div class="sb-sidenav-menu-heading">Consultorio</div>
+                <a class="nav-link {{ $on('consultorio.inicio') }}" href="{{ route('consultorio.inicio') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-house-medical"></i></div>Hoy en consulta</a>
+                <a class="nav-link {{ $on('consultorio.agenda') }}" href="{{ route('consultorio.agenda') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-calendar-check"></i></div>Agenda de citas</a>
+                <a class="nav-link {{ $on('consultorio.pacientes*') }} {{ $on('consultorio.paciente') }} {{ $on('consultorio.atencion*') }}" href="{{ route('consultorio.pacientes') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-users"></i></div>Pacientes</a>
                 @endif
                 @if ($tiendaMenu?->mod_obituarios && (auth()->user()->can('gestionar-obituarios') || auth()->user()->can('editar-negocio')) && \Illuminate\Support\Facades\Route::has('obituarios.index'))
                 @if ($ver('obituarios'))<a class="nav-link {{ $on('obituarios.*') }}" href="{{ route('obituarios.index') }}">

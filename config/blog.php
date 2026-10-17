@@ -6,6 +6,24 @@
 // palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
+    'historia-clinica-para-consultorios-particulares' => [
+        'titulo' => 'Historia clínica en el celular para consultorios: agenda, fórmulas y firma, sin carpetas',
+        'resumen' => 'Psicólogos, odontólogos, estética, fisioterapia y nutrición: lleve pacientes, citas con recordatorio por WhatsApp e historia clínica cifrada y firmada, con fórmulas e incapacidades listas para imprimir. Y cobre la consulta en la misma caja.',
+        'fecha' => '17 de octubre de 2026',
+        'publicado' => '2026-10-17',
+        'minutos' => 5,
+        'icono' => 'fa-user-doctor',
+        'rol' => 'consultorios',
+        'seo_titulo' => 'Historia clínica electrónica para consultorios | LocalProo',
+        'descripcion' => 'Software de historia clínica para consultorio particular: agenda de citas, CIE-10, fórmula médica, incapacidades y firma. Cifrado y según la Res. 1995 de 1999.',
+        'keywords' => ['software historia clínica consultorio', 'historia clínica electrónica psicología', 'programa para odontólogos', 'agenda de citas con WhatsApp', 'historia clínica estética', 'software para fisioterapeutas', 'historia clínica nutricionista'],
+        'faq' => [
+            ['¿Se puede modificar una historia ya firmada?', 'No. Al cerrar la atención queda firmada con el nombre y el registro del profesional. Si hay un error se agrega una nota aclaratoria con fecha y autor, como pide la Resolución 1995 de 1999.'],
+            ['¿La recepcionista puede ver las historias?', 'No. Recepción maneja la agenda y los datos de contacto. La historia clínica solo la ven los usuarios con permiso de Historia clínica.'],
+            ['¿Sirve para facturar a EPS?', 'Por ahora está pensado para consulta particular (el paciente paga directo). RIPS y facturación electrónica de salud a EPS vienen en una siguiente fase.'],
+            ['¿Puedo imprimir la historia completa si el paciente la pide?', 'Sí, con un botón sale la historia completa del paciente lista para imprimir o guardar en PDF.'],
+        ],
+    ],
     'conteo-de-inventario-con-el-celular' => [
         'titulo' => 'Conteo de inventario con el celular: escanee, toque "Terminé" y sepa qué falta',
         'resumen' => 'Vea cuántas prendas tiene por talla, categoría y color, y haga el inventario físico escaneando las etiquetas con la cámara. LocalProo le dice qué está, qué falta y qué sobra, y cuadra el sistema con un botón.',

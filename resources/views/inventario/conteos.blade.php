@@ -27,6 +27,7 @@
 @endpush
 
 @section('content')
+@include('layouts.partials.alert')
 <div class="lp-dash">
     <div class="lp-hello">
         <div><small>Inventario</small><h1>Conteo <span>físico</span></h1></div>

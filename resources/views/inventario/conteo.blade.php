@@ -83,6 +83,7 @@ body.ciego .cn-sis,body.ciego .cn-dif,body.ciego .cn-n.falta,body.ciego .cn-n.so
 @endpush
 
 @section('content')
+@include('layouts.partials.alert')
 @php
     $puedeAjustar = auth()->user()->can('ajustar-inventario');
     $abierto = $conteo->abierto;

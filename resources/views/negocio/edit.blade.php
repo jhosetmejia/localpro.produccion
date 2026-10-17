@@ -76,6 +76,7 @@
                 'mod_alquiler' => ['Alquiler', 'Para negocios que alquilan (sonido, trajes, salones, equipos…): fechas, abonos, entrega y devolución. Apagado, no aparece en el menú.', false],
                 'mod_contable' => ['Contabilidad: retenciones e IVA', 'Para contadores y analistas: cruce de facturas de la DIAN con la contabilidad, borrador del 350 y del IVA, certificados de retención.', false],
                 'mod_obituarios' => ['Obituarios (funerarias)', 'Salas de velación y obituarios con foto para los televisores de cada sala. Se enciende solo si el negocio es funeraria.', false],
+                'mod_consultorio' => ['Consultorio (pacientes e historia clínica)', 'Para psicología, odontología, estética, fisioterapia, nutrición o medicina: pacientes, agenda de citas, historia clínica cifrada, fórmulas e incapacidades.', false],
             ] as $k => [$tit, $txt, $pronto])
             <input type="hidden" name="{{ $k }}" value="0">
             <div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" name="{{ $k }}" value="1" id="{{ $k }}" @checked(old($k, $negocio->$k))><label class="form-check-label fw-bold" for="{{ $k }}">{{ $tit }}@if ($pronto) <span class="badge rounded-pill" style="background:#fef3c7;color:#92600a;font-size:.65rem">Muy pronto</span>@endif</label>

@@ -44,6 +44,9 @@ class PermisosVendedor
             'ver-cajas-todas' => 'Ver cierres de caja de todos',
             'ver-reportes' => 'Ver reportes (incluye ganancias)',
         ],
+        'Consultorio' => [
+            'historia-clinica' => 'Historia clínica (profesional de salud: ve y escribe historias)',
+        ],
         'Otros' => [
             'ver-metodo-pago' => 'Ver métodos de pago',
             'crear-metodo-pago' => 'Crear métodos de pago',

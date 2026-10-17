@@ -347,6 +347,39 @@ class Academia
                     ['p' => 'Un vendedor dejó de trabajar. ¿Qué hago?', 'o' => ['Desactivo su usuario ese día', 'Lo dejo activo', 'Le cambio el nombre'], 'r' => 0],
                 ],
             ],
+
+            // Solo aparece en negocios con el módulo Consultorio (y para los asesores, que lo venden)
+            'consultorio' => [
+                'titulo' => 'Su consultorio en LocalPro', 'icono' => 'fa-user-doctor', 'color' => '#0ea5e9', 'para' => ['todos', 'asesor'], 'modulo' => 'mod_consultorio',
+                'resumen' => 'Pacientes, agenda de citas, historia clínica firmada, fórmulas e incapacidades, y cómo se cuida la información.',
+                'lecciones' => [
+                    ['titulo' => 'Pacientes y agenda', 'min' => 3, 'accion' => ['consultorio.agenda', 'Ir a la agenda'], 'contenido' => [
+                        'Cree cada paciente con su documento, celular y fecha de nacimiento. Marque la <b>autorización de tratamiento de datos</b> (Ley 1581 de 2012).',
+                        'En <b>Agenda</b> elige el día, busca el paciente y le pone hora, duración y motivo. El sistema no deja cruzar dos citas del mismo profesional.',
+                        'Con el botón <b>Recordar</b> le manda el recordatorio por WhatsApp en un toque. Cuando confirme, márquela como <b>Confirmó</b>.',
+                    ], 'tip' => 'Recuerde las citas el día anterior: baja mucho la cantidad de pacientes que no llegan.'],
+                    ['titulo' => 'La historia clínica', 'min' => 4, 'accion' => ['consultorio.pacientes', 'Ver pacientes'], 'contenido' => [
+                        'Desde la cita o la ficha del paciente toque <b>Atender</b>. Elija el tipo de historia: medicina general, odontología, psicología, estética, fisioterapia o nutrición.',
+                        'Escriba motivo, enfermedad actual, signos vitales (el IMC sale solo), examen, <b>diagnósticos CIE-10</b> (busque por palabra, ej. "lumbago") y plan.',
+                        'Mientras escribe se guarda solo. Al terminar toque <b>Cerrar y firmar</b>: queda con su nombre y registro y <b>ya no se puede cambiar</b>. Si se equivocó, agregue una <b>nota aclaratoria</b>.',
+                    ], 'tip' => 'Suba su firma y su registro profesional en "Mi perfil y firma": salen en todo lo que imprima.'],
+                    ['titulo' => 'Fórmulas, incapacidades y cobro', 'min' => 2, 'accion' => ['consultorio.inicio', 'Ir al consultorio'], 'contenido' => [
+                        'Escriba la fórmula (un medicamento por línea) y los días de incapacidad en la misma atención. Al cerrarla, imprímalas o guárdelas en PDF para el paciente.',
+                        'Cobre la consulta en la <b>caja</b> como cualquier venta: consulta de primera vez, control, valoración o paquete de sesiones.',
+                    ], 'tip' => null],
+                    ['titulo' => 'La información está protegida', 'min' => 2, 'accion' => null, 'contenido' => [
+                        'La historia clínica es <b>reservada</b>: solo la ven los usuarios con permiso de Historia clínica. Recepción maneja la agenda y los datos de contacto.',
+                        'Lo clínico se guarda <b>cifrado</b>, y el dueño ve quién abrió, escribió o imprimió cada historia.',
+                        'Un paciente con historia clínica <b>no se puede borrar</b>: la ley obliga a conservarla.',
+                    ], 'tip' => 'Nunca preste su usuario: lo que se firma con él queda a su nombre.'],
+                ],
+                'prueba' => [
+                    ['p' => 'Cerré una atención y me equivoqué en una dosis. ¿Qué hago?', 'o' => ['Agrego una nota aclaratoria', 'Borro la atención', 'Le pido a LocalPro que la cambie'], 'r' => 0],
+                    ['p' => '¿Quién puede ver la historia clínica?', 'o' => ['Solo quien tiene permiso de Historia clínica', 'Cualquier usuario del negocio', 'Cualquier persona con el enlace'], 'r' => 0],
+                    ['p' => '¿Cómo le recuerdo la cita al paciente?', 'o' => ['Con el botón Recordar por WhatsApp', 'No se puede', 'Llamando a LocalPro'], 'r' => 0],
+                    ['p' => '¿Qué hay que pedirle al paciente al registrarlo?', 'o' => ['La autorización de tratamiento de datos', 'La clave de su correo', 'Nada'], 'r' => 0],
+                ],
+            ],
         ];
     }
 
@@ -388,6 +421,13 @@ class Academia
     public static function paraMi(): array
     {
         $g = self::grupos();
-        return array_filter(self::cursos(), fn ($c) => (bool) array_intersect((array) $c['para'], $g));
+        $u = auth()->user();
+        $tienda = TiendaActual::tienda();
+        return array_filter(self::cursos(), function ($c) use ($g, $u, $tienda) {
+            if (!array_intersect((array) $c['para'], $g)) return false;
+            // Cursos de un módulo (ej. Consultorio): solo si el negocio lo tiene, o para asesores y LocalPro
+            if (!empty($c['modulo']) && !($tienda?->{$c['modulo']}) && !$u?->es_superadmin && !$u?->asesor) return false;
+            return true;
+        });
     }
 }

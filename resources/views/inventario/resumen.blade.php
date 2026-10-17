@@ -38,6 +38,7 @@ a.inv-row:hover .inv-nom{color:var(--lp-green-2)}
 @endpush
 
 @section('content')
+@include('layouts.partials.alert')
 @php
     $catNombre = $catId ? $categorias->firstWhere('id', $catId)['nombre'] : null;
     $idCat = $categorias->pluck('id', 'nombre');

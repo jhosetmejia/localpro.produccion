@@ -47,6 +47,11 @@ class homeController extends Controller
         if ($tienda->es_conjunto) {
             return redirect()->route('conjunto.inicio');
         }
+        // Consultorios: su inicio es la agenda del día (el panel de ventas sigue en /?ventas=1)
+        if ($tienda->tipo_negocio === 'consultorio' && $tienda->mod_consultorio && !request()->boolean('ventas')
+            && (Auth::user()->can('agenda-consultorio') || Auth::user()->can('historia-clinica'))) {
+            return redirect()->route('consultorio.inicio');
+        }
         // Cuenta registrada desde la web, aún sin rol asignado
         if (Auth::user()->roles()->count() === 0) {
             return view('panel.pendiente');
