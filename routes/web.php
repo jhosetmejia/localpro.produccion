@@ -145,6 +145,7 @@ Route::middleware('auth')->post('/asesor/contactos', [\App\Http\Controllers\ases
 Route::middleware('auth')->post('/asesor/contactos/{contacto}/marcar', [\App\Http\Controllers\asesorContactosController::class, 'marcar'])->whereNumber('contacto')->name('asesor.contactos.marcar');
 Route::middleware('auth')->post('/asesor/contactos/red/{contacto}/marcar', [\App\Http\Controllers\asesorContactosController::class, 'marcarRed'])->whereNumber('contacto')->name('asesor.contactos.red.marcar');
 Route::middleware('auth')->get('/asesor/capacitacion', [unirseController::class, 'capacitacion'])->name('asesor.capacitacion');
+Route::middleware('auth')->get('/asesor/ejemplos', [\App\Http\Controllers\asesorEjemplosController::class, 'index'])->name('asesor.ejemplos');
 
 // ===== Asistente de configuración de la tienda nueva =====
 Route::middleware(['auth', 'tienda:asistente'])->prefix('bienvenida')->name('bienvenida.')->group(function () {

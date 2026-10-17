@@ -53,6 +53,12 @@
                 <div class="col-md-2"><label class="form-label" title="Lo que paga el negocio por cada paquete de productos extra">Precio paquete extra</label><input data-dinero type="number" min="0" name="productos_paquete_precio" class="form-control" value="{{ $paqPrecio }}"></div>
                 <div class="col-md-2"><label class="form-label">Productos por paquete</label><input type="number" min="1" name="productos_paquete_cantidad" class="form-control" value="{{ $paqCantidad }}"></div>
                 <div class="col-md-3 text-end"><button class="btn btn-primary btn-lg"><i class="fa-solid fa-floppy-disk me-1"></i>Guardar</button></div>
+                <div class="col-12"><div style="border:1.5px solid #cfeedd;background:#f3faf5;border-radius:18px;padding:1rem 1.1rem">
+                    <b><i class="fa-solid fa-eye me-1" style="color:#16b34a"></i>Tiendas de ejemplo para los asesores</b>
+                    <label class="form-label small fw-bold mt-2 mb-1">Códigos LCT separados por coma (ej. una de ropa, un restaurante…)</label>
+                    <input name="ejemplos_tiendas" class="form-control" value="{{ $ejemplos }}" placeholder="LCT-00003, LCT-00010">
+                    <small class="text-muted d-block mt-1">Los asesores ven su tienda en línea, su página de enlaces y su última factura en "Ejemplos para mostrar". Use tiendas con fotos bonitas, enlaces publicados y al menos una venta. <a href="{{ route('asesor.ejemplos') }}" target="_blank">Ver cómo queda</a></small>
+                </div></div>
                 <div class="col-12"><div style="border:1.5px solid #cfe0ff;background:#f5f9ff;border-radius:18px;padding:1rem 1.1rem">
                     <b><i class="fa-brands fa-facebook me-1" style="color:#1877f2"></i>Conexión con Facebook e Instagram (Mis redes)</b>
                     <div class="form-check form-switch mt-2"><input type="hidden" name="meta_en_vivo" value="0"><input class="form-check-input" type="checkbox" name="meta_en_vivo" value="1" id="metaVivo" @checked($metaEnVivo)><label class="form-check-label fw-semibold" for="metaVivo">Meta ya aprobó la app y está <b>en vivo</b> (todos los negocios pueden conectar)</label></div>

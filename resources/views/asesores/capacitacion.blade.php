@@ -101,7 +101,7 @@
         <h1>Cómo ganar un <em>salario mínimo</em> en una semana… o en 3 días.</h1>
         <p>Todo lo que necesita un asesor de LocalPro para vender desde el primer día: cuánto se gana, qué decir, cómo responder dudas y la rutina que funciona.</p>
         <div class="indice">
-            <a href="#meta">💰 La meta</a><a href="#producto">📱 Qué vendemos</a><a href="#conjuntos">🏢 Conjuntos</a><a href="#pasos">🪜 Paso a paso</a><a href="#guiones">💬 Guiones</a><a href="#dudas">🙋 Dudas</a><a href="#rutina">✅ Rutina</a><a href="#mentalidad">🧠 Mentalidad</a><a href="#crecer">🚀 Crecer</a>
+            <a href="#meta">💰 La meta</a><a href="#producto">📱 Qué vendemos</a><a href="{{ route('asesor.ejemplos') }}">👀 Ejemplos para mostrar</a><a href="#conjuntos">🏢 Conjuntos</a><a href="#pasos">🪜 Paso a paso</a><a href="#guiones">💬 Guiones</a><a href="#dudas">🙋 Dudas</a><a href="#rutina">✅ Rutina</a><a href="#mentalidad">🧠 Mentalidad</a><a href="#crecer">🚀 Crecer</a>
         </div>
     </section>
 

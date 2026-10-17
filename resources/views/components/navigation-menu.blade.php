@@ -56,6 +56,10 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-calculator"></i></div>
                     Simulador de ganancias
                 </a>
+                <a class="nav-link {{ $on('asesor.ejemplos') }}" href="{{ route('asesor.ejemplos') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-eye"></i></div>
+                    Ejemplos para mostrar
+                </a>
                 <a class="nav-link" href="{{ route('asesor.capacitacion') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-graduation-cap"></i></div>
                     Capacitación del equipo
@@ -93,6 +97,10 @@
                 <a class="nav-link" href="{{ route('asesor.simulador') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-calculator"></i></div>
                     Simulador de ganancias
+                </a>
+                <a class="nav-link {{ $on('asesor.ejemplos') }}" href="{{ route('asesor.ejemplos') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-eye"></i></div>
+                    Ejemplos para mostrar
                 </a>
                 <a class="nav-link" href="{{ route('asesor.capacitacion') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-graduation-cap"></i></div>
