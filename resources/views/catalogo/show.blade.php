@@ -4,9 +4,14 @@
     $lugarT = trim(implode(', ', array_filter([$tienda->ciudad, $tienda->departamento !== $tienda->ciudad ? $tienda->departamento : null])));
     $desc = \Illuminate\Support\Str::limit(($tienda->descripcion ?: $tienda->tipo_nombre) . ($lugarT ? ' en ' . $lugarT : '') . '. ' . $productos->count() . ' productos: ' . $categorias->take(5)->implode(', ') . '. Compre por WhatsApp.', 158);
     $lista = $productos->where('disponible', true)->take(30)->values();
+    // Enlaces compartidos por categoría: ?categoria=chaquetas o ?ver=promos (el título del enlace lo dice)
+    $catSlugs = $categorias->mapWithKeys(fn ($c) => [\Illuminate\Support\Str::slug($c) => $c]);
+    $catSel = request('categoria') ? ($catSlugs[request('categoria')] ?? null) : null;
+    $verPromo = request('ver') === 'promos' && $enPromo;
+    $antes = $verPromo ? '🔥 Promociones · ' : ($catSel ? $catSel . ' · ' : '');
 @endphp
 
-@section('titulo', $tienda->nombre . ($lugarT ? ' · ' . $lugarT : '') . ' · Tienda en línea')
+@section('titulo', $antes . $tienda->nombre . ($lugarT ? ' · ' . $lugarT : '') . ' · Tienda en línea')
 @section('descripcion', $desc)
 @section('canonical', $tienda->url_catalogo)
 
@@ -67,7 +72,10 @@
 .fpop-nada{padding:1rem;text-align:center;color:var(--mut);font-weight:600}
 .flimpiar{display:none;align-self:stretch;border:0;background:none;color:#e11d48;font:inherit;font-weight:800;font-size:.85rem;cursor:pointer;padding:0 .6rem;white-space:nowrap}
 .flimpiar.ver{display:block}
-@media (max-width:767px){.flimpiar{grid-column:1/-1;padding:.2rem}}
+.fcompartir{display:none;align-self:center;border:0;background:#111;color:#fff;font:inherit;font-weight:800;font-size:.85rem;cursor:pointer;padding:.55rem .9rem;border-radius:999px;white-space:nowrap}
+.fcompartir.ver{display:block}
+.fcompartir.ok{background:#22c55e}
+@media (max-width:767px){.flimpiar,.fcompartir{grid-column:1/-1;padding:.45rem}}
 .sec{margin-top:18px}
 .sec h2{font-size:1.25rem;font-weight:800;margin:6px 2px 12px;display:flex;align-items:baseline;gap:8px}
 .sec h2 small{color:var(--mut);font-size:.8rem;font-weight:700}
@@ -124,6 +132,7 @@ body:not(.filtrando) .filtro-solo,body.filtrando .inicio-solo{display:none!impor
             @if ($coloresF->count() > 1)
             <div class="fsel"><label for="fColor">Color</label><select id="fColor" aria-label="Color"><option value="">Todos</option></select></div>
             @endif
+            <button type="button" class="fcompartir" id="fCompartir">🔗 Compartir</button>
             <button type="button" class="flimpiar" id="fLimpiar">✕ Quitar filtros</button>
         </div>
     </div>
@@ -178,7 +187,8 @@ body:not(.filtrando) .filtro-solo,body.filtrando .inicio-solo{display:none!impor
     var P = {}; @json($productos).forEach(function (p) { P[p.id] = p; });
     var q = document.getElementById('q'), cat = '', para = '', talla = '', color = '';
     var fPara = document.getElementById('fPara'), fCat = document.getElementById('fCat'), fTalla = document.getElementById('fTalla'),
-        fColor = document.getElementById('fColor'), fLimpiar = document.getElementById('fLimpiar');
+        fColor = document.getElementById('fColor'), fLimpiar = document.getElementById('fLimpiar'), fCompartir = document.getElementById('fCompartir');
+    var CATS = @json($catSlugs), SLUG = {}; Object.keys(CATS).forEach(function (k) { SLUG[CATS[k]] = k; });
     var conFilas = !!document.querySelector('.inicio-solo');
     var ORDEN = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', '2XL', '3XL', '4XL', 'U', 'UNICA', 'ÚNICA'];
     function up(v) { return (v || '').toString().trim().toUpperCase(); }
@@ -221,6 +231,7 @@ body:not(.filtrando) .filtro-solo,body.filtrando .inicio-solo{display:none!impor
     function marcar() {
         [[fPara, para], [fCat, cat], [fTalla, talla], [fColor, color]].forEach(function (x) { if (x[0]) x[0].parentNode.classList.toggle('on', !!x[1]); });
         if (fLimpiar) fLimpiar.classList.toggle('ver', !!(para || cat || talla || color));
+        if (fCompartir) fCompartir.classList.toggle('ver', !!(para || cat || talla || color));
     }
     function filtrar() {
         var t = q.value.trim().toLowerCase(), hay = 0;
@@ -240,7 +251,18 @@ body:not(.filtrando) .filtro-solo,body.filtrando .inicio-solo{display:none!impor
         flechas();
     }
     function subir() { window.scrollTo({ top: document.querySelector('.panel').offsetTop - 70, behavior: 'smooth' }); }
-    function urlPara() { try { var u = new URL(location.href); para ? u.searchParams.set('para', para) : u.searchParams.delete('para'); history.replaceState(null, '', u); } catch (e) {} }
+    // La dirección de arriba siempre lleva los filtros elegidos, para poder copiarla y compartirla
+    function urlPara() {
+        try {
+            var u = new URL(location.href), s = u.searchParams;
+            ['para', 'categoria', 'ver', 'talla', 'color'].forEach(function (k) { s.delete(k); });
+            if (para) s.set('para', para);
+            if (cat === '__promo') s.set('ver', 'promos'); else if (cat && SLUG[cat]) s.set('categoria', SLUG[cat]);
+            if (talla) s.set('talla', talla.toLowerCase());
+            if (color) s.set('color', color.toLowerCase());
+            history.replaceState(null, '', u);
+        } catch (e) {}
+    }
     function elegirPara(v) {
         para = v; if (fPara) fPara.value = v;
         // Solo quedan las categorías de ese grupo
@@ -254,13 +276,22 @@ body:not(.filtrando) .filtro-solo,body.filtrando .inicio-solo{display:none!impor
         }
         urlPara(); opciones(); filtrar();
     }
-    function elegirCat(v) { cat = v; if (fCat) fCat.value = v; if (q.value) q.value = ''; opciones(); filtrar(); }
+    function elegirCat(v) { cat = v; if (fCat) fCat.value = v; if (q.value) q.value = ''; opciones(); filtrar(); urlPara(); }
 
     if (fPara) fPara.addEventListener('change', function () { elegirPara(fPara.value); subir(); });
     if (fCat) fCat.addEventListener('change', function () { elegirCat(fCat.value); subir(); });
-    if (fTalla) fTalla.addEventListener('change', function () { talla = fTalla.value; opciones(); filtrar(); subir(); });
-    if (fColor) fColor.addEventListener('change', function () { color = fColor.value; opciones(); filtrar(); subir(); });
+    if (fTalla) fTalla.addEventListener('change', function () { talla = fTalla.value; opciones(); filtrar(); urlPara(); subir(); });
+    if (fColor) fColor.addEventListener('change', function () { color = fColor.value; opciones(); filtrar(); urlPara(); subir(); });
     if (fLimpiar) fLimpiar.addEventListener('click', function () { talla = ''; color = ''; elegirCat(''); elegirPara(''); });
+    if (fCompartir) fCompartir.addEventListener('click', function () {
+        urlPara();
+        var url = location.href, t = document.title;
+        if (navigator.share) { navigator.share({ title: t, url: url }).catch(function () {}); return; }
+        var listo = function () { fCompartir.textContent = '✓ Enlace copiado'; fCompartir.classList.add('ok');
+            setTimeout(function () { fCompartir.textContent = '🔗 Compartir'; fCompartir.classList.remove('ok'); }, 2200); };
+        if (navigator.clipboard) navigator.clipboard.writeText(url).then(listo, function () { window.open('https://wa.me/?text=' + encodeURIComponent(t + ' ' + url)); });
+        else window.open('https://wa.me/?text=' + encodeURIComponent(t + ' ' + url));
+    });
     q.addEventListener('input', filtrar);
 
     function flechas() {
@@ -334,10 +365,13 @@ body:not(.filtrando) .filtro-solo,body.filtrando .inicio-solo{display:none!impor
     marcar = function () { marcarAntes(); revisarGrandes(); };
 
     opciones(); flechas(); marcar();
-    // Enlaces compartidos: ?para=mujer o ?ver=promos abren ya filtrados
-    var qs = new URLSearchParams(location.search);
-    if (qs.get('para') && fPara && fPara.querySelector('option[value="' + qs.get('para') + '"]')) elegirPara(qs.get('para'));
-    if (hayPromo && qs.get('ver') === 'promos') elegirCat('__promo');
+    // Enlaces compartidos: ?para=mujer, ?ver=promos, ?categoria=chaquetas, ?talla=m, ?color=negro abren ya filtrados
+    var qs = new URLSearchParams(location.search), vino = false;
+    if (qs.get('para') && fPara && fPara.querySelector('option[value="' + qs.get('para') + '"]')) { elegirPara(qs.get('para')); vino = true; }
+    if (hayPromo && qs.get('ver') === 'promos') { elegirCat('__promo'); vino = true; }
+    else if (qs.get('categoria') && CATS[qs.get('categoria')]) { elegirCat(CATS[qs.get('categoria')]); vino = true; }
+    if (qs.get('talla') || qs.get('color')) { talla = up(qs.get('talla')); color = up(qs.get('color')); opciones(); filtrar(); urlPara(); vino = true; }
+    if (vino) setTimeout(subir, 150);
 
     document.addEventListener('click', function (e) {
         var c = e.target.closest('[data-comprar]'), a = e.target.closest('[data-agregar]');
