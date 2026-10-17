@@ -23,6 +23,17 @@
 .cn-chip.on{background:var(--lp-black);border-color:var(--lp-black);color:#fff}
 .cn-buscar{flex:1;min-width:160px;border-radius:999px;border:1.5px solid var(--lp-line);padding:.35rem .9rem;font-size:.85rem}
 .cn-ciego{display:flex;align-items:center;gap:.35rem;font-size:.78rem;font-weight:700;color:var(--lp-muted);cursor:pointer;margin-left:auto}
+.cn-fin-btn{flex:none;border:0;border-radius:999px;background:var(--lp-black);color:#fff;font-weight:900;padding:.75rem 1.3rem}
+.cn-fin-btn i{color:var(--lp-lime)}
+.cn-resultado{background:#fff;border:2px solid var(--lp-black);border-radius:24px;padding:1.1rem 1.2rem;margin:.6rem 0 1rem}
+.cn-resultado h3{font-size:1.1rem;font-weight:900;margin:0}.cn-resultado p{color:var(--lp-muted);margin:.1rem 0 .8rem;font-size:.85rem}
+.cn-rg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.cn-rg .r{border:1.5px solid var(--lp-line);border-radius:18px;padding:.8rem;text-align:left;background:#fafcfb;transition:.15s}
+.cn-rg .r:hover,.cn-rg .r.on{transform:translateY(-2px);box-shadow:0 12px 22px -16px rgba(0,0,0,.5)}
+.cn-rg .r b{display:block;font-size:1.8rem;font-weight:900;line-height:1}
+.cn-rg .r span{display:block;font-weight:800;margin-top:.2rem}.cn-rg .r small{color:var(--lp-muted);font-size:.72rem}
+.cn-rg .ok b{color:#14753a}.cn-rg .menos b{color:#c8102e}.cn-rg .sin b{color:#8a5a00}.cn-rg .mas b{color:#0b6fb8}
+@media (max-width:767px){.cn-rg{grid-template-columns:1fr 1fr}}
 .cn-ultimo{margin-top:8px;font-weight:800;font-size:.88rem;min-height:1.3em}
 .cn-ultimo.ok{color:#14753a}.cn-ultimo.mal{color:#c8102e}
 
@@ -104,16 +115,29 @@ body.ciego .cn-sis,body.ciego .cn-dif,body.ciego .cn-n.falta,body.ciego .cn-n.so
         <div class="cn-acc">
             <button type="button" class="cn-scan" id="btnScan"><i class="fa-solid fa-camera me-1"></i>Escanear prendas</button>
             <input type="text" id="cod" class="cn-cod" placeholder="O escriba / lea con pistola el código y Enter" autocomplete="off" inputmode="text">
+            <button type="button" class="cn-fin-btn" id="btnTermine"><i class="fa-solid fa-flag-checkered me-1"></i>Terminé</button>
         </div>
         <div class="cn-ultimo" id="ultimo"></div>
         @endif
         <div class="cn-chips">
             <button type="button" class="cn-chip on" data-f="todas">Todas</button>
-            <button type="button" class="cn-chip" data-f="sin">Sin contar</button>
-            <button type="button" class="cn-chip" data-f="dif">Con diferencia</button>
-            <button type="button" class="cn-chip" data-f="ok">Cuadran</button>
+            <button type="button" class="cn-chip" data-f="ok">✓ Están</button>
+            <button type="button" class="cn-chip" data-f="menos">Faltan</button>
+            <button type="button" class="cn-chip" data-f="sin">No aparecieron</button>
+            <button type="button" class="cn-chip" data-f="mas">Sobran</button>
             <input type="search" class="cn-buscar" id="buscar" placeholder="Buscar producto, talla o color…">
             <label class="cn-ciego" title="Para que quien cuenta no se deje llevar por lo que dice el sistema"><input type="checkbox" id="ciego"> Contar a ciegas</label>
+        </div>
+    </div>
+
+    <div class="cn-resultado" id="resultado" style="display:none">
+        <h3><i class="fa-solid fa-flag-checkered me-1"></i>Resultado del conteo</h3>
+        <p>Toque un grupo para ver cuáles son.</p>
+        <div class="cn-rg">
+            <button type="button" class="r ok" data-ir="ok"><b id="rOk">0</b><span>✓ Están completas</span><small>Lo que hay es lo que dice el sistema</small></button>
+            <button type="button" class="r menos" data-ir="menos"><b id="rMenos">0</b><span>Faltan prendas</span><small>Se encontraron menos de las del sistema</small></button>
+            <button type="button" class="r sin" data-ir="sin"><b id="rSin">0</b><span>No aparecieron</span><small>No se escaneó ninguna (el sistema dice que hay)</small></button>
+            <button type="button" class="r mas" data-ir="mas"><b id="rMas">0</b><span>Sobran</span><small>Hay más de las que dice el sistema</small></button>
         </div>
     </div>
 
@@ -182,13 +206,15 @@ body.ciego .cn-sis,body.ciego .cn-dif,body.ciego .cn-n.falta,body.ciego .cn-n.so
     // Diferencia de cada fila
     function pintar(fila) {
         var inp = fila.querySelector('input'), c = num(inp.value), s = parseFloat(fila.dataset.sis), d = fila.querySelector('.cn-dif');
-        fila.dataset.est = c === null ? 'sin' : (Math.abs(c - s) < 0.0005 ? 'ok' : 'dif');
+        // "No apareció": no se contó, o se contó 0 teniendo el sistema algo
+        fila.dataset.est = (c === null || c === 0) && s > 0 ? 'sin' : (c === null ? 'sincero' : (Math.abs(c - s) < 0.0005 ? 'ok' : (c < s ? 'menos' : 'mas')));
         if (c === null) { d.className = 'cn-dif nada'; d.textContent = '—'; return; }
         var x = Math.round((c - s) * 1000) / 1000;
         d.className = 'cn-dif ' + (x === 0 ? 'ok' : (x < 0 ? 'menos' : 'mas'));
         d.textContent = x === 0 ? '✓ Cuadra' : (x < 0 ? 'Faltan ' + fmt(-x) : 'Sobran ' + fmt(x));
     }
     function aplicarFiltro() {
+        if (document.getElementById('resultado').style.display !== 'none') contarGrupos();
         var t = document.getElementById('buscar').value.trim().toLowerCase(), hay = 0;
         lista.querySelectorAll('.cn-prod').forEach(function (p) {
             var n = 0;
@@ -273,12 +299,33 @@ body.ciego .cn-sis,body.ciego .cn-dif,body.ciego .cn-n.falta,body.ciego .cn-n.so
     if (cod) cod.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); leer(cod.value); cod.value = ''; } });
 
     // Filtros
-    document.querySelectorAll('.cn-chip').forEach(function (c) {
-        c.addEventListener('click', function () {
-            document.querySelectorAll('.cn-chip').forEach(function (x) { x.classList.remove('on'); });
-            c.classList.add('on'); filtro = c.dataset.f; aplicarFiltro();
-        });
-    });
+    function elegir(f) {
+        document.querySelectorAll('.cn-chip').forEach(function (x) { x.classList.toggle('on', x.dataset.f === f); });
+        document.querySelectorAll('.cn-rg .r').forEach(function (x) { x.classList.toggle('on', x.dataset.ir === f); });
+        filtro = f; aplicarFiltro();
+    }
+    document.querySelectorAll('.cn-chip').forEach(function (c) { c.addEventListener('click', function () { elegir(c.dataset.f); }); });
+
+    // "Terminé": resultado en 4 grupos (están, faltan, no aparecieron, sobran)
+    function contarGrupos() {
+        var g = { ok: 0, menos: 0, sin: 0, mas: 0 };
+        lista.querySelectorAll('.cn-var').forEach(function (f) { if (g[f.dataset.est] !== undefined) g[f.dataset.est]++; });
+        document.getElementById('rOk').textContent = g.ok; document.getElementById('rMenos').textContent = g.menos;
+        document.getElementById('rSin').textContent = g.sin; document.getElementById('rMas').textContent = g.mas;
+        return g;
+    }
+    var res = document.getElementById('resultado');
+    function mostrarResultado() {
+        contarGrupos(); res.style.display = '';
+        document.body.classList.remove('ciego');
+        var g = contarGrupos(); elegir(g.menos + g.sin + g.mas ? (g.sin ? 'sin' : (g.menos ? 'menos' : 'mas')) : 'ok');
+        window.scrollTo({ top: res.getBoundingClientRect().top + window.scrollY - 90, behavior: 'smooth' });
+    }
+    var bt = document.getElementById('btnTermine');
+    if (bt) bt.addEventListener('click', mostrarResultado);
+    document.querySelectorAll('.cn-rg .r').forEach(function (b) { b.addEventListener('click', function () { elegir(b.dataset.ir); }); });
+    // Conteo cerrado: el resultado se ve de una vez
+    if (!ABIERTO) { res.style.display = ''; contarGrupos(); }
     document.getElementById('buscar').addEventListener('input', aplicarFiltro);
 
     // Contar a ciegas (se recuerda en este dispositivo)
