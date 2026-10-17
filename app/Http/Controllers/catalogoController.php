@@ -22,6 +22,21 @@ class catalogoController extends Controller
     }
 
     // ¿Quien mira la tienda es el dueño o alguien de la tienda que puede editar productos?
+    // Cuenta una visita a la tienda en línea: una por persona cada 30 minutos.
+    // No cuentan el dueño ni su equipo, ni los robots (Google, vista previa de WhatsApp/Facebook…)
+    private function contarVisita(Tienda $tienda): void
+    {
+        $u = auth()->user();
+        if ($u && (int) $u->tienda_id === (int) $tienda->id) return;
+        if (preg_match('/bot|crawl|spider|slurp|facebookexternalhit|whatsapp|telegram|preview|curl|wget|python|headless/i', (string) request()->userAgent())) return;
+        $clave = 'visita_tienda_' . $tienda->id;
+        $ultima = (int) session($clave);
+        if ($ultima && $ultima > now()->subMinutes(30)->timestamp) return;
+        session([$clave => now()->timestamp]);
+        Tienda::whereKey($tienda->id)->increment('catalogo_visitas');
+        $tienda->catalogo_visitas = (int) $tienda->catalogo_visitas + 1;
+    }
+
     public static function puedeEditar(Tienda $tienda): bool
     {
         $u = auth()->user();
@@ -102,6 +117,7 @@ class catalogoController extends Controller
     public function show(string $slug)
     {
         $tienda = $this->tienda($slug);
+        $this->contarVisita($tienda);
         $productos = $this->productos($tienda);
 
         // Secciones por categoría (las que más productos tienen primero; "General" al final)
@@ -133,6 +149,7 @@ class catalogoController extends Controller
     public function producto(string $slug, string $producto)
     {
         $tienda = $this->tienda($slug);
+        $this->contarVisita($tienda);
         $id = (int) $producto;
         $p = Producto::with(['variantes' => fn ($q) => $q->where('estado', 1)->orderBy('talla')->orderBy('color'), 'categorias.caracteristica', 'fotos'])
             ->where('estado', 1)->findOrFail($id);

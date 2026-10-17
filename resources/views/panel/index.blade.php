@@ -186,7 +186,7 @@
             @endcan
             @can('crear-producto')<a href="{{ route('productos.create') }}" class="btn btn-ghost btn-lg" style="border:2px solid #0b0d0c;background:#fff"><i class="fa-solid fa-plus me-1"></i>Producto</a>@endcan
             @php $tW = \App\Support\TiendaActual::tienda(); @endphp
-            @if ($tW?->catalogo_activo)<a href="{{ $tW->url_catalogo_navegador }}" target="_blank" rel="noopener" class="btn btn-ghost btn-lg" style="border:2px solid #16b34a;background:#f2fbf3;color:#11702f"><i class="fa-solid fa-globe me-1"></i>Mi tienda en línea</a>@endif
+            @if ($tW?->catalogo_activo)<a href="{{ $tW->url_catalogo_navegador }}" target="_blank" rel="noopener" class="btn btn-ghost btn-lg" style="border:2px solid #16b34a;background:#f2fbf3;color:#11702f"><i class="fa-solid fa-globe me-1"></i>Mi tienda en línea @if ((int) $tW->catalogo_visitas)<span class="badge rounded-pill ms-1" style="background:#11702f;font-weight:700" title="Visitas a su tienda en línea"><i class="fa-regular fa-eye me-1"></i>{{ number_format((int) $tW->catalogo_visitas, 0, ',', '.') }}</span>@endif</a>@endif
         </div>
     </div>
 
