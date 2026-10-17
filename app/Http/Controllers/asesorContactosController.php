@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\AsesorContacto;
+use App\Models\RedContacto;
+use App\Support\RedContactos;
 use App\Support\HojaCalculo;
 use App\Support\ImportarClientes;
 use Illuminate\Http\Request;
@@ -39,8 +41,16 @@ class asesorContactosController extends Controller
         $faltanHoy = max(0, self::DIARIOS - $r['hoy']);
         $lista = AsesorContacto::where('asesor_id', $a->id)->whereNull('contactado_at')->orderBy('id')->limit($faltanHoy)->get();
         $hechosHoy = AsesorContacto::where('asesor_id', $a->id)->whereDate('contactado_at', now()->toDateString())->orderByDesc('contactado_at')->get();
+
+        // Contactos de LocalPro (base compartida que sube el administrador): solo los que le salieron hoy a este asesor
+        $redLista = collect();
+        if ($a->curso_aprobado_at) {
+            RedContactos::asignarHoy($a->id);
+            $redLista = RedContacto::where('asignado_a', $a->id)->where('asignado_fecha', now()->toDateString())
+                ->orderByRaw('contactado_at IS NOT NULL')->orderBy('id')->get();
+        }
         return view('asesor.contactos', [
-            'yo' => $a, 'r' => $r, 'lista' => $lista, 'hechosHoy' => $hechosHoy,
+            'yo' => $a, 'r' => $r, 'lista' => $lista, 'hechosHoy' => $hechosHoy, 'redLista' => $redLista,
             'mensaje' => self::MENSAJE, 'volver' => $request->query('volver') === 'curso' ? route('curso.leccion', \App\Support\CursoAsesor::LECCION_CONTACTOS) : null,
         ]);
     }
@@ -76,6 +86,23 @@ class asesorContactosController extends Controller
         $estado = $request->input('estado');
         abort_unless(in_array($estado, ['enviado', 'numero_malo', 'no_interesa'], true), 422);
         $contacto->update(['contactado_at' => now(), 'estado' => $estado]);
+        // Ese número ya no le sale a ningún asesor en la base de LocalPro
+        RedContactos::marcarDesdePropia($contacto->telefono, $contacto->asesor_id, $estado);
+        return response()->json(['ok' => true]);
+    }
+
+    // Marcar un contacto de la base de LocalPro. Una sola vez: si ya está marcado no se puede volver a escribir.
+    public function marcarRed(Request $request, RedContacto $contacto)
+    {
+        $a = $this->yo();
+        abort_unless((int) $contacto->asignado_a === (int) $a->id, 403);
+        $estado = $request->input('estado');
+        abort_unless(in_array($estado, ['enviado', 'numero_malo', 'no_interesa'], true), 422);
+        $hecho = RedContacto::whereKey($contacto->id)->whereNull('contactado_at')
+            ->update(['contactado_at' => now(), 'contactado_por' => $a->id, 'estado' => $estado]);
+        if (!$hecho && (int) $contacto->contactado_por !== (int) $a->id) {
+            return response()->json(['ok' => false, 'mensaje' => 'A este contacto ya le escribió otro asesor. No le escriba otra vez.'], 409);
+        }
         return response()->json(['ok' => true]);
     }
 }

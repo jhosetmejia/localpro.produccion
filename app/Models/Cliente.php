@@ -20,5 +20,12 @@ class Cliente extends Model
         return $this->hasMany(Venta::class);
     }
 
+    // Quién del equipo le escribió (Contactar clientes nuevos)
+    public function contactadoPor(){
+        return $this->belongsTo(User::class, 'contactado_por');
+    }
+
     protected $fillable = ['persona_id'];
+
+    protected $casts = ['contactado_at' => 'datetime', 'asignado_fecha' => 'date'];
 }

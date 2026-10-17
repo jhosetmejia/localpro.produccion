@@ -139,6 +139,7 @@ Route::middleware('auth')->get('/asesor/simulador', [unirseController::class, 'i
 Route::middleware('auth')->get('/asesor/contactos', [\App\Http\Controllers\asesorContactosController::class, 'index'])->name('asesor.contactos');
 Route::middleware('auth')->post('/asesor/contactos', [\App\Http\Controllers\asesorContactosController::class, 'subir'])->name('asesor.contactos.subir');
 Route::middleware('auth')->post('/asesor/contactos/{contacto}/marcar', [\App\Http\Controllers\asesorContactosController::class, 'marcar'])->whereNumber('contacto')->name('asesor.contactos.marcar');
+Route::middleware('auth')->post('/asesor/contactos/red/{contacto}/marcar', [\App\Http\Controllers\asesorContactosController::class, 'marcarRed'])->whereNumber('contacto')->name('asesor.contactos.red.marcar');
 Route::middleware('auth')->get('/asesor/capacitacion', [unirseController::class, 'capacitacion'])->name('asesor.capacitacion');
 
 // ===== Asistente de configuración de la tienda nueva =====
@@ -212,6 +213,7 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::post('/clientes/contactar/mas', [\App\Http\Controllers\contactarController::class, 'mas'])->name('clientes.contactar.mas');
     Route::post('/clientes/contactar/ajustes', [\App\Http\Controllers\contactarController::class, 'ajustes'])->name('clientes.contactar.ajustes');
     Route::post('/clientes/{cliente}/contactado', [\App\Http\Controllers\contactarController::class, 'marcar'])->whereNumber('cliente')->name('clientes.contactado');
+    Route::get('/clientes/{cliente}/contactado', [\App\Http\Controllers\contactarController::class, 'revisar'])->whereNumber('cliente')->name('clientes.contactado.revisar');
     Route::get('/clientes/crear-base', [importarClientesController::class, 'contactos'])->name('clientes.contactos');
     Route::get('/clientes/importar/plantilla', [importarClientesController::class, 'plantilla'])->name('clientes.importar.plantilla');
     Route::post('/clientes/importar', [importarClientesController::class, 'subir'])->name('clientes.importar.subir');
@@ -391,6 +393,11 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::post('/importaciones/{importacion}/estado', [adminImportacionController::class, 'estado'])->name('importaciones.estado');
     Route::get('/red', [adminRedController::class, 'index'])->name('red.index');
     Route::post('/red', [adminRedController::class, 'store'])->name('red.store');
+    // Base de contactos de LocalPro para todos los asesores (a cada persona se le escribe una sola vez)
+    Route::get('/red/contactos', [\App\Http\Controllers\adminRedContactosController::class, 'index'])->name('red.contactos');
+    Route::post('/red/contactos', [\App\Http\Controllers\adminRedContactosController::class, 'subir'])->name('red.contactos.subir');
+    Route::post('/red/contactos/ajustes', [\App\Http\Controllers\adminRedContactosController::class, 'ajustes'])->name('red.contactos.ajustes');
+    Route::post('/red/contactos/{contacto}/liberar', [\App\Http\Controllers\adminRedContactosController::class, 'liberar'])->whereNumber('contacto')->name('red.contactos.liberar');
     Route::get('/red/comisiones', [adminRedController::class, 'comisiones'])->name('red.comisiones');
     Route::post('/red/comisiones/pagar', [adminRedController::class, 'pagar'])->name('red.pagar');
     Route::post('/red/comisiones/{comision}/anular', [adminRedController::class, 'anular'])->name('red.anular');

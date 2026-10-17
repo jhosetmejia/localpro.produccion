@@ -25,8 +25,14 @@
 .cc-wa{background:#25d366;color:#fff;border:0;border-radius:999px;padding:.55rem 1rem;font-weight:800;white-space:nowrap;display:flex;align-items:center;gap:.4rem}
 .cc-wa:hover{background:#1ebe5b;color:#fff}
 .cc-mini{border:0;background:#f1f5f2;border-radius:999px;width:34px;height:34px;display:grid;place-items:center;color:#55605a}
-.cc-item.hecho{opacity:.55}
-.cc-item.hecho .cc-wa{background:#dcfce7;color:#11702f}
+.cc-item{position:relative}
+.cc-item:has(.dropdown-menu.show){z-index:20}
+.cc-item.hecho .cc-av,.cc-item.hecho .t{opacity:.55}
+.cc-item .dropdown-menu{z-index:1050;background:#fff;border:1.5px solid #e3ebe6;border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.14);padding:.35rem;min-width:190px}
+.cc-item .dropdown-item{border-radius:10px;font-weight:700;padding:.55rem .8rem}
+.cc-item .dropdown{flex:none}
+@media (max-width:480px){.cc-wa{padding:.5rem .8rem}.cc-item .t small{font-size:.8rem}}
+.cc-item.hecho .cc-wa,.cc-wa:disabled{background:#dcfce7;color:#11702f;cursor:default}
 .cc-estado{font-size:.75rem;font-weight:800;border-radius:999px;padding:.15rem .55rem;background:#dcfce7;color:#11702f}
 .cc-estado.mal{background:#fde2e8;color:#b0173f}
 .cc-msg{white-space:pre-wrap;background:#e7fbe9;border-radius:14px 14px 14px 4px;padding:.8rem 1rem;font-size:.92rem;line-height:1.45;border:1px solid #c9efcf}
@@ -40,7 +46,7 @@
 <div class="lp-dash">
     <div class="lp-hello">
         <div><small><i class="fa-brands fa-whatsapp me-1"></i>Clientes</small><h1>Contactar clientes <span>nuevos</span></h1>
-            <span class="text-muted fw-semibold">Cada día le asignamos {{ $cuota }} contactos de su base de datos. Escríbales con un toque y llegue a más clientes.</span></div>
+            <span class="text-muted fw-semibold">Cada día le asignamos {{ $cuota }} contactos de su base de datos. Escríbales con un toque y llegue a más clientes. A cada persona se le escribe <b>una sola vez</b>: los que ya se contactaron no se le vuelven a dar a nadie del equipo.</span></div>
         <div class="lp-quick"><a href="{{ route('clientes.contactos') }}" class="btn btn-light btn-lg"><i class="fa-solid fa-mobile-screen me-1"></i>Subir más contactos</a></div>
     </div>
     @include('layouts.partials.lp-flash')
@@ -72,14 +78,17 @@
                 <div class="cc-av">{{ mb_strtoupper(mb_substr($nombre ?: '?', 0, 1)) }}</div>
                 <div class="t"><b>{{ $nombre ?: 'Sin nombre' }}</b><small>{{ $p?->telefono }}</small>
                     @if ($c->contacto_estado)<span class="cc-estado {{ $c->contacto_estado !== 'enviado' ? 'mal' : '' }}">{{ ['enviado' => 'Enviado ✓', 'numero_malo' => 'Número malo', 'no_interesa' => 'No le interesa'][$c->contacto_estado] ?? '' }}</span>@endif
+                    @if ($c->contactado_at && (int) $c->contactado_por !== (int) auth()->id())<small class="d-block text-danger fw-bold">Ya le escribió {{ $c->contactadoPor->name ?? 'otra persona' }}</small>@endif
                 </div>
-                @if ($wa)<button type="button" class="cc-wa" data-enviar><i class="fa-brands fa-whatsapp"></i> {{ $c->contactado_at ? 'Otra vez' : 'Enviar' }}</button>@endif
+                @if ($wa)<button type="button" class="cc-wa" data-enviar {{ $c->contactado_at ? 'disabled' : '' }}><i class="fa-brands fa-whatsapp"></i> <span>{{ $c->contactado_at ? 'Ya contactado' : 'Enviar' }}</span></button>@endif
                 <div class="dropdown">
-                    <button class="cc-mini" type="button" data-bs-toggle="dropdown" aria-label="Más"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                    <button class="cc-mini" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-label="Más"><i class="fa-solid fa-ellipsis-vertical"></i></button>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><button class="dropdown-item" type="button" data-marcar="numero_malo">📵 Número malo</button></li>
                         <li><button class="dropdown-item" type="button" data-marcar="no_interesa">🙅 No le interesa</button></li>
+                        @if ($esJefe || !$c->contactado_at || ((int) $c->contactado_por === (int) auth()->id() && $c->contactado_at->gt(now()->subMinutes(30))))
                         <li><button class="dropdown-item" type="button" data-marcar="deshacer">↩ Quitar marca</button></li>
+                        @endif
                     </ul>
                 </div>
             </div>
@@ -153,22 +162,49 @@
         document.getElementById('ccBarra').style.width = (items.length ? Math.round(h / items.length * 100) : 0) + '%';
         if (items.length && h === items.length && window.LP && LP.toast) LP.toast('¡Terminó sus contactos de hoy! 🎉 Puede pedir más.', 'ok');
     }
-    function marcar(item, estado) {
+    function aviso(m, tipo) { if (window.LP && LP.toast) LP.toast(m, tipo || 'error'); }
+    function pedir(item, metodo, cuerpo) {
         return fetch(URL_MARCAR.replace('__ID__', item.dataset.id), {
-            method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': TOKEN },
-            body: JSON.stringify({ estado: estado })
-        }).then(function (r) { if (!r.ok) throw 0; }).catch(function () { if (window.LP && LP.toast) LP.toast('No se pudo guardar. Revise la conexión.', 'error'); });
+            method: metodo, headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': TOKEN },
+            body: cuerpo ? JSON.stringify(cuerpo) : undefined
+        }).then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d._ok = r.ok; return d; }); });
+    }
+    function yaContactado(item, mensaje) {
+        item.classList.add('hecho');
+        var b = item.querySelector('[data-enviar]');
+        if (b) { b.disabled = true; b.querySelector('span').textContent = 'Ya contactado'; }
+        if (mensaje) aviso(mensaje);
+        contar();
+    }
+    function marcar(item, estado) {
+        return pedir(item, 'POST', { estado: estado }).then(function (d) {
+            if (d._ok) return true;
+            if (d.repetido) { yaContactado(item, d.mensaje); return false; }
+            if (estado === 'deshacer') { item.classList.add('hecho'); contar(); }
+            aviso(d.mensaje || 'No se pudo guardar. Revise la conexión.');
+            return false;
+        }).catch(function () { aviso('No se pudo guardar. Revise la conexión.'); });
     }
     document.addEventListener('click', function (e) {
         var env = e.target.closest('[data-enviar]'), mk = e.target.closest('[data-marcar]');
-        if (env) {
+        if (env && !env.disabled) {
             var it = env.closest('.cc-item');
-            window.open('https://wa.me/' + it.dataset.wa + '?text=' + encodeURIComponent(armar(it.dataset.nombre)), '_blank');
-            if (!it.classList.contains('hecho')) { it.classList.add('hecho'); env.innerHTML = '<i class="fa-brands fa-whatsapp"></i> Otra vez'; marcar(it, 'enviado'); contar(); }
+            var ventana = window.open('', '_blank'); // se abre ya para que el navegador no la bloquee
+            env.disabled = true;
+            // Antes de escribir, se revisa que nadie del equipo le haya escrito ya a ese número
+            pedir(it, 'GET').then(function (d) {
+                if (d.libre === false) { if (ventana) ventana.close(); yaContactado(it, d.mensaje); return; }
+                var url = 'https://wa.me/' + it.dataset.wa + '?text=' + encodeURIComponent(armar(it.dataset.nombre));
+                if (ventana) ventana.location.href = url; else window.open(url, '_blank');
+                yaContactado(it);
+                marcar(it, 'enviado');
+            }).catch(function () { if (ventana) ventana.close(); env.disabled = false; aviso('No se pudo revisar el contacto. Revise la conexión.'); });
         }
         if (mk) {
             var it2 = mk.closest('.cc-item'), est = mk.dataset.marcar;
             it2.classList.toggle('hecho', est !== 'deshacer');
+            var b2 = it2.querySelector('[data-enviar]');
+            if (b2) { b2.disabled = est !== 'deshacer'; b2.querySelector('span').textContent = est === 'deshacer' ? 'Enviar' : 'Ya contactado'; }
             marcar(it2, est); contar();
         }
     });

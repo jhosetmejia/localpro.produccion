@@ -36,15 +36,67 @@ class contactarController extends Controller
             ->whereHas('persona', fn ($p) => $p->where('estado', 1)->whereNotNull('telefono')->where('telefono', '<>', ''));
     }
 
+    // El número tal como se usa en WhatsApp (solo dígitos y con indicativo), para saber si dos clientes son la misma persona
+    private function numero(?string $tel): string
+    {
+        return (string) numero_whatsapp($tel);
+    }
+
+    // Números que ya no se pueden dar: ya contactados por alguien, o asignados hoy a otra persona
+    private function numerosOcupados(): array
+    {
+        $hoy = now()->toDateString();
+        $ocupados = [];
+        Cliente::query()
+            ->where(fn ($q) => $q->whereNotNull('contactado_at')->orWhere('asignado_fecha', $hoy))
+            ->with('persona:id,telefono')->select(['id', 'persona_id'])
+            ->chunkById(1000, function ($lote) use (&$ocupados) {
+                foreach ($lote as $c) {
+                    $n = $this->numero($c->persona?->telefono);
+                    if ($n !== '') $ocupados[$n] = true;
+                }
+            });
+        return $ocupados;
+    }
+
+    // Reparte contactos sin repetir número: una persona se contacta UNA sola vez, aunque esté cargada dos veces en la base
     private function asignar(int $userId, int $cuantos): int
     {
         if ($cuantos <= 0) return 0;
         return DB::transaction(function () use ($userId, $cuantos) {
-            $ids = $this->libres()->orderBy('id')->limit($cuantos)->lockForUpdate()->pluck('id');
-            if ($ids->isEmpty()) return 0;
-            Cliente::whereIn('id', $ids)->update(['asignado_a' => $userId, 'asignado_fecha' => now()->toDateString()]);
-            return $ids->count();
+            $ocupados = $this->numerosOcupados();
+            $elegidos = [];
+            $desde = 0;
+            while (count($elegidos) < $cuantos) {
+                $lote = $this->libres()->with('persona:id,telefono')->where('id', '>', $desde)
+                    ->orderBy('id')->limit(300)->lockForUpdate()->get(['id', 'persona_id']);
+                if ($lote->isEmpty()) break;
+                foreach ($lote as $c) {
+                    $desde = $c->id;
+                    $n = $this->numero($c->persona?->telefono);
+                    if ($n === '' || isset($ocupados[$n])) continue;
+                    $ocupados[$n] = true;
+                    $elegidos[] = $c->id;
+                    if (count($elegidos) >= $cuantos) break;
+                }
+            }
+            if (!$elegidos) return 0;
+            Cliente::whereIn('id', $elegidos)->update(['asignado_a' => $userId, 'asignado_fecha' => now()->toDateString()]);
+            return count($elegidos);
         });
+    }
+
+    // Los clientes de la base que tienen el mismo número (la misma persona cargada varias veces)
+    private function mismoNumero(Cliente $cliente)
+    {
+        $n = $this->numero($cliente->persona?->telefono);
+        if ($n === '') return collect([$cliente->id]);
+        $digitos = substr($n, -7);
+        return Cliente::with('persona:id,telefono')
+            ->whereHas('persona', fn ($p) => $p->where('telefono', 'like', '%' . $digitos . '%'))
+            ->get(['id', 'persona_id'])
+            ->filter(fn ($c) => $this->numero($c->persona?->telefono) === $n)
+            ->pluck('id')->push($cliente->id)->unique();
     }
 
     public function index()
@@ -58,7 +110,7 @@ class contactarController extends Controller
         $deHoy = Cliente::where('asignado_a', $yo)->where('asignado_fecha', $hoy)->count();
         if ($deHoy < $cuota) $this->asignar($yo, $cuota - $deHoy);
 
-        $lista = Cliente::with('persona')->where('asignado_a', $yo)->where('asignado_fecha', $hoy)
+        $lista = Cliente::with('persona', 'contactadoPor:id,name')->where('asignado_a', $yo)->where('asignado_fecha', $hoy)
             ->orderByRaw('contactado_at IS NOT NULL')->orderBy('id')->get();
 
         $equipo = collect();
@@ -83,18 +135,54 @@ class contactarController extends Controller
         ]);
     }
 
-    // Marcar un contacto: enviado, numero_malo o no_interesa (o deshacer)
+    // Marcar un contacto: enviado, numero_malo o no_interesa (o deshacer).
+    // Se marca también cualquier otro cliente con el mismo número, para que nadie más del equipo le vuelva a escribir.
     public function marcar(Request $request, Cliente $cliente)
     {
         abort_unless((int) $cliente->asignado_a === (int) auth()->id() || $this->esJefe(), 403);
         $estado = $request->input('estado');
+        $cliente->loadMissing('persona');
+        $ids = $this->mismoNumero($cliente);
+
         if ($estado === 'deshacer') {
-            $cliente->forceFill(['contactado_at' => null, 'contactado_por' => null, 'contacto_estado' => null])->save();
-        } else {
-            abort_unless(in_array($estado, ['enviado', 'numero_malo', 'no_interesa'], true), 422);
-            $cliente->forceFill(['contactado_at' => now(), 'contactado_por' => auth()->id(), 'contacto_estado' => $estado])->save();
+            // Quitar la marca: el jefe siempre; la persona que lo marcó, solo en los primeros 30 minutos (por si se equivocó)
+            $propio = (int) $cliente->contactado_por === (int) auth()->id() && $cliente->contactado_at && $cliente->contactado_at->gt(now()->subMinutes(30));
+            if (!$this->esJefe() && !$propio) {
+                return response()->json(['ok' => false, 'mensaje' => 'Este contacto ya quedó como contactado. Solo el dueño o el administrador puede quitar la marca.'], 403);
+            }
+            Cliente::whereIn('id', $ids)->update(['contactado_at' => null, 'contactado_por' => null, 'contacto_estado' => null]);
+            return response()->json(['ok' => true]);
         }
+
+        abort_unless(in_array($estado, ['enviado', 'numero_malo', 'no_interesa'], true), 422);
+
+        // Si otra persona ya le escribió (el mismo número cargado dos veces), no se le vuelve a escribir
+        if ($estado === 'enviado') {
+            $previo = Cliente::with('contactadoPor:id,name')->whereIn('id', $ids)->whereNotNull('contactado_at')
+                ->where('id', '<>', $cliente->id)->first();
+            if ($previo && (int) $previo->contactado_por !== (int) auth()->id()) {
+                Cliente::whereIn('id', $ids)->whereNull('contactado_at')->update([
+                    'contactado_at' => $previo->contactado_at, 'contactado_por' => $previo->contactado_por, 'contacto_estado' => $previo->contacto_estado,
+                ]);
+                return response()->json(['ok' => false, 'repetido' => true,
+                    'mensaje' => 'A este número ya le escribió ' . ($previo->contactadoPor->name ?? 'otra persona del equipo') . '. No le escriba otra vez.'], 409);
+            }
+        }
+
+        Cliente::whereIn('id', $ids)->update(['contactado_at' => now(), 'contactado_por' => auth()->id(), 'contacto_estado' => $estado]);
         return response()->json(['ok' => true]);
+    }
+
+    // Revisar antes de abrir WhatsApp que nadie más le haya escrito ya a ese número
+    public function revisar(Cliente $cliente)
+    {
+        abort_unless((int) $cliente->asignado_a === (int) auth()->id() || $this->esJefe(), 403);
+        $cliente->loadMissing('persona');
+        $previo = Cliente::with('contactadoPor:id,name')->whereIn('id', $this->mismoNumero($cliente))->whereNotNull('contactado_at')->first();
+        return response()->json([
+            'libre' => !$previo,
+            'mensaje' => $previo ? 'A este número ya le escribió ' . ($previo->contactadoPor->name ?? 'otra persona del equipo') . ' el ' . $previo->contactado_at->format('d/m/Y') . '. No le escriba otra vez.' : null,
+        ]);
     }
 
     // Pedir más contactos hoy (cuando ya terminó los suyos)

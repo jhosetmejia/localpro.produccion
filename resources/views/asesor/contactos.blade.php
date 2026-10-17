@@ -41,8 +41,29 @@
         <div><b>{{ number_format($r['contactados'], 0, ',', '.') }}</b><small>en total</small></div>
     </div>
 
+    @if ($redLista->isNotEmpty())
+    @php $redHechos = $redLista->whereNotNull('contactado_at')->count(); @endphp
+    <div class="card" style="border-color:#bfeccb">
+        <h2 style="margin:0 0 4px;font-size:1.15rem">⭐ Contactos de LocalPro para hoy <small style="color:var(--mut);font-size:.85rem">({{ $redHechos }} / {{ $redLista->count() }})</small></h2>
+        <p style="margin:0 0 8px;color:var(--mut);font-weight:600;font-size:.9rem">Se los da LocalPro. A cada persona se le escribe <b>una sola vez</b>: cuando usted le escribe, ya no le sale a ningún otro asesor.</p>
+        @foreach ($redLista as $c)
+        @php $d = preg_replace('/\D/', '', $c->telefono); @endphp
+        <div class="ci {{ $c->contactado_at ? 'hecho' : '' }}" data-red="1" data-id="{{ $c->id }}" data-wa="{{ strlen($d) === 10 && str_starts_with($d, '3') ? '57' . $d : $d }}" data-nombre="{{ preg_match('/^contacto\s/i', $c->nombre) ? '' : \Illuminate\Support\Str::of($c->nombre)->explode(' ')->first() }}">
+            <div class="av">{{ $c->contactado_at ? '✓' : mb_strtoupper(mb_substr($c->nombre, 0, 1)) }}</div>
+            <div class="t"><b>{{ $c->nombre }}</b><small>{{ $c->telefono }}@if ($c->estado) · {{ \App\Models\RedContacto::ESTADOS[$c->estado] ?? '' }}@endif</small></div>
+            @if (!$c->contactado_at)
+            <button type="button" class="btn btn-w" style="padding:.55rem 1rem" data-enviar><i class="fa-brands fa-whatsapp"></i> Enviar</button>
+            <button type="button" class="mini" data-marcar="numero_malo" title="Número malo">📵</button>
+            @endif
+        </div>
+        @endforeach
+    </div>
+    @endif
+
     <div class="card">
-        <h2 style="margin:0 0 6px;font-size:1.15rem">1. Suba los contactos de su celular</h2>
+        <h2 style="margin:0 0 4px;font-size:1.15rem">Mi base de datos</h2>
+        <p style="margin:0 0 10px;color:var(--mut);font-weight:600;font-size:.9rem">Sus propios contactos: solo los ve usted.</p>
+        <h2 style="margin:0 0 6px;font-size:1.05rem">1. Suba los contactos de su celular</h2>
         <details>
             <summary>¿Cómo saco los contactos de mi celular?</summary>
             <ol>
@@ -100,16 +121,26 @@
 <script>
 (function () {
     var MSG = @json($mensaje), ASESOR = @json(\Illuminate\Support\Str::of(auth()->user()->name)->explode(' ')->first()), ENLACE = @json($yo->enlace);
-    var URL = @json(url('/asesor/contactos/__ID__/marcar')), TOKEN = @json(csrf_token());
+    var URL = @json(url('/asesor/contactos/__ID__/marcar')), URL_RED = @json(url('/asesor/contactos/red/__ID__/marcar')), TOKEN = @json(csrf_token());
     function armar(n) { return MSG.replace('{nombre}', n || '').replace('¡Hola !', '¡Hola!').replace('{asesor}', ASESOR).replace('{enlace}', ENLACE); }
     document.getElementById('vista').textContent = armar('María');
     function marcar(it, estado) {
         it.classList.add('hecho');
-        fetch(URL.replace('__ID__', it.dataset.id), { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': TOKEN, 'Accept': 'application/json' }, body: JSON.stringify({ estado: estado }) });
+        // Una sola vez: se quitan los botones para que no se le vuelva a escribir
+        it.querySelectorAll('[data-enviar],[data-marcar]').forEach(function (x) { x.remove(); });
+        var u = (it.dataset.red ? URL_RED : URL).replace('__ID__', it.dataset.id);
+        return fetch(u, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': TOKEN, 'Accept': 'application/json' }, body: JSON.stringify({ estado: estado }) })
+            .then(function (r) { return r.json().catch(function () { return {}; }); })
+            .then(function (d) { if (d && d.ok === false && d.mensaje) alertaLP(d.mensaje); });
+    }
+    function alertaLP(m) {
+        var c = document.createElement('div'); c.className = 'msg mal'; c.textContent = m;
+        c.style.cssText = 'position:fixed;left:12px;right:12px;bottom:16px;z-index:99;box-shadow:0 10px 30px rgba(0,0,0,.2)';
+        document.body.appendChild(c); setTimeout(function () { c.remove(); }, 5000);
     }
     document.addEventListener('click', function (e) {
         var b = e.target.closest('[data-enviar]'), m = e.target.closest('[data-marcar]');
-        if (b) { var it = b.closest('.ci'); window.open('https://wa.me/' + it.dataset.wa + '?text=' + encodeURIComponent(armar(it.dataset.nombre)), '_blank'); if (!it.classList.contains('hecho')) marcar(it, 'enviado'); }
+        if (b) { var it = b.closest('.ci'); if (it.classList.contains('hecho')) return; window.open('https://wa.me/' + it.dataset.wa + '?text=' + encodeURIComponent(armar(it.dataset.nombre)), '_blank'); marcar(it, 'enviado'); }
         if (m) marcar(m.closest('.ci'), m.dataset.marcar);
     });
 })();

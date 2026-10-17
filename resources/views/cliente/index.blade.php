@@ -50,6 +50,7 @@
                         <th>Documento</th>
                         <th>Tipo de persona</th>
                         <th>Estado</th>
+                        <th>Contacto</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -75,6 +76,14 @@
                             <span class="badge rounded-pill text-bg-success">activo</span>
                             @else
                             <span class="badge rounded-pill text-bg-danger">eliminado</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if ($item->contactado_at)
+                            <span class="badge rounded-pill {{ $item->contacto_estado === 'enviado' ? 'text-bg-success' : 'text-bg-warning' }}">{{ ['enviado' => '✓ Contactado', 'numero_malo' => 'Número malo', 'no_interesa' => 'No le interesa'][$item->contacto_estado] ?? '✓ Contactado' }}</span>
+                            <div class="text-muted small">{{ $item->contactado_at->format('d/m/Y') }}@if ($item->contactadoPor) · {{ $item->contactadoPor->name }}@endif</div>
+                            @else
+                            <span class="badge rounded-pill text-bg-light border">Sin contactar</span>
                             @endif
                         </td>
                         <td>
