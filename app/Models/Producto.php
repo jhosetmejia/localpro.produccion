@@ -30,6 +30,12 @@ class Producto extends Model
         'unidad'
     ];
 
+    // Nombre siempre estándar: "CHAQUETA DE CUERO DAMA" → "Chaqueta de Cuero Dama" (en tienda, POS, etiquetas…)
+    public function setNombreAttribute($valor): void
+    {
+        $this->attributes['nombre'] = \App\Support\Textos::titulo($valor);
+    }
+
     // % de descuento si está en promoción (precio antes mayor que el de venta); 0 si no
     public function getDescuentoAttribute(): int
     {

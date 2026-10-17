@@ -74,7 +74,7 @@ class CrearTienda
     // Categoría de la tienda actual (la crea si no existe)
     public static function categoria(string $nombre): Categoria
     {
-        $nombre = Textos::nombre($nombre) ?: 'General';
+        $nombre = Textos::titulo($nombre) ?: 'General';
         // Si ya hay una igual o parecida (Chaquetas = CHAQUETA), se usa esa
         $c = self::categoriaParecida($nombre);
         if ($c) {

@@ -18,7 +18,7 @@ class StoreCaracteristicaRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         if ($this->routeIs('categorias.*') && $this->filled('nombre')) {
-            $this->merge(['nombre' => \App\Support\Textos::nombre($this->input('nombre'))]);
+            $this->merge(['nombre' => \App\Support\Textos::titulo($this->input('nombre'))]);
         }
     }
 

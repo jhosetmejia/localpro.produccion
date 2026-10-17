@@ -26,12 +26,16 @@
     var inp = document.getElementById('nombre'), t = document.getElementById('seoT'), tip = document.getElementById('seoTip');
     if (!inp) return;
     var sufijo = @json($sufijoSeo);
+    // Igual que se guarda: Primera Letra de Cada Palabra (de, para, con… en minúscula)
+    var MEN = ['de','del','la','las','el','los','y','e','o','u','a','al','en','para','por','con','sin','su','sus','tu','un','una','x'];
     function bonito(s) {
-        s = s.trim().replace(/\s+/g, ' ');
-        if (s && (s === s.toUpperCase() || s === s.toLowerCase())) {
-            s = s.toLowerCase().split(' ').map(function (p) { return p.length <= 2 && /[a-z]/.test(p) && !/^(y|o|e|u|a|de|la|el|en|al|lo|su)$/.test(p) && inp.value === inp.value.toUpperCase() ? p.toUpperCase() : p; }).join(' ');
-        }
-        return s.charAt(0).toUpperCase() + s.slice(1);
+        return s.trim().replace(/\s+/g, ' ').split(' ').map(function (p, i) {
+            var m = p.toLowerCase(), letras = p.replace(/[^A-Za-zÁÉÍÓÚÑÜáéíóúñü]/g, '');
+            if (i > 0 && MEN.indexOf(m) !== -1) return m;
+            if (letras && letras.length <= 3 && letras === letras.toUpperCase()) return p;
+            if (/[a-záéíóúñ][A-ZÁÉÍÓÚÑ]/.test(p) && p !== p.toUpperCase()) return p;
+            return m.replace(/(^|[-\/(])(\S)/g, function (x, a, b) { return a + b.toUpperCase(); });
+        }).join(' ');
     }
     function revisar() {
         var v = inp.value.trim(), palabras = v ? v.split(/\s+/).length : 0, consejos = [];
@@ -39,8 +43,7 @@
         if (!v) { tip.textContent = ''; return; }
         if (palabras < 3) consejos.push('Muy corto: diga qué es + un detalle + para quién. Ej: "Chaqueta de cuero café para dama".');
         if (v.length > 70) consejos.push('Muy largo: Google lo corta. Mejor menos de 60 letras.');
-        if (/[a-záéíóúñ]/i.test(v) && v === v.toUpperCase() && v.length > 6) consejos.push('Escríbalo normal, no todo en MAYÚSCULAS (en la tienda se arregla solo).');
-        if (/\s(XXX?L|XS|S|M|L|XL|\d{1,2})$/i.test(v)) consejos.push('No ponga la talla al final del nombre: va en Tallas.');
+                if (/\s(XXX?L|XS|S|M|L|XL|\d{1,2})$/i.test(v)) consejos.push('No ponga la talla al final del nombre: va en Tallas.');
         if (/[|]|,.*,/.test(v)) consejos.push('Evite "|" y listas con comas; use un nombre corto y claro.');
         tip.className = 'lp-seo-tip ' + (consejos.length ? 'mal' : 'ok');
         tip.textContent = consejos.length ? '💡 ' + consejos[0] : '✓ Buen nombre para que lo encuentren en Google.';

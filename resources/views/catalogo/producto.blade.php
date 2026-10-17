@@ -5,7 +5,7 @@
     $cat = $p['categorias'][0] ?? null;
     $precioTxt = dinero($p['desde'] ?? $p['precio']);
     $tallas = collect($p['variantes'])->pluck('talla')->filter()->unique()->values();
-    $colores = collect($p['variantes'])->pluck('color')->filter()->unique()->map(fn ($c) => \App\Support\Textos::nombre($c))->values();
+    $colores = collect($p['variantes'])->pluck('color')->filter()->unique()->map(fn ($c) => \App\Support\Textos::titulo($c))->values();
     // SEO: lo que la gente busca en Google = producto + ciudad. Ej: "Chaqueta rompe vientos hombre | Abril Store, Pasto"
     $ciudad = $tienda->ciudad;
     $catEnNombre = $cat && str_contains(\App\Support\Textos::clave($p['nombre']), \App\Support\Textos::clave($cat));

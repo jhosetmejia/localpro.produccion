@@ -23,6 +23,32 @@ class Textos
         return mb_strtoupper(mb_substr($t, 0, 1)) . mb_substr($t, 1);
     }
 
+    /**
+     * Nombre estándar para productos y categorías (como los marketplaces):
+     * "CHAQUETA CASUAL DE CUERO PARA DAMA" → "Chaqueta Casual de Cuero para Dama".
+     * Se respetan siglas cortas en mayúscula (XL, OBM), marcas con mayúsculas internas (iPhone, McDonald's)
+     * y las palabras pequeñas (de, para, con…) van en minúscula salvo al inicio.
+     */
+    public static function titulo(?string $texto): string
+    {
+        $t = trim(preg_replace('/\s+/u', ' ', (string) $texto));
+        if ($t === '') return '';
+        $menores = ['de', 'del', 'la', 'las', 'el', 'los', 'y', 'e', 'o', 'u', 'a', 'al', 'en', 'para', 'por', 'con', 'sin', 'su', 'sus', 'tu', 'un', 'una', 'x'];
+        $palabras = explode(' ', $t);
+        foreach ($palabras as $i => $p) {
+            $min = mb_strtolower($p);
+            $soloLetras = preg_replace('/[^\p{L}]/u', '', $p);
+            if ($i > 0 && in_array($min, $menores, true)) { $palabras[$i] = $min; continue; }
+            // Sigla corta en mayúscula (XL, XXL, OBM, TV): se deja igual
+            if ($soloLetras !== '' && mb_strlen($soloLetras) <= 3 && $soloLetras === mb_strtoupper($soloLetras) && !in_array($min, $menores, true)) continue;
+            // Mayúscula en medio de la palabra (iPhone, McDonald's): marca, se deja igual
+            if (preg_match('/^\p{Ll}+\p{Lu}|\p{Ll}\p{Lu}/u', $p) && $p !== mb_strtoupper($p)) continue;
+            // Cada parte después de guion o barra también en mayúscula (Azul-Rojo, Dama/Caballero)
+            $palabras[$i] = preg_replace_callback('/(^|[-\/(])(\p{L})/u', fn ($m) => $m[1] . mb_strtoupper($m[2]), $min);
+        }
+        return implode(' ', $palabras);
+    }
+
     // Para comparar si dos nombres son "el mismo": sin tildes, sin mayúsculas y sin plurales (Chaquetas = chaqueta)
     public static function clave(?string $texto): string
     {
