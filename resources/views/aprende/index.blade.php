@@ -7,7 +7,12 @@
 @endpush
 
 @section('content')
-@php $n = count($cursos); $pct = $n ? round($aprobados / $n * 100) : 0; @endphp
+@php
+    $base = collect($cursos)->reject(fn ($c) => \App\Support\Academia::esOpcional($c));
+    $n = $base->count();
+    $hechos = $base->keys()->filter(fn ($k) => ($avances[$k] ?? null)?->aprobado_at)->count();
+    $pct = $n ? round($hechos / $n * 100) : 0;
+@endphp
 <div class="lp-dash">
     @include('layouts.partials.lp-flash')
     <div class="ap-hero">
@@ -19,14 +24,20 @@
         <p>Lecciones de 2 a 4 minutos con ejemplos reales: ventas, caja, vender más, inventario y contabilidad. Hágalos usted y su equipo, a su ritmo, desde el celular.</p>
         @endif
         <div class="ap-barra"><i style="width:{{ $pct }}%"></i></div>
-        <small class="d-block mt-2" style="color:#b8c4bc;letter-spacing:0;text-transform:none;font-size:.85rem;position:relative;z-index:1">{{ $aprobados }} de {{ $n }} cursos completados</small>
+        <small class="d-block mt-2" style="color:#b8c4bc;letter-spacing:0;text-transform:none;font-size:.85rem;position:relative;z-index:1">{{ $hechos }} de {{ $n }} cursos completados</small>
     </div>
 
+    @php
+        $grupos = collect($cursos)->groupBy(fn ($c) => \App\Support\Academia::esOpcional($c) ? 'op' : 'base', true);
+    @endphp
+    @foreach (['base' => null, 'op' => ['Conozca LocalPro a fondo · opcional', 'Los mismos cursos que hacen los negocios: caja, inventario y contabilidad. Con ellos podrá explicarle todo al dueño y a su contador.']] as $g => $tit)
+    @if ($grupos->has($g))
+    @if ($tit)<div class="mt-4 mb-2"><h3 style="font-weight:900;font-size:1.15rem;margin:0"><i class="fa-solid fa-star me-1" style="color:#f5b544"></i>{{ $tit[0] }}</h3><small class="text-muted fw-semibold">{{ $tit[1] }}</small></div>@endif
     <div class="ap-grid">
-        @foreach ($cursos as $slug => $c)
+        @foreach ($grupos[$g] as $slug => $c)
         @php $a = $avances[$slug] ?? null; $p = \App\Http\Controllers\academiaController::porcentaje($c, $a); $min = collect($c['lecciones'])->sum('min'); @endphp
         <a href="{{ route('aprende.curso', $slug) }}" class="ap-card">
-            @if ($a?->aprobado_at)<span class="sello">✓ Completado</span>@elseif ($c['para'] === 'dueno')<span class="sello d">Para el dueño</span>@elseif ($c['para'] === 'asesor')<span class="sello" style="background:#ede9fe;color:#6d28d9">Asesores</span>@endif
+            @if ($a?->aprobado_at)<span class="sello">✓ Completado</span>@elseif ($g === 'op')<span class="sello" style="background:#f1f5f2;color:#55605a">Opcional</span>@elseif ($c['para'] === 'dueno')<span class="sello d">Para el dueño</span>@elseif ($c['para'] === 'asesor')<span class="sello" style="background:#ede9fe;color:#6d28d9">Asesores</span>@endif
             <div class="ic" style="background:{{ $c['color'] }}"><i class="fa-solid {{ $c['icono'] }}"></i></div>
             <h3>{{ $c['titulo'] }}</h3>
             <p>{{ $c['resumen'] }}</p>
@@ -35,6 +46,8 @@
         </a>
         @endforeach
     </div>
+    @endif
+    @endforeach
 
     @if ($linea->isNotEmpty())
     @php $completos = $linea->filter(fn ($x) => $x['aprobados'] >= $x['total'])->count(); $sinEmpezar = $linea->where('empezo', false)->count(); @endphp

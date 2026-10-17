@@ -360,8 +360,17 @@ class Academia
             $g[] = 'todos';
             if (self::esJefe()) $g[] = 'dueno';
         }
-        if ($u->asesor) $g[] = 'asesor';
-        return $g;
+        // El asesor debe ser el más preparado: además de sus cursos ve, como opcionales, todos los del negocio
+        // (caja, inventario, contabilidad…) para poder explicarle LocalPro al dueño y a su contador.
+        if ($u->asesor) $g = array_merge($g, ['asesor', 'todos', 'dueno']);
+        return array_values(array_unique($g));
+    }
+
+    // Para un asesor, los cursos del negocio son opcionales (los obligatorios son los suyos)
+    public static function esOpcional(array $c): bool
+    {
+        $u = auth()->user();
+        return (bool) ($u?->asesor && !$u->tienda_id && !$u->es_superadmin && !in_array('asesor', (array) $c['para'], true));
     }
 
     public static function paraMi(): array
