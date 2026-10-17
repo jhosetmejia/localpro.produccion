@@ -147,7 +147,7 @@ class cursoController extends Controller
     {
         $a = $this->yo();
         if (!$a) return redirect()->route('panel');
-        if ($a->curso_aprobado_at) return redirect()->route('curso.certificado');
+        if ($a->curso_aprobado_at) return redirect()->route('curso.resultado');
         if (count(array_intersect(array_keys(CursoAsesor::lecciones()), $this->hechas($a))) < count(CursoAsesor::lecciones())) {
             return redirect()->route('curso.index')->with('error', 'Primero vea las lecciones del curso.');
         }
@@ -166,7 +166,7 @@ class cursoController extends Controller
     {
         $a = $this->yo();
         if (!$a) return redirect()->route('panel');
-        if ($a->curso_aprobado_at) return redirect()->route('curso.certificado');
+        if ($a->curso_aprobado_at) return redirect()->route('curso.resultado');
 
         $ids = $request->session()->pull('curso_examen');
         if (!$ids) return redirect()->route('curso.examen');
@@ -204,7 +204,7 @@ class cursoController extends Controller
 
         if ($this->esAdmin($a)) {
             $this->guardar($a, ['curso_aprobado_at' => now()]);
-            return redirect()->route('curso.certificado')->with('felicitar', true);
+            return redirect()->route('curso.resultado')->with('felicitar', true);
         }
 
         DB::transaction(function () use ($a, $nota) {
@@ -219,10 +219,51 @@ class cursoController extends Controller
                 ];
             }
             $a->update($datos);
-            RedComercial::historial($a, 'curso', 'Aprobó el curso de asesores con ' . $nota . '% · certificado ' . $a->certificado);
+            RedComercial::historial($a, 'curso', 'Aprobó la prueba básica de asesores con ' . $nota . '% · certificado ' . $a->certificado);
         });
 
-        return redirect()->route('curso.certificado')->with('felicitar', true);
+        // Al aprobar no se le muestra el certificado: se le muestra que pasó la prueba básica y un enlace
+        // para compartir con su reclutador. El certificado queda disponible en la sección del curso.
+        return redirect()->route('curso.resultado')->with('felicitar', true);
+    }
+
+    // "Pasaste la prueba básica": enlace para compartir con quien lo reclutó
+    public function resultado()
+    {
+        $a = $this->yo();
+        if (!$a) return redirect()->route('panel');
+        if (!$a->curso_aprobado_at) return redirect()->route('curso.index');
+
+        $enlace = null;
+        $whatsapp = null;
+        $reclutador = null;
+        if (!$this->esAdmin($a)) {
+            $a->load('user', 'reclutador.user');
+            $enlace = route('prueba.ver', $a->codigo);
+            $reclutador = $a->reclutador;
+            // Número de quien lo invitó; si lo invitó LocalPro, el WhatsApp de soporte
+            $tel = $reclutador?->user?->telefono ?: \App\Models\Ajuste::valor('soporte_whatsapp');
+            $tel = preg_replace('/\D/', '', (string) $tel);
+            if ($tel !== '') {
+                $ind = \App\Support\Paises::datos(($reclutador?->pais) ?: ($a->pais ?: 'CO'))['indicativo'] ?? '57';
+                $whatsapp = str_starts_with($tel, $ind) && strlen($tel) > 10 ? $tel : $ind . ltrim($tel, '0');
+            }
+        }
+        $saludo = $reclutador ? 'Hola ' . strtok($reclutador->nombre, ' ') : 'Hola';
+        $mensaje = $saludo . ', ya pasé la prueba básica de LocalPro ✅ Este es mi resultado: ' . ($enlace ?? route('curso.resultado'));
+
+        return view('curso.resultado', $this->comunes($a) + [
+            'a' => $a, 'enlace' => $enlace, 'reclutador' => $reclutador, 'felicitar' => session('felicitar'),
+            'wa' => 'https://wa.me/' . ($whatsapp ?? '') . '?text=' . rawurlencode($mensaje),
+        ]);
+    }
+
+    // Página pública del resultado (la que ve el reclutador): solo nombre, nota y fecha, sin datos personales
+    public function verPrueba(string $codigo)
+    {
+        $a = Asesor::with('user:id,name')->porCodigo($codigo)->whereNotNull('curso_aprobado_at')->first();
+        abort_unless($a, 404, 'Este resultado no existe.');
+        return view('curso.prueba-publica', ['a' => $a]);
     }
 
     public function certificado()

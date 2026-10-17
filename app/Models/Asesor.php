@@ -10,7 +10,7 @@ class Asesor extends Model
 {
     protected $table = 'asesores';
 
-    protected $fillable = ['user_id', 'cargo', 'padre_id', 'pais', 'departamento', 'ciudad', 'zona', 'codigo', 'documento', 'banco', 'activo', 'estado', 'reclutado_por', 'aprobado_at', 'curso_modulos', 'curso_nota', 'curso_aprobado_at', 'certificado'];
+    protected $fillable = ['user_id', 'cargo', 'padre_id', 'pais', 'departamento', 'ciudad', 'zona', 'codigo', 'documento', 'experiencia', 'banco', 'activo', 'estado', 'reclutado_por', 'aprobado_at', 'curso_modulos', 'curso_nota', 'curso_aprobado_at', 'certificado'];
 
     protected $casts = ['activo' => 'boolean', 'aprobado_at' => 'datetime', 'curso_modulos' => 'array', 'curso_aprobado_at' => 'datetime'];
 
@@ -83,6 +83,23 @@ class Asesor extends Model
     public function getNombreAttribute(): string
     {
         return $this->user->name ?? 'Sin nombre';
+    }
+
+    // Opciones de "¿Tiene experiencia en ventas?" del registro
+    public const EXPERIENCIA = [
+        'ninguna' => 'No, sería mi primera vez',
+        'menos_1' => 'Sí, menos de 1 año',
+        '1_3' => 'Sí, de 1 a 3 años',
+        'mas_3' => 'Sí, más de 3 años',
+    ];
+
+    // Lo que falta para que LocalPro le pueda pagar sus comisiones (se llena en "Mi cuenta")
+    public function getFaltaPerfilAttribute(): array
+    {
+        $falta = [];
+        if (!filled($this->documento)) $falta[] = 'cédula';
+        if (!filled($this->banco)) $falta[] = 'dónde le pagamos';
+        return $falta;
     }
 
     public function getCargoNombreAttribute(): string

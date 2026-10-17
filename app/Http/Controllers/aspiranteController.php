@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Asesor;
 use App\Models\User;
-use App\Support\Bancos;
 use App\Support\RedComercial;
 use App\Support\Ubicaciones;
 use Illuminate\Http\Request;
@@ -37,34 +36,32 @@ class aspiranteController extends Controller
     public function store(Request $request, string $codigo)
     {
         $invita = $this->invitador($codigo);
+        // Solo datos básicos: la cédula y dónde se le paga los completa después en "Mi cuenta"
         $d = $request->validate([
             'name' => 'required|string|max:80',
-            'documento' => 'required|string|max:20',
             'telefono' => 'required|string|max:20',
             'email' => 'required|email|max:120|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
             'pais' => 'required|string|size:2',
             'zona' => 'nullable|string|max:60',
-            'banco' => 'nullable|string|max:120',
-        ] + Bancos::reglas() + Ubicaciones::reglas($request->input('pais'), $request->input('departamento'), true), Ubicaciones::mensajes() + [
+            'experiencia' => 'required|in:' . implode(',', array_keys(Asesor::EXPERIENCIA)),
+        ] + Ubicaciones::reglas($request->input('pais'), $request->input('departamento'), true), Ubicaciones::mensajes() + [
             'email.unique' => 'Ya existe una cuenta con ese correo.',
             'password.min' => 'La clave debe tener mínimo 8 caracteres.',
             'password.confirmed' => 'Las claves no coinciden.',
-            'documento.required' => 'Escriba su cédula.',
-            'telefono.required' => 'Escriba su WhatsApp.',
+            'telefono.required' => 'Escriba su celular (WhatsApp).',
+            'experiencia.required' => 'Cuéntenos si tiene experiencia en ventas.',
         ]);
-
-        $d['banco'] = Bancos::componer($request);
 
         $u = DB::transaction(function () use ($d, $invita) {
             $u = User::create(['name' => $d['name'], 'email' => strtolower($d['email']), 'telefono' => $d['telefono'], 'password' => Hash::make($d['password'])]);
             $a = Asesor::create([
                 'user_id' => $u->id, 'cargo' => 'asesor', 'padre_id' => null, 'reclutado_por' => $invita->id ?: null,
                 'pais' => $d['pais'], 'departamento' => $d['departamento'] ?? null, 'ciudad' => $d['ciudad'] ?? null,
-                'zona' => $d['zona'] ?? null, 'documento' => $d['documento'], 'banco' => $d['banco'] ?? null,
+                'zona' => $d['zona'] ?? null, 'experiencia' => $d['experiencia'],
                 'codigo' => Asesor::nuevoCodigo($d['name']), 'activo' => false, 'estado' => 'capacitacion',
             ]);
-            RedComercial::historial($a, 'solicitud', 'Se inscribió con el enlace de ' . $invita->nombre . ' y empezó el curso', $u->id);
+            RedComercial::historial($a, 'solicitud', 'Se inscribió con el enlace de ' . $invita->nombre . ' y empezó la prueba básica', $u->id);
             return $u;
         });
 

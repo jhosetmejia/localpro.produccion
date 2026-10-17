@@ -1,7 +1,7 @@
 {{--
     Dónde se le paga a una persona: banco o billetera digital del país elegido, tipo de cuenta y número.
     Uso: @include('layouts.partials.pago', ['banco' => $a?->banco, 'pais' => 'CO', 'modo' => 'bs'|'in', 'titulo' => 'Dónde se le paga'])
-    Escucha el <select name="pais"> del mismo formulario para cambiar la lista de bancos.
+    Escucha el campo name="pais" del mismo formulario (select, o input oculto si el país no se cambia) para cambiar la lista de bancos.
 --}}
 @php
     $pid = 'pg' . substr(md5(uniqid('', true)), 0, 6);
@@ -65,7 +65,7 @@
     var raiz = document.getElementById(id), $ = function (s) { return document.getElementById(id + s); };
     var ent = $('e'), tipos = $('t'), num = $('n'), numL = $('nl');
     var form = raiz.closest('form');
-    var pais = form && form.querySelector('select[name="pais"]');
+    var pais = form && form.querySelector('[name="pais"]');
     var caja = function (k) { return raiz.querySelector('[data-pg="' + k + '"]'); };
     var opt = function (v, t) { var o = document.createElement('option'); o.value = v; o.textContent = t; return o; };
     var grupo = function (nombre, lista) {

@@ -23,6 +23,14 @@
     </div>
     @endif
 
+    @php $aC = $u->asesor; @endphp
+    @if ($aC && $aC->falta_perfil)
+    <div class="lp-box mb-3" style="background:#fff8e6;border:1.5px solid #f3d27a">
+        <div class="d-flex gap-3 align-items-start"><div style="font-size:1.6rem">📝</div>
+            <div><b>Completa tu información</b><div class="small text-muted">Falta: {{ implode(' y ', $aC->falta_perfil) }}. Con esto LocalPro le consigna sus comisiones.</div></div></div>
+    </div>
+    @endif
+
     <form method="post" action="{{ route('cuenta.update') }}" class="lp-grid">
         @csrf @method('PUT')
         <div class="lp-box">
@@ -38,6 +46,25 @@
             <div class="mb-3"><label class="form-label">Clave nueva</label><input type="password" name="clave" class="form-control" minlength="8" autocomplete="new-password" placeholder="Mínimo 8 caracteres"></div>
             <div class="mb-3"><label class="form-label">Repita la clave nueva</label><input type="password" name="clave_confirmation" class="form-control" autocomplete="new-password"></div>
         </div>
+        @if ($aC)
+        <div class="lp-box" id="pago" style="grid-column:1/-1">
+            <h3>Mi información de asesor</h3>
+            <p class="text-muted small">Solo la usa LocalPro para identificarlo y consignarle sus comisiones.</p>
+            <input type="hidden" name="pais" value="{{ $aC->pais ?: 'CO' }}">
+            <div class="row g-3 mb-3">
+                <div class="col-md-6"><label class="form-label">Cédula</label><input name="documento" class="form-control" maxlength="20" inputmode="numeric" value="{{ old('documento', $aC->documento) }}"></div>
+                <div class="col-md-6"><label class="form-label">¿Experiencia en ventas?</label>
+                    <select name="experiencia" class="form-select">
+                        <option value="">—</option>
+                        @foreach (\App\Models\Asesor::EXPERIENCIA as $k => $t)<option value="{{ $k }}" @selected(old('experiencia', $aC->experiencia) === $k)>{{ $t }}</option>@endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="row g-3">
+                @include('layouts.partials.pago', ['banco' => $aC->banco, 'pais' => $aC->pais ?: 'CO', 'modo' => 'bs', 'titulo' => 'Dónde le pagamos'])
+            </div>
+        </div>
+        @endif
         <div style="grid-column:1/-1"><button class="btn btn-primary btn-lg"><i class="fa-solid fa-floppy-disk me-1"></i>Guardar</button></div>
     </form>
 </div>

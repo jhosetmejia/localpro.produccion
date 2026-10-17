@@ -8,9 +8,9 @@
 <div class="w">
     @include('curso._top')
     <div class="hero">
-        <small>Examen final</small>
+        <small>Prueba básica</small>
         <h1>¡Ya casi! <em>{{ count($preguntas) }} preguntas</em></h1>
-        <p>Son fáciles: todo está en las lecciones. Apruebas con el {{ $minima }}% y si no te va bien puedes intentarlo otra vez.</p>
+        <p>Son fáciles: todo está en las lecciones. Pasas con el {{ $minima }}% y si no te va bien puedes intentarlo otra vez.</p>
     </div>
     <form method="post" action="{{ route('curso.calificar') }}" id="ex">
         @csrf

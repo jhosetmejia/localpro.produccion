@@ -11,6 +11,8 @@
         .dos{display:grid;grid-template-columns:1fr 1fr;gap:12px}
         @media (max-width:480px){.dos{grid-template-columns:1fr}}
         .listo{text-align:center;padding:10px 0}
+        .seguro{display:flex;gap:10px;align-items:flex-start;background:#e8f8ec;color:#11702f;border-radius:14px;padding:.75rem .9rem;font-weight:600;font-size:.9rem;margin:-.2rem 0 1rem}
+        .seguro i{margin-top:3px}
         .listo .ico{width:72px;height:72px;border-radius:22px;background:var(--grad);display:grid;place-items:center;font-size:1.8rem;margin:0 auto 1rem}
     </style>
 </head>
@@ -24,7 +26,7 @@
             <ul class="auth-list">
                 <li><span><i class="fa-solid fa-check"></i></span> Sin inversión</li>
                 <li><span><i class="fa-solid fa-check"></i></span> Tu propio panel, enlace y comisiones</li>
-                <li><span><i class="fa-solid fa-check"></i></span> Curso gratis con certificado</li>
+                <li><span><i class="fa-solid fa-check"></i></span> Prueba básica corta, gratis y en línea</li>
                 <li><span><i class="fa-solid fa-check"></i></span> Puedes crecer a líder</li>
             </ul>
         </div>
@@ -42,26 +44,29 @@
                 </div>
             @else
             <h1 class="serif" style="font-size:2.2rem">Únete como asesor</h1>
-            <p class="sub">Te invita <b>{{ $invita->nombre }}</b>{{ $invita->id ? ' (' . $invita->cargo_nombre . ')' : '' }}. Llena tus datos, haz un curso corto de 10 minutos y recibe tu <b>certificado de Asesor Comercial LocalPro</b>.</p>
+            <p class="sub">Te invita <b>{{ $invita->nombre }}</b>{{ $invita->id ? ' (' . $invita->cargo_nombre . ')' : '' }}. Llena tus datos básicos y presenta una prueba corta (unos 10 minutos) para conocer LocalPro.</p>
+            <div class="seguro"><i class="fa-solid fa-shield-halved"></i><span>Aquí <b>no</b> te pedimos cédula ni cuentas bancarias. Eso lo llenas después en tu perfil, solo si decides trabajar con nosotros.</span></div>
 
             @if ($errors->any())<div class="alert">{{ $errors->first() }}</div>@endif
 
             <form method="post" novalidate>
                 @csrf
                 <div class="field"><label>Nombre completo</label><input class="in" name="name" value="{{ old('name') }}" maxlength="80" required autocomplete="name"></div>
-                <div class="dos">
-                    <div class="field"><label>Cédula</label><input class="in" name="documento" value="{{ old('documento') }}" maxlength="20" inputmode="numeric" required></div>
-                    <div class="field"><label>WhatsApp</label><input class="in" name="telefono" value="{{ old('telefono') }}" maxlength="20" inputmode="tel" required></div>
-                </div>
+                <div class="field"><label>Celular (WhatsApp)</label><input class="in" name="telefono" value="{{ old('telefono') }}" maxlength="20" inputmode="tel" required autocomplete="tel" placeholder="Ej: 300 123 4567"></div>
                 @include('layouts.partials.ubicacion', ['pais' => $invita->pais ?: 'CO', 'departamento' => $invita->departamento, 'ciudad' => $invita->ciudad, 'clase' => 'in', 'envoltura' => 'field', 'etiqueta' => ''])
-                <div class="field"><label>Zona / comuna donde trabajarás <span style="font-weight:500;opacity:.7">(opcional)</span></label><input class="in" name="zona" value="{{ old('zona', $invita->zona) }}" maxlength="60" placeholder="Ej: Comuna 10"></div>
-                @include('layouts.partials.pago', ['banco' => '', 'pais' => $invita->pais ?: 'CO', 'modo' => 'in', 'titulo' => 'Dónde te pagamos'])
+                <div class="field"><label>Zona / comuna donde trabajarías <span style="font-weight:500;opacity:.7">(opcional)</span></label><input class="in" name="zona" value="{{ old('zona', $invita->zona) }}" maxlength="60" placeholder="Ej: Comuna 10"></div>
+                <div class="field"><label>¿Tienes experiencia en ventas?</label>
+                    <select class="in" name="experiencia" required>
+                        <option value="">Elige una opción…</option>
+                        @foreach (\App\Models\Asesor::EXPERIENCIA as $k => $t)<option value="{{ $k }}" @selected(old('experiencia') === $k)>{{ $t }}</option>@endforeach
+                    </select>
+                </div>
                 <div class="field"><label>Correo (para entrar)</label><input class="in" type="email" name="email" value="{{ old('email') }}" maxlength="120" required autocomplete="email"></div>
                 <div class="dos">
                     <div class="field"><label>Clave</label><input class="in" type="password" name="password" minlength="8" required autocomplete="new-password" placeholder="Mínimo 8"></div>
                     <div class="field"><label>Repite la clave</label><input class="in" type="password" name="password_confirmation" required autocomplete="new-password"></div>
                 </div>
-                <button class="btn btn-amber btn-block" type="submit" style="margin-top:.4rem">Inscribirme y realizar la prueba <i class="fa-solid fa-arrow-right"></i></button>
+                <button class="btn btn-amber btn-block" type="submit" style="margin-top:.4rem">Inscribirme y presentar la prueba <i class="fa-solid fa-arrow-right"></i></button>
             </form>
             @endif
         </div>

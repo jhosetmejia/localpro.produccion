@@ -115,9 +115,12 @@ Route::middleware('auth')->prefix('curso')->name('curso.')->group(function () {
     Route::post('/leccion/{n}', [cursoController::class, 'completar'])->whereNumber('n')->name('completar');
     Route::get('/examen', [cursoController::class, 'examen'])->name('examen');
     Route::post('/examen', [cursoController::class, 'calificar'])->middleware('throttle:20,1')->name('calificar');
+    Route::get('/resultado', [cursoController::class, 'resultado'])->name('resultado');
     Route::get('/certificado', [cursoController::class, 'certificado'])->name('certificado');
     Route::post('/reiniciar', [cursoController::class, 'reiniciar'])->name('reiniciar');
 });
+// Resultado de la prueba básica que el aspirante le comparte a su reclutador (código del asesor, ej. LCP-00012)
+Route::get('/prueba/{codigo}', [cursoController::class, 'verPrueba'])->where('codigo', '[A-Za-z0-9\-]+')->name('prueba.ver');
 // El código siempre empieza con letra (CERT-00001); así no se cruza con /certificado/{nivel} del panel
 Route::get('/certificado/{codigo}', [cursoController::class, 'verificar'])->where('codigo', '[A-Za-z][A-Za-z0-9\-]*')->name('certificado.verificar');
 

@@ -15,6 +15,18 @@
     </div>
     @include('layouts.partials.lp-flash')
 
+    {{-- En el registro solo se piden datos básicos: aquí se le recuerda completar cédula y dónde se le paga --}}
+    @if ($yo->falta_perfil)
+    <a href="{{ route('cuenta.edit') }}#pago" class="lp-box mb-3 d-flex align-items-center gap-3 flex-wrap text-decoration-none" style="background:#fff8e6;border:1.5px solid #f3d27a;color:inherit">
+        <div style="font-size:1.8rem">📝</div>
+        <div class="flex-grow-1" style="min-width:200px">
+            <b>Completa tu información en el perfil</b>
+            <div class="small text-muted">Falta: {{ implode(' y ', $yo->falta_perfil) }}. Sin estos datos LocalPro no puede consignarle sus comisiones.</div>
+        </div>
+        <span class="btn btn-warning fw-bold"><i class="fa-solid fa-user-pen me-1"></i>Completar ahora</span>
+    </a>
+    @endif
+
     {{-- Avisos: sus negocios que pagaron en los últimos 7 días --}}
     @foreach ($recientes as $rp)
     <div class="lp-box mb-2" style="background:linear-gradient(135deg,#e9fbe9,#f6fff4);border:1.5px solid #bfe8c8">

@@ -22,7 +22,7 @@
     <div class="hero">
         <small>Curso básico de asesores</small>
         <h1>Hola {{ strtok($yo->nombre, ' ') }}, <em>bienvenido</em> 👋</h1>
-        <p>Son {{ $total }} lecciones cortas (unos {{ $minutos }} minutos) y un examen fácil de {{ $preguntas }} preguntas. Al terminar recibes tu <b>certificado de Asesor Comercial LocalPro</b> para tu hoja de vida y quedas listo para empezar a ganar.</p>
+        <p>Son {{ $total }} lecciones cortas (unos {{ $minutos }} minutos) y una prueba básica fácil de {{ $preguntas }} preguntas. Al pasarla te damos un enlace para compartir con tu reclutador y quedas listo para empezar a ganar.</p>
     </div>
 
     @if ($aprobado && $nuevas)
@@ -60,12 +60,16 @@
         @endforeach
         <a href="{{ route('curso.examen') }}" class="paso {{ $aprobado ? 'ok' : ($vistas >= $total ? '' : 'bloq') }}">
             <div class="ic"><i class="fa-solid {{ $aprobado ? 'fa-check' : 'fa-pen-to-square' }}"></i></div>
-            <div class="t"><b>Examen final</b><small>{{ $aprobado ? 'Aprobado con ' . $yo->curso_nota . '% ✓' : $preguntas . ' preguntas fáciles · intentos ilimitados' }}</small></div>
+            <div class="t"><b>Prueba básica</b><small>{{ $aprobado ? 'Aprobado con ' . $yo->curso_nota . '% ✓' : $preguntas . ' preguntas fáciles · intentos ilimitados' }}</small></div>
             @if (!$aprobado && $vistas >= $total)<i class="fa-solid fa-chevron-right" style="color:#16b34a"></i>@endif
+        </a>
+        <a href="{{ route('curso.resultado') }}" class="paso {{ $aprobado ? 'ya' : 'bloq' }}">
+            <div class="ic"><i class="fa-solid fa-share-nodes"></i></div>
+            <div class="t"><b>Resultado para tu reclutador</b><small>{{ $aprobado ? 'Enlace listo para compartir' : 'Se desbloquea al pasar la prueba' }}</small></div>
         </a>
         <a href="{{ route('curso.certificado') }}" class="paso {{ $aprobado ? 'ya' : 'bloq' }}">
             <div class="ic"><i class="fa-solid fa-award"></i></div>
-            <div class="t"><b>Tu certificado</b><small>{{ $aprobado ? $yo->certificado . ' · listo para descargar' : 'Se desbloquea al aprobar el examen' }}</small></div>
+            <div class="t"><b>Tu certificado</b><small>{{ $aprobado ? $yo->certificado . ' · listo para descargar' : 'Se desbloquea al pasar la prueba' }}</small></div>
         </a>
     </div>
 
@@ -74,10 +78,10 @@
     @elseif ($siguiente)
         <a href="{{ route('curso.leccion', $siguiente) }}" class="btn btn-g btn-block">{{ $vistas ? 'Continuar' : 'Empezar el curso' }} <i class="fa-solid fa-arrow-right"></i></a>
     @else
-        <a href="{{ route('curso.examen') }}" class="btn btn-g btn-block">{{ $intentos ? 'Intentar el examen otra vez' : 'Presentar el examen' }} <i class="fa-solid fa-arrow-right"></i></a>
+        <a href="{{ route('curso.examen') }}" class="btn btn-g btn-block">{{ $intentos ? 'Intentar la prueba otra vez' : 'Presentar la prueba' }} <i class="fa-solid fa-arrow-right"></i></a>
     @endif
 
-    <p class="pie">Desarrollado por Jhoset Mejía - DiCreWeb</p>
+    <p class="pie">© {{ date('Y') }} LocalProo · Todos los derechos reservados</p>
 </div>
 </body>
 </html>

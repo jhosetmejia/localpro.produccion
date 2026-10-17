@@ -253,7 +253,7 @@
 
         <div class="red3">
             <div><span class="num">10</span><b>Negocios o emprendedores</b><span>Inscríbelos con tu enlace de negocios. Cada uno que pague su plan anual te deja {{ $f($com) }} y luego {{ $f($renAsesor) }} cada año que renueve.</span></div>
-            <div><span class="num">10</span><b>Asesores en tu equipo</b><span>Invítalos con tu enlace de asesores. Hacen el curso, reciben su certificado y quedan en tu red automáticamente.</span></div>
+            <div><span class="num">10</span><b>Asesores en tu equipo</b><span>Invítalos con tu enlace de asesores: solo llenan datos básicos, pasan una prueba corta y quedan en tu red automáticamente.</span></div>
             <div><span class="num">🏆</span><b>Subes de rango</b><span>Con 10 negocios pagos + 10 asesores activos, LocalPro te sube a Líder de zona y ganas por cada venta de tu equipo.</span></div>
         </div>
 
