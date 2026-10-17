@@ -12,6 +12,8 @@
         </div>
     </div>
 
+    @include('inventario._tabs')
+
     <div class="lp-counts mb-3" style="grid-template-columns:repeat(4,1fr)">
         <a class="lp-count" href="{{ route('inventario.index') }}"><div class="ci"><i class="fa-solid {{ \App\Models\Tienda::iconoProducto() }}"></i></div><b>{{ dinero($resumen['unidades'], false) }}</b><small>Unidades</small></a>
         <a class="lp-count" href="{{ route('inventario.index') }}"><div class="ci"><i class="fa-solid fa-layer-group"></i></div><b>{{ $resumen['referencias'] }}</b><small>Tallas/colores</small></a>

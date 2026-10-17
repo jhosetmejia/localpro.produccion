@@ -220,9 +220,13 @@
                 </a>@endif
                 @endcan
                 @can('ver-inventario')
-                @if ($ver('existencias'))<a class="nav-link {{ $on('inventario.*') }}" href="{{ route('inventario.index') }}">
+                @if ($ver('existencias'))<a class="nav-link {{ $on('inventario.index') }} {{ $on('inventario.movimientos') }}" href="{{ route('inventario.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-warehouse"></i></div>
                     Existencias
+                </a>@endif
+                @if ($ver('existencias'))<a class="nav-link {{ $on('inventario.resumen') }} {{ $on('inventario.conteos.*') }}" href="{{ route('inventario.resumen') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-clipboard-check"></i></div>
+                    Resumen y conteo
                 </a>@endif
                 @endcan
                 @can('ver-entradas')

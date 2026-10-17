@@ -9,6 +9,7 @@
 .pl-nuevo{background:linear-gradient(90deg,#a3f04a,#16b84e);color:#0b0d0c;font-weight:800;border:0;border-radius:999px;padding:.7rem 1.2rem;text-decoration:none;white-space:nowrap}
 .pl-nuevo:hover{color:#0b0d0c;filter:brightness(1.05)}
 .pl-imp{background:#fff;color:#0b0d0c;font-weight:800;border:1.5px solid #dfe6e2;border-radius:999px;padding:.65rem 1.1rem;text-decoration:none;white-space:nowrap}
+.pl-imp.pl-inv{background:#0b0d0c;color:#fff;border-color:#0b0d0c}.pl-imp.pl-inv i{color:#a6f34a}.pl-imp.pl-inv:hover{color:#fff;background:#1d2a21}
 .pl-imp i{color:#16b34a}.pl-imp:hover{border-color:#16b34a;color:#0b0d0c}
 @media (max-width:420px){.pl-top .pl-imp,.pl-top .pl-nuevo{flex:1 1 auto;text-align:center}}
 .pl-buscar{position:relative;margin-bottom:.7rem}
@@ -77,6 +78,9 @@ a.pl-foto.sinfoto:hover{border-color:#16b84e;color:#16b84e;background:#f0fbf4}
     @endif
     <div class="pl-top">
         <h1>Productos <small class="text-muted fw-bold" style="font-size:.9rem">({{ $activos }})</small></h1>
+        @can('ver-inventario')
+        <a href="{{ route('inventario.resumen') }}" class="pl-imp pl-inv"><i class="fa-solid fa-clipboard-check"></i> Inventario y conteo</a>
+        @endcan
         <a href="{{ route('etiquetas.todas') }}" class="pl-imp"><i class="fa-solid fa-barcode"></i> Ver todas las etiquetas</a>
         @if ($verWeb)
         <a href="{{ $tiendaCat->url_catalogo_navegador }}" target="_blank" rel="noopener" class="pl-imp"><i class="fa-solid fa-globe"></i> Ver mi catálogo en línea</a>

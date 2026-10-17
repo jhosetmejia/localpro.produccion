@@ -333,6 +333,14 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     // Inventario, tallas y colores
     Route::get('/inventario', [inventarioController::class, 'index'])->name('inventario.index');
     Route::get('/inventario/movimientos', [inventarioController::class, 'movimientos'])->name('inventario.movimientos');
+    // Resumen por talla/categoría/color y conteo físico (sistema vs. bodega)
+    Route::get('/inventario/resumen', [\App\Http\Controllers\inventarioConteoController::class, 'resumen'])->name('inventario.resumen');
+    Route::get('/inventario/conteos', [\App\Http\Controllers\inventarioConteoController::class, 'index'])->name('inventario.conteos.index');
+    Route::post('/inventario/conteos', [\App\Http\Controllers\inventarioConteoController::class, 'store'])->name('inventario.conteos.store');
+    Route::get('/inventario/conteos/{conteo}', [\App\Http\Controllers\inventarioConteoController::class, 'show'])->whereNumber('conteo')->name('inventario.conteos.show');
+    Route::post('/inventario/conteos/{conteo}/contar', [\App\Http\Controllers\inventarioConteoController::class, 'contar'])->whereNumber('conteo')->middleware('throttle:600,1')->name('inventario.conteos.contar');
+    Route::post('/inventario/conteos/{conteo}/aplicar', [\App\Http\Controllers\inventarioConteoController::class, 'aplicar'])->whereNumber('conteo')->name('inventario.conteos.aplicar');
+    Route::post('/inventario/conteos/{conteo}/cancelar', [\App\Http\Controllers\inventarioConteoController::class, 'cancelar'])->whereNumber('conteo')->name('inventario.conteos.cancelar');
     Route::get('/productos/{producto}/variantes', [varianteController::class, 'index'])->name('productos.variantes');
     Route::post('/productos/{producto}/variantes', [varianteController::class, 'store'])->name('variantes.store');
     Route::put('/variantes/{variante}', [varianteController::class, 'update'])->name('variantes.update');
