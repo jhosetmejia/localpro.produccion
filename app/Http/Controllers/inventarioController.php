@@ -16,7 +16,7 @@ class inventarioController extends Controller
 
     public function index(Request $request)
     {
-        $q = trim((string) $request->get('q'));
+        $q = \App\Support\CodigoBarras::resolver(trim((string) $request->get('q')));
         $filtro = $request->get('filtro', 'todos');
 
         $variantes = ProductoVariante::query()

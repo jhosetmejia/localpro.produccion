@@ -26,20 +26,25 @@
   .lista{max-height:320px;overflow:auto;border:1px solid #e3efe5;border-radius:12px;margin-top:8px}
   .chip{background:#f1f5f2!important;color:#0b0d0c!important;padding:7px 12px!important;font-size:13px!important}
   .p{background:linear-gradient(135deg,#a6f34a,#2fd15a 45%,#16b34a);color:#0b0d0c}.d{background:#0b0d0c;color:#fff}
-  #hoja{display:flex;flex-wrap:wrap;gap:0;justify-content:center;margin:0 auto 30px}
-  .et{width:50mm;height:25mm;padding:1.2mm 2mm;background:#fff;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;border:1px dashed #c9d8cc;page-break-inside:avoid}
+  /* Hoja: en carta/A4 las etiquetas se acomodan juntas para gastar menos papel */
+  #hoja{display:grid;gap:0;justify-content:center;margin:0 auto 30px;background:#fff}
+  .et{width:50mm;height:25mm;padding:1.2mm 2mm;background:#fff;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;border:.2mm dashed #c9d8cc;break-inside:avoid;page-break-inside:avoid}
   .et .n{font-size:7.5pt;font-weight:700;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .et .o{font-size:7pt;display:flex;justify-content:space-between}
+  .et .o{font-size:6.8pt;display:flex;justify-content:space-between;gap:4px;white-space:nowrap}
+  .et .o span:first-child{overflow:hidden;text-overflow:ellipsis}
   .et .pr{font-weight:800;font-size:8.5pt}
   .et svg{width:100%;height:11mm}
-  body.a4 #hoja{width:210mm;justify-content:flex-start;padding:8mm 5mm}
-  body.a4 .et{width:66mm;height:33mm}
-  body.a4 .et .n{font-size:9pt}body.a4 .et svg{height:15mm}
+  body.rollo #hoja{grid-template-columns:50mm;gap:3mm}
+  body.c4 #hoja{width:200mm;grid-template-columns:repeat(4,50mm)}
+  body.c3 #hoja{width:198mm;grid-template-columns:repeat(3,66mm)}
+  body.c3 .et{width:66mm;height:33mm}
+  body.c3 .et .n{font-size:9pt}body.c3 .et svg{height:15mm}
   @media print{
-    body{background:#fff}.tool{display:none}
-    .et{border:0}
-    @page{margin:0}
-    body:not(.a4) .et{page-break-after:always}
+    body{background:#fff}.tool,#avisoPdf{display:none!important}
+    #hoja{margin:0}
+    body.rollo #hoja{gap:0}
+    body.rollo .et{border:0;break-after:page;page-break-after:always}
+    body.rollo .et:last-child{break-after:auto;page-break-after:auto}
   }
 </style>
 </head>
@@ -71,7 +76,7 @@
         <b>Recomendaciones para imprimir</b>
         <ul>
             <li><b>Impresora de etiquetas (rollo 50 × 25 mm):</b> elija "Rollo" abajo. En la ventana de imprimir ponga márgenes "Ninguno" y escala 100 %.</li>
-            <li><b>Impresora normal:</b> elija "Hoja carta/A4" y use papel adhesivo de etiquetas (o papel normal y péguelas con cinta).</li>
+            <li><b>Impresora normal:</b> elija "Hoja carta/A4 · 40 por hoja" (ahorra papel) y use papel adhesivo de etiquetas, o papel normal y recórtelas por las líneas.</li>
             <li><b>Para guardar en PDF:</b> toque "Descargar PDF" y en la ventana elija <b>"Guardar como PDF"</b>.</li>
             <li>Pegue la etiqueta donde no se dañe (en el marquillado o con un gancho). Luego puede venderlas escaneándolas con la cámara del celular en el POS.</li>
         </ul>
@@ -91,7 +96,7 @@
     </table>
     @if (!empty($todas))</div>@endif
     <div class="row">
-        <label>Papel: <select id="papel"><option value="rollo">Rollo 50 × 25 mm (impresora de etiquetas)</option><option value="a4">Hoja carta/A4 (3 columnas)</option></select></label>
+        <label>Papel: <select id="papel"><option value="c4">Hoja carta/A4 · 40 por hoja (4 × 10)</option><option value="c3">Hoja carta/A4 · 24 por hoja, más grandes (3 × 8)</option><option value="rollo">Rollo 50 × 25 mm (impresora de etiquetas)</option></select></label>
         <label><input type="checkbox" id="conPrecio" checked> Mostrar precio</label>
         <span style="flex:1"></span>
         <button class="p" onclick="window.print()">🖨 Imprimir</button>
@@ -107,6 +112,7 @@
     @php
         $itemsJs = $items->map(fn ($it) => [
             'nombre' => $it['v']->producto->nombre,
+            'ref' => $it['v']->producto->codigo,
             'op' => $it['v']->etiqueta !== 'Única' ? $it['v']->etiqueta : '',
             'codigo' => $it['v']->codigo_barras,
             'precio' => dinero($it['v']->precio_final),
@@ -115,13 +121,20 @@
     var ITEMS = @json($itemsJs);
     var TIENDA = @json($negocio->nombre);
     var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); };
+    var estiloPagina = document.createElement('style'); document.head.appendChild(estiloPagina);
+    try { var guardado = localStorage.getItem('lp_etq_papel'); if (guardado) document.getElementById('papel').value = guardado; } catch (e) {}
     function pintar() {
-        document.body.classList.toggle('a4', document.getElementById('papel').value === 'a4');
+        var papel = document.getElementById('papel').value || 'c4';
+        document.body.classList.remove('rollo', 'c4', 'c3', 'a4');
+        document.body.classList.add(papel);
+        // Tamaño de página: en rollo cada página es una etiqueta; en carta, hoja carta con margen pequeño
+        estiloPagina.textContent = papel === 'rollo' ? '@page{size:50mm 25mm;margin:0}' : '@page{size:letter;margin:8mm 7mm}';
+        try { localStorage.setItem('lp_etq_papel', papel); } catch (e) {}
         var conPrecio = document.getElementById('conPrecio').checked, html = '', n = 0;
         document.querySelectorAll('.cant').forEach(function (inp) {
             var it = ITEMS[+inp.dataset.k], c = Math.min(500, +inp.value || 0);
             for (var i = 0; i < c; i++) {
-                html += '<div class="et"><div class="n">' + esc(it.nombre) + '</div><div class="o"><span>' + esc(it.op) + '</span>' + (conPrecio ? '<span class="pr">' + esc(it.precio) + '</span>' : '') + '</div><svg class="bc" data-c="' + esc(it.codigo) + '"></svg></div>';
+                html += '<div class="et"><div class="n">' + esc(it.nombre) + '</div><div class="o"><span>' + esc([it.ref, it.op].filter(Boolean).join(' · ')) + '</span>' + (conPrecio ? '<span class="pr">' + esc(it.precio) + '</span>' : '') + '</div><svg class="bc" data-c="' + esc(it.codigo) + '"></svg></div>';
                 n++;
             }
         });

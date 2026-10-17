@@ -71,13 +71,10 @@ class etiquetaController extends Controller
         return view('etiqueta.index', ['items' => $items, 'titulo' => $titulo, 'negocio' => Negocio::datos()]);
     }
 
-    // Si la talla/color no tiene código de barras, se le asigna uno único: tienda + referencia
+    // Código de barras basado en el código del producto (P-0113 → P011301…), ver CodigoBarras
     private function conCodigo(ProductoVariante $v): ProductoVariante
     {
-        if (!$v->codigo_barras) {
-            $v->codigo_barras = str_pad((string) TiendaActual::id(), 3, '0', STR_PAD_LEFT) . str_pad((string) $v->id, 7, '0', STR_PAD_LEFT);
-            $v->save();
-        }
+        \App\Support\CodigoBarras::asegurar($v);
         return $v;
     }
 }

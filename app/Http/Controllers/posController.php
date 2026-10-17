@@ -38,7 +38,8 @@ class posController extends Controller
     // Busca prendas por nombre, código del producto o código de barras de la talla/color
     public function buscar(Request $request)
     {
-        $q = trim((string) $request->get('q'));
+        // Etiquetas viejas (antes del código basado en el producto) siguen funcionando
+        $q = \App\Support\CodigoBarras::resolver(trim((string) $request->get('q')));
 
         $variantes = ProductoVariante::query()
             ->with('producto:id,nombre,codigo,precio_venta,precio_costo,img_path,controla_inventario,unidad')
