@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Respaldo diario de LocalPro: base de datos + archivos subidos (logos, fotos). Guarda los últimos 15 días.
+# Respaldo diario de LocalPro: base de datos + archivos subidos (logos, fotos). Guarda los últimos 10 días.
 # Lo ejecuta el cron /etc/cron.d/localpro-respaldo (lo instala deploy/actualizar.sh).
 # Desarrollado por Jhoset Mejía - DiCreWeb
 set -uo pipefail
 RAIZ="$( [ -d /home/localproo/htdocs/localproo.com ] && echo /home/localproo/htdocs/localproo.com || echo /home/localpro/htdocs/localpro.narinoexposhow.com )"
 USR="$(stat -c %U "$RAIZ")"
 DEST="/home/$USR/respaldos/diario"
-DIAS=15
+DIAS=10
 HOY="$(date +%Y%m%d)"
 mkdir -p "$DEST"
 
