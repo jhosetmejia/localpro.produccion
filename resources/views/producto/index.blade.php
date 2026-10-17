@@ -26,6 +26,11 @@
 .pl-cab{display:flex;gap:.8rem;align-items:center;min-width:0}
 .pl-foto{width:64px;height:64px;border-radius:14px;background:#eef3ef;flex:none;overflow:hidden;display:grid;place-items:center;font-weight:900;font-size:1.4rem;color:#16b84e}
 .pl-foto img{width:100%;height:100%;object-fit:contain;background:#fff}
+a.pl-foto.sinfoto{background:#fafcfb;border:1.5px dashed #c9d3cd;color:#8a948e;text-decoration:none;display:flex;flex-direction:column;justify-content:center;gap:2px;font-size:.62rem;font-weight:800;transition:.15s}
+a.pl-foto.sinfoto i{font-size:1.15rem}
+a.pl-foto.sinfoto:hover{border-color:#16b84e;color:#16b84e;background:#f0fbf4}
+.pl-oculto{display:flex;align-items:center;gap:.3rem;color:#8a948e;font-size:.74rem;font-weight:600;margin-top:.2rem}
+.pl-oculto i{font-size:.7rem}
 .pl-txt{min-width:0;flex:1}
 .pl-web{color:inherit;text-decoration:none}.pl-web:hover b{color:#16b34a}.pl-web i{font-size:.65em;opacity:.45;vertical-align:middle}
 .pl-txt b{display:block;font-size:1rem;line-height:1.2;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
@@ -122,6 +127,10 @@
                  data-q="{{ mb_strtolower($item->nombre . ' ' . $item->codigo . ' ' . $cats . ' ' . $item->variantes->pluck('codigo_barras')->filter()->implode(' ')) }}"
                  data-estado="{{ $item->estado == 1 ? 1 : 0 }}" data-st="{{ $controla ? $st : -1 }}">
                 <div class="pl-cab">
+                    @php $faltaFoto = $item->estado == 1 && !$item->tiene_foto && !$item->mostrar_sin_foto; @endphp
+                    @if ($faltaFoto)
+                    <a href="{{ route('productos.edit', $item) }}" class="pl-foto sinfoto" title="Súbale una foto para que se vea en la tienda en línea"><i class="fa-solid fa-camera"></i>Subir foto</a>
+                    @else
                     <div class="pl-foto">
                         @if ($item->img_path)
                         <img src="{{ asset('storage/productos/' . rawurlencode($item->img_path)) }}" alt="" loading="lazy">
@@ -129,6 +138,7 @@
                         {{ mb_strtoupper(mb_substr($item->nombre, 0, 1)) }}
                         @endif
                     </div>
+                    @endif
                     <div class="pl-txt">
                         @if ($verWeb && $item->en_catalogo)
                         <a class="pl-web" href="{{ $baseWeb ? $baseWeb . parse_url(\App\Http\Controllers\catalogoController::urlProducto($tiendaCat, $item), PHP_URL_PATH) : \App\Http\Controllers\catalogoController::urlProducto($tiendaCat, $item) }}" target="_blank" rel="noopener" title="Ver en la tienda en línea"><b>{{ $item->nombre }} <i class="fa-solid fa-arrow-up-right-from-square"></i></b></a>
@@ -136,8 +146,8 @@
                         <b>{{ $item->nombre }}</b>
                         @endif
                         <small>{{ $item->codigo }}{{ $cats ? ' · ' . $cats : '' }}</small>
-                        @if ($item->estado == 1 && !$item->tiene_foto && !$item->mostrar_sin_foto)
-                        <a href="{{ route('productos.edit', $item) }}" class="pl-stk low text-decoration-none me-1" title="Súbale una foto o márquelo para mostrarlo igual"><i class="fa-regular fa-image me-1"></i>Sin foto · no se muestra en el catálogo</a>
+                        @if ($faltaFoto)
+                        <span class="pl-oculto" title="Súbale una foto o márquelo para mostrarlo igual"><i class="fa-regular fa-eye-slash"></i>No visible en la tienda en línea</span>
                         @endif
                         <span class="pl-stk {{ $clase }}">
                             @if ($item->estado != 1) Oculto
