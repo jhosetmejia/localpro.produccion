@@ -38,17 +38,19 @@
 .panel{margin-top:-50px;position:relative;z-index:2}
 .search{background:#fff;border-radius:20px;box-shadow:0 20px 40px -24px rgba(0,0,0,.35);padding:10px;display:flex;gap:8px;align-items:center}
 .search input{flex:1;border:0;outline:none;font:inherit;font-weight:600;font-size:1rem;padding:.6rem .7rem;min-width:0}
-.filtros{position:sticky;top:64px;z-index:20;background:var(--bg);padding:12px 0 2px}
-.pub{display:flex;gap:8px;margin-bottom:10px}
-.pub button{flex:1;max-width:170px;background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:.65rem .5rem;font-weight:800;font-size:.95rem;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer}
-.pub button.on{background:var(--k);color:#fff;border-color:var(--k)}
-.cats{display:flex;gap:8px;overflow-x:auto;padding:0 2px 10px;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}
-.cats::-webkit-scrollbar{display:none}
-@media (min-width:768px){.cats{flex-wrap:wrap;overflow:visible;-webkit-mask-image:none;mask-image:none}}
-.cats a,.cats button{white-space:nowrap;background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:.5rem .95rem;font-weight:700;font-size:.88rem}
-.cats .on{background:var(--k);color:#fff;border-color:var(--k)}
-.cats .promo-chip{border-color:#fecdd3;color:#e11d48;background:#fff1f2}
-.cats .promo-chip.on{background:#e11d48;border-color:#e11d48;color:#fff}
+.filtros{background:var(--bg);padding:12px 0 2px}
+@media (min-width:768px){.filtros{position:sticky;top:64px;z-index:20}}
+.fbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding-bottom:10px}
+@media (min-width:768px){.fbar{grid-template-columns:repeat(var(--n,4),minmax(0,1fr)) auto}}
+.fsel{position:relative;min-width:0}
+.fsel label{position:absolute;left:14px;top:6px;font-size:.66rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--mut);pointer-events:none}
+.fsel select{width:100%;appearance:none;-webkit-appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%230b0d0c' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 14px center;border:1.5px solid var(--line);border-radius:16px;padding:1.35rem 2.2rem .45rem .85rem;font:inherit;font-weight:800;font-size:.92rem;color:var(--k);cursor:pointer;text-overflow:ellipsis}
+.fsel select:focus{outline:none;border-color:#2fd15a;box-shadow:0 0 0 3px rgba(47,209,90,.18)}
+.fsel.on select{background-color:var(--k);color:#fff;border-color:var(--k);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23a6f34a' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")}
+.fsel.on label{color:#a6f34a}
+.flimpiar{display:none;align-self:stretch;border:0;background:none;color:#e11d48;font:inherit;font-weight:800;font-size:.85rem;cursor:pointer;padding:0 .6rem;white-space:nowrap}
+.flimpiar.ver{display:block}
+@media (max-width:767px){.flimpiar{grid-column:1/-1;padding:.2rem}}
 .sec{margin-top:18px}
 .sec h2{font-size:1.25rem;font-weight:800;margin:6px 2px 12px;display:flex;align-items:baseline;gap:8px}
 .sec h2 small{color:var(--mut);font-size:.8rem;font-weight:700}
@@ -80,21 +82,33 @@ body:not(.filtrando) .filtro-solo,body.filtrando .inicio-solo{display:none!impor
 
 <main class="wrap panel">
     <div class="search"><span style="padding-left:6px">🔎</span><input id="q" type="search" placeholder="¿Qué está buscando?" autocomplete="off" aria-label="Buscar productos"></div>
-    @if ($categorias->count() > 1 || $publicos->isNotEmpty() || $enPromo)
+    @php
+        // Tallas y colores que tienen existencias (para los filtros)
+        $tallasF = $productos->pluck('variantes')->flatten(1)->pluck('talla')->filter()->unique()->values();
+        $coloresF = $productos->pluck('variantes')->flatten(1)->pluck('color')->filter()->map(fn ($c) => mb_strtoupper(trim($c)))->unique()->sort()->values();
+        $nFiltros = ($publicos->isNotEmpty() ? 1 : 0) + ($categorias->count() > 1 || $enPromo ? 1 : 0) + ($tallasF->count() > 1 ? 1 : 0) + ($coloresF->count() > 1 ? 1 : 0);
+    @endphp
+    @if ($nFiltros)
     <div class="filtros">
-        @if ($publicos->isNotEmpty())
-        <nav class="pub" id="pub" aria-label="¿Para quién?">
-            <button class="on" data-p="">Todo</button>
-            @foreach ($publicos as $k => [$ico, $nom])<button data-p="{{ $k }}">{{ $ico }} {{ $nom }}</button>@endforeach
-        </nav>
-        @endif
-        @if ($categorias->count() > 1 || $enPromo)
-        <nav class="cats" id="cats" aria-label="Categorías">
-            <button class="on" data-c="">Todo</button>
-            @if ($enPromo)<button data-c="__promo" class="promo-chip">🔥 Promociones ({{ $enPromo }})</button>@endif
-            @foreach ($categorias as $c)<a href="#cat-{{ \Illuminate\Support\Str::slug($c) }}" data-c="{{ $c }}" data-para="{{ $catPara[$c] ?? 'todos' }}">{{ $c }}</a>@endforeach
-        </nav>
-        @endif
+        <div class="fbar" style="--n:{{ $nFiltros }}">
+            @if ($publicos->isNotEmpty())
+            <div class="fsel"><label for="fPara">Para</label><select id="fPara" aria-label="¿Para quién?"><option value="">Todos</option>@foreach ($publicos as $k => [$ico, $nom])<option value="{{ $k }}">{{ $ico }} {{ $nom }}</option>@endforeach</select></div>
+            @endif
+            @if ($categorias->count() > 1 || $enPromo)
+            <div class="fsel"><label for="fCat">Categoría</label><select id="fCat" aria-label="Categoría">
+                <option value="">Todas</option>
+                @if ($enPromo)<option value="__promo">🔥 Promociones ({{ $enPromo }})</option>@endif
+                @foreach ($categorias as $c)<option value="{{ $c }}" data-para="{{ $catPara[$c] ?? 'todos' }}">{{ $c }}</option>@endforeach
+            </select></div>
+            @endif
+            @if ($tallasF->count() > 1)
+            <div class="fsel"><label for="fTalla">Talla</label><select id="fTalla" aria-label="Talla"><option value="">Todas</option></select></div>
+            @endif
+            @if ($coloresF->count() > 1)
+            <div class="fsel"><label for="fColor">Color</label><select id="fColor" aria-label="Color"><option value="">Todos</option></select></div>
+            @endif
+            <button type="button" class="flimpiar" id="fLimpiar">✕ Quitar filtros</button>
+        </div>
     </div>
     @endif
 
@@ -145,24 +159,93 @@ body:not(.filtrando) .filtro-solo,body.filtrando .inicio-solo{display:none!impor
 <script>
 (function () {
     var P = {}; @json($productos).forEach(function (p) { P[p.id] = p; });
-    var q = document.getElementById('q'), cat = '', para = '';
+    var q = document.getElementById('q'), cat = '', para = '', talla = '', color = '';
+    var fPara = document.getElementById('fPara'), fCat = document.getElementById('fCat'), fTalla = document.getElementById('fTalla'),
+        fColor = document.getElementById('fColor'), fLimpiar = document.getElementById('fLimpiar');
     var conFilas = !!document.querySelector('.inicio-solo');
+    var ORDEN = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', '2XL', '3XL', '4XL', 'U', 'UNICA', 'ÚNICA'];
+    function up(v) { return (v || '').toString().trim().toUpperCase(); }
+    function enCat(p) { return !cat || (cat === '__promo' ? p.descuento > 0 : (p.categorias.indexOf(cat) !== -1 || (!p.categorias.length && cat === 'General'))); }
+    function enPara(p) { return !para || !p.para || p.para === para; }
+    // ¿Tiene una opción (variante) con esa talla y ese color al mismo tiempo?
+    function enVariante(p, t, c) {
+        if (!t && !c) return true;
+        return p.variantes.some(function (v) { return (!t || up(v.talla) === t) && (!c || up(v.color) === c); });
+    }
+    function ordenTalla(a, b) {
+        var ia = ORDEN.indexOf(a), ib = ORDEN.indexOf(b), na = parseFloat(a), nb = parseFloat(b);
+        if (ia !== -1 || ib !== -1) return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+        if (!isNaN(na) && !isNaN(nb)) return na - nb;
+        return a.localeCompare(b);
+    }
+    // Las tallas y colores que se ofrecen dependen de lo ya elegido (para quién y categoría)
+    function llenar(sel, valores, actual, ordenar, todos) {
+        if (!sel) return actual;
+        var lista = Object.keys(valores); lista.sort(ordenar);
+        if (actual && lista.indexOf(actual) === -1) actual = '';
+        sel.innerHTML = '<option value="">' + todos + '</option>' + lista.map(function (v) {
+            return '<option value="' + v.replace(/"/g, '&quot;') + '"' + (v === actual ? ' selected' : '') + '>' + v.charAt(0) + v.slice(1).toLowerCase() + '</option>';
+        }).join('');
+        sel.parentNode.style.display = lista.length > 1 || actual ? '' : 'none';
+        return actual;
+    }
+    function opciones() {
+        var ts = {}, cs = {};
+        Object.keys(P).forEach(function (id) {
+            var p = P[id]; if (!p.disponible || !enPara(p) || !enCat(p)) return;
+            p.variantes.forEach(function (v) {
+                if (v.talla && (!color || up(v.color) === color)) ts[up(v.talla)] = 1;
+                if (v.color && (!talla || up(v.talla) === talla)) cs[up(v.color)] = 1;
+            });
+        });
+        talla = llenar(fTalla, ts, talla, ordenTalla, 'Todas');
+        color = llenar(fColor, cs, color, function (a, b) { return a.localeCompare(b); }, 'Todos');
+    }
+    function marcar() {
+        [[fPara, para], [fCat, cat], [fTalla, talla], [fColor, color]].forEach(function (x) { if (x[0]) x[0].parentNode.classList.toggle('on', !!x[1]); });
+        if (fLimpiar) fLimpiar.classList.toggle('ver', !!(para || cat || talla || color));
+    }
     function filtrar() {
         var t = q.value.trim().toLowerCase(), hay = 0;
-        // Sin búsqueda ni categoría se ve el inicio (filas que se deslizan); si no, la cuadrícula normal
-        var filtrando = !conFilas || !!t || !!cat;
+        // Sin búsqueda ni filtros se ve el inicio (filas que se deslizan); si no, la cuadrícula normal
+        var filtrando = !conFilas || !!t || !!cat || !!talla || !!color;
         document.body.classList.toggle('filtrando', filtrando);
         document.querySelectorAll(filtrando ? '.sec:not(.inicio-solo)' : '.sec.inicio-solo').forEach(function (s) {
             var n = 0;
             s.querySelectorAll('.card[data-id]').forEach(function (c) {
-                var p = P[c.dataset.id], ok = (!t || c.dataset.q.indexOf(t) !== -1) && (!cat || (cat === '__promo' ? p.descuento > 0 : (p.categorias.indexOf(cat) !== -1 || (!p.categorias.length && cat === 'General')))) && (!para || !p.para || p.para === para);
+                var p = P[c.dataset.id], ok = (!t || c.dataset.q.indexOf(t) !== -1) && enCat(p) && enPara(p) && enVariante(p, talla, color);
                 c.style.display = ok ? '' : 'none'; if (ok) n++;
             });
             s.style.display = n ? '' : 'none'; hay += n;
         });
         document.getElementById('nada').style.display = hay ? 'none' : '';
+        marcar();
         flechas();
     }
+    function subir() { window.scrollTo({ top: document.querySelector('.panel').offsetTop - 70, behavior: 'smooth' }); }
+    function urlPara() { try { var u = new URL(location.href); para ? u.searchParams.set('para', para) : u.searchParams.delete('para'); history.replaceState(null, '', u); } catch (e) {} }
+    function elegirPara(v) {
+        para = v; if (fPara) fPara.value = v;
+        // Solo quedan las categorías de ese grupo
+        if (fCat) {
+            Array.prototype.forEach.call(fCat.options, function (o) {
+                if (!o.dataset.para) return;
+                var g = o.dataset.para.split(' '), ok = !v || g.indexOf(v) !== -1 || g.indexOf('todos') !== -1;
+                o.hidden = !ok; o.disabled = !ok;
+            });
+            if (fCat.selectedOptions[0] && fCat.selectedOptions[0].disabled) { cat = ''; fCat.value = ''; }
+        }
+        urlPara(); opciones(); filtrar();
+    }
+    function elegirCat(v) { cat = v; if (fCat) fCat.value = v; if (q.value) q.value = ''; opciones(); filtrar(); }
+
+    if (fPara) fPara.addEventListener('change', function () { elegirPara(fPara.value); subir(); });
+    if (fCat) fCat.addEventListener('change', function () { elegirCat(fCat.value); subir(); });
+    if (fTalla) fTalla.addEventListener('change', function () { talla = fTalla.value; opciones(); filtrar(); subir(); });
+    if (fColor) fColor.addEventListener('change', function () { color = fColor.value; opciones(); filtrar(); subir(); });
+    if (fLimpiar) fLimpiar.addEventListener('click', function () { talla = ''; color = ''; elegirCat(''); elegirPara(''); });
+    q.addEventListener('input', filtrar);
+
     function flechas() {
         document.querySelectorAll('.carril').forEach(function (c) {
             var r = c.querySelector('.riel');
@@ -172,53 +255,22 @@ body:not(.filtrando) .filtro-solo,body.filtrando .inicio-solo{display:none!impor
     }
     document.querySelectorAll('.riel').forEach(function (r) { r.addEventListener('scroll', flechas, { passive: true }); });
     window.addEventListener('resize', flechas);
-    flechas();
     document.addEventListener('click', function (e) {
         var m = e.target.closest('[data-mover]'), v = e.target.closest('[data-ver]');
         if (m) { var r = m.parentNode.querySelector('.riel'); r.scrollBy({ left: m.dataset.mover * r.clientWidth * 0.85 }); }
-        // "Ver todo": abre la categoría completa, igual que tocarla arriba
-        if (v && cats) { var chip = Array.prototype.find.call(cats.querySelectorAll('[data-c]'), function (x) { return x.dataset.c === v.dataset.ver; }); if (chip) chip.click(); }
+        // "Ver todo": abre la categoría completa, igual que elegirla en el filtro
+        if (v) { elegirCat(v.dataset.ver); subir(); }
     });
-    q.addEventListener('input', filtrar);
-    var cats = document.getElementById('cats'), pub = document.getElementById('pub');
     // Botón "Promociones" de arriba: en esta página filtra sin recargar
-    var vp = document.getElementById('btnPromos'), chipPromo = cats && cats.querySelector('[data-c="__promo"]');
-    if (vp && chipPromo) vp.addEventListener('click', function (e) { e.preventDefault(); chipPromo.click(); });
-    if (chipPromo && new URLSearchParams(location.search).get('ver') === 'promos') setTimeout(function () { chipPromo.click(); }, 50);
-    function elegirPara(v) {
-        para = v;
-        pub.querySelectorAll('[data-p]').forEach(function (x) { x.classList.toggle('on', x.dataset.p === v); });
-        // Solo quedan las categorías de ese grupo
-        if (cats) {
-            cats.querySelectorAll('[data-para]').forEach(function (x) {
-                var g = x.dataset.para.split(' ');
-                x.style.display = !v || g.indexOf(v) !== -1 || g.indexOf('todos') !== -1 ? '' : 'none';
-            });
-            var actual = cats.querySelector('.on');
-            if (actual && actual.style.display === 'none') { cat = ''; cats.querySelectorAll('[data-c]').forEach(function (x) { x.classList.toggle('on', x.dataset.c === ''); }); }
-        }
-        try { var u = new URL(location.href); v ? u.searchParams.set('para', v) : u.searchParams.delete('para'); history.replaceState(null, '', u); } catch (e) {}
-        filtrar();
-    }
-    if (pub) {
-        pub.addEventListener('click', function (e) {
-            var b = e.target.closest('[data-p]'); if (!b) return;
-            elegirPara(b.dataset.p);
-            window.scrollTo({ top: document.querySelector('.panel').offsetTop - 70, behavior: 'smooth' });
-        });
-        // Enlace compartido con ?para=mujer abre ya filtrado
-        var inicial = new URLSearchParams(location.search).get('para');
-        if (inicial && pub.querySelector('[data-p="' + inicial + '"]')) elegirPara(inicial);
-    }
-    if (cats) cats.addEventListener('click', function (e) {
-        var b = e.target.closest('[data-c]'); if (!b) return;
-        if (q.value) { q.value = ''; }
-        cat = b.dataset.c;
-        if (cat) { e.preventDefault(); }
-        cats.querySelectorAll('[data-c]').forEach(function (x) { x.classList.toggle('on', x === b); });
-        filtrar();
-        window.scrollTo({ top: document.querySelector('.panel').offsetTop - 70, behavior: 'smooth' });
-    });
+    var vp = document.getElementById('btnPromos'), hayPromo = fCat && fCat.querySelector('option[value="__promo"]');
+    if (vp && hayPromo) vp.addEventListener('click', function (e) { e.preventDefault(); elegirCat('__promo'); subir(); });
+
+    opciones(); flechas(); marcar();
+    // Enlaces compartidos: ?para=mujer o ?ver=promos abren ya filtrados
+    var qs = new URLSearchParams(location.search);
+    if (qs.get('para') && fPara && fPara.querySelector('option[value="' + qs.get('para') + '"]')) elegirPara(qs.get('para'));
+    if (hayPromo && qs.get('ver') === 'promos') elegirCat('__promo');
+
     document.addEventListener('click', function (e) {
         var c = e.target.closest('[data-comprar]'), a = e.target.closest('[data-agregar]');
         if (c) { var p = P[c.dataset.comprar]; LPC.comprar(p, p.variantes[0], 1); }
