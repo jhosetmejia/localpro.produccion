@@ -30,6 +30,9 @@ return [
 
     'env' => env('APP_ENV', 'production'),
 
+    // Clave del sitio de pruebas (solo se usa con APP_ENV=staging; usuario: localpro)
+    'clave_pruebas' => env('CLAVE_PRUEBAS'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Debug Mode

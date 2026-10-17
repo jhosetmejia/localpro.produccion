@@ -12,6 +12,11 @@ else CARPETA="localpro.narinoexposhow.com"; USUARIO="localpro"; fi
 DOMINIO="localproo.com"
 PHP="php8.2"
 RAIZ="/home/$USUARIO/htdocs/$CARPETA"
+PRUEBAS=0
+# Sitio de pruebas (lo llama deploy/piloto-pruebas.sh): otra carpeta y otro dominio; no instala crons ni toca producción
+if [ -n "${LOCALPRO_RAIZ:-}" ]; then
+  RAIZ="$LOCALPRO_RAIZ"; USUARIO="$(stat -c %U "$RAIZ")"; DOMINIO="${LOCALPRO_DOMINIO:-pruebas.localproo.com}"; PRUEBAS=1
+fi
 STAMP="$(date +%Y%m%d-%H%M%S)"
 RESP="/home/$USUARIO/respaldos/$STAMP"
 
@@ -102,6 +107,7 @@ run $PHP artisan config:cache || restaurar
 run $PHP artisan view:cache || restaurar
 
 # Respaldo diario automático (3:15 a. m.) y correo sin servidor configurado
+if [ "$PRUEBAS" = 0 ]; then
 CRON=/etc/cron.d/localpro-respaldo
 if [ ! -f "$CRON" ]; then
   echo "15 3 * * * root /bin/bash $RAIZ/deploy/respaldo-diario.sh >> /var/log/localpro-respaldo.log 2>&1" > "$CRON"
@@ -132,6 +138,7 @@ $RAIZ/storage/logs/*.log /var/log/localpro-*.log {
     maxsize 100M
 }
 LR
+fi # fin de lo que solo se hace en producción
 if grep -q "^MAIL_HOST=mailhog" .env; then
   sed -i "s/^MAIL_MAILER=.*/MAIL_MAILER=log/" .env
   run $PHP artisan config:cache >/dev/null
@@ -140,7 +147,8 @@ fi
 echo "==> 5/5 Comprobación"
 HOSTAPP=$(grep '^APP_URL=' .env | sed 's#.*://##; s#/.*##; s#"##g'); HOSTAPP=${HOSTAPP:-$DOMINIO}
 CODE=$(curl -s -o /dev/null -w '%{http_code}' --resolve "$HOSTAPP:443:127.0.0.1" "https://$HOSTAPP/login" -k)
-[ "$CODE" = "200" ] || { echo "La página respondió $CODE"; restaurar; }
+# En el sitio de pruebas la página pide clave (401): eso también es "funciona"
+if [ "$CODE" != "200" ] && ! { [ "$PRUEBAS" = 1 ] && [ "$CODE" = "401" ]; }; then echo "La página respondió $CODE"; restaurar; fi
 
 echo
 echo "LISTO. LocalPRO actualizado: $(run $PHP artisan --version)"

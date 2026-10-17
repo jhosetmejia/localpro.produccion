@@ -69,6 +69,7 @@ if [ -n "$OID" ] && [ "$OID" != "$HECHA" ]; then
     reintentar-actualizacion) rm -f "$EST/commit-fallido"; FALLIDO=""; actualizar ;;
     migrar) run $PHP artisan migrate --force >> "$LOGACT" 2>&1 || R="falló (ver registro de actualización)" ;;
     colas) run $PHP artisan queue:restart >/dev/null 2>&1 ;;
+    refrescar-pruebas) bash "$RAIZ/deploy/refrescar-pruebas.sh" >> /var/log/localpro-pruebas.log 2>&1 || R="falló (ver /var/log/localpro-pruebas.log)" ;;
     diagnostico) : ;;  # solo refresca el reporte con más detalle
     *) R="acción desconocida, no se hizo nada" ;;
   esac
@@ -95,6 +96,10 @@ set +o pipefail   # en el reporte, que no haya errores (grep sin resultados) no 
   echo -n "Servicios:"; for S in nginx mysql mariadb $(systemctl list-units --type=service --no-legend 'php*-fpm*' | awk '{print $1}'); do
     systemctl list-unit-files "${S%.service}.service" >/dev/null 2>&1 && echo -n " ${S%.service}=$(systemctl is-active "${S%.service}")"; done; echo
   echo "Modo mantenimiento: $([ -f "$RAIZ/storage/framework/down" ] && echo SÍ || echo no)"
+  ULTB=$(ls -1t /home/$USR/respaldos/diario/base-*.sql.gz 2>/dev/null | head -1)
+  echo "Respaldo diario (en el servidor): $([ -n "$ULTB" ] && echo "$(basename "$ULTB") · $(du -h "$ULTB" | cut -f1)" || echo 'ninguno')"
+  echo "Respaldo externo (fuera del servidor): $(cat /var/lib/localpro/respaldo-externo 2>/dev/null || echo 'NO ACTIVADO')"
+  [ -s /var/lib/localpro/pruebas-estado ] && echo "Sitio de pruebas: $(cat /var/lib/localpro/pruebas-estado)"
   echo; echo "--- Vigilante (últimas líneas) ---"; tail -n "$N" /var/log/localpro-vigilante.log 2>/dev/null | limpio
   echo; echo "--- Última actualización (últimas líneas) ---"; tail -n "$N" "$LOGACT" 2>/dev/null | limpio
   echo; echo "--- Errores recientes de Laravel ---"

@@ -28,6 +28,15 @@ Sitio en vivo: https://localproo.com
   - Reporte de estado (sitio, versión, último despliegue, última orden, disco, servicios, vigilante, errores Laravel) en
     `https://localproo.com/estado-<token>.txt` (token en `/etc/localpro-estado-token`; Jhoset pasa la URL en el chat). Leerlo con WebFetch.
   - Desde la nube de Claude NO hay SSH al VPS (bloqueado): todo va por GitHub + este piloto. El vigilante (cada 5 min) reinicia servicios solo si el sitio se cae.
+- **Sitio de pruebas (staging): https://pruebas.localproo.com** — rama **`staging`**, carpeta `/home/localpro-pruebas/htdocs/pruebas.localproo.com`,
+  BD `localpro_pruebas` (copia de producción), pide usuario `localpro` + clave del navegador (`CLAVE_PRUEBAS`), sin correos (MAIL_MAILER=log),
+  sin Wompi ni Meta, DIAN en modo práctica. Lo crea `deploy/activar-pruebas.sh`; `deploy/piloto-pruebas.sh` (cron cada 2 min) lo actualiza con `staging`.
+  **Flujo de trabajo: los cambios van primero a `staging`; cuando Jhoset los aprueba, se pasan a `master` (fast-forward) y se despliegan solos a producción.**
+  Arreglos urgentes de producción pueden ir directo a `master` (y luego `master` → `staging`). Orden `refrescar-pruebas` recopia los datos de producción.
+- **Respaldo externo**: `deploy/activar-respaldo-externo.sh` (rclone → Backblaze B2, remoto `respaldo`, destino en `/etc/localpro-respaldo.destino`).
+  Cada noche `respaldo-diario.sh` (base + storage/app/public + firmas) llama a `respaldo-externo.sh`: cifra con AES-256 (llave `/etc/localpro-respaldo.key`,
+  Jhoset la guarda aparte) y conserva 30 días. Restaurar: `deploy/restaurar-respaldo-externo.sh AAAA-MM-DD` (solo baja y descifra, no toca producción).
+  El estado de ambos respaldos y del sitio de pruebas sale en el reporte del servidor.
 - Otros scripts en `deploy/` (instalar VPS, correo, respaldo diario, dominio nuevo, reset admin).
 - Pagos con Wompi (`wompiController`); integración Meta con webhook (`metaWebhookController`).
 

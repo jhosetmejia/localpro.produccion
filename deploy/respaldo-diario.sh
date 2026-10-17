@@ -22,8 +22,15 @@ else
   echo "$(date '+%F %T') ERROR respaldando la base"
 fi
 
-tar -czf "$DEST/archivos-$HOY.tar.gz" -C "$RAIZ/storage/app" public 2>/dev/null && echo "$(date '+%F %T') archivos OK"
+# Archivos subidos (fotos, logos) y firmas de los profesionales del consultorio (carpeta privada)
+CARPETAS="public"; [ -d "$RAIZ/storage/app/firmas" ] && CARPETAS="$CARPETAS firmas"
+tar -czf "$DEST/archivos-$HOY.tar.gz" -C "$RAIZ/storage/app" $CARPETAS 2>/dev/null && echo "$(date '+%F %T') archivos OK"
 
 find "$DEST" -name 'base-*.sql.gz' -mtime +$DIAS -delete
 find "$DEST" -name 'archivos-*.tar.gz' -mtime +$DIAS -delete
 chown -R "$USR:$USR" "/home/$USR/respaldos"
+
+# Copia fuera del servidor (si ya se activó con deploy/activar-respaldo-externo.sh)
+if [ -s /etc/localpro-respaldo.key ] && command -v rclone >/dev/null 2>&1; then
+  /bin/bash "$RAIZ/deploy/respaldo-externo.sh" "$DEST/base-$HOY.sql.gz" "$DEST/archivos-$HOY.tar.gz"
+fi
