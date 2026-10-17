@@ -389,6 +389,7 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::post('/tiendas/{tienda}/entrar', [adminTiendaController::class, 'entrar'])->name('tiendas.entrar');
     Route::post('/tiendas/{tienda}/plan', [adminTiendaController::class, 'plan'])->name('tiendas.plan');
     Route::post('/tiendas/{tienda}/pago', [adminTiendaController::class, 'pago'])->name('tiendas.pago');
+    Route::post('/tiendas/{tienda}/productos-extra', [adminTiendaController::class, 'productosExtra'])->name('tiendas.productosExtra');
     Route::delete('/tiendas/{tienda}', [adminTiendaController::class, 'eliminar'])->name('tiendas.eliminar');
     Route::post('/tiendas/{tienda}/pago-prueba', [adminTiendaController::class, 'pagoPrueba'])->name('tiendas.pagoPrueba');
     Route::post('/tiendas/{tienda}/ventas-historicas', [adminTiendaController::class, 'ventasHistoricas'])->name('tiendas.ventasHistoricas');

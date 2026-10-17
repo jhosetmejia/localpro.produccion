@@ -36,6 +36,21 @@
                 <div class="col-md-3"><label class="form-label" title="Página de Facebook con su Instagram">Redes sociales</label><input type="number" min="1" max="20" name="redes_max" class="form-control" value="{{ $tienda->redes_max ?? 1 }}"></div>
                 <div class="col-md-2 d-grid"><button class="btn btn-dark">Guardar</button></div>
             </form>
+            @php
+                $paqCant = \App\Support\AmpliarProductos::cantidad();
+                $baseProd = (int) ($tienda->plan->max_productos ?? 0);
+                $usadosProd = \Illuminate\Support\Facades\DB::table('productos')->where('tienda_id', $tienda->id)->count();
+            @endphp
+            <div class="mb-3 p-3" style="background:#f3faf5;border:1.5px solid #cfeedd;border-radius:16px">
+                <b><i class="fa-solid fa-box me-1" style="color:#16b34a"></i>Productos: {{ number_format($usadosProd, 0, ',', '.') }} de {{ $baseProd ? number_format($baseProd + (int) $tienda->productos_extra, 0, ',', '.') : 'ilimitados' }}</b>
+                <small class="text-muted d-block">Plan: {{ $baseProd ? number_format($baseProd, 0, ',', '.') : 'sin límite' }} · Extra comprados: {{ number_format((int) $tienda->productos_extra, 0, ',', '.') }} · Paquete: {{ \App\Support\AmpliarProductos::oferta() }}</small>
+                <form method="post" action="{{ route('admin.tiendas.productosExtra', $tienda) }}" class="d-flex gap-2 flex-wrap mt-2 align-items-center" data-confirm="¿Cambiar los productos extra?" data-confirm-texto="Se suma o se quita la cantidad de paquetes elegida al cupo de productos de la tienda." data-confirm-ok="Sí, cambiar">
+                    @csrf
+                    <select name="paquetes" class="form-select form-select-sm" style="width:auto">@foreach ([1, 2, 3, 5, 10] as $n)<option value="{{ $n }}">{{ $n }} paquete{{ $n > 1 ? 's' : '' }} ({{ $n * $paqCant }} productos · ${{ number_format($n * \App\Support\AmpliarProductos::precio(), 0, ',', '.') }})</option>@endforeach</select>
+                    <button name="accion" value="sumar" class="btn btn-sm btn-success"><i class="fa-solid fa-plus me-1"></i>Agregar</button>
+                    @if ($tienda->productos_extra)<button name="accion" value="quitar" class="btn btn-sm btn-light"><i class="fa-solid fa-minus me-1"></i>Quitar</button>@endif
+                </form>
+            </div>
             <form method="post" action="{{ route('admin.tiendas.pago', $tienda) }}" class="row g-2 align-items-end" data-confirm="¿Registrar el pago?" data-confirm-texto="Se extiende el plan de la tienda según los meses indicados." data-confirm-ok="Sí, registrar">
                 @csrf
                 <div class="col-12"><b>Registrar pago recibido</b> <small class="text-muted">(transferencia, Nequi, efectivo)</small></div>

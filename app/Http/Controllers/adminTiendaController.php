@@ -165,6 +165,22 @@ class adminTiendaController extends Controller
         return back()->with('success', 'Plan actualizado.');
     }
 
+    // Productos extra comprados a LocalPro (paquetes de, por defecto, 100 productos por $20.000)
+    public function productosExtra(Request $request, Tienda $tienda)
+    {
+        $datos = $request->validate([
+            'paquetes' => 'required|integer|min:1|max:100',
+            'accion' => 'required|in:sumar,quitar',
+        ]);
+        $cant = $datos['paquetes'] * \App\Support\AmpliarProductos::cantidad();
+        $nuevo = $datos['accion'] === 'sumar'
+            ? (int) $tienda->productos_extra + $cant
+            : max(0, (int) $tienda->productos_extra - $cant);
+        $tienda->forceFill(['productos_extra' => $nuevo])->save();
+        return back()->with('success', 'Listo: la tienda tiene ' . number_format($nuevo, 0, ',', '.') . ' productos extra'
+            . ($datos['accion'] === 'sumar' ? ' (cobrar ' . '$' . number_format($datos['paquetes'] * \App\Support\AmpliarProductos::precio(), 0, ',', '.') . ').' : '.'));
+    }
+
     // Registrar un pago recibido por fuera (transferencia, Nequi, efectivo): extiende el plan
     public function pago(Request $request, Tienda $tienda)
     {

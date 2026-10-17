@@ -7,18 +7,26 @@
 </div>
 @endif
 @php
-    // Planes pagos (productos): no se muestra el conteo; solo avisa cuando llega al límite y lo manda a soporte
+    // Planes pagos (productos): no se muestra el conteo; avisa cuando está por llenarse o se llenó y lo manda a LocalPro a ampliar
     $soloAlLimite = $uso && $que === 'productos' && !$uso['gratis'];
-    $telSoporte = $soloAlLimite ? preg_replace('/\D/', '', (string) \App\Models\Ajuste::valor('soporte_whatsapp')) : '';
+    $urlAmpliar = $soloAlLimite ? \App\Support\AmpliarProductos::urlWhatsapp(\App\Support\TiendaActual::tienda(), $uso['max']) : null;
 @endphp
 @if ($soloAlLimite)
 @if ($uso['actual'] >= $uso['max'])
 <div class="lp-limite lleno">
     <div class="lp-limite-t">
-        <b><i class="fa-solid fa-box-open me-1"></i>Llegaste al límite de {{ $uso['max'] }} productos</b>
-        <small>Comunícate con soporte para ampliar la cantidad de productos de tu plan.</small>
+        <b><i class="fa-solid fa-box-open me-1"></i>Llegaste a tus {{ number_format($uso['max'], 0, ',', '.') }} productos</b>
+        <small>Comunícate con LocalPro para ampliar tus productos: <b>{{ \App\Support\AmpliarProductos::oferta() }}</b>.</small>
     </div>
-    <a href="{{ $telSoporte ? 'https://wa.me/' . $telSoporte . '?text=' . rawurlencode('Hola LocalPro, llegué al límite de ' . $uso['max'] . ' productos en mi tienda ' . \App\Support\TiendaActual::tienda()?->nombre . ' (#' . \App\Support\TiendaActual::id() . ') y quiero ampliar la cantidad.') : route('plan.index') }}" @if ($telSoporte) target="_blank" rel="noopener" @endif class="lp-limite-btn"><i class="fa-brands fa-whatsapp me-1"></i>Hablar con soporte</a>
+    <a href="{{ $urlAmpliar ?: route('plan.index') }}" @if ($urlAmpliar) target="_blank" rel="noopener" @endif class="lp-limite-btn"><i class="fa-brands fa-whatsapp me-1"></i>Ampliar con LocalPro</a>
+</div>
+@elseif ($uso['actual'] >= $uso['max'] - 20)
+<div class="lp-limite">
+    <div class="lp-limite-t">
+        <b><i class="fa-solid fa-box me-1"></i>Le quedan {{ $uso['max'] - $uso['actual'] }} productos de {{ number_format($uso['max'], 0, ',', '.') }}</b>
+        <small>Cuando necesite más, LocalPro le amplía: {{ \App\Support\AmpliarProductos::oferta() }}.</small>
+    </div>
+    <a href="{{ $urlAmpliar ?: route('plan.index') }}" @if ($urlAmpliar) target="_blank" rel="noopener" @endif class="lp-limite-btn"><i class="fa-brands fa-whatsapp me-1"></i>Ampliar</a>
 </div>
 @endif
 @elseif ($uso && ($uso['gratis'] || $uso['actual'] >= $uso['max'] * 0.8))

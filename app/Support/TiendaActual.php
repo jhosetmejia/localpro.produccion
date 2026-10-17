@@ -48,10 +48,10 @@ class TiendaActual
         }
         return $u['gratis']
             ? "El plan Gratis permite hasta {$u['max']} productos. Pásate a Pro en \"Mi plan\" para crear más productos."
-            : "Llegaste al límite de {$u['max']} productos de tu plan. Comunícate con soporte para ampliar la cantidad de productos.";
+            : "Llegaste al límite de {$u['max']} productos de tu plan. Comunícate con LocalPro para ampliar tus productos: " . AmpliarProductos::oferta() . '.';
     }
 
-    /** ['actual','max','plan','gratis'] o null si el plan no tiene límite */
+    /** ['actual','max','plan','gratis','extra'] o null si el plan no tiene límite */
     public static function uso(string $que): ?array
     {
         $plan = self::tienda()?->plan;
@@ -59,10 +59,13 @@ class TiendaActual
         if (!$max) {
             return null;
         }
+        $gratis = (float) $plan->precio <= 0 && !$plan->dias;
+        // Paquetes de productos extra comprados a LocalPro (solo cuentan en planes pagos)
+        $extra = $que === 'productos' && !$gratis ? (int) (self::tienda()->productos_extra ?? 0) : 0;
         $actual = $que === 'usuarios'
             ? \App\Models\User::where('tienda_id', self::id())->count()
-            : \App\Models\Producto::count();
-        return ['actual' => $actual, 'max' => (int) $max, 'plan' => $plan->nombre, 'gratis' => (float) $plan->precio <= 0 && !$plan->dias];
+            : \App\Models\Producto::where('estado', 1)->count(); // los ocultos no cuentan para el límite
+        return ['actual' => $actual, 'max' => (int) $max + $extra, 'plan' => $plan->nombre, 'gratis' => $gratis, 'extra' => $extra];
     }
 
     /**

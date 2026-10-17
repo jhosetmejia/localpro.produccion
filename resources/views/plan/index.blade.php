@@ -53,6 +53,22 @@
         </div>
     </div>
 
+    @php $usoP = \App\Support\TiendaActual::uso('productos'); @endphp
+    @if ($usoP && !$usoP['gratis'])
+    @php $urlAmp = \App\Support\AmpliarProductos::urlWhatsapp($tienda, $usoP['max']); $pctP = min(100, round($usoP['actual'] / max(1, $usoP['max']) * 100)); @endphp
+    <div class="lp-box mb-3">
+        <div class="d-flex gap-3 align-items-center flex-wrap">
+            <div style="flex:1;min-width:220px">
+                <b style="font-size:1.1rem"><i class="fa-solid fa-box me-1" style="color:#16b34a"></i>Productos: {{ number_format($usoP['actual'], 0, ',', '.') }} de {{ number_format($usoP['max'], 0, ',', '.') }}</b>
+                @if ($usoP['extra'])<small class="text-muted d-block">Incluye {{ number_format($usoP['extra'], 0, ',', '.') }} productos extra que amplió con LocalPro.</small>@endif
+                <div class="progress mt-2" style="height:8px;border-radius:99px"><div class="progress-bar" style="width:{{ $pctP }}%;background:{{ $pctP >= 100 ? '#e0245e' : '#16b34a' }}"></div></div>
+                <small class="d-block mt-2 fw-semibold">¿Necesita más? Amplíe con LocalPro: <b>{{ \App\Support\AmpliarProductos::oferta() }}</b>.</small>
+            </div>
+            <a href="{{ $urlAmp ?: '#' }}" target="_blank" rel="noopener" class="btn btn-success" style="border-radius:999px;font-weight:800"><i class="fa-brands fa-whatsapp me-1"></i>Ampliar productos</a>
+        </div>
+    </div>
+    @endif
+
     <div class="lp-counts mb-3" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
         @foreach ($planes as $p)
         <div class="lp-count" style="padding:1.4rem;{{ (int) $tienda->plan_id === (int) $p->id ? 'border-color:#2fd15a;box-shadow:0 0 0 4px rgba(47,209,90,.15)' : '' }}">
@@ -62,7 +78,7 @@
             </div>
             <div style="font-size:1.8rem;font-weight:800;letter-spacing:-.03em;margin:.4rem 0">{{ $p->es_gratis ? 'Gratis' : '$' . number_format($p->precio, 0, ',', '.') }}<small style="font-size:.85rem;color:var(--lp-muted)">{{ $p->es_gratis ? '' : ' COP' . ($p->dias ? ' / ' . ($p->dias >= 365 ? 'año' : ($p->dias >= 28 ? 'mes' : $p->dias . ' días')) : '') }}</small></div>
             <p class="text-muted small mb-2">{{ $p->descripcion }}</p>
-            <p class="small fw-bold mb-3" style="color:#11702f"><i class="fa-solid fa-box me-1"></i>{{ $p->max_productos ? 'Hasta ' . number_format($p->max_productos, 0, ',', '.') . ' productos' : 'Productos ilimitados' }} · <i class="fa-solid fa-users ms-1 me-1"></i>{{ (float) $p->precio <= 0 && !$p->dias ? '3 meses · ' : '' }}{{ $p->max_usuarios ? ($p->max_usuarios > 1 ? 'Dueño + ' . ($p->max_usuarios - 1) . ' vendedores' : 'Solo el dueño') : 'Vendedores ilimitados' }}</p>
+            <p class="small fw-bold mb-3" style="color:#11702f"><i class="fa-solid fa-box me-1"></i>{{ $p->max_productos ? 'Hasta ' . number_format($p->max_productos, 0, ',', '.') . ' productos' . ($p->es_gratis ? '' : ' (ampliable)') : 'Productos ilimitados' }} · <i class="fa-solid fa-users ms-1 me-1"></i>{{ (float) $p->precio <= 0 && !$p->dias ? '3 meses · ' : '' }}{{ $p->max_usuarios ? ($p->max_usuarios > 1 ? 'Dueño + ' . ($p->max_usuarios - 1) . ' vendedores' : 'Solo el dueño') : 'Vendedores ilimitados' }}</p>
             @unless ($p->es_gratis)
                 @can('editar-negocio')
                 <form method="post" action="{{ route('plan.pagar', $p) }}">@csrf

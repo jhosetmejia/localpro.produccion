@@ -290,6 +290,10 @@ class ProductoController extends Controller
                 ]);
             $message = 'Producto eliminado';
         } else {
+            // Volver a mostrar un producto oculto ocupa cupo del plan
+            if ($msg = \App\Support\TiendaActual::limitePlan('productos')) {
+                return redirect()->back(302, [], route('productos.index'))->withErrors($msg);
+            }
             Producto::where('id', $producto->id)
                 ->update([
                     'estado' => 1

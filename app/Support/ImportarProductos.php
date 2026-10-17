@@ -158,7 +158,8 @@ class ImportarProductos
 
         // Cupo del plan
         $plan = TiendaActual::tienda()?->plan;
-        $cupo = $plan?->max_productos ? max(0, $plan->max_productos - Producto::count()) : PHP_INT_MAX;
+        $usoPlan = TiendaActual::uso('productos');
+        $cupo = $usoPlan ? max(0, $usoPlan['max'] - $usoPlan['actual']) : PHP_INT_MAX;
 
         $categorias = [];
         $categoria = function (?string $nombre) use (&$categorias) {
@@ -167,7 +168,7 @@ class ImportarProductos
         };
 
         foreach (array_chunk($grupos, 100, true) as $lote) {
-            DB::transaction(function () use ($lote, &$res, $err, $actualizar, $controla, &$cupo, $categoria, $plan) {
+            DB::transaction(function () use ($lote, &$res, $err, $actualizar, $controla, &$cupo, $categoria, $plan, $usoPlan) {
                 foreach ($lote as $filasProd) {
                     $p0 = $filasProd[0];
                     $precio = null; $costo = null;
@@ -183,7 +184,7 @@ class ImportarProductos
 
                     if (!$nuevo && !$actualizar) { $err($p0['_num'], '"' . $p0['_nombre'] . '" ya existe (se dejó como estaba).'); continue; }
                     if ($nuevo) {
-                        if ($cupo <= 0) { $err($p0['_num'], 'llegaste al límite de ' . (int) $plan?->max_productos . ' productos de tu plan. Comunícate con soporte para ampliar la cantidad de productos.'); continue; }
+                        if ($cupo <= 0) { $err($p0['_num'], 'llegaste al límite de ' . (int) ($usoPlan['max'] ?? 0) . ' productos de tu plan. Comunícate con LocalPro para ampliar tus productos: ' . AmpliarProductos::oferta() . '.'); continue; }
                         if ($precio === null) { $err($p0['_num'], '"' . $p0['_nombre'] . '" no tiene precio de venta.'); continue; }
                         $producto = Producto::create([
                             'codigo' => $p0['_codigo'] ?: CrearTienda::siguienteCodigo(),

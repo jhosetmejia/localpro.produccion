@@ -15,6 +15,8 @@ class adminPlanController extends Controller
         return view('admin.planes.index', [
             'planes' => Plan::withCount(['tiendas' => fn ($q) => $q])->orderBy('orden')->get(),
             'soporte' => Ajuste::valor('soporte_whatsapp'),
+            'paqPrecio' => \App\Support\AmpliarProductos::precio(),
+            'paqCantidad' => \App\Support\AmpliarProductos::cantidad(),
             'metaEnVivo' => (string) Ajuste::valor('meta_en_vivo') === '1',
             'metaPrueba' => Ajuste::valor('meta_tiendas_prueba'),
             'wompi' => planController::wompiActivo(),
@@ -37,6 +39,8 @@ class adminPlanController extends Controller
             'nuevo.precio' => 'nullable|numeric|min:0',
             'nuevo.dias' => 'nullable|integer|min:1|max:3650',
             'soporte_whatsapp' => 'nullable|string|max:20',
+            'productos_paquete_precio' => 'nullable|integer|min:0|max:100000000',
+            'productos_paquete_cantidad' => 'nullable|integer|min:1|max:100000',
         ]);
         foreach ((array) $request->input('planes') as $id => $d) {
             Plan::whereKey($id)->update([
@@ -52,6 +56,8 @@ class adminPlanController extends Controller
             ]);
         }
         Ajuste::guardar('soporte_whatsapp', preg_replace('/[^\d+]/', '', (string) $request->input('soporte_whatsapp')));
+        if ($request->filled('productos_paquete_precio')) Ajuste::guardar('productos_paquete_precio', (int) $request->input('productos_paquete_precio'));
+        if ($request->filled('productos_paquete_cantidad')) Ajuste::guardar('productos_paquete_cantidad', (int) $request->input('productos_paquete_cantidad'));
         Ajuste::guardar('meta_en_vivo', $request->boolean('meta_en_vivo') ? '1' : '');
         Ajuste::guardar('meta_tiendas_prueba', mb_substr(strtoupper(preg_replace('/[^A-Za-z0-9,\-]/', '', str_replace([' ', ';', "\n"], ',', (string) $request->input('meta_tiendas_prueba')))), 0, 2000));
         return back()->with('success', 'Planes guardados.');
