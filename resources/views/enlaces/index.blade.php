@@ -45,6 +45,13 @@
     @include('layouts.partials.lp-flash')
     @if ($errors->any())<div class="alert alert-danger">{{ $errors->first() }}</div>@endif
 
+    @if (!$tienda->enlaces_activo)
+    <div class="mb-3 d-flex gap-3 align-items-center flex-wrap" style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:20px;padding:1rem 1.2rem">
+        <div style="width:44px;height:44px;border-radius:14px;background:#f97316;color:#fff;display:grid;place-items:center;font-size:1.2rem;flex:none"><i class="fa-solid fa-eye-slash"></i></div>
+        <div style="flex:1 1 260px"><b>Su página aún no está publicada</b><div class="small fw-semibold text-muted">Usted la ve porque es el dueño, pero sus clientes todavía no. Publíquela antes de compartir el enlace.</div></div>
+        <form method="post" action="{{ route('enlaces.publicar') }}">@csrf<button class="btn btn-success rounded-pill fw-bold"><i class="fa-solid fa-globe me-1"></i>Publicar ahora</button></form>
+    </div>
+    @endif
     <div class="me-url mb-4">
         <span class="badge {{ $tienda->enlaces_activo ? 'bg-success' : 'bg-secondary' }}">{{ $tienda->enlaces_activo ? 'Publicada' : 'Sin publicar' }}</span>
         <code id="me-link">{{ $url }}</code>

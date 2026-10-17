@@ -354,6 +354,7 @@ Route::middleware(['auth', 'tienda'])->group(function () {
         Route::post('/{enlace}/mover/{dir}', 'mover')->whereNumber('enlace')->whereIn('dir', ['arriba', 'abajo'])->name('mover');
         Route::delete('/{enlace}', 'destroy')->whereNumber('enlace')->name('destroy');
         Route::post('/estadisticas/reiniciar', 'reiniciar')->name('reiniciar');
+        Route::post('/publicar', 'publicar')->name('publicar');
     });
     // Personalizar menú (esconder lo que el negocio no usa)
     Route::get('/negocio/menu', [\App\Http\Controllers\menuController::class, 'edit'])->name('menu.edit');

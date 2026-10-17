@@ -179,6 +179,14 @@ class enlacesController extends Controller
         return back()->with('success', 'Estadísticas en cero.');
     }
 
+    // Publicar la página con un toque (desde el aviso "Sin publicar")
+    public function publicar()
+    {
+        $t = TiendaActual::tienda();
+        $t->forceFill(['enlaces_activo' => true])->save();
+        return back()->with('success', '¡Su página ya está publicada! Ahora sí la puede compartir: ' . self::urlPublica($t));
+    }
+
     // ===== Página pública =====
 
     public static function urlPublica(Tienda $t): string
@@ -186,19 +194,30 @@ class enlacesController extends Controller
         return url('/@' . $t->slug);
     }
 
-    private function publica(string $slug): array
+    private function publica(string $slug, bool $permitirBorrador = false): array
     {
-        $tienda = Tienda::with('plan')->where('slug', $slug)->firstOrFail();
+        $tienda = Tienda::with('plan')->where('slug', strtolower($slug))->firstOrFail();
         $user = auth()->user();
         $esDueno = $user && ((int) $user->tienda_id === (int) $tienda->id || $user->es_superadmin);
-        abort_unless($tienda->activa && ($tienda->enlaces_activo || $esDueno), 404);
+        abort_unless($tienda->activa && ($tienda->enlaces_activo || $esDueno || $permitirBorrador), 404);
         TiendaActual::set($tienda->id);
         return [$tienda, $esDueno];
     }
 
     public function show(Request $request, string $slug)
     {
-        [$tienda, $esDueno] = $this->publica($slug);
+        [$tienda, $esDueno] = $this->publica($slug, true);
+
+        // Página sin publicar: a los clientes no se les muestra un error, sino un aviso amable con el WhatsApp
+        // y la tienda en línea del negocio (el dueño la sigue viendo completa como borrador)
+        if (!$tienda->enlaces_activo && !$esDueno) {
+            return response()->view('enlaces.preparando', [
+                'tienda' => $tienda,
+                'wa' => numero_whatsapp($tienda->telefono),
+                'foto' => $tienda->enlaces_foto_path ? Storage::disk('public')->url($tienda->enlaces_foto_path) : $tienda->logo_url,
+                'catalogo' => $tienda->catalogo_activo && $tienda->onboarding_completo && $tienda->slug ? $tienda->url_catalogo : null,
+            ]);
+        }
 
         // Las visitas del dueño, de la vista previa y de robots no cuentan
         $robot = preg_match('/bot|crawl|spider|slurp|facebookexternalhit|whatsapp|preview|curl|wget/i', (string) $request->userAgent());
