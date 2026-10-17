@@ -115,6 +115,11 @@ if [ ! -f "$VIG" ] || ! grep -qF "$LINEA" "$VIG"; then
   echo "$LINEA" > "$VIG"; chmod 644 "$VIG"
   echo "    Vigilante instalado (revisa el sitio cada 5 minutos)."
 fi
+# Piloto automático (si ya se activó una vez): se asegura de que el cron siga apuntando al lugar correcto
+if [ -s /etc/localpro-estado-token ]; then
+  echo "*/2 * * * * root /bin/bash $RAIZ/deploy/piloto-automatico.sh >> /var/log/localpro-piloto.log 2>&1" > /etc/cron.d/localpro-piloto
+  chmod 644 /etc/cron.d/localpro-piloto
+fi
 # Que los registros de errores no crezcan sin fin
 cat > /etc/logrotate.d/localpro <<LR
 $RAIZ/storage/logs/*.log /var/log/localpro-*.log {

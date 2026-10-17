@@ -1,0 +1,5 @@
+# Órdenes de mantenimiento para el servidor (las lee deploy/piloto-automatico.sh cada 2 minutos).
+# Se ejecuta solo la ÚLTIMA línea con formato  ID|accion  y cada ID una sola vez. Para repetir, use un ID nuevo.
+# Acciones: reiniciar · reiniciar-php · reiniciar-nginx · limpiar-cache · quitar-mantenimiento · liberar-disco
+#           reintentar-actualizacion · migrar · colas · diagnostico
+20261017-00|diagnostico

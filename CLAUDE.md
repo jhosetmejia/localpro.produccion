@@ -20,6 +20,14 @@ Sitio en vivo: https://localproo.com
   (Verificado 2026-10-16: `/home/localproo` NO existe en el VPS. El subdominio DNS `localpro.narinoexposhow.com` se quitó, pero el sitio sigue siendo el de producción.)
 - Actualizar producción (como root en la consola web de hPanel), hace respaldo de BD + código y vuelve atrás si falla:
   `curl -fsSL https://raw.githubusercontent.com/jhosetmejia/localpro.produccion/master/deploy/actualizar.sh | bash`
+- **Piloto automático** (se activa una vez con `curl -fsSL https://raw.githubusercontent.com/jhosetmejia/localpro.produccion/master/deploy/activar-piloto.sh | bash`):
+  cron cada 2 min (`deploy/piloto-automatico.sh`) que, si hay commit nuevo en `master`, corre `actualizar.sh` (con respaldo y vuelta atrás);
+  si una versión falla no la reintenta hasta que llegue otra. O sea: **push a master = despliegue en ≤ 2-5 min**.
+  - Mantenimiento sin consola: editar la última línea de `deploy/orden.txt` (`ID|accion`, ID nuevo cada vez) y hacer push.
+    Acciones: reiniciar, reiniciar-php, reiniciar-nginx, limpiar-cache, quitar-mantenimiento, liberar-disco, reintentar-actualizacion, migrar, colas, diagnostico.
+  - Reporte de estado (sitio, versión, último despliegue, última orden, disco, servicios, vigilante, errores Laravel) en
+    `https://localproo.com/estado-<token>.txt` (token en `/etc/localpro-estado-token`; Jhoset pasa la URL en el chat). Leerlo con WebFetch.
+  - Desde la nube de Claude NO hay SSH al VPS (bloqueado): todo va por GitHub + este piloto. El vigilante (cada 5 min) reinicia servicios solo si el sitio se cae.
 - Otros scripts en `deploy/` (instalar VPS, correo, respaldo diario, dominio nuevo, reset admin).
 - Pagos con Wompi (`wompiController`); integración Meta con webhook (`metaWebhookController`).
 
