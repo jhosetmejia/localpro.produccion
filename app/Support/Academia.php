@@ -268,7 +268,7 @@ class Academia
 
             'inventario' => [
                 'titulo' => 'Inventario sin pérdidas', 'icono' => 'fa-boxes-stacked', 'color' => '#8b5cf6', 'para' => 'dueno',
-                'resumen' => 'Entradas de mercancía, existencias, etiquetas y cómo evitar faltantes.',
+                'resumen' => 'Entradas de mercancía, existencias, conteo físico con el celular y cómo evitar faltantes.',
                 'lecciones' => [
                     ['titulo' => 'Registrar la mercancía que llega', 'min' => 3, 'accion' => ['inventario.index', 'Ver inventario'], 'contenido' => [
                         'Cada vez que llega mercancía, regístrela como <b>entrada</b> (o compra): suma al inventario y guarda el costo.',
@@ -282,11 +282,17 @@ class Academia
                         'En <b>Reportes</b> mire los productos más vendidos: de esos nunca se debe quedar sin existencias.',
                         'Los que llevan meses sin venderse son plata quieta: póngalos en <b>promoción</b> y compre menos de esos.',
                     ], 'tip' => 'Compre seguido y poco de lo que rota, en vez de mucho de todo.'],
+                    ['titulo' => 'Conteo físico con el celular', 'min' => 3, 'accion' => ['inventario.conteos.index', 'Hacer un conteo'], 'contenido' => [
+                        'En <b>Inventario → Resumen</b> ve cuántas prendas tiene por <b>talla</b>, por <b>categoría</b> y por <b>color</b>, y cuánta plata hay en mercancía.',
+                        'Para contar, abra un <b>Conteo físico</b> (de toda la tienda o de una categoría), toque <b>Escanear prendas</b> y pase la cámara por cada etiqueta: cada lectura suma una. También puede escribir la cantidad.',
+                        'Al tocar <b>Terminé</b> el sistema le dice cuáles <b>están</b>, cuáles <b>faltan</b>, cuáles <b>no aparecieron</b> y cuáles <b>sobran</b>. El dueño revisa y con <b>Ajustar inventario</b> el sistema queda igual a lo físico.',
+                    ], 'tip' => 'Active "Contar a ciegas" para que quien cuenta no vea lo que dice el sistema: así el conteo sale honesto.'],
                 ],
                 'prueba' => [
                     ['p' => 'Llegó mercancía nueva. ¿Qué hago en LocalPro?', 'o' => ['Registrarla como entrada', 'Nada, se suma sola', 'Crear el producto otra vez'], 'r' => 0],
                     ['p' => '¿Cada cuánto conviene hacer conteo físico?', 'o' => ['Al menos una vez al mes', 'Nunca', 'Cada 5 años'], 'r' => 0],
                     ['p' => '¿Qué hago con lo que lleva meses sin venderse?', 'o' => ['Ponerlo en promoción', 'Comprar más de eso', 'Subirle el precio'], 'r' => 0],
+                    ['p' => 'En el conteo físico escaneé todas las prendas y toqué Terminé. ¿Qué me muestra?', 'o' => ['Cuáles están, cuáles faltan y cuáles sobran', 'Nada, hay que contar en un cuaderno', 'Solo el total de ventas'], 'r' => 0],
                 ],
             ],
 

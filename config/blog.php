@@ -6,6 +6,24 @@
 // palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
+    'conteo-de-inventario-con-el-celular' => [
+        'titulo' => 'Conteo de inventario con el celular: escanee, toque "Terminé" y sepa qué falta',
+        'resumen' => 'Vea cuántas prendas tiene por talla, categoría y color, y haga el inventario físico escaneando las etiquetas con la cámara. LocalProo le dice qué está, qué falta y qué sobra, y cuadra el sistema con un botón.',
+        'fecha' => '17 de octubre de 2026',
+        'publicado' => '2026-10-17',
+        'minutos' => 4,
+        'icono' => 'fa-clipboard-check',
+        'rol' => 'negocios',
+        'seo_titulo' => 'Conteo de inventario con el celular | LocalProo',
+        'descripcion' => 'Haga el inventario físico de su tienda escaneando códigos de barras con el celular. Vea faltantes y sobrantes y ajuste el sistema en un clic.',
+        'keywords' => ['conteo de inventario con celular', 'cómo hacer inventario en una tienda de ropa', 'inventario físico vs sistema', 'escanear códigos de barras inventario', 'inventario por tallas', 'faltantes de inventario tienda'],
+        'faq' => [
+            ['¿Necesito una pistola lectora de códigos?', 'No. Se escanea con la cámara del celular. Si ya tiene pistola lectora, también sirve: el código se lee y se suma solo.'],
+            ['¿Puedo seguir vendiendo mientras cuento?', 'Sí. LocalProo guarda cuántas había al empezar y, al ajustar, solo corrige la diferencia: lo vendido mientras contaban se respeta.'],
+            ['¿Pueden contar varias personas al tiempo?', 'Sí. Cada una abre el mismo conteo en su celular y va escaneando; todo se suma en el mismo lugar.'],
+            ['¿Y si solo quiero contar una categoría?', 'Al abrir el conteo elige, por ejemplo, "Solo Chaquetas". Lo demás no se toca.'],
+        ],
+    ],
     'control-de-gastos-egresos-negocio' => [
         'titulo' => 'Egresos: sepa en qué se va la plata de su negocio (y que la caja cuadre)',
         'resumen' => 'Anote cada gasto con foto del recibo, vea en qué se le va el dinero cada mes y deje que los gastos pagados con la caja se descuenten solos al cerrar. Sus vendedores anotan; usted lo ve todo.',
