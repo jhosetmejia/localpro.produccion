@@ -6,6 +6,23 @@
 // palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
+    'control-de-gastos-egresos-negocio' => [
+        'titulo' => 'Egresos: sepa en qué se va la plata de su negocio (y que la caja cuadre)',
+        'resumen' => 'Anote cada gasto con foto del recibo, vea en qué se le va el dinero cada mes y deje que los gastos pagados con la caja se descuenten solos al cerrar. Sus vendedores anotan; usted lo ve todo.',
+        'fecha' => '17 de octubre de 2026',
+        'publicado' => '2026-10-17',
+        'minutos' => 4,
+        'icono' => 'fa-arrow-trend-down',
+        'rol' => 'negocios',
+        'seo_titulo' => 'Control de gastos y egresos para su negocio | LocalProo',
+        'descripcion' => 'Registre los gastos de su tienda con foto del recibo, véalos por tipo y que los pagos en efectivo se descuenten de la caja. Control de egresos fácil.',
+        'keywords' => ['control de gastos negocio', 'registro de egresos tienda', 'programa para controlar gastos', 'gastos de caja menor', 'cuadre de caja con gastos', 'en qué se va la plata de mi negocio'],
+        'faq' => [
+            ['¿Mis vendedores pueden anotar gastos?', 'Sí. Cada vendedor anota los egresos que paga y ve los suyos y los de sus compañeros. Los que anota el dueño o el administrador solo los ve él.'],
+            ['¿Qué pasa si el vendedor paga algo con la plata de la caja?', 'Si lo marca como pagado en efectivo con su caja abierta, LocalProo lo descuenta solo del efectivo que debe haber al cerrar, y sale en los movimientos del turno.'],
+            ['¿Puedo guardar el recibo?', 'Sí, a cada egreso se le puede tomar una foto del recibo con el celular.'],
+        ],
+    ],
     'permisos-vendedores-control-de-empleados' => [
         'titulo' => 'Permisos para vendedores: decida qué puede hacer cada empleado en su negocio',
         'resumen' => 'Su vendedor de confianza puede crear productos o registrar mercancía sin ver sus ganancias ni tocar la configuración. Usted activa solo lo que quiera, uno por uno.',

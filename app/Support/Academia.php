@@ -172,7 +172,7 @@ class Academia
 
             'caja' => [
                 'titulo' => 'La caja paso a paso', 'icono' => 'fa-cash-register', 'color' => '#0ea5e9', 'para' => 'todos',
-                'resumen' => 'Abrir, vender, cobrar, devoluciones y cerrar la caja sin descuadres.',
+                'resumen' => 'Abrir, vender, cobrar, devoluciones, anotar los gastos y cerrar la caja sin descuadres.',
                 'lecciones' => [
                     ['titulo' => 'Abrir la caja', 'min' => 2, 'accion' => ['pos.index', 'Ir a la caja'], 'contenido' => [
                         'Cada vendedor abre <b>su propia caja</b> al empezar el turno, con el dinero que recibe en el cajón.',
@@ -192,8 +192,14 @@ class Academia
                         'Si hay <b>faltante o sobrante</b>, escriba el motivo en la nota. Es normal un error pequeño; lo importante es explicarlo.',
                         'El dueño ve el reporte de cada cierre con las ventas por método de pago.',
                     ], 'tip' => 'Cierre todos los días, aunque haya vendido poco.'],
+                    ['titulo' => 'Anotar los egresos (gastos)', 'min' => 3, 'accion' => ['egresos.index', 'Ir a Egresos'], 'contenido' => [
+                        'Cada vez que salga plata del negocio (un domicilio, bolsas, el internet, un arreglo) anótela en <b>Egresos</b>: qué fue, cuánto, el tipo de gasto y cómo se pagó. Si tiene el recibo, tómele una foto.',
+                        'Si lo paga <b>en efectivo con la plata de su caja abierta</b>, LocalPro lo descuenta solo del efectivo que debe haber. Así la caja cuadra al cerrar y no aparece un "faltante".',
+                        'Usted ve <b>sus egresos y los de sus compañeros</b>. Los que anota el dueño o el administrador solo los ve él. El dueño ve todo y sabe en qué se va la plata del negocio.',
+                    ], 'tip' => 'Anote el gasto en el momento, no al final del día: así no se le olvida y la caja cuadra.'],
                 ],
                 'prueba' => [
+                    ['p' => 'Pagó un domicilio con $8.000 de la caja. ¿Qué hace?', 'o' => ['Lo anoto en Egresos', 'No anoto nada', 'Lo saco y lo repongo otro día'], 'r' => 0],
                     ['p' => 'El cliente pagó por Nequi. ¿Cómo se registra?', 'o' => ['Como Nequi', 'Como efectivo', 'No se registra'], 'r' => 0],
                     ['p' => 'Si me equivoqué en una venta, ¿qué hago?', 'o' => ['Hago una devolución', 'Borro la venta', 'Lo dejo así'], 'r' => 0],
                     ['p' => 'Al cerrar falta plata. ¿Qué hago?', 'o' => ['Escribo el motivo en la nota del cierre', 'No cierro la caja', 'Cambio el valor de una venta'], 'r' => 0],
