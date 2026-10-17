@@ -139,7 +139,7 @@ class separadoController extends Controller
     public function show(Separado $separado)
     {
         return view('separado.show', [
-            's' => $separado->load(['items', 'abonos.metodo', 'abonos.user:id,name', 'user:id,name', 'venta']),
+            's' => $separado->load(['items.variante.producto.fotos', 'abonos.metodo', 'abonos.user:id,name', 'user:id,name', 'venta']),
             'metodos' => MetodoPago::activos()->get(['id', 'nombre']),
             'caja' => Caja::abiertaDe(Auth::id()),
             'publico' => self::urlPublica($separado),

@@ -4,6 +4,7 @@
 
 @push('css')
 <style>
+.sd-item{cursor:pointer;border-radius:14px;transition:background .15s}.sd-item:hover{background:#f3faf5}
 .sd-top{background:#0b0d0c;color:#fff;border-radius:24px;padding:1.2rem 1.3rem;margin-bottom:1rem}
 .sd-top .row1{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:flex-start}
 .sd-top small{color:#9fe3b0;font-weight:700}
@@ -96,7 +97,11 @@
                 <h3><span><i class="fa-solid {{ \App\Models\Tienda::iconoProducto() }} me-1"></i> {{ ucfirst(\App\Models\Tienda::palabraProducto(true)) }} separados</span></h3>
                 <ul class="lp-list">
                     @foreach ($s->items as $i)
-                    <li><div class="av"><i class="fa-solid fa-box"></i></div><div class="t"><b>{{ $i->descripcion }}</b><small>{{ $i->etiqueta ?: 'Única' }} · {{ cantidad($i->cantidad) }} × {{ $f($i->precio) }}</small></div><b>{{ $f($i->subtotal) }}</b></li>
+                    <li role="button" class="sd-item" data-bs-toggle="modal" data-bs-target="#sdVer{{ $i->id }}" title="Ver la prenda">
+                        <div class="av" style="{{ $i->foto_url ? 'padding:0;overflow:hidden;background:#fff' : '' }}">@if ($i->foto_url)<img src="{{ $i->foto_url }}" alt="" style="width:100%;height:100%;object-fit:cover">@else<i class="fa-solid fa-box"></i>@endif</div>
+                        <div class="t"><b>{{ $i->descripcion }}</b><small>{{ $i->etiqueta ?: 'Única' }} · {{ cantidad($i->cantidad) }} × {{ $f($i->precio) }} · <span style="color:#16b34a;font-weight:800">Ver <i class="fa-solid fa-eye"></i></span></small></div>
+                        <b>{{ $f($i->subtotal) }}</b>
+                    </li>
                     @endforeach
                 </ul>
                 @if ($s->nota)<p class="small text-muted mb-0 mt-2"><i class="fa-regular fa-note-sticky me-1"></i>{{ $s->nota }}</p>@endif
@@ -140,4 +145,32 @@
         </div>
     </div>
 </div>
+@foreach ($s->items as $i)
+<div class="modal fade" id="sdVer{{ $i->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:24px;border:0;overflow:hidden">
+            <div style="background:#f4f8f5;display:grid;place-items:center;min-height:220px;position:relative">
+                @if ($i->foto_url)<img src="{{ $i->foto_url }}" alt="{{ $i->descripcion }}" style="width:100%;max-height:60vh;object-fit:contain;background:#fff">@else<div class="text-center text-muted p-4"><i class="fa-regular fa-image" style="font-size:3rem;color:#16b34a"></i><div class="fw-bold mt-2">Este producto no tiene foto</div></div>@endif
+                <button type="button" class="btn-close position-absolute" style="top:12px;right:12px;background-color:#fff;border-radius:50%;padding:.6rem;opacity:1" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="p-3">
+                <b style="font-size:1.15rem;display:block">{{ $i->descripcion }}</b>
+                <div class="d-flex gap-2 flex-wrap my-2">
+                    @if ($i->talla)<span class="badge rounded-pill text-bg-dark">Talla {{ $i->talla }}</span>@endif
+                    @if ($i->color)<span class="badge rounded-pill" style="background:#dcfce7;color:#14753a">{{ $i->color }}</span>@endif
+                    <span class="badge rounded-pill text-bg-light">{{ cantidad($i->cantidad) }} × {{ $f($i->precio) }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center"><span class="text-muted fw-semibold">Subtotal</span><b style="font-size:1.2rem">{{ $f($i->subtotal) }}</b></div>
+                @if ($i->producto)
+                @can('editar-producto')
+                <a href="{{ route('productos.edit', ['producto' => $i->producto]) }}" class="btn btn-dark w-100 mt-3" style="border-radius:999px;font-weight:800"><i class="fa-solid fa-pen me-1"></i>Abrir el producto</a>
+                @endcan
+                @else
+                <small class="text-muted d-block mt-2">El producto ya no existe en el inventario.</small>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
+@endforeach
 @endsection
