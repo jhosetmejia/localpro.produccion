@@ -63,7 +63,7 @@ class egresoController extends Controller
 
         $metodo = !empty($datos['metodo_pago_id']) ? MetodoPago::find($datos['metodo_pago_id']) : null;
         // Si sale en efectivo de la caja abierta, se descuenta de lo que debe haber en caja
-        $caja = $metodo?->es_efectivo && $request->boolean('de_caja', true) ? Caja::abiertaDe($u->id) : null;
+        $caja = $metodo?->es_efectivo && !MetodoPago::esElectronico($metodo->nombre) && $request->boolean('de_caja', true) ? Caja::abiertaDe($u->id) : null;
 
         Egreso::create([
             'user_id' => $u->id,

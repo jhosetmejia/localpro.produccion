@@ -19,6 +19,8 @@ class MetodoPago extends Model
     protected static function booted(): void
     {
         static::saving(function (self $m) {
+            // Un método electrónico (transferencia, Nequi, tarjeta…) nunca puede ser efectivo
+            if ($m->es_efectivo && self::esElectronico($m->nombre)) $m->es_efectivo = false;
             static $hay = null;
             $hay ??= \Illuminate\Support\Facades\Schema::hasColumn('metodos_pago', 'medio_dian');
             if (!$hay) return;
@@ -37,6 +39,12 @@ class MetodoPago extends Model
             str_contains($n, 'consigna') => '42',
             default => 'ZZZ',
         };
+    }
+
+    // Transferencias, billeteras, tarjetas y consignaciones: dinero que no entra al cajón
+    public static function esElectronico(?string $nombre): bool
+    {
+        return in_array(self::medioDian($nombre), ['42', '47', '48', '49'], true);
     }
 
     // Método interno para pagar con saldo a favor de un cambio (se crea si no existe)

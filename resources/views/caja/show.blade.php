@@ -23,6 +23,8 @@
         <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-scale-balanced"></i></div><div class="lbl">Diferencia</div><div class="val">{{ $caja->diferencia === null ? '—' : dinero($caja->diferencia) }}</div><div class="sub">{{ $caja->estado === 'abierta' ? 'Se calcula al cerrar' : 'Contó ' . dinero($caja->efectivo_contado) }}</div></div>
     </div>
 
+    @include('caja._movimientos')
+
     <div class="lp-grid">
         <div class="lp-box">
             <h3>Ventas del turno</h3>

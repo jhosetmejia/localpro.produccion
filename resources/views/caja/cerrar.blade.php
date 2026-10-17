@@ -31,6 +31,8 @@
         </div>
     </div>
 
+    @include('caja._movimientos')
+
     <form method="post" action="{{ route('cajas.guardarCierre') }}" class="lp-box" data-confirm="¿Cerrar la caja?" data-confirm-texto="Después no podrá vender hasta abrir una caja nueva." data-confirm-ok="Sí, cerrar caja">
         @csrf
         <h3>Cuente el efectivo</h3>

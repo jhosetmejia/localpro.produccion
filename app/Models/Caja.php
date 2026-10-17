@@ -41,14 +41,14 @@ class Caja extends Model
     {
         $ventas = $this->totalesVentas();
         $abonos = $this->abonosPorMetodo();
-        if ($abonos->isEmpty()) return $ventas;
+        if ($abonos->isEmpty()) return self::soloEfectivoReal($ventas);
         // Suma ventas + abonos de separados por método (el dinero de los abonos entra a esta caja)
         return $ventas->concat($abonos)->groupBy('id')->map(function ($g) {
             $f = clone $g->first();
             $f->total = $g->sum('total');
             $f->ventas = $g->sum('ventas');
             return $f;
-        })->sortBy('nombre')->values();
+        })->sortBy('nombre')->values()->pipe(fn ($c) => self::soloEfectivoReal($c));
     }
 
     /**
@@ -105,13 +105,146 @@ class Caja extends Model
             ->where('d.tipo', 'reembolso')
             ->groupBy('m.id', 'm.nombre', 'm.es_efectivo')
             ->select('m.id', 'm.nombre', 'm.es_efectivo', DB::raw('SUM(d.total) as total'), DB::raw('COUNT(*) as n'))
+            ->get()
+            ->pipe(fn ($c) => self::soloEfectivoReal($c));
+    }
+
+    /**
+     * Transferencias, Nequi, Daviplata, tarjetas, etc. nunca cuentan como efectivo,
+     * aunque el método haya quedado marcado como "Es efectivo" por error.
+     */
+    private static function soloEfectivoReal($filas)
+    {
+        return $filas->map(function ($f) {
+            $f->es_efectivo = (bool) $f->es_efectivo && !MetodoPago::esElectronico($f->nombre);
+            return $f;
+        });
+    }
+
+    /**
+     * Cada movimiento de dinero del turno con su descripción, para saber de dónde sale cada valor:
+     * ventas del POS, abonos de separados y de alquileres, devoluciones y egresos pagados con la caja.
+     */
+    public function movimientos()
+    {
+        $S = \Illuminate\Support\Facades\Schema::class;
+        $filas = collect();
+
+        $ventas = DB::table('pos_venta_pagos as p')
+            ->join('pos_ventas as v', 'v.id', '=', 'p.pos_venta_id')
+            ->join('metodos_pago as m', 'm.id', '=', 'p.metodo_pago_id')
+            ->where('v.caja_id', $this->id)
+            ->where('v.estado', 'pagada')
+            ->when($S::hasColumn('metodos_pago', 'interno'), fn ($q) => $q->where('m.interno', false))
+            ->when($S::hasTable('alquileres'), fn ($q) => $q->leftJoin('alquileres as al', 'al.pos_venta_id', '=', 'v.id'))
+            ->select('p.monto', 'p.created_at', 'v.numero', 'v.cliente_nombre', 'm.nombre as metodo', 'm.es_efectivo')
+            ->when($S::hasTable('alquileres'), fn ($q) => $q->addSelect(array_merge(['al.numero as alq_numero', 'al.que_alquila'], self::columnasAlquiler())))
             ->get();
+        foreach ($ventas as $r) {
+            $filas->push((object) [
+                'hora' => $r->created_at, 'tipo' => 'Venta POS', 'numero' => $r->numero,
+                'detalle' => !empty($r->alq_numero) ? 'Cobro del alquiler ' . $r->alq_numero . ' · ' . $r->que_alquila : ($r->cliente_nombre ?: 'Mostrador'),
+                'extra' => !empty($r->alq_numero) ? self::textoAlquiler($r) : null,
+                'nombre' => $r->metodo, 'es_efectivo' => $r->es_efectivo, 'monto' => (float) $r->monto,
+            ]);
+        }
+
+        if ($S::hasTable('separado_abonos')) {
+            $abonos = DB::table('separado_abonos as a')
+                ->join('separados as s', 's.id', '=', 'a.separado_id')
+                ->join('metodos_pago as m', 'm.id', '=', 'a.metodo_pago_id')
+                ->where('a.caja_id', $this->id)->where('a.anulado', false)
+                ->select('a.monto', 'a.created_at', 'a.numero', 'a.nota', 's.numero as ref', 's.cliente_nombre', 'm.nombre as metodo', 'm.es_efectivo')
+                ->get();
+            foreach ($abonos as $r) {
+                $filas->push((object) [
+                    'hora' => $r->created_at, 'tipo' => 'Abono de separado', 'numero' => $r->numero,
+                    'detalle' => 'Separado ' . $r->ref . ' · ' . $r->cliente_nombre . ($r->nota ? ' · ' . $r->nota : ''),
+                    'nombre' => $r->metodo, 'es_efectivo' => $r->es_efectivo, 'monto' => (float) $r->monto,
+                ]);
+            }
+        }
+
+        if ($S::hasTable('alquiler_abonos')) {
+            $abonos = DB::table('alquiler_abonos as a')
+                ->join('alquileres as al', 'al.id', '=', 'a.alquiler_id')
+                ->join('metodos_pago as m', 'm.id', '=', 'a.metodo_pago_id')
+                ->where('a.caja_id', $this->id)->where('a.anulado', false)
+                ->select(array_merge(['a.monto', 'a.created_at', 'a.numero', 'a.nota', 'al.numero as ref', 'al.que_alquila', 'm.nombre as metodo', 'm.es_efectivo'], self::columnasAlquiler()))
+                ->get();
+            foreach ($abonos as $r) {
+                $filas->push((object) [
+                    'hora' => $r->created_at, 'tipo' => $r->monto < 0 ? 'Devolución de alquiler' : 'Abono de alquiler', 'numero' => $r->numero,
+                    'detalle' => 'Alquiler ' . $r->ref . ' · ' . $r->que_alquila . ($r->nota ? ' · ' . $r->nota : ''),
+                    'extra' => self::textoAlquiler($r),
+                    'nombre' => $r->metodo, 'es_efectivo' => $r->es_efectivo, 'monto' => (float) $r->monto,
+                ]);
+            }
+        }
+
+        $devs = DB::table('devoluciones as d')
+            ->join('pos_ventas as v', 'v.id', '=', 'd.pos_venta_id')
+            ->join('metodos_pago as m', 'm.id', '=', 'd.metodo_pago_id')
+            ->where('d.caja_id', $this->id)->where('d.tipo', 'reembolso')
+            ->select('d.total', 'd.created_at', 'd.codigo', 'd.motivo', 'v.numero as ref', 'm.nombre as metodo', 'm.es_efectivo')
+            ->get();
+        foreach ($devs as $r) {
+            $filas->push((object) [
+                'hora' => $r->created_at, 'tipo' => 'Devolución', 'numero' => $r->codigo,
+                'detalle' => 'De la venta ' . $r->ref . ($r->motivo ? ' · ' . $r->motivo : ''),
+                'nombre' => $r->metodo, 'es_efectivo' => $r->es_efectivo, 'monto' => -(float) $r->total,
+            ]);
+        }
+
+        // Egresos pagados en efectivo con la plata de esta caja
+        if ($S::hasTable('egresos')) {
+            $egs = DB::table('egresos as e')
+                ->leftJoin('users as u', 'u.id', '=', 'e.user_id')
+                ->where('e.caja_id', $this->id)
+                ->select('e.valor', 'e.created_at', 'e.id', 'e.concepto', 'u.name as usuario')
+                ->get();
+            foreach ($egs as $r) {
+                $filas->push((object) [
+                    'hora' => $r->created_at, 'tipo' => 'Egreso', 'numero' => 'EG-' . $r->id,
+                    'detalle' => $r->concepto . ($r->usuario ? ' · ' . $r->usuario : ''),
+                    'nombre' => 'Efectivo de la caja', 'es_efectivo' => true, 'monto' => -(float) $r->valor, 'egreso' => true,
+                ]);
+            }
+        }
+
+        return self::soloEfectivoReal($filas->map(function ($f) { $f->extra ??= null; return $f; }))
+            ->map(function ($f) { if (!empty($f->egreso)) $f->es_efectivo = true; return $f; })
+            ->sortBy('hora')->values();
+    }
+
+    // Datos del evento que se muestran en el detalle de la caja (solo las columnas que existan)
+    private static function columnasAlquiler(): array
+    {
+        static $cols = null;
+        return $cols ??= collect(['fecha', 'hora', 'hora_fin', 'lugar', 'responsable_telefono', 'encargado_nombre', 'encargado_telefono'])
+            ->filter(fn ($c) => \Illuminate\Support\Facades\Schema::hasColumn('alquileres', $c))
+            ->map(fn ($c) => 'al.' . $c . ' as alq_' . $c)->values()->all();
+    }
+
+    // "31/10/2026 · 12:00 pm a 6:00 pm · Lugar: … · Contrata: … · Encargado: …"
+    private static function textoAlquiler($r): string
+    {
+        $h = fn ($v) => $v ? \Carbon\Carbon::parse($v)->format('g:i a') : null;
+        $horario = $h($r->alq_hora ?? null);
+        if ($horario && ($fin = $h($r->alq_hora_fin ?? null))) $horario .= ' a ' . $fin;
+        return collect([
+            !empty($r->alq_fecha) ? 'Evento ' . \Carbon\Carbon::parse($r->alq_fecha)->format('d/m/Y') : null,
+            $horario,
+            !empty($r->alq_lugar) ? 'Lugar: ' . $r->alq_lugar : null,
+            !empty($r->alq_responsable_telefono) ? 'Contrata: ' . $r->alq_responsable_telefono : null,
+            !empty($r->alq_encargado_nombre) ? 'Encargado: ' . $r->alq_encargado_nombre . (!empty($r->alq_encargado_telefono) ? ' (' . $r->alq_encargado_telefono . ')' : '') : 'Sin encargado asignado',
+        ])->filter()->implode(' · ');
     }
 
     public function efectivoEsperado(): float
     {
-        $efectivo = $this->totalesPorMetodo()->where('es_efectivo', 1)->sum('total');
-        $devuelto = $this->reembolsosPorMetodo()->where('es_efectivo', 1)->sum('total');
+        $efectivo = $this->totalesPorMetodo()->where('es_efectivo', true)->sum('total');
+        $devuelto = $this->reembolsosPorMetodo()->where('es_efectivo', true)->sum('total');
         return (float) $this->monto_inicial + (float) $efectivo - (float) $devuelto - $this->totalEgresos();
     }
 

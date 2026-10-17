@@ -67,6 +67,16 @@ if ! run git diff --quiet; then
   run git diff --stat
   run git stash push -m "cambios-servidor-$STAMP" >/dev/null
 fi
+# Archivos nuevos creados a mano en el servidor que ahora vienen en GitHub: se guardan aparte para que no bloqueen
+run git fetch -q origin
+RAMA=$(run git rev-parse --abbrev-ref HEAD)
+for F in $(run git diff --name-only --diff-filter=A HEAD "origin/$RAMA" 2>/dev/null); do
+  if [ -e "$F" ] && ! run git ls-files --error-unmatch "$F" >/dev/null 2>&1; then
+    mkdir -p "/home/$USUARIO/respaldos/archivos-servidor-$STAMP/$(dirname "$F")"
+    mv "$F" "/home/$USUARIO/respaldos/archivos-servidor-$STAMP/$F"
+    echo "    Archivo hecho a mano guardado aparte: $F"
+  fi
+done
 # Si no se pudo traer el código, no se tocó nada: no hace falta restaurar
 run git pull --ff-only || { echo "!! No se pudo traer el código nuevo. El sistema sigue igual que antes."; exit 1; }
 
