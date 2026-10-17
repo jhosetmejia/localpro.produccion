@@ -30,6 +30,8 @@ fi
 cp -a "$RAIZ" "$RESP/codigo"
 chown -R "$USUARIO:$USUARIO" "/home/$USUARIO/respaldos"
 echo "    Respaldo listo."
+# Guarda solo los 5 respaldos más recientes (cada uno pesa ~120 MB y llenaban el disco)
+ls -1dt /home/$USUARIO/respaldos/*/ 2>/dev/null | tail -n +6 | xargs -r rm -rf
 
 restaurar() {
   echo
