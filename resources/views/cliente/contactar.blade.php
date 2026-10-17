@@ -35,6 +35,8 @@
 .cc-item.hecho .cc-wa,.cc-wa:disabled{background:#dcfce7;color:#11702f;cursor:default}
 .cc-estado{font-size:.75rem;font-weight:800;border-radius:999px;padding:.15rem .55rem;background:#dcfce7;color:#11702f}
 .cc-estado.mal{background:#fde2e8;color:#b0173f}
+.cc-item.malo .cc-wa{background:#fde2e8;color:#b0173f}
+.cc-item.malo .cc-av{background:#fde2e8;color:#b0173f}
 .cc-msg{white-space:pre-wrap;background:#e7fbe9;border-radius:14px 14px 14px 4px;padding:.8rem 1rem;font-size:.92rem;line-height:1.45;border:1px solid #c9efcf}
 .cc-vacio{text-align:center;padding:2rem 1rem;color:#6b7570}
 .cc-vacio i{font-size:2.2rem;color:#16b84e;margin-bottom:.5rem}
@@ -74,13 +76,14 @@
                 $primer = preg_match('/^contacto\s/i', $nombre) ? '' : \Illuminate\Support\Str::of($nombre)->explode(' ')->first();
                 $wa = numero_whatsapp($p?->telefono);
             @endphp
-            <div class="cc-item {{ $c->contactado_at ? 'hecho' : '' }}" data-id="{{ $c->id }}" data-wa="{{ $wa }}" data-nombre="{{ $primer }}">
+             @php $txtEst = ['enviado' => 'Ya contactado', 'numero_malo' => 'Número malo', 'no_interesa' => 'No le interesa'][$c->contacto_estado] ?? 'Ya contactado'; @endphp
+            <div class="cc-item {{ $c->contactado_at ? 'hecho' : '' }} {{ in_array($c->contacto_estado, ['numero_malo', 'no_interesa'], true) ? 'malo' : '' }}" data-id="{{ $c->id }}" data-wa="{{ $wa }}" data-nombre="{{ $primer }}">
                 <div class="cc-av">{{ mb_strtoupper(mb_substr($nombre ?: '?', 0, 1)) }}</div>
                 <div class="t"><b>{{ $nombre ?: 'Sin nombre' }}</b><small>{{ $p?->telefono }}</small>
-                    @if ($c->contacto_estado)<span class="cc-estado {{ $c->contacto_estado !== 'enviado' ? 'mal' : '' }}">{{ ['enviado' => 'Enviado ✓', 'numero_malo' => 'Número malo', 'no_interesa' => 'No le interesa'][$c->contacto_estado] ?? '' }}</span>@endif
+                    <span class="cc-estado-c">@if ($c->contacto_estado)<span class="cc-estado {{ $c->contacto_estado !== 'enviado' ? 'mal' : '' }}">{{ ['enviado' => 'Enviado ✓', 'numero_malo' => 'Número malo', 'no_interesa' => 'No le interesa'][$c->contacto_estado] ?? '' }}</span>@endif</span>
                     @if ($c->contactado_at && (int) $c->contactado_por !== (int) auth()->id())<small class="d-block text-danger fw-bold">Ya le escribió {{ $c->contactadoPor->name ?? 'otra persona' }}</small>@endif
                 </div>
-                @if ($wa)<button type="button" class="cc-wa" data-enviar {{ $c->contactado_at ? 'disabled' : '' }}><i class="fa-brands fa-whatsapp"></i> <span>{{ $c->contactado_at ? 'Ya contactado' : 'Enviar' }}</span></button>@endif
+                @if ($wa)<button type="button" class="cc-wa" data-enviar {{ $c->contactado_at ? 'disabled' : '' }}><i class="fa-brands fa-whatsapp"></i> <span>{{ $c->contactado_at ? $txtEst : 'Enviar' }}</span></button>@endif
                 <div class="dropdown">
                     <button class="cc-mini" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-label="Más"><i class="fa-solid fa-ellipsis-vertical"></i></button>
                     <ul class="dropdown-menu dropdown-menu-end">
@@ -180,7 +183,6 @@
         return pedir(item, 'POST', { estado: estado }).then(function (d) {
             if (d._ok) return true;
             if (d.repetido) { yaContactado(item, d.mensaje); return false; }
-            if (estado === 'deshacer') { item.classList.add('hecho'); contar(); }
             aviso(d.mensaje || 'No se pudo guardar. Revise la conexión.');
             return false;
         }).catch(function () { aviso('No se pudo guardar. Revise la conexión.'); });
@@ -202,10 +204,30 @@
         }
         if (mk) {
             var it2 = mk.closest('.cc-item'), est = mk.dataset.marcar;
-            it2.classList.toggle('hecho', est !== 'deshacer');
+            var NOM = { enviado: 'Ya contactado', numero_malo: 'Número malo', no_interesa: 'No le interesa' };
+            var ETQ = { enviado: 'Enviado ✓', numero_malo: 'Número malo', no_interesa: 'No le interesa' };
+            var antes = { hecho: it2.classList.contains('hecho'), malo: it2.classList.contains('malo'), html: it2.querySelector('.cc-estado-c') ? it2.querySelector('.cc-estado-c').innerHTML : '' };
             var b2 = it2.querySelector('[data-enviar]');
-            if (b2) { b2.disabled = est !== 'deshacer'; b2.querySelector('span').textContent = est === 'deshacer' ? 'Enviar' : 'Ya contactado'; }
-            marcar(it2, est); contar();
+            var antesTxt = b2 ? b2.querySelector('span').textContent : '', antesDis = b2 ? b2.disabled : false;
+            function pintarEstado(e) {
+                it2.classList.toggle('hecho', e !== 'deshacer');
+                it2.classList.toggle('malo', e === 'numero_malo' || e === 'no_interesa');
+                var cont = it2.querySelector('.cc-estado-c');
+                if (cont) cont.innerHTML = e === 'deshacer' ? '' : '<span class="cc-estado ' + (e !== 'enviado' ? 'mal' : '') + '">' + ETQ[e] + '</span>';
+                if (b2) { b2.disabled = e !== 'deshacer'; b2.querySelector('span').textContent = e === 'deshacer' ? 'Enviar' : NOM[e]; }
+            }
+            pintarEstado(est);
+            marcar(it2, est).then(function (ok) {
+                if (ok) { if (est !== 'deshacer') aviso(est === 'numero_malo' ? '📵 Marcado como número malo' : est === 'no_interesa' ? '🙅 Marcado: no le interesa' : 'Guardado', 'ok'); }
+                else {
+                    // No se guardó: se deja como estaba
+                    it2.classList.toggle('hecho', antes.hecho); it2.classList.toggle('malo', antes.malo);
+                    var cont = it2.querySelector('.cc-estado-c'); if (cont) cont.innerHTML = antes.html;
+                    if (b2) { b2.disabled = antesDis; b2.querySelector('span').textContent = antesTxt; }
+                }
+                contar();
+            });
+            contar();
         }
     });
 })();
