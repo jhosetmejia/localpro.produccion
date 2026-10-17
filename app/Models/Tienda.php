@@ -42,6 +42,7 @@ class Tienda extends Model
         'contabilidad' => ['Contabilidad (retenciones e IVA)', 'fa-calculator', 'Inicio', 'Cruce DIAN vs. contabilidad y borrador del 350'],
         'pos' => ['Vender (POS)', 'fa-cash-register', 'Inicio', 'La caja para cobrar'],
         'separados' => ['Separados y abonos', 'fa-box-archive', 'Inicio', 'Apartar productos con abonos'],
+        'egresos' => ['Egresos', 'fa-arrow-trend-down', 'Inicio', 'Gastos y pagos del negocio'],
         'alquiler' => ['Alquiler', 'fa-calendar-days', 'Inicio', 'Alquiler de equipos, trajes, salones…'],
         'caja' => ['Mi caja', 'fa-vault', 'Inicio', 'Abrir y cerrar la caja del turno'],
         'ventas' => ['Ventas', 'fa-receipt', 'Inicio', 'Lista de ventas hechas'],

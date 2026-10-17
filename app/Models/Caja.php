@@ -112,6 +112,17 @@ class Caja extends Model
     {
         $efectivo = $this->totalesPorMetodo()->where('es_efectivo', 1)->sum('total');
         $devuelto = $this->reembolsosPorMetodo()->where('es_efectivo', 1)->sum('total');
-        return (float) $this->monto_inicial + (float) $efectivo - (float) $devuelto;
+        return (float) $this->monto_inicial + (float) $efectivo - (float) $devuelto - $this->totalEgresos();
+    }
+
+    // Egresos pagados en efectivo con la plata de esta caja (se descuentan de lo que debe haber)
+    public function egresos()
+    {
+        return $this->hasMany(Egreso::class);
+    }
+
+    public function totalEgresos(): float
+    {
+        return \Illuminate\Support\Facades\Schema::hasTable('egresos') ? (float) $this->egresos()->sum('valor') : 0.0;
     }
 }

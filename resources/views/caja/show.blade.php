@@ -64,6 +64,10 @@
                 @foreach ($reembolsos as $r)
                 <li><div class="av" style="color:#b0206a"><i class="fa-solid fa-rotate-left"></i></div><div class="t"><b>Devoluciones en {{ $r->nombre }}</b><small>{{ $r->n }} devolución(es)</small></div><span class="m" style="color:#b0206a">-@pesos($r->total)</span></li>
                 @endforeach
+                @php $egCaja = $caja->totalEgresos(); @endphp
+                @if ($egCaja > 0)
+                <li><div class="av" style="color:#b0206a"><i class="fa-solid fa-arrow-trend-down"></i></div><div class="t"><b>Egresos pagados con la caja</b><small>{{ $caja->egresos()->count() }} egreso(s) · <a href="{{ route('egresos.index') }}">ver</a></small></div><span class="m" style="color:#b0206a">-@pesos($egCaja)</span></li>
+                @endif
 
             </ul>
         </div>

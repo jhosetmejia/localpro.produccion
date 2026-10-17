@@ -185,6 +185,12 @@
                     Ventas
                 </a>@endif
                 @endcanany
+                @canany(['registrar-egresos', 'ver-egresos-todos'])
+                @if ($ver('egresos'))<a class="nav-link {{ $on('egresos.*') }}" href="{{ route('egresos.index') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-arrow-trend-down"></i></div>
+                    Egresos
+                </a>@endif
+                @endcanany
                 @can('ver-reportes')
                 @if ($ver('reportes'))<a class="nav-link {{ $on('reportes.*') }}" href="{{ route('reportes.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-chart-pie"></i></div>
