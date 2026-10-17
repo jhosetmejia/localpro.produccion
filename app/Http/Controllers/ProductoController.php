@@ -26,7 +26,7 @@ class ProductoController extends Controller
      */
     public function index()
     {
-        $productos = Producto::with(['categorias.caracteristica','marca.caracteristica','presentacione.caracteristica','variantes'])->latest()->get();
+        $productos = Producto::with(['categorias.caracteristica','marca.caracteristica','presentacione.caracteristica','variantes','fotos'])->latest()->get();
     
         return view('producto.index',compact('productos'));
     }
@@ -79,6 +79,7 @@ class ProductoController extends Controller
                 'precio_venta' => $request->precio_venta,
                 'precio_costo' => $request->precio_costo ?: 0,
                 'controla_inventario' => $request->boolean('controla_inventario'),
+                'mostrar_sin_foto' => $request->boolean('mostrar_sin_foto'),
                 'descripcion' => $request->descripcion,
                 'fecha_vencimiento' => $request->fecha_vencimiento,
                 'img_path' => $name,
@@ -196,6 +197,7 @@ class ProductoController extends Controller
                 'precio_venta' => $request->precio_venta,
                 'precio_costo' => $request->precio_costo ?: 0,
                 'controla_inventario' => $request->boolean('controla_inventario'),
+                'mostrar_sin_foto' => $request->boolean('mostrar_sin_foto'),
                 'descripcion' => $request->descripcion,
                 'fecha_vencimiento' => $request->fecha_vencimiento,
                 'img_path' => $name,

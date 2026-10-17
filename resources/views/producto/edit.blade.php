@@ -110,6 +110,12 @@
                             @error('img_path')<small class="text-danger d-block">{{ $message }}</small>@enderror
                         </div>
                     </div>
+                    @unless ($producto->tiene_foto)
+                    <div class="form-check mt-2 p-2 ps-4" style="background:#fff8e6;border-radius:12px" id="sinFotoBox">
+                        <input class="form-check-input" type="checkbox" name="mostrar_sin_foto" value="1" id="mostrarSinFoto" @checked(old('mostrar_sin_foto', $producto->mostrar_sin_foto))>
+                        <label class="form-check-label small fw-semibold" for="mostrarSinFoto"><i class="fa-solid fa-triangle-exclamation me-1" style="color:#c78a00"></i>Si no tiene foto, no se mostrará en el catálogo. <b>Mostrar aunque no tenga foto</b></label>
+                    </div>
+                    @endunless
                     @php
                         $coloresProd = $variantes->pluck('color')->filter()->unique()->values();
                         $fotosColor = $producto->fotos->keyBy('color');

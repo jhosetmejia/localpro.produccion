@@ -107,7 +107,7 @@ class catalogoController extends Controller
     private function productos(Tienda $tienda)
     {
         return Producto::with(['variantes' => fn ($q) => $q->where('estado', 1)->orderBy('talla')->orderBy('color'), 'categorias.caracteristica', 'fotos'])
-            ->where('estado', 1)->orderBy('nombre')->get()
+            ->enCatalogo()->orderBy('nombre')->get()
             ->map(fn ($p) => $this->datos($tienda, $p))
             // El dueño puede elegir mostrar solo lo que tiene existencias
             ->filter(fn ($p) => $p['disponible'] || $tienda->catalogo_agotados !== false)
@@ -152,7 +152,7 @@ class catalogoController extends Controller
         $this->contarVisita($tienda);
         $id = (int) $producto;
         $p = Producto::with(['variantes' => fn ($q) => $q->where('estado', 1)->orderBy('talla')->orderBy('color'), 'categorias.caracteristica', 'fotos'])
-            ->where('estado', 1)->findOrFail($id);
+            ->enCatalogo()->findOrFail($id);
         $dato = $this->datos($tienda, $p);
         // Agotado y la tienda solo muestra lo que hay: vuelve al catálogo
         if (!$dato['disponible'] && $tienda->catalogo_agotados === false) {
@@ -164,7 +164,7 @@ class catalogoController extends Controller
         }
         $catIds = $p->categorias->pluck('id');
         $relacionados = Producto::with(['variantes' => fn ($q) => $q->where('estado', 1), 'categorias.caracteristica', 'fotos'])
-            ->where('estado', 1)->where('id', '<>', $p->id)
+            ->enCatalogo()->where('id', '<>', $p->id)
             ->when($catIds->isNotEmpty(), fn ($q) => $q->whereHas('categorias', fn ($c) => $c->whereIn('categorias.id', $catIds)))
             ->inRandomOrder()->take(12)->get()->map(fn ($r) => $this->datos($tienda, $r))->filter(fn ($r) => $r['disponible'])
             // Primero los que tienen foto (se ven mejor al lado del producto)
@@ -188,7 +188,7 @@ class catalogoController extends Controller
                 if (!$t->en_google) continue;
                 $urls[] = ['loc' => $t->url_catalogo, 'pri' => '0.9', 'mod' => $t->updated_at];
                 TiendaActual::como($t->id, function () use ($t, &$urls) {
-                    foreach (Producto::where('estado', 1)->get(['id', 'nombre', 'updated_at']) as $p) {
+                    foreach (Producto::enCatalogo()->get(['id', 'nombre', 'updated_at']) as $p) {
                         $urls[] = ['loc' => self::urlProducto($t, $p), 'pri' => '0.7', 'mod' => $p->updated_at];
                     }
                 });

@@ -66,6 +66,10 @@
 
 <div class="container-fluid px-3 px-md-4 pb-5">
     <div class="pt-3">@include('layouts.partials.limite-plan', ['que' => 'productos'])</div>
+    @php $sinFotoN = $productos->filter(fn ($x) => $x->estado == 1 && !$x->tiene_foto && !$x->mostrar_sin_foto)->count(); @endphp
+    @if ($sinFotoN && $verWeb)
+    <div class="alert border-0 mt-2 mb-0 small fw-semibold" style="background:#fff8e6;color:#8a5a00;border-radius:16px"><i class="fa-regular fa-image me-1"></i>{{ $sinFotoN }} {{ $sinFotoN == 1 ? 'producto no tiene foto y no se muestra' : 'productos no tienen foto y no se muestran' }} en su catálogo en línea. Súbales foto, o entre al producto y marque "Mostrar aunque no tenga foto".</div>
+    @endif
     <div class="pl-top">
         <h1>Productos <small class="text-muted fw-bold" style="font-size:.9rem">({{ $activos }})</small></h1>
         <a href="{{ route('etiquetas.todas') }}" class="pl-imp"><i class="fa-solid fa-barcode"></i> Ver todas las etiquetas</a>
@@ -126,12 +130,15 @@
                         @endif
                     </div>
                     <div class="pl-txt">
-                        @if ($verWeb && $item->estado == 1)
+                        @if ($verWeb && $item->en_catalogo)
                         <a class="pl-web" href="{{ $baseWeb ? $baseWeb . parse_url(\App\Http\Controllers\catalogoController::urlProducto($tiendaCat, $item), PHP_URL_PATH) : \App\Http\Controllers\catalogoController::urlProducto($tiendaCat, $item) }}" target="_blank" rel="noopener" title="Ver en la tienda en línea"><b>{{ $item->nombre }} <i class="fa-solid fa-arrow-up-right-from-square"></i></b></a>
                         @else
                         <b>{{ $item->nombre }}</b>
                         @endif
                         <small>{{ $item->codigo }}{{ $cats ? ' · ' . $cats : '' }}</small>
+                        @if ($item->estado == 1 && !$item->tiene_foto && !$item->mostrar_sin_foto)
+                        <a href="{{ route('productos.edit', $item) }}" class="pl-stk low text-decoration-none me-1" title="Súbale una foto o márquelo para mostrarlo igual"><i class="fa-regular fa-image me-1"></i>Sin foto · no se muestra en el catálogo</a>
+                        @endif
                         <span class="pl-stk {{ $clase }}">
                             @if ($item->estado != 1) Oculto
                             @elseif (!$controla) Sin control de stock

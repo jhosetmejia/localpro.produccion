@@ -27,8 +27,32 @@ class Producto extends Model
         'marca_id',
         'presentacione_id',
         'img_path',
-        'unidad'
+        'unidad',
+        'mostrar_sin_foto'
     ];
+
+    /** ¿Tiene foto? (principal o alguna por color) */
+    public function getTieneFotoAttribute(): bool
+    {
+        if (!empty($this->img_path)) {
+            return true;
+        }
+        return $this->relationLoaded('fotos') ? $this->fotos->isNotEmpty() : $this->fotos()->exists();
+    }
+
+    /** ¿Sale en el catálogo en línea? Sin foto no sale, salvo que el negocio pida mostrarlo igual */
+    public function getEnCatalogoAttribute(): bool
+    {
+        return (int) $this->estado === 1 && ($this->tiene_foto || $this->mostrar_sin_foto);
+    }
+
+    /** Productos que se muestran en el catálogo en línea */
+    public function scopeEnCatalogo($q)
+    {
+        return $q->where('productos.estado', 1)->where(fn ($w) => $w->where('productos.mostrar_sin_foto', true)
+            ->orWhere(fn ($x) => $x->whereNotNull('productos.img_path')->where('productos.img_path', '<>', ''))
+            ->orWhereHas('fotos'));
+    }
 
     // Nombre siempre estándar: "CHAQUETA DE CUERO DAMA" → "Chaqueta de Cuero Dama" (en tienda, POS, etiquetas…)
     public function setNombreAttribute($valor): void
