@@ -26,7 +26,7 @@
     <div class="mb-4 d-flex flex-wrap gap-2 align-items-stretch">
         <a href="{{ route('clientes.create') }}" class="btn btn-primary d-inline-flex align-items-center"><i class="fa-solid fa-user-plus me-2"></i>Añadir un cliente</a>
         <a href="{{ route('clientes.importar') }}" class="btn btn-dark d-inline-flex align-items-center"><i class="fa-solid fa-file-excel me-2" style="color:#a6f34a"></i>Añadir base de datos de clientes</a>
-        <a href="{{ route('clientes.contactar') }}" class="btn btn-success d-inline-flex align-items-center"><i class="fa-brands fa-whatsapp me-2"></i>Contactar clientes nuevos</a>
+        <a href="{{ route('vender.index') }}" class="btn btn-success d-inline-flex align-items-center"><i class="fa-solid fa-rocket me-2"></i>Vender más</a>
         <a href="{{ route('clientes.contactos') }}" class="btn btn-light d-inline-flex align-items-center" style="border:1.5px solid #bfeccb"><i class="fa-solid fa-mobile-screen me-2" style="color:#16b34a"></i>Crear base de datos (contactos del celular)</a>
     </div>
     <div class="mb-4 d-flex gap-3 align-items-center flex-wrap" style="background:linear-gradient(180deg,#f4fcf6,#fff);border:1.5px solid #bfeccb;border-radius:20px;padding:1rem 1.2rem">

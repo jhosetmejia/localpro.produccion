@@ -30,6 +30,23 @@ class Meta
         return filled(config('services.meta.app_id')) && filled(config('services.meta.app_secret'));
     }
 
+    // La app de Meta ya pasó la revisión y está "en vivo": cualquier negocio puede conectar su página.
+    // Mientras está en desarrollo, Facebook solo deja entrar a las personas agregadas como evaluadoras en la app,
+    // a los demás les sale "La app no está disponible… podrás iniciar sesión cuando esta se reactive".
+    public static function enVivo(): bool
+    {
+        return (string) \App\Models\Ajuste::valor('meta_en_vivo') === '1';
+    }
+
+    // Tiendas con acceso de prueba mientras la app no está en vivo (su dueño ya fue agregado como evaluador en Meta)
+    public static function tiendaConAcceso(?\App\Models\Tienda $t): bool
+    {
+        if (self::enVivo()) return true;
+        if (!$t) return false;
+        $codigos = array_filter(array_map(fn ($c) => strtoupper(trim($c)), explode(',', (string) \App\Models\Ajuste::valor('meta_tiendas_prueba'))));
+        return in_array(strtoupper((string) $t->codigo), $codigos, true);
+    }
+
     public static function v(): string
     {
         return config('services.meta.version') ?: 'v24.0';

@@ -15,6 +15,8 @@ class adminPlanController extends Controller
         return view('admin.planes.index', [
             'planes' => Plan::withCount(['tiendas' => fn ($q) => $q])->orderBy('orden')->get(),
             'soporte' => Ajuste::valor('soporte_whatsapp'),
+            'metaEnVivo' => (string) Ajuste::valor('meta_en_vivo') === '1',
+            'metaPrueba' => Ajuste::valor('meta_tiendas_prueba'),
             'wompi' => planController::wompiActivo(),
             'ingresosMes' => (float) PagoSuscripcion::where('estado', 'aprobado')->where('updated_at', '>=', now()->startOfMonth())->sum('monto'),
             'pagos' => PagoSuscripcion::with(['tienda:id,nombre', 'plan:id,nombre'])->latest()->limit(20)->get(),
@@ -50,6 +52,8 @@ class adminPlanController extends Controller
             ]);
         }
         Ajuste::guardar('soporte_whatsapp', preg_replace('/[^\d+]/', '', (string) $request->input('soporte_whatsapp')));
+        Ajuste::guardar('meta_en_vivo', $request->boolean('meta_en_vivo') ? '1' : '');
+        Ajuste::guardar('meta_tiendas_prueba', mb_substr(strtoupper(preg_replace('/[^A-Za-z0-9,\-]/', '', str_replace([' ', ';', "\n"], ',', (string) $request->input('meta_tiendas_prueba')))), 0, 2000));
         return back()->with('success', 'Planes guardados.');
     }
 }

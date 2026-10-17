@@ -51,6 +51,13 @@
             <div class="row g-3 align-items-end">
                 <div class="col-md-5"><label class="form-label">Su WhatsApp de soporte (con indicativo)</label><input name="soporte_whatsapp" class="form-control" value="{{ $soporte }}" placeholder="573001234567"></div>
                 <div class="col-md-7 text-end"><button class="btn btn-primary btn-lg"><i class="fa-solid fa-floppy-disk me-1"></i>Guardar</button></div>
+                <div class="col-12"><div style="border:1.5px solid #cfe0ff;background:#f5f9ff;border-radius:18px;padding:1rem 1.1rem">
+                    <b><i class="fa-brands fa-facebook me-1" style="color:#1877f2"></i>Conexión con Facebook e Instagram (Mis redes)</b>
+                    <div class="form-check form-switch mt-2"><input type="hidden" name="meta_en_vivo" value="0"><input class="form-check-input" type="checkbox" name="meta_en_vivo" value="1" id="metaVivo" @checked($metaEnVivo)><label class="form-check-label fw-semibold" for="metaVivo">Meta ya aprobó la app y está <b>en vivo</b> (todos los negocios pueden conectar)</label></div>
+                    <label class="form-label small fw-bold mt-2 mb-1">Mientras tanto, negocios con acceso de prueba (códigos LCT separados por coma)</label>
+                    <input name="meta_tiendas_prueba" class="form-control" value="{{ $metaPrueba }}" placeholder="LCT-00003, LCT-00007">
+                    <small class="text-muted d-block mt-1">Antes de poner el código aquí, agregue el perfil de Facebook del dueño en developers.facebook.com → su app LocalProo → Roles de la app → Evaluadores, y que acepte la invitación. Los demás negocios ven una pantalla para pedir su acceso por WhatsApp.</small>
+                </div></div>
             </div>
         </div>
     </form>

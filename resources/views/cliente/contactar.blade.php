@@ -45,7 +45,7 @@
 @php $hechos = $lista->whereNotNull('contactado_at')->count(); $total = $lista->count(); @endphp
 <div class="lp-dash">
     <div class="lp-hello">
-        <div><small><i class="fa-brands fa-whatsapp me-1"></i>Clientes</small><h1>Contactar clientes <span>nuevos</span></h1>
+        <div><small><a href="{{ route('vender.index') }}" class="text-decoration-none" style="color:inherit"><i class="fa-solid fa-arrow-left me-1"></i>Vender más</a> · <i class="fa-brands fa-whatsapp me-1"></i>WhatsApp marketing</small><h1>Contactar clientes <span>nuevos</span></h1>
             <span class="text-muted fw-semibold">Cada día le asignamos {{ $cuota }} contactos de su base de datos. Escríbales con un toque y llegue a más clientes. A cada persona se le escribe <b>una sola vez</b>: los que ya se contactaron no se le vuelven a dar a nadie del equipo.</span></div>
         <div class="lp-quick"><a href="{{ route('clientes.contactos') }}" class="btn btn-light btn-lg"><i class="fa-solid fa-mobile-screen me-1"></i>Subir más contactos</a></div>
     </div>
