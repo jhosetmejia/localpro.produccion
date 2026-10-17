@@ -83,6 +83,7 @@ F="$RAIZ/public/estado-$TOKEN.txt"
 CODE=$(curl -s -o /dev/null -m 15 -w '%{http_code}' --resolve "$DOMINIO:443:127.0.0.1" -k "https://$DOMINIO/login")
 limpio() { sed -E 's/(password|clave|secret|token|key)[^ ]*/\1=***/Ig' | cut -c1-300; }
 N=12; [ "${ACC:-}" = "diagnostico" ] && N=60
+set +o pipefail   # en el reporte, que no haya errores (grep sin resultados) no es una falla
 {
   echo "REPORTE LOCALPRO · $(ahora) (hora del servidor)"
   echo "Sitio (/login): $CODE"
@@ -98,4 +99,7 @@ N=12; [ "${ACC:-}" = "diagnostico" ] && N=60
   echo; echo "--- Última actualización (últimas líneas) ---"; tail -n "$N" "$LOGACT" 2>/dev/null | limpio
   echo; echo "--- Errores recientes de Laravel ---"
   grep -h '\.\(ERROR\|CRITICAL\|EMERGENCY\)' "$RAIZ/storage/logs/laravel"*.log 2>/dev/null | tail -n "$N" | limpio
-} > "$F.tmp" && mv "$F.tmp" "$F" && chown "$USR:$USR" "$F" && chmod 644 "$F"
+  echo "(fin del reporte)"
+} > "$F.tmp"
+mv -f "$F.tmp" "$F"; chown "$USR:$USR" "$F"; chmod 644 "$F"
+exit 0
