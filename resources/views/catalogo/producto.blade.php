@@ -90,10 +90,21 @@
 .foto-col{position:sticky;top:80px}
 .foto-col .foto{position:static}
 @media(max-width:800px){.foto-col{position:static}}
-.thumbs{display:flex;gap:8px;margin-top:10px;justify-content:center;flex-wrap:wrap}
-.thumbs button{width:58px;height:70px;border-radius:12px;border:2px solid var(--line);background:#fff;overflow:hidden;padding:0}
+/* Galería: las miniaturas van al lado de la foto (computador) o encima de la foto abajo (celular), así no empujan nada hacia abajo */
+.thumbs{display:flex;gap:8px;scrollbar-width:none}
+.thumbs::-webkit-scrollbar{display:none}
+.thumbs button{flex:none;width:58px;height:70px;border-radius:12px;border:2px solid var(--line);background:#fff;overflow:hidden;padding:0;cursor:pointer}
 .thumbs button.on{border-color:var(--k)}
 .thumbs img{width:100%;height:100%;object-fit:contain}
+.foto-col.con-thumbs{display:flex;gap:10px;align-items:flex-start}
+.foto-col.con-thumbs .foto{flex:1 1 auto;min-width:0}
+.foto-col.con-thumbs .thumbs{order:-1;flex-direction:column;max-height:calc(100vh - 170px);overflow-y:auto;padding:2px}
+@media(max-width:800px){
+  .foto-col.con-thumbs{display:block;position:relative}
+  .foto-col.con-thumbs .thumbs{position:absolute;left:10px;right:10px;bottom:10px;flex-direction:row;justify-content:center;max-height:none;overflow-x:auto;overflow-y:visible}
+  .foto-col.con-thumbs .thumbs button{width:46px;height:56px;border-radius:10px;box-shadow:0 6px 14px -6px rgba(0,0,0,.45)}
+  .foto-col.con-thumbs .thumbs button.on{border-color:#2fd15a}
+}
 .info h1{font-size:clamp(1.5rem,4vw,2.2rem);font-weight:800;letter-spacing:-.02em;line-height:1.15}
 .info .cod{color:var(--mut);font-weight:700;font-size:.85rem;margin-top:6px}
 .info .precio{font-size:2rem;font-weight:800;margin-top:12px}
@@ -132,7 +143,7 @@
     <nav class="migas" aria-label="Ruta"><a href="{{ $tienda->url_catalogo }}">{{ $tienda->nombre }}</a>@if ($cat)<span>›</span><a href="{{ $tienda->url_catalogo }}#cat-{{ \Illuminate\Support\Str::slug($cat) }}">{{ $cat }}</a>@endif<span>›</span><span>{{ \Illuminate\Support\Str::limit($p['nombre'], 40) }}</span></nav>
 
     <div class="pp">
-        <div class="foto-col">
+        <div class="foto-col {{ count($p['fotos']) + ($p['img'] ? 1 : 0) > 1 ? 'con-thumbs' : '' }}">
             <div class="foto" id="ppFoto">@if ($p['img'] ?: (array_values($p['fotos'])[0] ?? null))<img src="{{ $p['img'] ?: array_values($p['fotos'])[0] }}" alt="{{ $p['nombre'] }}" id="ppImg">@else{{ mb_strtoupper(mb_substr($p['nombre'], 0, 1)) }}@endif</div>
             @if (count($p['fotos']) + ($p['img'] ? 1 : 0) > 1)
             <div class="thumbs" id="ppThumbs">
