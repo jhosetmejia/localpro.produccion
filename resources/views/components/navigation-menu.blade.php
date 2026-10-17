@@ -229,6 +229,10 @@
                 @if ($ver('clientes'))<a class="nav-link {{ $on('clientes.*') }}" href="{{ route('clientes.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-people-group"></i></div>
                     Clientes
+                </a>
+                <a class="nav-link {{ $on('clientes.contactar') }}" href="{{ route('clientes.contactar') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-brands fa-whatsapp"></i></div>
+                    Contactar clientes <span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c;font-size:.6rem">NUEVO</span>
                 </a>@endif
                 @endcan
                 @can('ver-proveedore')

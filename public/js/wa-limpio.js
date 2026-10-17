@@ -5,11 +5,13 @@
  */
 (function () {
     if (window.__lpWaLimpio) return; window.__lpWaLimpio = true;
+    // En el celular (app de WhatsApp) los emojis salen bien: solo se quitan en computador
+    var esCelular = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
     var EMOJI = /(?:[☀-➿⬀-⯿←-⇿⌀-⏿✀-➿]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|\uD83E[\uDC00-\uDFFF]|[️‍⃣])/g;
     function esWa(u) { return /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)\//i.test(u) || /^whatsapp:/i.test(u); }
     function limpiarTexto(t) { return t.replace(EMOJI, '').replace(/[ \t]{2,}/g, ' ').replace(/ +\n/g, '\n').replace(/\n +/g, '\n'); }
     function limpiar(u) {
-        if (!u || !esWa(String(u))) return u;
+        if (esCelular || !u || !esWa(String(u))) return u;
         try {
             var url = new URL(String(u), location.href), t = url.searchParams.get('text');
             if (t === null) return u;

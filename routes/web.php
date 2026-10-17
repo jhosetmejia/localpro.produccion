@@ -205,6 +205,10 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::post('/productos/importar/equipo', [importarController::class, 'solicitar'])->name('productos.importar.solicitar');
 
     Route::get('/clientes/importar', [importarClientesController::class, 'index'])->name('clientes.importar');
+    Route::get('/clientes/contactar', [\App\Http\Controllers\contactarController::class, 'index'])->name('clientes.contactar');
+    Route::post('/clientes/contactar/mas', [\App\Http\Controllers\contactarController::class, 'mas'])->name('clientes.contactar.mas');
+    Route::post('/clientes/contactar/ajustes', [\App\Http\Controllers\contactarController::class, 'ajustes'])->name('clientes.contactar.ajustes');
+    Route::post('/clientes/{cliente}/contactado', [\App\Http\Controllers\contactarController::class, 'marcar'])->whereNumber('cliente')->name('clientes.contactado');
     Route::get('/clientes/crear-base', [importarClientesController::class, 'contactos'])->name('clientes.contactos');
     Route::get('/clientes/importar/plantilla', [importarClientesController::class, 'plantilla'])->name('clientes.importar.plantilla');
     Route::post('/clientes/importar', [importarClientesController::class, 'subir'])->name('clientes.importar.subir');

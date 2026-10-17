@@ -142,6 +142,7 @@
             </ul>
             <ul style="margin:0;padding-left:1.1rem;font-weight:600">
                 <li><b>🌐 Página web / tienda en línea</b> por categorías, botón <b>Comprar</b> por WhatsApp (le llega el producto exacto) y que <b>aparece en Google</b>.</li>
+                <li><b>💬 Contactar clientes nuevos</b>: cada día el sistema le reparte a cada persona del equipo 20 contactos de la base de datos con un mensaje listo y el enlace del catálogo; se envía por WhatsApp con un toque y el dueño ve el avance.</li>
                 <li><b>📱 Base de datos con los contactos del celular</b>: el negocio exporta los contactos de su celular (Android, Samsung, iPhone o Google) y los sube; LocalPro los vuelve clientes sin repetidos, listos para ofrecerles su tienda y promociones.</li>
                 <li><b>📷 Escanear con la cámara del celular</b>: el código de barras de cada prenda se lee con la cámara, sin comprar lector. Sirve para vender en el POS, buscar un producto y revisar existencias.</li>
                 <li><b>🔥 Promociones y liquidaciones</b>: el negocio pone "precio antes" y "precio ahora" y la tienda en línea muestra solo el precio tachado, el % de descuento y una sección de ofertas.</li>
