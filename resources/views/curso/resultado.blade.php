@@ -1,25 +1,35 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    @include('curso._head')
-    <title>Pasaste la prueba básica · LocalPro</title>
-    <style>
-        .nota{display:flex;align-items:center;gap:14px;margin-top:16px;position:relative;z-index:1}
-        .nota b{font-size:2.4rem;line-height:1;background:var(--g);-webkit-background-clip:text;background-clip:text;color:transparent}
-        .nota span{color:#cfd8d2;font-weight:600}
-        .enlace{display:flex;gap:8px;align-items:center;background:#f4f8f5;border:1.5px dashed #bfe8c8;border-radius:16px;padding:10px 10px 10px 14px;margin:12px 0}
-        .enlace code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800;font-size:.95rem;color:var(--ink);font-family:inherit}
-        .enlace button{flex:none;padding:.55rem 1rem;font-size:.9rem}
-        .dos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-        @media (max-width:520px){.dos{grid-template-columns:1fr}}
-        .perfil{display:flex;gap:12px;align-items:flex-start;background:#fff8e6;border:1.5px solid #f3d27a;border-radius:20px;padding:16px;margin-bottom:14px;text-decoration:none;color:inherit}
-        .perfil .e{font-size:1.6rem;line-height:1}
-        .perfil small{display:block;color:var(--mut);font-weight:600}
-    </style>
-</head>
-<body>
+@extends('layouts.app')
+
+@section('title', 'Pasaste la prueba básica')
+
+@push('css')
+<style>
+.lpx .nota{display:flex;align-items:center;gap:14px;margin-top:16px;position:relative;z-index:1}
+.lpx .nota b{font-size:2.4rem;line-height:1;background:var(--g);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lpx .nota span{color:#cfd8d2;font-weight:600}
+.lpx .enlace{display:flex;gap:8px;align-items:center;background:#f4f8f5;border:1.5px dashed #bfe8c8;border-radius:16px;padding:10px 10px 10px 14px;margin:12px 0}
+.lpx .enlace code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800;font-size:.95rem;color:var(--ink);font-family:inherit}
+.lpx .enlace button{flex:none;padding:.55rem 1rem;font-size:.9rem}
+.lpx .dos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:520px){.lpx .dos{grid-template-columns:1fr}}
+.lpx .perfil{display:flex;gap:12px;align-items:flex-start;background:#fff8e6;border:1.5px solid #f3d27a;border-radius:20px;padding:16px;margin-bottom:14px;text-decoration:none;color:inherit}
+.lpx .perfil .e{font-size:1.6rem;line-height:1}
+.lpx .perfil small{display:block;color:var(--mut);font-weight:600}
+
+    
+.lpx{font-family:'Plus Jakarta Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;margin:-.5rem -.25rem 0}
+.lpx .card{display:block;flex-direction:initial;min-width:0;word-wrap:normal}
+.lpx .btn:hover,.lpx .btn:focus,.lpx .btn:active{filter:brightness(.96);box-shadow:none}
+.lpx .w{padding-top:0}
+
+</style>
+@endpush
+
+@section('content')
+@include('curso._estilos_panel')
+<div class="lpx">
 <div class="w">
-    @include('curso._top')
+    @include('curso._top_panel')
 
     <div class="hero">
         <small>Prueba básica aprobada</small>
@@ -58,8 +68,11 @@
 
     <a href="{{ $panel }}" class="btn btn-g btn-block"><i class="fa-solid fa-gauge"></i> Ir a mi panel</a>
 
-    <p class="pie">© {{ date('Y') }} LocalProo · Todos los derechos reservados</p>
 </div>
+</div>
+@endsection
+
+@push('js')
 <script>
 (function () {
     var b = document.getElementById('copiar');
@@ -71,5 +84,4 @@
     });
 })();
 </script>
-</body>
-</html>
+@endpush

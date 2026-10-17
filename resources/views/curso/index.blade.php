@@ -1,12 +1,15 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    @include('curso._head')
-    <title>Curso de asesores · LocalPro</title>
-</head>
-<body>
+@extends('layouts.app')
+
+@section('title', 'Curso de asesores')
+
+@push('css')
+@endpush
+
+@section('content')
+@include('curso._estilos_panel')
+<div class="lpx">
 <div class="w">
-    @include('curso._top')
+    @include('curso._top_panel')
     @php
         $total = count($lecciones);
         $vistas = count(array_intersect(array_keys($lecciones), $hechas));
@@ -81,7 +84,6 @@
         <a href="{{ route('curso.examen') }}" class="btn btn-g btn-block">{{ $intentos ? 'Intentar la prueba otra vez' : 'Presentar la prueba' }} <i class="fa-solid fa-arrow-right"></i></a>
     @endif
 
-    <p class="pie">© {{ date('Y') }} LocalProo · Todos los derechos reservados</p>
 </div>
-</body>
-</html>
+</div>
+@endsection

@@ -1,12 +1,15 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    @include('curso._head')
-    <title>{{ $l['titulo'] }} · Curso LocalPro</title>
-</head>
-<body>
+@extends('layouts.app')
+
+@section('title', ($l['titulo']))
+
+@push('css')
+@endpush
+
+@section('content')
+@include('curso._estilos_panel')
+<div class="lpx">
 <div class="w">
-    @include('curso._top')
+    @include('curso._top_panel')
     <div style="display:flex;justify-content:space-between;font-weight:800;color:var(--mut);font-size:.9rem"><span>Lección {{ $n }} de {{ $total }}</span><span>{{ $l['minutos'] }} min</span></div>
     <div class="barra" style="margin-bottom:16px"><div style="width:{{ $n / $total * 100 }}%"></div></div>
 
@@ -40,5 +43,5 @@
     </form>
     <div style="text-align:center;margin-top:12px"><a href="{{ $n > 1 ? route('curso.leccion', $n - 1) : route('curso.index') }}" style="color:var(--mut);font-weight:700;text-decoration:none"><i class="fa-solid fa-arrow-left"></i> {{ $n > 1 ? 'Lección anterior' : 'Volver al curso' }}</a></div>
 </div>
-</body>
-</html>
+</div>
+@endsection

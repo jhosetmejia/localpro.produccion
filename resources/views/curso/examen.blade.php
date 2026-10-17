@@ -1,12 +1,15 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    @include('curso._head')
-    <title>Examen · Curso LocalPro</title>
-</head>
-<body>
+@extends('layouts.app')
+
+@section('title', 'Examen')
+
+@push('css')
+@endpush
+
+@section('content')
+@include('curso._estilos_panel')
+<div class="lpx">
 <div class="w">
-    @include('curso._top')
+    @include('curso._top_panel')
     <div class="hero">
         <small>Prueba básica</small>
         <h1>¡Ya casi! <em>{{ count($preguntas) }} preguntas</em></h1>
@@ -25,5 +28,5 @@
         <button class="btn btn-g btn-block" type="submit"><i class="fa-solid fa-paper-plane"></i> Enviar mis respuestas</button>
     </form>
 </div>
-</body>
-</html>
+</div>
+@endsection

@@ -1,81 +1,90 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    @include('layouts.partials.landing-head')
-    <title>Gana como asesor · LocalPro</title>
-    <meta name="robots" content="noindex">
-    <style>
-        :root{--g:linear-gradient(135deg,#a6f34a 0%,#2fd15a 45%,#16b34a 100%);--k:#0b0d0c;--ink:#151a17;--mut:#5b665e;--line:#e3efe5;--bg:#f4f8f5;--lime:#a6f34a;--pink:#ff5d8f;--gold:#ffcc33}
-        *{box-sizing:border-box}
-        body{margin:0;font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
-        a{color:inherit}
-        .w{max-width:1080px;margin:0 auto;padding:0 16px}
-        .top{display:flex;align-items:center;justify-content:space-between;padding:16px 0}
-        .brand{display:flex;align-items:center;gap:.5rem;font-weight:800;text-decoration:none;font-size:1.1rem}
-        .brand b{width:32px;height:32px;border-radius:10px;background:var(--k);color:var(--lime);display:grid;place-items:center}
-        .btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;border:0;border-radius:999px;padding:.85rem 1.3rem;font-weight:800;text-decoration:none;cursor:pointer;font-family:inherit;font-size:1rem}
-        .btn-g{background:var(--g);color:var(--k);box-shadow:0 14px 30px -14px rgba(47,209,90,.9)}
-        .btn-k{background:var(--k);color:#fff}
-        .btn-w{background:#25d366;color:#fff}
-        .hero{background:var(--k);color:#fff;border-radius:32px;padding:36px 24px;position:relative;overflow:hidden;margin-bottom:22px}
-        .hero::after{content:"";position:absolute;right:-80px;top:-80px;width:280px;height:280px;border-radius:50%;background:var(--g);opacity:.35;filter:blur(10px)}
-        .hero small{color:var(--lime);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.75rem}
-        .hero h1{font-size:clamp(2rem,6vw,3.4rem);line-height:1.02;margin:.4rem 0 .8rem;letter-spacing:-.03em;position:relative;z-index:1}
-        .hero h1 em{font-style:normal;background:var(--g);-webkit-background-clip:text;background-clip:text;color:transparent}
-        .hero p{color:#cfd8d2;font-size:1.05rem;max-width:620px;margin:0 0 18px;position:relative;z-index:1}
-        .chips{display:flex;flex-wrap:wrap;gap:8px;position:relative;z-index:1}
-        .chips span{background:#1a201c;border-radius:999px;padding:.45rem .85rem;font-weight:700;font-size:.85rem}
-        .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:18px;align-items:start}
-        .card{background:#fff;border:1.5px solid var(--line);border-radius:26px;padding:22px}
-        .card h2{margin:0 0 4px;font-size:1.3rem}
-        .card .sub{color:var(--mut);font-weight:600;font-size:.92rem;margin:0 0 16px}
-        .roles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:18px}
-        .roles button{border:2px solid var(--line);background:#fff;border-radius:16px;padding:.6rem .2rem;font-weight:800;font-size:.72rem;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:.3rem;line-height:1.1;color:var(--ink)}
-        .roles button i,.roles button svg{font-size:1.1rem;color:#16b34a}
-        .roles button.on{border-color:#2fd15a;background:#f2fbf3;box-shadow:0 0 0 4px rgba(47,209,90,.15)}
-        .sl{margin-bottom:16px}
-        .sl label{display:flex;justify-content:space-between;font-weight:700;font-size:.92rem;margin-bottom:6px}
-        .sl label b{background:var(--k);color:var(--lime);border-radius:999px;padding:.1rem .65rem;font-size:.9rem}
-        .sl input{width:100%;accent-color:#16b34a;height:28px}
-        .sl small{color:var(--mut);font-weight:600;font-size:.78rem}
-        .big{background:var(--g);border-radius:24px;padding:20px;color:var(--k);margin-bottom:14px}
-        .big small{font-weight:800;text-transform:uppercase;letter-spacing:.08em;font-size:.72rem;opacity:.75}
-        .big .v{font-size:clamp(2.2rem,7vw,3.2rem);font-weight:800;letter-spacing:-.04em;line-height:1.05}
-        .big .s{font-weight:700;font-size:.92rem}
-        .kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-        .kpi{background:var(--bg);border-radius:18px;padding:14px}
-        .kpi small{color:var(--mut);font-weight:800;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em}
-        .kpi b{display:block;font-size:1.35rem;letter-spacing:-.02em;margin-top:2px}
-        .det{list-style:none;margin:0 0 14px;padding:0}
-        .det li{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);font-weight:600;font-size:.92rem}
-        .det li b{white-space:nowrap}
-        .chart{display:flex;align-items:flex-end;gap:3px;height:150px;padding:10px 4px 0;background:var(--bg);border-radius:18px;margin-bottom:6px}
-        .chart div{flex:1;background:var(--g);border-radius:5px 5px 2px 2px;min-height:2px;position:relative}
-        .chart div.r{background:linear-gradient(180deg,#ffcc33,#16b34a)}
-        .ley{display:flex;justify-content:space-between;color:var(--mut);font-size:.75rem;font-weight:700;margin-bottom:14px}
-        .note{color:var(--mut);font-size:.8rem;font-weight:600}
-        .tabla{width:100%;border-collapse:collapse;font-size:.92rem}
-        .tabla th,.tabla td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left}
-        .tabla th{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
-        .tabla td:not(:first-child),.tabla th:not(:first-child){text-align:right}
-        .esc{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:18px 0}
-        .esc div{background:#fff;border:1.5px solid var(--line);border-radius:20px;padding:14px;text-align:center}
-        .esc div i,.esc div svg{font-size:1.4rem;color:#16b34a;margin-bottom:6px}
-        .esc b{display:block;font-size:.9rem}
-        .esc small{color:var(--mut);font-weight:600;font-size:.76rem}
-        .cta{background:var(--k);color:#fff;border-radius:28px;padding:28px 22px;text-align:center;margin:22px 0 30px}
-        .cta h2{margin:0 0 6px;font-size:1.6rem}
-        .cta p{color:#cfd8d2;margin:0 0 16px}
-        @media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}.esc{grid-template-columns:repeat(2,minmax(0,1fr))}.esc div:last-child{grid-column:1/-1}}
-        @media (max-width:420px){.roles button{font-size:.62rem}.hero{padding:28px 18px}.card{padding:18px}}
-    </style>
-</head>
-<body>
+@extends('layouts.app')
+
+@section('title', 'Gana como asesor')
+
+@push('css')
+<style>
+.lpx{--g:linear-gradient(135deg,#a6f34a 0%,#2fd15a 45%,#16b34a 100%);--k:#0b0d0c;--ink:#151a17;--mut:#5b665e;--line:#e3efe5;--bg:#f4f8f5;--lime:#a6f34a;--pink:#ff5d8f;--gold:#ffcc33}
+.lpx, .lpx *{box-sizing:border-box}
+.lpx{margin:0;font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.lpx a{color:inherit}
+.lpx .w{max-width:1080px;margin:0 auto;padding:0 16px}
+.lpx .top{display:flex;align-items:center;justify-content:space-between;padding:16px 0}
+.lpx .brand{display:flex;align-items:center;gap:.5rem;font-weight:800;text-decoration:none;font-size:1.1rem}
+.lpx .brand b{width:32px;height:32px;border-radius:10px;background:var(--k);color:var(--lime);display:grid;place-items:center}
+.lpx .btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;border:0;border-radius:999px;padding:.85rem 1.3rem;font-weight:800;text-decoration:none;cursor:pointer;font-family:inherit;font-size:1rem}
+.lpx .btn-g{background:var(--g);color:var(--k);box-shadow:0 14px 30px -14px rgba(47,209,90,.9)}
+.lpx .btn-k{background:var(--k);color:#fff}
+.lpx .btn-w{background:#25d366;color:#fff}
+.lpx .hero{background:var(--k);color:#fff;border-radius:32px;padding:36px 24px;position:relative;overflow:hidden;margin-bottom:22px}
+.lpx .hero::after{content:"";position:absolute;right:-80px;top:-80px;width:280px;height:280px;border-radius:50%;background:var(--g);opacity:.35;filter:blur(10px)}
+.lpx .hero small{color:var(--lime);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.75rem}
+.lpx .hero h1{font-size:clamp(2rem,6vw,3.4rem);line-height:1.02;margin:.4rem 0 .8rem;letter-spacing:-.03em;position:relative;z-index:1}
+.lpx .hero h1 em{font-style:normal;background:var(--g);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lpx .hero p{color:#cfd8d2;font-size:1.05rem;max-width:620px;margin:0 0 18px;position:relative;z-index:1}
+.lpx .chips{display:flex;flex-wrap:wrap;gap:8px;position:relative;z-index:1}
+.lpx .chips span{background:#1a201c;border-radius:999px;padding:.45rem .85rem;font-weight:700;font-size:.85rem}
+.lpx .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:18px;align-items:start}
+.lpx .card{background:#fff;border:1.5px solid var(--line);border-radius:26px;padding:22px}
+.lpx .card h2{margin:0 0 4px;font-size:1.3rem}
+.lpx .card .sub{color:var(--mut);font-weight:600;font-size:.92rem;margin:0 0 16px}
+.lpx .roles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:18px}
+.lpx .roles button{border:2px solid var(--line);background:#fff;border-radius:16px;padding:.6rem .2rem;font-weight:800;font-size:.72rem;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:.3rem;line-height:1.1;color:var(--ink)}
+.lpx .roles button i,.lpx .roles button svg{font-size:1.1rem;color:#16b34a}
+.lpx .roles button.on{border-color:#2fd15a;background:#f2fbf3;box-shadow:0 0 0 4px rgba(47,209,90,.15)}
+.lpx .sl{margin-bottom:16px}
+.lpx .sl label{display:flex;justify-content:space-between;font-weight:700;font-size:.92rem;margin-bottom:6px}
+.lpx .sl label b{background:var(--k);color:var(--lime);border-radius:999px;padding:.1rem .65rem;font-size:.9rem}
+.lpx .sl input{width:100%;accent-color:#16b34a;height:28px}
+.lpx .sl small{color:var(--mut);font-weight:600;font-size:.78rem}
+.lpx .big{background:var(--g);border-radius:24px;padding:20px;color:var(--k);margin-bottom:14px}
+.lpx .big small{font-weight:800;text-transform:uppercase;letter-spacing:.08em;font-size:.72rem;opacity:.75}
+.lpx .big .v{font-size:clamp(2.2rem,7vw,3.2rem);font-weight:800;letter-spacing:-.04em;line-height:1.05}
+.lpx .big .s{font-weight:700;font-size:.92rem}
+.lpx .kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.lpx .kpi{background:var(--bg);border-radius:18px;padding:14px}
+.lpx .kpi small{color:var(--mut);font-weight:800;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em}
+.lpx .kpi b{display:block;font-size:1.35rem;letter-spacing:-.02em;margin-top:2px}
+.lpx .det{list-style:none;margin:0 0 14px;padding:0}
+.lpx .det li{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);font-weight:600;font-size:.92rem}
+.lpx .det li b{white-space:nowrap}
+.lpx .chart{display:flex;align-items:flex-end;gap:3px;height:150px;padding:10px 4px 0;background:var(--bg);border-radius:18px;margin-bottom:6px}
+.lpx .chart div{flex:1;background:var(--g);border-radius:5px 5px 2px 2px;min-height:2px;position:relative}
+.lpx .chart div.r{background:linear-gradient(180deg,#ffcc33,#16b34a)}
+.lpx .ley{display:flex;justify-content:space-between;color:var(--mut);font-size:.75rem;font-weight:700;margin-bottom:14px}
+.lpx .note{color:var(--mut);font-size:.8rem;font-weight:600}
+.lpx .tabla{width:100%;border-collapse:collapse;font-size:.92rem}
+.lpx .tabla th,.lpx .tabla td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left}
+.lpx .tabla th{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
+.lpx .tabla td:not(:first-child),.lpx .tabla th:not(:first-child){text-align:right}
+.lpx .esc{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:18px 0}
+.lpx .esc div{background:#fff;border:1.5px solid var(--line);border-radius:20px;padding:14px;text-align:center}
+.lpx .esc div i,.lpx .esc div svg{font-size:1.4rem;color:#16b34a;margin-bottom:6px}
+.lpx .esc b{display:block;font-size:.9rem}
+.lpx .esc small{color:var(--mut);font-weight:600;font-size:.76rem}
+.lpx .cta{background:var(--k);color:#fff;border-radius:28px;padding:28px 22px;text-align:center;margin:22px 0 30px}
+.lpx .cta h2{margin:0 0 6px;font-size:1.6rem}
+.lpx .cta p{color:#cfd8d2;margin:0 0 16px}
+@media (max-width:860px){.lpx .grid{grid-template-columns:minmax(0,1fr)}
+.lpx .esc{grid-template-columns:repeat(2,minmax(0,1fr))}
+.lpx .esc div:last-child{grid-column:1/-1}}
+@media (max-width:420px){.lpx .roles button{font-size:.62rem}
+.lpx .hero{padding:28px 18px}
+.lpx .card{padding:18px}}
+
+    
+.lpx{font-family:'Plus Jakarta Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;margin:-.5rem -.25rem 0}
+.lpx .card{display:block;flex-direction:initial;min-width:0;word-wrap:normal}
+.lpx .btn:hover,.lpx .btn:focus,.lpx .btn:active{filter:brightness(.96);box-shadow:none}
+.lpx .w{padding-top:0}
+
+</style>
+@endpush
+
+@section('content')
+<div class="lpx">
 <div class="w">
-    <div class="top">
-        <a href="{{ url('/') }}" class="brand"><b>L</b>LocalPro</a>
-        <a class="btn btn-k" style="padding:.6rem 1rem;font-size:.9rem" href="{{ auth()->user()->es_superadmin ? route('admin.red.index') : route('asesor.index') }}"><i class="fa-solid fa-arrow-left"></i> Mi panel</a>
-    </div>
+    
 
     <section class="hero">
         <small>Trabaja con LocalPro</small>
@@ -155,7 +164,10 @@
         @endif
     </div>
 </div>
+</div>
+@endsection
 
+@push('js')
 <script>
 (function () {
     var V = @json($valores);
@@ -212,5 +224,4 @@
     calcular();
 })();
 </script>
-</body>
-</html>
+@endpush
