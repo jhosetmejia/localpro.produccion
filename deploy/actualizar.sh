@@ -45,8 +45,10 @@ ls -1dt /home/$USUARIO/respaldos/*/ 2>/dev/null | grep -v '/diario/$' | tail -n 
 restaurar() {
   echo
   echo "!! Algo falló. Restaurando la versión anterior..."
+  cd / || true
   rm -rf "$RAIZ"
   cp -a "$RESP/codigo" "$RAIZ"
+  cd "$RAIZ" || true
   gunzip -c "$RESP/base.sql.gz" | MYSQL_PWD="$DBP" mysql -u "$DBU" "$DBN"
   run $PHP "$RAIZ/artisan" optimize:clear >/dev/null 2>&1
   run $PHP "$RAIZ/artisan" config:cache >/dev/null 2>&1
@@ -57,7 +59,16 @@ restaurar() {
 echo "==> 2/5 Código nuevo desde GitHub"
 ANTES=$(run git rev-parse HEAD)
 run git checkout -- composer.lock 2>/dev/null
-run git pull --ff-only || restaurar
+# Si alguien editó archivos directo en el servidor, se guardan aparte (no se pierden) antes de traer el código nuevo
+if ! run git diff --quiet; then
+  CAMBIOS="/home/$USUARIO/respaldos/cambios-servidor-$STAMP.patch"
+  run git diff > "$CAMBIOS"
+  echo "    Había cambios hechos a mano en el servidor: guardados en $CAMBIOS"
+  run git diff --stat
+  run git stash push -m "cambios-servidor-$STAMP" >/dev/null
+fi
+# Si no se pudo traer el código, no se tocó nada: no hace falta restaurar
+run git pull --ff-only || { echo "!! No se pudo traer el código nuevo. El sistema sigue igual que antes."; exit 1; }
 
 echo "==> 3/5 Dependencias"
 # Solo se bajan versiones nuevas de librerías cuando cambia composer.json; si no, se instalan las mismas que ya
