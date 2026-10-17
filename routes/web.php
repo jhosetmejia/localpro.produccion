@@ -126,6 +126,7 @@ Route::middleware(['auth', 'asesor'])->prefix('asesor')->name('asesor.')->group(
     Route::get('/', [asesorPanelController::class, 'index'])->name('index');
     Route::get('/red', [asesorPanelController::class, 'red'])->name('red');
     Route::get('/comisiones', [asesorPanelController::class, 'comisiones'])->name('comisiones');
+    Route::get('/vender', [\App\Http\Controllers\asesorVenderController::class, 'index'])->name('vender');
     Route::post('/aspirantes/{aspirante}', [aspiranteController::class, 'decidir'])->name('aspirantes.decidir');
     Route::post('/equipo/{aspirante}/desactivar', [aspiranteController::class, 'desactivar'])->name('equipo.desactivar');
 });
