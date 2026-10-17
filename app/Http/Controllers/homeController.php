@@ -117,4 +117,10 @@ class homeController extends Controller
             ],
         ]);
     }
+
+    // Curso del empresario: tareas reales que el sistema revisa solo
+    public function primerosPasos()
+    {
+        return view('panel.primeros-pasos', ['pasos' => \App\Support\PrimerosPasos::pasos(), 'res' => \App\Support\PrimerosPasos::resumen()]);
+    }
 }

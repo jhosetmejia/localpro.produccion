@@ -104,9 +104,20 @@ class cursoController extends Controller
             return redirect()->route('curso.leccion', $n - 1);
         }
 
+        $tarea = null;
+        if (($lecciones[$n]['tarea'] ?? null) === 'contactos') {
+            $tarea = ['hecha' => $this->esAdmin($a) || self::tareaHecha($a), 'r' => $a->id ? asesorContactosController::resumen($a->id) : ['total' => 0, 'contactados' => 0, 'hoy' => 0]];
+        }
         return view('curso.leccion', $this->comunes($a) + [
-            'n' => $n, 'l' => $lecciones[$n], 'total' => count($lecciones), 'hechas' => $hechas,
+            'n' => $n, 'l' => $lecciones[$n], 'total' => count($lecciones), 'hechas' => $hechas, 'tarea' => $tarea,
         ]);
+    }
+
+    public static function tareaHecha(Asesor $a): bool
+    {
+        if (!$a->id) return true;
+        $r = asesorContactosController::resumen($a->id);
+        return $r['total'] > 0 && $r['contactados'] >= CursoAsesor::TAREA_MINIMO;
     }
 
     // "Entendido": marca la lección y pasa a la siguiente (o al examen)
@@ -117,6 +128,10 @@ class cursoController extends Controller
         $lecciones = CursoAsesor::lecciones();
         abort_unless(isset($lecciones[$n]), 404);
 
+        // Lección con tarea: solo se pasa cuando la hizo de verdad (el administrador en vista no la necesita)
+        if (($lecciones[$n]['tarea'] ?? null) === 'contactos' && !$this->esAdmin($a) && !self::tareaHecha($a)) {
+            return redirect()->route('curso.leccion', $n)->with('tarea', 'Primero haga la tarea: suba sus contactos y escríbale a ' . CursoAsesor::TAREA_MINIMO . ' personas.');
+        }
         $hechas = $this->hechas($a);
         if (!in_array($n, $hechas, true)) {
             $hechas[] = $n;

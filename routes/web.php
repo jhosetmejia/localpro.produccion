@@ -136,6 +136,9 @@ Route::middleware('auth')->group(function () {
 });
 // Simulador de ganancias para reclutar: solo asesores, líderes y el administrador
 Route::middleware('auth')->get('/asesor/simulador', [unirseController::class, 'index'])->name('asesor.simulador');
+Route::middleware('auth')->get('/asesor/contactos', [\App\Http\Controllers\asesorContactosController::class, 'index'])->name('asesor.contactos');
+Route::middleware('auth')->post('/asesor/contactos', [\App\Http\Controllers\asesorContactosController::class, 'subir'])->name('asesor.contactos.subir');
+Route::middleware('auth')->post('/asesor/contactos/{contacto}/marcar', [\App\Http\Controllers\asesorContactosController::class, 'marcar'])->whereNumber('contacto')->name('asesor.contactos.marcar');
 Route::middleware('auth')->get('/asesor/capacitacion', [unirseController::class, 'capacitacion'])->name('asesor.capacitacion');
 
 // ===== Asistente de configuración de la tienda nueva =====
@@ -343,6 +346,7 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     // Personalizar menú (esconder lo que el negocio no usa)
     Route::get('/negocio/menu', [\App\Http\Controllers\menuController::class, 'edit'])->name('menu.edit');
     Route::put('/negocio/menu', [\App\Http\Controllers\menuController::class, 'update'])->name('menu.update');
+    Route::get('/primeros-pasos', [homeController::class, 'primerosPasos'])->name('primeros.pasos');
     Route::get('/negocio', [negocioController::class, 'edit'])->name('negocio.edit');
     Route::put('/negocio', [negocioController::class, 'update'])->name('negocio.update');
     // Facturación electrónica DIAN

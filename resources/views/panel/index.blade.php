@@ -159,6 +159,17 @@
     </script>
     @endif
     @endif
+    @if (auth()->user()?->hasAnyRole(['dueno', 'administrador']))
+    @php $ppRes = \App\Support\PrimerosPasos::resumen(); @endphp
+    @if ($ppRes['hechos'] < $ppRes['total'])
+    <a href="{{ route('primeros.pasos') }}" class="d-flex align-items-center gap-3 text-decoration-none mb-3" style="background:#0b0d0c;color:#fff;border-radius:20px;padding:.9rem 1.1rem">
+        <span style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#a6f34a,#16b34a);color:#0b0d0c;display:grid;place-items:center;flex:none"><i class="fa-solid fa-graduation-cap"></i></span>
+        <span class="flex-grow-1"><b class="d-block">Primeros pasos para vender más · {{ $ppRes['hechos'] }} de {{ $ppRes['total'] }}</b>
+            <span style="display:block;height:8px;border-radius:99px;background:rgba(255,255,255,.15);overflow:hidden;margin-top:6px;max-width:360px"><i style="display:block;height:100%;width:{{ round($ppRes['hechos'] / $ppRes['total'] * 100) }}%;background:#a6f34a"></i></span></span>
+        <span class="fw-bold" style="color:#a6f34a;white-space:nowrap">Continuar →</span>
+    </a>
+    @endif
+    @endif
     <div class="lp-hello">
         <div>
             <small>{{ ucfirst(now()->locale('es')->isoFormat('dddd D [de] MMMM')) }}</small>

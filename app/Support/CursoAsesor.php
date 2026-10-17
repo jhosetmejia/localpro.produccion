@@ -12,6 +12,10 @@ use App\Models\Ajuste;
  */
 class CursoAsesor
 {
+    // Lección con tarea práctica: subir su base de datos y escribir a sus primeros contactos
+    public const LECCION_CONTACTOS = 7;
+    public const TAREA_MINIMO = 3; // contactos escritos para dar la tarea por hecha
+
     public static function notaMinima(): int
     {
         return (int) Ajuste::valor('curso_nota_minima', 70);
@@ -128,6 +132,21 @@ class CursoAsesor
                 ],
                 'clave' => 'Un contador que usa LocalPro le puede recomendar el sistema a todos los negocios que atiende.',
             ],
+            self::LECCION_CONTACTOS => [
+                'titulo' => 'Su base de datos: 20 contactos al día',
+                'icono' => 'fa-address-book',
+                'minutos' => 5,
+                'nuevo' => '2026-10',
+                'tarea' => 'contactos',
+                'intro' => 'El asesor que más gana es el que más negocios contacta. Sus contactos del celular son su primera base de datos, y LocalPro le ayuda a escribirles todos los días.',
+                'puntos' => [
+                    '<b>Su herramienta "Mis contactos":</b> exporta los contactos de su celular (Android, Samsung, iPhone o Google) y los sube. No se repiten.',
+                    '<b>20 al día:</b> cada día le salen 20 contactos con un botón verde. Al tocarlo se abre WhatsApp con un mensaje listo, con el nombre de la persona y <b>su enlace de prueba gratis</b>. Si se inscriben, el negocio queda a su nombre.',
+                    '<b>Lo mismo para los negocios:</b> el dueño que usa LocalPro también puede subir los contactos de su celular en Clientes → "Crear base de datos" y escribirles con "Contactar clientes": a cada vendedor le salen 20 al día con el enlace de su tienda en línea. Muéstreselo: es una razón fuerte para que compren.',
+                    '<b>Respeto:</b> escriba de 9 a. m. a 7 p. m. y si alguien no quiere más mensajes, márquelo y no le vuelva a escribir.',
+                ],
+                'clave' => 'Tarea de esta lección: suba sus contactos y escríbale a ' . self::TAREA_MINIMO . ' personas. Cuando lo haga, se activa el botón para seguir.',
+            ],
         ];
     }
 
@@ -166,6 +185,8 @@ class CursoAsesor
             25 => ['Un contador le pregunta si LocalPro presenta la declaración en la DIAN por él. ¿Qué le responde?', ['Sí, la envía sola', 'No: deja el borrador listo y él la presenta en la DIAN con su firma electrónica', 'Sí, pero solo los lunes'], 1],
             26 => ['¿Cómo le ayuda el calendario tributario al contador?', ['Le muestra cuándo vence la retención y el IVA de cada cliente y le avisa al correo antes del vencimiento', 'Le cambia las fechas de la DIAN', 'No sirve para contadores'], 0],
             27 => ['El dueño quiere que su vendedor de confianza también pueda crear productos, pero no ver las ganancias. ¿Qué hace?', ['Le da su propia clave de dueño', 'En Usuarios → Permisos le activa "Crear productos" y deja apagado "Ver reportes"', 'No se puede: solo el dueño crea productos'], 1],
+            28 => ['¿Cuántos contactos le salen cada día en "Mis contactos" para ofrecerles LocalPro?', ['20, con el mensaje y su enlace de prueba gratis listos', 'Ninguno, hay que escribir todo a mano', 'Solo 1 a la semana'], 0],
+            29 => ['Un dueño de negocio quiere conseguir clientes nuevos. ¿Qué le muestra de LocalPro?', ['Que suba los contactos de su celular en Clientes y use "Contactar clientes" para escribirles con el enlace de su tienda', 'Que compre una base de datos por internet', 'Nada, LocalPro no ayuda con eso'], 0],
             16 => ['El negocio que usted inscribió le paga a un empleado menos del salario mínimo por medio tiempo. ¿Puede liquidarlo en LocalPro?', ['No, el sistema solo acepta el salario mínimo', 'Sí, con la liquidación personalizada pone el salario que pagan', 'Solo si lo envía a la DIAN'], 1],
         ];
     }
