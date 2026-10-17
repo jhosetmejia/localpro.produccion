@@ -80,6 +80,12 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-user-graduate"></i></div>
                     Mi curso y certificado @if (auth()->user()->asesor->curso_aprobado_at)<i class="fa-solid fa-circle-check ms-auto" style="color:#a6f34a"></i>@else<span class="badge rounded-pill ms-auto" style="background:#f5b544;color:#0b0d0c;font-size:.6rem">PENDIENTE</span>@endif
                 </a>
+                @if (!auth()->user()->tienda_id)
+                <a class="nav-link {{ $on('aprende.*') }}" href="{{ route('aprende.index') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-book-open"></i></div>
+                    Aprende (cursos de ventas)
+                </a>
+                @endif
                 <a class="nav-link" href="{{ route('asesor.simulador') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-calculator"></i></div>
                     Simulador de ganancias
@@ -225,6 +231,12 @@
                 @canany(['ver-cliente', 'ver-proveedore'])
                 @if ($ver('clientes') || $ver('proveedores'))<div class="sb-sidenav-menu-heading">Contactos</div>@endif
                 @endcanany
+                @if (auth()->user()->tienda_id && \Illuminate\Support\Facades\Route::has('aprende.index'))
+                <a class="nav-link {{ $on('aprende.*') }}" href="{{ route('aprende.index') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                    Aprende <span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c;font-size:.6rem">CURSOS</span>
+                </a>
+                @endif
                 @can('ver-cliente')
                 @if ($ver('clientes'))<a class="nav-link {{ request()->routeIs('clientes.*') && !request()->routeIs('clientes.contactar', 'clientes.contactos', 'clientes.importar*') ? 'active' : '' }}" href="{{ route('clientes.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-people-group"></i></div>

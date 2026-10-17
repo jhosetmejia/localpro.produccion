@@ -184,6 +184,14 @@ Route::middleware(['auth', 'tienda', 'conjunto'])->prefix('conjunto')->name('con
 });
 
 // ===== Pantallas de la tienda =====
+// "Aprende LocalPro": cursos para el dueño, su equipo y los asesores
+Route::middleware('auth')->prefix('aprende')->name('aprende.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\academiaController::class, 'index'])->name('index');
+    Route::get('/{curso}', [\App\Http\Controllers\academiaController::class, 'curso'])->where('curso', '[a-z0-9-]+')->name('curso');
+    Route::post('/{curso}/leccion/{n}', [\App\Http\Controllers\academiaController::class, 'leccion'])->where('curso', '[a-z0-9-]+')->whereNumber('n')->name('leccion');
+    Route::post('/{curso}/prueba', [\App\Http\Controllers\academiaController::class, 'prueba'])->where('curso', '[a-z0-9-]+')->middleware('throttle:30,1')->name('prueba');
+});
+
 Route::middleware(['auth', 'tienda'])->group(function () {
     // Paso "comparte tu tienda": se marca hecho y abre WhatsApp con el enlace de la tienda en línea
     Route::get('/compartir-tienda', function () {

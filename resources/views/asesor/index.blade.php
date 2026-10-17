@@ -11,7 +11,7 @@
             <h1>Hola, <span>{{ strtok($yo->nombre, ' ') }}</span></h1>
             @if ($yo->padre)<span class="text-muted fw-semibold">Su líder: {{ $yo->padre->nombre }} ({{ $yo->padre->cargo_nombre }})</span>@endif
         </div>
-        <div class="lp-quick"><a href="{{ route('asesor.contactos') }}" class="btn btn-success btn-lg"><i class="fa-brands fa-whatsapp me-1"></i>Mis contactos (20 al día)</a><a href="{{ route('asesor.red') }}#mapa" class="btn btn-success btn-lg"><i class="fa-solid fa-circle-nodes me-1"></i>Ver mi red</a><a href="{{ route('asesor.capacitacion') }}" class="btn btn-dark btn-lg"><i class="fa-solid fa-graduation-cap me-1"></i>Capacita a tu equipo</a><a href="{{ route('asesor.simulador') }}" class="btn btn-primary btn-lg"><i class="fa-solid fa-calculator me-1"></i>Simulador para reclutar</a></div>
+        <div class="lp-quick"><a href="{{ route('asesor.contactos') }}" class="btn btn-success btn-lg"><i class="fa-brands fa-whatsapp me-1"></i>Mis contactos (20 al día)</a><a href="{{ route('asesor.red') }}#mapa" class="btn btn-success btn-lg"><i class="fa-solid fa-circle-nodes me-1"></i>Ver mi red</a><a href="{{ route('asesor.capacitacion') }}" class="btn btn-dark btn-lg"><i class="fa-solid fa-graduation-cap me-1"></i>Capacita a tu equipo</a><a href="{{ route('aprende.index') }}" class="btn btn-light btn-lg" style="border:1.5px solid #bfeccb"><i class="fa-solid fa-book-open me-1"></i>Aprende (cursos)</a><a href="{{ route('asesor.simulador') }}" class="btn btn-primary btn-lg"><i class="fa-solid fa-calculator me-1"></i>Simulador para reclutar</a></div>
     </div>
     @include('layouts.partials.lp-flash')
 
