@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AcademiaAvance;
+use App\Models\Asesor;
 use App\Models\User;
 use App\Support\Academia;
 use Illuminate\Http\Request;
@@ -38,8 +39,28 @@ class academiaController extends Controller
                 });
         }
 
+        // Asesores: cómo va su línea (los que entraron con su código y los de su equipo). El administrador ve a toda la red.
+        $linea = collect();
+        $cursosAsesor = array_keys(Academia::cursosAsesor());
+        $ids = null;
+        if ($u->es_superadmin) $ids = Asesor::where('estado', 'activo')->pluck('id')->all();
+        elseif ($u->asesor) $ids = array_values(array_diff(array_keys($u->asesor->arbolVisible()), [$u->asesor->id]));
+        if ($ids) {
+            $gente = Asesor::with('user:id,name,telefono')->whereIn('id', $ids)->where('estado', '<>', 'rechazado')->get();
+            $av = AcademiaAvance::whereIn('user_id', $gente->pluck('user_id'))->whereIn('curso', $cursosAsesor)->get()->groupBy('user_id');
+            $linea = $gente->map(function ($a) use ($av, $cursosAsesor) {
+                $suyos = $av->get($a->user_id, collect());
+                return [
+                    'nombre' => $a->nombre, 'codigo' => $a->codigo, 'cargo' => $a->cargo_nombre,
+                    'aprobados' => $suyos->whereNotNull('aprobado_at')->count(), 'total' => count($cursosAsesor),
+                    'empezo' => $suyos->isNotEmpty(), 'ultimo' => $suyos->max('updated_at'),
+                    'tel' => $a->user?->telefono ? numero_whatsapp($a->user->telefono) : null,
+                ];
+            })->sortByDesc(fn ($x) => [$x['aprobados'], $x['empezo']])->values();
+        }
+
         return view('aprende.index', [
-            'cursos' => $cursos, 'avances' => $avances, 'equipo' => $equipo,
+            'cursos' => $cursos, 'avances' => $avances, 'equipo' => $equipo, 'linea' => $linea,
             'totalCursos' => count(Academia::cursos()),
             'aprobados' => collect($avances)->whereNotNull('aprobado_at')->filter(fn ($a) => isset($cursos[$a->curso]))->count(),
         ]);

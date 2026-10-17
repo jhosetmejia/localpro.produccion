@@ -13,7 +13,11 @@
     <div class="ap-hero">
         <small><i class="fa-solid fa-graduation-cap me-1"></i>Aprende LocalPro</small>
         <h1>Cursos cortos para que <em>venda más</em> y maneje mejor su negocio</h1>
+        @if (auth()->user()->asesor && !auth()->user()->tienda_id && !auth()->user()->es_superadmin)
+        <p>Lecciones de 2 a 4 minutos para asesores: encontrar negocios, presentar LocalPro, responder objeciones, cerrar el plan anual y armar su equipo. Hágalos usted y su línea, desde el celular.</p>
+        @else
         <p>Lecciones de 2 a 4 minutos con ejemplos reales: ventas, caja, vender más, inventario y contabilidad. Hágalos usted y su equipo, a su ritmo, desde el celular.</p>
+        @endif
         <div class="ap-barra"><i style="width:{{ $pct }}%"></i></div>
         <small class="d-block mt-2" style="color:#b8c4bc;letter-spacing:0;text-transform:none;font-size:.85rem;position:relative;z-index:1">{{ $aprobados }} de {{ $n }} cursos completados</small>
     </div>
@@ -22,7 +26,7 @@
         @foreach ($cursos as $slug => $c)
         @php $a = $avances[$slug] ?? null; $p = \App\Http\Controllers\academiaController::porcentaje($c, $a); $min = collect($c['lecciones'])->sum('min'); @endphp
         <a href="{{ route('aprende.curso', $slug) }}" class="ap-card">
-            @if ($a?->aprobado_at)<span class="sello">✓ Completado</span>@elseif ($c['para'] === 'dueno')<span class="sello d">Para el dueño</span>@endif
+            @if ($a?->aprobado_at)<span class="sello">✓ Completado</span>@elseif ($c['para'] === 'dueno')<span class="sello d">Para el dueño</span>@elseif ($c['para'] === 'asesor')<span class="sello" style="background:#ede9fe;color:#6d28d9">Asesores</span>@endif
             <div class="ic" style="background:{{ $c['color'] }}"><i class="fa-solid {{ $c['icono'] }}"></i></div>
             <h3>{{ $c['titulo'] }}</h3>
             <p>{{ $c['resumen'] }}</p>
@@ -31,6 +35,27 @@
         </a>
         @endforeach
     </div>
+
+    @if ($linea->isNotEmpty())
+    @php $completos = $linea->filter(fn ($x) => $x['aprobados'] >= $x['total'])->count(); $sinEmpezar = $linea->where('empezo', false)->count(); @endphp
+    <div class="lp-box mt-3">
+        <h3><span><i class="fa-solid fa-sitemap me-1"></i> {{ auth()->user()->es_superadmin ? 'Cómo va la red de asesores' : 'Cómo va su línea' }}</span>
+            <small class="text-muted fw-semibold">{{ $completos }} con todos los cursos · {{ $sinEmpezar }} sin empezar</small></h3>
+        @foreach ($linea as $x)
+        @php $pct = $x['total'] ? round($x['aprobados'] / $x['total'] * 100) : 0; @endphp
+        <div class="d-flex align-items-center gap-2 py-2 border-bottom flex-wrap">
+            <div style="flex:1 1 200px;min-width:0">
+                <b>{{ $x['nombre'] }}</b> <span class="text-muted small">{{ $x['codigo'] }} · {{ $x['cargo'] }}</span>
+                <div class="ap-barra mt-1" style="max-width:260px"><i style="width:{{ $pct }}%"></i></div>
+            </div>
+            <span class="small fw-bold" style="min-width:150px">@if ($x['empezo']){{ $x['aprobados'] }} de {{ $x['total'] }} cursos @if ($x['ultimo'])<span class="text-muted fw-semibold">· {{ \Illuminate\Support\Carbon::parse($x['ultimo'])->diffForHumans() }}</span>@endif @else<span class="text-muted">Aún no empieza</span>@endif</span>
+            @if ($x['tel'] && $x['aprobados'] < $x['total'])
+            <a class="btn btn-sm btn-success rounded-pill" target="_blank" rel="noopener" href="https://wa.me/{{ $x['tel'] }}?text={{ rawurlencode('¡Hola ' . strtok($x['nombre'], ' ') . '! 👋 Ya están los cursos de Aprende LocalPro para asesores: cómo encontrar negocios, presentar LocalPro en 5 minutos, responder objeciones y armar tu equipo. Son cortos y desde el celular 💪 Entra aquí: ' . route('aprende.index')) }}"><i class="fa-brands fa-whatsapp me-1"></i>Animar</a>
+            @endif
+        </div>
+        @endforeach
+    </div>
+    @endif
 
     @if ($equipo->isNotEmpty())
     <div class="lp-box mt-3">

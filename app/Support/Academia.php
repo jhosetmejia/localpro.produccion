@@ -12,6 +12,136 @@ class Academia
 {
     public static function cursos(): array
     {
+        return self::cursosNegocio() + self::cursosAsesor();
+    }
+
+    private static function plata($v): string
+    {
+        return '$' . number_format((float) $v, 0, ',', '.');
+    }
+
+    // Cursos para los asesores de LocalPro (la red comercial)
+    public static function cursosAsesor(): array
+    {
+        $v = Comisiones::valores();
+        $plan = self::plata($v['valor_plan']);
+        $com = self::plata($v['nueva']['venta']);
+        $renov = self::plata($v['renovacion']['venta']);
+        $mes = self::plata(ceil($v['valor_plan'] / 12 / 100) * 100);
+        $dia = self::plata(ceil($v['valor_plan'] / 365 / 100) * 100);
+
+        return [
+            'asesor-prospectar' => [
+                'titulo' => 'Encontrar negocios para visitar', 'icono' => 'fa-map-location-dot', 'color' => '#16b34a', 'para' => 'asesor',
+                'resumen' => 'Dónde están sus clientes, a quién hablarle y cómo organizar su día para vender todos los días.',
+                'lecciones' => [
+                    ['titulo' => 'Quién es su cliente ideal', 'min' => 3, 'accion' => null, 'contenido' => [
+                        'Su cliente es el <b>dueño de un negocio pequeño o mediano</b> que todavía anota en cuaderno o en Excel: tiendas de ropa, calzado, misceláneas, tiendas de barrio, ferreterías, papelerías, restaurantes, peluquerías.',
+                        'Las mejores señales: tiene inventario (muchos productos), varios vendedores o se queja de que "no sabe cuánto gana".',
+                        'Empiece por lo cercano: <b>su barrio, su familia, sus amigos con negocio</b> y los negocios donde usted ya compra.',
+                    ], 'tip' => 'Haga una lista de 20 negocios conocidos antes de salir a la calle. La confianza vende el doble.'],
+                    ['titulo' => 'Sus contactos y la base de LocalPro', 'min' => 3, 'accion' => ['asesor.contactos', 'Ir a Mis contactos'], 'contenido' => [
+                        'En <b>Mis contactos</b> suba los contactos de su celular: cada día le salen 20 para escribirles con su enlace de prueba gratis.',
+                        'Además, LocalPro le da <b>contactos de negocios para hoy</b>. A cada persona se le escribe una sola vez: si usted le escribe, no le sale a ningún otro asesor.',
+                        'Si alguien se inscribe con su enlace, el negocio queda a su nombre automáticamente.',
+                    ], 'tip' => 'Escriba sus 20 contactos en la mañana y dedique la tarde a visitar.'],
+                    ['titulo' => 'La rutina que da resultados', 'min' => 2, 'accion' => null, 'contenido' => [
+                        '<b>20 mensajes</b> por WhatsApp + <b>5 visitas</b> a negocios + <b>1 demostración</b> al día. Eso, todos los días, da ventas cada semana.',
+                        'Anote a quién visitó y qué le dijo: el que dijo "más adelante" es su venta del próximo mes.',
+                        'Vender es un juego de números: de cada 10 negocios que le escuchan, 2 o 3 prueban LocalPro.',
+                    ], 'tip' => 'Su meta: un salario mínimo al mes son pocos planes anuales. Mire su barra de meta en el panel.'],
+                ],
+                'prueba' => [
+                    ['p' => '¿Cuál es un buen cliente para LocalPro?', 'o' => ['Un negocio que anota todo en cuaderno', 'Una persona sin negocio', 'Un banco'], 'r' => 0],
+                    ['p' => '¿Qué pasa si un negocio se inscribe con su enlace?', 'o' => ['Queda a su nombre automáticamente', 'Queda a nombre de otro asesor', 'No pasa nada'], 'r' => 0],
+                    ['p' => '¿Cuál es la rutina diaria recomendada?', 'o' => ['20 mensajes, 5 visitas y 1 demostración', 'Un mensaje a la semana', 'Esperar a que lo llamen'], 'r' => 0],
+                ],
+            ],
+
+            'asesor-presentar' => [
+                'titulo' => 'Presentar LocalPro en 5 minutos', 'icono' => 'fa-mobile-screen-button', 'color' => '#0ea5e9', 'para' => 'asesor',
+                'resumen' => 'Cómo mostrar LocalPro desde su celular para que el dueño quiera probarlo ese mismo día.',
+                'lecciones' => [
+                    ['titulo' => 'Abra con el dolor del dueño', 'min' => 3, 'accion' => null, 'contenido' => [
+                        'No empiece hablando del sistema. Pregunte: <b>"¿Usted sabe cuánto ganó la semana pasada?"</b> o <b>"¿Cómo controla lo que venden sus empleados?"</b>',
+                        'Escuche. Casi todos dicen: "más o menos", "lo anoto en un cuaderno", "se me pierde mercancía". Ese es el problema que LocalPro resuelve.',
+                    ], 'tip' => 'El dueño compra tranquilidad y control, no un programa.'],
+                    ['titulo' => 'La demostración', 'min' => 4, 'accion' => ['asesor.capacitacion', 'Ver la capacitación'], 'contenido' => [
+                        'Muestre solo 3 cosas, en este orden: <b>1) vender en la caja</b> y mandar el tiquete por WhatsApp, <b>2) el panel</b> con ventas y ganancia del día, <b>3) la tienda en línea</b> que sale en Google.',
+                        'Si tiene vendedores, muéstrele que <b>cada uno abre su caja</b> y que ellos no ven las ganancias.',
+                        'Termine mostrando <b>Vender más</b>: su base de clientes y el WhatsApp marketing. Eso le trae plata nueva.',
+                    ], 'tip' => 'Practique la demostración con un familiar hasta que la haga en menos de 5 minutos.'],
+                    ['titulo' => 'Cierre con la prueba gratis', 'min' => 2, 'accion' => ['asesor.index', 'Ver mi enlace'], 'contenido' => [
+                        'No pida la venta de una: ofrezca la <b>prueba gratis de 3 meses</b> con su enlace. Es fácil decir que sí a algo gratis.',
+                        'Inscríbalo ahí mismo, con él, desde el celular. Créele 3 productos y hagan juntos la primera venta.',
+                        'Un negocio que ya hizo su primera venta en LocalPro casi nunca vuelve al cuaderno.',
+                    ], 'tip' => 'Nunca deje la inscripción "para después": el 80 % de los "después lo hago" nunca lo hacen.'],
+                ],
+                'prueba' => [
+                    ['p' => '¿Con qué conviene empezar la conversación?', 'o' => ['Con una pregunta sobre el problema del dueño', 'Leyendo todas las funciones', 'Hablando del precio'], 'r' => 0],
+                    ['p' => '¿Qué tres cosas se muestran en la demostración?', 'o' => ['Caja, panel y tienda en línea', 'Solo el logo', 'Los términos y condiciones'], 'r' => 0],
+                    ['p' => '¿Cuándo es mejor inscribir al negocio?', 'o' => ['Ahí mismo, con él', 'Otro mes', 'Nunca'], 'r' => 0],
+                ],
+            ],
+
+            'asesor-objeciones' => [
+                'titulo' => 'Objeciones y cierre del plan anual', 'icono' => 'fa-comments-dollar', 'color' => '#f59e0b', 'para' => 'asesor',
+                'resumen' => "Responder \"está caro\", \"ya tengo cuaderno\" y convertir la prueba gratis en plan anual de $plan.",
+                'lecciones' => [
+                    ['titulo' => '"Está caro"', 'min' => 3, 'accion' => null, 'contenido' => [
+                        "El plan anual vale <b>$plan</b>: son unos <b>$mes al mes</b>, menos de <b>$dia al día</b>.",
+                        'Compárelo: "¿Cuánto pierde al mes en mercancía que no sabe dónde quedó o en ventas que no se anotaron?" Casi siempre es más que eso.',
+                        'Recuérdele que incluye la caja, el inventario, los vendedores, la tienda en línea y Vender más, todo en uno.',
+                    ], 'tip' => 'Hable de "menos que un tinto al día", no de la cifra completa.'],
+                    ['titulo' => '"Ya tengo cuaderno" y "no sé de tecnología"', 'min' => 3, 'accion' => null, 'contenido' => [
+                        '"El cuaderno no le dice cuánto ganó, ni le avisa qué se está acabando, ni le vende por internet."',
+                        'Para el que no sabe de tecnología: "Si sabe mandar un WhatsApp, sabe usar LocalPro. Y yo lo acompaño la primera semana."',
+                        '"Déjeme pensarlo": pregunte con respeto <b>"¿Qué es lo que lo hace dudar?"</b>. Ahí sale la verdadera objeción.',
+                    ], 'tip' => null],
+                    ['titulo' => 'De prueba gratis a plan anual', 'min' => 3, 'accion' => ['asesor.index', 'Ver mis negocios'], 'contenido' => [
+                        'La prueba dura 3 meses. Llame o visite al negocio en la <b>semana 1</b> (que esté usando), en el <b>mes 2</b> (que vea sus reportes) y <b>2 semanas antes</b> de que termine.',
+                        "Cuando el negocio paga el plan anual cuenta como <b>venta nueva</b>: usted gana <b>$com</b>, y cada año que renueve gana <b>$renov</b> de por vida mientras usted y el negocio sigan activos.",
+                        'Cobre con el botón <b>Cobrar</b> de Mis negocios: le llega al negocio un enlace para pagar con tarjeta, PSE o Nequi.',
+                    ], 'tip' => 'El negocio que ve su ganancia en el panel se renueva solo. Ayúdelo a poner los costos de sus productos.'],
+                ],
+                'prueba' => [
+                    ['p' => "El plan anual de $plan equivale aproximadamente a…", 'o' => ["$mes al mes", '$500.000 al mes', '$1.000 al año'], 'r' => 0],
+                    ['p' => 'El cliente dice "déjeme pensarlo". ¿Qué pregunta?', 'o' => ['¿Qué es lo que lo hace dudar?', 'Nada, se va', 'Le baja el precio a la mitad'], 'r' => 0],
+                    ['p' => '¿Cuándo gana usted la comisión de venta nueva?', 'o' => ['Cuando el negocio paga el plan anual', 'Cuando empieza la prueba gratis', 'Cuando lo saluda'], 'r' => 0],
+                ],
+            ],
+
+            'asesor-equipo' => [
+                'titulo' => 'Construya su equipo y suba de rango', 'icono' => 'fa-sitemap', 'color' => '#8b5cf6', 'para' => 'asesor',
+                'resumen' => 'Sumar asesores con su enlace, acompañarlos y crecer de asesor a líder.',
+                'lecciones' => [
+                    ['titulo' => 'Sumar asesores', 'min' => 3, 'accion' => ['asesor.red', 'Ver mi red'], 'contenido' => [
+                        'Comparta su enlace para sumar asesores (<b>localproo.com/unete/SU-CÓDIGO</b>) con personas que quieran un ingreso extra: estudiantes, vendedores, mamás emprendedoras.',
+                        'Al registrarse hacen el curso con certificado y quedan en su línea. En su panel ve quién va haciendo el curso y puede animarlo por WhatsApp.',
+                    ], 'tip' => 'Sume personas que ya venden algo: tienen contactos y saben hablar con clientes.'],
+                    ['titulo' => 'Acompañe a su gente', 'min' => 3, 'accion' => ['aprende.index', 'Ver cómo va mi línea'], 'contenido' => [
+                        'Su equipo gana si usted le enseña. Pídales que hagan los cursos de <b>Aprende</b>: aquí ve cómo va cada uno.',
+                        'Hagan juntos las primeras visitas: el nuevo aprende mirándolo vender.',
+                        'Felicite en público cada primera venta del equipo: eso motiva más que cualquier regaño.',
+                    ], 'tip' => 'Una reunión corta por WhatsApp cada lunes con metas de la semana mantiene al equipo activo.'],
+                    ['titulo' => 'Cómo se sube de rango', 'min' => 2, 'accion' => ['asesor.index', 'Ver mi avance'], 'contenido' => [
+                        'Para subir de rango necesita negocios que <b>pagaron su plan anual</b> y asesores que usted sumó y están activos. Su barra de avance está en el panel.',
+                        'Las pruebas gratis no cuentan hasta que el negocio paga.',
+                        'Al subir, gana una parte de las ventas y renovaciones de su equipo. Recuerde: para cobrar comisiones debe tener al menos un negocio con pago.',
+                    ], 'tip' => null],
+                ],
+                'prueba' => [
+                    ['p' => '¿Cómo suma un asesor a su línea?', 'o' => ['Con su enlace /unete', 'Llamando a LocalPro', 'No se puede'], 'r' => 0],
+                    ['p' => '¿Las pruebas gratis cuentan para subir de rango?', 'o' => ['No, hasta que el negocio pague', 'Sí, todas', 'Solo las de los lunes'], 'r' => 0],
+                    ['p' => '¿Qué ayuda más a que su equipo venda?', 'o' => ['Enseñarles y acompañarlos', 'Dejarlos solos', 'Regañarlos'], 'r' => 0],
+                ],
+            ],
+        ];
+    }
+
+    // Cursos para los negocios (dueño y vendedores)
+    public static function cursosNegocio(): array
+    {
         return [
             'primeros-pasos' => [
                 'titulo' => 'Primeros pasos en LocalPro', 'icono' => 'fa-seedling', 'color' => '#16b34a', 'para' => 'todos',
@@ -71,7 +201,7 @@ class Academia
             ],
 
             'tecnicas-de-venta' => [
-                'titulo' => 'Técnicas de venta', 'icono' => 'fa-handshake', 'color' => '#f59e0b', 'para' => 'todos',
+                'titulo' => 'Técnicas de venta', 'icono' => 'fa-handshake', 'color' => '#f59e0b', 'para' => ['todos', 'asesor'],
                 'resumen' => 'Cómo atender, ofrecer y cerrar la venta en el mostrador y por WhatsApp.',
                 'lecciones' => [
                     ['titulo' => 'El saludo que vende', 'min' => 2, 'accion' => null, 'contenido' => [
@@ -219,10 +349,24 @@ class Academia
         return (bool) ($u && ($u->es_superadmin || $u->hasAnyRole(['dueno', 'administrador'])));
     }
 
-    // Cursos que ve esta persona: el equipo ve los de "todos"; el dueño y el administrador ven todos
+    // A quién va cada curso: 'todos' (negocio: dueño y vendedores), 'dueno' (dueño y administrador), 'asesor' (red comercial)
+    public static function grupos(): array
+    {
+        $u = auth()->user();
+        if (!$u) return [];
+        if ($u->es_superadmin) return ['todos', 'dueno', 'asesor'];
+        $g = [];
+        if ($u->tienda_id) {
+            $g[] = 'todos';
+            if (self::esJefe()) $g[] = 'dueno';
+        }
+        if ($u->asesor) $g[] = 'asesor';
+        return $g;
+    }
+
     public static function paraMi(): array
     {
-        $jefe = self::esJefe();
-        return array_filter(self::cursos(), fn ($c) => $jefe || $c['para'] === 'todos');
+        $g = self::grupos();
+        return array_filter(self::cursos(), fn ($c) => (bool) array_intersect((array) $c['para'], $g));
     }
 }
