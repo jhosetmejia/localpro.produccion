@@ -101,6 +101,8 @@ Route::get('/mi-separado/{separado}', [separadoController::class, 'publico'])->w
 Route::get('/pagar/{tienda}', [pagarController::class, 'show'])->whereNumber('tienda')->middleware('signed:relative')->name('pagar.show');
 Route::post('/pagar/{tienda}/{plan}', [pagarController::class, 'ir'])->whereNumber(['tienda', 'plan'])->middleware(['signed:relative', 'throttle:10,1'])->name('pagar.ir');
 Route::get('/factura/{venta}', [posController::class, 'facturaPublica'])->name('factura.publica');
+// Factura de ejemplo con datos inventados (para que los asesores muestren cómo queda)
+Route::get('/ejemplo/factura', [\App\Http\Controllers\asesorEjemplosController::class, 'factura'])->middleware('throttle:60,1')->name('ejemplo.factura');
 // Enlace de un asesor: el negocio que se inscribe queda en su red
 Route::get('/r/{codigo}', [registroController::class, 'referido'])->where('codigo', '[A-Za-z0-9\-]+')->name('referido');
 

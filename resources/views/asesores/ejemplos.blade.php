@@ -63,7 +63,7 @@
     <div class="ej-hero">
         <small>Venda mostrando</small>
         <h2>El cliente compra lo que ve 👀</h2>
-        <p>Abra estos ejemplos en su celular durante la visita, o envíelos por WhatsApp. Son negocios reales hechos con LocalPro: la tienda en línea, la página de enlaces y la factura que reciben los clientes.</p>
+        <p>Abra estos ejemplos en su celular durante la visita, o envíelos por WhatsApp. Las tiendas en línea y páginas de enlaces son de negocios reales hechos con LocalPro; la factura es un ejemplo con datos inventados.</p>
     </div>
 
     @forelse ($ejemplos as $e)
@@ -93,14 +93,6 @@
                 <div class="acc"><a href="{{ $e['enlaces'] }}" target="_blank" rel="noopener" class="ej-ver"><i class="fa-solid fa-eye me-1"></i>Ver ejemplo</a><a href="{{ $wa('Así queda la página de enlaces de un negocio con LocalPro 👉', $e['enlaces']) }}" target="_blank" rel="noopener" class="ej-wa"><i class="fa-brands fa-whatsapp me-1"></i>Enviar</a></div>
                 @else<span class="ej-no">Este ejemplo aún no tiene su página de enlaces publicada.</span>@endif
             </div>
-            <div class="ej-item">
-                <div class="ic"><i class="fa-solid fa-receipt"></i></div>
-                <b>Factura que recibe el cliente</b>
-                <p>Cada venta le llega al cliente por WhatsApp con el logo del negocio. También se imprime en tiquete de 80 mm.</p>
-                @if ($e['factura'])
-                <div class="acc"><a href="{{ $e['factura'] }}" target="_blank" rel="noopener" class="ej-ver"><i class="fa-solid fa-eye me-1"></i>Ver ejemplo</a><a href="{{ $wa('Así le llega la factura al cliente con LocalPro 👉', $e['factura']) }}" target="_blank" rel="noopener" class="ej-wa"><i class="fa-brands fa-whatsapp me-1"></i>Enviar</a></div>
-                @else<span class="ej-no">Este ejemplo aún no tiene ventas.</span>@endif
-            </div>
         </div>
     </div>
     @empty
@@ -110,6 +102,18 @@
     @if ($esAdmin)
     <p class="small text-muted"><i class="fa-solid fa-gear me-1"></i>Usted elige las tiendas de ejemplo en <a href="{{ route('admin.planes.index') }}">Planes y cobros</a>.</p>
     @endif
+
+    @php $urlFactura = route('ejemplo.factura'); @endphp
+    <div class="ej-tienda">
+        <div class="ej-grid">
+            <div class="ej-item">
+                <div class="ic"><i class="fa-solid fa-receipt"></i></div>
+                <b>Factura que recibe el cliente</b>
+                <p>Cada venta le llega al cliente por WhatsApp con el logo del negocio; también se imprime en tiquete de 80 mm. Este ejemplo usa datos inventados (cambian cada vez que lo abre).</p>
+                <div class="acc"><a href="{{ $urlFactura }}" target="_blank" rel="noopener" class="ej-ver"><i class="fa-solid fa-eye me-1"></i>Ver ejemplo</a><a href="https://wa.me/?text={{ rawurlencode('Así le llega la factura al cliente con LocalPro 👉 ' . $urlFactura) }}" target="_blank" rel="noopener" class="ej-wa"><i class="fa-brands fa-whatsapp me-1"></i>Enviar</a></div>
+            </div>
+        </div>
+    </div>
 
     <div class="ej-sec">Lo que el negocio usa por dentro</div>
     <div class="ej-sub">Así se ven las pantallas que usa el dueño y sus vendedores (datos de ejemplo).</div>

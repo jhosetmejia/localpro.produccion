@@ -49,6 +49,7 @@
         </div>
     </div>
     <div class="bd">
+        @if (!empty($ejemplo))<div style="background:#fff5d6;color:#8a6400;border-radius:12px;padding:8px 12px;font-weight:700;font-size:.85rem;text-align:center;margin-bottom:12px">Factura de ejemplo · todos los datos son inventados</div>@endif
         @if ($venta->estado === 'anulada')<div class="anul">Esta venta fue anulada</div>@endif
         <div class="meta">
             <div><small>Comprobante</small><b>{{ $venta->numero }}</b></div>

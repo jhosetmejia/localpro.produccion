@@ -57,7 +57,7 @@
                     <b><i class="fa-solid fa-eye me-1" style="color:#16b34a"></i>Tiendas de ejemplo para los asesores</b>
                     <label class="form-label small fw-bold mt-2 mb-1">Códigos LCT separados por coma (ej. una de ropa, un restaurante…)</label>
                     <input name="ejemplos_tiendas" class="form-control" value="{{ $ejemplos }}" placeholder="LCT-00003, LCT-00010">
-                    <small class="text-muted d-block mt-1">Los asesores ven su tienda en línea, su página de enlaces y su última factura en "Ejemplos para mostrar". Use tiendas con fotos bonitas, enlaces publicados y al menos una venta. <a href="{{ route('asesor.ejemplos') }}" target="_blank">Ver cómo queda</a></small>
+                    <small class="text-muted d-block mt-1">Los asesores ven su tienda en línea y su página de enlaces en "Ejemplos para mostrar" (la factura es de ejemplo, con datos inventados). Use tiendas con fotos bonitas y enlaces publicados. <a href="{{ route('asesor.ejemplos') }}" target="_blank">Ver cómo queda</a></small>
                 </div></div>
                 <div class="col-12"><div style="border:1.5px solid #cfe0ff;background:#f5f9ff;border-radius:18px;padding:1rem 1.1rem">
                     <b><i class="fa-brands fa-facebook me-1" style="color:#1877f2"></i>Conexión con Facebook e Instagram (Mis redes)</b>
