@@ -53,6 +53,20 @@
 .sec h2{font-size:1.25rem;font-weight:800;margin:6px 2px 12px;display:flex;align-items:baseline;gap:8px}
 .sec h2 small{color:var(--mut);font-size:.8rem;font-weight:700}
 .vacio{text-align:center;color:var(--mut);padding:50px 10px;font-weight:600}
+/* Inicio: filas por categoría que se deslizan + "Más productos" en una cuadrícula; al elegir categoría o buscar, la cuadrícula normal */
+body:not(.filtrando) .filtro-solo,body.filtrando .inicio-solo{display:none!important}
+.sec h2 .ver-todo{margin-left:auto;background:none;border:0;color:#11702f;font-weight:800;font-size:.85rem;cursor:pointer;padding:.2rem .1rem;font-family:inherit}
+.sec h2 .ver-todo:hover{text-decoration:underline}
+.carril{position:relative}
+.riel{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding:2px 2px 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.riel::-webkit-scrollbar{display:none}
+.riel>.card{flex:0 0 clamp(150px,42vw,215px);scroll-snap-align:start}
+.mas-card{align-items:center;justify-content:center;gap:4px;border-style:dashed;color:#11702f;font-weight:800;font-family:inherit;cursor:pointer;min-height:220px;background:#f7fdf8}
+.mas-card b{font-size:1.6rem}
+.flecha{display:none;position:absolute;top:38%;z-index:3;width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);background:#fff;box-shadow:0 8px 20px -10px rgba(0,0,0,.35);font-size:1.4rem;line-height:1;cursor:pointer;color:var(--k)}
+.flecha.izq{left:-14px}.flecha.der{right:-14px}
+@media (hover:hover) and (min-width:768px){.carril:hover .flecha{display:grid;place-items:center}}
+.flecha[disabled]{opacity:0;pointer-events:none}
 @endpush
 
 @section('contenido')
@@ -84,33 +98,40 @@
     </div>
     @endif
 
+    @php
+        // Inicio de la tienda: las categorías con más productos van en filas que se deslizan a los lados
+        // (máximo 5) y los demás productos quedan juntos en una sola cuadrícula, sin huecos.
+        $filas = collect($secciones)->filter(fn ($i) => count($i) >= 3)->take(5);
+        $resto = collect($secciones)->except($filas->keys())->flatten(1)->unique('id')->values();
+    @endphp
+    @if ($categorias->count() > 1)
+    @foreach ($filas as $cat => $items)
+    <section class="sec fila inicio-solo" data-fila="{{ $cat }}">
+        <h2>{{ $cat }} <small>{{ count($items) }}</small>
+            <button type="button" class="ver-todo" data-ver="{{ $cat }}">Ver todo →</button></h2>
+        <div class="carril">
+            <button type="button" class="flecha izq" data-mover="-1" aria-label="Anteriores">‹</button>
+            <div class="riel">
+                @foreach (collect($items)->take(12) as $p)@include('catalogo._card')@endforeach
+                @if (count($items) > 12)<button type="button" class="card mas-card" data-ver="{{ $cat }}"><b>+{{ count($items) - 12 }}</b>Ver todos</button>@endif
+            </div>
+            <button type="button" class="flecha der" data-mover="1" aria-label="Siguientes">›</button>
+        </div>
+    </section>
+    @endforeach
+    @if ($resto->isNotEmpty())
+    <section class="sec inicio-solo" data-resto>
+        <h2>{{ $filas->isEmpty() ? 'Todos los productos' : 'Más productos' }} <small>{{ $resto->count() }}</small></h2>
+        <div class="grid">@foreach ($resto as $p)@include('catalogo._card')@endforeach</div>
+    </section>
+    @endif
+    @endif
+
     @forelse ($secciones as $cat => $items)
-    <section class="sec" id="cat-{{ \Illuminate\Support\Str::slug($cat) }}" data-sec="{{ $cat }}">
+    <section class="sec {{ $categorias->count() > 1 ? 'filtro-solo' : '' }}" id="cat-{{ \Illuminate\Support\Str::slug($cat) }}" data-sec="{{ $cat }}">
         @if ($categorias->count() > 1)<h2>{{ $cat }} <small>{{ count($items) }}</small></h2>@endif
         <div class="grid">
-            @foreach ($items as $p)
-            <article class="card {{ $p['disponible'] ? '' : 'off' }}" data-q="{{ mb_strtolower($p['nombre'] . ' ' . $p['codigo'] . ' ' . implode(' ', $p['categorias'])) }}" data-id="{{ $p['id'] }}">
-                <a href="{{ $p['url'] }}" class="ph">
-                    @if ($p['img'])<img src="{{ $p['img'] }}" alt="{{ $p['nombre'] }}" loading="lazy">@else{{ mb_strtoupper(mb_substr($p['nombre'], 0, 1)) }}@endif
-                    @if (!$p['disponible'])<span class="tag agot">Agotado</span>@elseif (count($p['variantes']) > 1)<span class="tag">{{ count($p['variantes']) }} opciones</span>@endif
-                    @if ($p['descuento'] && $p['disponible'])<span class="tag-promo">-{{ $p['descuento'] }}%</span>@endif
-                </a>
-                <div class="b">
-                    <a href="{{ $p['url'] }}"><h3>{{ $p['nombre'] }}</h3></a>
-                    <div class="pr">@if ($p['antes'])<span class="antes">@pesos($p['antes'])</span>@endif<span class="{{ $p['antes'] ? 'ahora-promo' : '' }}">@if ($p['desde'])<small>Desde</small>@pesos($p['desde'])@else @pesos($p['precio'])@endif</span> @if ($p['unidad'])<small>/ {{ $p['unidad'] }}</small>@endif</div>
-                    @if ($p['disponible'])
-                    <div class="bt">
-                        @if (count($p['variantes']) > 1)
-                        <a class="btn-c" href="{{ $p['url'] }}">Comprar</a>
-                        @else
-                        <button class="btn-c" data-comprar="{{ $p['id'] }}">💬 Comprar</button>
-                        <button class="btn-car" data-agregar="{{ $p['id'] }}" aria-label="Agregar al pedido">+</button>
-                        @endif
-                    </div>
-                    @endif
-                </div>
-            </article>
-            @endforeach
+            @foreach ($items as $p)@include('catalogo._card')@endforeach
         </div>
     </section>
     @empty
@@ -125,18 +146,39 @@
 (function () {
     var P = {}; @json($productos).forEach(function (p) { P[p.id] = p; });
     var q = document.getElementById('q'), cat = '', para = '';
+    var conFilas = !!document.querySelector('.inicio-solo');
     function filtrar() {
         var t = q.value.trim().toLowerCase(), hay = 0;
-        document.querySelectorAll('.sec').forEach(function (s) {
+        // Sin búsqueda ni categoría se ve el inicio (filas que se deslizan); si no, la cuadrícula normal
+        var filtrando = !conFilas || !!t || !!cat;
+        document.body.classList.toggle('filtrando', filtrando);
+        document.querySelectorAll(filtrando ? '.sec:not(.inicio-solo)' : '.sec.inicio-solo').forEach(function (s) {
             var n = 0;
-            s.querySelectorAll('.card').forEach(function (c) {
+            s.querySelectorAll('.card[data-id]').forEach(function (c) {
                 var p = P[c.dataset.id], ok = (!t || c.dataset.q.indexOf(t) !== -1) && (!cat || (cat === '__promo' ? p.descuento > 0 : (p.categorias.indexOf(cat) !== -1 || (!p.categorias.length && cat === 'General')))) && (!para || !p.para || p.para === para);
                 c.style.display = ok ? '' : 'none'; if (ok) n++;
             });
             s.style.display = n ? '' : 'none'; hay += n;
         });
         document.getElementById('nada').style.display = hay ? 'none' : '';
+        flechas();
     }
+    function flechas() {
+        document.querySelectorAll('.carril').forEach(function (c) {
+            var r = c.querySelector('.riel');
+            c.querySelector('.izq').disabled = r.scrollLeft < 5;
+            c.querySelector('.der').disabled = r.scrollLeft + r.clientWidth >= r.scrollWidth - 5;
+        });
+    }
+    document.querySelectorAll('.riel').forEach(function (r) { r.addEventListener('scroll', flechas, { passive: true }); });
+    window.addEventListener('resize', flechas);
+    flechas();
+    document.addEventListener('click', function (e) {
+        var m = e.target.closest('[data-mover]'), v = e.target.closest('[data-ver]');
+        if (m) { var r = m.parentNode.querySelector('.riel'); r.scrollBy({ left: m.dataset.mover * r.clientWidth * 0.85 }); }
+        // "Ver todo": abre la categoría completa, igual que tocarla arriba
+        if (v && cats) { var chip = Array.prototype.find.call(cats.querySelectorAll('[data-c]'), function (x) { return x.dataset.c === v.dataset.ver; }); if (chip) chip.click(); }
+    });
     q.addEventListener('input', filtrar);
     var cats = document.getElementById('cats'), pub = document.getElementById('pub');
     // Botón "Promociones" de arriba: en esta página filtra sin recargar
