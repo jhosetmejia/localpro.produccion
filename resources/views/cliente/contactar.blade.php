@@ -35,7 +35,7 @@
 .cc-item.hecho .cc-wa,.cc-wa:disabled{background:#dcfce7;color:#11702f;cursor:default}
 .cc-estado{font-size:.75rem;font-weight:800;border-radius:999px;padding:.15rem .55rem;background:#dcfce7;color:#11702f}
 .cc-estado.mal{background:#fde2e8;color:#b0173f}
-.cc-item.malo .cc-wa{background:#fde2e8;color:#b0173f}
+.cc-item.hecho.malo .cc-wa,.cc-item.malo .cc-wa:disabled{background:#fde2e8;color:#b0173f}
 .cc-item.malo .cc-av{background:#fde2e8;color:#b0173f}
 .cc-msg{white-space:pre-wrap;background:#e7fbe9;border-radius:14px 14px 14px 4px;padding:.8rem 1rem;font-size:.92rem;line-height:1.45;border:1px solid #c9efcf}
 .cc-vacio{text-align:center;padding:2rem 1rem;color:#6b7570}
