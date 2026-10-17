@@ -48,6 +48,23 @@
 .fsel select:focus{outline:none;border-color:#2fd15a;box-shadow:0 0 0 3px rgba(47,209,90,.18)}
 .fsel.on select{background-color:var(--k);color:#fff;border-color:var(--k);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23a6f34a' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")}
 .fsel.on label{color:#a6f34a}
+.fsel.grande select{pointer-events:none}
+.fsel.grande{cursor:pointer}
+.fpop-fondo{position:fixed;inset:0;background:rgba(11,13,12,.45);z-index:90;display:none}
+.fpop{position:fixed;z-index:91;background:#fff;display:none;flex-direction:column;box-shadow:0 24px 50px -20px rgba(0,0,0,.45);overflow:hidden}
+.fpop.ver,.fpop-fondo.ver{display:flex}
+.fpop-fondo.ver{display:block}
+@media (max-width:767px){.fpop{left:0;right:0;bottom:0;max-height:78vh;border-radius:24px 24px 0 0}}
+@media (min-width:768px){.fpop{width:340px;max-height:420px;border-radius:18px;border:1.5px solid var(--line)}}
+.fpop-cab{padding:12px 12px 8px;border-bottom:1px solid var(--line)}
+.fpop-cab b{display:block;font-size:.95rem;margin:0 4px 8px}
+.fpop-cab input{width:100%;border:1.5px solid var(--line);border-radius:14px;padding:.7rem .9rem;font:inherit;font-size:16px;font-weight:600;outline:none}
+.fpop-cab input:focus{border-color:#2fd15a}
+.fpop-lista{overflow-y:auto;padding:6px;-webkit-overflow-scrolling:touch}
+.fpop-lista button{display:block;width:100%;text-align:left;border:0;background:none;border-radius:12px;padding:.65rem .8rem;font:inherit;font-weight:700;font-size:.95rem;color:var(--k);cursor:pointer}
+.fpop-lista button:hover,.fpop-lista button.act{background:#f1f7f2}
+.fpop-lista button.sel{background:var(--k);color:#fff}
+.fpop-nada{padding:1rem;text-align:center;color:var(--mut);font-weight:600}
 .flimpiar{display:none;align-self:stretch;border:0;background:none;color:#e11d48;font:inherit;font-weight:800;font-size:.85rem;cursor:pointer;padding:0 .6rem;white-space:nowrap}
 .flimpiar.ver{display:block}
 @media (max-width:767px){.flimpiar{grid-column:1/-1;padding:.2rem}}
@@ -264,6 +281,57 @@ body:not(.filtrando) .filtro-solo,body.filtrando .inicio-solo{display:none!impor
     // Botón "Promociones" de arriba: en esta página filtra sin recargar
     var vp = document.getElementById('btnPromos'), hayPromo = fCat && fCat.querySelector('option[value="__promo"]');
     if (vp && hayPromo) vp.addEventListener('click', function (e) { e.preventDefault(); elegirCat('__promo'); subir(); });
+
+    // Listas largas (más de 8 opciones): se abren en un panel con buscador
+    var fondo = document.createElement('div'), pop = document.createElement('div'), popSel = null;
+    fondo.className = 'fpop-fondo'; pop.className = 'fpop';
+    pop.innerHTML = '<div class="fpop-cab"><b></b><input type="search" placeholder="Buscar…" autocomplete="off"></div><div class="fpop-lista"></div>';
+    document.body.appendChild(fondo); document.body.appendChild(pop);
+    var popIn = pop.querySelector('input'), popLista = pop.querySelector('.fpop-lista');
+    function sinTildes(t) { return (t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+    function visibles(sel) { return Array.prototype.filter.call(sel.options, function (o) { return !o.disabled && !o.hidden; }); }
+    function pintarLista() {
+        var t = sinTildes(popIn.value.trim()), html = '';
+        visibles(popSel).forEach(function (o) {
+            if (t && sinTildes(o.text).indexOf(t) === -1) return;
+            html += '<button type="button" data-v="' + o.value.replace(/"/g, '&quot;') + '" class="' + (o.value === popSel.value ? 'sel' : '') + '">' + o.text.replace(/</g, '&lt;') + '</button>';
+        });
+        popLista.innerHTML = html || '<div class="fpop-nada">No hay opciones con "' + popIn.value.replace(/</g, '&lt;') + '"</div>';
+    }
+    function abrirPop(sel) {
+        popSel = sel; popIn.value = '';
+        pop.querySelector('b').textContent = sel.parentNode.querySelector('label').textContent;
+        pintarLista();
+        if (window.innerWidth >= 768) {
+            var r = sel.getBoundingClientRect();
+            pop.style.top = Math.min(r.bottom + 6, window.innerHeight - 430) + 'px';
+            pop.style.left = Math.max(10, Math.min(r.left, window.innerWidth - 350)) + 'px';
+        } else { pop.style.top = ''; pop.style.left = ''; }
+        fondo.classList.add('ver'); pop.classList.add('ver');
+        if (window.innerWidth >= 768) setTimeout(function () { popIn.focus(); }, 30);
+    }
+    function cerrarPop() { fondo.classList.remove('ver'); pop.classList.remove('ver'); popSel = null; }
+    fondo.addEventListener('click', cerrarPop);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && popSel) cerrarPop(); });
+    popIn.addEventListener('input', pintarLista);
+    popIn.addEventListener('keydown', function (e) { if (e.key === 'Enter') { var b = popLista.querySelector('button'); if (b) b.click(); } });
+    popLista.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-v]'); if (!b || !popSel) return;
+        var sel = popSel; cerrarPop();
+        sel.value = b.dataset.v; sel.dispatchEvent(new Event('change'));
+    });
+    // Revisa qué listas son largas (cambia según lo elegido) y las marca para abrir el panel
+    function revisarGrandes() {
+        [fPara, fCat, fTalla, fColor].forEach(function (sel) {
+            if (sel) sel.parentNode.classList.toggle('grande', visibles(sel).length > 8);
+        });
+    }
+    [fPara, fCat, fTalla, fColor].forEach(function (sel) {
+        if (!sel) return;
+        sel.parentNode.addEventListener('click', function () { if (sel.parentNode.classList.contains('grande')) abrirPop(sel); });
+    });
+    var marcarAntes = marcar;
+    marcar = function () { marcarAntes(); revisarGrandes(); };
 
     opciones(); flechas(); marcar();
     // Enlaces compartidos: ?para=mujer o ?ver=promos abren ya filtrados
