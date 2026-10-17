@@ -27,6 +27,7 @@ class UpdateClienteRequest extends FormRequest
             'direccion' => 'required|max:80',
             'documento_id' => 'required|integer|exists:documentos,id',
             'telefono' => ['nullable', 'string', 'max:20', \App\Support\Validar::celular()],
+            'email' => 'nullable|email|max:120',
             'numero_documento' => ['required', 'max:20', \App\Support\Validar::documento(\App\Models\Documento::find(request('documento_id'))?->tipo_documento), \Illuminate\Validation\Rule::unique('personas', 'numero_documento')->where('tienda_id', \App\Support\TiendaActual::id())->ignore($cliente->persona->id)]
         ];
     }

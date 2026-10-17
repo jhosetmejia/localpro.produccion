@@ -61,6 +61,23 @@
                         @enderror
                     </div>
 
+                    <!------Celular y correo---->
+                    <div class="col-md-6">
+                        <label for="telefono" class="form-label">Celular / WhatsApp:</label>
+                        <input type="tel" inputmode="tel" name="telefono" id="telefono" class="form-control" placeholder="Ej: 3001234567" value="{{old('telefono')}}">
+                        @error('telefono')
+                        <small class="text-danger">{{'*'.$message}}</small>
+                        @enderror
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="email" class="form-label">Correo electrónico:</label>
+                        <input type="email" inputmode="email" name="email" id="email" class="form-control" placeholder="Ej: cliente@correo.com" value="{{old('email')}}">
+                        @error('email')
+                        <small class="text-danger">{{'*'.$message}}</small>
+                        @enderror
+                    </div>
+
                     <!--------------Documento------->
                     <div class="col-md-6">
                         <label for="documento_id" class="form-label">Tipo de documento:</label>
