@@ -121,15 +121,16 @@ class cursoController extends Controller
     }
 
     // "Entendido": marca la lección y pasa a la siguiente (o al examen)
-    public function completar(int $n)
+    public function completar(Request $request, int $n)
     {
         $a = $this->yo();
         if (!$a) return redirect()->route('panel');
         $lecciones = CursoAsesor::lecciones();
         abort_unless(isset($lecciones[$n]), 404);
 
-        // Lección con tarea: solo se pasa cuando la hizo de verdad (el administrador en vista no la necesita)
-        if (($lecciones[$n]['tarea'] ?? null) === 'contactos' && !$this->esAdmin($a) && !self::tareaHecha($a)) {
+        // Lección con tarea: se pasa cuando la hizo, o si elige "continuar y subir más tarde" (queda como pendiente
+        // en su panel; hay gente que desconfía y no sube sus contactos la primera vez). El administrador en vista no la necesita.
+        if (($lecciones[$n]['tarea'] ?? null) === 'contactos' && !$this->esAdmin($a) && !self::tareaHecha($a) && !$request->boolean('despues')) {
             return redirect()->route('curso.leccion', $n)->with('tarea', 'Primero haga la tarea: suba sus contactos y escríbale a ' . CursoAsesor::TAREA_MINIMO . ' personas.');
         }
         $hechas = $this->hechas($a);

@@ -76,6 +76,19 @@
             @endif
         </div>
     </div>
+    @php
+        // Tarea de la lección de contactos que dejó "para más tarde"
+        $lecTarea = collect(\App\Support\CursoAsesor::lecciones())->filter(fn ($l) => ($l['tarea'] ?? null) === 'contactos')->keys()->first();
+        $tareaPend = $lecTarea && in_array($lecTarea, array_map('intval', (array) ($yoA->curso_modulos ?? [])), true) && !\App\Http\Controllers\cursoController::tareaHecha($yoA);
+    @endphp
+    @if ($tareaPend)
+    <div class="lp-box mb-3 d-flex align-items-center gap-3 flex-wrap" style="border:2px dashed #f5b544;background:#fffdf3">
+        <div style="font-size:1.7rem">📌</div>
+        <div class="flex-fill"><b>Pendiente: subir sus contactos</b>
+            <div class="text-muted small">Suba sus contactos y escríbale a {{ \App\Support\CursoAsesor::TAREA_MINIMO }} personas.</div></div>
+        <a href="{{ route('asesor.contactos') }}" class="btn btn-warning fw-bold"><i class="fa-solid fa-address-book me-1"></i>Hacerlo ahora</a>
+    </div>
+    @endif
     @endif
 
     {{-- Contabilidad: retenciones e IVA (también para el asesor, sin negocio aparte) --}}
