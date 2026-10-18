@@ -39,7 +39,13 @@
 
     <form method="post" action="{{ route('curso.completar', $n) }}">
         @csrf
-        <button class="btn btn-g btn-block" @if (!empty($tarea) && !$tarea['hecha']) disabled style="opacity:.45;cursor:not-allowed" @endif>{{ $n < $total ? 'Entendido, siguiente lección' : 'Entendido, ir al examen' }} <i class="fa-solid fa-arrow-right"></i></button>
+        @if (!empty($tarea) && !$tarea['hecha'])
+        <input type="hidden" name="despues" value="1">
+        <button class="btn btn-g btn-block"><i class="fa-solid fa-check"></i> Entendí la lección, continuar y subir más tarde</button>
+        <p style="text-align:center;color:var(--mut);font-size:.88rem;font-weight:600;margin:8px 0 0">La lección queda aprobada. Subir sus contactos le queda como <b>pendiente</b> en su panel, para cuando usted quiera.</p>
+        @else
+        <button class="btn btn-g btn-block">{{ $n < $total ? 'Entendido, siguiente lección' : 'Entendido, ir al examen' }} <i class="fa-solid fa-arrow-right"></i></button>
+        @endif
     </form>
     <div style="text-align:center;margin-top:12px"><a href="{{ $n > 1 ? route('curso.leccion', $n - 1) : route('curso.index') }}" style="color:var(--mut);font-weight:700;text-decoration:none"><i class="fa-solid fa-arrow-left"></i> {{ $n > 1 ? 'Lección anterior' : 'Volver al curso' }}</a></div>
 </div>
