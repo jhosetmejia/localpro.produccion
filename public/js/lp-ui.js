@@ -279,6 +279,7 @@
         document.removeEventListener('keydown', a.tecla, true);
         window.removeEventListener('resize', a.ubicar);
         window.removeEventListener('scroll', a.alScroll, true);
+        if (window.visualViewport && a.teclado) { window.visualViewport.removeEventListener('resize', a.teclado); window.visualViewport.removeEventListener('scroll', a.teclado); }
         a.ov.classList.remove('on');
         setTimeout(function () { a.ov.remove(); }, 180);
         if (devolverFoco) a.b.focus({ preventScroll: true });
@@ -322,7 +323,7 @@
         });
 
         var act = -1;
-        function visibles() { return items.filter(function (it) { return it.style.display !== 'none' && it.__ok; }); }
+        function visibles() { return [].filter.call(lista.querySelectorAll('.lps-i'), function (it) { return it.style.display !== 'none' && it.__ok; }); }
         function marcar(n, mover) {
             var v = visibles(); if (!v.length) { act = -1; return; }
             act = Math.max(0, Math.min(n, v.length - 1));
@@ -331,9 +332,25 @@
             if (mover) v[act].scrollIntoView({ block: 'nearest' });
         }
         var mas = el('div', 'lps-v'); mas.style.display = 'none'; mas.style.padding = '.6rem'; p.appendChild(mas);
+        // Al buscar, primero lo que empieza con lo escrito (ej. "Na" → Nariño), luego inicio de palabra y luego el resto
+        var sinGrupos = !lista.querySelector('.lps-g');
+        function puntaje(it, t) {
+            var k = it.__k, i = k.indexOf(t);
+            if (i === 0) return 0;
+            if (i > 0 && /[\s(\-.,/]/.test(k.charAt(i - 1))) return 1;
+            return 2;
+        }
+        function ordenar(t) {
+            if (!sinGrupos) return;
+            var orden = items.slice();
+            if (t) orden.sort(function (a, b) { return (puntaje(a, t) - puntaje(b, t)) || (a.__i - b.__i); });
+            orden.forEach(function (it) { lista.appendChild(it); });
+        }
         function filtrar() {
             var t = q ? plano(q.value.trim()) : '', n = 0, cabs = [], tot = 0;
-            items.forEach(function (it) {
+            ordenar(t);
+            var lista2 = sinGrupos ? [].slice.call(lista.children) : items;
+            lista2.forEach(function (it) {
                 var ok = !t || it.__k.indexOf(t) !== -1;
                 if (ok) tot++;
                 // Con data-max solo se muestran unos pocos (la opción elegida siempre) y se busca para ver más
@@ -366,8 +383,16 @@
         ov.addEventListener('mousedown', function (e) { if (e.target === ov) { e.preventDefault(); cerrarSel(true); } });
         ov.addEventListener('touchstart', function (e) { if (e.target === ov) { e.preventDefault(); cerrarSel(false); } }, { passive: false });
 
+        // En el celular el teclado tapa la parte de abajo: la hoja se sube justo encima del teclado
+        function ajustarTeclado() {
+            var vv = window.visualViewport;
+            if (!movil || !vv) return;
+            var tapado = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
+            p.style.setProperty('bottom', tapado + 'px', 'important');
+            p.style.setProperty('max-height', Math.round(vv.height * 0.85) + 'px', 'important');
+        }
         function ubicar() {
-            if (movil) return;
+            if (movil) { ajustarTeclado(); return; }
             var r = b.getBoundingClientRect(), vh = window.innerHeight, vw = window.innerWidth;
             var ancho = Math.min(Math.max(r.width, 240), vw - 16);
             var izq = Math.min(Math.max(8, r.left), vw - ancho - 8);
@@ -388,11 +413,12 @@
         }
 
         ov.appendChild(p); document.body.appendChild(ov);
-        selAbierto = { ov: ov, b: b, tecla: tecla, ubicar: ubicar, alScroll: alScroll };
+        selAbierto = { ov: ov, b: b, tecla: tecla, ubicar: ubicar, alScroll: alScroll, teclado: ajustarTeclado };
         b.setAttribute('aria-expanded', 'true');
         document.addEventListener('keydown', tecla, true);
         window.addEventListener('resize', ubicar);
         window.addEventListener('scroll', alScroll, true);
+        if (window.visualViewport) { window.visualViewport.addEventListener('resize', ajustarTeclado); window.visualViewport.addEventListener('scroll', ajustarTeclado); }
         ubicar();
         if (q && letra) q.value = letra;
         filtrar();
