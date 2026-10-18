@@ -156,7 +156,10 @@ class cursoController extends Controller
         $request->session()->put('curso_examen', $ids);
         $banco = CursoAsesor::preguntas();
 
+        [$guia, $waRecorrido] = $this->guia($a, 'ya terminé el recorrido del curso de LocalPro 🚀 (' . count(CursoAsesor::lecciones()) . ' lecciones). Ahora voy por la prueba.');
+
         return view('curso.examen', $this->comunes($a) + [
+            'guia' => $guia, 'waRecorrido' => $waRecorrido,
             'preguntas' => array_map(fn ($id) => ['id' => $id] + array_combine(['p', 'o', 'c'], $banco[$id]), $ids),
             'minima' => CursoAsesor::notaMinima(),
         ]);
@@ -234,27 +237,12 @@ class cursoController extends Controller
         if (!$a) return redirect()->route('panel');
         if (!$a->curso_aprobado_at) return redirect()->route('curso.index');
 
-        $enlace = null;
-        $whatsapp = null;
-        $reclutador = null;
-        if (!$this->esAdmin($a)) {
-            $a->load('user', 'reclutador.user');
-            $enlace = route('prueba.ver', $a->codigo);
-            $reclutador = $a->reclutador;
-            // Número de quien lo invitó; si lo invitó LocalPro, el WhatsApp de soporte
-            $tel = $reclutador?->user?->telefono ?: \App\Models\Ajuste::valor('soporte_whatsapp');
-            $tel = preg_replace('/\D/', '', (string) $tel);
-            if ($tel !== '') {
-                $ind = \App\Support\Paises::datos(($reclutador?->pais) ?: ($a->pais ?: 'CO'))['indicativo'] ?? '57';
-                $whatsapp = str_starts_with($tel, $ind) && strlen($tel) > 10 ? $tel : $ind . ltrim($tel, '0');
-            }
-        }
-        $saludo = $reclutador ? 'Hola ' . strtok($reclutador->nombre, ' ') : 'Hola';
-        $mensaje = $saludo . ', ya pasé la prueba básica de LocalPro ✅ Este es mi resultado: ' . ($enlace ?? route('curso.resultado'));
+        $enlace = $this->esAdmin($a) ? null : route('prueba.ver', $a->codigo);
+        [$reclutador, $wa] = $this->guia($a, 'ya pasé la prueba básica de LocalPro ✅ ¡Misión cumplida! Este es mi resultado: ' . ($enlace ?? route('curso.resultado')));
 
         return view('curso.resultado', $this->comunes($a) + [
             'a' => $a, 'enlace' => $enlace, 'reclutador' => $reclutador, 'felicitar' => session('felicitar'),
-            'wa' => 'https://wa.me/' . ($whatsapp ?? '') . '?text=' . rawurlencode($mensaje),
+            'wa' => $wa,
         ]);
     }
 
@@ -281,6 +269,27 @@ class cursoController extends Controller
         $a = Asesor::with('user')->where('certificado', strtoupper($codigo))->whereNotNull('curso_aprobado_at')->first();
         abort_unless($a, 404, 'Este certificado no existe.');
         return view('curso.certificado', ['a' => $a, 'propio' => false, 'felicitar' => false, 'admin' => false, 'panel' => url('/')]);
+    }
+
+    /**
+     * Su guía (quien lo invitó) y el enlace de WhatsApp para avisarle con el mensaje dado.
+     * Si lo invitó LocalPro, va al WhatsApp de soporte.
+     */
+    private function guia(Asesor $a, string $texto): array
+    {
+        $whatsapp = '';
+        $reclutador = null;
+        if (!$this->esAdmin($a)) {
+            $a->loadMissing('user', 'reclutador.user');
+            $reclutador = $a->reclutador;
+            $tel = preg_replace('/\D/', '', (string) ($reclutador?->user?->telefono ?: \App\Models\Ajuste::valor('soporte_whatsapp')));
+            if ($tel !== '') {
+                $ind = \App\Support\Paises::datos(($reclutador?->pais) ?: ($a->pais ?: 'CO'))['indicativo'] ?? '57';
+                $whatsapp = str_starts_with($tel, $ind) && strlen($tel) > 10 ? $tel : $ind . ltrim($tel, '0');
+            }
+        }
+        $saludo = $reclutador ? 'Hola ' . strtok($reclutador->nombre, ' ') : 'Hola';
+        return [$reclutador, 'https://wa.me/' . $whatsapp . '?text=' . rawurlencode($saludo . ', ' . $texto)];
     }
 
     private static function nuevoCertificado(): string
