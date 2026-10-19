@@ -146,12 +146,12 @@
         <table class="tabla">
             <thead><tr><th>Quién gana</th><th>Negocio nuevo</th><th>Cada renovación</th></tr></thead>
             <tbody>
-            @foreach (['venta' => 'Quien inscribe el negocio', 'lider_zona' => 'Líder de zona', 'lider_ciudad' => 'Líder de ciudad', 'lider_departamento' => 'Líder de departamento', 'lider_pais' => 'Líder de país'] as $k => $n)
+            @foreach (['venta' => 'Quien inscribe el negocio', 'arriba' => 'Quien sumó a ese asesor', 'lider_zona' => 'Líder de zona', 'lider_ciudad' => 'Líder de ciudad', 'lider_departamento' => 'Líder de departamento', 'lider_pais' => 'Líder de país'] as $k => $n)
                 <tr><td><b>{{ $n }}</b></td><td>{{ \App\Support\Moneda::formato($valores['nueva'][$k], $valores['moneda']) }}</td><td>{{ \App\Support\Moneda::formato($valores['renovacion'][$k], $valores['moneda']) }}</td></tr>
             @endforeach
             </tbody>
         </table>
-        <p class="note" style="margin-top:10px">Si un líder inscribe un negocio él mismo, gana lo de quien inscribe más lo de su cargo y lo de los cargos de abajo.</p>
+        <p class="note" style="margin-top:10px">Si un líder inscribe un negocio él mismo, gana lo de quien inscribe más lo de su cargo y lo de los cargos de abajo. Para cobrar hay que estar activo: mínimo una venta nueva en los últimos {{ \App\Support\Comisiones::DIAS_ACTIVO }} días.</p>
     </div>
 
     <div class="cta">
@@ -192,7 +192,9 @@
         if (rol >= 4) red = red * c;
         if (rol >= 5) red = red * d;
 
-        var mesNuevo = p * propio(N) + red * deCargo(N);
+        // Quien sumó al asesor gana su parte por cada negocio nuevo de sus asesores directos
+        var directos = rol >= 2 ? a * k : 0;
+        var mesNuevo = p * propio(N) + red * deCargo(N) + directos * (+N.arriba || 0);
         var mesRenov = (p * propio(R) + red * deCargo(R)) * ren;
         var meses = [];
         for (var m = 1; m <= 24; m++) meses.push(mesNuevo + (m > 12 ? mesRenov : 0));

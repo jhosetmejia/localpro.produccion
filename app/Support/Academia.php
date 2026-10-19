@@ -103,7 +103,7 @@ class Academia
                     ], 'tip' => null],
                     ['titulo' => 'De prueba gratis a plan anual', 'min' => 3, 'accion' => ['asesor.index', 'Ver mis negocios'], 'contenido' => [
                         'La prueba dura 3 meses. Llame o visite al negocio en la <b>semana 1</b> (que esté usando), en el <b>mes 2</b> (que vea sus reportes) y <b>2 semanas antes</b> de que termine.',
-                        "Cuando el negocio paga el plan anual cuenta como <b>venta nueva</b>: usted gana <b>$com</b>, y cada año que renueve gana <b>$renov</b> de por vida mientras usted y el negocio sigan activos.",
+                        "Cuando el negocio paga el plan anual cuenta como <b>venta nueva</b>: usted gana <b>$com</b>, y cada año que renueve gana <b>$renov</b> de por vida. Para cobrar debe hacer mínimo una venta nueva cada mes.",
                         'Cobre con el botón <b>Cobrar</b> de Mis negocios: le llega al negocio un enlace para pagar con tarjeta, PSE o Nequi.',
                     ], 'tip' => 'El negocio que ve su ganancia en el panel se renueva solo. Ayúdelo a poner los costos de sus productos.'],
                 ],
@@ -130,7 +130,7 @@ class Academia
                     ['titulo' => 'Cómo se sube de rango', 'min' => 2, 'accion' => ['asesor.index', 'Ver mi avance'], 'contenido' => [
                         'Para subir de rango necesita negocios que <b>pagaron su plan anual</b> y asesores que usted sumó y están activos. Su barra de avance está en el panel.',
                         'Las pruebas gratis no cuentan hasta que el negocio paga.',
-                        'Al subir, gana una parte de las ventas y renovaciones de su equipo. Recuerde: para cobrar comisiones debe tener al menos un negocio con pago.',
+                        'Por cada negocio nuevo que venda alguien que usted sumó gana una comisión, y al subir gana también por las renovaciones de su equipo. Recuerde: para cobrar debe hacer mínimo una venta nueva cada mes.',
                     ], 'tip' => null],
                 ],
                 'prueba' => [

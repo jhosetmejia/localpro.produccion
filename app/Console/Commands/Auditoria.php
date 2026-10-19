@@ -202,11 +202,8 @@ class Auditoria extends Command
         $this->revisar('Asesores sin usuario (no pueden entrar)', fn () => Asesor::whereNotIn('user_id', User::pluck('id'))->get(), true, fn ($a) => $a->codigo);
         $this->revisar('Asesores activos sin el curso aprobado (no entran a su panel)', fn () => Asesor::where('estado', 'activo')->whereNull('curso_aprobado_at')->get(), false, fn ($a) => "$a->codigo $a->nombre");
         $this->revisar('Asesores activos sin cuenta para pagarles', fn () => Asesor::where('activo', true)->where(fn ($q) => $q->whereNull('banco')->orWhere('banco', ''))->get(), false, fn ($a) => "$a->codigo $a->nombre");
-        $this->revisar('Asesores activos sin ningún negocio con pago (por regla no reciben comisión)', function () {
-            $conPago = \App\Models\PagoSuscripcion::where('estado', 'aprobado')->where('monto', '>', 0)->where('referencia', 'not like', \App\Models\PagoSuscripcion::PREFIJO_PRUEBA . '%')->pluck('tienda_id');
-            $asesoresConPago = Tienda::whereIn('id', $conPago)->whereNotNull('asesor_id')->pluck('asesor_id')->unique();
-            return Asesor::where('activo', true)->whereNotIn('id', $asesoresConPago)->get();
-        }, false, fn ($a) => "$a->codigo $a->nombre");
+        $this->revisar('Asesores activos sin venta nueva en los últimos ' . \App\Support\Comisiones::DIAS_ACTIVO . ' días (su parte queda para LocalPro)',
+            fn () => Asesor::where('activo', true)->get()->reject(fn ($a) => \App\Support\Comisiones::vendioEsteMes($a)), false, fn ($a) => "$a->codigo $a->nombre");
         $this->revisar('Líderes de zona con más de ' . Asesor::MAX_ASESORES_ZONA . ' asesores', fn () => Asesor::where('cargo', 'lider_zona')->get()->filter(fn ($l) => Asesor::where('padre_id', $l->id)->where('activo', true)->count() > Asesor::MAX_ASESORES_ZONA), true, fn ($a) => "$a->codigo $a->nombre");
         $this->revisar('Asesores cuyo líder no existe', fn () => Asesor::whereNotNull('padre_id')->whereNotIn('padre_id', Asesor::pluck('id'))->get(), true, fn ($a) => "$a->codigo $a->nombre");
         $this->revisar('Aspirantes estancados en el curso más de 7 días', fn () => Asesor::where('estado', 'capacitacion')->where('created_at', '<', now()->subDays(7))->get(), false, fn ($a) => "$a->codigo $a->nombre");

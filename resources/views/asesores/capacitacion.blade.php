@@ -256,7 +256,7 @@
 
     @php
         $renAsesor = (float) $valores['renovacion']['venta'];
-        $comZona = (float) $valores['nueva']['lider_zona'];
+        $comArriba = (float) $valores['nueva']['arriba'];
         $renZona = (float) $valores['renovacion']['lider_zona'];
         $enlaceRed = $yo?->enlace_reclutar;
     @endphp
@@ -269,7 +269,7 @@
         <div class="red3">
             <div><span class="num">10</span><b>Negocios o emprendedores</b><span>Inscríbelos con tu enlace de negocios. Cada uno que pague su plan anual te deja {{ $f($com) }} y luego {{ $f($renAsesor) }} cada año que renueve.</span></div>
             <div><span class="num">10</span><b>Asesores en tu equipo</b><span>Invítalos con tu enlace de asesores: solo llenan datos básicos, pasan una prueba corta y quedan en tu red automáticamente.</span></div>
-            <div><span class="num">🏆</span><b>Subes de rango</b><span>Con 10 negocios pagos + 10 asesores activos, LocalPro te sube a Líder de zona y ganas por cada venta de tu equipo.</span></div>
+            <div><span class="num">🏆</span><b>Subes de rango</b><span>Por cada negocio nuevo que venda alguien que tú sumaste ganas {{ $f($comArriba) }}. Con 10 negocios pagos + 10 asesores activos, LocalPro te sube a Líder de zona y ganas por cada renovación de tu equipo.</span></div>
         </div>
 
         @if ($enlaceRed)
@@ -293,7 +293,7 @@
 
         <div class="donde">📍 <b>¿Dónde encuentro mis enlaces después?</b> Entra a <b>Mi panel</b> de asesor: ahí están siempre en los cuadros <b>"Su enlace para inscribir negocios"</b> y <b>"Suma asesores a tu equipo"</b>, con botones para copiar y compartir por WhatsApp. También los encuentras aquí, en esta capacitación.</div>
 
-        <div class="ingreso">💚 <b>Un ingreso continuo de por vida.</b> Mientras tus negocios sigan vinculados a LocalPro y tú estés activo, cada año que renuevan te dejan {{ $f($renAsesor) }} por negocio, y como líder de zona {{ $f($comZona) }} por cada venta nueva de tu equipo y {{ $f($renZona) }} por cada renovación. Ejemplo: si tus 10 asesores inscriben 10 negocios cada uno, son 100 negocios en tu red trabajando para ti.</div>
+        <div class="ingreso">💚 <b>Un ingreso continuo de por vida.</b> Mientras tus negocios sigan vinculados a LocalPro y tú estés activo, cada año que renuevan te dejan {{ $f($renAsesor) }} por negocio; por cada negocio nuevo que venda alguien que tú sumaste ganas {{ $f($comArriba) }}, y como líder de zona {{ $f($renZona) }} por cada renovación de tu equipo. Ejemplo: si tus 10 asesores inscriben 10 negocios cada uno, son 100 negocios en tu red trabajando para ti.</div>
     </section>
 
     <section class="card" id="crecer">
@@ -302,8 +302,8 @@
         <table class="tabla">
             <thead><tr><th>Quién gana</th><th>Negocio nuevo</th><th>Cada renovación</th></tr></thead>
             <tbody>
-            @foreach (['venta' => 'Quien inscribe el negocio', 'lider_zona' => 'Líder de zona', 'lider_ciudad' => 'Líder de ciudad', 'lider_departamento' => 'Líder de departamento', 'lider_pais' => 'Líder de país'] as $k => $n)
-                <tr><td><b>{{ $n }}</b></td><td>{{ $f($valores['nueva'][$k]) }}</td><td>{{ $f($valores['renovacion'][$k]) }}</td></tr>
+            @foreach (['venta' => 'Quien inscribe el negocio', 'arriba' => 'Quien sumó a ese asesor', 'lider_zona' => 'Líder de zona', 'lider_ciudad' => 'Líder de ciudad', 'lider_departamento' => 'Líder de departamento', 'lider_pais' => 'Líder de país'] as $k => $n)
+                <tr><td><b>{{ $n }}</b></td><td>{{ (float) $valores['nueva'][$k] > 0 ? $f($valores['nueva'][$k]) : '—' }}</td><td>{{ (float) $valores['renovacion'][$k] > 0 ? $f($valores['renovacion'][$k]) : '—' }}</td></tr>
             @endforeach
             </tbody>
         </table>
@@ -312,7 +312,7 @@
             <li>Las pruebas gratis cuentan cuando el negocio <b>paga</b> su plan anual: ahí ganas tu comisión completa.</li>
             <li>Un líder de zona maneja hasta 10 asesores de su comuna.</li>
         </ul>
-        <div class="regla">⚠️ Para estar activo y recibir comisiones debes tener al menos un negocio con pago. Si no, la comisión queda para LocalPro.</div>
+        <div class="regla">⚠️ Para recibir comisiones debes estar activo: mínimo <b>una venta nueva en los últimos {{ \App\Support\Comisiones::DIAS_ACTIVO }} días</b>. Si ese mes no vendiste, tu parte queda para LocalPro. Vale para todos: asesores y líderes.</div>
     </section>
 
     <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:24px 0 32px">

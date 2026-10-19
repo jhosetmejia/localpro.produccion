@@ -103,12 +103,13 @@
     <details class="lp-box" open>
         <summary class="fw-bold" style="cursor:pointer;font-size:1.05rem"><i class="fa-solid fa-sliders me-1" style="color:#16b34a"></i> Valores de comisión</summary>
         @php
-            $filas = ['venta' => ['Asesor que vende', 'venta'], 'lider_zona' => ['Líder de zona', 'zona'], 'lider_ciudad' => ['Líder de ciudad', 'ciudad'], 'lider_departamento' => ['Líder de departamento', 'departamento'], 'lider_pais' => ['Líder de país', 'pais']];
+            $filas = ['venta' => ['Asesor que vende', 'venta'], 'arriba' => ['El de arriba (quien lo sumó)', 'arriba'], 'lider_zona' => ['Líder de zona', 'zona'], 'lider_ciudad' => ['Líder de ciudad', 'ciudad'], 'lider_departamento' => ['Líder de departamento', 'departamento'], 'lider_pais' => ['Líder de país', 'pais']];
             $resto = fn ($t) => $valores['valor_plan'] - array_sum($valores[$t]);
         @endphp
         <form method="post" action="{{ route('admin.red.valores') }}" class="mt-2" id="fValores">
             @csrf
-            <div class="small fw-bold mb-2" style="color:#11702f"><i class="fa-solid fa-circle-info me-1"></i>Solo el plan anual paga comisión. Mensualidades y servicios adicionales son 100% para LocalPro. La renovación se paga cada año, de por vida, mientras el negocio y el asesor sigan activos.</div>
+            <div class="small fw-bold mb-2" style="color:#11702f"><i class="fa-solid fa-circle-info me-1"></i>Solo el plan anual paga comisión. Mensualidades y servicios adicionales son 100% para LocalPro. Son valores fijos: si sube el precio del plan, la diferencia queda para LocalPro. La renovación se paga cada año, de por vida.</div>
+            <div class="small fw-bold mb-2" style="color:#8a6400;background:#fff5d6;border-radius:12px;padding:.5rem .75rem"><i class="fa-solid fa-triangle-exclamation me-1"></i>Para cobrar, cada persona debe estar activa: mínimo <b>una venta nueva en los últimos {{ \App\Support\Comisiones::DIAS_ACTIVO }} días</b>. Si no, su parte queda para LocalPro.</div>
             <div class="row g-2 align-items-end mb-3">
                 <div class="col-6 col-md-4"><label class="form-label">Meta para subir: negocios pagados</label><input type="number" min="1" name="red_meta_negocios" class="form-control" value="{{ $metas['negocios'] }}"></div>
                 <div class="col-6 col-md-4"><label class="form-label">Meta para subir: asesores sumados</label><input type="number" min="0" name="red_meta_asesores" class="form-control" value="{{ $metas['asesores'] }}"></div>
@@ -147,7 +148,7 @@
                     .rv-f label small{display:block;margin-bottom:2px}
                 }
             </style>
-            <div class="small text-muted mb-3">Si un líder vende directamente, cobra la parte de asesor más la de su cargo y las de los cargos de abajo. Si un cargo está vacío o inactivo, esa parte queda para LocalPro. Un líder de zona maneja máximo {{ \App\Models\Asesor::MAX_ASESORES_ZONA }} asesores.</div>
+            <div class="small text-muted mb-3">"El de arriba" es quien sumó al asesor a la red (si no hay, su líder directo). Si un líder vende directamente, cobra la parte de asesor más la de su cargo y las de los cargos de abajo. Si un cargo está vacío o inactivo, esa parte queda para LocalPro. Un líder de zona maneja máximo {{ \App\Models\Asesor::MAX_ASESORES_ZONA }} asesores.</div>
             <button class="btn btn-dark">Guardar valores</button>
         </form>
         <script>

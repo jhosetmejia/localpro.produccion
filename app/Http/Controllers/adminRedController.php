@@ -19,8 +19,8 @@ use Illuminate\Validation\Rule;
 class adminRedController extends Controller
 {
     public const CLAVES_VALOR = [
-        'red_nueva_venta', 'red_nueva_zona', 'red_nueva_ciudad', 'red_nueva_departamento', 'red_nueva_pais',
-        'red_renov_venta', 'red_renov_zona', 'red_renov_ciudad', 'red_renov_departamento', 'red_renov_pais',
+        'red_nueva_venta', 'red_nueva_arriba', 'red_nueva_zona', 'red_nueva_ciudad', 'red_nueva_departamento', 'red_nueva_pais',
+        'red_renov_venta', 'red_renov_arriba', 'red_renov_zona', 'red_renov_ciudad', 'red_renov_departamento', 'red_renov_pais',
     ];
 
     public function index(Request $request)

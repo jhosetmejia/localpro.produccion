@@ -14,6 +14,7 @@ class Comision extends Model
 
     public const CONCEPTOS = [
         'venta' => 'Por su venta',
+        'arriba' => 'Por la venta de alguien que usted sumó',
         'lider_zona' => 'Como líder de zona',
         'lider_ciudad' => 'Como líder de ciudad',
         'lider_departamento' => 'Como líder de departamento',

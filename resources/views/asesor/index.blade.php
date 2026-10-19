@@ -39,7 +39,7 @@
             @if ($rp->mi_comision > 0)
             <div class="text-end"><div class="small text-muted">Usted gana</div><div class="fw-bold" style="font-size:1.35rem;color:#11702f">{{ \App\Support\Moneda::formato($rp->mi_comision, $rp->moneda ?: 'COP') }}</div></div>
             @else
-            <div class="small text-muted" style="max-width:260px">Este pago no le generó comisión (solo el plan anual paga, y usted debe estar activo con al menos un negocio con pago).</div>
+            <div class="small text-muted" style="max-width:260px">Este pago no le generó comisión (solo el plan anual paga, y usted debe estar activo: mínimo una venta nueva en los últimos {{ \App\Support\Comisiones::DIAS_ACTIVO }} días).</div>
             @endif
         </div>
     </div>
@@ -155,7 +155,7 @@
     <div class="lp-box mb-3">
         <h3><span><i class="fa-solid fa-link me-1"></i> Su enlace para inscribir negocios</span></h3>
         <p class="text-muted small mb-2">El negocio que se registre con este enlace, o escriba su código <b>{{ $yo->codigo }}</b>, queda a su nombre y usted gana la comisión cuando pague su plan anual.</p>
-        <p class="small mb-2" style="color:#8a6400;background:#fff5d6;border-radius:12px;padding:.5rem .75rem"><i class="fa-solid fa-circle-info me-1"></i>Para seguir activo y recibir comisiones debe tener <b>al menos un negocio con pago</b>. Si no, la comisión queda para LocalPro.</p>
+        <p class="small mb-2" style="color:#8a6400;background:#fff5d6;border-radius:12px;padding:.5rem .75rem"><i class="fa-solid fa-circle-info me-1"></i>Para recibir comisiones debe estar activo: mínimo <b>una venta nueva en los últimos {{ \App\Support\Comisiones::DIAS_ACTIVO }} días</b>. Si ese mes no vende, su parte queda para LocalPro.</p>
         <div class="lp-link">
             <code id="miEnlace">{{ $yo->enlace }}</code>
             <button type="button" class="btn btn-dark btn-sm" onclick="navigator.clipboard && navigator.clipboard.writeText(document.getElementById('miEnlace').textContent.trim()); LP.toast('Enlace copiado')"><i class="fa-regular fa-copy me-1"></i>Copiar</button>
