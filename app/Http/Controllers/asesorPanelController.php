@@ -14,13 +14,15 @@ class asesorPanelController extends Controller
     {
         $yo = $request->attributes->get('asesor')->load('user', 'padre.user');
         $ids = array_keys($yo->arbolVisible());
-        $comisiones = Comision::where('asesor_id', $yo->id);
+        // Sus sumas van en su moneda (Venezuela: dólares). Cada comisión guarda la moneda en que se generó.
+        $moneda = $yo->moneda;
+        $comisiones = Comision::where('asesor_id', $yo->id)->where('moneda', $moneda);
         $negocios = Tienda::with('plan')->where('asesor_id', $yo->id)->latest()->get();
 
         // ----- Mis ganancias del mes (motivación: meta = salario mínimo) -----
-        $cfg = \App\Support\Comisiones::valores();
+        $cfg = \App\Support\Comisiones::valores($moneda);
         $porVenta = (float) $cfg['nueva']['venta'];
-        $salario = (float) \App\Models\Ajuste::valor('red_salario_minimo', 1750000);
+        $salario = \App\Support\Comisiones::salario($moneda);
         $mes = (float) (clone $comisiones)->where('estado', '<>', 'anulada')->where('created_at', '>=', now()->startOfMonth())->sum('monto');
         $ventasMes = (int) (clone $comisiones)->where('estado', '<>', 'anulada')->where('concepto', 'venta')->where('tipo', 'nueva')->where('created_at', '>=', now()->startOfMonth())->count();
         $diasMes = now()->daysInMonth; $hoy = now()->day;
@@ -33,14 +35,14 @@ class asesorPanelController extends Controller
             'faltan' => $faltan,
             'ventasFaltan' => $porVenta > 0 ? (int) ceil($faltan / $porVenta) : 0,
             'porVenta' => $porVenta,
-            'proyeccion' => $hoy > 0 ? round($mes / $hoy * $diasMes, -3) : 0,
+            'proyeccion' => $hoy > 0 ? round($mes / $hoy * $diasMes, \App\Support\Moneda::esUsd($moneda) ? 0 : -3) : 0,
             'diasRestantes' => $diasMes - $hoy,
             'anio' => (float) (clone $comisiones)->where('estado', '<>', 'anulada')->where('created_at', '>=', now()->startOfYear())->sum('monto'),
         ];
 
         // Lo que ya ganó por cada negocio, y quiénes ya pagaron (los pagos de prueba no cuentan)
         $porNegocio = Comision::where('asesor_id', $yo->id)->where('estado', '<>', 'anulada')
-            ->selectRaw("tienda_id, SUM(monto) total, SUM(CASE WHEN estado = 'pendiente' THEN monto ELSE 0 END) pendiente")
+            ->selectRaw("tienda_id, MAX(moneda) moneda, SUM(monto) total, SUM(CASE WHEN estado = 'pendiente' THEN monto ELSE 0 END) pendiente")
             ->groupBy('tienda_id')->get()->keyBy('tienda_id');
         $real = fn ($q) => $q->where('estado', 'aprobado')->where('monto', '>', 0)
             ->where('referencia', 'not like', \App\Models\PagoSuscripcion::PREFIJO_PRUEBA . '%');
@@ -52,7 +54,11 @@ class asesorPanelController extends Controller
             ->where('updated_at', '>=', now()->subDays(7)))->latest('updated_at')->take(5)->get()
             ->each(fn ($p) => $p->mi_comision = (float) Comision::where('pago_suscripcion_id', $p->id)->where('asesor_id', $yo->id)->where('estado', '<>', 'anulada')->sum('monto'));
 
+        // Lo que gana por cada negocio que aún no paga, en la moneda en que ese negocio paga
+        $porVentaNegocio = fn ($t) => (float) \App\Support\Comisiones::valores($t->moneda_cobro)['nueva']['venta'];
+
         return view('asesor.index', [
+            'porVentaNegocio' => $porVentaNegocio,
             'ganancias' => $ganancias,
             'porNegocio' => $porNegocio,
             'pagaron' => $pagaron,

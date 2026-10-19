@@ -67,6 +67,7 @@ class CrearTienda
             'AR' => [['Efectivo', true], ['Mercado Pago', false], ['Transferencia', false], ['Tarjeta', false]],
             'CL' => [['Efectivo', true], ['Transferencia', false], ['Tarjeta', false]],
             'EC' => [['Efectivo', true], ['DeUna', false], ['Transferencia', false], ['Tarjeta', false]],
+            'VE' => [['Efectivo (dólares)', true], ['Pago Móvil', false], ['Zelle', false], ['Binance', false], ['Transferencia', false], ['Tarjeta', false]],
             default => [['Efectivo', true], ['Transferencia', false], ['Tarjeta', false]],
         };
     }

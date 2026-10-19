@@ -3,7 +3,7 @@
 @section('title', $a->nombre)
 
 @section('content')
-@php $f = fn ($v) => '$' . number_format((float) $v, 0, ',', '.'); @endphp
+@php $f = fn ($v) => $a->plata($v); /* moneda del asesor: dólares si es de Venezuela */ @endphp
 <div class="lp-dash">
     <div class="lp-hello">
         <div>
@@ -101,7 +101,7 @@
         <h3>Comisiones</h3>
         <ul class="lp-list">
             @forelse ($comisiones as $c)
-            <li><div class="av"><i class="fa-solid fa-coins"></i></div><div class="t"><b>{{ $f($c->monto) }} · {{ $c->tienda->nombre ?? '' }}</b><small>{{ $c->concepto_nombre }} · {{ $c->tipo === 'nueva' ? 'venta nueva' : 'renovación' }} · {{ $c->created_at->format('d/m/Y') }}{{ $c->pagada_at ? ' · pagada ' . $c->pagada_at->format('d/m/Y') : '' }}</small></div>
+            <li><div class="av"><i class="fa-solid fa-coins"></i></div><div class="t"><b>{{ $c->monto_texto }} · {{ $c->tienda->nombre ?? '' }}</b><small>{{ $c->concepto_nombre }} · {{ $c->tipo === 'nueva' ? 'venta nueva' : 'renovación' }} · {{ $c->created_at->format('d/m/Y') }}{{ $c->pagada_at ? ' · pagada ' . $c->pagada_at->format('d/m/Y') : '' }}</small></div>
                 <span class="badge {{ $c->estado === 'pagada' ? 'bg-success' : ($c->estado === 'pendiente' ? 'bg-warning text-dark' : 'bg-secondary') }}">{{ ucfirst($c->estado) }}</span></li>
             @empty
             <li class="lp-empty">Sin comisiones.</li>

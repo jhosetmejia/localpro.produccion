@@ -26,7 +26,7 @@
 
 @section('content')
 @php
-    $f = fn ($v) => '$' . number_format((float) $v, 0, ',', '.');
+    $f = fn ($v) => dinero($v);
     $estTxt = $s->estado === 'entregado' ? ['Entregado', '#2fd15a', '#0b0d0c'] : ($s->estado === 'cancelado' ? ['Cancelado', '#6b7570', '#fff'] : ($s->pagado ? ['✅ Pagado · listo para entregar', '#2fd15a', '#0b0d0c'] : ($s->vencido ? ['Vencido', '#ff5c9a', '#fff'] : ['Abonando', '#ffcf5c', '#0b0d0c'])));
     $ultimo = session('abono_nuevo') ? $s->abonos->firstWhere('id', session('abono_nuevo')) : null;
 @endphp

@@ -176,20 +176,21 @@ class Auditoria extends Command
     {
         $P = \App\Models\PagoSuscripcion::class;
         $prueba = \App\Models\PagoSuscripcion::PREFIJO_PRUEBA . '%';
-        $this->ok('Pagos aprobados: ' . $P::where('estado', 'aprobado')->count() . ' · recaudado (sin pruebas): $' . number_format((float) $P::where('estado', 'aprobado')->where('referencia', 'not like', $prueba)->sum('monto'), 0, ',', '.'));
+        $this->ok('Pagos aprobados: ' . $P::where('estado', 'aprobado')->count() . ' · recaudado (sin pruebas): $' . number_format((float) $P::where('estado', 'aprobado')->where('referencia', 'not like', $prueba)->sum(\App\Models\PagoSuscripcion::sqlEnCop()), 0, ',', '.') . ' (en pesos)');
         $this->revisar('Pagos de Wompi pendientes de hace más de 1 hora (¿corre el cron?)', fn () => $P::where('metodo', 'wompi')->where('estado', 'pendiente')->where('created_at', '<', now()->subHour())->where('created_at', '>', now()->subDays(3))->get(), false, fn ($p) => $p->referencia);
-        $this->revisar('Pagos aprobados cuyo valor no es el precio del plan (sin contar pruebas)', fn () => $P::with('plan')->where('estado', 'aprobado')->where('metodo', 'wompi')->where('referencia', 'not like', $prueba)->get()->filter(fn ($p) => $p->plan && (float) $p->monto !== (float) $p->plan->precio), false, fn ($p) => "$p->referencia $" . number_format($p->monto, 0, ',', '.'));
+        $this->revisar('Pagos aprobados cuyo valor no es el precio del plan (sin contar pruebas)', fn () => $P::with('plan')->where('estado', 'aprobado')->where('metodo', 'wompi')->where('referencia', 'not like', $prueba)->get()->filter(fn ($p) => $p->plan && round((float) $p->monto, 2) !== round($p->plan->precioEn($p->moneda ?: 'COP'), 2)), false, fn ($p) => "$p->referencia " . $p->monto_texto);
         $this->revisar('Pagos aprobados sin período (no extendieron el plan)', fn () => $P::where('estado', 'aprobado')->whereNull('periodo_desde')->get(), true, fn ($p) => $p->referencia);
         $this->revisar('Tiendas con pago anual aprobado y asesor activo pero SIN comisión generada', function () use ($P, $prueba) {
             return $P::with(['tienda.asesor', 'plan'])->where('estado', 'aprobado')->where('monto', '>', 0)->where('referencia', 'not like', $prueba)->get()
                 ->filter(fn ($p) => \App\Support\Comisiones::esAnual($p) && $p->tienda?->asesor?->activo
-                    && (float) $p->monto >= array_sum(\App\Support\Comisiones::valores()['nueva'])
+                    && (float) $p->monto >= array_sum(\App\Support\Comisiones::valores($p->moneda ?: 'COP')['nueva'])
                     && !\App\Models\Comision::where('pago_suscripcion_id', $p->id)->exists());
         }, true, fn ($p) => ($p->tienda->nombre ?? '') . ' ' . $p->referencia);
         $this->revisar('Comisiones de pagos de prueba (no deberían existir)', fn () => \App\Models\Comision::whereIn('pago_suscripcion_id', $P::where('referencia', 'like', $prueba)->pluck('id'))->get(), true, fn ($c) => "#$c->id");
-        $this->revisar('Comisiones pendientes de personas inactivas', fn () => \App\Models\Comision::with('asesor')->where('estado', 'pendiente')->whereIn('asesor_id', Asesor::where('activo', false)->pluck('id'))->get(), false, fn ($c) => ($c->asesor->nombre ?? '?') . ' $' . number_format($c->monto, 0, ',', '.'));
-        $pend = (float) \App\Models\Comision::where('estado', 'pendiente')->sum('monto');
-        $this->ok('Comisiones por pagar a la red: $' . number_format($pend, 0, ',', '.'));
+        $this->revisar('Comisiones pendientes de personas inactivas', fn () => \App\Models\Comision::with('asesor')->where('estado', 'pendiente')->whereIn('asesor_id', Asesor::where('activo', false)->pluck('id'))->get(), false, fn ($c) => ($c->asesor->nombre ?? '?') . ' ' . $c->monto_texto);
+        $pend = (float) \App\Models\Comision::where('estado', 'pendiente')->where('moneda', 'COP')->sum('monto');
+        $pendUsd = (float) \App\Models\Comision::where('estado', 'pendiente')->where('moneda', 'USD')->sum('monto');
+        $this->ok('Comisiones por pagar a la red: $' . number_format($pend, 0, ',', '.') . ($pendUsd > 0 ? ' + ' . \App\Support\Moneda::formato($pendUsd, 'USD', true) : ''));
     }
 
     // ---------------- 4. asesores ----------------

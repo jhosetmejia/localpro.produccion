@@ -29,7 +29,7 @@
 @endpush
 
 @section('content')
-@php $f = fn ($v) => '$' . number_format((float) $v, 0, ',', '.'); @endphp
+@php $f = fn ($v) => dinero($v); @endphp
 <div class="lp-dash">
     <div class="lp-hello">
         <div><small><i class="fa-solid fa-arrow-trend-down me-1"></i>Dinero que sale</small><h1><span>Egresos</span></h1>

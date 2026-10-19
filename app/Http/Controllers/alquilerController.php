@@ -197,7 +197,7 @@ class alquilerController extends Controller
     // Si con este pago queda pagado completo, se factura: el alquiler queda como venta y pasa a "Cobrado".
     public function abonar(Request $request, Alquiler $alquiler)
     {
-        $d = $request->validate(['monto' => 'required|numeric|min:1', 'metodo_id' => 'required|integer', 'nota' => 'nullable|string|max:255', 'referencia' => 'nullable|string|max:60'],
+        $d = $request->validate(['monto' => 'required|numeric|min:0.01', 'metodo_id' => 'required|integer', 'nota' => 'nullable|string|max:255', 'referencia' => 'nullable|string|max:60'],
             ['monto.required' => 'Escriba cuánto paga.', 'metodo_id.required' => 'Elija cómo le pagaron.']);
         if ($alquiler->cobrado) return back()->withErrors('Este alquiler ya está pagado y facturado.');
         if ($alquiler->estado === 'cancelado') return back()->withErrors('Este alquiler está cancelado.');

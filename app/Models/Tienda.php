@@ -214,6 +214,12 @@ class Tienda extends Model
         return \App\Support\Paises::datos($this->pais);
     }
 
+    // Moneda en que LocalPro le cobra el plan y paga las comisiones (USD para Venezuela, COP para los demás)
+    public function getMonedaCobroAttribute(): string
+    {
+        return \App\Support\Moneda::dePais($this->pais);
+    }
+
     public function getActivaAttribute(): bool
     {
         return $this->estado === 'activa';

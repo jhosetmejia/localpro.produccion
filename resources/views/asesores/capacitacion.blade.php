@@ -96,7 +96,8 @@
 
 @section('content')
 @php
-        $f = fn ($v) => '$' . number_format((float) $v, 0, ',', '.');
+        $mon = $valores['moneda'] ?? 'COP'; // dólares si el asesor es de Venezuela
+        $f = fn ($v) => \App\Support\Moneda::formato($v, $mon);
         $com = (float) $valores['nueva']['venta'];
         $plan = (float) $valores['valor_plan'];
         $planesSalario = $com > 0 ? (int) ceil($salario / $com) : 0;
@@ -166,7 +167,7 @@
             </ul>
         </div>
         <div class="regla" style="background:#fff8e6;color:#7a4b00;margin-bottom:10px">🔜 <b>Muy pronto:</b> recetas e insumos (restaurantes y panaderías) y fechas de vencimiento por lote (droguerías y alimentos). Si su cliente los necesita, inscríbalo ya con la prueba gratis.</div>
-        <p class="regla" style="background:#e8f8ec;color:#11702f">💡 Frase clave: <i>"Por solo {{ $f($plan) }} al año tiene su sistema de ventas con stock actualizado y además una página web de su tienda que aparece en Google. Por menos de {{ $f(ceil($plan / 12 / 100) * 100) }} al mes tienes tu negocio organizado y sabes cuánto ganas cada día."</i></p>
+        <p class="regla" style="background:#e8f8ec;color:#11702f">💡 Frase clave: <i>"Por solo {{ $f($plan) }} al año tiene su sistema de ventas con stock actualizado y además una página web de su tienda que aparece en Google. Por menos de {{ $f(\App\Support\Moneda::esUsd($mon) ? ceil($plan / 12 * 100) / 100 : ceil($plan / 12 / 100) * 100) }} al mes tienes tu negocio organizado y sabes cuánto ganas cada día."</i></p>
     </section>
 
     <section class="card" id="conjuntos">
@@ -213,7 +214,7 @@
                 ['Cuando se termina la prueba', "¡Hola {negocio}! 🙌 Ya llevas 3 meses usando LocalPro. Tu prueba gratis termina pronto.\n\nPara seguir con todo (ventas, inventario, caja y tu página web en Google) el plan anual es de {plan}, menos de {mes} al mes. Te mando el enlace para pagarlo en línea (tarjeta, PSE o Nequi) y queda activo de una vez. ¿Te lo envío?"],
                 ['Para sumar asesores a tu equipo', "¡Hola! Estoy trabajando con LocalPro y me está yendo muy bien. Ganas {comision} por cada negocio que inscribes y no necesitas invertir.\n\n¿Te gustaría trabajar conmigo? Te enseño todo. Inscríbete aquí: {enlace_equipo}"],
             ];
-            $rep = ['{nombre}' => $yo ? strtok($yo->nombre, ' ') : '(tu nombre)', '{plan}' => $f($plan), '{mes}' => $f(ceil($plan / 12 / 100) * 100), '{comision}' => $f($com), '{enlace_equipo}' => $yo?->enlace_reclutar ?? '(tu enlace)'];
+            $rep = ['{nombre}' => $yo ? strtok($yo->nombre, ' ') : '(tu nombre)', '{plan}' => $f($plan), '{mes}' => $f(\App\Support\Moneda::esUsd($mon) ? ceil($plan / 12 * 100) / 100 : ceil($plan / 12 / 100) * 100), '{comision}' => $f($com), '{enlace_equipo}' => $yo?->enlace_reclutar ?? '(tu enlace)'];
         @endphp
         @foreach ($guiones as $i => [$titulo, $texto])
         <div class="guion"><span class="t">{{ $titulo }}</span><span id="g{{ $i }}">{{ strtr($texto, $rep) }}</span>
@@ -225,7 +226,7 @@
     <section class="card" id="dudas">
         <h2><span class="n">🙋</span>Dudas frecuentes y qué responder</h2>
         @php $dudas = [
-            ['"Es muy caro."', 'Son ' . $f($plan) . ' al año: menos de ' . $f(ceil($plan / 12 / 100) * 100) . ' al mes. Con evitar una sola pérdida de mercancía o un error de caja ya se paga. Y los primeros 3 meses son gratis.'],
+            ['"Es muy caro."', 'Son ' . $f($plan) . ' al año: menos de ' . $f(\App\Support\Moneda::esUsd($mon) ? ceil($plan / 12 * 100) / 100 : ceil($plan / 12 / 100) * 100) . ' al mes. Con evitar una sola pérdida de mercancía o un error de caja ya se paga. Y los primeros 3 meses son gratis.'],
             ['"Yo lo anoto en un cuaderno."', 'El cuaderno no te dice qué se está acabando, cuánto ganaste hoy ni cuál es tu producto más vendido. LocalPro sí, y sin hacer cuentas.'],
             ['"No sé de tecnología."', 'Si sabes usar WhatsApp, sabes usar LocalPro. Yo te ayudo a subir tus primeros productos ahora mismo.'],
             ['"No tengo computador ni impresora."', 'Funciona en el celular. La factura se manda por WhatsApp; la impresora es opcional.'],
@@ -330,7 +331,7 @@
 <script>
 (function () {
     var COM = {{ (float) $com }}, SAL = {{ (float) $salario }};
-    var fmt = function (n) { return '$' + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); };
+    var fmt = {!! \App\Support\Moneda::js($valores['moneda'] ?? 'COP') !!};
     var r = document.getElementById('planes');
     function calc() {
         var p = +r.value;

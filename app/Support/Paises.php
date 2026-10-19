@@ -17,7 +17,7 @@ class Paises
         'MX' => ['México', 'MXN', '$', 2, ',', '.', '52', 'America/Mexico_City'],
         'CL' => ['Chile', 'CLP', '$', 0, '.', ',', '56', 'America/Santiago'],
         'AR' => ['Argentina', 'ARS', '$', 2, '.', ',', '54', 'America/Argentina/Buenos_Aires'],
-        'VE' => ['Venezuela', 'VES', 'Bs', 2, '.', ',', '58', 'America/Caracas'],
+        'VE' => ['Venezuela', 'USD', '$', 2, '.', ',', '58', 'America/Caracas'], // en dólares (pedido de Jhoset, oct 2026)
         'BO' => ['Bolivia', 'BOB', 'Bs', 2, '.', ',', '591', 'America/La_Paz'],
         'PY' => ['Paraguay', 'PYG', '₲', 0, '.', ',', '595', 'America/Asuncion'],
         'UY' => ['Uruguay', 'UYU', '$', 2, '.', ',', '598', 'America/Montevideo'],

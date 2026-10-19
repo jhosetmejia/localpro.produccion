@@ -18,10 +18,12 @@ class adminPlanController extends Controller
             'ejemplos' => Ajuste::valor(asesorEjemplosController::AJUSTE, 'LCT-00003'),
             'paqPrecio' => \App\Support\AmpliarProductos::precio(),
             'paqCantidad' => \App\Support\AmpliarProductos::cantidad(),
+            'paqPrecioUsd' => \App\Support\AmpliarProductos::precioUsd(),
+            'tasa' => \App\Support\Moneda::tasa(),
             'metaEnVivo' => (string) Ajuste::valor('meta_en_vivo') === '1',
             'metaPrueba' => Ajuste::valor('meta_tiendas_prueba'),
             'wompi' => planController::wompiActivo(),
-            'ingresosMes' => (float) PagoSuscripcion::where('estado', 'aprobado')->where('updated_at', '>=', now()->startOfMonth())->sum('monto'),
+            'ingresosMes' => (float) PagoSuscripcion::where('estado', 'aprobado')->where('updated_at', '>=', now()->startOfMonth())->sum(PagoSuscripcion::sqlEnCop()), // en pesos (los de Venezuela pasados a pesos)
             'pagos' => PagoSuscripcion::with(['tienda:id,nombre', 'plan:id,nombre'])->latest()->limit(20)->get(),
         ]);
     }
@@ -32,6 +34,10 @@ class adminPlanController extends Controller
             'planes' => 'array',
             'planes.*.nombre' => 'required|string|max:40',
             'planes.*.precio' => 'required|numeric|min:0',
+            'planes.*.precio_usd' => 'nullable|numeric|min:0|max:1000000',
+            'nuevo.precio_usd' => 'nullable|numeric|min:0|max:1000000',
+            'productos_paquete_precio_usd' => 'nullable|numeric|min:0|max:1000000',
+            'tasa_usd_cop' => 'nullable|integer|min:1|max:1000000',
             'planes.*.dias' => 'nullable|integer|min:1|max:3650',
             'planes.*.descripcion' => 'nullable|string|max:200',
             'planes.*.max_productos' => 'nullable|integer|min:1|max:1000000',
@@ -46,19 +52,21 @@ class adminPlanController extends Controller
         ]);
         foreach ((array) $request->input('planes') as $id => $d) {
             Plan::whereKey($id)->update([
-                'nombre' => $d['nombre'], 'precio' => $d['precio'], 'dias' => $d['dias'] ?: null,
+                'nombre' => $d['nombre'], 'precio' => $d['precio'], 'precio_usd' => isset($d['precio_usd']) && $d['precio_usd'] !== '' ? round((float) $d['precio_usd'], 2) : null, 'dias' => $d['dias'] ?: null,
                 'descripcion' => $d['descripcion'] ?? null, 'activo' => !empty($d['activo']),
                 'max_productos' => ($d['max_productos'] ?? null) ?: null, 'max_usuarios' => ($d['max_usuarios'] ?? null) ?: null,
             ]);
         }
         if ($request->filled('nuevo.nombre')) {
             Plan::create([
-                'nombre' => $request->input('nuevo.nombre'), 'precio' => $request->input('nuevo.precio', 0),
+                'nombre' => $request->input('nuevo.nombre'), 'precio' => $request->input('nuevo.precio', 0), 'precio_usd' => $request->filled('nuevo.precio_usd') ? round((float) $request->input('nuevo.precio_usd'), 2) : null,
                 'dias' => $request->input('nuevo.dias') ?: null, 'activo' => true, 'orden' => Plan::max('orden') + 1,
             ]);
         }
         Ajuste::guardar('soporte_whatsapp', preg_replace('/[^\d+]/', '', (string) $request->input('soporte_whatsapp')));
         if ($request->filled('productos_paquete_precio')) Ajuste::guardar('productos_paquete_precio', (int) $request->input('productos_paquete_precio'));
+        if ($request->filled('productos_paquete_precio_usd')) Ajuste::guardar('productos_paquete_precio_usd', round((float) $request->input('productos_paquete_precio_usd'), 2));
+        if ($request->filled('tasa_usd_cop')) Ajuste::guardar('tasa_usd_cop', (int) $request->input('tasa_usd_cop'));
         if ($request->filled('productos_paquete_cantidad')) Ajuste::guardar('productos_paquete_cantidad', (int) $request->input('productos_paquete_cantidad'));
         if ($request->has('ejemplos_tiendas')) Ajuste::guardar(asesorEjemplosController::AJUSTE, mb_substr(strtoupper(preg_replace('/[^A-Za-z0-9,\-]/', '', str_replace([' ', ';'], ',', (string) $request->input('ejemplos_tiendas')))), 0, 300));
         Ajuste::guardar('meta_en_vivo', $request->boolean('meta_en_vivo') ? '1' : '');

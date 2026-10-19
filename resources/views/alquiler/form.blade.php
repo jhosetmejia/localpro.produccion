@@ -315,7 +315,7 @@
     var $ = function (id) { return document.getElementById(id); };
     var M = window.LP_MONEDA || { miles: '.', decimales: 0 };
     function num(el) { if (!el) return 0; var v = parseFloat(String(el.value || '0').replace(/[^0-9.\-]/g, '')); return isNaN(v) ? 0 : v; }
-    function fmt(n) { return '$' + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, M.miles || '.'); }
+    function fmt(n) { var t = Math.abs(n || 0).toFixed(M.decimales || 0).split('.'); t[0] = t[0].replace(/\B(?=(\d{3})+(?!\d))/g, M.miles || '.'); return (n < 0 ? '-' : '') + (M.simbolo || '$') + t.join(M.decimal || ','); }
     function val(n) { var e = form.elements[n]; return e ? String(e.value || '').trim() : ''; }
     function h12(t) { if (!t) return ''; var p = t.split(':'), hh = +p[0], ap = hh >= 12 ? 'pm' : 'am'; hh = hh % 12 || 12; return hh + ':' + p[1] + ' ' + ap; }
 

@@ -53,7 +53,7 @@ class egresoController extends Controller
         $datos = $request->validate([
             'concepto' => 'required|string|max:160',
             'categoria' => ['required', Rule::in(array_keys(Egreso::CATEGORIAS))],
-            'valor' => 'required|numeric|min:1|max:999999999',
+            'valor' => 'required|numeric|min:0.01|max:999999999',
             'fecha' => 'nullable|date|before_or_equal:today',
             'metodo_pago_id' => 'nullable|exists:metodos_pago,id',
             'nota' => 'nullable|string|max:255',

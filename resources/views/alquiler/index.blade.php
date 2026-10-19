@@ -40,7 +40,7 @@
 @section('content')
 @php
     $esAdmin = \App\Http\Controllers\alquilerController::esAdmin();
-    $f = fn ($v) => '$' . number_format((float) $v, 0, ',', '.');
+    $f = fn ($v) => dinero($v);
     $meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 @endphp
 <div class="lp-dash">

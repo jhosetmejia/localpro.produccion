@@ -30,7 +30,7 @@
 @endpush
 
 @section('content')
-@php $f = fn ($v) => '$' . number_format((float) $v, 0, ',', '.'); $negocioNombre = \App\Models\Negocio::datos()->nombre ?? 'nuestro negocio'; @endphp
+@php $f = fn ($v) => dinero($v); $negocioNombre = \App\Models\Negocio::datos()->nombre ?? 'nuestro negocio'; @endphp
 <div class="lp-dash">
     <div class="lp-hello">
         <div><small><i class="fa-solid fa-box-archive me-1"></i>Ventas</small><h1>Separados y <span>abonos</span></h1>

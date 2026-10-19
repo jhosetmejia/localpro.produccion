@@ -22,15 +22,16 @@
     <form method="post" action="{{ route('admin.planes.guardar') }}">
         @csrf
         <div class="lp-box mb-3">
-            <h3>Planes (precios en COP)</h3>
+            <h3>Planes (precios en COP · y en US$ para Venezuela)</h3>
             <div class="table-responsive">
                 <table class="table align-middle">
-                    <thead><tr><th>Nombre</th><th style="width:150px">Precio</th><th style="width:120px">Días</th><th style="width:110px">Productos máx.</th><th style="width:110px">Personas máx.</th><th>Descripción</th><th>Activo</th><th class="text-end">Tiendas</th></tr></thead>
+                    <thead><tr><th>Nombre</th><th style="width:150px">Precio COP</th><th style="width:120px" title="Lo que paga un negocio de Venezuela">Precio US$</th><th style="width:120px">Días</th><th style="width:110px">Productos máx.</th><th style="width:110px">Personas máx.</th><th>Descripción</th><th>Activo</th><th class="text-end">Tiendas</th></tr></thead>
                     <tbody>
                     @foreach ($planes as $p)
                     <tr>
                         <td><input name="planes[{{ $p->id }}][nombre]" class="form-control" value="{{ $p->nombre }}" required></td>
                         <td><input data-dinero type="number" min="0" name="planes[{{ $p->id }}][precio]" class="form-control" value="{{ (int) $p->precio }}"></td>
+                        <td><input type="number" step="0.01" min="0" name="planes[{{ $p->id }}][precio_usd]" class="form-control" value="{{ $p->precio_usd }}" placeholder="{{ round($p->precio / \App\Support\Moneda::tasa(), 2) }}"></td>
                         <td><input type="number" min="1" name="planes[{{ $p->id }}][dias]" class="form-control" value="{{ $p->dias }}" placeholder="No vence"></td>
                         <td><input type="number" min="1" name="planes[{{ $p->id }}][max_productos]" class="form-control" value="{{ $p->max_productos }}" placeholder="Sin límite"></td>
                         <td><input type="number" min="1" name="planes[{{ $p->id }}][max_usuarios]" class="form-control" value="{{ $p->max_usuarios }}" placeholder="Sin límite"></td>
@@ -42,6 +43,7 @@
                     <tr>
                         <td><input name="nuevo[nombre]" class="form-control" placeholder="+ Nuevo plan"></td>
                         <td><input data-dinero type="number" min="0" name="nuevo[precio]" class="form-control" placeholder="0"></td>
+                        <td><input type="number" step="0.01" min="0" name="nuevo[precio_usd]" class="form-control" placeholder="US$"></td>
                         <td><input type="number" min="1" name="nuevo[dias]" class="form-control" placeholder="30"></td>
                         <td colspan="5"></td>
                     </tr>
@@ -51,6 +53,8 @@
             <div class="row g-3 align-items-end">
                 <div class="col-md-5"><label class="form-label">Su WhatsApp de soporte (con indicativo)</label><input name="soporte_whatsapp" class="form-control" value="{{ $soporte }}" placeholder="573001234567"></div>
                 <div class="col-md-2"><label class="form-label" title="Lo que paga el negocio por cada paquete de productos extra">Precio paquete extra</label><input data-dinero type="number" min="0" name="productos_paquete_precio" class="form-control" value="{{ $paqPrecio }}"></div>
+                <div class="col-md-2"><label class="form-label" title="Paquete extra para negocios de Venezuela">Paquete extra US$</label><input type="number" step="0.01" min="0" name="productos_paquete_precio_usd" class="form-control" value="{{ $paqPrecioUsd }}"></div>
+                <div class="col-md-2"><label class="form-label" title="Wompi solo cobra en pesos: un pago de US$55 se cobra a esta tasa">Tasa: pesos por US$1</label><input type="number" min="1" step="1" name="tasa_usd_cop" class="form-control" value="{{ (int) $tasa }}"></div>
                 <div class="col-md-2"><label class="form-label">Productos por paquete</label><input type="number" min="1" name="productos_paquete_cantidad" class="form-control" value="{{ $paqCantidad }}"></div>
                 <div class="col-md-3 text-end"><button class="btn btn-primary btn-lg"><i class="fa-solid fa-floppy-disk me-1"></i>Guardar</button></div>
                 <div class="col-12"><div style="border:1.5px solid #cfeedd;background:#f3faf5;border-radius:18px;padding:1rem 1.1rem">
@@ -75,7 +79,7 @@
         <ul class="lp-list">
             @forelse ($pagos as $pg)
             <li><div class="av"><i class="fa-solid fa-file-invoice-dollar"></i></div><div class="t"><b>{{ $pg->tienda->nombre ?? '—' }} · {{ $pg->plan->nombre ?? '' }}</b><small>{{ $pg->created_at->format('d/m/Y H:i') }} · {{ ucfirst($pg->metodo) }} · {{ $pg->referencia }}</small></div>
-                <span class="badge {{ $pg->estado === 'aprobado' ? 'bg-success' : ($pg->estado === 'pendiente' ? 'bg-warning text-dark' : 'bg-danger') }}">{{ ucfirst($pg->estado) }}</span><span class="m">${{ number_format($pg->monto, 0, ',', '.') }}</span></li>
+                <span class="badge {{ $pg->estado === 'aprobado' ? 'bg-success' : ($pg->estado === 'pendiente' ? 'bg-warning text-dark' : 'bg-danger') }}">{{ ucfirst($pg->estado) }}</span><span class="m">{{ $pg->monto_texto }}</span></li>
             @empty
             <li class="lp-empty">Aún no hay pagos.</li>
             @endforelse

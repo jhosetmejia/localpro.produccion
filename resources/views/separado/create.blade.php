@@ -84,7 +84,7 @@
     var $ = function (id) { return document.getElementById(id); };
     var URL_BUSCAR = @json(route('pos.buscar')), URL_CLIENTES = @json(route('pos.clientes'));
     var items = [], tb, tc;
-    var dinero = function (n) { return LP.formatoDinero ? '$' + LP.formatoDinero(Math.round(n)) : '$' + Math.round(n).toLocaleString('es-CO'); };
+    var dinero = function (n) { var M = window.LP_MONEDA || { miles: '.', decimal: ',', decimales: 0, simbolo: '$' }; var t = Math.abs(n || 0).toFixed(M.decimales).split('.'); t[0] = t[0].replace(/\B(?=(\d{3})+(?!\d))/g, M.miles); return (n < 0 ? '-' : '') + M.simbolo + t.join(M.decimal); };
     var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); };
     var num = function (el) { return parseFloat(String(el.value || '0').replace(/[^0-9.]/g, '')) || 0; };
 

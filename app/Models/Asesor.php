@@ -122,6 +122,18 @@ class Asesor extends Model
         return url('/r/' . $this->codigo);
     }
 
+    // Moneda en que ve y cobra sus comisiones (USD si es de Venezuela, COP si no)
+    public function getMonedaAttribute(): string
+    {
+        return \App\Support\Moneda::dePais($this->pais);
+    }
+
+    // $100.000 o US$25 en la moneda de este asesor
+    public function plata($valor): string
+    {
+        return \App\Support\Moneda::formato($valor, $this->moneda);
+    }
+
     // Quién cobra cada parte cuando este asesor vende: el que vende cobra también las partes de su cargo y de los cargos de abajo
     public function lideres(): array
     {

@@ -178,7 +178,7 @@ class adminTiendaController extends Controller
             : max(0, (int) $tienda->productos_extra - $cant);
         $tienda->forceFill(['productos_extra' => $nuevo])->save();
         return back()->with('success', 'Listo: la tienda tiene ' . number_format($nuevo, 0, ',', '.') . ' productos extra'
-            . ($datos['accion'] === 'sumar' ? ' (cobrar ' . '$' . number_format($datos['paquetes'] * \App\Support\AmpliarProductos::precio(), 0, ',', '.') . ').' : '.'));
+            . ($datos['accion'] === 'sumar' ? ' (cobrar ' . \App\Support\AmpliarProductos::precioTexto($tienda, (int) $datos['paquetes']) . ').' : '.'));
     }
 
     // Registrar un pago recibido por fuera (transferencia, Nequi, efectivo): extiende el plan
@@ -189,11 +189,13 @@ class adminTiendaController extends Controller
             'monto' => 'required|numeric|min:0',
             'nota' => 'nullable|string|max:255',
         ]);
-        DB::transaction(function () use ($datos, $tienda) {
+        $moneda = $tienda->moneda_cobro; // Venezuela: el pago se registra en dólares
+        DB::transaction(function () use ($datos, $tienda, $moneda) {
             \App\Models\PagoSuscripcion::create([
                 'tienda_id' => $tienda->id,
                 'plan_id' => $datos['plan_id'],
                 'monto' => $datos['monto'],
+                'moneda' => $moneda,
                 'metodo' => 'manual',
                 'referencia' => 'MAN-' . $tienda->id . '-' . now()->format('ymdHis'),
                 'nota' => $datos['nota'] ?? null,

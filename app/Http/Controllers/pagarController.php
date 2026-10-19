@@ -51,10 +51,15 @@ class pagarController extends Controller
 
     public static function crearPago(Tienda $tienda, Plan $plan, ?int $usuario, ?string $nota = null): PagoSuscripcion
     {
+        // Venezuela paga en dólares: el pago queda en USD y Wompi cobra su equivalente en pesos (tasa de Admin → Planes)
+        $moneda = $tienda->moneda_cobro;
+        $monto = $plan->precioEn($moneda);
         return PagoSuscripcion::create([
             'tienda_id' => $tienda->id,
             'plan_id' => $plan->id,
-            'monto' => $plan->precio,
+            'monto' => $monto,
+            'moneda' => $moneda,
+            'cobro_cop' => \App\Support\Moneda::esUsd($moneda) ? \App\Support\Moneda::aCop($monto, $moneda) : null,
             'metodo' => 'wompi',
             'referencia' => 'LP-' . $tienda->id . '-' . now()->format('ymdHis') . '-' . Str::upper(Str::random(4)),
             'estado' => 'pendiente',

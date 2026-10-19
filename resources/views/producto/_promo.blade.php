@@ -29,7 +29,7 @@
     var sw = document.getElementById('enPromo'), caja = document.getElementById('lpPromo'), cuerpo = caja.querySelector('.lp-promo-body');
     var antes = document.getElementById('precio_antes'), venta = document.getElementById('precio_venta'), txt = document.getElementById('promoTxt');
     var base = txt.innerHTML;
-    function fmt(n) { return (window.LPC && LPC.fmt) ? LPC.fmt(n) : '$' + Math.round(n).toLocaleString('es-CO'); }
+    function fmt(n) { return (window.LPC && LPC.fmt) ? LPC.fmt(n) : (function (M) { var t = Math.abs(n || 0).toFixed(M.decimales).split('.'); t[0] = t[0].replace(/\B(?=(\d{3})+(?!\d))/g, M.miles); return M.simbolo + t.join(M.decimal); })(window.LP_MONEDA || { miles: '.', decimal: ',', decimales: 0, simbolo: '$' }); }
     function pintar() {
         caja.classList.toggle('on', sw.checked); cuerpo.hidden = !sw.checked;
         var a = parseFloat(antes.value) || 0, v = parseFloat(venta.value) || 0;

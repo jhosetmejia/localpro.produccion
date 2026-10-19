@@ -43,4 +43,5 @@ Sitio en vivo: https://localproo.com
 ## Reglas del producto
 - Todo en español (incluidos mensajes de validación).
 - Nunca ventanas nativas del navegador (`alert/confirm/prompt`): usar el aviso propio con el diseño del sitio.
+- **Venezuela va en dólares** (`app/Support/Moneda.php`, `Moneda::PAISES_USD`): su tienda vende en USD (Paises), el plan se cobra en USD (`planes.precio_usd`; Wompi cobra el equivalente en pesos con la tasa `tasa_usd_cop`, guardado en `pagos_suscripcion.cobro_cop`) y sus comisiones se generan en USD (`comisiones.moneda`, ajustes `red_usd_*`). Nunca formatear plata con `'$' . number_format(...)`: usar `dinero()` (tienda), `Moneda::formato($v, $moneda)` (planes/red) o `$asesor->plata($v)`.
 - Cuidar datos tributarios (UVT, tablas de retención con vigencias): citar la norma/fuente en guías y blog.

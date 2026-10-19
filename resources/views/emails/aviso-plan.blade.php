@@ -1,7 +1,8 @@
 @php
     $fecha = fn ($d) => $d ? $d->copy()->locale('es')->isoFormat('dddd D [de] MMMM [de] YYYY') : '';
     $ultimoDia = $fechaBorrado?->copy()->subDay();
-    $pesos = fn ($v) => '$' . number_format((float) $v, 0, ',', '.');
+    $mc = $t->moneda_cobro; // Venezuela: dólares
+    $pesos = fn ($v) => \App\Support\Moneda::formato($v, $mc);
 @endphp
 <!DOCTYPE html>
 <html lang="es">
@@ -45,7 +46,7 @@
                 <td style="padding:4px" width="{{ (int) (100 / max(1, $planes->count())) }}%">
                     <div style="border:2px solid {{ $p->dias >= 365 ? '#2fd15a' : '#e3efe5' }};border-radius:16px;padding:14px;text-align:center">
                         <div style="font-weight:bold;color:#6b7570;font-size:13px">{{ $p->nombre }}</div>
-                        <div style="font-size:22px;font-weight:900;margin:4px 0">{{ $pesos($p->precio) }}</div>
+                        <div style="font-size:22px;font-weight:900;margin:4px 0">{{ $pesos($p->precioEn($mc)) }}</div>
                         <div style="color:#6b7570;font-size:12px">{{ $p->dias >= 365 ? 'por año' : ($p->dias >= 28 ? 'por mes' : $p->dias . ' días') }}</div>
                     </div>
                 </td>

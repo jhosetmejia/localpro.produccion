@@ -44,11 +44,13 @@
                 @if ($p->dias >= 365)<span class="chip">Recomendado</span>@endif
                 @if ((int) $tienda->plan_id === (int) $p->id)<span class="chip">Su plan</span>@endif
             </div>
-            <div class="pr">${{ number_format($p->precio, 0, ',', '.') }} <small>COP{{ $periodo ? ' / ' . $periodo : '' }}</small></div>
+            @php $mc = $tienda->moneda_cobro; $usd = \App\Support\Moneda::esUsd($mc); @endphp
+            <div class="pr">{{ $p->precioTexto($tienda) }} <small>{{ $mc }}{{ $periodo ? ' / ' . $periodo : '' }}</small></div>
+            @if ($usd)<p style="color:var(--mut);font-size:.85rem;margin:.1rem 0 .6rem">Con Wompi se cobra en pesos colombianos: {{ \App\Support\Moneda::formato(\App\Support\Moneda::aCop($p->precioEn($mc), $mc), 'COP', true) }}. Su tarjeta lo convierte a dólares.</p>@endif
             @if ($p->descripcion)<p style="color:var(--mut);margin:.2rem 0 .8rem">{{ $p->descripcion }}</p>@endif
             <form method="post" action="{{ url(\Illuminate\Support\Facades\URL::signedRoute('pagar.ir', ['tienda' => $tienda->id, 'plan' => $p->id], null, false)) }}" style="margin:0">
                 @csrf
-                <button class="btn btn-g btn-block"><i class="fa-solid fa-credit-card"></i> Pagar ${{ number_format($p->precio, 0, ',', '.') }}</button>
+                <button class="btn btn-g btn-block"><i class="fa-solid fa-credit-card"></i> Pagar {{ $p->precioTexto($tienda) }}</button>
             </form>
         </div>
         @endforeach

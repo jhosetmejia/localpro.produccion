@@ -13,7 +13,7 @@
     @include('layouts.partials.lp-flash')
 
     <div class="lp-kpis">
-        <div class="lp-kpi hero"><div class="ic"><i class="fa-solid fa-sack-dollar"></i></div><div class="lbl">Comisiones por pagar</div><div class="val">{{ $f($kpi['pendiente']) }}</div><div class="sub"><a href="{{ route('admin.red.comisiones') }}" style="color:inherit">Ver y marcar pagadas</a></div></div>
+        <div class="lp-kpi hero"><div class="ic"><i class="fa-solid fa-sack-dollar"></i></div><div class="lbl">Comisiones por pagar</div><div class="val">{{ $f($kpi['pendiente']) }}</div>@if ($kpi['pendienteUsd'] > 0)<div class="fw-bold" style="font-size:1.05rem">+ {{ \App\Support\Moneda::formato($kpi['pendienteUsd'], 'USD') }} <small>(Venezuela)</small></div>@endif<div class="sub"><a href="{{ route('admin.red.comisiones') }}" style="color:inherit">Ver y marcar pagadas</a></div></div>
         <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-users"></i></div><div class="lbl">Personas activas</div><div class="val">{{ $kpi['gente'] }}</div><div class="sub">Asesores y líderes</div></div>
         <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-store"></i></div><div class="lbl">Negocios con asesor</div><div class="val">{{ $kpi['negocios'] }}</div><div class="sub">{{ $kpi['sinAsesor'] }} sin asesor</div></div>
     </div>
@@ -158,6 +158,46 @@
             var fmt = function (n) { return (n < 0 ? '-$' : '$') + Math.abs(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); };
             document.getElementById('restoN').textContent = fmt(plan - suma('vn'));
             document.getElementById('restoR').textContent = fmt(plan - suma('vr'));
+        });
+        </script>
+    </details>
+
+    <details class="lp-box">
+        <summary class="fw-bold" style="cursor:pointer;font-size:1.05rem"><i class="fa-solid fa-dollar-sign me-1" style="color:#16b34a"></i> Valores en dólares · Venezuela</summary>
+        @php $restoU = fn ($t) => $valoresUsd['valor_plan'] - array_sum($valoresUsd[$t]); @endphp
+        <form method="post" action="{{ route('admin.red.valores') }}" class="mt-2" id="fValoresUsd">
+            @csrf
+            <input type="hidden" name="moneda" value="USD">
+            <div class="small fw-bold mb-2" style="color:#11702f"><i class="fa-solid fa-circle-info me-1"></i>Los negocios de Venezuela pagan el plan en dólares y las comisiones de esas ventas se pagan en dólares a toda la cadena (asesor y líderes). Los asesores de Venezuela ven su panel, su meta y la capacitación en dólares.</div>
+            <div class="row g-2 align-items-end mb-3">
+                <div class="col-6 col-md-4"><label class="form-label">Valor del plan anual (US$)</label><input type="number" step="0.01" min="0" name="red_usd_valor_plan" class="form-control fw-bold" value="{{ $valoresUsd['valor_plan'] }}"></div>
+                <div class="col-6 col-md-4"><label class="form-label">Meta mensual del asesor (US$)</label><input type="number" step="0.01" min="0" name="red_usd_salario_minimo" class="form-control" value="{{ $salarioUsd }}"></div>
+            </div>
+            <div class="rv">
+                <div class="rv-h"><span>Quién gana</span><span>Venta nueva (US$)</span><span>Renovación anual (US$)</span></div>
+                @foreach ($filas as $k => [$nombre, $clave])
+                <div class="rv-f">
+                    <b>{{ $nombre }}</b>
+                    <label><small>Venta nueva</small><input type="number" step="0.01" min="0" name="red_usd_nueva_{{ $clave }}" class="form-control un" value="{{ $valoresUsd['nueva'][$k] }}"></label>
+                    <label><small>Renovación anual</small><input type="number" step="0.01" min="0" name="red_usd_renov_{{ $clave }}" class="form-control ur" value="{{ $valoresUsd['renovacion'][$k] }}"></label>
+                </div>
+                @endforeach
+                <div class="rv-f rv-t">
+                    <b>LocalPro (el resto)</b>
+                    <label><small>Venta nueva</small><span id="restoUN">{{ \App\Support\Moneda::formato($restoU('nueva'), 'USD') }}</span></label>
+                    <label><small>Renovación anual</small><span id="restoUR">{{ \App\Support\Moneda::formato($restoU('renovacion'), 'USD') }}</span></label>
+                </div>
+            </div>
+            <button class="btn btn-dark">Guardar valores en dólares</button>
+        </form>
+        <script>
+        document.addEventListener('input', function (e) {
+            var f = document.getElementById('fValoresUsd'); if (!f || !f.contains(e.target)) return;
+            var plan = +f.querySelector('[name=red_usd_valor_plan]').value || 0;
+            var suma = function (c) { return [].reduce.call(f.querySelectorAll('input.' + c), function (a, i) { return a + (+i.value || 0); }, 0); };
+            var fmt = {!! \App\Support\Moneda::js('USD') !!};
+            document.getElementById('restoUN').textContent = fmt(plan - suma('un'));
+            document.getElementById('restoUR').textContent = fmt(plan - suma('ur'));
         });
         </script>
     </details>

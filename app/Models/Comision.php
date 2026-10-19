@@ -8,7 +8,7 @@ class Comision extends Model
 {
     protected $table = 'comisiones';
 
-    protected $fillable = ['asesor_id', 'tienda_id', 'pago_suscripcion_id', 'concepto', 'tipo', 'monto', 'estado', 'pagada_at', 'nota'];
+    protected $fillable = ['asesor_id', 'tienda_id', 'pago_suscripcion_id', 'concepto', 'tipo', 'monto', 'moneda', 'estado', 'pagada_at', 'nota'];
 
     protected $casts = ['pagada_at' => 'datetime'];
 
@@ -19,6 +19,11 @@ class Comision extends Model
         'lider_departamento' => 'Como líder de departamento',
         'lider_pais' => 'Como líder de país',
     ];
+
+    public function getMontoTextoAttribute(): string
+    {
+        return \App\Support\Moneda::formato($this->monto, $this->moneda ?: 'COP');
+    }
 
     public function asesor()
     {
