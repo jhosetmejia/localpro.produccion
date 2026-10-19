@@ -336,6 +336,8 @@ class Meta
     public static function guardarMensaje(RedConversacion $cv, string $mid, bool $delCliente, ?string $texto, ?string $adjunto, ?string $tipo, Carbon $cuando, ?int $user = null, bool $contarNoLeido = true): bool
     {
         if ($mid !== '' && RedMensaje::where('conversacion_id', $cv->id)->where('mid', $mid)->exists()) return false;
+        // Meta entrega la hora en UTC: se pasa a la hora del sistema antes de guardar (si no, los chats salían 5 horas corridos)
+        $cuando = $cuando->copy()->setTimezone(config('app.timezone'));
         RedMensaje::create([
             'tienda_id' => $cv->tienda_id, 'conversacion_id' => $cv->id, 'mid' => $mid ?: null, 'del_cliente' => $delCliente,
             'texto' => $texto, 'adjunto_url' => $adjunto, 'adjunto_tipo' => $tipo, 'user_id' => $user, 'enviado_en' => $cuando,
