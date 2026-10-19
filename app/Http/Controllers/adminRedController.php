@@ -61,9 +61,13 @@ class adminRedController extends Controller
                 'gente' => Asesor::where('activo', true)->count(),
                 'negocios' => Tienda::whereNotNull('asesor_id')->count(),
                 'sinAsesor' => Tienda::sinAsignar()->count(),
-                'pendiente' => (float) Comision::where('estado', 'pendiente')->sum('monto'),
+                'pendiente' => (float) Comision::where('estado', 'pendiente')->where('moneda', 'COP')->sum('monto'),
+                // Lo que se debe en otras monedas (Venezuela: dólares y/o bolívares)
+                'pendienteOtras' => Comision::where('estado', 'pendiente')->where('moneda', '<>', 'COP')->selectRaw('moneda, SUM(monto) total')->groupBy('moneda')->pluck('total', 'moneda'),
             ],
             'valores' => Comisiones::valores(),
+            'valoresUsd' => Comisiones::valores(\App\Support\Moneda::USD),
+            'salarioUsd' => Comisiones::salario(\App\Support\Moneda::USD),
             'candidatos' => \App\Support\RedComercial::candidatos(),
             'metas' => \App\Support\RedComercial::metas(),
             'salario' => (float) \App\Models\Ajuste::valor('red_salario_minimo', 1750000),
@@ -127,7 +131,7 @@ class adminRedController extends Controller
             'negocios' => Tienda::with('plan:id,nombre')->where('asesor_id', $asesor->id)->orderBy('nombre')->get(),
             'equipo' => Asesor::with('user:id,name')->withCount('tiendas')->where('padre_id', $asesor->id)->get(),
             'comisiones' => Comision::with('tienda:id,nombre')->where('asesor_id', $asesor->id)->latest()->take(30)->get(),
-            'pendiente' => (float) Comision::where('asesor_id', $asesor->id)->where('estado', 'pendiente')->sum('monto'),
+            'pendiente' => \App\Support\Moneda::sumar(Comision::where('asesor_id', $asesor->id)->where('estado', 'pendiente'), 'monto', $asesor->moneda), // en la moneda del asesor
             'lideres' => Asesor::with('user:id,name')->whereIn('cargo', ['lider_pais', 'lider_departamento', 'lider_ciudad', 'lider_zona'])
                 ->whereNotIn('id', $asesor->idsRed())->get(),
             'sinAsesor' => Tienda::sinAsignar()->orderBy('nombre')->get(['id', 'nombre']),
@@ -201,7 +205,7 @@ class adminRedController extends Controller
         return view('admin.red.comisiones', [
             'lista' => $filtro(Comision::with(['asesor.user:id,name', 'tienda:id,nombre']))->latest()->paginate(40)->withQueryString(),
             'porAsesor' => Comision::with('asesor.user:id,name')->where('estado', 'pendiente')
-                ->selectRaw('asesor_id, SUM(monto) as total, COUNT(*) as n')->groupBy('asesor_id')->orderByDesc('total')->get(),
+                ->selectRaw('asesor_id, moneda, SUM(monto) as total, COUNT(*) as n')->groupBy('asesor_id', 'moneda')->orderBy('moneda')->orderByDesc('total')->get(),
             'asesores' => Asesor::with('user:id,name')->get(),
             'estado' => $request->estado ?? 'pendiente',
             'asesor' => $request->asesor,
@@ -226,9 +230,11 @@ class adminRedController extends Controller
         } else {
             return back()->withErrors('Elija las comisiones a pagar.');
         }
-        $total = (float) (clone $q)->sum('monto');
+        // Totales por moneda (las de Venezuela van en dólares)
+        $totales = (clone $q)->selectRaw('moneda, SUM(monto) total')->groupBy('moneda')->pluck('total', 'moneda');
         $n = $q->update(['estado' => 'pagada', 'pagada_at' => now(), 'nota' => $datos['nota'] ?? null]);
-        return back()->with('success', $n . ' comisión(es) marcadas como pagadas por $' . number_format($total, 0, ',', '.') . '.');
+        $txt = $totales->map(fn ($t, $m) => \App\Support\Moneda::formato($t, $m ?: 'COP', true))->implode(' + ');
+        return back()->with('success', $n . ' comisión(es) marcadas como pagadas por ' . ($txt ?: '$0') . '.');
     }
 
     public function anular(Comision $comision)
@@ -240,6 +246,9 @@ class adminRedController extends Controller
 
     public function valores(Request $request)
     {
+        if ($request->input('moneda') === 'USD') {
+            return $this->valoresUsd($request);
+        }
         $reglas = [];
         foreach (array_merge(['red_valor_plan'], self::CLAVES_VALOR) as $k) {
             $reglas[$k] = 'required|numeric|min:0|max:100000000';
@@ -256,6 +265,23 @@ class adminRedController extends Controller
             Ajuste::guardar($k, $v);
         }
         return back()->with('success', 'Valores de comisión guardados. Aplican a los pagos que lleguen de ahora en adelante.');
+    }
+
+    // Valores en dólares para los negocios y asesores de Venezuela (ajustes red_usd_*)
+    private function valoresUsd(Request $request)
+    {
+        $claves = array_map(fn ($k) => str_replace('red_', 'red_usd_', $k), array_merge(['red_valor_plan'], self::CLAVES_VALOR));
+        $reglas = array_fill_keys($claves, 'required|numeric|min:0|max:1000000');
+        $reglas['red_usd_salario_minimo'] = 'nullable|numeric|min:0|max:1000000';
+        $datos = $request->validate($reglas);
+        $suma = fn ($t) => collect($datos)->filter(fn ($v, $k) => str_starts_with($k, 'red_usd_' . $t . '_'))->sum();
+        if ($suma('nueva') > $datos['red_usd_valor_plan'] || $suma('renov') > $datos['red_usd_valor_plan']) {
+            return back()->withErrors(['red_usd_valor_plan' => 'Las comisiones en dólares suman más que el valor del plan anual en dólares.']);
+        }
+        foreach ($datos as $k => $v) {
+            Ajuste::guardar($k, round((float) $v, 2));
+        }
+        return back()->with('success', 'Valores en dólares guardados (Venezuela). Aplican a los pagos que lleguen de ahora en adelante.');
     }
 
     private function validar(Request $request, ?Asesor $asesor = null): array

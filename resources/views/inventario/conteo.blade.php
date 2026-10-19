@@ -202,7 +202,7 @@ body.ciego .cn-sis,body.ciego .cn-dif,body.ciego .cn-n.falta,body.ciego .cn-n.so
     var lista = document.getElementById('lista'), filtro = 'todas';
     function num(v) { return v === '' || v === null || v === undefined ? null : parseFloat(v); }
     function fmt(n) { return (Math.round(n * 1000) / 1000).toLocaleString('es-CO'); }
-    function money(n) { return '$' + (LP && LP.formatoDinero ? LP.formatoDinero(Math.round(n)) : Math.round(n).toLocaleString('es-CO')); }
+    function money(n) { var M = window.LP_MONEDA || { miles: '.', decimal: ',', decimales: 0, simbolo: '$' }; var t = Math.abs(n || 0).toFixed(M.decimales).split('.'); t[0] = t[0].replace(/\B(?=(\d{3})+(?!\d))/g, M.miles); return (n < 0 ? '-' : '') + M.simbolo + t.join(M.decimal); }
 
     // Diferencia de cada fila
     function pintar(fila) {

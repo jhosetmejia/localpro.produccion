@@ -30,7 +30,7 @@
                     <td>{{ $p->plan->nombre ?? '—' }}@if ($p->es_prueba) <span class="badge bg-warning text-dark">Prueba</span>@endif</td>
                     <td class="small">{{ ucfirst($p->metodo) }}{{ $p->nota ? ' · ' . $p->nota : '' }}</td>
                     <td class="small">{{ $p->periodo_desde?->format('d/m/Y') }}{{ $p->periodo_hasta ? ' → ' . $p->periodo_hasta->format('d/m/Y') : '' }}</td>
-                    <td class="text-end fw-bold">{{ $f($p->monto) }}</td>
+                    <td class="text-end fw-bold">{{ $p->monto_texto }}@if (\App\Support\Moneda::esExtranjera($p->moneda))<br><small class="text-muted fw-normal">{{ $f($p->monto_cop) }} COP</small>@endif</td>
                     <td><span class="badge {{ $p->estado === 'aprobado' ? 'bg-success' : ($p->estado === 'pendiente' ? 'bg-warning text-dark' : 'bg-danger') }}">{{ ucfirst($p->estado) }}</span></td>
                 </tr>
                 @empty

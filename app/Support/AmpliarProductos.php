@@ -21,15 +21,30 @@ class AmpliarProductos
         return max(0, (int) Ajuste::valor('productos_paquete_precio', 20000));
     }
 
-    public static function precioTexto(): string
+    // Precio del paquete en dólares (negocios de Venezuela)
+    public static function precioUsd(): float
     {
-        return '$' . number_format(self::precio(), 0, ',', '.');
+        return max(0, (float) Ajuste::valor('productos_paquete_precio_usd', 5));
     }
 
-    /** Frase corta: "$20.000 por cada 100 productos más" */
-    public static function oferta(): string
+    // Precio del paquete en la moneda de cobro de la tienda (la actual si no se indica)
+    public static function precioPara(?Tienda $tienda = null): float
     {
-        return self::precioTexto() . ' por cada ' . self::cantidad() . ' productos más';
+        $tienda ??= TiendaActual::tienda();
+        $m = $tienda?->moneda_cobro ?? Moneda::COP;
+        return Moneda::esExtranjera($m) ? Moneda::convertir(self::precioUsd(), Moneda::USD, $m) : self::precio();
+    }
+
+    public static function precioTexto(?Tienda $tienda = null, int $paquetes = 1): string
+    {
+        $tienda ??= TiendaActual::tienda();
+        return Moneda::formato(self::precioPara($tienda) * $paquetes, $tienda?->moneda_cobro ?? Moneda::COP);
+    }
+
+    /** Frase corta: "$20.000 por cada 100 productos más" (US$5 o su valor en Bs en Venezuela) */
+    public static function oferta(?Tienda $tienda = null): string
+    {
+        return self::precioTexto($tienda) . ' por cada ' . self::cantidad() . ' productos más';
     }
 
     /** Enlace de WhatsApp a soporte de LocalPro para pedir la ampliación (o null si no hay número) */
@@ -41,7 +56,7 @@ class AmpliarProductos
         }
         $msg = 'Hola LocalPro 👋 Llegué al límite de ' . number_format($max, 0, ',', '.') . ' productos en mi tienda '
             . ($tienda?->nombre ?? '') . ($tienda?->codigo ? ' (' . $tienda->codigo . ')' : ' (#' . $tienda?->id . ')')
-            . ' y quiero ampliar: ' . self::oferta() . '.';
+            . ' y quiero ampliar: ' . self::oferta($tienda) . '.';
         return 'https://wa.me/' . $tel . '?text=' . rawurlencode($msg);
     }
 }

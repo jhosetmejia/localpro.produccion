@@ -22,15 +22,16 @@
     <form method="post" action="{{ route('admin.planes.guardar') }}">
         @csrf
         <div class="lp-box mb-3">
-            <h3>Planes (precios en COP)</h3>
+            <h3>Planes (precios en COP · y en US$ para Venezuela; si Venezuela está en bolívares se pasan con la tasa)</h3>
             <div class="table-responsive">
                 <table class="table align-middle">
-                    <thead><tr><th>Nombre</th><th style="width:150px">Precio</th><th style="width:120px">Días</th><th style="width:110px">Productos máx.</th><th style="width:110px">Personas máx.</th><th>Descripción</th><th>Activo</th><th class="text-end">Tiendas</th></tr></thead>
+                    <thead><tr><th>Nombre</th><th style="width:150px">Precio COP</th><th style="width:120px" title="Lo que paga un negocio de Venezuela">Precio US$</th><th style="width:120px">Días</th><th style="width:110px">Productos máx.</th><th style="width:110px">Personas máx.</th><th>Descripción</th><th>Activo</th><th class="text-end">Tiendas</th></tr></thead>
                     <tbody>
                     @foreach ($planes as $p)
                     <tr>
                         <td><input name="planes[{{ $p->id }}][nombre]" class="form-control" value="{{ $p->nombre }}" required></td>
                         <td><input data-dinero type="number" min="0" name="planes[{{ $p->id }}][precio]" class="form-control" value="{{ (int) $p->precio }}"></td>
+                        <td><input type="number" step="0.01" min="0" name="planes[{{ $p->id }}][precio_usd]" class="form-control" value="{{ $p->precio_usd }}" placeholder="{{ round($p->precio / \App\Support\Moneda::tasa(), 2) }}"></td>
                         <td><input type="number" min="1" name="planes[{{ $p->id }}][dias]" class="form-control" value="{{ $p->dias }}" placeholder="No vence"></td>
                         <td><input type="number" min="1" name="planes[{{ $p->id }}][max_productos]" class="form-control" value="{{ $p->max_productos }}" placeholder="Sin límite"></td>
                         <td><input type="number" min="1" name="planes[{{ $p->id }}][max_usuarios]" class="form-control" value="{{ $p->max_usuarios }}" placeholder="Sin límite"></td>
@@ -42,6 +43,7 @@
                     <tr>
                         <td><input name="nuevo[nombre]" class="form-control" placeholder="+ Nuevo plan"></td>
                         <td><input data-dinero type="number" min="0" name="nuevo[precio]" class="form-control" placeholder="0"></td>
+                        <td><input type="number" step="0.01" min="0" name="nuevo[precio_usd]" class="form-control" placeholder="US$"></td>
                         <td><input type="number" min="1" name="nuevo[dias]" class="form-control" placeholder="30"></td>
                         <td colspan="5"></td>
                     </tr>
@@ -51,8 +53,21 @@
             <div class="row g-3 align-items-end">
                 <div class="col-md-5"><label class="form-label">Su WhatsApp de soporte (con indicativo)</label><input name="soporte_whatsapp" class="form-control" value="{{ $soporte }}" placeholder="573001234567"></div>
                 <div class="col-md-2"><label class="form-label" title="Lo que paga el negocio por cada paquete de productos extra">Precio paquete extra</label><input data-dinero type="number" min="0" name="productos_paquete_precio" class="form-control" value="{{ $paqPrecio }}"></div>
+                <div class="col-md-2"><label class="form-label" title="Paquete extra para negocios de Venezuela">Paquete extra US$</label><input type="number" step="0.01" min="0" name="productos_paquete_precio_usd" class="form-control" value="{{ $paqPrecioUsd }}"></div>
+                <div class="col-md-2"><label class="form-label" title="Wompi solo cobra en pesos: un pago de US$55 se cobra a esta tasa">Tasa: pesos por US$1</label><input type="number" min="1" step="1" name="tasa_usd_cop" class="form-control" value="{{ (int) $tasa }}"></div>
                 <div class="col-md-2"><label class="form-label">Productos por paquete</label><input type="number" min="1" name="productos_paquete_cantidad" class="form-control" value="{{ $paqCantidad }}"></div>
                 <div class="col-md-3 text-end"><button class="btn btn-primary btn-lg"><i class="fa-solid fa-floppy-disk me-1"></i>Guardar</button></div>
+                <div class="col-12">
+            <div class="mt-3" style="border:1.5px solid #cfeedd;background:#f3faf5;border-radius:18px;padding:1rem 1.1rem">
+                <b><i class="fa-solid fa-coins me-1" style="color:#16b34a"></i>Venezuela · dólares y bolívares</b>
+                <small class="text-muted d-block mb-2">Las tiendas, contadores y asesores de Venezuela trabajan en <b>dólares</b> (precios, reportes, plan y comisiones) y <b>cobran en dólares o en bolívares</b> a la tasa del día: la caja muestra el total en $ y en Bs, y los pagos en Bs (Pago Móvil, punto de venta, efectivo en Bs) se pasan solos a dólares. Los precios nunca hay que convertirlos.</small>
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-4"><label class="form-label">Tasa del día: bolívares por US$1</label><input type="number" min="0" step="0.0001" name="tasa_ves_usd" class="form-control fw-bold" value="{{ $tasaVes ?: '' }}" placeholder="Ej. tasa BCV de hoy"></div>
+                    <div class="col-md-8 small text-muted">@if ($tasaVes > 0)Hoy: US$1 = <b>Bs {{ number_format($tasaVes, 2, ',', '.') }}</b>{{ $tasaVesFecha ? ' · actualizada ' . $tasaVesFecha->locale('es')->diffForHumans() : '' }}.@else <b style="color:#b0206a">Sin tasa:</b> las tiendas de Venezuela cobran solo en dólares hasta que la ponga.@endif Cada tienda puede usar su propia tasa desde la caja.</div>
+                </div>
+            </div>
+            </div>
+                </div>
                 <div class="col-12"><div style="border:1.5px solid #cfeedd;background:#f3faf5;border-radius:18px;padding:1rem 1.1rem">
                     <b><i class="fa-solid fa-eye me-1" style="color:#16b34a"></i>Tiendas de ejemplo para los asesores</b>
                     <label class="form-label small fw-bold mt-2 mb-1">Códigos LCT separados por coma (ej. una de ropa, un restaurante…)</label>
@@ -65,6 +80,18 @@
                     <label class="form-label small fw-bold mt-2 mb-1">Mientras tanto, negocios con acceso de prueba (códigos LCT separados por coma)</label>
                     <input name="meta_tiendas_prueba" class="form-control" value="{{ $metaPrueba }}" placeholder="LCT-00003, LCT-00007">
                     <small class="text-muted d-block mt-1">Antes de poner el código aquí, agregue el perfil de Facebook del dueño en developers.facebook.com → su app LocalProo → Roles de la app → Evaluadores, y que acepte la invitación. Los demás negocios ven una pantalla para pedir su acceso por WhatsApp.</small>
+                    <div class="row g-2 mt-1">
+                        <div class="col-md-6"><label class="form-label small fw-bold mb-1">Configuración de inicio de sesión (config_id)</label><input name="meta_config_id" class="form-control" value="{{ $metaConfigId }}" placeholder="{{ config('services.meta.config_id') ?: 'Ej. 3027406647434289' }}" inputmode="numeric"></div>
+                        <div class="col-md-3"><label class="form-label small fw-bold mb-1">Versión de la API</label><input name="meta_graph_version" class="form-control" value="{{ $metaVersion }}" placeholder="{{ \App\Support\Meta::v() }}"></div>
+                        <div class="col-md-3 d-grid align-items-end"><a href="{{ route('admin.planes.index', ['revisar_meta' => 1]) }}#metaDiag" class="btn btn-outline-primary mt-auto"><i class="fa-solid fa-stethoscope me-1"></i>Revisar conexión</a></div>
+                    </div>
+                    @if ($metaDiag)
+                    <ul class="list-unstyled mt-3 mb-0" id="metaDiag">
+                        @foreach ($metaDiag as [$ok, $titulo, $detalle])
+                        <li class="d-flex gap-2 py-1" style="border-bottom:1px solid #e3ecff"><span style="width:22px;flex:none">{{ $ok === true ? '✅' : ($ok === false ? '❌' : 'ℹ️') }}</span><span><b>{{ $titulo }}</b><small class="d-block text-muted" style="word-break:break-all">{{ $detalle }}</small></span></li>
+                        @endforeach
+                    </ul>
+                    @endif
                 </div></div>
             </div>
         </div>
@@ -75,7 +102,7 @@
         <ul class="lp-list">
             @forelse ($pagos as $pg)
             <li><div class="av"><i class="fa-solid fa-file-invoice-dollar"></i></div><div class="t"><b>{{ $pg->tienda->nombre ?? '—' }} · {{ $pg->plan->nombre ?? '' }}</b><small>{{ $pg->created_at->format('d/m/Y H:i') }} · {{ ucfirst($pg->metodo) }} · {{ $pg->referencia }}</small></div>
-                <span class="badge {{ $pg->estado === 'aprobado' ? 'bg-success' : ($pg->estado === 'pendiente' ? 'bg-warning text-dark' : 'bg-danger') }}">{{ ucfirst($pg->estado) }}</span><span class="m">${{ number_format($pg->monto, 0, ',', '.') }}</span></li>
+                <span class="badge {{ $pg->estado === 'aprobado' ? 'bg-success' : ($pg->estado === 'pendiente' ? 'bg-warning text-dark' : 'bg-danger') }}">{{ ucfirst($pg->estado) }}</span><span class="m">{{ $pg->monto_texto }}</span></li>
             @empty
             <li class="lp-empty">Aún no hay pagos.</li>
             @endforelse

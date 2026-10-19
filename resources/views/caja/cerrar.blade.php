@@ -12,7 +12,7 @@
         <ul class="lp-list">
             <li><div class="av"><i class="fa-solid fa-piggy-bank"></i></div><div class="t"><b>Base inicial</b><small>Efectivo con el que abrió</small></div><span class="m">@pesos($caja->monto_inicial)</span></li>
             @forelse ($totales as $t)
-            <li><div class="av"><i class="fa-solid {{ $t->es_efectivo ? 'fa-money-bill-wave' : 'fa-mobile-screen-button' }}"></i></div><div class="t"><b>{{ $t->nombre }}</b><small>{{ $t->ventas }} venta(s)</small></div><span class="m">@pesos($t->total)</span></li>
+            <li><div class="av"><i class="fa-solid {{ $t->es_efectivo ? 'fa-money-bill-wave' : 'fa-mobile-screen-button' }}"></i></div><div class="t"><b>{{ $t->nombre }}</b><small>{{ $t->ventas }} venta(s)</small></div><span class="m">@pesos($t->total){!! ($t->moneda ?? null) === 'VES' && $t->total_bs > 0 ? '<small class="d-block text-muted">' . e(\App\Support\Moneda::formato($t->total_bs, 'VES')) . '</small>' : '' !!}</span></li>
             @empty
             <li class="lp-empty">No hubo ventas en este turno.</li>
             @endforelse
@@ -26,9 +26,15 @@
 
         </ul>
         <div class="d-flex justify-content-between align-items-center mt-3 p-3" style="background:var(--lp-black);color:#fff;border-radius:16px">
-            <span class="fw-bold">Efectivo que debe haber en caja</span>
+            <span class="fw-bold">{{ $bs ? 'Efectivo en dólares que debe haber' : 'Efectivo que debe haber en caja' }}</span>
             <span class="fs-4 fw-bold" style="color:var(--lp-lime)">@pesos($esperado)</span>
         </div>
+        @if ($bs)
+        <div class="d-flex justify-content-between align-items-center mt-2 p-3" style="background:#0f3d22;color:#fff;border-radius:16px">
+            <span class="fw-bold">Efectivo en bolívares que debe haber</span>
+            <span class="fs-4 fw-bold" style="color:var(--lp-lime)">{{ \App\Support\Moneda::formato($bs['esperado'], 'VES') }}</span>
+        </div>
+        @endif
     </div>
 
     @include('caja._movimientos')
@@ -42,6 +48,14 @@
             <input data-dinero type="number" id="contado" name="efectivo_contado" min="0" step="{{ paso_dinero() }}" class="form-control form-control-lg fw-bold" required autofocus>
         </div>
         <div id="dif" class="fw-bold mb-3"></div>
+        @if ($bs)
+        <label class="form-label">Bolívares en efectivo contados</label>
+        <div class="input-group mb-2">
+            <span class="input-group-text fw-bold" style="border-radius:12px 0 0 12px">Bs</span>
+            <input data-dinero type="number" id="contadoBs" name="efectivo_bs_contado" min="0" step="0.01" class="form-control form-control-lg fw-bold" required>
+        </div>
+        <div id="difBs" class="fw-bold mb-3"></div>
+        @endif
         <label class="form-label">Nota de cierre (opcional)</label>
         <input name="nota_cierre" class="form-control mb-4" maxlength="255" placeholder="Ej: Se retiraron $200.000 para consignar">
         <button class="btn btn-dark btn-lg w-100"><i class="fa-solid fa-lock me-1"></i>Cerrar caja e imprimir cuadre</button>
@@ -65,6 +79,16 @@
         out.style.color = Math.abs(d) < (M.decimales ? 0.005 : 1) ? '#11702f' : (d < 0 ? '#b0206a' : '#8a6400');
         out.textContent = Math.abs(d) < (M.decimales ? 0.005 : 1) ? '✔ La caja cuadra exacto' : (d < 0 ? 'Faltan ' + fmt(d) : 'Sobran ' + fmt(d));
     });
+    @if ($bs)
+    var esperadoBs = {{ (float) $bs['esperado'] }}, ib = document.getElementById('contadoBs'), ob = document.getElementById('difBs');
+    var fmtBs = {!! \App\Support\Moneda::js('VES') !!};
+    ib.addEventListener('input', function () {
+        if (ib.value === '') { ob.textContent = ''; return; }
+        var d = parseFloat(ib.value) - esperadoBs;
+        ob.style.color = Math.abs(d) < 0.005 ? '#11702f' : (d < 0 ? '#b0206a' : '#8a6400');
+        ob.textContent = Math.abs(d) < 0.005 ? '✔ Los bolívares cuadran exacto' : (d < 0 ? 'Faltan ' + fmtBs(-d) : 'Sobran ' + fmtBs(d));
+    });
+    @endif
 })();
 </script>
 @endpush

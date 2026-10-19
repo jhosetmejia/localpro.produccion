@@ -92,7 +92,7 @@
             <ul class="lp-list">
                 @forelse ($ultimosPagos as $p)
                 <li><div class="av"><i class="fa-solid fa-file-invoice-dollar"></i></div>
-                    <div class="t"><b>{{ $f($p->monto) }} · {{ $p->tienda->nombre ?? '—' }}</b><small>{{ $p->plan->nombre ?? '' }} · {{ ucfirst($p->metodo) }} · {{ $p->created_at->format('d/m/Y') }}</small></div>
+                    <div class="t"><b>{{ $p->monto_texto }} · {{ $p->tienda->nombre ?? '—' }}</b><small>{{ $p->plan->nombre ?? '' }} · {{ ucfirst($p->metodo) }} · {{ $p->created_at->format('d/m/Y') }}</small></div>
                     <span class="badge {{ $p->estado === 'aprobado' ? 'bg-success' : ($p->estado === 'pendiente' ? 'bg-warning text-dark' : 'bg-danger') }}">{{ ucfirst($p->estado) }}</span></li>
                 @empty
                 <li class="lp-empty">Sin pagos todavía.</li>

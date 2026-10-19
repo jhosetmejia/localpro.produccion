@@ -1,7 +1,8 @@
 {{-- Pantalla al terminar la prueba gratis (o vencer el plan): pagar mensual o anual. Si es prueba, muestra cuándo se borra la información. --}}
 @php
     $mensual = $planes->first(fn ($p) => $p->dias && $p->dias < 365);
-    $fmt = fn ($v) => '$' . number_format((float) $v, 0, ',', '.');
+    $mc = $tienda->moneda_cobro; // Venezuela: dólares o bolívares
+    $fmt = fn ($v) => \App\Support\Moneda::formato($v, $mc);
     $diasBorrar = $fechaBorrado ? max(0, (int) today()->diffInDays($fechaBorrado, false)) : null;
     $ultimoDia = $fechaBorrado?->copy()->subDay();
 @endphp
@@ -79,17 +80,17 @@ body{margin:0;min-height:100vh;font-family:'Plus Jakarta Sans',system-ui,sans-se
         @foreach ($planes as $p)
             @php
                 $anual = $p->dias >= 365;
-                $ahorro = $anual && $mensual ? (float) $mensual->precio * 12 - (float) $p->precio : 0;
+                $ahorro = $anual && $mensual ? $mensual->precioEn($mc) * 12 - $p->precioEn($mc) : 0;
             @endphp
             <div class="pv-plan {{ $anual ? 'top' : '' }}">
                 @if ($anual && $ahorro > 0)<div class="tag">Ahorra {{ $fmt($ahorro) }}</div>@endif
                 <h3>{{ $p->nombre }}</h3>
-                <div class="p">{{ $fmt($p->precio) }} <small>{{ $anual ? '/ año' : ($p->dias >= 28 ? '/ mes' : '/ ' . $p->dias . ' días') }}</small></div>
-                <div class="d">{{ $anual ? 'Equivale a ' . $fmt(round((float) $p->precio / 12)) . ' al mes. ' : '' }}{{ $p->descripcion }}</div>
+                <div class="p">{{ $fmt($p->precioEn($mc)) }} <small>{{ $anual ? '/ año' : ($p->dias >= 28 ? '/ mes' : '/ ' . $p->dias . ' días') }}</small></div>
+                <div class="d">{{ $anual ? 'Equivale a ' . $fmt(\App\Support\Moneda::esExtranjera($mc) ? round($p->precioEn($mc) / 12, 2) : round((float) $p->precio / 12)) . ' al mes. ' : '' }}{{ $p->descripcion }}</div>
                 @if ($puedePagar)
                     <form method="post" action="{{ route('plan.pagar', $p) }}">@csrf
                         <button type="submit">
-                            @if ($wompi)<i class="fa-solid fa-credit-card"></i> Pagar {{ $fmt($p->precio) }} @else<i class="fa-brands fa-whatsapp"></i> Pagar con LocalProo @endif
+                            @if ($wompi)<i class="fa-solid fa-credit-card"></i> Pagar {{ $fmt($p->precioEn($mc)) }} @else<i class="fa-brands fa-whatsapp"></i> Pagar con LocalProo @endif
                         </button>
                     </form>
                 @endif

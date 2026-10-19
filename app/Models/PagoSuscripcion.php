@@ -16,9 +16,29 @@ class PagoSuscripcion extends Model
         return str_starts_with((string) $this->referencia, self::PREFIJO_PRUEBA);
     }
 
-    protected $fillable = ['tienda_id', 'plan_id', 'monto', 'metodo', 'referencia', 'estado', 'periodo_desde', 'periodo_hasta', 'nota', 'registrado_por', 'respuesta'];
+    protected $fillable = ['tienda_id', 'plan_id', 'monto', 'moneda', 'cobro_cop', 'metodo', 'referencia', 'estado', 'periodo_desde', 'periodo_hasta', 'nota', 'registrado_por', 'respuesta'];
 
     protected $casts = ['periodo_desde' => 'date', 'periodo_hasta' => 'date', 'respuesta' => 'array'];
+
+    // Expresión SQL del valor del pago en pesos (los de otra moneda con lo que cobró Wompi o a la tasa del día), para sumar ingresos
+    public static function sqlEnCop(): \Illuminate\Contracts\Database\Query\Expression
+    {
+        return \Illuminate\Support\Facades\DB::raw(\App\Support\Moneda::sqlACop('monto', 'moneda', 'cobro_cop'));
+    }
+
+    // Valor de este pago en pesos colombianos
+    public function getMontoCopAttribute(): float
+    {
+        return \App\Support\Moneda::esExtranjera($this->moneda)
+            ? (float) ($this->cobro_cop ?? \App\Support\Moneda::aCop($this->monto, $this->moneda))
+            : (float) $this->monto;
+    }
+
+    // $220.000 o US$55 según la moneda del pago
+    public function getMontoTextoAttribute(): string
+    {
+        return \App\Support\Moneda::formato($this->monto, $this->moneda ?: 'COP');
+    }
 
     public function tienda()
     {

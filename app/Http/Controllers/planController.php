@@ -61,7 +61,8 @@ class planController extends Controller
 
         if (!self::wompiActivo()) {
             $tel = preg_replace('/\D/', '', (string) Ajuste::valor('soporte_whatsapp'));
-            $msg = "Hola LocalPro, quiero pagar el plan {$plan->nombre} (" . '$' . number_format($plan->precio, 0, ',', '.') . " COP) para la tienda {$tienda->nombre} (#{$tienda->id}).";
+            $m = $tienda->moneda_cobro;
+            $msg = "Hola LocalPro, quiero pagar el plan {$plan->nombre} (" . \App\Support\Moneda::formato($plan->precioEn($m), $m, true) . ") para la tienda {$tienda->nombre} (#{$tienda->id}).";
             return $tel
                 ? redirect()->away('https://wa.me/' . $tel . '?text=' . rawurlencode($msg))
                 : back()->withErrors('El pago en línea aún no está disponible. Comuníquese con LocalPro.');

@@ -191,7 +191,7 @@ class conjuntoController extends Controller
             'tipo' => ['required', Rule::in(['extraordinaria', 'multa', 'interes', 'otro'])],
             'concepto' => 'required|string|max:120',
             'modo' => ['required', Rule::in(['igual', 'coeficiente', 'unidad'])],
-            'valor' => 'required|numeric|min:1|max:1000000000',
+            'valor' => 'required|numeric|min:0.01|max:1000000000',
             'unidad_id' => 'nullable|integer',
             'vence' => 'nullable|date',
         ], ['concepto.required' => 'Escriba el concepto del cobro.']);
@@ -261,7 +261,7 @@ class conjuntoController extends Controller
     public function pagoGuardar(Request $request, Unidad $unidad)
     {
         $d = $request->validate([
-            'valor' => 'required|numeric|min:1|max:1000000000',
+            'valor' => 'required|numeric|min:0.01|max:1000000000',
             'fecha' => 'required|date|before_or_equal:today',
             'metodo' => 'required|string|max:40',
             'referencia' => 'nullable|string|max:60',
@@ -357,7 +357,7 @@ class conjuntoController extends Controller
             'fecha' => 'required|date',
             'categoria' => 'required|string|max:40',
             'concepto' => 'required|string|max:160',
-            'valor' => 'required|numeric|min:1|max:1000000000',
+            'valor' => 'required|numeric|min:0.01|max:1000000000',
             'proveedor' => 'nullable|string|max:80',
         ]);
         Gasto::create($d + ['user_id' => Auth::id()]);

@@ -24,7 +24,7 @@
                     <td>{{ $c->total_ventas !== null ? dinero($c->total_ventas) : '—' }}</td>
                     <td>
                         @if ($c->diferencia === null) —
-                        @elseif (abs($c->diferencia) < 1) <span class="badge bg-success">Cuadró</span>
+                        @elseif (abs($c->diferencia) < (moneda()["decimales"] ? 0.01 : 1)) <span class="badge bg-success">Cuadró</span>
                         @else <span class="badge {{ $c->diferencia < 0 ? 'bg-danger' : 'bg-warning text-dark' }}">{{ $c->diferencia < 0 ? 'Faltó' : 'Sobró' }} @pesos(abs($c->diferencia))</span>
                         @endif
                     </td>

@@ -3,7 +3,7 @@
 @section('title', 'Mi panel de asesor')
 
 @section('content')
-@php $f = fn ($v) => '$' . number_format((float) $v, 0, ',', '.'); @endphp
+@php $f = fn ($v) => $yo->plata($v); /* en la moneda del asesor: dólares si es de Venezuela */ @endphp
 <div class="lp-dash">
     <div class="lp-hello">
         <div>
@@ -37,7 +37,7 @@
                 <div class="small text-muted">{{ $rp->updated_at->diffForHumans() }}</div>
             </div>
             @if ($rp->mi_comision > 0)
-            <div class="text-end"><div class="small text-muted">Usted gana</div><div class="fw-bold" style="font-size:1.35rem;color:#11702f">{{ $f($rp->mi_comision) }}</div></div>
+            <div class="text-end"><div class="small text-muted">Usted gana</div><div class="fw-bold" style="font-size:1.35rem;color:#11702f">{{ \App\Support\Moneda::formato($rp->mi_comision, $rp->moneda ?: 'COP') }}</div></div>
             @else
             <div class="small text-muted" style="max-width:260px">Este pago no le generó comisión (solo el plan anual paga, y usted debe estar activo con al menos un negocio con pago).</div>
             @endif
@@ -244,9 +244,9 @@
                     <div class="t"><b>{{ $t->nombre }}</b><small>{{ $t->ciudad ?: 'Sin ciudad' }} · {{ $t->plan->nombre ?? 'Sin plan' }}{{ $t->plan_vence ? ' · ' . ($t->plan_vence->isPast() ? 'venció ' : 'vence ') . $t->plan_vence->format('d/m/Y') : '' }}</small>
                         @php $gn = $porNegocio[$t->id] ?? null; @endphp
                         @if (isset($pagaron[$t->id]))
-                            <small class="fw-bold" style="color:#11702f"><i class="fa-solid fa-circle-check me-1"></i>Ya pagó{{ $gn ? ' · le ha dejado ' . $f($gn->total) . ($gn->pendiente > 0 ? ' (' . $f($gn->pendiente) . ' por cobrar)' : '') : '' }}</small>
+                            <small class="fw-bold" style="color:#11702f"><i class="fa-solid fa-circle-check me-1"></i>Ya pagó{{ $gn ? ' · le ha dejado ' . \App\Support\Moneda::formato($gn->total, $gn->moneda) . ($gn->pendiente > 0 ? ' (' . \App\Support\Moneda::formato($gn->pendiente, $gn->moneda) . ' por cobrar)' : '') : '' }}</small>
                         @else
-                            <small class="fw-bold" style="color:#a86b00"><i class="fa-solid fa-gift me-1"></i>Aún no paga · cuando pague el plan anual usted gana {{ $f($ganancias['porVenta']) }}</small>
+                            <small class="fw-bold" style="color:#a86b00"><i class="fa-solid fa-gift me-1"></i>Aún no paga · cuando pague el plan anual usted gana {{ \App\Support\Moneda::formato($porVentaNegocio($t), $t->moneda_cobro) }}</small>
                         @endif
                     </div>
                     @php $msgPago = 'Hola, le escribo de LocalPro 👋 Aquí puede pagar el plan de ' . $t->nombre . ' en línea (tarjeta, PSE o Nequi) y se activa de una vez: ' . $t->url_pago; @endphp
@@ -296,7 +296,7 @@
         <p class="small text-muted mb-2"><span class="badge bg-warning text-dark">Pendiente</span> LocalPro se la consigna{{ $yo->banco ? ' a ' . $yo->banco : ' en la cuenta que registró' }} · <span class="badge bg-success">Pagada</span> ya se la consignaron.</p>
         <ul class="lp-list">
             @forelse ($ultimas as $c)
-            <li><div class="av"><i class="fa-solid fa-coins"></i></div><div class="t"><b>{{ $f($c->monto) }} · {{ $c->tienda->nombre ?? 'Negocio' }}</b><small>{{ $c->concepto_nombre }} · {{ $c->tipo === 'nueva' ? 'venta nueva' : 'renovación' }} · {{ $c->created_at->format('d/m/Y') }}</small></div>
+            <li><div class="av"><i class="fa-solid fa-coins"></i></div><div class="t"><b>{{ $c->monto_texto }} · {{ $c->tienda->nombre ?? 'Negocio' }}</b><small>{{ $c->concepto_nombre }} · {{ $c->tipo === 'nueva' ? 'venta nueva' : 'renovación' }} · {{ $c->created_at->format('d/m/Y') }}</small></div>
                 <span class="badge {{ $c->estado === 'pagada' ? 'bg-success' : ($c->estado === 'pendiente' ? 'bg-warning text-dark' : 'bg-secondary') }}">{{ ucfirst($c->estado) }}</span></li>
             @empty
             <li class="lp-empty">Todavía no tiene comisiones. Se generan cuando sus negocios pagan el plan.</li>

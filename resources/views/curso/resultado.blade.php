@@ -34,14 +34,14 @@
     <div class="hero">
         <small>Prueba básica aprobada</small>
         <h1>¡Pasaste la prueba básica, <em>{{ strtok($a->nombre, ' ') }}</em>! 🎉</h1>
-        <p>Ya conoces qué es LocalPro, cómo se inscribe un negocio y cómo ganas. Ahora compártele el resultado a quien te reclutó.</p>
+        <p>Ya conoces qué es LocalPro, cómo se inscribe un negocio y cómo ganas. Ahora mándale tu Misión Cumplida a tu guía.</p>
         @if ($a->curso_nota)
         <div class="nota"><b>{{ $a->curso_nota }}%</b><span>de respuestas correctas</span></div>
         @endif
     </div>
 
     <div class="card">
-        <h2 style="margin:0 0 4px;font-size:1.25rem">Comparte este enlace con tu reclutador</h2>
+        <h2 style="margin:0 0 4px;font-size:1.25rem">🏆 Misión cumplida: avísale a tu guía</h2>
         <p style="margin:0;color:var(--mut);font-weight:600">
             {{ $reclutador ? 'Envíaselo a ' . $reclutador->nombre . ' para que vea que ya pasaste la prueba.' : 'Envíaselo a la persona de LocalPro que te contactó para que vea que ya pasaste la prueba.' }}
         </p>
@@ -55,7 +55,7 @@
         <div class="msg ok" style="margin:12px 0">Vista de administrador: aquí el asesor ve su propio enlace (localproo.com/prueba/SU-CÓDIGO).</div>
         @endif
 
-        <a class="btn btn-w btn-block" target="_blank" rel="noopener" href="{{ $wa }}"><i class="fa-brands fa-whatsapp"></i> Enviar a mi reclutador por WhatsApp</a>
+        <a class="btn btn-w btn-block" target="_blank" rel="noopener" href="{{ $wa }}"><i class="fa-brands fa-whatsapp"></i> Enviar mi Misión Cumplida a mi guía</a>
     </div>
 
     @if (!$admin && $a->falta_perfil)

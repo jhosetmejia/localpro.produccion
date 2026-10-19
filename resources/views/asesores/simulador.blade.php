@@ -142,12 +142,12 @@
 
     <div class="card">
         <h2>Lo que ganas por cada negocio</h2>
-        <p class="sub">Plan anual de LocalPro de {{ '$' . number_format($valores['valor_plan'], 0, ',', '.') }}.</p>
+        <p class="sub">Plan anual de LocalPro de {{ \App\Support\Moneda::formato($valores['valor_plan'], $valores['moneda']) }}.</p>
         <table class="tabla">
             <thead><tr><th>Quién gana</th><th>Negocio nuevo</th><th>Cada renovación</th></tr></thead>
             <tbody>
             @foreach (['venta' => 'Quien inscribe el negocio', 'lider_zona' => 'Líder de zona', 'lider_ciudad' => 'Líder de ciudad', 'lider_departamento' => 'Líder de departamento', 'lider_pais' => 'Líder de país'] as $k => $n)
-                <tr><td><b>{{ $n }}</b></td><td>{{ '$' . number_format($valores['nueva'][$k], 0, ',', '.') }}</td><td>{{ '$' . number_format($valores['renovacion'][$k], 0, ',', '.') }}</td></tr>
+                <tr><td><b>{{ $n }}</b></td><td>{{ \App\Support\Moneda::formato($valores['nueva'][$k], $valores['moneda']) }}</td><td>{{ \App\Support\Moneda::formato($valores['renovacion'][$k], $valores['moneda']) }}</td></tr>
             @endforeach
             </tbody>
         </table>
@@ -174,7 +174,7 @@
     var N = V.nueva, R = V.renovacion;
     var rol = 1;
     var $ = function (id) { return document.getElementById(id); };
-    var fmt = function (n) { return '$' + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); };
+    var fmt = {!! \App\Support\Moneda::js($valores['moneda']) !!};
     var niveles = ['venta', 'lider_zona', 'lider_ciudad', 'lider_departamento', 'lider_pais'];
     // Lo que gana por un negocio que inscribe él mismo: su parte de asesor + la de su cargo y los de abajo
     var propio = function (T) { var s = 0; for (var i = 0; i < rol; i++) s += +T[niveles[i]] || 0; return s; };

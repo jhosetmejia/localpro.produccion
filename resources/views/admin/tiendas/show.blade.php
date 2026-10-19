@@ -43,10 +43,10 @@
             @endphp
             <div class="mb-3 p-3" style="background:#f3faf5;border:1.5px solid #cfeedd;border-radius:16px">
                 <b><i class="fa-solid fa-box me-1" style="color:#16b34a"></i>Productos: {{ number_format($usadosProd, 0, ',', '.') }} de {{ $baseProd ? number_format($baseProd + (int) $tienda->productos_extra, 0, ',', '.') : 'ilimitados' }}</b>
-                <small class="text-muted d-block">Plan: {{ $baseProd ? number_format($baseProd, 0, ',', '.') : 'sin límite' }} · Extra comprados: {{ number_format((int) $tienda->productos_extra, 0, ',', '.') }} · Paquete: {{ \App\Support\AmpliarProductos::oferta() }}</small>
+                <small class="text-muted d-block">Plan: {{ $baseProd ? number_format($baseProd, 0, ',', '.') : 'sin límite' }} · Extra comprados: {{ number_format((int) $tienda->productos_extra, 0, ',', '.') }} · Paquete: {{ \App\Support\AmpliarProductos::oferta($tienda) }}</small>
                 <form method="post" action="{{ route('admin.tiendas.productosExtra', $tienda) }}" class="d-flex gap-2 flex-wrap mt-2 align-items-center" data-confirm="¿Cambiar los productos extra?" data-confirm-texto="Se suma o se quita la cantidad de paquetes elegida al cupo de productos de la tienda." data-confirm-ok="Sí, cambiar">
                     @csrf
-                    <select name="paquetes" class="form-select form-select-sm" style="width:auto">@foreach ([1, 2, 3, 5, 10] as $n)<option value="{{ $n }}">{{ $n }} paquete{{ $n > 1 ? 's' : '' }} ({{ $n * $paqCant }} productos · ${{ number_format($n * \App\Support\AmpliarProductos::precio(), 0, ',', '.') }})</option>@endforeach</select>
+                    <select name="paquetes" class="form-select form-select-sm" style="width:auto">@foreach ([1, 2, 3, 5, 10] as $n)<option value="{{ $n }}">{{ $n }} paquete{{ $n > 1 ? 's' : '' }} ({{ $n * $paqCant }} productos · {{ \App\Support\AmpliarProductos::precioTexto($tienda, $n) }})</option>@endforeach</select>
                     <button name="accion" value="sumar" class="btn btn-sm btn-success"><i class="fa-solid fa-plus me-1"></i>Agregar</button>
                     @if ($tienda->productos_extra)<button name="accion" value="quitar" class="btn btn-sm btn-light"><i class="fa-solid fa-minus me-1"></i>Quitar</button>@endif
                 </form>
@@ -54,8 +54,10 @@
             <form method="post" action="{{ route('admin.tiendas.pago', $tienda) }}" class="row g-2 align-items-end" data-confirm="¿Registrar el pago?" data-confirm-texto="Se extiende el plan de la tienda según los meses indicados." data-confirm-ok="Sí, registrar">
                 @csrf
                 <div class="col-12"><b>Registrar pago recibido</b> <small class="text-muted">(transferencia, Nequi, efectivo)</small></div>
-                <div class="col-md-5"><select name="plan_id" class="form-select" id="pp" onchange="document.getElementById('pm').value=this.selectedOptions[0].dataset.p">@foreach ($planes->where('precio', '>', 0) as $p)<option value="{{ $p->id }}" data-p="{{ (int) $p->precio }}">{{ $p->nombre }} · ${{ number_format($p->precio, 0, ',', '.') }}</option>@endforeach</select></div>
-                <div class="col-md-3"><input data-dinero type="number" min="0" name="monto" id="pm" class="form-control" value="{{ (int) optional($planes->where('precio', '>', 0)->first())->precio }}"></div>
+                @php $mc = $tienda->moneda_cobro; $usd = \App\Support\Moneda::esExtranjera($mc); $planesPago = $planes->where('precio', '>', 0); @endphp
+                @if ($usd)<div class="col-12"><small class="fw-bold" style="color:#11702f"><i class="fa-solid fa-dollar-sign me-1"></i>Negocio de Venezuela: el plan se cobra y se registra en {{ $mc === 'VES' ? 'bolívares (Bs)' : 'dólares (US$)' }}.</small></div>@endif
+                <div class="col-md-5"><select name="plan_id" class="form-select" id="pp" onchange="var m=document.getElementById('pm');m.value=this.selectedOptions[0].dataset.p;m.dispatchEvent(new Event('input'))">@foreach ($planesPago as $p)<option value="{{ $p->id }}" data-p="{{ $p->precioEn($mc) }}">{{ $p->nombre }} · {{ $p->precioTexto($tienda) }}</option>@endforeach</select></div>
+                <div class="col-md-3">@if ($usd)<div class="input-group"><span class="input-group-text">{{ \App\Support\Moneda::simbolo($mc) }}</span><input type="number" min="0" step="0.01" name="monto" id="pm" class="form-control" value="{{ optional($planesPago->first())->precioEn($mc) }}"></div>@else<input data-dinero type="number" min="0" name="monto" id="pm" class="form-control" value="{{ (int) optional($planesPago->first())->precio }}">@endif</div>
                 <div class="col-md-4 d-grid"><button class="btn btn-primary">Registrar pago</button></div>
                 <div class="col-12"><input name="nota" class="form-control" placeholder="Nota (opcional): ej. Nequi ref 12345"></div>
             </form>
@@ -95,7 +97,7 @@
             <h3><span>Pagos de plan</span><form method="post" action="{{ route('admin.tiendas.pagoPrueba', $tienda) }}" class="d-inline" data-confirm="¿Generar un pago de prueba de $1.500?" data-confirm-texto="Al pagarlo, la tienda queda con el plan anual activo. No genera comisiones y no cuenta como venta." data-confirm-ok="Sí, generar enlace">@csrf<button class="btn btn-sm btn-light"><i class="fa-solid fa-flask me-1"></i>Pago de prueba</button></form></h3>
             <ul class="lp-list">
                 @forelse ($pagosPlan as $pg)
-                <li><div class="av"><i class="fa-solid fa-file-invoice-dollar"></i></div><div class="t"><b>{{ $pg->plan->nombre ?? '' }} · ${{ number_format($pg->monto, 0, ',', '.') }}@if ($pg->es_prueba) <span class="badge bg-warning text-dark">Prueba</span>@endif</b><small>{{ $pg->created_at->format('d/m/Y') }} · {{ ucfirst($pg->metodo) }}{{ $pg->periodo_hasta ? ' · hasta ' . $pg->periodo_hasta->format('d/m/Y') : '' }}</small></div><span class="badge {{ $pg->estado === 'aprobado' ? 'bg-success' : ($pg->estado === 'pendiente' ? 'bg-warning text-dark' : 'bg-danger') }}">{{ ucfirst($pg->estado) }}</span></li>
+                <li><div class="av"><i class="fa-solid fa-file-invoice-dollar"></i></div><div class="t"><b>{{ $pg->plan->nombre ?? '' }} · {{ $pg->monto_texto }}@if ($pg->es_prueba) <span class="badge bg-warning text-dark">Prueba</span>@endif</b><small>{{ $pg->created_at->format('d/m/Y') }} · {{ ucfirst($pg->metodo) }}{{ $pg->periodo_hasta ? ' · hasta ' . $pg->periodo_hasta->format('d/m/Y') : '' }}</small></div><span class="badge {{ $pg->estado === 'aprobado' ? 'bg-success' : ($pg->estado === 'pendiente' ? 'bg-warning text-dark' : 'bg-danger') }}">{{ ucfirst($pg->estado) }}</span></li>
                 @empty
                 <li class="lp-empty">Sin pagos registrados.</li>
                 @endforelse

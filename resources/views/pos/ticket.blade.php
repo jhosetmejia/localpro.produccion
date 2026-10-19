@@ -45,13 +45,16 @@
         <tr><td>Subtotal{{ $venta->impuestos > 0 ? ' (IVA incl.)' : '' }}</td><td class="r">{{ dinero($venta->subtotal, false) }}</td></tr>
         @if ($venta->descuento > 0)<tr><td>Descuento</td><td class="r">-{{ dinero($venta->descuento, false) }}</td></tr>@endif
         <tr class="b xl"><td>TOTAL</td><td class="r">{{ dinero($venta->total) }}</td></tr>
+        @if ((float) $venta->tasa_bs > 0)<tr class="b"><td>Total en Bs</td><td class="r">{{ \App\Support\Moneda::formato($venta->total * $venta->tasa_bs, 'VES') }}</td></tr>
+        <tr><td colspan="2" style="font-size:10px">Tasa: US$1 = {{ \App\Support\Moneda::formato($venta->tasa_bs, 'VES') }}</td></tr>@endif
     </table>
     <hr>
     <table>
         @foreach ($venta->pagos as $p)
-        <tr><td>{{ $p->metodo->nombre }}</td><td class="r">{{ dinero($p->monto + ($p->metodo->es_efectivo && $loop->first ? $venta->cambio : 0), false) }}</td></tr>
+        @php $extra = $p->metodo->es_efectivo && $loop->first ? $venta->cambio : 0; @endphp
+        <tr><td>{{ $p->metodo->nombre }}</td><td class="r">@if ($p->moneda === 'VES'){{ \App\Support\Moneda::formato((float) $p->monto_moneda + $extra * (float) $p->tasa, 'VES') }}@else{{ dinero($p->monto + $extra, false) }}@endif</td></tr>
         @endforeach
-        @if ($venta->cambio > 0)<tr class="b"><td>Cambio</td><td class="r">{{ dinero($venta->cambio, false) }}</td></tr>@endif
+        @if ($venta->cambio > 0)<tr class="b"><td>Cambio</td><td class="r">{{ dinero($venta->cambio, false) }}{{ (float) $venta->tasa_bs > 0 ? ' / ' . \App\Support\Moneda::formato($venta->cambio * $venta->tasa_bs, 'VES') : '' }}</td></tr>@endif
     </table>
     <hr>
     @include('pos._fiscal')

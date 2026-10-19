@@ -24,7 +24,7 @@
     <div class="card">
         <ul class="puntos" style="margin:0">
             <li><i class="fa-solid fa-store"></i> Negocio: <b>{{ $tienda->nombre }}</b></li>
-            <li><i class="fa-solid fa-gem"></i> Plan: <b>{{ $pago->plan->nombre ?? '' }}</b> · ${{ number_format($pago->monto, 0, ',', '.') }} COP</li>
+            <li><i class="fa-solid fa-gem"></i> Plan: <b>{{ $pago->plan->nombre ?? '' }}</b> · {{ \App\Support\Moneda::formato($pago->monto, $pago->moneda ?: 'COP', true) }}</li>
             <li><i class="fa-solid fa-hashtag"></i> Referencia: <b>{{ $pago->referencia }}</b></li>
         </ul>
     </div>

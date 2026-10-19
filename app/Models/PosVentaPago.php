@@ -8,7 +8,7 @@ class PosVentaPago extends Model
 {
     protected $table = 'pos_venta_pagos';
 
-    protected $fillable = ['pos_venta_id', 'metodo_pago_id', 'monto', 'referencia'];
+    protected $fillable = ['pos_venta_id', 'metodo_pago_id', 'monto', 'referencia', 'moneda', 'monto_moneda', 'tasa'];
 
     public function metodo()
     {

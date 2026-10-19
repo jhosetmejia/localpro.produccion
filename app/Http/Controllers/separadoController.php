@@ -148,7 +148,7 @@ class separadoController extends Controller
 
     public function abonar(Request $request, Separado $separado)
     {
-        $d = $request->validate(['monto' => 'required|numeric|min:1', 'metodo_id' => 'required|integer', 'nota' => 'nullable|string|max:255'],
+        $d = $request->validate(['monto' => 'required|numeric|min:0.01', 'metodo_id' => 'required|integer', 'nota' => 'nullable|string|max:255'],
             ['monto.required' => 'Escriba cuánto abona.', 'metodo_id.required' => 'Elija cómo pagó.']);
         if ($separado->estado !== 'activo') return back()->withErrors('Este separado ya no está activo.');
         $caja = Caja::abiertaDe(Auth::id());
@@ -251,6 +251,7 @@ class separadoController extends Controller
     public function publico(Separado $separado)
     {
         $tienda = Tienda::find($separado->tienda_id);
+        \App\Support\TiendaActual::set($tienda?->id); // valores en la moneda de esa tienda (ej. dólares en Venezuela)
         return view('separado.publico', ['s' => $separado->load(['items', 'abonos' => fn ($q) => $q->where('anulado', false)]), 'tienda' => $tienda]);
     }
 

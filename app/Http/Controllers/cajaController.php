@@ -90,7 +90,9 @@ class cajaController extends Controller
         $totales = $caja->totalesPorMetodo();
         $reembolsos = $caja->reembolsosPorMetodo();
         $esperado = $caja->efectivoEsperado();
-        return view('caja.cerrar', compact('caja', 'totales', 'esperado', 'reembolsos'));
+        // Venezuela: el efectivo en bolívares se cuenta aparte
+        $bs = $caja->manejaBs() ? ['esperado' => $caja->efectivoBsEsperado(), 'tasa' => \App\Support\TiendaActual::tienda()->tasa_bs_vigente] : null;
+        return view('caja.cerrar', compact('caja', 'totales', 'esperado', 'reembolsos', 'bs'));
     }
 
     public function guardarCierre(Request $request)
@@ -101,8 +103,9 @@ class cajaController extends Controller
         }
         $datos = $request->validate([
             'efectivo_contado' => 'required|numeric|min:0|max:999999999',
+            'efectivo_bs_contado' => 'nullable|numeric|min:0|max:99999999999',
             'nota_cierre' => 'nullable|string|max:255',
-        ], [], ['efectivo_contado' => 'efectivo contado']);
+        ], [], ['efectivo_contado' => 'efectivo contado', 'efectivo_bs_contado' => 'bolívares contados']);
 
         DB::transaction(function () use ($caja, $datos) {
             $caja = Caja::whereKey($caja->id)->lockForUpdate()->first();
@@ -110,12 +113,22 @@ class cajaController extends Controller
                 return;
             }
             $esperado = $caja->efectivoEsperado();
-            $caja->update([
+            // Venezuela: la diferencia de los bolívares se suma en dólares a la tasa de hoy
+            $bs = [];
+            $difBs = 0.0;
+            if ($caja->manejaBs()) {
+                $esperadoBs = $caja->efectivoBsEsperado();
+                $contadoBs = (float) ($datos['efectivo_bs_contado'] ?? 0);
+                $tasa = (float) \App\Support\TiendaActual::tienda()->tasa_bs_vigente;
+                $difBs = $tasa > 0 ? ($contadoBs - $esperadoBs) / $tasa : 0.0;
+                $bs = ['efectivo_bs_esperado' => $esperadoBs, 'efectivo_bs_contado' => $contadoBs];
+            }
+            $caja->update($bs + [
                 'cerrada_en' => now(),
                 'total_ventas' => (float) $caja->ventas()->where('estado', 'pagada')->sum('total'),
                 'efectivo_esperado' => $esperado,
                 'efectivo_contado' => $datos['efectivo_contado'],
-                'diferencia' => (float) $datos['efectivo_contado'] - $esperado,
+                'diferencia' => round((float) $datos['efectivo_contado'] - $esperado + $difBs, 2),
                 'nota_cierre' => $datos['nota_cierre'] ?? null,
                 'estado' => 'cerrada',
             ]);

@@ -96,6 +96,12 @@ input{font:inherit}
 .cli-sel{display:none;justify-content:space-between;align-items:center;background:#f2fbf3;border:1.5px solid #c9efd2;border-radius:12px;padding:.45rem .7rem;font-weight:700;font-size:.86rem;color:#11702f}
 .credit{margin-top:10px;width:100%;border:2px dashed var(--line);border-radius:14px;padding:.6rem;font-weight:800;color:var(--g2)}
 .total{display:flex;justify-content:space-between;align-items:baseline;font-weight:800}
+.bs-tot{display:none;justify-content:space-between;align-items:center;gap:8px;font-weight:800;color:#11702f;background:#f2fbf3;border:1.5px solid #c9efd2;border-radius:12px;padding:.4rem .7rem;font-size:.95rem}
+body.bs .bs-tot{display:flex}
+.bs-tasa{border:0;background:#fff;border-radius:999px;padding:.2rem .6rem;font-size:.75rem;font-weight:800;color:#11702f;box-shadow:inset 0 0 0 1.5px #c9efd2;white-space:nowrap}
+.bs-tasa.vieja{color:#8a5a00;box-shadow:inset 0 0 0 1.5px #f5d98a;background:#fff8e6}
+.prow .bsx{font-size:.72rem;color:var(--mut);display:block;font-weight:700}
+.sum .bsl{font-size:.85rem;color:#9fe3b0;font-weight:700}
 .total span:last-child{font-size:2rem;letter-spacing:-.03em}
 .pay{height:62px;border-radius:18px;background:var(--g);color:var(--k);font-weight:800;font-size:1.15rem;display:flex;align-items:center;justify-content:center;gap:.6rem;box-shadow:0 16px 30px -14px rgba(47,209,90,.95);transition:transform .15s,filter .15s}
 .pay:hover{filter:brightness(1.05);transform:translateY(-1px)}
@@ -251,6 +257,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
                     <div class="cli-res" id="cliRes"></div>
                 </div>
                 <div class="total"><span>Total</span><span id="tot">$0</span></div>
+                <div class="bs-tot"><span id="totBs">Bs 0</span><button type="button" class="bs-tasa" id="tasaBtn">Tasa</button></div>
                 <button class="pay" id="payBtn" disabled><i class="fa-solid fa-money-bill-wave"></i> Cobrar <kbd>F2</kbd></button>
             </div>
         </aside>
@@ -322,8 +329,10 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         <div class="sum">
             <div class="cli-l"><span>Cliente</span><span id="pCli"></span></div>
             <div><span>Total a cobrar</span><span id="pTot">$0</span></div>
+            <div class="bsl" id="pTotBsRow" style="display:none"><span>En bolívares</span><span id="pTotBs"></span></div>
             <div><span>Recibido</span><span id="pRec">$0</span></div>
             <div class="big" id="pChgRow"><span id="pChgLbl">Cambio</span><span id="pChg">$0</span></div>
+            <div class="bsl" id="pChgBsRow" style="display:none"><span id="pChgBsLbl">o en bolívares</span><span id="pChgBs"></span></div>
         </div>
         @php $tFe = \App\Support\TiendaActual::tienda(); @endphp
         @if ($tFe?->fe_activa)
@@ -363,6 +372,13 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     var CLIENTE_OBLIGATORIO = @json((bool) $negocio->cliente_obligatorio);
     var NEGOCIO = @json($negocio->nombre);
     var METODOS = @json($metodos);
+    // Venezuela: precios en dólares; se cobra también en bolívares a la tasa del día
+    var BS = @json($bs);
+    var bsOn = function () { return !!(BS && BS.activo && BS.tasa > 0); };
+    var enBs = function (m) { return !!(m && m.moneda === 'VES' && bsOn()); };
+    var aBs = function (usd) { return Math.round((usd || 0) * BS.tasa * 100) / 100; };
+    var fmtBs = function (n) { var r = Math.round((+n || 0) * 100) / 100, a = Math.abs(r), t = a.toFixed(2).split('.'); t[0] = t[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.'); return (r < 0 ? '-' : '') + 'Bs ' + t.join(','); };
+    var metodo = function (id) { return METODOS.find(function (x) { return String(x.id) === String(id); }); };
     var CSRF = document.querySelector('meta[name=csrf-token]').content;
     var $ = function (id) { return document.getElementById(id); };
     var M = @json(moneda());
@@ -519,6 +535,37 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     function subtotal() { return cart.reduce(function (a, i) { return a + i.precio * i.cantidad; }, 0); }
     function descuento() { return Math.min(Math.max(parseFloat($('desc').value) || 0, 0), subtotal()); }
     function total() { return Math.max(subtotal() - descuento(), 0); }
+    // Venezuela: total en bolívares y botón de la tasa del día
+    function pintarBs() {
+        if (!BS) return;
+        document.body.classList.toggle('bs', true);
+        if (bsOn()) {
+            $('totBs').textContent = fmtBs(aBs(total()));
+            $('tasaBtn').textContent = (BS.vieja ? '⚠ ' : '') + 'Tasa ' + fmtBs(BS.tasa).replace('Bs ', 'Bs ');
+        } else {
+            $('totBs').textContent = 'Sin tasa: cobra solo en dólares';
+            $('tasaBtn').textContent = 'Poner tasa';
+        }
+        $('tasaBtn').classList.toggle('vieja', !bsOn() || !!BS.vieja);
+        $('tasaBtn').title = BS.vieja ? 'La tasa no es de hoy: actualícela' : (BS.propia ? 'Tasa propia de su tienda' : 'Tasa general de LocalPro');
+    }
+    if (BS) {
+        $('tasaBtn').addEventListener('click', function () {
+            if (!BS.puede) { toast(bsOn() ? 'Tasa de hoy: US$1 = ' + fmtBs(BS.tasa) + '. Solo el dueño o el administrador la cambian.' : 'Pídale al dueño que ponga la tasa del día.', !bsOn()); return; }
+            LP.pedir({ titulo: 'Tasa del día', texto: 'Cuántos bolívares vale US$1 en su tienda. Déjelo vacío para usar la tasa general de LocalPro.', placeholder: bsOn() ? String(BS.tasa).replace('.', ',') : 'Ej. 40,50', ok: 'Guardar tasa', icono: '💱' }).then(function (v) {
+                if (v === null || v === undefined) return;
+                var n = parseFloat(String(v).replace(/\./g, '').replace(',', '.')) || 0;
+                if (String(v).indexOf(',') === -1) n = parseFloat(String(v)) || 0;
+                fetch(BS.url, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': CSRF }, body: JSON.stringify({ tasa: n }) })
+                    .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+                    .then(function (res) {
+                        if (!res.ok) { toast(res.d.message || 'No se pudo guardar la tasa', true); return; }
+                        BS.tasa = res.d.tasa; BS.activo = res.d.activo; BS.propia = res.d.propia; BS.vieja = false;
+                        pintarCarrito(); toast(res.d.mensaje);
+                    });
+            });
+        });
+    }
     function pintarCarrito() {
         var el = $('items');
         if (!cart.length) el.innerHTML = '<div class="cempty"><i class="fa-solid fa-bag-shopping"></i>Toque una prenda o escanee su código para agregarla.</div>';
@@ -529,6 +576,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         }).join('');
         $('sub').textContent = fmt(subtotal());
         $('tot').textContent = fmt(total());
+        pintarBs();
         document.body.classList.toggle('hay', cart.length > 0);
         $('payBtn').disabled = !cart.length;
     }
@@ -590,14 +638,24 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         $('prows').innerHTML = ids.map(function (id) {
             var m = METODOS.find(function (x) { return String(x.id) === id; });
             if (!m && credito && String(credito.metodo_id) === id) m = { id: credito.metodo_id, nombre: 'Saldo a favor ' + credito.codigo + ' (máx. ' + fmt(credito.saldo) + ')', es_efectivo: false };
-            var quick = m.es_efectivo ? '<div class="quick">' + [total()].concat(M.decimales ? [10, 20, 50, 100] : [20000, 50000, 100000]).filter(function (v, i, a) { return v > 0 && a.indexOf(v) === i; }).map(function (v, i) { return '<button data-q="' + v + '" data-id="' + id + '">' + (i === 0 ? 'Exacto ' : '') + fmt(v) + '</button>'; }).join('') + '</div>' : '';
-            return '<div class="prow"><b>' + esc(m.nombre) + '</b><input data-dinero data-id="' + id + '" type="number" min="0" step="' + (M.decimales ? '0.01' : '1') + '" inputmode="decimal" placeholder="' + (ids.length === 1 ? redondear(total()) : '0') + '" value="' + pagos[id] + '"></div>' + quick;
+            var bsm = enBs(m), falta = Math.max(total() - montos().filter(function (p) { return String(p.metodo_id) !== id; }).reduce(function (a, p) { return a + p.monto; }, 0), 0);
+            var exacto = bsm ? aBs(falta || total()) : (falta || total());
+            var billetes = bsm ? [] : (M.decimales ? [10, 20, 50, 100] : [20000, 50000, 100000]);
+            var quick = m.es_efectivo ? '<div class="quick">' + [exacto].concat(billetes).filter(function (v, i, a) { return v > 0 && a.indexOf(v) === i; }).map(function (v, i) { return '<button data-q="' + v + '" data-id="' + id + '">' + (i === 0 ? 'Exacto ' : '') + (bsm ? fmtBs(v) : fmt(v)) + '</button>'; }).join('') + '</div>' : '';
+            var ph = ids.length === 1 ? (bsm ? aBs(total()) : redondear(total())) : '0';
+            return '<div class="prow"><b>' + esc(m.nombre) + (bsm ? '<span class="bsx">En bolívares · tasa ' + fmtBs(BS.tasa) + '</span>' : (bsOn() ? '<span class="bsx">En dólares</span>' : '')) + '</b><input data-dinero data-id="' + id + '" type="number" min="0" step="' + (M.decimales || bsm ? '0.01' : '1') + '" inputmode="decimal" placeholder="' + ph + '" value="' + pagos[id] + '"></div>' + quick;
         }).join('');
         resumen();
     }
     function montos() {
         var ids = Object.keys(pagos);
         return ids.map(function (id) {
+            var m = metodo(id);
+            if (enBs(m)) {
+                // Se escribe en bolívares; se envía lo recibido en Bs y su valor en dólares
+                var bs = pagos[id] === '' ? (ids.length === 1 ? aBs(total()) : 0) : parseFloat(pagos[id]) || 0;
+                return { metodo_id: +id, monto: Math.round(bs / BS.tasa * 10000) / 10000, monto_moneda: bs };
+            }
             var v = pagos[id] === '' ? (ids.length === 1 ? total() : 0) : parseFloat(pagos[id]) || 0;
             var p = { metodo_id: +id, monto: v };
             if (credito && +id === credito.metodo_id) { p.monto = Math.min(v, credito.saldo); p.referencia = credito.codigo; }
@@ -611,7 +669,15 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         $('pChgLbl').textContent = d >= 0 ? 'Cambio' : 'Falta';
         $('pChg').textContent = fmt(Math.abs(d));
         $('pChgRow').classList.toggle('warn', d < 0);
-        $('pOk').disabled = d < -0.5 || enviando;
+        var tol = M.decimales ? 0.011 : 0.5;
+        if (bsOn()) {
+            $('pTotBsRow').style.display = ''; $('pTotBs').textContent = fmtBs(aBs(t));
+            $('pChgBsRow').style.display = Math.abs(d) > tol ? '' : 'none';
+            $('pChgBsLbl').textContent = d >= 0 ? 'Cambio en bolívares' : 'Falta en bolívares';
+            $('pChgBs').textContent = fmtBs(aBs(Math.abs(d)));
+            if (Math.abs(d) <= tol) { $('pChgLbl').textContent = 'Cambio'; $('pChg').textContent = fmt(0); }
+        }
+        $('pOk').disabled = d < -tol || enviando;
         $('pErr').style.display = 'none';
     }
     $('methods').addEventListener('click', function (e) {
@@ -620,9 +686,9 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         if (id in pagos) { if (Object.keys(pagos).length > 1) delete pagos[id]; }
         else {
             // El método nuevo propone lo que falta por pagar
-            var explicito = Object.keys(pagos).reduce(function (a, k) { return a + (parseFloat(pagos[k]) || 0); }, 0);
+            var explicito = montos().reduce(function (a, p) { return a + p.monto; }, 0);
             var falta = total() - explicito;
-            pagos[id] = falta > 0 ? String(redondear(falta)) : '';
+            pagos[id] = falta > 0.004 ? String(enBs(metodo(id)) ? aBs(falta) : redondear(falta)) : '';
         }
         pintarMetodos();
     });
@@ -761,7 +827,8 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
             $('okNum').textContent = ({ fe: 'Factura electrónica ', pos_e: 'POS electrónico ' }[ultima.tipo_doc] || '') + ultima.numero + ' · ' + fmt(ultima.total);
             if ($('pFe')) $('pFe').checked = false;
             $('okChgW').style.display = ultima.cambio > 0 ? '' : 'none';
-            $('okChg').textContent = fmt(ultima.cambio);
+            $('okChg').textContent = fmt(ultima.cambio) + (ultima.tasa_bs > 0 ? ' · o ' + fmtBs(ultima.cambio * ultima.tasa_bs) : '');
+            if (ultima.tasa_bs > 0) $('okNum').textContent += ' · ' + fmtBs(ultima.total * ultima.tasa_bs);
             $('okTel').value = $('ct').value.trim();
             abrir('ovOk');
         }).catch(function () {

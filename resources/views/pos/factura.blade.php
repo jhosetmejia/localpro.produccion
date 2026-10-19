@@ -67,9 +67,10 @@
             <div><span>Subtotal{{ $venta->impuestos > 0 ? ' (IVA incluido)' : '' }}</span><span>{{ dinero($venta->subtotal) }}</span></div>
             @if ($venta->descuento > 0)<div><span>Descuento</span><span>-{{ dinero($venta->descuento) }}</span></div>@endif
             <div class="big"><span>Total</span><span>{{ dinero($venta->total) }}</span></div>
+            @if ((float) $venta->tasa_bs > 0)<div><span>Total en bolívares (tasa {{ \App\Support\Moneda::formato($venta->tasa_bs, 'VES') }})</span><span>{{ \App\Support\Moneda::formato($venta->total * $venta->tasa_bs, 'VES') }}</span></div>@endif
         </div>
         <div style="margin-top:16px;background:#f7fbf8;border-radius:14px;padding:12px 14px">@include('pos._fiscal', ['web' => true])</div>
-        <div class="pay">Pagado con: {{ $venta->pagos->map(fn ($p) => $p->metodo->nombre)->implode(', ') }}@if($venta->cambio > 0) · Cambio {{ dinero($venta->cambio) }}@endif</div>
+        <div class="pay">Pagado con: {{ $venta->pagos->map(fn ($p) => $p->metodo->nombre . ($p->moneda === 'VES' ? ' (' . \App\Support\Moneda::formato($p->monto_moneda, 'VES') . ')' : ''))->implode(', ') }}@if($venta->cambio > 0) · Cambio {{ dinero($venta->cambio) }}@endif</div>
     </div>
     <div class="ft">{{ $negocio->mensaje_tiquete }}</div>
 </div>

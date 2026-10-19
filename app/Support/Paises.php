@@ -17,7 +17,7 @@ class Paises
         'MX' => ['México', 'MXN', '$', 2, ',', '.', '52', 'America/Mexico_City'],
         'CL' => ['Chile', 'CLP', '$', 0, '.', ',', '56', 'America/Santiago'],
         'AR' => ['Argentina', 'ARS', '$', 2, '.', ',', '54', 'America/Argentina/Buenos_Aires'],
-        'VE' => ['Venezuela', 'VES', 'Bs', 2, '.', ',', '58', 'America/Caracas'],
+        'VE' => ['Venezuela', 'USD', '$', 2, '.', ',', '58', 'America/Caracas'], // dólares o bolívares: lo decide Admin → Planes y cobros (Moneda::deVenezuela)
         'BO' => ['Bolivia', 'BOB', 'Bs', 2, '.', ',', '591', 'America/La_Paz'],
         'PY' => ['Paraguay', 'PYG', '₲', 0, '.', ',', '595', 'America/Asuncion'],
         'UY' => ['Uruguay', 'UYU', '$', 2, '.', ',', '598', 'America/Montevideo'],
@@ -30,9 +30,23 @@ class Paises
         'US' => ['Estados Unidos', 'USD', '$', 2, ',', '.', '1', 'America/New_York'],
     ];
 
+    // La lista con la moneda actual de Venezuela (dólares o bolívares según el panel)
+    public static function lista(): array
+    {
+        $l = self::LISTA;
+        if (Moneda::deVenezuela() === Moneda::VES) {
+            $l['VE'][1] = 'VES'; $l['VE'][2] = 'Bs ';
+        }
+        return $l;
+    }
+
     public static function datos(?string $pais): array
     {
         $p = self::LISTA[$pais ?: 'CO'] ?? self::LISTA['CO'];
+        // Venezuela trabaja en la moneda elegida en el panel (dólares o bolívares)
+        if ($pais === 'VE' && Moneda::deVenezuela() === Moneda::VES) {
+            $p[1] = 'VES'; $p[2] = 'Bs '; $p[3] = 2; $p[4] = '.'; $p[5] = ',';
+        }
         return [
             'pais' => $pais ?: 'CO', 'nombre' => $p[0], 'moneda' => $p[1], 'simbolo' => $p[2],
             'decimales' => $p[3], 'miles' => $p[4], 'decimal' => $p[5], 'indicativo' => $p[6], 'zona' => $p[7],

@@ -18,8 +18,9 @@ class unirseController extends Controller
         if ($tel !== '' && strlen($tel) <= 10) {
             $tel = '57' . ltrim($tel, '0');
         }
+        $moneda = \App\Support\Moneda::actual(); // Venezuela: dólares
         return view('asesores.simulador', [
-            'valores' => Comisiones::valores(),
+            'valores' => Comisiones::valores($moneda),
             'whatsapp' => $tel ?: null,
         ]);
     }
@@ -31,9 +32,10 @@ class unirseController extends Controller
         if (!$u->es_superadmin && !($u->asesor && $u->asesor->activo)) {
             return redirect()->route('panel');
         }
+        $moneda = \App\Support\Moneda::actual(); // Venezuela: dólares
         return view('asesores.capacitacion', [
-            'valores' => Comisiones::valores(),
-            'salario' => (float) Ajuste::valor('red_salario_minimo', 1750000),
+            'valores' => Comisiones::valores($moneda),
+            'salario' => Comisiones::salario($moneda),
             'yo' => $u->asesor,
         ]);
     }

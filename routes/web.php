@@ -327,6 +327,7 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::get('/separados/abonos/{abono}/recibo', [separadoController::class, 'recibo'])->whereNumber('abono')->name('separados.recibo');
     Route::get('/pos/buscar', [posController::class, 'buscar'])->name('pos.buscar');
     Route::post('/pos/ventas', [posController::class, 'store'])->name('pos.store');
+    Route::post('/pos/tasa', [posController::class, 'tasa'])->middleware('throttle:30,1')->name('pos.tasa');
     Route::get('/pos/ventas', [posController::class, 'ventas'])->name('pos.ventas');
     Route::get('/pos/ventas/{venta}/ticket', [posController::class, 'ticket'])->name('pos.ticket');
     Route::post('/pos/ventas/{venta}/anular', [posController::class, 'anular'])->name('pos.anular');

@@ -214,6 +214,35 @@ class Tienda extends Model
         return \App\Support\Paises::datos($this->pais);
     }
 
+    // Moneda en que LocalPro le cobra el plan y paga las comisiones (USD para Venezuela, COP para los demás)
+    public function getMonedaCobroAttribute(): string
+    {
+        return \App\Support\Moneda::dePais($this->pais);
+    }
+
+    // Venezuela: cobra también en bolívares a la tasa del día (la propia de la tienda o la general del panel)
+    public function getUsaBolivaresAttribute(): bool
+    {
+        return $this->pais === 'VE' && $this->tasa_bs_vigente > 0;
+    }
+
+    // Bolívares por US$1 que usa esta tienda (0 si no hay tasa)
+    public function getTasaBsVigenteAttribute(): float
+    {
+        if ($this->pais !== 'VE') return 0.0;
+        $propia = (float) ($this->attributes['tasa_bs'] ?? 0);
+        return $propia > 0 ? $propia : \App\Support\Moneda::tasaVes();
+    }
+
+    // Fecha de la tasa que usa la tienda (para avisar si quedó vieja)
+    public function getTasaBsFechaAttribute(): ?\Carbon\Carbon
+    {
+        if ((float) ($this->attributes['tasa_bs'] ?? 0) > 0) {
+            return !empty($this->attributes['tasa_bs_at']) ? \Carbon\Carbon::parse($this->attributes['tasa_bs_at']) : null;
+        }
+        return \App\Support\Moneda::tasaVesFecha();
+    }
+
     public function getActivaAttribute(): bool
     {
         return $this->estado === 'activa';

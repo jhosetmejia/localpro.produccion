@@ -24,7 +24,7 @@ class adminInicioController extends Controller
             $ini = now()->startOfMonth()->subMonths($i);
             return [
                 'label' => ucfirst($ini->locale('es')->isoFormat('MMM')),
-                'total' => (float) $aprobados()->whereBetween('created_at', [$ini, $ini->copy()->endOfMonth()])->sum('monto'),
+                'total' => (float) $aprobados()->whereBetween('created_at', [$ini, $ini->copy()->endOfMonth()])->sum(PagoSuscripcion::sqlEnCop()),
             ];
         });
 
@@ -38,15 +38,19 @@ class adminInicioController extends Controller
                 'pagando' => Tienda::whereNotNull('plan_vence')->where('plan_vence', '>=', $hoy)->count(),
                 'gratis' => Tienda::whereNull('plan_vence')->count(),
                 'vencidas' => Tienda::whereNotNull('plan_vence')->where('plan_vence', '<', $hoy)->count(),
-                'ingresosMes' => (float) $aprobados()->where('created_at', '>=', now()->startOfMonth())->sum('monto'),
-                'ingresosAnio' => (float) $aprobados()->where('created_at', '>=', now()->startOfYear())->sum('monto'),
-                'ingresosTotal' => (float) $aprobados()->sum('monto'),
+                'ingresosMes' => (float) $aprobados()->where('created_at', '>=', now()->startOfMonth())->sum(PagoSuscripcion::sqlEnCop()),
+                'ingresosAnio' => (float) $aprobados()->where('created_at', '>=', now()->startOfYear())->sum(PagoSuscripcion::sqlEnCop()),
+                'ingresosTotal' => (float) $aprobados()->sum(PagoSuscripcion::sqlEnCop()),
                 'pagosPendientes' => PagoSuscripcion::where('estado', 'pendiente')->count(),
                 'usuarios' => User::count(),
                 'red' => Asesor::where('activo', true)->count(),
-                'comisionesPendientes' => (float) Comision::where('estado', 'pendiente')->sum('monto'),
+                // En pesos: las comisiones en otra moneda (Venezuela) se suman a la tasa del día
+                'comisionesPendientes' => (float) Comision::where('estado', 'pendiente')->sum(DB::raw(\App\Support\Moneda::sqlACop('monto'))),
                 'ventasHoy' => DB::table('pos_ventas')->where('estado', 'pagada')->whereDate('created_at', $hoy)->count(),
-                'vendidoHoy' => (float) DB::table('pos_ventas')->where('estado', 'pagada')->whereDate('created_at', $hoy)->sum('total'),
+                // En pesos: las ventas de las tiendas de Venezuela (dólares o bolívares) se pasan a la tasa del día
+                'vendidoHoy' => (float) DB::table('pos_ventas')->join('tiendas', 'tiendas.id', '=', 'pos_ventas.tienda_id')
+                    ->where('pos_ventas.estado', 'pagada')->whereDate('pos_ventas.created_at', $hoy)
+                    ->sum(DB::raw(\App\Support\Moneda::sqlACop('pos_ventas.total', "CASE WHEN tiendas.pais = 'VE' THEN '" . \App\Support\Moneda::deVenezuela() . "' ELSE 'COP' END"))),
             ],
             'meses' => $meses,
             // Por cobrar: vencidas o que vencen en los próximos 10 días
@@ -125,7 +129,7 @@ class adminInicioController extends Controller
 
         return view('admin.pagos', [
             'lista' => $filtro(PagoSuscripcion::with(['tienda:id,nombre', 'plan:id,nombre']))->latest()->paginate(40)->withQueryString(),
-            'total' => (float) $filtro(PagoSuscripcion::query())->where('estado', 'aprobado')->sum('monto'),
+            'total' => (float) $filtro(PagoSuscripcion::query())->where('estado', 'aprobado')->sum(PagoSuscripcion::sqlEnCop()), // en pesos (USD a pesos)
             'estado' => $request->estado, 'mes' => $request->mes,
         ]);
     }

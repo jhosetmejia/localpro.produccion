@@ -17,18 +17,20 @@ class Academia
 
     private static function plata($v): string
     {
-        return '$' . number_format((float) $v, 0, ',', '.');
+        return Moneda::formato($v, Moneda::actual());
     }
 
     // Cursos para los asesores de LocalPro (la red comercial)
     public static function cursosAsesor(): array
     {
-        $v = Comisiones::valores();
+        $v = Comisiones::valores(Moneda::actual());
         $plan = self::plata($v['valor_plan']);
         $com = self::plata($v['nueva']['venta']);
         $renov = self::plata($v['renovacion']['venta']);
-        $mes = self::plata(ceil($v['valor_plan'] / 12 / 100) * 100);
-        $dia = self::plata(ceil($v['valor_plan'] / 365 / 100) * 100);
+        $usd = Moneda::esExtranjera($v['moneda']); // lleva centavos (US$ o Bs)
+        $otra = fn ($cop) => self::plata(Moneda::convertir($cop, Moneda::COP, $v['moneda']));
+        $mes = self::plata($usd ? ceil($v['valor_plan'] / 12 * 100) / 100 : ceil($v['valor_plan'] / 12 / 100) * 100);
+        $dia = self::plata($usd ? ceil($v['valor_plan'] / 365 * 100) / 100 : ceil($v['valor_plan'] / 365 / 100) * 100);
 
         return [
             'asesor-prospectar' => [
@@ -105,7 +107,7 @@ class Academia
                     ], 'tip' => 'El negocio que ve su ganancia en el panel se renueva solo. Ayúdelo a poner los costos de sus productos.'],
                 ],
                 'prueba' => [
-                    ['p' => "El plan anual de $plan equivale aproximadamente a…", 'o' => ["$mes al mes", '$500.000 al mes', '$1.000 al año'], 'r' => 0],
+                    ['p' => "El plan anual de $plan equivale aproximadamente a…", 'o' => ["$mes al mes", $otra(500000) . ' al mes', $otra(1000) . ' al año'], 'r' => 0],
                     ['p' => 'El cliente dice "déjeme pensarlo". ¿Qué pregunta?', 'o' => ['¿Qué es lo que lo hace dudar?', 'Nada, se va', 'Le baja el precio a la mitad'], 'r' => 0],
                     ['p' => '¿Cuándo gana usted la comisión de venta nueva?', 'o' => ['Cuando el negocio paga el plan anual', 'Cuando empieza la prueba gratis', 'Cuando lo saluda'], 'r' => 0],
                 ],

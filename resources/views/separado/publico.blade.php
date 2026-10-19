@@ -27,7 +27,7 @@ body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:#f4f8f5;col
 </style>
 </head>
 <body>
-@php $f = fn ($v) => '$' . number_format((float) $v, 0, ',', '.'); @endphp
+@php $f = fn ($v) => dinero($v); @endphp
 <div class="c">
     <div class="hd">@if ($tienda?->logo_url)<img src="{{ $tienda->logo_url }}" alt="">@endif<b>{{ $tienda->nombre ?? '' }}</b></div>
     <div class="card">

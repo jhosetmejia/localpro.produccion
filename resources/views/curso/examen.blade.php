@@ -15,6 +15,13 @@
         <h1>¡Ya casi! <em>{{ count($preguntas) }} preguntas</em></h1>
         <p>Son fáciles: todo está en las lecciones. Pasas con el {{ $minima }}% y si no te va bien puedes intentarlo otra vez.</p>
     </div>
+    <div class="card" style="background:#e8f8ec;border:1.5px solid #bfe8c8">
+        <h2 style="margin:0 0 4px;font-size:1.15rem">🚀 ¡Recorrido terminado! Avísale a tu guía</h2>
+        <p style="margin:0 0 12px;color:var(--mut);font-weight:600">
+            {{ $guia ? 'Cuéntale a ' . $guia->nombre . ' que ya viste todas las lecciones.' : 'Cuéntale a la persona de LocalPro que te contactó que ya viste todas las lecciones.' }}
+        </p>
+        <a class="btn btn-w btn-block" target="_blank" rel="noopener" href="{{ $waRecorrido }}"><i class="fa-brands fa-whatsapp"></i> Enviar "Recorrido listo" a mi guía</a>
+    </div>
     <form method="post" action="{{ route('curso.calificar') }}" id="ex">
         @csrf
         @foreach ($preguntas as $i => $q)

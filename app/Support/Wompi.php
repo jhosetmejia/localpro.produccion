@@ -39,9 +39,15 @@ class Wompi
         return hash('sha256', $referencia . $centavos . $moneda . config('services.wompi.integrity_secret'));
     }
 
+    // Wompi solo cobra en pesos: si el pago es en dólares (Venezuela) se cobra su equivalente guardado en cobro_cop
+    public static function pesos(PagoSuscripcion $pago): float
+    {
+        return $pago->cobro_cop !== null ? (float) $pago->cobro_cop : Moneda::aCop($pago->monto, $pago->moneda ?: 'COP');
+    }
+
     public static function centavos(PagoSuscripcion $pago): int
     {
-        return (int) round((float) $pago->monto * 100);
+        return (int) round(self::pesos($pago) * 100);
     }
 
     public static function urlCheckout(PagoSuscripcion $pago, string $redirect, ?string $email = null, ?string $nombre = null, ?string $telefono = null): string
@@ -101,7 +107,8 @@ class Wompi
     {
         if (!self::activo() || !config('services.wompi.private_key')) return 0;
         // Wompi no recibe pagos de menos de 1.500: esos enlaces nunca se pueden pagar
-        PagoSuscripcion::where('metodo', 'wompi')->where('estado', 'pendiente')->where('monto', '<', 1500)
+        PagoSuscripcion::where('metodo', 'wompi')->where('estado', 'pendiente')
+            ->where(fn ($q) => $q->where(fn ($c) => $c->whereNull('cobro_cop')->where('monto', '<', 1500))->orWhere('cobro_cop', '<', 1500))
             ->when($tiendaId, fn ($q) => $q->where('tienda_id', $tiendaId))
             ->update(['estado' => 'rechazado', 'nota' => 'Enlace anulado: Wompi no recibe pagos de menos de $1.500']);
         $n = 0;
@@ -123,7 +130,8 @@ class Wompi
         return PagoSuscripcion::create([
             'tienda_id' => $tienda->id,
             'plan_id' => $plan->id,
-            'monto' => max(1500, $monto), // Wompi no recibe menos de 1.500 COP
+            'monto' => max(1500, $monto), // Wompi no recibe menos de 1.500 COP (la prueba siempre va en pesos)
+            'moneda' => Moneda::COP,
             'metodo' => 'wompi',
             'referencia' => PagoSuscripcion::PREFIJO_PRUEBA . $tienda->id . '-' . now()->format('ymdHis') . '-' . \Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(4)),
             'estado' => 'pendiente',

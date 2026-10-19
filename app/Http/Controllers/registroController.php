@@ -26,7 +26,7 @@ class registroController extends Controller
         if (preg_match('/^[a-z0-9:\-]{2,80}$/', $desde)) {
             session(['origen_registro' => $desde]);
         }
-        return view('auth.registro', ['paises' => Paises::LISTA, 'codigoAsesor' => session('codigo_asesor', request()->cookie('lp_asesor')), 'tipoRegistro' => session('tipo_registro')]);
+        return view('auth.registro', ['paises' => Paises::lista(), 'codigoAsesor' => session('codigo_asesor', request()->cookie('lp_asesor')), 'tipoRegistro' => session('tipo_registro')]);
     }
 
     // Enlace del asesor: guarda su código (60 días) y abre el registro

@@ -4,14 +4,32 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-// Planes de suscripción de LocalPro (precio en pesos colombianos)
+// Planes de suscripción de LocalPro (precio en pesos colombianos; precio_usd para los países que pagan en dólares, ej. Venezuela)
 class Plan extends Model
 {
     protected $table = 'planes';
 
-    protected $fillable = ['nombre', 'precio', 'dias', 'max_usuarios', 'max_productos', 'descripcion', 'activo', 'orden'];
+    protected $fillable = ['nombre', 'precio', 'precio_usd', 'dias', 'max_usuarios', 'max_productos', 'descripcion', 'activo', 'orden'];
 
-    protected $casts = ['activo' => 'boolean', 'precio' => 'float'];
+    protected $casts = ['activo' => 'boolean', 'precio' => 'float', 'precio_usd' => 'float'];
+
+    // Precio del plan en la moneda indicada: COP, USD (precio_usd) o VES (el de dólares a la tasa Bs/US$)
+    public function precioEn(?string $moneda): float
+    {
+        $m = strtoupper((string) ($moneda ?: 'COP'));
+        if ($m === 'COP') {
+            return (float) $this->precio;
+        }
+        $usd = $this->precio_usd !== null ? (float) $this->precio_usd : \App\Support\Moneda::convertir($this->precio, 'COP', 'USD');
+        return $m === 'USD' ? $usd : \App\Support\Moneda::convertir($usd, 'USD', $m);
+    }
+
+    // Precio formateado en la moneda de cobro de esa tienda (US$55 o Bs en Venezuela, $220.000 en Colombia)
+    public function precioTexto(?Tienda $tienda = null): string
+    {
+        $m = $tienda?->moneda_cobro ?? \App\Support\Moneda::COP;
+        return \App\Support\Moneda::formato($this->precioEn($m), $m);
+    }
 
     public function tiendas()
     {

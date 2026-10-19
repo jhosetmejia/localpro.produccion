@@ -16,8 +16,8 @@
         <ul class="lp-list">
             @forelse ($porAsesor as $p)
             <li><div class="av"><i class="fa-solid {{ $p->asesor->cargo_icono ?? 'fa-user' }}"></i></div>
-                <div class="t"><b><a href="{{ route('admin.red.show', $p->asesor_id) }}" class="text-decoration-none" style="color:inherit">{{ $p->asesor->nombre ?? '—' }}</a> · {{ $f($p->total) }}</b><small>{{ $p->n }} comisión(es){{ $p->asesor?->banco ? ' · Pagar a: ' . $p->asesor->banco : '' }}</small></div>
-                <form method="post" action="{{ route('admin.red.pagar') }}" data-confirm="¿Ya le pagó {{ $f($p->total) }} a {{ $p->asesor->nombre ?? '' }}?" data-confirm-ok="Sí, marcar pagado">@csrf<input type="hidden" name="asesor_id" value="{{ $p->asesor_id }}"><button class="btn btn-sm btn-dark">Pagado</button></form></li>
+                <div class="t"><b><a href="{{ route('admin.red.show', $p->asesor_id) }}" class="text-decoration-none" style="color:inherit">{{ $p->asesor->nombre ?? '—' }}</a> · {{ \App\Support\Moneda::formato($p->total, $p->moneda ?: 'COP', true) }}</b><small>{{ $p->n }} comisión(es){{ $p->asesor?->banco ? ' · Pagar a: ' . $p->asesor->banco : '' }}</small></div>
+                <form method="post" action="{{ route('admin.red.pagar') }}" data-confirm="¿Ya le pagó {{ \App\Support\Moneda::formato($p->total, $p->moneda ?: 'COP', true) }} a {{ $p->asesor->nombre ?? '' }}?" data-confirm-ok="Sí, marcar pagado">@csrf<input type="hidden" name="asesor_id" value="{{ $p->asesor_id }}"><button class="btn btn-sm btn-dark">Pagado</button></form></li>
             @empty
             <li class="lp-empty">No hay comisiones pendientes. ✅</li>
             @endforelse
@@ -41,7 +41,7 @@
                     <td>{{ $c->asesor->nombre ?? '—' }}</td>
                     <td>{{ $c->tienda->nombre ?? '—' }}</td>
                     <td class="small">{{ $c->concepto_nombre }} · {{ $c->tipo === 'nueva' ? 'nueva' : 'renovación' }}</td>
-                    <td class="text-end fw-bold">{{ $f($c->monto) }}</td>
+                    <td class="text-end fw-bold">{{ $c->monto_texto }}</td>
                     <td><span class="badge {{ $c->estado === 'pagada' ? 'bg-success' : ($c->estado === 'pendiente' ? 'bg-warning text-dark' : 'bg-secondary') }}">{{ ucfirst($c->estado) }}</span></td>
                     <td>@if ($c->estado === 'pendiente')<form method="post" action="{{ route('admin.red.anular', $c) }}" data-confirm="¿Anular esta comisión?" data-confirm-texto="Úselo si el pago del negocio se devolvió o fue un error." data-confirm-ok="Sí, anular" data-peligro>@csrf<button class="btn btn-sm btn-light" title="Anular"><i class="fa-solid fa-ban"></i></button></form>@endif</td>
                 </tr>
