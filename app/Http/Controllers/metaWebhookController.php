@@ -22,7 +22,13 @@ class metaWebhookController extends Controller
     public function evento(Request $request)
     {
         $cuerpo = $request->getContent();
-        if (!Meta::firmaValida($cuerpo, $request->header('X-Hub-Signature-256'))) {
+        // Para el diagnóstico del administrador: cuándo llegó el último aviso de Meta y si la firma fue válida
+        $ok = Meta::firmaValida($cuerpo, $request->header('X-Hub-Signature-256'));
+        try {
+            \App\Models\Ajuste::guardar('meta_ultimo_webhook', now()->format('d/m/Y H:i:s') . ' · ' . ($ok ? 'firma válida' : 'FIRMA INVÁLIDA') . ' · ' . mb_substr((string) (json_decode($cuerpo, true)['object'] ?? '?'), 0, 20));
+        } catch (\Throwable $e) {
+        }
+        if (!$ok) {
             Log::warning('Meta webhook: firma inválida');
             return response('Firma inválida', 403);
         }

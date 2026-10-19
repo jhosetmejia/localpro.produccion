@@ -95,6 +95,27 @@ class Meta
             $prueba = array_filter(array_map('trim', explode(',', (string) \App\Models\Ajuste::valor('meta_tiendas_prueba'))));
             $f[] = [null, 'Modo de la app', 'En desarrollo: solo conectan los negocios de prueba (' . ($prueba ? implode(', ', $prueba) : 'ninguno') . ') y su dueño debe estar agregado como Evaluador en la app de Meta. Para todos: verificar el negocio y pedir la revisión de la app.'];
         }
+        $hook = \App\Models\Ajuste::valor('meta_ultimo_webhook');
+        $f[] = [$hook ? (str_contains($hook, 'INVÁLIDA') ? false : true) : null, 'Último aviso de Meta recibido (webhook)', $hook ?: 'Nunca ha llegado un aviso de Meta. Revise en Meta → Webhooks que la URL sea ' . url('/webhooks/meta') . ' y que esté suscrita a "messages" (Page e Instagram).'];
+        // Prueba de lectura con cada cuenta conectada: el chat más reciente que entrega Meta vs. el último guardado
+        foreach (RedCuenta::withoutGlobalScopes()->where('estado', '<>', 'desconectada')->get() as $c) {
+            foreach (array_filter(['facebook' => 'messenger', 'instagram' => $c->ig_id ? 'instagram' : null]) as $plat => $param) {
+                $nombre = $c->page_nombre . ' · ' . ($plat === 'instagram' ? 'Instagram' : 'Facebook');
+                try {
+                    $r = self::get($c->page_id . '/conversations', ['platform' => $param, 'limit' => 1, 'fields' => 'updated_time,messages.limit(1){message,created_time}', 'access_token' => $c->page_token], 20);
+                    $cv = $r['data'][0] ?? null;
+                    $enMeta = $cv ? Carbon::parse($cv['updated_time'])->setTimezone(config('app.timezone')) : null;
+                    $guardado = RedConversacion::withoutGlobalScopes()->where('cuenta_id', $c->id)->where('plataforma', $plat)->max('ultimo_en');
+                    $guardado = $guardado ? Carbon::parse($guardado) : null;
+                    $atrasado = $enMeta && (!$guardado || $enMeta->gt($guardado->copy()->addMinutes(5)));
+                    $f[] = [$atrasado ? false : true, $nombre, 'Último chat en Meta: ' . ($enMeta ? $enMeta->format('d/m/Y H:i') : 'ninguno')
+                        . ' · último guardado en LocalPro: ' . ($guardado ? $guardado->format('d/m/Y H:i') : 'ninguno')
+                        . ($atrasado ? ' → hay mensajes en Meta que no se han guardado.' : '')];
+                } catch (\Throwable $e) {
+                    $f[] = [false, $nombre, 'Meta no deja leer los chats: ' . self::sinLlaves($e->getMessage())];
+                }
+            }
+        }
         $ultimo = \App\Models\Ajuste::valor('meta_ultimo_error');
         if ($ultimo) $f[] = [false, 'Último error al conectar', $ultimo];
         return $f;
