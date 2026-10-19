@@ -2,9 +2,6 @@
 
 @section('title', ($l['titulo']))
 
-@push('css')
-@endpush
-
 @section('content')
 @include('curso._estilos_panel')
 <div class="lpx">

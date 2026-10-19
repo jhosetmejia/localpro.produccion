@@ -5,7 +5,6 @@
 <link href="https://cdn.jsdelivr.net/npm/simple-datatables@10.3.0/dist/style.css" rel="stylesheet" type="text/css">
 @endpush
 @push('css')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
     .row-not-space {
         width: 110px;

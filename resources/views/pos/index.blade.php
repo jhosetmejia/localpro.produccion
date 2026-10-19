@@ -868,6 +868,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     document.querySelectorAll('.ov').forEach(function (o) { o.addEventListener('click', function (e) { if (e.target === o && o.id !== 'ovOk') cerrar(o.id); }); });
     var tt;
     function toast(m, bad) {
+        if (window.LP && LP.toast) { LP.toast(m, bad ? 'error' : 'ok'); return; }
         var t = $('toast'); t.querySelector('span').textContent = m;
         t.querySelector('.ti').textContent = bad ? '!' : '✓';
         t.classList.toggle('bad', !!bad);

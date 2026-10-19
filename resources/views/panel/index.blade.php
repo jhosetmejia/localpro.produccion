@@ -2,18 +2,8 @@
 
 @section('title', 'Panel')
 
-@push('css')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-@endpush
-
 @section('content')
-@if (session('success'))
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        Swal.fire({ title: @json(session('success')), icon: 'success', timer: 2200, showConfirmButton: false });
-    });
-</script>
-@endif
+@include('layouts.partials.alert')
 
 @php
     $hora = (int) now()->format('H');

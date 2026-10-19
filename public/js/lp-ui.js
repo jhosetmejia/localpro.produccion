@@ -26,29 +26,81 @@
         '.lpx-no{background:#f1f5f2;color:#151a17}' +
         '.lpx-si{background:linear-gradient(135deg,#a6f34a 0%,#2fd15a 45%,#16b34a 100%);color:#0b0d0c}' +
         '.lpx-md.peligro .lpx-si{background:#0b0d0c;color:#fff}' +
-        '.lpx-ts{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:2100;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:calc(100% - 24px);max-width:460px}' +
-        '.lpx-t{pointer-events:auto;display:flex;gap:10px;align-items:center;background:#0b0d0c;color:#fff;border-radius:16px;padding:.8rem 1rem;font-weight:700;font-size:.93rem;box-shadow:0 20px 40px -18px rgba(0,0,0,.6);transform:translateY(-20px);opacity:0;transition:transform .25s,opacity .25s;max-width:100%}' +
+        '.lpx-ts{position:fixed;top:18px;right:18px;z-index:2100;display:flex;flex-direction:column;gap:10px;align-items:flex-end;pointer-events:none;width:min(380px,calc(100% - 24px))}' +
+        '@media(max-width:575px){.lpx-ts{right:12px;left:12px;width:auto;align-items:stretch;top:12px}}' +
+        '.lpx-t{pointer-events:auto;position:relative;overflow:hidden;display:flex;gap:12px;align-items:flex-start;width:100%;background:#fff;color:#151a17;border-radius:20px;padding:14px 14px 16px 14px;box-shadow:0 24px 50px -22px rgba(11,13,12,.45),0 0 0 1px rgba(11,13,12,.06);transform:translateX(24px) scale(.97);opacity:0;transition:transform .32s cubic-bezier(.2,.9,.25,1.15),opacity .25s;font-family:inherit;cursor:default}' +
+        '@media(max-width:575px){.lpx-t{transform:translateY(-16px) scale(.97)}}' +
         '.lpx-t.on{transform:none;opacity:1}' +
-        '.lpx-t b{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:#a6f34a;color:#0b0d0c;font-size:.8rem}' +
-        '.lpx-t.error{background:#9b1c5a}.lpx-t.error b{background:#fff;color:#9b1c5a}' +
-        '.lpx-t.info b{background:#fff;color:#0b0d0c}';
+        '.lpx-t.out{opacity:0;transform:translateX(24px) scale(.97)}' +
+        '.lpx-ti{flex:none;width:40px;height:40px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,#a6f34a 0%,#2fd15a 55%,#16b34a 100%);color:#0b0d0c;box-shadow:0 8px 18px -8px rgba(22,179,74,.7)}' +
+        '.lpx-ti svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}' +
+        '.lpx-ti svg path{stroke-dasharray:30;stroke-dashoffset:30;animation:lpxDraw .45s .15s ease-out forwards}' +
+        '@keyframes lpxDraw{to{stroke-dashoffset:0}}' +
+        '.lpx-tx{flex:1;min-width:0;padding-top:1px}' +
+        '.lpx-tx strong{display:block;font-size:.95rem;font-weight:800;line-height:1.2;margin-bottom:2px}' +
+        '.lpx-tx span{display:block;font-size:.88rem;font-weight:500;color:#5b665e;line-height:1.4;word-wrap:break-word}' +
+        '.lpx-tc{flex:none;width:28px;height:28px;margin:-4px -4px 0 0;border:0;border-radius:10px;background:transparent;color:#9aa59d;font-size:1.15rem;line-height:1;cursor:pointer;display:grid;place-items:center;transition:background .15s,color .15s}' +
+        '.lpx-tc:hover{background:#f1f5f2;color:#151a17}' +
+        '.lpx-tb{position:absolute;left:0;bottom:0;height:4px;width:100%;background:linear-gradient(90deg,#a6f34a,#2fd15a);transform-origin:left;animation:lpxBar linear forwards}' +
+        '.lpx-t:hover .lpx-tb{animation-play-state:paused}' +
+        '@keyframes lpxBar{from{transform:scaleX(1)}to{transform:scaleX(0)}}' +
+        '.lpx-t.error .lpx-ti{background:linear-gradient(135deg,#ff7ab0,#d61f69);color:#fff;box-shadow:0 8px 18px -8px rgba(214,31,105,.7)}.lpx-t.error .lpx-tb{background:linear-gradient(90deg,#ff7ab0,#d61f69)}' +
+        '.lpx-t.info .lpx-ti{background:#0b0d0c;color:#a6f34a;box-shadow:0 8px 18px -8px rgba(0,0,0,.6)}.lpx-t.info .lpx-tb{background:#0b0d0c}' +
+        '.lpx-t.aviso .lpx-ti{background:linear-gradient(135deg,#ffd76a,#f5a623);color:#0b0d0c;box-shadow:0 8px 18px -8px rgba(245,166,35,.7)}.lpx-t.aviso .lpx-tb{background:linear-gradient(90deg,#ffd76a,#f5a623)}';
     var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
     function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
 
     // ---------- Avisos ----------
     var caja;
-    function toast(msg, tipo) {
-        if (!caja) { caja = el('div', 'lpx-ts'); document.body.appendChild(caja); }
-        tipo = tipo || 'ok';
-        var t = el('div', 'lpx-t ' + tipo);
-        t.appendChild(el('b', null, tipo === 'error' ? '!' : (tipo === 'info' ? 'i' : '✓')));
-        t.appendChild(el('span', null, msg));
+    var ICONOS = {
+        ok: '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+        error: '<svg viewBox="0 0 24 24"><path d="M12 6v7M12 17.5v.5"/></svg>',
+        aviso: '<svg viewBox="0 0 24 24"><path d="M12 6v7M12 17.5v.5"/></svg>',
+        info: '<svg viewBox="0 0 24 24"><path d="M12 11v6M12 6.5v.5"/></svg>'
+    };
+    var TITULOS = { ok: '¡Listo!', error: 'Algo salió mal', aviso: 'Atención', info: 'Para tener en cuenta' };
+    // LP.toast(mensaje, tipo, { titulo, duracion })   tipo: 'ok' | 'error' | 'info' | 'aviso'
+    function toast(msg, tipo, op) {
+        if (msg == null || msg === '') return;
+        if (typeof tipo === 'object' && tipo) { op = tipo; tipo = op.tipo; }
+        op = op || {};
+        tipo = { success: 'ok', exito: 'ok', warning: 'aviso', danger: 'error', question: 'info' }[tipo] || tipo || 'ok';
+        if (!ICONOS[tipo]) tipo = 'ok';
+        if (!caja || !document.body.contains(caja)) { caja = el('div', 'lpx-ts'); caja.setAttribute('aria-live', 'polite'); document.body.appendChild(caja); }
+        while (caja.children.length >= 4) caja.firstChild.remove();
+        var dur = op.duracion || (tipo === 'error' ? 5500 : 3400);
+        var t = el('div', 'lpx-t ' + tipo); t.setAttribute('role', tipo === 'error' ? 'alert' : 'status');
+        var ic = el('div', 'lpx-ti'); ic.innerHTML = ICONOS[tipo]; t.appendChild(ic);
+        var tx = el('div', 'lpx-tx');
+        tx.appendChild(el('strong', null, op.titulo || TITULOS[tipo]));
+        tx.appendChild(el('span', null, String(msg)));
+        t.appendChild(tx);
+        var x = el('button', 'lpx-tc', '×'); x.type = 'button'; x.setAttribute('aria-label', 'Cerrar'); t.appendChild(x);
+        var bar = el('div', 'lpx-tb'); bar.style.animationDuration = dur + 'ms'; t.appendChild(bar);
         caja.appendChild(t);
-        requestAnimationFrame(function () { t.classList.add('on'); });
-        var quitar = function () { t.classList.remove('on'); setTimeout(function () { t.remove(); }, 260); };
-        t.addEventListener('click', quitar);
-        setTimeout(quitar, tipo === 'error' ? 4500 : 2600);
+        requestAnimationFrame(function () { requestAnimationFrame(function () { t.classList.add('on'); }); });
+        var ido = false;
+        var quitar = function () { if (ido) return; ido = true; t.classList.remove('on'); t.classList.add('out'); setTimeout(function () { t.remove(); }, 300); };
+        x.addEventListener('click', quitar);
+        bar.addEventListener('animationend', quitar);
+        return { cerrar: quitar };
+    }
+
+    // Compatibilidad: si alguna pantalla vieja llama Swal.fire, sale con el estilo LocalPro
+    if (!window.Swal) {
+        var tipoSwal = function (i) { return { success: 'ok', error: 'error', warning: 'aviso', info: 'info', question: 'info' }[i] || 'ok'; };
+        var fire = function (a, b, c) {
+            var o = typeof a === 'object' ? a : { title: a, text: b, icon: c };
+            if (o.showCancelButton) {
+                return ventana({ titulo: o.title, texto: o.text || (typeof o.html === 'string' ? o.html.replace(/<[^>]*>/g, '') : ''), ok: o.confirmButtonText, cancelar: o.cancelButtonText, peligro: o.icon === 'warning' || o.icon === 'error' })
+                    .then(function (r) { return { isConfirmed: !!r, value: r }; });
+            }
+            var m = o.text || (typeof o.html === 'string' ? o.html.replace(/<[^>]*>/g, '') : '');
+            toast(m || o.title, tipoSwal(o.icon), { titulo: m ? o.title : undefined, duracion: o.timer });
+            return Promise.resolve({ isConfirmed: true });
+        };
+        window.Swal = { fire: fire, mixin: function (base) { return { fire: function (o) { return fire(Object.assign({}, base, o)); } }; }, stopTimer: function () {}, resumeTimer: function () {} };
     }
 
     // ---------- Ventana de confirmación ----------

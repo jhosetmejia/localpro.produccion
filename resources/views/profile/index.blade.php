@@ -2,10 +2,6 @@
 
 @section('title','Perfil')
 
-@push('css')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-@endpush
-
 @section('content')
 
 @include('layouts.partials.alert')

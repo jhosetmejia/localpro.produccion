@@ -2,10 +2,6 @@
 
 @section('title','Editar usuario')
 
-@push('css')
-
-@endpush
-
 @section('content')
 <div class="container-fluid px-4">
     <h1 class="mt-4 text-center">Editar Usuario</h1>

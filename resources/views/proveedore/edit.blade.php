@@ -2,10 +2,6 @@
 
 @section('title','Editar proveedor')
 
-@push('css')
-
-@endpush
-
 @section('content')
 <div class="container-fluid px-4">
     <h1 class="mt-4 text-center">Editar Proveedor</h1>
