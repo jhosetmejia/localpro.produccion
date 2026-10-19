@@ -62,8 +62,9 @@ Route::get('/contadores/{codigo}', [registroController::class, 'referidoContador
 Route::post('/registro', [registroController::class, 'store'])->middleware('throttle:5,1');
 Route::get('/recuperar', [recuperarController::class, 'formulario'])->name('password.request');
 Route::post('/recuperar', [recuperarController::class, 'enviar'])->middleware('throttle:5,1')->name('password.email');
-Route::get('/restablecer/{token}', [recuperarController::class, 'formularioNueva'])->name('password.reset');
-Route::post('/restablecer', [recuperarController::class, 'guardarNueva'])->middleware('throttle:10,1')->name('password.update');
+Route::get('/recuperar/codigo', [recuperarController::class, 'formularioCodigo'])->name('password.codigo');
+Route::post('/recuperar/codigo', [recuperarController::class, 'guardarNueva'])->middleware('throttle:10,1')->name('password.update');
+Route::get('/restablecer/{token}', [recuperarController::class, 'enlaceViejo'])->name('password.reset');
 Route::get('/t/{slug}', [catalogoController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('catalogo.show');
 Route::get('/t/{slug}/yo', [catalogoController::class, 'yo'])->where('slug', '[a-z0-9-]+')->middleware('throttle:60,1')->name('catalogo.yo');
 Route::get('/t/{slug}/p/{producto}', [catalogoController::class, 'producto'])->where(['slug' => '[a-z0-9-]+', 'producto' => '[0-9]+(-[a-z0-9-]*)?'])->name('catalogo.producto');
