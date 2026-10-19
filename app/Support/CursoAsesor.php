@@ -60,7 +60,8 @@ class CursoAsesor
                 'minutos' => 3,
                 'intro' => 'Esto es lo que usted le va a mostrar a los negocios. No tiene que saberlo todo: con estas funciones es suficiente.',
                 'puntos' => [
-                    '<b>Caja (POS):</b> para vender rápido, buscando el producto o con lector de código de barras.',
+                    '<b>Caja (POS):</b> para vender rápido, buscando el producto o escaneando su código de barras.',
+                    '<b>Código de barras:</b> LocalPro crea el código de cada producto (y de cada talla y color), imprime las etiquetas y se escanea con la <b>cámara del celular</b>: no hay que comprar lector. Sirve para vender y para contar el inventario.',
                     '<b>Inventario:</b> el stock se descuenta solo con cada venta y avisa lo que se está acabando.',
                     '<b>Abrir y cerrar caja:</b> cada vendedor cuadra su caja al final del turno.',
                     '<b>Factura:</b> se imprime o se envía por WhatsApp si el negocio no tiene impresora.',

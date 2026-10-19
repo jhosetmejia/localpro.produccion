@@ -72,6 +72,7 @@ class Academia
                         'Muestre solo 3 cosas, en este orden: <b>1) vender en la caja</b> y mandar el tiquete por WhatsApp, <b>2) el panel</b> con ventas y ganancia del día, <b>3) la tienda en línea</b> que sale en Google.',
                         'Si tiene vendedores, muéstrele que <b>cada uno abre su caja</b> y que ellos no ven las ganancias.',
                         'Termine mostrando <b>Vender más</b>: su base de clientes y el WhatsApp marketing. Eso le trae plata nueva.',
+                        'Si vende ropa, calzado o mercancía, muestre el <b>código de barras</b>: en <b>Ejemplos</b> hay etiquetas de muestra y una caja de prueba. Escanee con la cámara de su celular y el dueño ve cómo cae la prenda con su precio, sin comprar lector.',
                     ], 'tip' => 'Practique la demostración con un familiar hasta que la haga en menos de 5 minutos.'],
                     ['titulo' => 'Cierre con la prueba gratis', 'min' => 2, 'accion' => ['asesor.index', 'Ver mi enlace'], 'contenido' => [
                         'No pida la venta de una: ofrezca la <b>prueba gratis de 3 meses</b> con su enlace. Es fácil decir que sí a algo gratis.',
@@ -174,7 +175,7 @@ class Academia
 
             'caja' => [
                 'titulo' => 'La caja paso a paso', 'icono' => 'fa-cash-register', 'color' => '#0ea5e9', 'para' => 'todos',
-                'resumen' => 'Abrir, vender, cobrar, devoluciones, anotar los gastos y cerrar la caja sin descuadres.',
+                'resumen' => 'Abrir, vender escaneando el código de barras, cobrar, devoluciones, anotar los gastos y cerrar la caja sin descuadres.',
                 'lecciones' => [
                     ['titulo' => 'Abrir la caja', 'min' => 2, 'accion' => ['pos.index', 'Ir a la caja'], 'contenido' => [
                         'Cada vendedor abre <b>su propia caja</b> al empezar el turno, con el dinero que recibe en el cajón.',
@@ -199,12 +200,18 @@ class Academia
                         'Si lo paga <b>en efectivo con la plata de su caja abierta</b>, LocalPro lo descuenta solo del efectivo que debe haber. Así la caja cuadra al cerrar y no aparece un "faltante".',
                         'Usted ve <b>sus egresos y los de sus compañeros</b>. Los que anota el dueño o el administrador solo los ve él. El dueño ve todo y sabe en qué se va la plata del negocio.',
                     ], 'tip' => 'Anote el gasto en el momento, no al final del día: así no se le olvida y la caja cuadra.'],
+                    ['titulo' => 'Vender escaneando el código de barras', 'min' => 2, 'accion' => ['pos.index', 'Probar en la caja'], 'contenido' => [
+                        'Cada producto (y cada talla y color) tiene su <b>código de barras</b> en la etiqueta. En la caja toque el botón de la <b>cámara</b> 📷, apunte a la etiqueta y el producto cae a la venta con su precio. Suena un pitido en cada lectura.',
+                        'La cámara queda abierta: escanee una prenda tras otra y al final cobre. Si el negocio tiene <b>pistola lectora</b>, también sirve: el código entra solo.',
+                        'Si una etiqueta no se lee (arrugada, rota o con poca luz), busque el producto por nombre y pídale al dueño que la vuelva a imprimir.',
+                    ], 'tip' => 'Escanear evita equivocarse de talla, color o precio: lo que se vende es exactamente lo que se descuenta del inventario.'],
                 ],
                 'prueba' => [
                     ['p' => 'Pagó un domicilio con $8.000 de la caja. ¿Qué hace?', 'o' => ['Lo anoto en Egresos', 'No anoto nada', 'Lo saco y lo repongo otro día'], 'r' => 0],
                     ['p' => 'El cliente pagó por Nequi. ¿Cómo se registra?', 'o' => ['Como Nequi', 'Como efectivo', 'No se registra'], 'r' => 0],
                     ['p' => 'Si me equivoqué en una venta, ¿qué hago?', 'o' => ['Hago una devolución', 'Borro la venta', 'Lo dejo así'], 'r' => 0],
                     ['p' => 'Al cerrar falta plata. ¿Qué hago?', 'o' => ['Escribo el motivo en la nota del cierre', 'No cierro la caja', 'Cambio el valor de una venta'], 'r' => 0],
+                    ['p' => '¿Cómo agrego rápido una prenda a la venta?', 'o' => ['Escaneo su código de barras con la cámara', 'Escribo el precio a mano', 'Le tomo una foto y la envío'], 'r' => 0],
                 ],
             ],
 
@@ -270,7 +277,7 @@ class Academia
 
             'inventario' => [
                 'titulo' => 'Inventario sin pérdidas', 'icono' => 'fa-boxes-stacked', 'color' => '#8b5cf6', 'para' => 'dueno',
-                'resumen' => 'Entradas de mercancía, existencias, conteo físico con el celular y cómo evitar faltantes.',
+                'resumen' => 'Entradas de mercancía, etiquetas con código de barras, existencias, conteo físico con el celular y cómo evitar faltantes.',
                 'lecciones' => [
                     ['titulo' => 'Registrar la mercancía que llega', 'min' => 3, 'accion' => ['inventario.index', 'Ver inventario'], 'contenido' => [
                         'Cada vez que llega mercancía, regístrela como <b>entrada</b> (o compra): suma al inventario y guarda el costo.',
@@ -289,12 +296,19 @@ class Academia
                         'Para contar, abra un <b>Conteo físico</b> (de toda la tienda o de una categoría), toque <b>Escanear prendas</b> y pase la cámara por cada etiqueta: cada lectura suma una. También puede escribir la cantidad.',
                         'Al tocar <b>Terminé</b> el sistema le dice cuáles <b>están</b>, cuáles <b>faltan</b>, cuáles <b>no aparecieron</b> y cuáles <b>sobran</b>. El dueño revisa y con <b>Ajustar inventario</b> el sistema queda igual a lo físico.',
                     ], 'tip' => 'Active "Contar a ciegas" para que quien cuenta no vea lo que dice el sistema: así el conteo sale honesto.'],
+                    ['titulo' => 'Etiquetas con código de barras', 'min' => 3, 'accion' => ['etiquetas.todas', 'Ver mis etiquetas'], 'contenido' => [
+                        'LocalPro le crea un <b>código de barras a cada producto</b>, y uno distinto a <b>cada talla y color</b> (por ejemplo P011302 = camiseta, talla M, negra). Así el inventario se descuenta de la prenda exacta.',
+                        'Si el producto ya trae <b>código de fábrica</b> (EAN o UPC), escríbalo o escanéelo en la talla y color del producto y LocalPro lo reconoce.',
+                        'Para imprimir: <b>Productos → Etiquetas</b> (de un producto o de todos) o, cuando llega mercancía, <b>Entrada → Etiquetas de lo que llegó</b>. Elija cuántas, qué mostrar (nombre, precio, talla y color) y el papel: <b>rollo de 50 × 25 mm</b> (impresora de etiquetas) u <b>hoja carta</b> con 40 o 24 por hoja en cualquier impresora.',
+                        'No necesita comprar lector: en la caja y en el conteo se escanea con la <b>cámara del celular</b>.',
+                    ], 'tip' => 'Pegue la etiqueta en una parte plana de la prenda y en negro sobre blanco: así se lee al primer intento.'],
                 ],
                 'prueba' => [
                     ['p' => 'Llegó mercancía nueva. ¿Qué hago en LocalPro?', 'o' => ['Registrarla como entrada', 'Nada, se suma sola', 'Crear el producto otra vez'], 'r' => 0],
                     ['p' => '¿Cada cuánto conviene hacer conteo físico?', 'o' => ['Al menos una vez al mes', 'Nunca', 'Cada 5 años'], 'r' => 0],
                     ['p' => '¿Qué hago con lo que lleva meses sin venderse?', 'o' => ['Ponerlo en promoción', 'Comprar más de eso', 'Subirle el precio'], 'r' => 0],
                     ['p' => 'En el conteo físico escaneé todas las prendas y toqué Terminé. ¿Qué me muestra?', 'o' => ['Cuáles están, cuáles faltan y cuáles sobran', 'Nada, hay que contar en un cuaderno', 'Solo el total de ventas'], 'r' => 0],
+                    ['p' => 'Llegaron 20 camisetas nuevas. ¿Cómo saco sus etiquetas con código de barras?', 'o' => ['Desde la entrada: Etiquetas de lo que llegó', 'Las dibujo a mano', 'No se puede, hay que comprar un lector'], 'r' => 0],
                 ],
             ],
 
