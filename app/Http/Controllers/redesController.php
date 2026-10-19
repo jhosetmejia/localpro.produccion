@@ -402,6 +402,11 @@ class redesController extends Controller
 
     public function cuentasVista()
     {
-        return view('redes.cuentas', ['cuentas' => RedCuenta::orderByRaw("estado = 'desconectada'")->orderBy('page_nombre')->get(), 'activo' => Meta::activo()]);
+        $cuentas = RedCuenta::orderByRaw("estado = 'desconectada'")->orderBy('page_nombre')->get();
+        // "Revisar mensajes": compara lo que tiene Meta con lo guardado, para saber si algo no está llegando
+        $revision = request()->boolean('revisar') && Meta::activo()
+            ? $cuentas->where('estado', '<>', 'desconectada')->flatMap(fn ($c) => Meta::probarCuenta($c))->all() : null;
+        return view('redes.cuentas', ['cuentas' => $cuentas, 'activo' => Meta::activo(), 'revision' => $revision,
+            'webhook' => \App\Models\Ajuste::valor('meta_ultimo_webhook')]);
     }
 }

@@ -42,6 +42,15 @@
             <li class="lp-empty">No hay cuentas conectadas. <a href="{{ route('redes.index') }}">Conectar ahora</a></li>
             @endforelse
         </ul>
+        <div class="mt-3"><a href="{{ route('redes.cuentas', ['revisar' => 1]) }}#revision" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-stethoscope me-1"></i>Revisar si llegan los mensajes</a></div>
+        @if ($revision !== null)
+        <ul class="list-unstyled mt-2 mb-0" id="revision">
+            @foreach ($revision as [$ok, $titulo, $detalle])
+            <li class="d-flex gap-2 py-1" style="border-bottom:1px solid #eef2ef"><span style="width:22px;flex:none">{{ $ok === true ? '✅' : ($ok === false ? '❌' : 'ℹ️') }}</span><span><b>{{ $titulo }}</b><small class="d-block text-muted">{{ $detalle }}</small></span></li>
+            @endforeach
+            <li class="d-flex gap-2 py-1"><span style="width:22px;flex:none">{{ $webhook ? (str_contains($webhook, 'INVÁLIDA') ? '❌' : '✅') : 'ℹ️' }}</span><span><b>Avisos en tiempo real de Meta</b><small class="d-block text-muted">{{ $webhook ? 'Último aviso: ' . $webhook : 'Todavía no ha llegado ningún aviso en tiempo real (mientras la app esté en revisión, Meta solo los manda para los administradores de la app). Los mensajes igual se revisan cada 2 minutos.' }}</small></span></li>
+        </ul>
+        @endif
         <p class="small text-muted mt-3 mb-1"><i class="fa-solid fa-layer-group me-1"></i>Cada negocio conecta <b>{{ $maxR === 1 ? 'una página de Facebook' : $maxR . ' páginas de Facebook' }}</b> con su Instagram. Si la cuenta falla, vuelva a conectarla con <a href="{{ route('redes.conectar', ['reconectar' => 1]) }}">Reconectar</a>.</p>
         <p class="small text-muted mt-0 mb-0"><i class="fa-solid fa-circle-info me-1"></i>¿No aparece su Instagram? Debe ser <b>cuenta profesional</b> y estar <b>vinculada a la página</b> de Facebook. Vincúlela y toque "Reconectar" para actualizar.</p>
     </div>
