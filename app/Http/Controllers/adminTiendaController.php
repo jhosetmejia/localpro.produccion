@@ -49,7 +49,7 @@ class adminTiendaController extends Controller
 
     public function create()
     {
-        return view('admin.tiendas.create', ['tipos' => Tienda::TIPOS, 'paises' => Paises::LISTA]);
+        return view('admin.tiendas.create', ['tipos' => Tienda::TIPOS, 'paises' => Paises::lista()]);
     }
 
     public function store(Request $request)

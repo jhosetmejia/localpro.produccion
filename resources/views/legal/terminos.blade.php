@@ -5,7 +5,7 @@
 @php
     $planAnual = \App\Models\Plan::where('activo', true)->where('precio', '>', 0)->where('dias', '>=', 365)->orderBy('precio')->first();
     $valorAnual = '$' . number_format((float) ($planAnual->precio ?? 220000), 0, ',', '.') . ' COP'
-        . ($planAnual ? ' o ' . \App\Support\Moneda::formato($planAnual->precioEn('USD'), 'USD') . ' para negocios de Venezuela' : '');
+        . ($planAnual ? ' o ' . \App\Support\Moneda::formato($planAnual->precioEn(\App\Support\Moneda::deVenezuela()), \App\Support\Moneda::deVenezuela()) . ' para negocios de Venezuela' : '');
     $maxProductos = $planAnual->max_productos ?? 400;
 @endphp
 <p>Al registrarse y usar LocalProo usted acepta estas condiciones. Al crear la cuenta se marca la casilla "Acepto las condiciones de uso".</p>

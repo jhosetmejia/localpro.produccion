@@ -62,7 +62,8 @@ class adminRedController extends Controller
                 'negocios' => Tienda::whereNotNull('asesor_id')->count(),
                 'sinAsesor' => Tienda::sinAsignar()->count(),
                 'pendiente' => (float) Comision::where('estado', 'pendiente')->where('moneda', 'COP')->sum('monto'),
-                'pendienteUsd' => (float) Comision::where('estado', 'pendiente')->where('moneda', 'USD')->sum('monto'),
+                // Lo que se debe en otras monedas (Venezuela: dólares y/o bolívares)
+                'pendienteOtras' => Comision::where('estado', 'pendiente')->where('moneda', '<>', 'COP')->selectRaw('moneda, SUM(monto) total')->groupBy('moneda')->pluck('total', 'moneda'),
             ],
             'valores' => Comisiones::valores(),
             'valoresUsd' => Comisiones::valores(\App\Support\Moneda::USD),
@@ -130,7 +131,7 @@ class adminRedController extends Controller
             'negocios' => Tienda::with('plan:id,nombre')->where('asesor_id', $asesor->id)->orderBy('nombre')->get(),
             'equipo' => Asesor::with('user:id,name')->withCount('tiendas')->where('padre_id', $asesor->id)->get(),
             'comisiones' => Comision::with('tienda:id,nombre')->where('asesor_id', $asesor->id)->latest()->take(30)->get(),
-            'pendiente' => (float) Comision::where('asesor_id', $asesor->id)->where('estado', 'pendiente')->where('moneda', $asesor->moneda)->sum('monto'), // en la moneda del asesor
+            'pendiente' => \App\Support\Moneda::sumar(Comision::where('asesor_id', $asesor->id)->where('estado', 'pendiente'), 'monto', $asesor->moneda), // en la moneda del asesor
             'lideres' => Asesor::with('user:id,name')->whereIn('cargo', ['lider_pais', 'lider_departamento', 'lider_ciudad', 'lider_zona'])
                 ->whereNotIn('id', $asesor->idsRed())->get(),
             'sinAsesor' => Tienda::sinAsignar()->orderBy('nombre')->get(['id', 'nombre']),

@@ -164,7 +164,7 @@ class CursoAsesor
             3 => ['¿Qué pasa con el inventario del negocio que usted inscribió cuando hace una venta?', ['El dueño tiene que descontarlo a mano', 'No cambia', 'Se descuenta solo con cada venta'], 2],
             4 => ['El negocio que usted inscribió no tiene impresora. ¿Cómo le entrega la factura a su cliente?', ['No puede facturar', 'Se la envía por WhatsApp', 'Tiene que comprar una impresora primero'], 1],
             5 => ['Cuando usted inscribe un negocio con su enlace, ¿cuánto tiempo lo puede usar gratis?', ['3 meses', '1 semana', 'No tiene prueba gratis'], 0],
-            6 => ['Al terminar la prueba gratis, ¿cuánto paga al año el negocio que usted inscribió?', [$plan, Moneda::esUsd(Moneda::actual()) ? 'US$5' : '$20.000', Moneda::esUsd(Moneda::actual()) ? 'US$250' : '$1.000.000'], 0],
+            6 => ['Al terminar la prueba gratis, ¿cuánto paga al año el negocio que usted inscribió?', [$plan, self::plata(Moneda::convertir(20000, Moneda::COP, Moneda::actual())), self::plata(Moneda::convertir(1000000, Moneda::COP, Moneda::actual()))], 0],
             7 => ['¿Qué debe hacer para que el negocio que usted consiguió quede a su nombre?', ['Llamar a LocalPro después', 'Que se registre con su enlace o escriba su código de asesor', 'Nada, todos los negocios quedan a su nombre'], 1],
             8 => ['¿Cuándo gana usted la comisión de ' . $com . ' por el negocio que inscribió?', ['Apenas el negocio se registra', 'Cuando el negocio paga su plan anual', 'Cada vez que el negocio vende algo'], 1],
             9 => ['¿Qué necesita usted para seguir activo y recibir sus comisiones?', ['Tener al menos un negocio inscrito con pago', 'Pagar una mensualidad a LocalPro', 'Nada'], 0],

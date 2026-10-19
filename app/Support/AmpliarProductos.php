@@ -31,7 +31,8 @@ class AmpliarProductos
     public static function precioPara(?Tienda $tienda = null): float
     {
         $tienda ??= TiendaActual::tienda();
-        return $tienda && Moneda::esUsd($tienda->moneda_cobro) ? self::precioUsd() : self::precio();
+        $m = $tienda?->moneda_cobro ?? Moneda::COP;
+        return Moneda::esExtranjera($m) ? Moneda::convertir(self::precioUsd(), Moneda::USD, $m) : self::precio();
     }
 
     public static function precioTexto(?Tienda $tienda = null, int $paquetes = 1): string
@@ -40,7 +41,7 @@ class AmpliarProductos
         return Moneda::formato(self::precioPara($tienda) * $paquetes, $tienda?->moneda_cobro ?? Moneda::COP);
     }
 
-    /** Frase corta: "$20.000 por cada 100 productos más" (US$5 en Venezuela) */
+    /** Frase corta: "$20.000 por cada 100 productos más" (US$5 o su valor en Bs en Venezuela) */
     public static function oferta(?Tienda $tienda = null): string
     {
         return self::precioTexto($tienda) . ' por cada ' . self::cantidad() . ' productos más';

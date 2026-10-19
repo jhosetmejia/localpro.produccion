@@ -189,8 +189,8 @@ class Auditoria extends Command
         $this->revisar('Comisiones de pagos de prueba (no deberían existir)', fn () => \App\Models\Comision::whereIn('pago_suscripcion_id', $P::where('referencia', 'like', $prueba)->pluck('id'))->get(), true, fn ($c) => "#$c->id");
         $this->revisar('Comisiones pendientes de personas inactivas', fn () => \App\Models\Comision::with('asesor')->where('estado', 'pendiente')->whereIn('asesor_id', Asesor::where('activo', false)->pluck('id'))->get(), false, fn ($c) => ($c->asesor->nombre ?? '?') . ' ' . $c->monto_texto);
         $pend = (float) \App\Models\Comision::where('estado', 'pendiente')->where('moneda', 'COP')->sum('monto');
-        $pendUsd = (float) \App\Models\Comision::where('estado', 'pendiente')->where('moneda', 'USD')->sum('monto');
-        $this->ok('Comisiones por pagar a la red: $' . number_format($pend, 0, ',', '.') . ($pendUsd > 0 ? ' + ' . \App\Support\Moneda::formato($pendUsd, 'USD', true) : ''));
+        $otras = \App\Models\Comision::where('estado', 'pendiente')->where('moneda', '<>', 'COP')->selectRaw('moneda, SUM(monto) total')->groupBy('moneda')->pluck('total', 'moneda');
+        $this->ok('Comisiones por pagar a la red: $' . number_format($pend, 0, ',', '.') . $otras->map(fn ($t, $m) => ' + ' . \App\Support\Moneda::formato($t, $m, true))->implode(''));
     }
 
     // ---------------- 4. asesores ----------------

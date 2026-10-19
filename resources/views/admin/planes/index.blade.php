@@ -22,7 +22,7 @@
     <form method="post" action="{{ route('admin.planes.guardar') }}">
         @csrf
         <div class="lp-box mb-3">
-            <h3>Planes (precios en COP · y en US$ para Venezuela)</h3>
+            <h3>Planes (precios en COP · y en US$ para Venezuela; si Venezuela está en bolívares se pasan con la tasa)</h3>
             <div class="table-responsive">
                 <table class="table align-middle">
                     <thead><tr><th>Nombre</th><th style="width:150px">Precio COP</th><th style="width:120px" title="Lo que paga un negocio de Venezuela">Precio US$</th><th style="width:120px">Días</th><th style="width:110px">Productos máx.</th><th style="width:110px">Personas máx.</th><th>Descripción</th><th>Activo</th><th class="text-end">Tiendas</th></tr></thead>
@@ -57,6 +57,18 @@
                 <div class="col-md-2"><label class="form-label" title="Wompi solo cobra en pesos: un pago de US$55 se cobra a esta tasa">Tasa: pesos por US$1</label><input type="number" min="1" step="1" name="tasa_usd_cop" class="form-control" value="{{ (int) $tasa }}"></div>
                 <div class="col-md-2"><label class="form-label">Productos por paquete</label><input type="number" min="1" name="productos_paquete_cantidad" class="form-control" value="{{ $paqCantidad }}"></div>
                 <div class="col-md-3 text-end"><button class="btn btn-primary btn-lg"><i class="fa-solid fa-floppy-disk me-1"></i>Guardar</button></div>
+                <div class="col-12">
+            <div class="mt-3" style="border:1.5px solid #cfeedd;background:#f3faf5;border-radius:18px;padding:1rem 1.1rem">
+                <b><i class="fa-solid fa-coins me-1" style="color:#16b34a"></i>Moneda de Venezuela</b>
+                <small class="text-muted d-block mb-2">Aplica a todo el sistema para las tiendas, contadores y asesores de Venezuela: caja y ventas, precio del plan, pagos y comisiones. Los precios del plan y las comisiones se configuran en dólares; en bolívares se pasan con la tasa.</small>
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-4"><label class="form-label">Moneda</label><select name="moneda_venezuela" class="form-select" data-nativo>@foreach (\App\Support\Moneda::OPCIONES_VE as $k => $n)<option value="{{ $k }}" @selected($monedaVe === $k)>{{ $n }}</option>@endforeach</select></div>
+                    <div class="col-md-4"><label class="form-label">Tasa: bolívares por US$1</label><input type="number" min="0" step="0.01" name="tasa_ves_usd" class="form-control" value="{{ $tasaVes ?: '' }}" placeholder="Ej. la tasa del día"></div>
+                    <div class="col-md-4 small text-muted">Hoy: <b>{{ $monedaVe === 'VES' ? 'Bolívares' : 'Dólares' }}</b>{{ $tasaVes > 0 ? ' · US$1 = Bs ' . number_format($tasaVes, 2, ',', '.') : '' }}</div>
+                    <div class="col-12"><small class="fw-bold" style="color:#8a5a00"><i class="fa-solid fa-triangle-exclamation me-1"></i>Al cambiar la moneda, los precios que ya tienen los productos de las tiendas de Venezuela no se convierten solos: quedan con el mismo número en la moneda nueva. Avíseles antes del cambio. Lo ya cobrado y las comisiones viejas se quedan en su moneda.</small></div>
+                </div>
+            </div>
+                </div>
                 <div class="col-12"><div style="border:1.5px solid #cfeedd;background:#f3faf5;border-radius:18px;padding:1rem 1.1rem">
                     <b><i class="fa-solid fa-eye me-1" style="color:#16b34a"></i>Tiendas de ejemplo para los asesores</b>
                     <label class="form-label small fw-bold mt-2 mb-1">Códigos LCT separados por coma (ej. una de ropa, un restaurante…)</label>

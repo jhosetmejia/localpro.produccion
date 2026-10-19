@@ -54,10 +54,10 @@
             <form method="post" action="{{ route('admin.tiendas.pago', $tienda) }}" class="row g-2 align-items-end" data-confirm="¿Registrar el pago?" data-confirm-texto="Se extiende el plan de la tienda según los meses indicados." data-confirm-ok="Sí, registrar">
                 @csrf
                 <div class="col-12"><b>Registrar pago recibido</b> <small class="text-muted">(transferencia, Nequi, efectivo)</small></div>
-                @php $mc = $tienda->moneda_cobro; $usd = \App\Support\Moneda::esUsd($mc); $planesPago = $planes->where('precio', '>', 0); @endphp
-                @if ($usd)<div class="col-12"><small class="fw-bold" style="color:#11702f"><i class="fa-solid fa-dollar-sign me-1"></i>Negocio de Venezuela: el plan se cobra y se registra en dólares (USD).</small></div>@endif
+                @php $mc = $tienda->moneda_cobro; $usd = \App\Support\Moneda::esExtranjera($mc); $planesPago = $planes->where('precio', '>', 0); @endphp
+                @if ($usd)<div class="col-12"><small class="fw-bold" style="color:#11702f"><i class="fa-solid fa-dollar-sign me-1"></i>Negocio de Venezuela: el plan se cobra y se registra en {{ $mc === 'VES' ? 'bolívares (Bs)' : 'dólares (US$)' }}.</small></div>@endif
                 <div class="col-md-5"><select name="plan_id" class="form-select" id="pp" onchange="var m=document.getElementById('pm');m.value=this.selectedOptions[0].dataset.p;m.dispatchEvent(new Event('input'))">@foreach ($planesPago as $p)<option value="{{ $p->id }}" data-p="{{ $p->precioEn($mc) }}">{{ $p->nombre }} · {{ $p->precioTexto($tienda) }}</option>@endforeach</select></div>
-                <div class="col-md-3">@if ($usd)<div class="input-group"><span class="input-group-text">US$</span><input type="number" min="0" step="0.01" name="monto" id="pm" class="form-control" value="{{ optional($planesPago->first())->precioEn($mc) }}"></div>@else<input data-dinero type="number" min="0" name="monto" id="pm" class="form-control" value="{{ (int) optional($planesPago->first())->precio }}">@endif</div>
+                <div class="col-md-3">@if ($usd)<div class="input-group"><span class="input-group-text">{{ \App\Support\Moneda::simbolo($mc) }}</span><input type="number" min="0" step="0.01" name="monto" id="pm" class="form-control" value="{{ optional($planesPago->first())->precioEn($mc) }}"></div>@else<input data-dinero type="number" min="0" name="monto" id="pm" class="form-control" value="{{ (int) optional($planesPago->first())->precio }}">@endif</div>
                 <div class="col-md-4 d-grid"><button class="btn btn-primary">Registrar pago</button></div>
                 <div class="col-12"><input name="nota" class="form-control" placeholder="Nota (opcional): ej. Nequi ref 12345"></div>
             </form>

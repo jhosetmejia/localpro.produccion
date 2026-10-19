@@ -16,7 +16,7 @@
 <div class="{{ $envoltura }}">
     <label class="{{ $etiqueta }}" for="{{ $uid }}p">País</label>
     <select class="{{ $claseSel }}" id="{{ $uid }}p" name="pais" required autocomplete="off">
-        @foreach (\App\Support\Paises::LISTA as $codigo => $p)
+        @foreach (\App\Support\Paises::lista() as $codigo => $p)
             <option value="{{ $codigo }}" @selected($paisSel === $codigo)>{{ $p[0] }} · {{ $p[1] }}</option>
         @endforeach
     </select>

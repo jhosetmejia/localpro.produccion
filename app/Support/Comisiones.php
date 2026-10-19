@@ -10,7 +10,7 @@ use App\Models\PagoSuscripcion;
  * Reparte cada pago de plan entre la red comercial.
  * Solo el PLAN ANUAL genera comisión (mensualidades y servicios adicionales son 100% de LocalPro).
  * Venta nueva (plan de 220.000): asesor 100.000 · líder de zona, ciudad, departamento y país 5.000 cada uno · LocalPro 100.000.
- * Venezuela paga en dólares: se usan los valores en USD (red_usd_*) y la comisión queda en USD.
+ * Venezuela paga en dólares o bolívares (Admin → Planes y cobros): valores en USD (red_usd_*), en Bs a la tasa del panel; la comisión queda en esa moneda.
  * Renovación anual: 10.000 a cada uno · LocalPro el resto. Un cargo vacío deja su parte para LocalPro.
  */
 class Comisiones
@@ -21,6 +21,17 @@ class Comisiones
      */
     public static function valores(?string $moneda = Moneda::COP): array
     {
+        // Bolívares: los valores de dólares pasados a Bs con la tasa del panel
+        if (strtoupper((string) $moneda) === Moneda::VES) {
+            $usd = self::valores(Moneda::USD);
+            $c = fn ($v) => Moneda::convertir($v, Moneda::USD, Moneda::VES);
+            return [
+                'moneda' => Moneda::VES,
+                'valor_plan' => $c($usd['valor_plan']),
+                'nueva' => array_map($c, $usd['nueva']),
+                'renovacion' => array_map($c, $usd['renovacion']),
+            ];
+        }
         if (Moneda::esUsd($moneda)) {
             $u = fn ($k, $d) => (float) Ajuste::valor('red_usd_' . $k, $d);
             return [
@@ -42,9 +53,10 @@ class Comisiones
     // Meta del panel del asesor (un salario mínimo) en su moneda
     public static function salario(?string $moneda = Moneda::COP): float
     {
-        return Moneda::esUsd($moneda)
-            ? (float) Ajuste::valor('red_usd_salario_minimo', 200)
-            : (float) Ajuste::valor('red_salario_minimo', 1750000);
+        if (Moneda::esExtranjera($moneda)) {
+            return Moneda::convertir((float) Ajuste::valor('red_usd_salario_minimo', 200), Moneda::USD, $moneda);
+        }
+        return (float) Ajuste::valor('red_salario_minimo', 1750000);
     }
 
     public static function generar(PagoSuscripcion $pago): void

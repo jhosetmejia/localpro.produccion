@@ -5,23 +5,63 @@ namespace App\Support;
 use App\Models\Ajuste;
 
 /**
- * Moneda con la que LocalPro COBRA el plan y PAGA las comisiones según el país.
+ * Moneda con la que trabaja cada país en LocalPro (tienda, plan, pagos y comisiones).
  * - Colombia y el resto: pesos colombianos (COP), como siempre.
- * - Venezuela: dólares (USD). Su tienda vende en dólares (Paises), el plan se le cobra en dólares
- *   y las comisiones de esas ventas se pagan en dólares.
- * Para sumar otro país en dólares basta agregarlo a PAISES_USD.
+ * - Venezuela: dólares (USD) o bolívares (VES), según Admin → Planes y cobros → "Moneda de Venezuela".
+ *   Ese ajuste cambia todo el sistema para las tiendas, contadores y asesores de Venezuela:
+ *   la caja y las ventas de la tienda, el precio del plan, los pagos y las comisiones.
+ *
+ * Los valores base de Venezuela se configuran en dólares (precio_usd, red_usd_*). Si Venezuela está en
+ * bolívares, se pasan a Bs con la tasa "Bs por US$1" (tasa_ves_usd). Wompi solo cobra en pesos: todo
+ * pago en otra moneda se cobra en COP con la tasa "pesos por US$1" (tasa_usd_cop).
  */
 class Moneda
 {
     public const COP = 'COP';
     public const USD = 'USD';
+    public const VES = 'VES';
 
-    // Países a los que se les cobra el plan y se les pagan comisiones en dólares
-    public const PAISES_USD = ['VE'];
+    // Países con moneda propia configurable en el panel => clave del ajuste
+    public const PAISES_CONFIGURABLES = ['VE' => 'moneda_venezuela'];
+
+    // Opciones de moneda para Venezuela
+    public const OPCIONES_VE = [self::USD => 'Dólares (US$)', self::VES => 'Bolívares (Bs)'];
+
+    private static array $cache = [];
+
+    // Lee un ajuste sin romper si la base aún no existe (instalación nueva, migraciones)
+    private static function ajuste(string $clave, $defecto)
+    {
+        try {
+            return Ajuste::valor($clave, $defecto);
+        } catch (\Throwable $e) {
+            return $defecto;
+        }
+    }
+
+    public static function olvidar(): void
+    {
+        self::$cache = [];
+    }
+
+    // Moneda elegida para Venezuela (USD por defecto). Si eligieron bolívares sin tasa, sigue en dólares.
+    public static function deVenezuela(): string
+    {
+        return self::$cache['ve'] ??= (function () {
+            $m = strtoupper((string) self::ajuste('moneda_venezuela', self::USD));
+            return $m === self::VES && self::tasaVes() > 0 ? self::VES : self::USD;
+        })();
+    }
 
     public static function dePais(?string $pais): string
     {
-        return in_array(strtoupper((string) $pais), self::PAISES_USD, true) ? self::USD : self::COP;
+        return strtoupper((string) $pais) === 'VE' ? self::deVenezuela() : self::COP;
+    }
+
+    // Países que hoy NO trabajan en pesos colombianos (para sumar ventas en pesos en el admin)
+    public static function paisesExtranjeros(): array
+    {
+        return array_keys(self::PAISES_CONFIGURABLES);
     }
 
     // Moneda de quien está usando el sistema: la del asesor (si es de la red) o la de su tienda
@@ -39,42 +79,112 @@ class Moneda
         return strtoupper((string) $moneda) === self::USD;
     }
 
-    // COP: $100.000 · USD: US$25 / US$1,25
+    // Cualquier moneda que no sea el peso colombiano (lleva centavos y se cobra en Wompi convertida)
+    public static function esExtranjera(?string $moneda): bool
+    {
+        return strtoupper((string) ($moneda ?: self::COP)) !== self::COP;
+    }
+
+    public static function simbolo(?string $moneda): string
+    {
+        return match (strtoupper((string) $moneda)) {
+            self::USD => 'US$',
+            self::VES => 'Bs',
+            default => '$',
+        };
+    }
+
+    // COP: $100.000 · USD: US$25 / US$1,25 · VES: Bs 2.000 / Bs 1.250,50
     public static function formato($valor, ?string $moneda = self::COP, bool $codigo = false): string
     {
         $v = (float) $valor;
-        if (self::esUsd($moneda)) {
+        $m = strtoupper((string) ($moneda ?: self::COP));
+        $signo = $v < 0 ? '-' : '';
+        if ($m === self::USD || $m === self::VES) {
             $dec = abs($v - round($v)) < 0.005 ? 0 : 2;
-            $txt = ($v < 0 ? '-' : '') . 'US$' . number_format(abs($v), $dec, ',', '.');
-            return $codigo ? $txt . ' USD' : $txt;
+            $num = number_format(abs($v), $dec, ',', '.');
+            $txt = $m === self::USD ? $signo . 'US$' . $num : $signo . 'Bs ' . $num;
+            return $codigo ? $txt . ' ' . $m : $txt;
         }
-        $txt = ($v < 0 ? '-' : '') . '$' . number_format(abs($v), 0, ',', '.');
+        $txt = $signo . '$' . number_format(abs($v), 0, ',', '.');
         return $codigo ? $txt . ' COP' : $txt;
     }
 
     // Función de JavaScript equivalente a formato() para usar en las vistas: var fmt = {!! Moneda::js($m) !!};
     public static function js(?string $moneda = self::COP): string
     {
-        return self::esUsd($moneda)
-            ? "function (n) { var r = Math.round((+n || 0) * 100) / 100, a = Math.abs(r), t = (a % 1 ? a.toFixed(2) : String(Math.round(a))).split('.'); t[0] = t[0].replace(/\\B(?=(\\d{3})+(?!\\d))/g, '.'); return (r < 0 ? '-' : '') + 'US$' + t.join(','); }"
-            : "function (n) { var r = Math.round(+n || 0); return (r < 0 ? '-$' : '$') + Math.abs(r).toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g, '.'); }";
+        if (self::esExtranjera($moneda)) {
+            $pre = self::esUsd($moneda) ? 'US$' : 'Bs ';
+            return "function (n) { var r = Math.round((+n || 0) * 100) / 100, a = Math.abs(r), t = (a % 1 ? a.toFixed(2) : String(Math.round(a))).split('.'); t[0] = t[0].replace(/\\B(?=(\\d{3})+(?!\\d))/g, '.'); return (r < 0 ? '-' : '') + '{$pre}' + t.join(','); }";
+        }
+        return "function (n) { var r = Math.round(+n || 0); return (r < 0 ? '-$' : '$') + Math.abs(r).toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g, '.'); }";
     }
 
-    // Pesos colombianos por cada dólar (para cobrar con Wompi, que solo recibe COP). Se cambia en Admin → Planes.
+    // Pesos colombianos por cada dólar (Wompi solo recibe COP). Se cambia en Admin → Planes y cobros.
     public static function tasa(): float
     {
-        return max(1, (float) Ajuste::valor('tasa_usd_cop', 4000));
+        return self::$cache['tasa'] ??= max(1, (float) self::ajuste('tasa_usd_cop', 4000));
+    }
+
+    // Bolívares por cada dólar (0 = sin configurar). Se cambia en Admin → Planes y cobros.
+    public static function tasaVes(): float
+    {
+        return self::$cache['tasaVes'] ??= max(0, (float) self::ajuste('tasa_ves_usd', 0));
+    }
+
+    // Cuánto vale 1 unidad de la moneda en dólares
+    private static function enUsd(float $v, string $m): float
+    {
+        return match ($m) {
+            self::USD => $v,
+            self::VES => self::tasaVes() > 0 ? $v / self::tasaVes() : 0,
+            default => $v / self::tasa(),
+        };
+    }
+
+    // Pasa un valor de una moneda a otra con las tasas del panel
+    public static function convertir($valor, ?string $de, ?string $a): float
+    {
+        $de = strtoupper((string) ($de ?: self::COP));
+        $a = strtoupper((string) ($a ?: self::COP));
+        $v = (float) $valor;
+        if ($de === $a) {
+            return $v;
+        }
+        $usd = self::enUsd($v, $de);
+        $r = match ($a) {
+            self::USD => $usd,
+            self::VES => $usd * self::tasaVes(),
+            default => $usd * self::tasa(),
+        };
+        return $a === self::COP ? round($r) : round($r, 2);
     }
 
     // Lo que Wompi debe cobrar en pesos por un valor en esa moneda
     public static function aCop($valor, ?string $moneda): float
     {
-        return self::esUsd($moneda) ? round((float) $valor * self::tasa()) : round((float) $valor);
+        return self::convertir($valor, $moneda, self::COP);
+    }
+
+    // Expresión SQL que pasa a pesos una columna de valor según su columna de moneda (para sumar ingresos)
+    public static function sqlACop(string $monto, string $moneda = 'moneda', ?string $cobroCop = null): string
+    {
+        $usd = $cobroCop ? "COALESCE($cobroCop, $monto * " . self::tasa() . ")" : "$monto * " . self::tasa();
+        $ves = self::tasaVes() > 0 ? "$monto / " . self::tasaVes() . ' * ' . self::tasa() : '0';
+        if ($cobroCop) $ves = "COALESCE($cobroCop, $ves)";
+        return "CASE WHEN ($moneda) = 'USD' THEN $usd WHEN ($moneda) = 'VES' THEN $ves ELSE $monto END";
+    }
+
+    // Suma una columna de un query que tiene columna "moneda", pasando todo a la moneda indicada
+    public static function sumar($query, string $columna, ?string $a): float
+    {
+        return (float) (clone $query)->selectRaw("moneda, SUM($columna) total")->groupBy('moneda')->get()
+            ->sum(fn ($r) => self::convertir($r->total, $r->moneda ?: self::COP, $a));
     }
 
     // Paso de los campos de dinero de esa moneda
     public static function paso(?string $moneda): string
     {
-        return self::esUsd($moneda) ? '0.01' : '1';
+        return self::esExtranjera($moneda) ? '0.01' : '1';
     }
 }

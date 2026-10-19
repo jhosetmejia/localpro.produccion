@@ -20,18 +20,17 @@ class PagoSuscripcion extends Model
 
     protected $casts = ['periodo_desde' => 'date', 'periodo_hasta' => 'date', 'respuesta' => 'array'];
 
-    // Expresión SQL del valor del pago en pesos (los de dólares con lo que cobró Wompi o a la tasa del día), para sumar ingresos
+    // Expresión SQL del valor del pago en pesos (los de otra moneda con lo que cobró Wompi o a la tasa del día), para sumar ingresos
     public static function sqlEnCop(): \Illuminate\Contracts\Database\Query\Expression
     {
-        $tasa = \App\Support\Moneda::tasa();
-        return \Illuminate\Support\Facades\DB::raw("CASE WHEN moneda = 'USD' THEN COALESCE(cobro_cop, monto * {$tasa}) ELSE monto END");
+        return \Illuminate\Support\Facades\DB::raw(\App\Support\Moneda::sqlACop('monto', 'moneda', 'cobro_cop'));
     }
 
     // Valor de este pago en pesos colombianos
     public function getMontoCopAttribute(): float
     {
-        return ($this->moneda ?: 'COP') === 'USD'
-            ? (float) ($this->cobro_cop ?? \App\Support\Moneda::aCop($this->monto, 'USD'))
+        return \App\Support\Moneda::esExtranjera($this->moneda)
+            ? (float) ($this->cobro_cop ?? \App\Support\Moneda::aCop($this->monto, $this->moneda))
             : (float) $this->monto;
     }
 

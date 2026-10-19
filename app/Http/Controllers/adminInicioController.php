@@ -44,13 +44,13 @@ class adminInicioController extends Controller
                 'pagosPendientes' => PagoSuscripcion::where('estado', 'pendiente')->count(),
                 'usuarios' => User::count(),
                 'red' => Asesor::where('activo', true)->count(),
-                // En pesos: las comisiones en dólares (Venezuela) se suman a la tasa del día
-                'comisionesPendientes' => (float) Comision::where('estado', 'pendiente')->sum(DB::raw("CASE WHEN moneda = 'USD' THEN monto * " . \App\Support\Moneda::tasa() . " ELSE monto END")),
+                // En pesos: las comisiones en otra moneda (Venezuela) se suman a la tasa del día
+                'comisionesPendientes' => (float) Comision::where('estado', 'pendiente')->sum(DB::raw(\App\Support\Moneda::sqlACop('monto'))),
                 'ventasHoy' => DB::table('pos_ventas')->where('estado', 'pagada')->whereDate('created_at', $hoy)->count(),
-                // En pesos: las ventas de tiendas en dólares (Venezuela) se pasan a la tasa del día
+                // En pesos: las ventas de las tiendas de Venezuela (dólares o bolívares) se pasan a la tasa del día
                 'vendidoHoy' => (float) DB::table('pos_ventas')->join('tiendas', 'tiendas.id', '=', 'pos_ventas.tienda_id')
                     ->where('pos_ventas.estado', 'pagada')->whereDate('pos_ventas.created_at', $hoy)
-                    ->sum(DB::raw("CASE WHEN tiendas.pais IN ('" . implode("','", \App\Support\Moneda::PAISES_USD) . "') THEN pos_ventas.total * " . \App\Support\Moneda::tasa() . " ELSE pos_ventas.total END")),
+                    ->sum(DB::raw(\App\Support\Moneda::sqlACop('pos_ventas.total', "CASE WHEN tiendas.pais = 'VE' THEN '" . \App\Support\Moneda::deVenezuela() . "' ELSE 'COP' END"))),
             ],
             'meses' => $meses,
             // Por cobrar: vencidas o que vencen en los próximos 10 días

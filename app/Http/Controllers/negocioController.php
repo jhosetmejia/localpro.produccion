@@ -17,7 +17,7 @@ class negocioController extends Controller
 
     public function edit()
     {
-        return view('negocio.edit', ['negocio' => Negocio::datos(), 'paises' => \App\Support\Paises::LISTA, 'tipos' => \App\Models\Tienda::TIPOS]);
+        return view('negocio.edit', ['negocio' => Negocio::datos(), 'paises' => \App\Support\Paises::lista(), 'tipos' => \App\Models\Tienda::TIPOS]);
     }
 
     public function update(Request $request)

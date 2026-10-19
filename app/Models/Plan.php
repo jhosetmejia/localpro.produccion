@@ -13,16 +13,18 @@ class Plan extends Model
 
     protected $casts = ['activo' => 'boolean', 'precio' => 'float', 'precio_usd' => 'float'];
 
-    // Precio del plan en la moneda indicada (COP o USD)
+    // Precio del plan en la moneda indicada: COP, USD (precio_usd) o VES (el de dólares a la tasa Bs/US$)
     public function precioEn(?string $moneda): float
     {
-        if (\App\Support\Moneda::esUsd($moneda)) {
-            return $this->precio_usd !== null ? (float) $this->precio_usd : round((float) $this->precio / \App\Support\Moneda::tasa(), 2);
+        $m = strtoupper((string) ($moneda ?: 'COP'));
+        if ($m === 'COP') {
+            return (float) $this->precio;
         }
-        return (float) $this->precio;
+        $usd = $this->precio_usd !== null ? (float) $this->precio_usd : \App\Support\Moneda::convertir($this->precio, 'COP', 'USD');
+        return $m === 'USD' ? $usd : \App\Support\Moneda::convertir($usd, 'USD', $m);
     }
 
-    // Precio formateado en la moneda de cobro de esa tienda (US$55 en Venezuela, $220.000 en Colombia)
+    // Precio formateado en la moneda de cobro de esa tienda (US$55 o Bs en Venezuela, $220.000 en Colombia)
     public function precioTexto(?Tienda $tienda = null): string
     {
         $m = $tienda?->moneda_cobro ?? \App\Support\Moneda::COP;

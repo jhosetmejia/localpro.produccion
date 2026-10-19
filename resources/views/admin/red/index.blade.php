@@ -13,7 +13,7 @@
     @include('layouts.partials.lp-flash')
 
     <div class="lp-kpis">
-        <div class="lp-kpi hero"><div class="ic"><i class="fa-solid fa-sack-dollar"></i></div><div class="lbl">Comisiones por pagar</div><div class="val">{{ $f($kpi['pendiente']) }}</div>@if ($kpi['pendienteUsd'] > 0)<div class="fw-bold" style="font-size:1.05rem">+ {{ \App\Support\Moneda::formato($kpi['pendienteUsd'], 'USD') }} <small>(Venezuela)</small></div>@endif<div class="sub"><a href="{{ route('admin.red.comisiones') }}" style="color:inherit">Ver y marcar pagadas</a></div></div>
+        <div class="lp-kpi hero"><div class="ic"><i class="fa-solid fa-sack-dollar"></i></div><div class="lbl">Comisiones por pagar</div><div class="val">{{ $f($kpi['pendiente']) }}</div>@foreach ($kpi['pendienteOtras'] as $mon => $tot)<div class="fw-bold" style="font-size:1.05rem">+ {{ \App\Support\Moneda::formato($tot, $mon, true) }} <small>(Venezuela)</small></div>@endforeach<div class="sub"><a href="{{ route('admin.red.comisiones') }}" style="color:inherit">Ver y marcar pagadas</a></div></div>
         <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-users"></i></div><div class="lbl">Personas activas</div><div class="val">{{ $kpi['gente'] }}</div><div class="sub">Asesores y líderes</div></div>
         <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-store"></i></div><div class="lbl">Negocios con asesor</div><div class="val">{{ $kpi['negocios'] }}</div><div class="sub">{{ $kpi['sinAsesor'] }} sin asesor</div></div>
     </div>
@@ -164,6 +164,7 @@
 
     <details class="lp-box">
         <summary class="fw-bold" style="cursor:pointer;font-size:1.05rem"><i class="fa-solid fa-dollar-sign me-1" style="color:#16b34a"></i> Valores en dólares · Venezuela</summary>
+        @if (\App\Support\Moneda::deVenezuela() === 'VES')<div class="small fw-bold mt-2 p-2" style="background:#fff8e6;border-radius:12px;color:#8a5a00"><i class="fa-solid fa-circle-info me-1"></i>Venezuela está en bolívares: estos valores se pasan a Bs con la tasa de Admin → Planes y cobros (hoy US$1 = Bs {{ number_format(\App\Support\Moneda::tasaVes(), 2, ',', '.') }}). Venta nueva del asesor: {{ \App\Support\Moneda::formato(\App\Support\Comisiones::valores('VES')['nueva']['venta'], 'VES') }}.</div>@endif
         @php $restoU = fn ($t) => $valoresUsd['valor_plan'] - array_sum($valoresUsd[$t]); @endphp
         <form method="post" action="{{ route('admin.red.valores') }}" class="mt-2" id="fValoresUsd">
             @csrf
