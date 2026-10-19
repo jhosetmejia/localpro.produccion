@@ -327,7 +327,10 @@ class redesController extends Controller
     public function callback(Request $request)
     {
         if ($request->query('error') || !$request->query('code')) {
-            return redirect()->route('redes.index')->withErrors('No se completó la conexión con Facebook. Inténtelo de nuevo y acepte todos los permisos.');
+            // Facebook explica por qué (canceló, permisos, app en desarrollo…): se muestra y queda para el administrador
+            $porque = trim((string) ($request->query('error_description') ?: $request->query('error_reason') ?: $request->query('error')));
+            Meta::anotarError('Volviendo de Facebook (' . (TiendaActual::tienda()->codigo ?? '') . ')', $porque ?: 'sin código de autorización');
+            return redirect()->route('redes.index')->withErrors('No se completó la conexión con Facebook' . ($porque ? ': ' . $porque : '') . '. Inténtelo de nuevo y acepte todos los permisos.');
         }
         abort_unless(hash_equals((string) session('meta_state'), (string) $request->query('state')) && (int) session('meta_tienda') === (int) TiendaActual::id(), 403);
         try {
@@ -335,6 +338,7 @@ class redesController extends Controller
             $paginas = Meta::paginas($token);
         } catch (Throwable $e) {
             report($e);
+            Meta::anotarError('Pidiendo el acceso (' . (TiendaActual::tienda()->codigo ?? '') . ')', $e->getMessage());
             return redirect()->route('redes.index')->withErrors('Facebook respondió: ' . $e->getMessage());
         }
         session()->forget('meta_state');

@@ -24,6 +24,9 @@ class adminPlanController extends Controller
             'tasaVesFecha' => \App\Support\Moneda::tasaVesFecha(),
             'metaEnVivo' => (string) Ajuste::valor('meta_en_vivo') === '1',
             'metaPrueba' => Ajuste::valor('meta_tiendas_prueba'),
+            'metaConfigId' => Ajuste::valor('meta_config_id'),
+            'metaVersion' => Ajuste::valor('meta_graph_version'),
+            'metaDiag' => request()->boolean('revisar_meta') ? \App\Support\Meta::diagnostico() : null,
             'wompi' => planController::wompiActivo(),
             'ingresosMes' => (float) PagoSuscripcion::where('estado', 'aprobado')->where('updated_at', '>=', now()->startOfMonth())->sum(PagoSuscripcion::sqlEnCop()), // en pesos (los de Venezuela pasados a pesos)
             'pagos' => PagoSuscripcion::with(['tienda:id,nombre', 'plan:id,nombre'])->latest()->limit(20)->get(),
@@ -52,6 +55,10 @@ class adminPlanController extends Controller
             'ejemplos_tiendas' => 'nullable|string|max:300',
             'productos_paquete_cantidad' => 'nullable|integer|min:1|max:100000',
             'tasa_ves_usd' => 'nullable|numeric|min:0|max:100000000',
+            'meta_config_id' => 'nullable|string|max:40',
+            'meta_graph_version' => ['nullable', 'regex:/^v\d+\.\d+$/'],
+        ], [
+            'meta_graph_version.regex' => 'La versión de la API va así: v24.0',
         ]);
         foreach ((array) $request->input('planes') as $id => $d) {
             Plan::whereKey($id)->update([
@@ -79,6 +86,8 @@ class adminPlanController extends Controller
         \App\Support\Moneda::olvidar();
         if ($request->filled('productos_paquete_cantidad')) Ajuste::guardar('productos_paquete_cantidad', (int) $request->input('productos_paquete_cantidad'));
         if ($request->has('ejemplos_tiendas')) Ajuste::guardar(asesorEjemplosController::AJUSTE, mb_substr(strtoupper(preg_replace('/[^A-Za-z0-9,\-]/', '', str_replace([' ', ';'], ',', (string) $request->input('ejemplos_tiendas')))), 0, 300));
+        if ($request->has('meta_config_id')) Ajuste::guardar('meta_config_id', preg_replace('/\D/', '', (string) $request->input('meta_config_id')));
+        if ($request->has('meta_graph_version')) Ajuste::guardar('meta_graph_version', trim((string) $request->input('meta_graph_version')));
         Ajuste::guardar('meta_en_vivo', $request->boolean('meta_en_vivo') ? '1' : '');
         Ajuste::guardar('meta_tiendas_prueba', mb_substr(strtoupper(preg_replace('/[^A-Za-z0-9,\-]/', '', str_replace([' ', ';', "\n"], ',', (string) $request->input('meta_tiendas_prueba')))), 0, 2000));
         return back()->with('success', 'Planes guardados.');

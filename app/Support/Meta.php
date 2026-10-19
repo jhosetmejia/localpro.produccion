@@ -47,9 +47,66 @@ class Meta
         return in_array(strtoupper((string) $t->codigo), $codigos, true);
     }
 
+    // Versión de la API: la del panel (Admin → Planes y cobros) o la del .env
     public static function v(): string
     {
-        return config('services.meta.version') ?: 'v24.0';
+        $v = trim((string) \App\Models\Ajuste::valor('meta_graph_version'));
+        return preg_match('/^v\d+\.\d+$/', $v) ? $v : (config('services.meta.version') ?: 'v24.0');
+    }
+
+    // Configuración de "Inicio de sesión con Facebook para empresas": la del panel o la del .env
+    public static function configId(): ?string
+    {
+        $c = preg_replace('/\D/', '', (string) \App\Models\Ajuste::valor('meta_config_id'));
+        return $c !== '' ? $c : (config('services.meta.config_id') ?: null);
+    }
+
+    /**
+     * Revisión de la conexión con Meta para el administrador (sin consola): qué está bien y qué falta.
+     * Cada fila: [ok (true|false|null=aviso), título, detalle].
+     */
+    public static function diagnostico(): array
+    {
+        $f = [];
+        $id = (string) config('services.meta.app_id');
+        $secret = (string) config('services.meta.app_secret');
+        $f[] = [filled($id), 'ID de la app (META_APP_ID)', $id ? 'App ' . $id : 'Falta en el .env del servidor.'];
+        $f[] = [filled($secret), 'Clave secreta (META_APP_SECRET)', $secret ? 'Configurada' : 'Falta en el .env del servidor.'];
+        if ($id && $secret) {
+            try {
+                $r = Http::timeout(15)->get(self::api($id), ['fields' => 'name,link', 'access_token' => $id . '|' . $secret]);
+                $f[] = $r->successful()
+                    ? [true, 'Facebook reconoce la app', ($r->json('name') ?: 'App') . ' · las llaves son correctas.']
+                    : [false, 'Facebook rechazó las llaves', (string) ($r->json('error.message') ?: 'HTTP ' . $r->status()) . ' → revise META_APP_ID y META_APP_SECRET.'];
+            } catch (\Throwable $e) {
+                $f[] = [false, 'No se pudo hablar con Facebook', $e->getMessage()];
+            }
+        }
+        $cfg = self::configId();
+        $f[] = [filled($cfg), 'Configuración de inicio de sesión (config_id)', $cfg
+            ? $cfg . ' · sin esto Facebook muestra "permisos no válidos" en apps de tipo Empresa.'
+            : 'Falta: péguela abajo. Está en developers.facebook.com → su app → Inicio de sesión con Facebook para empresas → Configuraciones.'];
+        $f[] = [true, 'Versión de la API', self::v()];
+        $f[] = [filled(config('services.meta.verify_token')), 'Token del webhook (META_VERIFY_TOKEN)', config('services.meta.verify_token') ? 'Configurado' : 'Falta: sin esto no llegan los mensajes en tiempo real.'];
+        $f[] = [null, 'URI de retorno que debe estar en Meta', route('redes.callback') . ' (Inicio de sesión con Facebook para empresas → Configuración → URI de redireccionamiento de OAuth válidos).'];
+        if (self::enVivo()) {
+            $f[] = [true, 'Modo de la app', 'En vivo: cualquier negocio puede conectar.'];
+        } else {
+            $prueba = array_filter(array_map('trim', explode(',', (string) \App\Models\Ajuste::valor('meta_tiendas_prueba'))));
+            $f[] = [null, 'Modo de la app', 'En desarrollo: solo conectan los negocios de prueba (' . ($prueba ? implode(', ', $prueba) : 'ninguno') . ') y su dueño debe estar agregado como Evaluador en la app de Meta. Para todos: verificar el negocio y pedir la revisión de la app.'];
+        }
+        $ultimo = \App\Models\Ajuste::valor('meta_ultimo_error');
+        if ($ultimo) $f[] = [false, 'Último error al conectar', $ultimo];
+        return $f;
+    }
+
+    // Guarda el último error de conexión para verlo en el panel del administrador
+    public static function anotarError(string $donde, string $msg): void
+    {
+        try {
+            \App\Models\Ajuste::guardar('meta_ultimo_error', now()->format('d/m/Y H:i') . ' · ' . $donde . ' · ' . mb_substr($msg, 0, 400));
+        } catch (\Throwable $e) {
+        }
     }
 
     private static function api(string $ruta): string
@@ -61,7 +118,7 @@ class Meta
     public static function urlLogin(string $redirect, string $state): string
     {
         $p = ['client_id' => config('services.meta.app_id'), 'redirect_uri' => $redirect, 'state' => $state, 'response_type' => 'code'];
-        if ($cfg = config('services.meta.config_id')) $p['config_id'] = $cfg;
+        if ($cfg = self::configId()) $p['config_id'] = $cfg;
         else $p['scope'] = implode(',', self::PERMISOS);
         return 'https://www.facebook.com/' . self::v() . '/dialog/oauth?' . http_build_query($p);
     }

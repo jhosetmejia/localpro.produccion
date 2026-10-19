@@ -80,6 +80,18 @@
                     <label class="form-label small fw-bold mt-2 mb-1">Mientras tanto, negocios con acceso de prueba (códigos LCT separados por coma)</label>
                     <input name="meta_tiendas_prueba" class="form-control" value="{{ $metaPrueba }}" placeholder="LCT-00003, LCT-00007">
                     <small class="text-muted d-block mt-1">Antes de poner el código aquí, agregue el perfil de Facebook del dueño en developers.facebook.com → su app LocalProo → Roles de la app → Evaluadores, y que acepte la invitación. Los demás negocios ven una pantalla para pedir su acceso por WhatsApp.</small>
+                    <div class="row g-2 mt-1">
+                        <div class="col-md-6"><label class="form-label small fw-bold mb-1">Configuración de inicio de sesión (config_id)</label><input name="meta_config_id" class="form-control" value="{{ $metaConfigId }}" placeholder="{{ config('services.meta.config_id') ?: 'Ej. 3027406647434289' }}" inputmode="numeric"></div>
+                        <div class="col-md-3"><label class="form-label small fw-bold mb-1">Versión de la API</label><input name="meta_graph_version" class="form-control" value="{{ $metaVersion }}" placeholder="{{ \App\Support\Meta::v() }}"></div>
+                        <div class="col-md-3 d-grid align-items-end"><a href="{{ route('admin.planes.index', ['revisar_meta' => 1]) }}#metaDiag" class="btn btn-outline-primary mt-auto"><i class="fa-solid fa-stethoscope me-1"></i>Revisar conexión</a></div>
+                    </div>
+                    @if ($metaDiag)
+                    <ul class="list-unstyled mt-3 mb-0" id="metaDiag">
+                        @foreach ($metaDiag as [$ok, $titulo, $detalle])
+                        <li class="d-flex gap-2 py-1" style="border-bottom:1px solid #e3ecff"><span style="width:22px;flex:none">{{ $ok === true ? '✅' : ($ok === false ? '❌' : 'ℹ️') }}</span><span><b>{{ $titulo }}</b><small class="d-block text-muted" style="word-break:break-all">{{ $detalle }}</small></span></li>
+                        @endforeach
+                    </ul>
+                    @endif
                 </div></div>
             </div>
         </div>
