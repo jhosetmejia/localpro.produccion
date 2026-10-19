@@ -88,6 +88,8 @@ Route::get('/blog/para/{rol}', function (string $rol) {
     $articulos = collect(config('blog'))->filter(fn ($a) => ($a['rol'] ?? 'negocios') === $rol)->all();
     return view('blog.rol', ['r' => $r, 'rolKey' => $rol, 'articulos' => $articulos]);
 })->where('rol', '[a-z]+')->name('blog.rol');
+// El artículo del QR se cambió por el del código de barras (19/10/2026)
+Route::permanentRedirect('/blog/codigo-qr-para-negocios-escanee-con-el-celular', '/blog/codigo-de-barras-escanee-con-el-celular');
 Route::get('/blog/{slug}', function (string $slug) {
     $a = config('blog.' . $slug);
     abort_unless($a, 404);

@@ -6,23 +6,23 @@
 // palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
-    'codigo-qr-para-negocios-escanee-con-el-celular' => [
-        'titulo' => 'Código QR para su negocio: el cliente escanea con la cámara y ve su tienda, su factura o sus redes',
-        'resumen' => 'LocalProo le da códigos QR listos para imprimir: su tienda en línea, su página de enlaces y la factura electrónica. Pruébelo aquí mismo: escanee los QR de ejemplo con la cámara de su celular.',
+    'codigo-de-barras-escanee-con-el-celular' => [
+        'titulo' => 'Código de barras en su tienda: imprima etiquetas y venda escaneando con la cámara del celular',
+        'resumen' => 'LocalProo crea el código de barras de cada talla y color, imprime las etiquetas y le deja vender y contar inventario escaneando con la cámara del celular, sin comprar lector. Pruébelo aquí: escanee las etiquetas de ejemplo.',
         'fecha' => '19 de octubre de 2026',
         'publicado' => '2026-10-19',
         'minutos' => 4,
-        'icono' => 'fa-qrcode',
+        'icono' => 'fa-barcode',
         'rol' => 'negocios',
-        'seo_titulo' => 'Código QR gratis para su negocio | LocalProo',
-        'descripcion' => 'Cree el código QR de su tienda en línea, su WhatsApp y redes, y facture con QR de la DIAN. Escanee los ejemplos con la cámara de su celular y pruébelo.',
-        'keywords' => ['código QR para negocio', 'QR para tienda en línea', 'cómo hacer un código QR gratis', 'QR para mostrador', 'QR catálogo WhatsApp', 'QR factura electrónica DIAN', 'cómo escanear un código QR con el celular'],
+        'seo_titulo' => 'Código de barras para su tienda con el celular | LocalProo',
+        'descripcion' => 'Genere códigos de barras por talla y color, imprima etiquetas y venda escaneando con la cámara del celular. Sin lector. Pruebe el escáner aquí mismo.',
+        'keywords' => ['código de barras para tienda', 'cómo hacer etiquetas con código de barras', 'escanear código de barras con el celular', 'programa de ventas con lector de código de barras', 'etiquetas de ropa con código de barras', 'código de barras por talla y color', 'POS con escáner de cámara'],
         'faq' => [
-            ['¿Necesito descargar una aplicación para leer el QR?', 'No. La cámara de casi todos los celulares lo lee sola: se apunta al código y aparece el enlace para tocar. En algunos Android se usa Google Lens o el botón de escanear de la app de Google.'],
-            ['¿El QR de mi tienda cambia si agrego productos?', 'No. El QR lleva a la dirección de su tienda en línea, que siempre es la misma. Usted cambia productos, precios y fotos y el mismo QR impreso sigue funcionando.'],
-            ['¿Cuánto cuesta el código QR?', 'Nada adicional: viene incluido en LocalProo. Lo descarga y lo imprime cuantas veces quiera.'],
-            ['¿De qué tamaño lo imprimo?', 'Mínimo unos 3 × 3 cm para que se lea de cerca (bolsas, tarjetas). Para una vitrina o un afiche que se mira de lejos, más grande: 10 cm o más.'],
-            ['¿Qué diferencia hay con el código de barras?', 'El código de barras es para sus productos: se escanea en la caja y en el conteo de inventario. El QR es para sus clientes: lo escanean con el celular y les abre su tienda, sus redes o la factura.'],
+            ['¿Tengo que comprar una pistola lectora?', 'No. LocalProo escanea con la cámara del celular o del computador. Si ya tiene pistola lectora USB o Bluetooth, también funciona: el código entra solo en la caja.'],
+            ['¿Mis productos ya traen código de barras de fábrica?', 'Puede usarlo: escríbalo o escanéelo en el producto y LocalProo lo reconoce (EAN, UPC y otros). Si no tienen, LocalProo les crea uno propio por cada talla y color.'],
+            ['¿En qué impresora saco las etiquetas?', 'En una impresora de etiquetas en rollo de 50 × 25 mm, o en cualquier impresora normal en hoja carta (salen varias por hoja para pegar o recortar).'],
+            ['¿Cada talla tiene su propio código?', 'Sí. La camiseta M negra y la L blanca tienen códigos distintos, así el inventario se descuenta de la talla y el color exactos.'],
+            ['¿Sirve para el conteo de inventario?', 'Sí. En Inventario → Conteo escanea las prendas una tras otra y al final LocalProo le dice qué falta y qué sobra, y cuadra el sistema con un botón.'],
         ],
     ],
     'historia-clinica-para-consultorios-particulares' => [

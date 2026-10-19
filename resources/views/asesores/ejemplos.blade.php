@@ -115,6 +115,21 @@
         </div>
     </div>
 
+    @php $urlBarras = route('blog.show', 'codigo-de-barras-escanee-con-el-celular'); @endphp
+    <div class="ej-sec">Código de barras: muéstrelo en vivo</div>
+    <div class="ej-sub">LocalPro crea el código de cada talla y color, imprime las etiquetas (rollo 50 × 25 mm o hoja carta) y se vende escaneando con la cámara del celular, sin comprar lector. En la visita: abra esta página en su celular, toque <b>Escanear</b> y apunte a las etiquetas en la pantalla del computador del cliente o en una hoja impresa.</div>
+    @include('partials.demo-codigo-barras')
+    <div class="ej-tienda">
+        <div class="ej-grid">
+            <div class="ej-item">
+                <div class="ic"><i class="fa-solid fa-barcode"></i></div>
+                <b>Artículo para el cliente</b>
+                <p>Explica las etiquetas, la venta con cámara y el conteo de inventario, con estas mismas etiquetas para que el cliente pruebe el escáner.</p>
+                <div class="acc"><a href="{{ $urlBarras }}" target="_blank" rel="noopener" class="ej-ver"><i class="fa-solid fa-eye me-1"></i>Ver artículo</a><a href="https://wa.me/?text={{ rawurlencode('Mire cómo se vende escaneando el código de barras con la cámara del celular, sin comprar lector. Pruébelo aquí 👉 ' . $urlBarras) }}" target="_blank" rel="noopener" class="ej-wa"><i class="fa-brands fa-whatsapp me-1"></i>Enviar</a></div>
+            </div>
+        </div>
+    </div>
+
     <div class="ej-sec">Lo que el negocio usa por dentro</div>
     <div class="ej-sub">Así se ven las pantallas que usa el dueño y sus vendedores (datos de ejemplo).</div>
 
