@@ -157,6 +157,7 @@
             @if ($p['codigo'])<div class="cod">Código: {{ $p['codigo'] }}</div>@endif
             @if ($p['antes'] && $p['disponible'])<div class="promo-pp"><span class="antes">{{ dinero($p['antes']) }}</span><b>-{{ $p['descuento'] }}% 🔥 Promoción</b></div>@endif
             <div class="precio {{ $p['antes'] ? 'ahora-promo' : '' }}" id="ppPrecio">@if ($p['desde'])<small>Desde</small>@endif{{ $precioTxt }}@if ($p['unidad'])<small> / {{ $p['unidad'] }}</small>@endif</div>
+            @if ($bsPp = precio_bs($p['desde'] ?? $p['precio']))<div style="font-weight:800;color:#5b665e;margin:-4px 0 6px">{{ $bsPp }} <small style="font-weight:600">· tasa del día</small></div>@endif
             <div class="disp {{ $p['disponible'] ? '' : 'no' }}">{{ $p['disponible'] ? '● Disponible' : '● Agotado por ahora' }}</div>
             @if ($p['descripcion'])<p class="desc">{{ $p['descripcion'] }}</p>@endif
 

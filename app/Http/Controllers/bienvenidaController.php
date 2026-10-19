@@ -101,8 +101,8 @@ class bienvenidaController extends Controller
         // Si cambió de país antes de vender, sus formas de pago pasan a ser las de ese país
         if ($datos['pais'] !== $tienda->pais && !\App\Models\PosVenta::exists()) {
             \App\Models\MetodoPago::query()->delete();
-            foreach (CrearTienda::metodosPorPais($datos['pais']) as $i => [$nombre, $efectivo]) {
-                \App\Models\MetodoPago::create(['nombre' => $nombre, 'es_efectivo' => $efectivo, 'activo' => true, 'orden' => $i + 1]);
+            foreach (CrearTienda::metodosPorPais($datos['pais']) as $i => $m) {
+                \App\Models\MetodoPago::create(['nombre' => $m[0], 'es_efectivo' => $m[1], 'moneda' => $m[2] ?? null, 'activo' => true, 'orden' => $i + 1]);
             }
         }
 

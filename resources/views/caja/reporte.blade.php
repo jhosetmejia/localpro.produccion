@@ -42,8 +42,12 @@
         <tr><td>Base inicial</td><td class="r">{{ dinero($caja->monto_inicial, false) }}</td></tr>
         <tr><td>Esperado en caja</td><td class="r">{{ dinero($caja->efectivo_esperado ?? $caja->efectivoEsperado(), false) }}</td></tr>
         <tr><td>Contado</td><td class="r">{{ $caja->efectivo_contado !== null ? dinero($caja->efectivo_contado, false) : '—' }}</td></tr>
+        @if ($caja->efectivo_bs_esperado !== null)
+        <tr><td>Bs esperados</td><td class="r">{{ \App\Support\Moneda::formato($caja->efectivo_bs_esperado, 'VES') }}</td></tr>
+        <tr><td>Bs contados</td><td class="r">{{ $caja->efectivo_bs_contado !== null ? \App\Support\Moneda::formato($caja->efectivo_bs_contado, 'VES') : '—' }}</td></tr>
+        @endif
         @if ($caja->diferencia !== null)
-        <tr class="b xl"><td>{{ abs($caja->diferencia) < 1 ? 'CUADRA' : ($caja->diferencia < 0 ? 'FALTANTE' : 'SOBRANTE') }}</td><td class="r">{{ dinero(abs($caja->diferencia), false) }}</td></tr>
+        <tr class="b xl"><td>{{ abs($caja->diferencia) < (moneda()["decimales"] ? 0.01 : 1) ? 'CUADRA' : ($caja->diferencia < 0 ? 'FALTANTE' : 'SOBRANTE') }}</td><td class="r">{{ dinero(abs($caja->diferencia), false) }}</td></tr>
         @endif
     </table>
     @if ($caja->nota_cierre)<hr><div>Nota: {{ $caja->nota_cierre }}</div>@endif

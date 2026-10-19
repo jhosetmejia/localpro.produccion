@@ -55,3 +55,21 @@ if (!function_exists('cantidad')) {
     }
 }
 
+
+if (!function_exists('tasa_bs')) {
+    // Venezuela: bolívares por US$1 de la tienda actual (0 si no cobra en bolívares)
+    function tasa_bs(): float
+    {
+        $t = TiendaActual::tienda();
+        return $t && $t->usa_bolivares ? (float) $t->tasa_bs_vigente : 0.0;
+    }
+}
+
+if (!function_exists('precio_bs')) {
+    // "Bs 480" para un valor en dólares de una tienda de Venezuela con tasa (o null)
+    function precio_bs($valor): ?string
+    {
+        $tasa = tasa_bs();
+        return $tasa > 0 ? \App\Support\Moneda::formato(round((float) $valor * $tasa, 2), 'VES') : null;
+    }
+}

@@ -11,7 +11,7 @@ class MetodoPago extends Model
 
     protected $table = 'metodos_pago';
 
-    protected $fillable = ['nombre', 'medio_dian', 'es_efectivo', 'es_credito', 'activo', 'interno', 'orden'];
+    protected $fillable = ['nombre', 'medio_dian', 'es_efectivo', 'es_credito', 'activo', 'interno', 'orden', 'moneda'];
 
     protected $casts = ['es_efectivo' => 'boolean', 'es_credito' => 'boolean', 'activo' => 'boolean'];
 
@@ -57,6 +57,12 @@ class MetodoPago extends Model
     public static function pagadoConAbonos(): self
     {
         return static::firstOrCreate(['nombre' => 'Pagado con abonos'], ['es_efectivo' => false, 'es_credito' => true, 'activo' => false, 'interno' => true, 'orden' => 100]);
+    }
+
+    // El cliente paga en bolívares (Venezuela): se recibe en Bs y se pasa a dólares con la tasa del día
+    public function getEnBolivaresAttribute(): bool
+    {
+        return $this->moneda === 'VES';
     }
 
     public function scopeActivos($q)

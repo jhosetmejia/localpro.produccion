@@ -17,7 +17,7 @@ class posController extends Controller
     public function __construct()
     {
         $this->middleware('auth')->except('facturaPublica');
-        $this->middleware('permission:usar-pos', ['only' => ['index', 'buscar', 'store', 'clientes', 'crearCliente', 'actualizarCliente']]);
+        $this->middleware('permission:usar-pos', ['only' => ['index', 'buscar', 'store', 'clientes', 'crearCliente', 'actualizarCliente', 'tasa']]);
         $this->middleware('permission:usar-pos|ver-cajas', ['only' => ['ticket', 'ventas']]);
         $this->middleware('permission:anular-venta-pos', ['only' => ['anular']]);
     }
@@ -28,9 +28,20 @@ class posController extends Controller
         if (!$caja) {
             return redirect()->route('cajas.abrir')->with('success', 'Abra su caja para empezar a vender.');
         }
+        $tienda = \App\Support\TiendaActual::tienda();
         return view('pos.index', [
             'caja' => $caja,
-            'metodos' => MetodoPago::activos()->get(['id', 'nombre', 'es_efectivo']),
+            'metodos' => MetodoPago::activos()->get(\Illuminate\Support\Facades\Schema::hasColumn('metodos_pago', 'moneda') ? ['id', 'nombre', 'es_efectivo', 'moneda'] : ['id', 'nombre', 'es_efectivo']),
+            // Venezuela: total en dólares y en bolívares a la tasa del día
+            'bs' => $tienda?->pais === 'VE' ? [
+                'activo' => $tienda->usa_bolivares,
+                'tasa' => $tienda->tasa_bs_vigente,
+                'fecha' => optional($tienda->tasa_bs_fecha)->toIso8601String(),
+                'vieja' => !$tienda->tasa_bs_fecha || !$tienda->tasa_bs_fecha->isToday(),
+                'propia' => (float) $tienda->tasa_bs > 0,
+                'puede' => Auth::user()->can('editar-negocio'),
+                'url' => route('pos.tasa'),
+            ] : null,
             'negocio' => Negocio::datos(),
         ]);
     }
@@ -125,6 +136,7 @@ class posController extends Controller
             'pagos.*.metodo_id' => 'required|integer|exists:metodos_pago,id',
             'pagos.*.monto' => 'required|numeric|min:0|max:999999999',
             'pagos.*.referencia' => 'nullable|string|max:60',
+            'pagos.*.monto_moneda' => 'nullable|numeric|min:0|max:99999999999',
             'cliente_id' => 'nullable|integer',
             'cliente_nombre' => 'nullable|string|max:80',
             'cliente_telefono' => 'nullable|string|max:20',
@@ -179,7 +191,29 @@ class posController extends Controller
             if ($metodos->count() !== collect($datos['pagos'])->pluck('metodo_id')->unique()->count()) {
                 throw ValidationException::withMessages(['pagos' => 'Algún método de pago no está disponible. Recargue el POS.']);
             }
-            $pagos = collect($datos['pagos'])->filter(fn ($p) => $p['monto'] > 0)->values();
+            // Venezuela: los métodos en bolívares reciben Bs y se pasan a dólares con la tasa de la tienda (no la del navegador)
+            $tiendaVe = \App\Support\TiendaActual::tienda();
+            $tasaBs = $tiendaVe?->usa_bolivares ? $tiendaVe->tasa_bs_vigente : 0.0;
+            $pagos = collect($datos['pagos'])->map(function ($p) use ($metodos, $tasaBs) {
+                if (($metodos[$p['metodo_id']]->moneda ?? null) === 'VES') {
+                    if ($tasaBs <= 0) {
+                        throw ValidationException::withMessages(['pagos' => 'Falta la tasa del día para cobrar en bolívares. Póngala en la caja (botón Tasa).']);
+                    }
+                    $bs = round((float) ($p['monto_moneda'] ?? ((float) $p['monto'] * $tasaBs)), 2);
+                    $p['monto_moneda'] = $bs;
+                    $p['monto'] = round($bs / $tasaBs, 4);
+                    $p['moneda'] = 'VES';
+                } else {
+                    unset($p['monto_moneda']);
+                }
+                return $p;
+            })->filter(fn ($p) => $p['monto'] > 0)->values();
+            // Con bolívares, la conversión puede dejar un centavo de diferencia: se ajusta al pago en Bs
+            $faltaBs = round($total - $pagos->sum('monto'), 4);
+            if ($tasaBs > 0 && $faltaBs > 0 && $faltaBs < 0.0105 && ($k = $pagos->search(fn ($p) => ($p['moneda'] ?? null) === 'VES')) !== false) {
+                $pagos[$k] = array_merge($pagos[$k], ['monto' => $pagos[$k]['monto'] + $faltaBs]);
+            }
+            $pagos = $pagos->map(fn ($p) => array_merge($p, ['monto' => round($p['monto'], 4)]));
             $pagado = round($pagos->sum('monto'), 2);
             if ($pagado + 0.001 < $total) {
                 throw ValidationException::withMessages(['pagos' => 'El pago no alcanza: faltan ' . dinero($total - $pagado)]);
@@ -260,7 +294,7 @@ class posController extends Controller
                 'total' => $total,
                 'cambio' => max($cambio, 0),
                 'estado' => 'pagada',
-            ]);
+            ] + ($tasaBs > 0 ? ['tasa_bs' => $tasaBs] : []));
 
             foreach ($items->values() as $k => $i) {
                 $v = $variantes[$i['variante_id']];
@@ -294,11 +328,17 @@ class posController extends Controller
                     $cambioPendiente -= $resta;
                 }
                 if ($monto > 0) {
+                    $enBs = ($p['moneda'] ?? null) === 'VES';
                     $venta->pagos()->create([
                         'metodo_pago_id' => $p['metodo_id'],
                         'monto' => round($monto, 2),
                         'referencia' => $p['referencia'] ?? null,
-                    ]);
+                    ] + ($enBs ? [
+                        'moneda' => 'VES',
+                        // Si se dio cambio de un efectivo en Bs, lo que queda en caja es lo recibido menos el cambio
+                        'monto_moneda' => $monto < (float) $p['monto'] ? round($monto * $tasaBs, 2) : (float) $p['monto_moneda'],
+                        'tasa' => $tasaBs,
+                    ] : []));
                 }
             }
 
@@ -314,9 +354,28 @@ class posController extends Controller
             'numero' => $venta->numero,
             'total' => (float) $venta->total,
             'cambio' => (float) $venta->cambio,
+            'tasa_bs' => (float) ($venta->tasa_bs ?? 0),
             'ticket_url' => route('pos.ticket', $venta),
             'factura_url' => $venta->url_factura,
             'whatsapp' => $venta->whatsapp_numero,
+        ]);
+    }
+
+    // Venezuela: el dueño o administrador pone la tasa del día de su tienda (o vuelve a la tasa general de LocalPro)
+    public function tasa(Request $request)
+    {
+        abort_unless(Auth::user()->can('editar-negocio'), 403, 'Solo el dueño o el administrador cambian la tasa.');
+        $tienda = \App\Support\TiendaActual::tienda();
+        abort_unless($tienda?->pais === 'VE', 404);
+        $d = $request->validate(['tasa' => 'nullable|numeric|min:0|max:100000000'], [], ['tasa' => 'tasa']);
+        $tasa = round((float) ($d['tasa'] ?? 0), 4);
+        $tienda->forceFill(['tasa_bs' => $tasa > 0 ? $tasa : null, 'tasa_bs_at' => $tasa > 0 ? now() : null])->save();
+        $tienda->refresh();
+        return response()->json([
+            'tasa' => $tienda->tasa_bs_vigente,
+            'propia' => (float) $tienda->tasa_bs > 0,
+            'activo' => $tienda->usa_bolivares,
+            'mensaje' => $tasa > 0 ? 'Tasa guardada: US$1 = Bs ' . number_format($tasa, 2, ',', '.') : 'Listo: su tienda usa la tasa general de LocalPro.',
         ]);
     }
 

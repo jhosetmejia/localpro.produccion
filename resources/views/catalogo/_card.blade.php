@@ -7,6 +7,7 @@
     <div class="b">
         <a href="{{ $p['url'] }}"><h3>{{ $p['nombre'] }}</h3></a>
         <div class="pr">@if ($p['antes'])<span class="antes">@pesos($p['antes'])</span>@endif<span class="{{ $p['antes'] ? 'ahora-promo' : '' }}">@if ($p['desde'])<small>Desde</small>@pesos($p['desde'])@else @pesos($p['precio'])@endif</span> @if ($p['unidad'])<small>/ {{ $p['unidad'] }}</small>@endif</div>
+        @if ($bsCard = precio_bs($p['desde'] ?? $p['precio']))<div style="font-size:.78rem;font-weight:700;color:#5b665e;margin-top:-2px">{{ $bsCard }}</div>@endif
         @if ($p['disponible'])
         <div class="bt">
             @if (count($p['variantes']) > 1)

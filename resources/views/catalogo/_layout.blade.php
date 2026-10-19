@@ -221,6 +221,8 @@ window.LPC = (function () {
     // Así el negocio sabe que el cliente llegó por la tienda en línea
     // Sin emojis: algunos WhatsApp (computador) los muestran como "�"
     var FIRMA = '\n\n_Visto en LocalProo Marketplace_';
+    var TASA_BS = {{ tasa_bs() }};
+    var bsTxt = function (n) { if (!(TASA_BS > 0)) return ''; var r = Math.round(n * TASA_BS * 100) / 100, t = r.toFixed(2).split('.'); t[0] = t[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.'); return 'Bs ' + t.join(','); };
     var M = @json($M), WA = @json($wa), TIENDA = @json($tienda->nombre), KEY = 'lp_pedido_' + @json($tienda->slug);
     var $ = function (id) { return document.getElementById(id); };
     var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); };
@@ -239,7 +241,7 @@ window.LPC = (function () {
             return '<div class="it"><div class="t"><b>' + esc(i.nombre) + '</b><small>' + (i.codigo ? 'Cód. ' + esc(i.codigo) + ' · ' : '') + esc(i.op) + (i.op ? ' · ' : '') + fmt(i.precio) + '</small></div>' +
                 '<div class="q"><button data-k="' + k + '" data-d="-1">−</button><span style="min-width:22px;text-align:center;font-weight:800">' + i.cant + '</span><button data-k="' + k + '" data-d="1">+</button></div></div>';
         }).join('') : '<p style="color:var(--mut)">Su pedido está vacío.</p>';
-        $('cTot').textContent = fmt(total());
+        $('cTot').textContent = fmt(total()) + (TASA_BS > 0 ? ' · ' + bsTxt(total()) : '');
         if ($('cEnviar')) $('cEnviar').disabled = !cart.length;
     }
     function abrir() { pintar(); $('ovC').classList.add('on'); }
@@ -256,7 +258,7 @@ window.LPC = (function () {
         var nom = $('cNom').value.trim(), nota = $('cNota').value.trim();
         var msg = '¡Hola ' + TIENDA + '! Quiero hacer este pedido:\n\n' +
             cart.map(function (i) { return '- ' + i.cant + ' × ' + i.nombre + (i.op ? ' (' + i.op + ')' : '') + (i.codigo ? ' [Cód. ' + i.codigo + ']' : '') + ' — ' + fmt(i.precio * i.cant); }).join('\n') +
-            '\n\n*Total: ' + fmt(total()) + '*' + (nom ? '\nNombre: ' + nom : '') + (nota ? '\nEntrega / nota: ' + nota : '') + FIRMA;
+            '\n\n*Total: ' + fmt(total()) + (TASA_BS > 0 ? ' (' + bsTxt(total()) + ')' : '') + '*' + (nom ? '\nNombre: ' + nom : '') + (nota ? '\nEntrega / nota: ' + nota : '') + FIRMA;
         window.open('https://wa.me/' + WA + '?text=' + encodeURIComponent(msg), '_blank');
     });
     barra();

@@ -59,14 +59,13 @@
                 <div class="col-md-3 text-end"><button class="btn btn-primary btn-lg"><i class="fa-solid fa-floppy-disk me-1"></i>Guardar</button></div>
                 <div class="col-12">
             <div class="mt-3" style="border:1.5px solid #cfeedd;background:#f3faf5;border-radius:18px;padding:1rem 1.1rem">
-                <b><i class="fa-solid fa-coins me-1" style="color:#16b34a"></i>Moneda de Venezuela</b>
-                <small class="text-muted d-block mb-2">Aplica a todo el sistema para las tiendas, contadores y asesores de Venezuela: caja y ventas, precio del plan, pagos y comisiones. Los precios del plan y las comisiones se configuran en dólares; en bolívares se pasan con la tasa.</small>
+                <b><i class="fa-solid fa-coins me-1" style="color:#16b34a"></i>Venezuela · dólares y bolívares</b>
+                <small class="text-muted d-block mb-2">Las tiendas, contadores y asesores de Venezuela trabajan en <b>dólares</b> (precios, reportes, plan y comisiones) y <b>cobran en dólares o en bolívares</b> a la tasa del día: la caja muestra el total en $ y en Bs, y los pagos en Bs (Pago Móvil, punto de venta, efectivo en Bs) se pasan solos a dólares. Los precios nunca hay que convertirlos.</small>
                 <div class="row g-2 align-items-end">
-                    <div class="col-md-4"><label class="form-label">Moneda</label><select name="moneda_venezuela" class="form-select" data-nativo>@foreach (\App\Support\Moneda::OPCIONES_VE as $k => $n)<option value="{{ $k }}" @selected($monedaVe === $k)>{{ $n }}</option>@endforeach</select></div>
-                    <div class="col-md-4"><label class="form-label">Tasa: bolívares por US$1</label><input type="number" min="0" step="0.01" name="tasa_ves_usd" class="form-control" value="{{ $tasaVes ?: '' }}" placeholder="Ej. la tasa del día"></div>
-                    <div class="col-md-4 small text-muted">Hoy: <b>{{ $monedaVe === 'VES' ? 'Bolívares' : 'Dólares' }}</b>{{ $tasaVes > 0 ? ' · US$1 = Bs ' . number_format($tasaVes, 2, ',', '.') : '' }}</div>
-                    <div class="col-12"><small class="fw-bold" style="color:#8a5a00"><i class="fa-solid fa-triangle-exclamation me-1"></i>Al cambiar la moneda, los precios que ya tienen los productos de las tiendas de Venezuela no se convierten solos: quedan con el mismo número en la moneda nueva. Avíseles antes del cambio. Lo ya cobrado y las comisiones viejas se quedan en su moneda.</small></div>
+                    <div class="col-md-4"><label class="form-label">Tasa del día: bolívares por US$1</label><input type="number" min="0" step="0.0001" name="tasa_ves_usd" class="form-control fw-bold" value="{{ $tasaVes ?: '' }}" placeholder="Ej. tasa BCV de hoy"></div>
+                    <div class="col-md-8 small text-muted">@if ($tasaVes > 0)Hoy: US$1 = <b>Bs {{ number_format($tasaVes, 2, ',', '.') }}</b>{{ $tasaVesFecha ? ' · actualizada ' . $tasaVesFecha->locale('es')->diffForHumans() : '' }}.@else <b style="color:#b0206a">Sin tasa:</b> las tiendas de Venezuela cobran solo en dólares hasta que la ponga.@endif Cada tienda puede usar su propia tasa desde la caja.</div>
                 </div>
+            </div>
             </div>
                 </div>
                 <div class="col-12"><div style="border:1.5px solid #cfeedd;background:#f3faf5;border-radius:18px;padding:1rem 1.1rem">

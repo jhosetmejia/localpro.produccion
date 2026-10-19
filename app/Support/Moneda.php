@@ -7,13 +7,12 @@ use App\Models\Ajuste;
 /**
  * Moneda con la que trabaja cada país en LocalPro (tienda, plan, pagos y comisiones).
  * - Colombia y el resto: pesos colombianos (COP), como siempre.
- * - Venezuela: dólares (USD) o bolívares (VES), según Admin → Planes y cobros → "Moneda de Venezuela".
- *   Ese ajuste cambia todo el sistema para las tiendas, contadores y asesores de Venezuela:
- *   la caja y las ventas de la tienda, el precio del plan, los pagos y las comisiones.
+ * - Venezuela: como se trabaja allá. Precios, reportes, plan y comisiones en DÓLARES (moneda estable), y se
+ *   cobra en dólares o en BOLÍVARES a la tasa del día: la caja muestra el total en $ y en Bs, los métodos de
+ *   pago en Bs (Pago Móvil, punto de venta, efectivo en Bs) reciben bolívares y el sistema los pasa a dólares.
+ *   Tasa general en Admin → Planes y cobros (tasa_ves_usd); cada tienda puede poner la suya desde la caja.
  *
- * Los valores base de Venezuela se configuran en dólares (precio_usd, red_usd_*). Si Venezuela está en
- * bolívares, se pasan a Bs con la tasa "Bs por US$1" (tasa_ves_usd). Wompi solo cobra en pesos: todo
- * pago en otra moneda se cobra en COP con la tasa "pesos por US$1" (tasa_usd_cop).
+ * Wompi solo cobra en pesos: todo pago en otra moneda se cobra en COP con la tasa "pesos por US$1" (tasa_usd_cop).
  */
 class Moneda
 {
@@ -21,11 +20,8 @@ class Moneda
     public const USD = 'USD';
     public const VES = 'VES';
 
-    // Países con moneda propia configurable en el panel => clave del ajuste
-    public const PAISES_CONFIGURABLES = ['VE' => 'moneda_venezuela'];
-
-    // Opciones de moneda para Venezuela
-    public const OPCIONES_VE = [self::USD => 'Dólares (US$)', self::VES => 'Bolívares (Bs)'];
+    // Países que no trabajan en pesos colombianos
+    public const PAISES_CONFIGURABLES = ['VE' => 'USD'];
 
     private static array $cache = [];
 
@@ -44,13 +40,21 @@ class Moneda
         self::$cache = [];
     }
 
-    // Moneda elegida para Venezuela (USD por defecto). Si eligieron bolívares sin tasa, sigue en dólares.
+    // Venezuela trabaja en dólares; los bolívares son una forma de cobro a la tasa del día (ver Tienda::tasaBs)
     public static function deVenezuela(): string
     {
-        return self::$cache['ve'] ??= (function () {
-            $m = strtoupper((string) self::ajuste('moneda_venezuela', self::USD));
-            return $m === self::VES && self::tasaVes() > 0 ? self::VES : self::USD;
-        })();
+        return self::USD;
+    }
+
+    // Cuándo se actualizó la tasa general de bolívares
+    public static function tasaVesFecha(): ?\Carbon\Carbon
+    {
+        $f = self::ajuste('tasa_ves_usd_at', null);
+        try {
+            return $f ? \Carbon\Carbon::parse($f) : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     public static function dePais(?string $pais): string

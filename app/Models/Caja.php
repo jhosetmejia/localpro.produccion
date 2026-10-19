@@ -15,6 +15,7 @@ class Caja extends Model
     protected $fillable = [
         'user_id', 'abierta_en', 'cerrada_en', 'monto_inicial', 'total_ventas',
         'efectivo_esperado', 'efectivo_contado', 'diferencia', 'nota_apertura', 'nota_cierre', 'estado',
+        'efectivo_bs_esperado', 'efectivo_bs_contado',
     ];
 
     protected $casts = ['abierta_en' => 'datetime', 'cerrada_en' => 'datetime'];
@@ -47,6 +48,7 @@ class Caja extends Model
             $f = clone $g->first();
             $f->total = $g->sum('total');
             $f->ventas = $g->sum('ventas');
+            $f->total_bs = $g->sum('total_bs');
             return $f;
         })->sortBy('nombre')->values()->pipe(fn ($c) => self::soloEfectivoReal($c));
     }
@@ -64,15 +66,23 @@ class Caja extends Model
                 ->where('a.caja_id', $this->id)
                 ->where('a.anulado', false)
                 ->groupBy('m.id', 'm.nombre', 'm.es_efectivo')
-                ->select('m.id', 'm.nombre', 'm.es_efectivo', DB::raw('SUM(a.monto) as total'), DB::raw('COUNT(*) as ventas'))
+                ->select('m.id', 'm.nombre', 'm.es_efectivo', DB::raw('SUM(a.monto) as total'), DB::raw('COUNT(*) as ventas'), DB::raw('0 as total_bs'))
+                ->addSelect(self::tieneMoneda() ? DB::raw('MAX(m.moneda) as moneda') : DB::raw('NULL as moneda'))
                 ->get());
         }
         return $filas->groupBy('id')->map(function ($g) {
             $f = clone $g->first();
             $f->total = $g->sum('total');
             $f->ventas = $g->sum('ventas');
+            $f->total_bs = $g->sum('total_bs');
             return $f;
         })->values();
+    }
+
+    private static function tieneMoneda(): bool
+    {
+        static $s = null;
+        return $s ??= \Illuminate\Support\Facades\Schema::hasColumn('metodos_pago', 'moneda') && \Illuminate\Support\Facades\Schema::hasColumn('pos_venta_pagos', 'monto_moneda');
     }
 
     public function totalAbonos(): float
@@ -91,6 +101,8 @@ class Caja extends Model
             ->groupBy('m.id', 'm.nombre', 'm.es_efectivo')
             ->orderBy('m.nombre')
             ->select('m.id', 'm.nombre', 'm.es_efectivo', DB::raw('SUM(p.monto) as total'), DB::raw('COUNT(DISTINCT v.id) as ventas'))
+            // Venezuela: lo que entró en bolívares por cada método en Bs
+            ->addSelect(self::tieneMoneda() ? [DB::raw('MAX(m.moneda) as moneda'), DB::raw('SUM(COALESCE(p.monto_moneda, 0)) as total_bs')] : [DB::raw('NULL as moneda'), DB::raw('0 as total_bs')])
             ->get();
     }
 
@@ -105,6 +117,7 @@ class Caja extends Model
             ->where('d.tipo', 'reembolso')
             ->groupBy('m.id', 'm.nombre', 'm.es_efectivo')
             ->select('m.id', 'm.nombre', 'm.es_efectivo', DB::raw('SUM(d.total) as total'), DB::raw('COUNT(*) as n'))
+            ->addSelect(self::tieneMoneda() ? DB::raw('MAX(m.moneda) as moneda') : DB::raw('NULL as moneda'))
             ->get()
             ->pipe(fn ($c) => self::soloEfectivoReal($c));
     }
@@ -241,11 +254,30 @@ class Caja extends Model
         ])->filter()->implode(' · ');
     }
 
+    // Efectivo en la moneda de la tienda (en Venezuela: dólares; el efectivo en bolívares se cuenta aparte)
     public function efectivoEsperado(): float
     {
-        $efectivo = $this->totalesPorMetodo()->where('es_efectivo', true)->sum('total');
-        $devuelto = $this->reembolsosPorMetodo()->where('es_efectivo', true)->sum('total');
+        $efectivo = $this->totalesPorMetodo()->where('es_efectivo', true)->filter(fn ($t) => ($t->moneda ?? null) !== 'VES')->sum('total');
+        $devuelto = $this->reembolsosPorMetodo()->where('es_efectivo', true)->filter(fn ($t) => ($t->moneda ?? null) !== 'VES')->sum('total');
         return (float) $this->monto_inicial + (float) $efectivo - (float) $devuelto - $this->totalEgresos();
+    }
+
+    // Venezuela: bolívares en efectivo que deben estar en la caja (lo recibido en Bs; abonos y devoluciones a la tasa de hoy)
+    public function efectivoBsEsperado(): float
+    {
+        if (!self::tieneMoneda()) return 0.0;
+        $tasa = (float) (\App\Support\TiendaActual::tienda()?->tasa_bs_vigente ?? 0);
+        $bs = $this->totalesVentas()->where('es_efectivo', true)->where('moneda', 'VES')->sum('total_bs');
+        $abonos = $this->abonosPorMetodo()->where('es_efectivo', true)->where('moneda', 'VES')->sum('total') * $tasa;
+        $devuelto = $this->reembolsosPorMetodo()->where('es_efectivo', true)->where('moneda', 'VES')->sum('total') * $tasa;
+        return round((float) $bs + (float) $abonos - (float) $devuelto, 2);
+    }
+
+    // ¿Esta caja maneja efectivo en bolívares?
+    public function manejaBs(): bool
+    {
+        return self::tieneMoneda() && \App\Support\TiendaActual::tienda()?->pais === 'VE'
+            && MetodoPago::where('activo', true)->where('es_efectivo', true)->where('moneda', 'VES')->exists();
     }
 
     // Egresos pagados en efectivo con la plata de esta caja (se descuentan de lo que debe haber)

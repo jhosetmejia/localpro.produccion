@@ -13,7 +13,7 @@ class PosVenta extends Model
 
     protected $fillable = [
         'numero', 'tipo_doc', 'base_gravable', 'impuestos', 'impuestos_detalle', 'adquiriente', 'caja_id', 'user_id', 'cliente_id', 'cliente_nombre', 'cliente_telefono', 'subtotal',
-        'descuento', 'total', 'cambio', 'estado', 'anulada_en', 'anulada_por',
+        'descuento', 'total', 'cambio', 'estado', 'anulada_en', 'anulada_por', 'tasa_bs',
     ];
 
     protected $casts = ['anulada_en' => 'datetime', 'impuestos_detalle' => 'array', 'adquiriente' => 'array'];

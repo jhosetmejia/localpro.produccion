@@ -28,8 +28,10 @@ class metodoPagoController extends Controller
         $datos = $request->validate([
             'nombre' => ['required', 'string', 'max:40', Rule::unique('metodos_pago', 'nombre')->where('tienda_id', \App\Support\TiendaActual::id())],
             'orden' => 'nullable|integer|min:0|max:999',
+            'moneda' => 'nullable|in:VES',
         ]);
         MetodoPago::create([
+            'moneda' => self::moneda($request),
             'nombre' => $datos['nombre'],
             'orden' => $datos['orden'] ?? 0,
             'es_efectivo' => $request->boolean('es_efectivo'),
@@ -44,8 +46,10 @@ class metodoPagoController extends Controller
             'nombre' => ['required', 'string', 'max:40', Rule::unique('metodos_pago', 'nombre')->where('tienda_id', \App\Support\TiendaActual::id())->ignore($metodo->id)],
             'orden' => 'nullable|integer|min:0|max:999',
             'medio_dian' => ['nullable', Rule::in(array_keys(\App\Support\Dian\Catalogos::MEDIOS_PAGO))],
+            'moneda' => 'nullable|in:VES',
         ]);
         $metodo->update([
+            'moneda' => self::moneda($request, $metodo),
             'nombre' => $datos['nombre'],
             'medio_dian' => $datos['medio_dian'] ?? $metodo->medio_dian,
             'orden' => $datos['orden'] ?? 0,
@@ -53,5 +57,12 @@ class metodoPagoController extends Controller
             'activo' => $request->boolean('activo'),
         ]);
         return back()->with('success', 'Método de pago actualizado.');
+    }
+
+    // Solo las tiendas de Venezuela tienen métodos en bolívares
+    private static function moneda(Request $request, ?MetodoPago $m = null): ?string
+    {
+        if (\App\Support\TiendaActual::tienda()?->pais !== 'VE') return $m?->moneda;
+        return $request->input('moneda') === 'VES' ? 'VES' : null;
     }
 }

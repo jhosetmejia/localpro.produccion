@@ -38,8 +38,8 @@ class CrearTienda
             $t->forceFill(['plan_id' => \App\Models\Plan::gratis()?->id, 'plan_vence' => today()->addDays(89)])->save();
 
             TiendaActual::como($t->id, function () use ($t) {
-                foreach (self::metodosPorPais($t->pais) as $i => [$nombre, $efectivo]) {
-                    MetodoPago::create(['nombre' => $nombre, 'es_efectivo' => $efectivo, 'activo' => true, 'orden' => $i + 1]);
+                foreach (self::metodosPorPais($t->pais) as $i => $m) {
+                    MetodoPago::create(['nombre' => $m[0], 'es_efectivo' => $m[1], 'moneda' => $m[2] ?? null, 'activo' => true, 'orden' => $i + 1]);
                 }
                 self::categoria('General');
             });
@@ -67,7 +67,8 @@ class CrearTienda
             'AR' => [['Efectivo', true], ['Mercado Pago', false], ['Transferencia', false], ['Tarjeta', false]],
             'CL' => [['Efectivo', true], ['Transferencia', false], ['Tarjeta', false]],
             'EC' => [['Efectivo', true], ['DeUna', false], ['Transferencia', false], ['Tarjeta', false]],
-            'VE' => [['Efectivo (dólares)', true], ['Pago Móvil', false], ['Zelle', false], ['Binance', false], ['Transferencia', false], ['Tarjeta', false]],
+            // Venezuela: los marcados 'VES' reciben bolívares y se pasan a dólares con la tasa del día
+            'VE' => [['Efectivo (dólares)', true], ['Efectivo (bolívares)', true, 'VES'], ['Pago Móvil', false, 'VES'], ['Punto de venta (Bs)', false, 'VES'], ['Zelle', false], ['Binance', false], ['Transferencia (Bs)', false, 'VES']],
             default => [['Efectivo', true], ['Transferencia', false], ['Tarjeta', false]],
         };
     }
