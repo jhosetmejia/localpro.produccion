@@ -11,18 +11,21 @@
     </div>
     @include('layouts.partials.lp-flash')
 
+    @foreach (['nueva' => ['Ventas nuevas · pagar ya', 'La comisión de una venta nueva se puede retirar apenas el negocio paga su plan.', 'fa-bolt'], 'renovacion' => ['Renovaciones · corte mensual', 'Las comisiones de renovación se pagan una vez al mes.', 'fa-calendar-check']] as $tipo => [$titulo, $ayuda, $icono])
     <div class="lp-box mb-3">
-        <h3>Por pagar a cada persona</h3>
+        <h3><span><i class="fa-solid {{ $icono }} me-1"></i> {{ $titulo }}</span></h3>
+        <p class="small text-muted mb-2">{{ $ayuda }}</p>
         <ul class="lp-list">
-            @forelse ($porAsesor as $p)
+            @forelse ($porAsesor[$tipo] ?? [] as $p)
             <li><div class="av"><i class="fa-solid {{ $p->asesor->cargo_icono ?? 'fa-user' }}"></i></div>
                 <div class="t"><b><a href="{{ route('admin.red.show', $p->asesor_id) }}" class="text-decoration-none" style="color:inherit">{{ $p->asesor->nombre ?? '—' }}</a> · {{ \App\Support\Moneda::formato($p->total, $p->moneda ?: 'COP', true) }}</b><small>{{ $p->n }} comisión(es){{ $p->asesor?->banco ? ' · Pagar a: ' . $p->asesor->banco : '' }}</small></div>
-                <form method="post" action="{{ route('admin.red.pagar') }}" data-confirm="¿Ya le pagó {{ \App\Support\Moneda::formato($p->total, $p->moneda ?: 'COP', true) }} a {{ $p->asesor->nombre ?? '' }}?" data-confirm-ok="Sí, marcar pagado">@csrf<input type="hidden" name="asesor_id" value="{{ $p->asesor_id }}"><button class="btn btn-sm btn-dark">Pagado</button></form></li>
+                <form method="post" action="{{ route('admin.red.pagar') }}" data-confirm="¿Ya le pagó {{ \App\Support\Moneda::formato($p->total, $p->moneda ?: 'COP', true) }} a {{ $p->asesor->nombre ?? '' }}?" data-confirm-ok="Sí, marcar pagado">@csrf<input type="hidden" name="asesor_id" value="{{ $p->asesor_id }}"><input type="hidden" name="tipo" value="{{ $tipo }}"><button class="btn btn-sm btn-dark">Pagado</button></form></li>
             @empty
-            <li class="lp-empty">No hay comisiones pendientes. ✅</li>
+            <li class="lp-empty">Nada pendiente. ✅</li>
             @endforelse
         </ul>
     </div>
+    @endforeach
 
     <div class="lp-box">
         <h3><span>Detalle</span>

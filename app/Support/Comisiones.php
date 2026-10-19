@@ -10,8 +10,9 @@ use App\Models\PagoSuscripcion;
  * Reparte cada pago de plan entre la red comercial.
  * Solo el PLAN ANUAL genera comisión (mensualidades y servicios adicionales son 100% de LocalPro).
  * Valores fijos: si sube el precio del plan, las comisiones siguen iguales y la diferencia queda para LocalPro.
- * Venta nueva: asesor 100.000 · el de arriba (quien lo sumó; si no hay, su líder directo) 10.000 · LocalPro el resto.
- * Renovación anual: asesor 10.000 de por vida · líder de zona, ciudad, departamento y país 10.000 cada uno · LocalPro el resto.
+ * Venta nueva: asesor 100.000 · el de arriba (quien lo sumó; si no hay, su líder directo) y cada líder (zona, ciudad, departamento, país) 10.000 · LocalPro el resto.
+ * Renovación anual: asesor, el de arriba y cada líder 10.000 de por vida · LocalPro el resto.
+ * Cuándo se pagan: las de venta nueva se pueden retirar apenas se aprueba el pago; las de renovación se pagan una vez al mes.
  * Para cobrar, cada persona debe estar ACTIVA: haber hecho mínimo una venta nueva en los últimos 30 días
  * (la venta que se está pagando cuenta para quien la hizo). Si no, su parte queda para LocalPro. Un cargo vacío también.
  * Venezuela paga en dólares o bolívares (Admin → Planes y cobros): valores en USD (red_usd_*), en Bs a la tasa del panel.
@@ -40,16 +41,16 @@ class Comisiones
             return [
                 'moneda' => Moneda::USD,
                 'valor_plan' => $u('valor_plan', 55),
-                'nueva' => ['venta' => $u('nueva_venta', 25), 'arriba' => $u('nueva_arriba', 2.5), 'lider_zona' => $u('nueva_zona', 0), 'lider_ciudad' => $u('nueva_ciudad', 0), 'lider_departamento' => $u('nueva_departamento', 0), 'lider_pais' => $u('nueva_pais', 0)],
-                'renovacion' => ['venta' => $u('renov_venta', 2.5), 'arriba' => $u('renov_arriba', 0), 'lider_zona' => $u('renov_zona', 2.5), 'lider_ciudad' => $u('renov_ciudad', 2.5), 'lider_departamento' => $u('renov_departamento', 2.5), 'lider_pais' => $u('renov_pais', 2.5)],
+                'nueva' => ['venta' => $u('nueva_venta', 25), 'arriba' => $u('nueva_arriba', 2.5), 'lider_zona' => $u('nueva_zona', 2.5), 'lider_ciudad' => $u('nueva_ciudad', 2.5), 'lider_departamento' => $u('nueva_departamento', 2.5), 'lider_pais' => $u('nueva_pais', 2.5)],
+                'renovacion' => ['venta' => $u('renov_venta', 2.5), 'arriba' => $u('renov_arriba', 2.5), 'lider_zona' => $u('renov_zona', 2.5), 'lider_ciudad' => $u('renov_ciudad', 2.5), 'lider_departamento' => $u('renov_departamento', 2.5), 'lider_pais' => $u('renov_pais', 2.5)],
             ];
         }
         $v = fn ($k, $d) => (float) Ajuste::valor($k, $d);
         return [
             'moneda' => Moneda::COP,
             'valor_plan' => $v('red_valor_plan', 220000),
-            'nueva' => ['venta' => $v('red_nueva_venta', 100000), 'arriba' => $v('red_nueva_arriba', 10000), 'lider_zona' => $v('red_nueva_zona', 0), 'lider_ciudad' => $v('red_nueva_ciudad', 0), 'lider_departamento' => $v('red_nueva_departamento', 0), 'lider_pais' => $v('red_nueva_pais', 0)],
-            'renovacion' => ['venta' => $v('red_renov_venta', 10000), 'arriba' => $v('red_renov_arriba', 0), 'lider_zona' => $v('red_renov_zona', 10000), 'lider_ciudad' => $v('red_renov_ciudad', 10000), 'lider_departamento' => $v('red_renov_departamento', 10000), 'lider_pais' => $v('red_renov_pais', 10000)],
+            'nueva' => ['venta' => $v('red_nueva_venta', 100000), 'arriba' => $v('red_nueva_arriba', 10000), 'lider_zona' => $v('red_nueva_zona', 10000), 'lider_ciudad' => $v('red_nueva_ciudad', 10000), 'lider_departamento' => $v('red_nueva_departamento', 10000), 'lider_pais' => $v('red_nueva_pais', 10000)],
+            'renovacion' => ['venta' => $v('red_renov_venta', 10000), 'arriba' => $v('red_renov_arriba', 10000), 'lider_zona' => $v('red_renov_zona', 10000), 'lider_ciudad' => $v('red_renov_ciudad', 10000), 'lider_departamento' => $v('red_renov_departamento', 10000), 'lider_pais' => $v('red_renov_pais', 10000)],
         ];
     }
 

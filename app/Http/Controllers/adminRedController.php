@@ -205,7 +205,8 @@ class adminRedController extends Controller
         return view('admin.red.comisiones', [
             'lista' => $filtro(Comision::with(['asesor.user:id,name', 'tienda:id,nombre']))->latest()->paginate(40)->withQueryString(),
             'porAsesor' => Comision::with('asesor.user:id,name')->where('estado', 'pendiente')
-                ->selectRaw('asesor_id, moneda, SUM(monto) as total, COUNT(*) as n')->groupBy('asesor_id', 'moneda')->orderBy('moneda')->orderByDesc('total')->get(),
+                ->selectRaw('asesor_id, moneda, tipo, SUM(monto) as total, COUNT(*) as n')->groupBy('asesor_id', 'moneda', 'tipo')->orderBy('moneda')->orderByDesc('total')->get()
+                ->groupBy(fn ($p) => $p->tipo === 'nueva' ? 'nueva' : 'renovacion'),
             'asesores' => Asesor::with('user:id,name')->get(),
             'estado' => $request->estado ?? 'pendiente',
             'asesor' => $request->asesor,
@@ -220,9 +221,11 @@ class adminRedController extends Controller
             'ids' => 'nullable|array',
             'ids.*' => 'integer',
             'asesor_id' => 'nullable|integer|exists:asesores,id',
+            'tipo' => 'nullable|in:nueva,renovacion',
             'nota' => 'nullable|string|max:255',
         ]);
-        $q = Comision::where('estado', 'pendiente');
+        // Ventas nuevas: se pagan apenas el negocio paga · Renovaciones: una vez al mes
+        $q = Comision::where('estado', 'pendiente')->when($datos['tipo'] ?? null, fn ($q, $t) => $q->where('tipo', $t));
         if (!empty($datos['asesor_id'])) {
             $q->where('asesor_id', $datos['asesor_id']);
         } elseif (!empty($datos['ids'])) {

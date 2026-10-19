@@ -94,7 +94,8 @@ class CursoAsesor
                 'puntos' => [
                     'Por cada negocio nuevo que paga su plan anual gana <b>' . $com . '</b>.',
                     'Cada año que ese negocio renueva, usted gana <b>' . $renov . '</b>, de por vida.',
-                    'Si usted suma a otro asesor, gana <b>' . self::plata($v['nueva']['arriba']) . '</b> por cada negocio nuevo que él venda.',
+                    'Si usted suma a otro asesor, gana <b>' . self::plata($v['nueva']['arriba']) . '</b> por cada negocio que él venda o renueve.',
+                    'La comisión de una venta nueva la puede retirar apenas el negocio paga; las de renovación se pagan una vez al mes.',
                     'Para recibir sus comisiones debe estar activo: hacer <b>mínimo una venta nueva cada mes</b>. Si ese mes no vende, su parte queda para LocalPro.',
                     'También puede sumar asesores a su equipo y crecer a líder de zona, de ciudad y más.',
                     'En su panel verá sus negocios, sus comisiones y su enlace para compartir.',

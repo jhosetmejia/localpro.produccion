@@ -39,6 +39,21 @@
     <li><strong>Otros servicios.</strong> Desarrollos a la medida, migración de información, dominio propio, capacitaciones presenciales y otros servicios especiales se cotizan aparte.</li>
     <li><strong>Cambios de tarifas.</strong> Cualquier cambio en los precios del plan o de los cobros adicionales se avisa con al menos 30 días de anticipación y no afecta el periodo que ya está pagado.</li>
 </ul>
-<h2>6. Limitaciones</h2>
+@php
+    $cv = \App\Support\Comisiones::valores();
+    $cf = fn ($v) => \App\Support\Moneda::formato($v, 'COP');
+@endphp
+<h2>6. Asesores comerciales: comisiones y pagos</h2>
+<ul>
+    <li><strong>Solo el plan anual paga comisión.</strong> Mensualidades, pruebas gratis y servicios adicionales no generan comisión. Los pagos de prueba tampoco.</li>
+    <li><strong>Venta nueva</strong> (el negocio paga su plan anual por primera vez): el asesor que lo inscribió gana {{ $cf($cv['nueva']['venta']) }}; quien sumó a ese asesor a la red gana {{ $cf($cv['nueva']['arriba']) }}, y cada líder de zona, ciudad, departamento y país que tenga arriba gana {{ $cf($cv['nueva']['lider_zona']) }}.</li>
+    <li><strong>Renovación anual:</strong> cada año que el negocio renueva, el asesor, quien lo sumó y cada líder ganan {{ $cf($cv['renovacion']['venta']) }}, de por vida.</li>
+    <li><strong>Para cobrar hay que estar activo:</strong> haber hecho mínimo <strong>una venta nueva en los últimos {{ \App\Support\Comisiones::DIAS_ACTIVO }} días</strong>. Quien no cumpla no recibe esa comisión y su parte queda para LocalProo. Si un cargo está vacío o la persona está inactiva, esa parte también queda para LocalProo.</li>
+    <li><strong>Cuándo se paga:</strong> la comisión de una <strong>venta nueva</strong> se puede retirar apenas el pago del negocio queda aprobado. Las comisiones de <strong>renovación</strong> se pagan <strong>una vez al mes</strong>, en el corte mensual de LocalProo.</li>
+    <li>Las comisiones se consignan en la cuenta o billetera que el asesor registró en su perfil. Es responsabilidad del asesor mantener esos datos actualizados.</li>
+    <li>Los valores son fijos: si cambia el precio del plan, las comisiones no cambian, salvo que LocalProo las actualice y lo avise. Si un pago se devuelve o se anula, la comisión de ese pago también se anula.</li>
+    <li>Los negocios y asesores de Venezuela reciben sus comisiones en dólares, según los valores vigentes en dólares.</li>
+</ul>
+<h2>7. Limitaciones</h2>
 <p>Trabajamos para que el servicio esté siempre disponible, pero puede haber interrupciones por mantenimiento o por servicios de terceros (por ejemplo, Facebook o Instagram).</p>
 @endsection

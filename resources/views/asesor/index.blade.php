@@ -293,7 +293,7 @@
 
     <div class="lp-box">
         <h3><span><i class="fa-solid fa-coins me-1"></i> Últimas comisiones</span><a href="{{ route('asesor.comisiones') }}" class="small">Ver todas</a></h3>
-        <p class="small text-muted mb-2"><span class="badge bg-warning text-dark">Pendiente</span> LocalPro se la consigna{{ $yo->banco ? ' a ' . $yo->banco : ' en la cuenta que registró' }} · <span class="badge bg-success">Pagada</span> ya se la consignaron.</p>
+        <p class="small text-muted mb-2"><span class="badge bg-warning text-dark">Pendiente</span> LocalPro se la consigna{{ $yo->banco ? ' a ' . $yo->banco : ' en la cuenta que registró' }} · <span class="badge bg-success">Pagada</span> ya se la consignaron.<br><b>Venta nueva:</b> la puede retirar apenas el negocio paga. <b>Renovación:</b> se paga una vez al mes.</p>
         <ul class="lp-list">
             @forelse ($ultimas as $c)
             <li><div class="av"><i class="fa-solid fa-coins"></i></div><div class="t"><b>{{ $c->monto_texto }} · {{ $c->tienda->nombre ?? 'Negocio' }}</b><small>{{ $c->concepto_nombre }} · {{ $c->tipo === 'nueva' ? 'venta nueva' : 'renovación' }} · {{ $c->created_at->format('d/m/Y') }}</small></div>

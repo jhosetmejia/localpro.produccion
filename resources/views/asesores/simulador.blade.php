@@ -192,10 +192,10 @@
         if (rol >= 4) red = red * c;
         if (rol >= 5) red = red * d;
 
-        // Quien sumó al asesor gana su parte por cada negocio nuevo de sus asesores directos
+        // Quien sumó al asesor gana su parte por cada negocio nuevo y cada renovación de sus asesores directos
         var directos = rol >= 2 ? a * k : 0;
         var mesNuevo = p * propio(N) + red * deCargo(N) + directos * (+N.arriba || 0);
-        var mesRenov = (p * propio(R) + red * deCargo(R)) * ren;
+        var mesRenov = (p * propio(R) + red * deCargo(R) + directos * (+R.arriba || 0)) * ren;
         var meses = [];
         for (var m = 1; m <= 24; m++) meses.push(mesNuevo + (m > 12 ? mesRenov : 0));
         var anio1 = mesNuevo * 12, anio2 = (mesNuevo + mesRenov) * 12;

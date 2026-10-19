@@ -130,7 +130,7 @@ class Academia
                     ['titulo' => 'Cómo se sube de rango', 'min' => 2, 'accion' => ['asesor.index', 'Ver mi avance'], 'contenido' => [
                         'Para subir de rango necesita negocios que <b>pagaron su plan anual</b> y asesores que usted sumó y están activos. Su barra de avance está en el panel.',
                         'Las pruebas gratis no cuentan hasta que el negocio paga.',
-                        'Por cada negocio nuevo que venda alguien que usted sumó gana una comisión, y al subir gana también por las renovaciones de su equipo. Recuerde: para cobrar debe hacer mínimo una venta nueva cada mes.',
+                        'Por cada negocio que venda o renueve alguien que usted sumó gana una comisión, y al subir gana también por las ventas y renovaciones de su equipo. Recuerde: para cobrar debe hacer mínimo una venta nueva cada mes.',
                     ], 'tip' => null],
                 ],
                 'prueba' => [
