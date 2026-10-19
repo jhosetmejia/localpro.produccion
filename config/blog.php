@@ -6,6 +6,25 @@
 // palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
+    'codigo-qr-para-negocios-escanee-con-el-celular' => [
+        'titulo' => 'Código QR para su negocio: el cliente escanea con la cámara y ve su tienda, su factura o sus redes',
+        'resumen' => 'LocalProo le da códigos QR listos para imprimir: su tienda en línea, su página de enlaces y la factura electrónica. Pruébelo aquí mismo: escanee los QR de ejemplo con la cámara de su celular.',
+        'fecha' => '19 de octubre de 2026',
+        'publicado' => '2026-10-19',
+        'minutos' => 4,
+        'icono' => 'fa-qrcode',
+        'rol' => 'negocios',
+        'seo_titulo' => 'Código QR gratis para su negocio | LocalProo',
+        'descripcion' => 'Cree el código QR de su tienda en línea, su WhatsApp y redes, y facture con QR de la DIAN. Escanee los ejemplos con la cámara de su celular y pruébelo.',
+        'keywords' => ['código QR para negocio', 'QR para tienda en línea', 'cómo hacer un código QR gratis', 'QR para mostrador', 'QR catálogo WhatsApp', 'QR factura electrónica DIAN', 'cómo escanear un código QR con el celular'],
+        'faq' => [
+            ['¿Necesito descargar una aplicación para leer el QR?', 'No. La cámara de casi todos los celulares lo lee sola: se apunta al código y aparece el enlace para tocar. En algunos Android se usa Google Lens o el botón de escanear de la app de Google.'],
+            ['¿El QR de mi tienda cambia si agrego productos?', 'No. El QR lleva a la dirección de su tienda en línea, que siempre es la misma. Usted cambia productos, precios y fotos y el mismo QR impreso sigue funcionando.'],
+            ['¿Cuánto cuesta el código QR?', 'Nada adicional: viene incluido en LocalProo. Lo descarga y lo imprime cuantas veces quiera.'],
+            ['¿De qué tamaño lo imprimo?', 'Mínimo unos 3 × 3 cm para que se lea de cerca (bolsas, tarjetas). Para una vitrina o un afiche que se mira de lejos, más grande: 10 cm o más.'],
+            ['¿Qué diferencia hay con el código de barras?', 'El código de barras es para sus productos: se escanea en la caja y en el conteo de inventario. El QR es para sus clientes: lo escanean con el celular y les abre su tienda, sus redes o la factura.'],
+        ],
+    ],
     'historia-clinica-para-consultorios-particulares' => [
         'titulo' => 'Historia clínica en el celular para consultorios: agenda, fórmulas y firma, sin carpetas',
         'resumen' => 'Psicólogos, odontólogos, estética, fisioterapia y nutrición: lleve pacientes, citas con recordatorio por WhatsApp e historia clínica cifrada y firmada, con fórmulas e incapacidades listas para imprimir. Y cobre la consulta en la misma caja.',
