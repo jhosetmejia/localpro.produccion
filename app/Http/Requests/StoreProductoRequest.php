@@ -43,6 +43,8 @@ class StoreProductoRequest extends FormRequest
             'variantes.*.talla' => 'nullable|string|max:40',
             'variantes.*.color' => 'nullable|string|max:60',
             'variantes.*.cantidad' => 'nullable|integer|min:0|max:100000',
+            'variantes.*.barras' => 'nullable|string|max:1000',
+            'codigo_barras' => 'nullable|string|max:1000',
         ];
     }
 
@@ -55,6 +57,8 @@ class StoreProductoRequest extends FormRequest
             'variantes.*.talla' => 'talla',
             'variantes.*.color' => 'color',
             'variantes.*.cantidad' => 'cantidad',
+            'variantes.*.barras' => 'código de barras',
+            'codigo_barras' => 'código de barras',
         ];
     }
 

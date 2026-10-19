@@ -66,7 +66,8 @@
                         <td>{{ $v->color ?? '—' }}</td>
                         <td><span class="badge {{ $v->stock <= 0 ? 'bg-danger' : ($v->stock <= 5 ? 'bg-warning text-dark' : 'bg-success') }} fs-6">{{ cantidad($v->stock) }}</span></td>
                         <td>@pesos($v->precio_final) @if($v->precio === null)<small class="text-muted">(base)</small>@endif</td>
-                        <td><code>{{ $v->codigo_barras ?? '—' }}</code></td>
+                        @php $extras = \App\Support\CodigoBarras::extras($v); @endphp
+                        <td><code>{{ $v->codigo_barras ?? '—' }}</code>@if ($extras)<br><small class="text-muted">+ {{ count($extras) }} {{ count($extras) == 1 ? 'etiqueta extra' : 'etiquetas extra' }}</small>@endif</td>
                         <td class="text-end text-nowrap">
                             @can('ajustar-inventario')
                             <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#aj{{ $v->id }}"><i class="fa-solid fa-boxes-stacked me-1"></i>Stock</button>
@@ -119,7 +120,14 @@
                                 <label class="form-label">Costo propio (vacío = costo del producto)</label>
                                 <input data-dinero type="number" name="costo" min="0" step="{{ paso_dinero() }}" class="form-control mb-3" value="{{ $v->costo !== null ? (float) $v->costo : '' }}">
                                 <label class="form-label">Código de barras</label>
-                                <input name="codigo_barras" class="form-control mb-3" value="{{ $v->codigo_barras }}" placeholder="Escanee o escriba">
+                                <div class="input-group mb-1">
+                                    <input name="codigo_barras" id="cb{{ $v->id }}" class="form-control" value="{{ $v->codigo_barras }}" placeholder="Escanee o escriba">
+                                    <button type="button" class="btn btn-dark" data-escanear="cb{{ $v->id }}" data-titulo="Escanee la etiqueta"><i class="fa-solid fa-camera"></i></button>
+                                </div>
+                                <small class="text-muted d-block mb-3">Si la prenda ya tiene una etiqueta pegada (en blanco o del fabricante), escanéela aquí.</small>
+                                <label class="form-label">Etiquetas extra <span class="text-muted fw-normal">(opcional)</span></label>
+                                <input name="barras_extra" class="form-control mb-1" value="{{ implode(' ', $extras) }}" placeholder="Otros códigos de prendas iguales" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();if(this.value.trim()&&!/\s$/.test(this.value))this.value+=' ';}">
+                                <small class="text-muted d-block mb-3">Si prendas iguales quedaron con códigos distintos, escríbalos o escanéelos separados por espacio: todos venden y cuentan como esta talla/color.</small>
                                 <input type="hidden" name="estado" value="0">
                                 <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="estado" value="1" id="es{{ $v->id }}" {{ $v->estado ? 'checked' : '' }}><label class="form-check-label" for="es{{ $v->id }}">Activa para vender</label></div>
                             </div>
@@ -132,3 +140,7 @@
     </div>
 </div>
 @endsection
+
+@push('js')
+<script src="{{ asset('js/escaner.js') }}?v=1"></script>
+@endpush

@@ -212,7 +212,15 @@ class inventarioConteoController extends Controller
         if (!empty($datos['codigo'])) {
             $codigo = CodigoBarras::resolver(trim($datos['codigo']));
             $variante = ProductoVariante::with('producto:id,nombre')->where('codigo_barras', $codigo)->where('estado', 1)->first();
-            if (!$variante) return response()->json(['ok' => false, 'msg' => 'No encontré ninguna prenda con el código ' . $codigo . '.']);
+            if (!$variante) {
+                // Etiqueta pegada a mercancía que todavía no se ha creado: se ofrece crearla con ese código
+                $libre = CodigoBarras::libre($codigo);
+                return response()->json([
+                    'ok' => false,
+                    'msg' => $libre ? 'La etiqueta ' . $codigo . ' es de mercancía nueva y todavía no tiene producto.' : 'No encontré ninguna prenda con el código ' . $codigo . '.',
+                    'crear_url' => auth()->user()?->can('crear-producto') ? route('productos.create', ['barras' => $codigo]) : null,
+                ]);
+            }
             $item = $conteo->items()->where('producto_variante_id', $variante->id)->first();
             if (!$item) {
                 // Si el conteo es de todo el inventario y la talla/color no estaba (creada después), se agrega

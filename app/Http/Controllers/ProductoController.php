@@ -59,7 +59,15 @@ class ProductoController extends Controller
         if ($msg = \App\Support\TiendaActual::limitePlan('productos')) {
             return back()->withInput()->withErrors($msg);
         }
-        //dd($request);
+        // Etiquetas de código de barras ya pegadas a la mercancía (en blanco o del fabricante):
+        // se revisan antes de guardar para que no se repitan con otro producto
+        $conTallas = \App\Support\TiendaActual::tienda()->usa_tallas && $request->boolean('con_tallas');
+        $barrasFilas = $conTallas ? array_map(fn ($f) => \App\Support\CodigoBarras::lista($f['barras'] ?? ''), (array) $request->input('variantes', [])) : [];
+        $barrasUnica = \App\Support\CodigoBarras::lista($request->input('codigo_barras'));
+        if ($e = \App\Support\CodigoBarras::validarVarias(array_merge($barrasFilas, [$barrasUnica]))) {
+            return back()->withInput()->withErrors(['codigo_barras' => $e]);
+        }
+
         try {
             DB::beginTransaction();
             //Tabla producto
@@ -103,9 +111,9 @@ class ProductoController extends Controller
             $controla = $producto->controla_inventario;
             $creadas = 0;
             $total = 0;
-            if (\App\Support\TiendaActual::tienda()->usa_tallas && $request->boolean('con_tallas')) {
+            if ($conTallas) {
                 $vistas = [];
-                foreach ((array) $request->input('variantes', []) as $fila) {
+                foreach ((array) $request->input('variantes', []) as $iFila => $fila) {
                     $talla = \App\Support\Tallas::normalizar($fila['talla'] ?? '');
                     $color = \App\Support\Colores::normalizar($fila['color'] ?? '');
                     $clave = $talla . '|' . $color;
@@ -114,6 +122,7 @@ class ProductoController extends Controller
                     }
                     $vistas[$clave] = true;
                     $v = $producto->variantes()->create(['talla' => $talla, 'color' => $color, 'stock' => 0]);
+                    \App\Support\CodigoBarras::asignar($v, $barrasFilas[$iFila] ?? []);
                     $cant = (int) ($fila['cantidad'] ?? 0);
                     if ($cant > 0 && $controla) {
                         $v->moverStock($cant, 'entrada', null, 'Inventario inicial');
@@ -124,6 +133,7 @@ class ProductoController extends Controller
             }
             if ($creadas === 0) {
                 $v = $producto->variantes()->create(['talla' => null, 'color' => null, 'stock' => 0]);
+                \App\Support\CodigoBarras::asignar($v, $barrasUnica ?: array_merge(...array_values($barrasFilas ?: [[]])));
                 $cant = $producto->es_fraccion ? round((float) $request->cantidad_inicial, 3) : (int) $request->cantidad_inicial;
                 if ($cant > 0 && $controla) {
                     $v->moverStock($cant, 'entrada', null, 'Inventario inicial');

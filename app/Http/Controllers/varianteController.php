@@ -76,15 +76,32 @@ class varianteController extends Controller
         $datos = $request->validate([
             'precio' => 'nullable|numeric|min:0|max:999999999',
             'costo' => 'nullable|numeric|min:0|max:999999999',
-            'codigo_barras' => ['nullable', 'string', 'max:60', Rule::unique('producto_variantes', 'codigo_barras')->where('tienda_id', \App\Support\TiendaActual::id())->ignore($variante->id)],
+            'codigo_barras' => 'nullable|string|max:60',
+            'barras_extra' => 'nullable|string|max:1000',
             'estado' => 'nullable|boolean',
-        ]);
-        $variante->update([
-            'precio' => $datos['precio'] ?? null,
-            'costo' => $datos['costo'] ?? null,
-            'codigo_barras' => $datos['codigo_barras'] ?? null,
-            'estado' => $request->boolean('estado', true) ? 1 : 0,
-        ]);
+        ], [], ['codigo_barras' => 'código de barras', 'barras_extra' => 'etiquetas extra']);
+
+        // Código principal + etiquetas extra (prendas iguales con etiquetas distintas)
+        $principal = \App\Support\CodigoBarras::lista($datos['codigo_barras'] ?? '')[0] ?? null;
+        $extras = array_values(array_diff(\App\Support\CodigoBarras::lista($datos['barras_extra'] ?? ''), [$principal]));
+        if (!$principal && $extras) $principal = array_shift($extras);
+        if ($e = \App\Support\CodigoBarras::validar(array_filter([$principal, ...$extras]), $variante->id)) {
+            return back()->withErrors(['codigo_barras' => $e]);
+        }
+
+        DB::transaction(function () use ($variante, $datos, $request, $principal, $extras) {
+            $variante->update([
+                'precio' => $datos['precio'] ?? null,
+                'costo' => $datos['costo'] ?? null,
+                'codigo_barras' => $principal,
+                'estado' => $request->boolean('estado', true) ? 1 : 0,
+            ]);
+            // Las etiquetas que quitó: las de un lote vuelven a quedar libres; las escritas a mano se borran
+            $quedan = array_filter([$principal, ...$extras]);
+            \App\Models\CodigoSuelto::where('producto_variante_id', $variante->id)->whereNotIn('codigo', $quedan ?: ['-'])->get()
+                ->each(fn ($s) => $s->lote ? $s->update(['producto_variante_id' => null, 'usado_at' => null]) : $s->delete());
+            if ($principal) \App\Support\CodigoBarras::asignar($variante->fresh(), $quedan);
+        });
         return back()->with('success', 'Talla/color actualizada.');
     }
 

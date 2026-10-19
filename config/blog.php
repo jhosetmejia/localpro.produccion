@@ -6,6 +6,24 @@
 // palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
+    'etiquetas-codigo-de-barras-mercancia-nueva' => [
+        'titulo' => 'Selle toda la mercancía con código de barras antes de crearla en el sistema',
+        'resumen' => '¿Llegó un pedido grande o quedaron prendas sin código? Imprima etiquetas en blanco, péguelas de una vez y, cuando cree cada producto, escanee la etiqueta: queda con ese código y no hay que volver a imprimir.',
+        'fecha' => '19 de octubre de 2026',
+        'publicado' => '2026-10-19',
+        'minutos' => 3,
+        'icono' => 'fa-tags',
+        'rol' => 'negocios',
+        'seo_titulo' => 'Etiquetas de código de barras para mercancía nueva | LocalProo',
+        'descripcion' => 'Imprima códigos de barras en blanco, selle la mercancía nueva de una vez y asígnelos al crear cada producto escaneando la etiqueta con el celular.',
+        'keywords' => ['etiquetas código de barras tienda de ropa', 'cómo etiquetar mercancía nueva', 'imprimir códigos de barras sin producto', 'código de barras para inventario', 'etiquetar prendas sin código', 'inventario con código de barras celular'],
+        'faq' => [
+            ['¿La etiqueta en blanco lleva nombre o precio?', 'No. Solo el código de barras (y si quiere, el nombre de su negocio). El nombre y el precio quedan en el sistema cuando crea el producto.'],
+            ['¿Una etiqueta por prenda o por referencia?', 'Lo más fácil es un código por cada talla y color, con varias copias. Si ya pegó códigos distintos a prendas iguales, escanéelos todos en la misma talla/color y todos sirven.'],
+            ['¿Qué pasa si escaneo una etiqueta que todavía no tiene producto?', 'En el conteo físico y en la caja LocalProo le avisa que es mercancía nueva, y en el conteo le da el botón para crear el producto con ese código.'],
+            ['¿Sirve el código que trae la prenda de fábrica?', 'Sí. Escanee el código de fábrica (EAN o UPC) al crear el producto y LocalProo lo usa igual que una etiqueta en blanco.'],
+        ],
+    ],
     'codigo-de-barras-escanee-con-el-celular' => [
         'titulo' => 'Código de barras en su tienda: imprima etiquetas y venda escaneando con la cámara del celular',
         'resumen' => 'LocalProo crea el código de barras de cada talla y color, imprime las etiquetas y le deja vender y contar inventario escaneando con la cámara del celular, sin comprar lector. Pruébelo aquí: escanee las etiquetas de ejemplo.',

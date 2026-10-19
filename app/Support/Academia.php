@@ -302,6 +302,12 @@ class Academia
                         'Para imprimir: <b>Productos → Etiquetas</b> (de un producto o de todos) o, cuando llega mercancía, <b>Entrada → Etiquetas de lo que llegó</b>. Elija cuántas, qué mostrar (nombre, precio, talla y color) y el papel: <b>rollo de 50 × 25 mm</b> (impresora de etiquetas) u <b>hoja carta</b> con 40 o 24 por hoja en cualquier impresora.',
                         'No necesita comprar lector: en la caja y en el conteo se escanea con la <b>cámara del celular</b>.',
                     ], 'tip' => 'Pegue la etiqueta en una parte plana de la prenda y en negro sobre blanco: así se lee al primer intento.'],
+                    ['titulo' => 'Selle la mercancía antes de crearla', 'min' => 3, 'accion' => ['etiquetas.nuevas', 'Imprimir etiquetas en blanco'], 'contenido' => [
+                        '¿Llegó mucha mercancía o quedó algo sin código? No tiene que crear todo primero: en <b>Productos → Etiquetas para mercancía nueva</b> imprima códigos de barras <b>en blanco</b> (sin nombre ni precio).',
+                        'Péguelos a toda la mercancía de una vez. Después, cuando cree cada producto, en cada <b>talla y color</b> toque <b>Escanear</b> y pase la etiqueta: el producto queda con <b>ese código</b> y no hay que volver a imprimir.',
+                        'Lo más fácil es <b>un código por talla/color</b> con varias copias. Si prendas iguales quedaron con códigos distintos, escanéelos todos en la misma talla/color: todos sirven en la caja y en el conteo.',
+                        'Si en el conteo o en la caja escanea una etiqueta que todavía no tiene producto, LocalPro le avisa y le deja crearlo con ese código.',
+                    ], 'tip' => 'Imprima un lote al recibir el pedido del proveedor y selle mientras desempaca: el inventario queda listo el mismo día.'],
                 ],
                 'prueba' => [
                     ['p' => 'Llegó mercancía nueva. ¿Qué hago en LocalPro?', 'o' => ['Registrarla como entrada', 'Nada, se suma sola', 'Crear el producto otra vez'], 'r' => 0],
@@ -309,6 +315,7 @@ class Academia
                     ['p' => '¿Qué hago con lo que lleva meses sin venderse?', 'o' => ['Ponerlo en promoción', 'Comprar más de eso', 'Subirle el precio'], 'r' => 0],
                     ['p' => 'En el conteo físico escaneé todas las prendas y toqué Terminé. ¿Qué me muestra?', 'o' => ['Cuáles están, cuáles faltan y cuáles sobran', 'Nada, hay que contar en un cuaderno', 'Solo el total de ventas'], 'r' => 0],
                     ['p' => 'Llegaron 20 camisetas nuevas. ¿Cómo saco sus etiquetas con código de barras?', 'o' => ['Desde la entrada: Etiquetas de lo que llegó', 'Las dibujo a mano', 'No se puede, hay que comprar un lector'], 'r' => 0],
+                    ['p' => 'Llegó mercancía que todavía no está creada. ¿Cómo la sello con código de barras ya?', 'o' => ['Imprimo etiquetas en blanco y al crear el producto escaneo la etiqueta', 'Espero a crear todo para poder etiquetar', 'Le pego el precio a mano'], 'r' => 0],
                 ],
             ],
 

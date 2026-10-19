@@ -82,6 +82,7 @@ a.pl-foto.sinfoto:hover{border-color:#16b84e;color:#16b84e;background:#f0fbf4}
         <a href="{{ route('inventario.resumen') }}" class="pl-imp pl-inv"><i class="fa-solid fa-clipboard-check"></i> Inventario y conteo</a>
         @endcan
         <a href="{{ route('etiquetas.todas') }}" class="pl-imp"><i class="fa-solid fa-barcode"></i> Ver todas las etiquetas</a>
+        <a href="{{ route('etiquetas.nuevas') }}" class="pl-imp"><i class="fa-solid fa-tags"></i> Etiquetas para mercancía nueva</a>
         @if ($verWeb)
         <a href="{{ $tiendaCat->url_catalogo_navegador }}" target="_blank" rel="noopener" class="pl-imp"><i class="fa-solid fa-globe"></i> Ver mi catálogo en línea</a>
         @endif

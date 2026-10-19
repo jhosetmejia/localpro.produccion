@@ -405,6 +405,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
                 productos = d.productos;
                 hayProductos = d.hay_productos !== false;
                 pintarGrid();
+                if (d.etiqueta_nueva) toast('La etiqueta ' + d.etiqueta_nueva + ' es de mercancía nueva y todavía no tiene producto. Créelo en Productos → Nuevo producto escaneando esta etiqueta.', true);
                 if (d.agotado) toast('Producto agotado: ' + d.agotado.nombre + ' (código ' + d.agotado.codigo + '). Agregue existencia en Entradas para poder venderlo.', true);
                 if (d.exacta) {
                     var v = buscarVariante(d.exacta);

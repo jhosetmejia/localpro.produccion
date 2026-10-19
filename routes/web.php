@@ -357,6 +357,9 @@ Route::middleware(['auth', 'tienda'])->group(function () {
 
     // Etiquetas con código de barras
     Route::get('/etiquetas', [etiquetaController::class, 'todas'])->name('etiquetas.todas');
+    Route::get('/etiquetas/nuevas', [etiquetaController::class, 'nuevas'])->name('etiquetas.nuevas');
+    Route::post('/etiquetas/nuevas', [etiquetaController::class, 'generar'])->name('etiquetas.generar');
+    Route::get('/etiquetas/nuevas/{lote}', [etiquetaController::class, 'lote'])->where('lote', '[0-9]{12}')->name('etiquetas.lote');
     Route::get('/productos/{producto}/etiquetas', [etiquetaController::class, 'producto'])->name('etiquetas.producto');
     Route::get('/entradas/{entrada}/etiquetas', [etiquetaController::class, 'entrada'])->name('etiquetas.entrada');
 

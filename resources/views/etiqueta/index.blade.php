@@ -41,6 +41,8 @@
   .campos label{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.5px solid #d6e5d9;border-radius:999px;padding:6px 12px;font-weight:700;font-size:13px;cursor:pointer;user-select:none}
   .campos label:has(input:checked){border-color:#16b34a;background:#ecfaef;color:#11702f}
   .campos input{accent-color:#16b34a}
+  body.sueltas .et svg{height:15mm}
+  body.sueltas.c3 .et svg{height:21mm}
   body.rollo #hoja{grid-template-columns:50mm;gap:3mm}
   body.c4 #hoja{width:200mm;grid-template-columns:repeat(4,50mm)}
   body.c3 #hoja{width:198mm;grid-template-columns:repeat(3,66mm)}
@@ -55,11 +57,27 @@
   }
 </style>
 </head>
-<body>
+<body class="{{ !empty($sueltas) ? 'sueltas' : '' }}">
 <div class="tool">
     <h1>🏷️ Etiquetas · {{ $titulo }}</h1>
+    @if (!empty($sueltas))
+    <div class="reco">
+        <b>Etiquetas en blanco para mercancía nueva</b> (sin nombre ni precio)
+        <ul>
+            <li>Péguelas a la mercancía que no tiene código. Cuando cree el producto, en cada talla/color toque <b>Escanear etiqueta</b> y el sistema usa ese código.</li>
+            <li>Si varias prendas iguales llevan códigos distintos, escanéelos todos en la misma talla/color: todos sirven en la caja y en el conteo.</li>
+            <li>@if (!empty($verTodas)) Está viendo <b>todo el lote</b> (también las ya usadas). @else Se muestran solo las que <b>aún no se han usado</b>. @endif</li>
+        </ul>
+    </div>
+    <div class="resumen">Códigos: <span>{{ $items->count() }}</span> Etiquetas a imprimir: <span id="totEt">0</span>
+        <label style="font-weight:700">Copias de cada una: <input type="number" min="0" max="50" value="{{ $items->first()['cant'] ?? 1 }}" id="copiasTodas" style="width:70px;padding:6px;border:1.5px solid #d6e5d9;border-radius:8px"></label>
+    </div>
+    @if ($items->isEmpty())<p style="margin-top:10px;font-weight:700">Todas las etiquetas de este lote ya están en productos. 🎉</p>@endif
+    <div class="lista">
+    @endif
     @if (!empty($todas))
     <p style="color:#55605a;margin-bottom:6px">Puede imprimir las etiquetas de toda la tienda, o solo de una categoría o de un grupo. Elija y toque <b>Imprimir</b> o <b>Descargar PDF</b>.</p>
+    <p style="margin-bottom:8px"><a href="{{ route('etiquetas.nuevas') }}" style="background:#0b0d0c;color:#a6f34a;padding:8px 14px;font-size:13px">🆕 ¿Mercancía nueva sin crear? Imprima etiquetas en blanco</a></p>
     <form method="get" class="filtros" id="fFiltros">
         <label>Categoría (línea)
             <select name="categoria" onchange="this.form.submit()"><option value="0">Todas</option>@foreach ($categorias as $c)<option value="{{ $c->id }}" @selected($f['categoria'] == $c->id)>{{ $c->caracteristica->nombre }}</option>@endforeach</select>
@@ -98,10 +116,17 @@
     @endif
     <table>
         @foreach ($items as $k => $it)
-        <tr><td><b>{{ $it['v']->producto->nombre }}</b> {{ $it['v']->etiqueta !== 'Única' ? '· ' . $it['v']->etiqueta : '' }}<br><small>{{ $it['v']->codigo_barras }}</small></td><td style="text-align:right"><input type="number" min="0" max="500" value="{{ $it['cant'] }}" data-k="{{ $k }}" class="cant"> etiquetas</td></tr>
+        <tr>@if (!empty($sueltas))<td><b>{{ $it['codigo'] }}</b></td>@else<td><b>{{ $it['v']->producto->nombre }}</b> {{ $it['v']->etiqueta !== 'Única' ? '· ' . $it['v']->etiqueta : '' }}<br><small>{{ $it['v']->codigo_barras }}</small></td>@endif<td style="text-align:right"><input type="number" min="0" max="500" value="{{ $it['cant'] }}" data-k="{{ $k }}" class="cant"> etiquetas</td></tr>
         @endforeach
     </table>
-    @if (!empty($todas))</div>@endif
+    @if (!empty($todas) || !empty($sueltas))</div>@endif
+    @if (!empty($sueltas))
+    <div class="campos" id="campos">
+        <b>¿Qué lleva la etiqueta?</b>
+        <label><input type="checkbox" data-campo="numero" checked> Número bajo las barras</label>
+        <label><input type="checkbox" data-campo="tienda"> Nombre del negocio</label>
+    </div>
+    @else
     <div class="campos" id="campos">
         <b>¿Qué lleva la etiqueta?</b>
         <label><input type="checkbox" data-campo="nombre" checked> Nombre</label>
@@ -112,12 +137,13 @@
         <label><input type="checkbox" data-campo="desc"> Descripción</label>
         <label><input type="checkbox" data-campo="tienda"> Nombre del negocio</label>
     </div>
+    @endif
     <div class="row">
         <label>Papel: <select id="papel"><option value="c4">Hoja carta/A4 · 40 por hoja (4 × 10)</option><option value="c3">Hoja carta/A4 · 24 por hoja, más grandes (3 × 8)</option><option value="rollo">Rollo 50 × 25 mm (impresora de etiquetas)</option></select></label>
         <span style="flex:1"></span>
         <button class="p" onclick="window.print()">🖨 Imprimir</button>
         <button class="d" onclick="alert_pdf()">⬇ Descargar PDF</button>
-        <a class="d" style="background:#f1f5f2;color:#0b0d0c" href="{{ !empty($todas) ? route('productos.index') : 'javascript:history.back()' }}">Volver</a>
+        <a class="d" style="background:#f1f5f2;color:#0b0d0c" href="{{ !empty($sueltas) ? route('etiquetas.nuevas') : (!empty($todas) ? route('productos.index') : 'javascript:history.back()') }}">Volver</a>
     </div>
 </div>
 <div id="hoja"></div>
@@ -126,7 +152,7 @@
 <script>
 (function () {
     @php
-        $itemsJs = $items->map(fn ($it) => [
+        $itemsJs = !empty($sueltas) ? $items->map(fn ($it) => ['nombre' => '', 'ref' => '', 'op' => '', 'codigo' => $it['codigo'], 'precio' => '', 'desc' => ''])->values() : $items->map(fn ($it) => [
             'nombre' => $it['v']->producto->nombre,
             'ref' => $it['v']->producto->codigo,
             'op' => $it['v']->etiqueta !== 'Única' ? $it['v']->etiqueta : '',
@@ -161,9 +187,9 @@
                 var linea = [C.ref ? it.ref : '', C.op ? it.op : ''].filter(Boolean).join(' · ');
                 html += '<div class="et">'
                     + (C.tienda ? '<div class="t">' + esc(TIENDA) + '</div>' : '')
-                    + (C.nombre ? '<div class="n">' + esc(it.nombre) + '</div>' : '')
+                    + (C.nombre && it.nombre ? '<div class="n">' + esc(it.nombre) + '</div>' : '')
                     + (C.desc && it.desc ? '<div class="ds">' + esc(it.desc) + '</div>' : '')
-                    + (linea || C.precio ? '<div class="o"><span>' + esc(linea) + '</span>' + (C.precio ? '<span class="pr">' + esc(it.precio) + '</span>' : '') + '</div>' : '')
+                    + (linea || (C.precio && it.precio) ? '<div class="o"><span>' + esc(linea) + '</span>' + (C.precio && it.precio ? '<span class="pr">' + esc(it.precio) + '</span>' : '') + '</div>' : '')
                     + '<svg class="bc" data-c="' + esc(it.codigo) + '"></svg></div>';
                 n++;
             }
@@ -178,6 +204,8 @@
         var m = document.getElementById('avisoPdf'); if (m) m.style.display = 'flex';
         setTimeout(function () { if (m) m.style.display = 'none'; window.print(); }, 1600);
     };
+    var copias = document.getElementById('copiasTodas');
+    if (copias) copias.addEventListener('input', function () { document.querySelectorAll('.cant').forEach(function (i) { i.value = copias.value; }); pintar(); });
     document.querySelectorAll('.cant, #papel, [data-campo]').forEach(function (el) { el.addEventListener('input', pintar); el.addEventListener('change', pintar); });
     pintar();
 })();

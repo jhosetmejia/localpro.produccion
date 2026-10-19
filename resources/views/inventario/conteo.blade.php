@@ -280,6 +280,13 @@ body.ciego .cn-sis,body.ciego .cn-dif,body.ciego .cn-n.falta,body.ciego .cn-n.so
             var est = document.getElementById('lpEscEstado');
             if (!r.ok) {
                 ultimo.className = 'cn-ultimo mal'; ultimo.textContent = '✕ ' + r.msg;
+                if (r.crear_url) {
+                    var a = document.createElement('a');
+                    a.href = r.crear_url; a.target = '_blank'; a.rel = 'noopener';
+                    a.className = 'btn btn-sm btn-dark ms-2'; a.style.borderRadius = '999px';
+                    a.textContent = '➕ Crear el producto con esta etiqueta';
+                    ultimo.appendChild(a);
+                }
                 if (est) { est.textContent = '✕ ' + r.msg; est.className = 'estado mal'; }
                 return;
             }

@@ -20,6 +20,11 @@
     .pf-fila:last-child{border-bottom:0}
     .pf-fila b{flex:1;font-size:.95rem}
     .pf-fila input{width:96px;text-align:center;font-weight:800}
+    .pf-fila{flex-wrap:wrap}
+    .pf-bar{flex-basis:100%;display:flex;gap:6px;align-items:center}
+    .pf-bar input.form-control,.pf-barra input.form-control{width:auto;flex:1;text-align:left;font-weight:700;font-size:.85rem;letter-spacing:.02em}
+    .pf-bar button,.pf-barra button{flex:none;border:0;border-radius:10px;background:var(--lp-black);color:var(--lp-lime);font-weight:800;font-size:.8rem;padding:.42rem .7rem;white-space:nowrap}
+    .pf-barra{display:flex;gap:6px;align-items:center;max-width:460px}
     .pf-cab{background:#fbfdfb;font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--lp-muted)}
     .pf-total{display:flex;justify-content:space-between;align-items:center;background:var(--lp-black);color:#fff;border-radius:14px;padding:.7rem 1rem;margin-top:.8rem;font-weight:800}
     .pf-total span:last-child{color:var(--lp-lime);font-size:1.2rem}
@@ -134,10 +139,17 @@
                 @else
                 <p class="text-muted mb-0"><i class="fa-solid fa-utensils me-1"></i> En su negocio no hace falta contar unidades: se vende sin límite. Puede cambiarlo en "Más opciones".</p>
                 @endunless
+                <label for="codigo_barras" class="form-label mt-3">Código de barras <span class="text-muted fw-normal">(opcional · si ya le pegó una etiqueta, escanéela)</span></label>
+                <div class="pf-barra">
+                    <input type="text" name="codigo_barras" id="codigo_barras" class="form-control" data-barras value="{{ old('codigo_barras', request('barras')) }}" placeholder="Vacío = el sistema le crea uno" autocomplete="off">
+                    <button type="button" data-barras-esc="codigo_barras"><i class="fa-solid fa-camera me-1"></i>Escanear</button>
+                </div>
             </div>
 
             <div class="pf-total" id="totalBox" style="display:none"><span>Total de unidades</span><span id="totalUnd">0</span></div>
             @error('variantes')<small class="text-danger d-block mt-2">{{ $message }}</small>@enderror
+            @error('codigo_barras')<small class="text-danger d-block mt-2">{{ $message }}</small>@enderror
+            <div class="small text-muted mt-2"><i class="fa-solid fa-barcode me-1"></i>¿La mercancía ya está sellada con <a href="{{ route('etiquetas.nuevas') }}">etiquetas en blanco</a>? Escanee la etiqueta en cada talla/color y el producto queda con ese código (puede escanear varias si prendas iguales tienen códigos distintos).</div>
         </div>
 
         {{-- 3. Categorías --}}
@@ -186,6 +198,7 @@
 @endsection
 
 @push('js')
+<script src="{{ asset('js/escaner.js') }}?v=1"></script>
 <script>
 (function () {
     var f = document.getElementById('pf');
@@ -200,8 +213,11 @@
     var tallas = document.getElementById('tallas');
     if (tallas) {
         var colores = document.getElementById('colores'), filas = document.getElementById('filas');
-        @php $guardadasJs = collect(old('variantes', []))->mapWithKeys(fn ($v) => [mb_strtoupper(trim(($v['talla'] ?? '') . '|' . ($v['color'] ?? ''))) => $v['cantidad'] ?? 0]); @endphp
-        var guardadas = @json($guardadasJs);
+        @php
+            $guardadasJs = collect(old('variantes', []))->mapWithKeys(fn ($v) => [mb_strtoupper(trim(($v['talla'] ?? '') . '|' . ($v['color'] ?? ''))) => $v['cantidad'] ?? 0]);
+            $barrasJs = collect(old('variantes', []))->mapWithKeys(fn ($v) => [mb_strtoupper(trim(($v['talla'] ?? '') . '|' . ($v['color'] ?? ''))) => $v['barras'] ?? '']);
+        @endphp
+        var guardadas = @json($guardadasJs), barrasG = @json($barrasJs), barrasIni = @json(old('variantes') ? '' : (string) request('barras'));
         var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); };
         var lista = function (t) {
             var vistos = {};
@@ -211,7 +227,7 @@
 
         function generar() {
             // Conserva lo que ya escribió al cambiar tallas o colores
-            filas.querySelectorAll('.pf-fila').forEach(function (r) { guardadas[r.dataset.k] = r.querySelector('input[type=number]').value; });
+            filas.querySelectorAll('.pf-fila').forEach(function (r) { guardadas[r.dataset.k] = r.querySelector('input[type=number]').value; barrasG[r.dataset.k] = r.querySelector('[data-barras]').value; });
             var ts = window.LPTallas ? LPTallas.lista(tallas.value) : lista(tallas.value), cs = window.LPColores ? LPColores.lista(colores.value) : lista(colores.value);
             if (!ts.length && !cs.length) { filas.innerHTML = ''; document.getElementById('tablaWrap').style.display = 'none'; total(); return; }
             ts = ts.length ? ts : [''];
@@ -223,11 +239,14 @@
                     html += '<div class="pf-fila" data-k="' + esc(k) + '"><b>' + esc(et) + '</b>' +
                         '<input type="hidden" name="variantes[' + i + '][talla]" value="' + esc(t) + '">' +
                         '<input type="hidden" name="variantes[' + i + '][color]" value="' + esc(c) + '">' +
-                        '<input type="number" min="0" class="form-control" name="variantes[' + i + '][cantidad]" value="' + esc(guardadas[k] || '') + '" placeholder="0" inputmode="numeric"></div>';
+                        '<input type="number" min="0" class="form-control" name="variantes[' + i + '][cantidad]" value="' + esc(guardadas[k] || '') + '" placeholder="0" inputmode="numeric">' +
+                        '<div class="pf-bar"><input type="text" class="form-control form-control-sm" data-barras id="barras' + i + '" name="variantes[' + i + '][barras]" value="' + esc(barrasG[k] || (i === 0 ? barrasIni : '') || '') + '" placeholder="Código de barras (opcional, escanee la etiqueta)" autocomplete="off">' +
+                        '<button type="button" data-barras-esc="barras' + i + '"><i class="fa-solid fa-camera"></i></button></div></div>';
                     i++;
                 });
             });
             filas.innerHTML = html;
+            if (html) barrasIni = '';
             document.getElementById('tablaWrap').style.display = '';
             total();
         }
@@ -261,6 +280,25 @@
         sw.addEventListener('change', modo);
         generar(); modo();
     }
+
+    // Códigos de barras: el lector de códigos escribe el código y "Enter"; aquí el Enter no guarda el formulario,
+    // deja un espacio para poder escanear otra etiqueta en la misma talla/color
+    f.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter' || !e.target.matches('[data-barras]')) return;
+        e.preventDefault();
+        var x = e.target; if (x.value.trim() && !/\s$/.test(x.value)) x.value += ' ';
+    });
+    document.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-barras-esc]'); if (!b || !window.LPEscaner) return;
+        var inp = document.getElementById(b.dataset.barrasEsc); if (!inp) return;
+        LPEscaner.abrir({ titulo: 'Escanee la etiqueta de esta prenda', continuo: true, alLeer: function (c) {
+            c = String(c || '').trim().toUpperCase(); if (!c) return;
+            var l = inp.value.trim() ? inp.value.trim().split(/[\s,;]+/) : [];
+            if (l.indexOf(c) === -1) l.push(c);
+            inp.value = l.join(' '); cambios = true;
+            var est = document.getElementById('lpEscEstado'); if (est) { est.textContent = '✓ ' + c + ' (puede escanear otra o cerrar)'; est.className = 'estado ok'; }
+        } });
+    });
 
     // Avisa antes de salir si hay cambios sin guardar
     var cambios = false;

@@ -117,6 +117,8 @@ class posController extends Controller
             'exacta' => $exacta ? $exacta->id : null,
             'agotado' => $agotado ? ['nombre' => $agotado['nombre'], 'codigo' => $agotado['codigo']] : null,
             'hay_productos' => $productos->isNotEmpty() || \App\Models\Producto::where('estado', 1)->exists(),
+            // Escanearon una etiqueta en blanco que todavía no tiene producto
+            'etiqueta_nueva' => $productos->isEmpty() && $q !== '' && \App\Support\CodigoBarras::libre($q) ? $q : null,
         ]);
     }
 

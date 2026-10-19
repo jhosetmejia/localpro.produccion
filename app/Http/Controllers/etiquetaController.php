@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Categoria;
+use App\Models\CodigoSuelto;
 use App\Models\Entrada;
 use App\Models\Negocio;
 use App\Models\Producto;
 use App\Models\ProductoVariante;
+use App\Support\CodigoBarras;
 use App\Support\TiendaActual;
 use Illuminate\Http\Request;
 
@@ -16,6 +18,48 @@ class etiquetaController extends Controller
     public function __construct()
     {
         $this->middleware('permission:ver-producto');
+        $this->middleware('permission:editar-producto', ['only' => ['generar']]);
+    }
+
+    /* ---------- Etiquetas en blanco para mercancía nueva ---------- */
+
+    // Lotes de etiquetas sin producto: se imprimen, se pegan en la mercancía y al crear el producto se escanean
+    public function nuevas()
+    {
+        $lotes = CodigoSuelto::whereNotNull('lote')
+            ->selectRaw('lote, COUNT(*) as total, SUM(producto_variante_id IS NOT NULL) as usadas, MIN(created_at) as fecha')
+            ->groupBy('lote')->orderByDesc('lote')->limit(60)->get();
+        $libres = CodigoSuelto::whereNotNull('lote')->whereNull('producto_variante_id')->count();
+        return view('etiqueta.nuevas', compact('lotes', 'libres'));
+    }
+
+    public function generar(Request $request)
+    {
+        $datos = $request->validate([
+            'cantidad' => 'required|integer|min:1|max:1000',
+            'copias' => 'nullable|integer|min:1|max:50',
+        ], [], ['cantidad' => 'cantidad de códigos', 'copias' => 'copias de cada código']);
+        $lote = CodigoBarras::generarLote((int) $datos['cantidad']);
+        return redirect()->route('etiquetas.lote', ['lote' => $lote, 'copias' => (int) ($datos['copias'] ?? 1)]);
+    }
+
+    // Imprime un lote (por defecto solo las que aún no se han usado)
+    public function lote(Request $request, string $lote)
+    {
+        $todas = $request->query('ver') === 'todas';
+        $copias = max(1, min(50, (int) $request->query('copias', 1)));
+        $codigos = CodigoSuelto::where('lote', $lote)->when(!$todas, fn ($q) => $q->whereNull('producto_variante_id'))->orderBy('id')->pluck('codigo');
+        abort_if(!$todas && $codigos->isEmpty() && !CodigoSuelto::where('lote', $lote)->exists(), 404);
+        $items = $codigos->map(fn ($c) => ['codigo' => $c, 'cant' => $copias]);
+        return view('etiqueta.index', [
+            'items' => $items, 'sueltas' => true, 'lote' => $lote, 'verTodas' => $todas,
+            'titulo' => 'Mercancía nueva · lote ' . $this->nombreLote($lote), 'negocio' => Negocio::datos(),
+        ]);
+    }
+
+    public static function nombreLote(string $lote): string
+    {
+        try { return \Carbon\Carbon::createFromFormat('ymdHis', $lote)->format('d/m/Y g:i a'); } catch (\Throwable $e) { return $lote; }
     }
 
     public function producto(Producto $producto)
