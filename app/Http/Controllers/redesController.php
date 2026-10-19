@@ -23,7 +23,7 @@ class redesController extends Controller
     public function __construct()
     {
         $this->middleware('permission:responder-redes|publicar-redes|editar-negocio');
-        $this->middleware('permission:editar-negocio', ['only' => ['conectar', 'callback', 'elegir', 'guardarPaginas', 'desconectar']]);
+        $this->middleware('permission:editar-negocio', ['only' => ['conectar', 'callback', 'elegir', 'guardarPaginas', 'desconectar', 'conectarCorreo']]);
         $this->middleware('permission:publicar-redes|editar-negocio', ['only' => ['publicar', 'guardarPublicacion', 'productos', 'reintentar', 'borrarPublicacion']]);
     }
 
@@ -44,7 +44,7 @@ class redesController extends Controller
         $cuentaSel = $this->cuentaElegida($request, $cuentas);
         $convs = RedConversacion::with('cuenta')
             ->when($cuentaSel, fn ($w) => $w->where('cuenta_id', $cuentaSel))
-            ->when($filtro === 'facebook' || $filtro === 'instagram', fn ($w) => $w->where('plataforma', $filtro))
+            ->when(in_array($filtro, ['facebook', 'instagram', 'correo'], true), fn ($w) => $w->where('plataforma', $filtro))
             ->when($filtro === 'sin_leer', fn ($w) => $w->where('no_leidos', '>', 0))
             ->when(isset(RedConversacion::ETIQUETAS[$filtro]), fn ($w) => $w->where('etiqueta', $filtro))
             ->when($q !== '', fn ($w) => $w->where(fn ($x) => $x->where('contacto_nombre', 'like', "%$q%")->orWhere('contacto_usuario', 'like', "%$q%")->orWhere('ultimo_texto', 'like', "%$q%")))
@@ -68,7 +68,7 @@ class redesController extends Controller
         $cuentaSel = $this->cuentaElegida($request, $this->cuentas());
         return response()->json(RedConversacion::query()
             ->when($cuentaSel, fn ($w) => $w->where('cuenta_id', $cuentaSel))
-            ->when($filtro === 'facebook' || $filtro === 'instagram', fn ($w) => $w->where('plataforma', $filtro))
+            ->when(in_array($filtro, ['facebook', 'instagram', 'correo'], true), fn ($w) => $w->where('plataforma', $filtro))
             ->when($filtro === 'sin_leer', fn ($w) => $w->where('no_leidos', '>', 0))
             ->when(isset(RedConversacion::ETIQUETAS[$filtro]), fn ($w) => $w->where('etiqueta', $filtro))
             ->when($q !== '', fn ($w) => $w->where(fn ($x) => $x->where('contacto_nombre', 'like', "%$q%")->orWhere('contacto_usuario', 'like', "%$q%")->orWhere('ultimo_texto', 'like', "%$q%")))
@@ -91,7 +91,8 @@ class redesController extends Controller
             'id' => $c->id, 'plataforma' => $c->plataforma, 'nombre' => $c->nombre, 'usuario' => $c->contacto_usuario, 'foto' => $c->contacto_foto,
             'texto' => $c->ultimo_texto, 'cuando' => $c->ultimo_en?->locale('es')->diffForHumans(null, true, true), 'no_leidos' => $c->no_leidos,
             'etiqueta' => $c->etiqueta, 'cliente_id' => $c->cliente_id, 'puede' => $c->puede_responder,
-            'vence' => $c->ultimo_del_cliente_en ? $c->ultimo_del_cliente_en->copy()->addHours(24)->locale('es')->diffForHumans() : null,
+            'vence' => $c->vence_en?->locale('es')->diffForHumans(), 'horas' => \App\Support\Meta::ventanaHoras(),
+            'correo' => $c->plataforma === 'correo' ? $c->contacto_id : null, 'asunto' => $c->asunto,
         ];
     }
 
@@ -114,7 +115,20 @@ class redesController extends Controller
         $texto = trim((string) ($d['texto'] ?? ''));
         if ($texto === '' && empty($d['imagen'])) return response()->json(['message' => 'Escriba el mensaje.'], 422);
         if (!$conversacion->puede_responder) {
-            return response()->json(['message' => 'Pasaron más de 24 horas desde el último mensaje del cliente: Meta no deja responder por aquí. Escríbale por WhatsApp o espere a que vuelva a escribir.'], 422);
+            $plazo = \App\Support\Meta::ventanaHoras() > 24 ? '7 días' : '24 horas';
+            return response()->json(['message' => 'Pasaron más de ' . $plazo . ' desde el último mensaje del cliente: Meta no deja responder por aquí. Escríbale por WhatsApp o espere a que vuelva a escribir.'], 422);
+        }
+        // Correo: se responde en el mismo hilo (una foto de producto va como enlace)
+        if ($conversacion->plataforma === 'correo') {
+            $cuerpo = trim($texto . (!empty($d['imagen']) ? "\n\n" . $d['imagen'] : ''));
+            try {
+                $mid = \App\Support\Correo::enviar($conversacion, $cuerpo);
+            } catch (Throwable $e) {
+                return response()->json(['message' => $e->getMessage()], 422);
+            }
+            Meta::guardarMensaje($conversacion, $mid, false, $cuerpo, null, null, now(), Auth::id(), false);
+            if (in_array($conversacion->etiqueta, [null, 'nuevo'], true)) $conversacion->update(['etiqueta' => 'interesado']);
+            return response()->json(['ok' => true]);
         }
         try {
             $mids = [];
@@ -184,6 +198,10 @@ class redesController extends Controller
             foreach (RedCuenta::withoutGlobalScopes()->whereIn('id', $ids)->get() as $c) {
                 Meta::$avisos = [];
                 try {
+                    if ($c->es_correo) {
+                        \App\Support\Correo::sincronizar($c);
+                        continue;
+                    }
                     Meta::sincronizar($c);
                     if (Meta::$avisos) {
                         $c->update(['error' => mb_substr(Meta::sinLlaves(implode(' · ', array_unique(Meta::$avisos))), 0, 250)]);
@@ -214,7 +232,7 @@ class redesController extends Controller
     // ---------- Publicar ----------
     public function publicar()
     {
-        $cuentas = $this->cuentas();
+        $cuentas = $this->cuentas()->reject(fn ($c) => $c->es_correo)->values();
         if ($cuentas->isEmpty()) return redirect()->route('redes.index');
         return view('redes.publicar', [
             'cuentas' => $cuentas,
@@ -235,7 +253,7 @@ class redesController extends Controller
             'cuando' => 'nullable|in:ahora,programar',
             'programada_para' => 'nullable|date',
         ], ['imagen.image' => 'El archivo debe ser una foto (JPG o PNG).', 'imagen.max' => 'La foto pesa más de 8 MB.', 'texto.max' => 'El texto es muy largo (máximo 2.200 letras).']);
-        $cuenta = RedCuenta::whereKey($d['cuenta_id'])->firstOrFail();
+        $cuenta = RedCuenta::meta()->whereKey($d['cuenta_id'])->firstOrFail();
         $fb = (bool) ($d['en_facebook'] ?? false);
         $ig = (bool) ($d['en_instagram'] ?? false) && $cuenta->tiene_instagram;
         if (!$fb && !$ig) return back()->withInput()->withErrors('Elija dónde publicar: Facebook, Instagram o ambos.');
@@ -351,7 +369,7 @@ class redesController extends Controller
     public static function cupoRedes(): int
     {
         $max = max(1, (int) (TiendaActual::tienda()?->redes_max ?? 1));
-        return $max - RedCuenta::where('estado', '<>', 'desconectada')->count();
+        return $max - RedCuenta::meta()->where('estado', '<>', 'desconectada')->count();
     }
 
     public function elegir()
@@ -359,7 +377,7 @@ class redesController extends Controller
         $paginas = session('meta_paginas') ? decrypt(session('meta_paginas')) : [];
         if (!$paginas) return redirect()->route('redes.index');
         return view('redes.elegir', ['paginas' => $paginas, 'ya' => RedCuenta::pluck('page_id')->all(), 'cupo' => self::cupoRedes(),
-            'activas' => RedCuenta::where('estado', '<>', 'desconectada')->pluck('page_id')->all()]);
+            'activas' => RedCuenta::meta()->where('estado', '<>', 'desconectada')->pluck('page_id')->all()]);
     }
 
     public function guardarPaginas(Request $request)
@@ -368,7 +386,7 @@ class redesController extends Controller
         $ids = collect((array) $request->input('paginas'))->filter(fn ($id) => $paginas->has($id));
         if ($ids->isEmpty()) return back()->withErrors('Elija al menos una página.');
         // Las páginas que ya estaban conectadas se pueden reconectar; las nuevas cuentan contra el cupo
-        $activas = RedCuenta::where('estado', '<>', 'desconectada')->pluck('page_id')->map(fn ($x) => (string) $x)->all();
+        $activas = RedCuenta::meta()->where('estado', '<>', 'desconectada')->pluck('page_id')->map(fn ($x) => (string) $x)->all();
         $nuevas = $ids->reject(fn ($id) => in_array((string) $id, $activas, true));
         if ($nuevas->count() > self::cupoRedes()) {
             return back()->withErrors(self::cupoRedes() <= 0
@@ -395,7 +413,7 @@ class redesController extends Controller
 
     public function desconectar(RedCuenta $cuenta)
     {
-        Meta::desuscribir($cuenta);
+        if (!$cuenta->es_correo) Meta::desuscribir($cuenta);
         $cuenta->update(['estado' => 'desconectada', 'page_token' => '-']);
         return redirect()->route('redes.cuentas')->with('success', 'Se desconectó ' . $cuenta->page_nombre . '. Los chats guardados se conservan.');
     }
@@ -405,8 +423,51 @@ class redesController extends Controller
         $cuentas = RedCuenta::orderByRaw("estado = 'desconectada'")->orderBy('page_nombre')->get();
         // "Revisar mensajes": compara lo que tiene Meta con lo guardado, para saber si algo no está llegando
         $revision = request()->boolean('revisar') && Meta::activo()
-            ? $cuentas->where('estado', '<>', 'desconectada')->flatMap(fn ($c) => Meta::probarCuenta($c))->all() : null;
+            ? $cuentas->where('estado', '<>', 'desconectada')->reject(fn ($c) => $c->es_correo)->flatMap(fn ($c) => Meta::probarCuenta($c))->all() : null;
         return view('redes.cuentas', ['cuentas' => $cuentas, 'activo' => Meta::activo(), 'revision' => $revision,
-            'webhook' => \App\Models\Ajuste::valor('meta_ultimo_webhook')]);
+            'webhook' => \App\Models\Ajuste::valor('meta_ultimo_webhook'),
+            'proveedores' => \App\Support\Correo::PROVEEDORES,
+            'cupoCorreo' => self::MAX_CORREOS - RedCuenta::correo()->where('estado', '<>', 'desconectada')->count()]);
+    }
+
+    public const MAX_CORREOS = 2;
+
+    // Conectar un correo (Gmail, Outlook o el de su dominio) con contraseña de aplicación: se prueba antes de guardar
+    public function conectarCorreo(Request $request)
+    {
+        $d = $request->validate([
+            'proveedor' => 'required|in:' . implode(',', array_keys(\App\Support\Correo::PROVEEDORES)),
+            'email' => 'required|email|max:150',
+            'clave' => 'required|string|max:200',
+            'imap_host' => 'nullable|required_if:proveedor,otro|string|max:120',
+            'imap_port' => 'nullable|integer|min:1|max:65535',
+            'smtp_host' => 'nullable|required_if:proveedor,otro|string|max:120',
+            'smtp_port' => 'nullable|integer|min:1|max:65535',
+        ], ['email.email' => 'Escriba un correo válido.', 'clave.required' => 'Pegue la contraseña de aplicación.', 'imap_host.required_if' => 'Escriba el servidor IMAP.', 'smtp_host.required_if' => 'Escriba el servidor SMTP.']);
+        $email = mb_strtolower(trim($d['email']));
+        $ya = RedCuenta::correo()->where('page_id', 'correo:' . $email)->first();
+        if ((!$ya || $ya->estado === 'desconectada') && RedCuenta::correo()->where('estado', '<>', 'desconectada')->count() >= self::MAX_CORREOS) {
+            return back()->withInput($request->except('clave'))->withErrors('Puede conectar hasta ' . self::MAX_CORREOS . ' correos. Desconecte uno para agregar otro.');
+        }
+        $p = \App\Support\Correo::PROVEEDORES[$d['proveedor']];
+        $cfg = [
+            'proveedor' => $d['proveedor'], 'email' => $email, 'nombre' => TiendaActual::tienda()->nombre ?? null,
+            'usuario' => $email, 'clave' => preg_replace('/\s+/', '', $d['clave']), // Google muestra la clave con espacios
+            'imap_host' => $d['imap_host'] ?: $p[1], 'imap_port' => (int) ($d['imap_port'] ?: $p[2]),
+            'smtp_host' => $d['smtp_host'] ?: $p[3], 'smtp_port' => (int) ($d['smtp_port'] ?: $p[4]),
+            'smtp_cifrado' => (int) ($d['smtp_port'] ?: $p[4]) === 587 ? 'tls' : 'ssl',
+        ];
+        try {
+            \App\Support\Correo::probar($cfg);
+        } catch (Throwable $e) {
+            return back()->withInput($request->except('clave'))->withErrors('No se pudo conectar el correo: ' . \App\Support\Correo::limpiar($e->getMessage()));
+        }
+        $c = $ya ?? new RedCuenta();
+        $c->forceFill([
+            'tipo' => 'correo', 'page_id' => 'correo:' . $email, 'page_nombre' => $email, 'page_foto' => null,
+            'page_token' => json_encode($cfg), 'conectado_por' => Auth::id(), 'estado' => 'activa', 'error' => null,
+        ])->save();
+        self::sincronizarEnFondo(TiendaActual::id(), [$c->id]);
+        return redirect()->route('redes.cuentas')->with('success', '¡Listo! Se conectó ' . $email . '. Los correos nuevos van a aparecer en Mensajes en uno o dos minutos.');
     }
 }

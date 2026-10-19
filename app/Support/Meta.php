@@ -33,6 +33,12 @@ class Meta
     // La app de Meta ya pasó la revisión y está "en vivo": cualquier negocio puede conectar su página.
     // Mientras está en desarrollo, Facebook solo deja entrar a las personas agregadas como evaluadoras en la app,
     // a los demás les sale "La app no está disponible… podrás iniciar sesión cuando esta se reactive".
+    // Horas para responder: 24 (regla de Meta) o 168 = 7 días si Meta aprobó el permiso de "Agente humano"
+    public static function ventanaHoras(): int
+    {
+        return (string) \App\Models\Ajuste::valor('meta_agente_humano') === '1' ? 168 : 24;
+    }
+
     public static function enVivo(): bool
     {
         return (string) \App\Models\Ajuste::valor('meta_en_vivo') === '1';
@@ -87,6 +93,7 @@ class Meta
             ? $cfg . ' · sin esto Facebook muestra "permisos no válidos" en apps de tipo Empresa.'
             : 'Falta: péguela abajo. Está en developers.facebook.com → su app → Inicio de sesión con Facebook para empresas → Configuraciones.'];
         $f[] = [true, 'Versión de la API', self::v()];
+        $f[] = [null, 'Plazo para responder', self::ventanaHoras() > 24 ? '7 días (permiso de Agente humano activado).' : '24 horas. Con el permiso "Agente humano" aprobado por Meta se amplía a 7 días (actívelo abajo cuando lo aprueben).'];
         $f[] = [filled(config('services.meta.verify_token')), 'Token del webhook (META_VERIFY_TOKEN)', config('services.meta.verify_token') ? 'Configurado' : 'Falta: sin esto no llegan los mensajes en tiempo real.'];
         $f[] = [null, 'URI de retorno que debe estar en Meta', route('redes.callback') . ' (Inicio de sesión con Facebook para empresas → Configuración → URI de redireccionamiento de OAuth válidos).'];
         if (self::enVivo()) {
@@ -98,7 +105,7 @@ class Meta
         $hook = \App\Models\Ajuste::valor('meta_ultimo_webhook');
         $f[] = [$hook ? (str_contains($hook, 'INVÁLIDA') ? false : true) : null, 'Último aviso de Meta recibido (webhook)', $hook ?: 'Nunca ha llegado un aviso de Meta. Revise en Meta → Webhooks que la URL sea ' . url('/webhooks/meta') . ' y que esté suscrita a "messages" (Page e Instagram).'];
         // Prueba de lectura con cada cuenta conectada: el chat más reciente que entrega Meta vs. el último guardado
-        foreach (RedCuenta::withoutGlobalScopes()->where('estado', '<>', 'desconectada')->get() as $c) {
+        foreach (RedCuenta::withoutGlobalScopes()->meta()->where('estado', '<>', 'desconectada')->get() as $c) {
             array_push($f, ...self::probarCuenta($c));
         }
         $ultimo = \App\Models\Ajuste::valor('meta_ultimo_error');
@@ -361,6 +368,11 @@ class Meta
         $msg = $imagenUrl ? ['attachment' => ['type' => 'image', 'payload' => ['url' => $imagenUrl, 'is_reusable' => true]]] : ['text' => $texto];
         $p = ['recipient' => ['id' => $cv->contacto_id], 'message' => $msg];
         if ($cv->plataforma === 'facebook') $p['messaging_type'] = 'RESPONSE';
+        // Pasadas las 24 horas (y hasta 7 días), una persona puede responder con la etiqueta de "Agente humano"
+        if (self::ventanaHoras() > 24 && $cv->ultimo_del_cliente_en && $cv->ultimo_del_cliente_en->lt(now()->subHours(24))) {
+            $p['messaging_type'] = 'MESSAGE_TAG';
+            $p['tag'] = 'HUMAN_AGENT';
+        }
         $r = self::post($c->page_id . '/messages', $p + ['access_token' => $c->page_token], true);
         return (string) ($r['message_id'] ?? '');
     }
@@ -378,7 +390,7 @@ class Meta
         $esIg = ($ev['object'] ?? '') === 'instagram';
         foreach ($ev['entry'] ?? [] as $entry) {
             $propio = (string) ($entry['id'] ?? '');
-            $cuentas = RedCuenta::withoutGlobalScopes()->where($esIg ? 'ig_id' : 'page_id', $propio)->where('estado', '<>', 'desconectada')->get();
+            $cuentas = RedCuenta::withoutGlobalScopes()->meta()->where($esIg ? 'ig_id' : 'page_id', $propio)->where('estado', '<>', 'desconectada')->get();
             foreach ($cuentas as $c) {
                 TiendaActual::set($c->tienda_id);
                 foreach ($entry['messaging'] ?? [] as $m) {

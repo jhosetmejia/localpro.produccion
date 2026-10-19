@@ -94,7 +94,7 @@
         @if ($c->estado === 'error')
         <div class="alert alert-danger d-flex align-items-center gap-2 flex-wrap"><i class="fa-solid fa-triangle-exclamation"></i>
             <span><b>{{ $c->page_nombre }}</b>: {{ $c->error ?: 'la conexión con Meta falló.' }}</span>
-            @can('editar-negocio')<a href="{{ route('redes.conectar') }}" class="btn btn-sm btn-dark ms-auto">Volver a conectar</a>@endcan
+            @can('editar-negocio')<a href="{{ $c->es_correo ? route('redes.cuentas') . '#correo' : route('redes.conectar') }}" class="btn btn-sm btn-dark ms-auto">Volver a conectar</a>@endcan
         </div>
         @elseif ($c->error)
         <div class="alert alert-warning small mb-2"><i class="fa-solid fa-circle-exclamation me-1"></i><b>{{ $c->page_nombre }}</b>: {{ $c->error }}
@@ -112,7 +112,7 @@
         @php $nl = (int) ($sinLeerPorCuenta[$c->id] ?? 0); @endphp
         <a href="{{ route('redes.index', ['cuenta' => $c->id]) }}" class="rc-tab {{ (int) $cuentaSel === (int) $c->id ? 'on' : '' }}" role="tab">
             @if ($c->page_foto || $c->ig_foto)<img src="{{ $c->ig_foto ?: $c->page_foto }}" alt="" loading="lazy">@else<span class="rc-ini">{{ mb_substr($c->page_nombre, 0, 1) }}</span>@endif
-            <span class="rc-tx"><b>{{ $c->page_nombre }}</b><small>{{ $c->ig_usuario ? '@' . $c->ig_usuario : 'Facebook' }}</small></span>
+            <span class="rc-tx"><b>{{ $c->es_correo ? '✉️ Correo' : $c->page_nombre }}</b><small>{{ $c->es_correo ? $c->page_nombre : ($c->ig_usuario ? '@' . $c->ig_usuario : 'Facebook') }}</small></span>
             @if ($nl)<span class="rc-nl">{{ $nl }}</span>@endif
         </a>
         @endforeach
@@ -124,7 +124,7 @@
             <div class="ib-lh">
                 <input id="ibQ" class="form-control" placeholder="Buscar chat…" value="{{ $q }}">
                 <div class="ib-fil" id="ibFil">
-                    @foreach (['todos' => 'Todos', 'sin_leer' => 'Sin leer', 'facebook' => 'Facebook', 'instagram' => 'Instagram'] + collect($et)->map(fn ($e) => $e[0])->all() as $k => $v)
+                    @foreach (['todos' => 'Todos', 'sin_leer' => 'Sin leer', 'facebook' => 'Facebook', 'instagram' => 'Instagram'] + ($cuentas->contains(fn ($c) => $c->es_correo) ? ['correo' => 'Correo'] : []) + collect($et)->map(fn ($e) => $e[0])->all() as $k => $v)
                     <button type="button" data-f="{{ $k }}" class="{{ $filtro === $k ? 'on' : '' }}">{{ $v }}</button>
                     @endforeach
                 </div>
@@ -184,7 +184,7 @@
     var ET = @json($etJs);
     var filtro = @json($filtro), actual = @json($actual), cuenta = @json($cuentaSel), ultimo = 0, conv = null, tl, tm;
     var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); };
-    var av = function (c) { return (c.foto ? '<img src="' + esc(c.foto) + '" alt="" onerror="this.outerHTML=\'<span class=ini>' + esc((c.nombre || '?').charAt(0)) + '</span>\'">' : '<span class="ini">' + esc((c.nombre || '?').charAt(0).toUpperCase()) + '</span>') + '<span class="rd-ico ' + c.plataforma + '"><i class="fa-brands fa-' + (c.plataforma === 'instagram' ? 'instagram' : 'facebook-f') + '"></i></span>'; };
+    var av = function (c) { return (c.foto ? '<img src="' + esc(c.foto) + '" alt="" onerror="this.outerHTML=\'<span class=ini>' + esc((c.nombre || '?').charAt(0)) + '</span>\'">' : '<span class="ini">' + esc((c.nombre || '?').charAt(0).toUpperCase()) + '</span>') + '<span class="rd-ico ' + c.plataforma + '"><i class="' + (c.plataforma === 'correo' ? 'fa-solid fa-envelope' : 'fa-brands fa-' + (c.plataforma === 'instagram' ? 'instagram' : 'facebook-f')) + '"></i></span>'; };
     var json = function (url, opt) { return fetch(url, Object.assign({ headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF } }, opt || {})).then(function (r) { return r.json().then(function (d) { if (!r.ok) throw d; return d; }); }); };
 
     function cargarLista() {
@@ -202,13 +202,14 @@
     function pintarConv(c) {
         conv = c;
         $('hAv').innerHTML = av(c); $('hNom').textContent = c.nombre;
-        $('hSub').textContent = (c.plataforma === 'instagram' ? 'Instagram' : 'Facebook Messenger') + (c.usuario ? ' · @' + c.usuario : '');
+        $('hSub').textContent = c.plataforma === 'correo' ? 'Correo · ' + (c.correo || '') + (c.asunto ? ' · ' + c.asunto : '') : (c.plataforma === 'instagram' ? 'Instagram' : 'Facebook Messenger') + (c.usuario ? ' · @' + c.usuario : '');
         $('hEt').value = c.etiqueta || '';
         $('hCli').style.display = c.cliente_id ? 'none' : ''; $('hVerCli').style.display = c.cliente_id ? '' : 'none';
         if (c.cliente_id) $('hVerCli').href = R.cliente + c.cliente_id;
         var b = $('ib24');
-        if (!c.puede) { b.style.display = ''; b.className = 'ib-24 no'; b.innerHTML = '⏰ Pasaron más de 24 horas desde el último mensaje del cliente. Meta no deja responder por aquí hasta que vuelva a escribir. Si tiene su WhatsApp, escríbale por allá.'; }
-        else if (c.vence && /hora|minuto/.test(c.vence) && !/día/.test(c.vence)) { b.style.display = ''; b.className = 'ib-24'; b.textContent = '⏳ Puede responder hasta ' + c.vence + ' (después Meta no deja contestar).'; }
+        var plazo = c.horas > 24 ? '7 días' : '24 horas';
+        if (!c.puede) { b.style.display = ''; b.className = 'ib-24 no'; b.innerHTML = '⏰ Pasaron más de ' + plazo + ' desde el último mensaje del cliente. Meta no deja responder por aquí hasta que vuelva a escribir. Si tiene su WhatsApp, escríbale por allá.'; }
+        else if (c.plataforma !== 'correo' && c.vence && (c.horas > 24 ? /hora|minuto|1 día/.test(c.vence) : /hora|minuto/.test(c.vence) && !/día/.test(c.vence))) { b.style.display = ''; b.className = 'ib-24'; b.textContent = '⏳ Puede responder hasta ' + c.vence + ' (después Meta no deja contestar).'; }
         else b.style.display = 'none';
         $('ibTxt').disabled = !c.puede; $('ibEnv').disabled = !c.puede; $('ibProd').disabled = !c.puede;
     }

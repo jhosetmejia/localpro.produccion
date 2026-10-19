@@ -25,6 +25,7 @@ class adminPlanController extends Controller
             'metaEnVivo' => (string) Ajuste::valor('meta_en_vivo') === '1',
             'metaPrueba' => Ajuste::valor('meta_tiendas_prueba'),
             'metaConfigId' => Ajuste::valor('meta_config_id'),
+            'metaAgente' => (string) Ajuste::valor('meta_agente_humano') === '1',
             'metaVersion' => Ajuste::valor('meta_graph_version'),
             'metaDiag' => request()->boolean('revisar_meta') ? \App\Support\Meta::diagnostico() : null,
             'wompi' => planController::wompiActivo(),
@@ -88,6 +89,7 @@ class adminPlanController extends Controller
         if ($request->has('ejemplos_tiendas')) Ajuste::guardar(asesorEjemplosController::AJUSTE, mb_substr(strtoupper(preg_replace('/[^A-Za-z0-9,\-]/', '', str_replace([' ', ';'], ',', (string) $request->input('ejemplos_tiendas')))), 0, 300));
         if ($request->has('meta_config_id')) Ajuste::guardar('meta_config_id', preg_replace('/\D/', '', (string) $request->input('meta_config_id')));
         if ($request->has('meta_graph_version')) Ajuste::guardar('meta_graph_version', trim((string) $request->input('meta_graph_version')));
+        Ajuste::guardar('meta_agente_humano', $request->boolean('meta_agente_humano') ? '1' : '');
         Ajuste::guardar('meta_en_vivo', $request->boolean('meta_en_vivo') ? '1' : '');
         Ajuste::guardar('meta_tiendas_prueba', mb_substr(strtoupper(preg_replace('/[^A-Za-z0-9,\-]/', '', str_replace([' ', ';', "\n"], ',', (string) $request->input('meta_tiendas_prueba')))), 0, 2000));
         return back()->with('success', 'Planes guardados.');

@@ -314,6 +314,7 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::delete('/mis-redes/publicaciones/{publicacion}', [redesController::class, 'borrarPublicacion'])->whereNumber('publicacion')->name('redes.publicacion.borrar');
     Route::get('/mis-redes/cuentas', [redesController::class, 'cuentasVista'])->name('redes.cuentas');
     Route::get('/mis-redes/conectar', [redesController::class, 'conectar'])->name('redes.conectar');
+    Route::post('/mis-redes/correo', [redesController::class, 'conectarCorreo'])->middleware('throttle:10,1')->name('redes.correo');
     Route::get('/mis-redes/conectar/retorno', [redesController::class, 'callback'])->name('redes.callback');
     Route::get('/mis-redes/conectar/paginas', [redesController::class, 'elegir'])->name('redes.elegir');
     Route::post('/mis-redes/conectar/paginas', [redesController::class, 'guardarPaginas'])->name('redes.elegir.guardar');

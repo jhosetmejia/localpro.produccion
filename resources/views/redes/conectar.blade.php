@@ -39,6 +39,7 @@
             @else
             <div class="alert alert-warning mb-0" style="max-width:520px;position:relative;z-index:1"><b>Muy pronto.</b> Estamos activando la conexión con Facebook e Instagram para todos los negocios.</div>
             @endif
+            <a href="{{ route('redes.cuentas') }}#correo" class="d-inline-block mt-2 fw-bold" style="position:relative;z-index:1;color:inherit"><i class="fa-solid fa-envelope me-1"></i>También puede conectar su correo (Gmail, Outlook…)</a>
         @else
         <div class="alert alert-light mb-0" style="max-width:520px;position:relative;z-index:1">El dueño del negocio debe conectar las cuentas desde su usuario.</div>
         @endcan

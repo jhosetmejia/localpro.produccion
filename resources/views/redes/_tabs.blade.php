@@ -19,6 +19,6 @@
 .rd-tabs .n{background:#ff3b6b;color:#fff;border-radius:999px;font-size:.72rem;padding:.05rem .45rem;min-width:20px;text-align:center}
 .rd-fb{color:#1877f2}.rd-ig{background:linear-gradient(45deg,#f9a825,#e91e63,#8e24aa);-webkit-background-clip:text;background-clip:text;color:transparent}
 .rd-ico{width:20px;height:20px;border-radius:6px;display:inline-grid;place-items:center;color:#fff;font-size:.72rem;flex:none}
-.rd-ico.facebook{background:#1877f2}.rd-ico.instagram{background:linear-gradient(45deg,#f9a825,#e91e63 55%,#8e24aa)}
+.rd-ico.facebook{background:#1877f2}.rd-ico.instagram{background:linear-gradient(45deg,#f9a825,#e91e63 55%,#8e24aa)}.rd-ico.correo{background:#ea4335}
 </style>
 @endonce

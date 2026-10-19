@@ -23,6 +23,15 @@
         <ul class="lp-list">
             @forelse ($cuentas as $c)
             <li style="{{ $c->estado === 'desconectada' ? 'opacity:.55' : '' }}">
+                @if ($c->es_correo)
+                <div class="av" style="background:#fdecea;color:#ea4335"><i class="fa-solid fa-envelope"></i></div>
+                <div class="t">
+                    <b>{{ $c->page_nombre }}</b>
+                    <small><span class="rd-ico correo" style="width:16px;height:16px;font-size:.55rem"><i class="fa-solid fa-envelope"></i></span> Correo ({{ \App\Support\Correo::PROVEEDORES[$c->correo_config['proveedor'] ?? 'otro'][0] ?? 'Correo' }})
+                        · {{ $c->sincronizado_en ? 'revisado ' . $c->sincronizado_en->locale('es')->diffForHumans() : 'conectado ' . $c->created_at->format('d/m/Y') }}</small>
+                    @if ($c->estado === 'error')<small class="d-block" style="color:#b0173f"><i class="fa-solid fa-triangle-exclamation me-1"></i>{{ $c->error }} — vuelva a conectarlo abajo.</small>@endif
+                </div>
+                @else
                 <div class="av" style="overflow:hidden">@if ($c->page_foto)<img src="{{ $c->page_foto }}" alt="" style="width:100%;height:100%;object-fit:cover">@else<i class="fa-brands fa-facebook-f"></i>@endif</div>
                 <div class="t">
                     <b>{{ $c->page_nombre }}</b>
@@ -31,6 +40,7 @@
                         · {{ $c->sincronizado_en ? 'actualizada ' . $c->sincronizado_en->locale('es')->diffForHumans() : 'conectada ' . $c->created_at->format('d/m/Y') }}</small>
                     @if ($c->estado === 'error')<small class="d-block" style="color:#b0173f"><i class="fa-solid fa-triangle-exclamation me-1"></i>{{ $c->error }} — vuelva a conectarla.</small>@endif
                 </div>
+                @endif
                 @if ($c->estado === 'desconectada')
                 <span class="badge bg-secondary">Desconectada</span>
                 @else
@@ -53,6 +63,46 @@
         @endif
         <p class="small text-muted mt-3 mb-1"><i class="fa-solid fa-layer-group me-1"></i>Cada negocio conecta <b>{{ $maxR === 1 ? 'una página de Facebook' : $maxR . ' páginas de Facebook' }}</b> con su Instagram. Si la cuenta falla, vuelva a conectarla con <a href="{{ route('redes.conectar', ['reconectar' => 1]) }}">Reconectar</a>.</p>
         <p class="small text-muted mt-0 mb-0"><i class="fa-solid fa-circle-info me-1"></i>¿No aparece su Instagram? Debe ser <b>cuenta profesional</b> y estar <b>vinculada a la página</b> de Facebook. Vincúlela y toque "Reconectar" para actualizar.</p>
+    </div>
+
+    {{-- Correo en la bandeja (opcional) --}}
+    <div class="lp-box mt-3" id="correo">
+        <h3><span><i class="fa-solid fa-envelope me-1" style="color:#ea4335"></i>Correo en Mis redes <small class="text-muted fw-semibold">(opcional)</small></span></h3>
+        <p class="text-muted small mb-2">Los correos que le lleguen a su Gmail, Outlook o al correo de su negocio aparecen en <b>Mensajes</b> junto a Facebook e Instagram, y los responde desde aquí. Se usa una <b>contraseña de aplicación</b> (no su clave normal): la puede borrar cuando quiera desde su cuenta de correo.</p>
+        @if ($cupoCorreo > 0)
+        <form method="post" action="{{ route('redes.correo') }}" class="row g-2" id="fCorreo" autocomplete="off">
+            @csrf
+            <div class="col-md-4"><label class="form-label small fw-bold mb-1">Su correo es de</label>
+                <select name="proveedor" id="cProv" class="form-select" data-nativo>@foreach ($proveedores as $k => $p)<option value="{{ $k }}" data-ayuda="{{ $p[6] }}" @selected(old('proveedor', 'gmail') === $k)>{{ $p[0] }}</option>@endforeach</select></div>
+            <div class="col-md-4"><label class="form-label small fw-bold mb-1">Correo</label><input type="email" name="email" class="form-control" value="{{ old('email') }}" placeholder="sunegocio@gmail.com" required></div>
+            <div class="col-md-4"><label class="form-label small fw-bold mb-1">Contraseña de aplicación</label><input type="password" name="clave" class="form-control" placeholder="xxxx xxxx xxxx xxxx" required autocomplete="new-password"></div>
+            <div class="col-12 row g-2 m-0 p-0" id="cOtro" style="{{ old('proveedor') === 'otro' ? '' : 'display:none' }}">
+                <div class="col-md-4"><label class="form-label small fw-bold mb-1">Servidor IMAP (leer)</label><input name="imap_host" class="form-control" value="{{ old('imap_host') }}" placeholder="mail.sunegocio.com"></div>
+                <div class="col-md-2"><label class="form-label small fw-bold mb-1">Puerto</label><input name="imap_port" type="number" class="form-control" value="{{ old('imap_port', 993) }}"></div>
+                <div class="col-md-4"><label class="form-label small fw-bold mb-1">Servidor SMTP (enviar)</label><input name="smtp_host" class="form-control" value="{{ old('smtp_host') }}" placeholder="mail.sunegocio.com"></div>
+                <div class="col-md-2"><label class="form-label small fw-bold mb-1">Puerto</label><input name="smtp_port" type="number" class="form-control" value="{{ old('smtp_port', 465) }}"></div>
+            </div>
+            <div class="col-12 small text-muted" id="cAyuda">
+                <b>Gmail:</b> active la verificación en dos pasos y cree la contraseña en <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener" id="cLink">myaccount.google.com/apppasswords</a> (póngale de nombre "LocalPro"). Copie las 16 letras y péguelas aquí.
+            </div>
+            <div class="col-12"><button class="btn btn-dark"><i class="fa-solid fa-plug me-1"></i>Probar y conectar</button></div>
+        </form>
+        <script>
+        (function () {
+            var s = document.getElementById('cProv'), o = document.getElementById('cOtro'), a = document.getElementById('cAyuda');
+            var txt = {
+                gmail: '<b>Gmail:</b> active la verificación en dos pasos y cree la contraseña en <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener">myaccount.google.com/apppasswords</a> (nombre: "LocalPro"). Copie las 16 letras y péguelas aquí.',
+                outlook: '<b>Outlook / Hotmail:</b> active la verificación en dos pasos y cree una contraseña de aplicación en <a href="https://account.live.com/proofs/AppPassword" target="_blank" rel="noopener">account.live.com</a>.',
+                yahoo: '<b>Yahoo:</b> en Seguridad de la cuenta, toque "Generar contraseña de aplicación" en <a href="https://login.yahoo.com/account/security" target="_blank" rel="noopener">login.yahoo.com</a>.',
+                otro: '<b>Correo de su dominio:</b> pídale a su proveedor de hosting los datos IMAP y SMTP (casi siempre puerto 993 para leer y 465 para enviar) y use la clave de ese correo.'
+            };
+            function poner() { o.style.display = s.value === 'otro' ? '' : 'none'; a.innerHTML = txt[s.value] || ''; }
+            s.addEventListener('change', poner); poner();
+        })();
+        </script>
+        @else
+        <p class="small fw-semibold mb-0" style="color:#11702f"><i class="fa-solid fa-circle-check me-1"></i>Ya tiene conectados {{ \App\Http\Controllers\redesController::MAX_CORREOS }} correos (el máximo).</p>
+        @endif
     </div>
 </div>
 @endsection
