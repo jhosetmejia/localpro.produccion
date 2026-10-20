@@ -37,6 +37,8 @@ class contactarController extends Controller
      * - Negocio del súper admin o venta directa de LocalPro → todos los asesores de LocalPro.
      * - Dueño que es de la red (asesor o líder) → la gente de su red.
      * - Negocio que trajo un asesor → ese asesor y la gente de su red.
+     * - Cualquier otro negocio → los asesores de LocalPro.
+     * La opción la ven siempre el dueño y los administradores de la tienda.
      */
     private function compartirCon(): ?array
     {
@@ -47,7 +49,8 @@ class contactarController extends Controller
         if ($u->es_superadmin || $duenoSuper || $t?->venta_directa_id) return ['asesor_id' => null, 'texto' => 'todos los asesores de LocalPro'];
         if ($a = $u->asesor) return ['asesor_id' => $a->id, 'texto' => 'los asesores de su red'];
         if ($t?->asesor_id) return ['asesor_id' => (int) $t->asesor_id, 'texto' => 'su asesor de LocalPro y el equipo de su asesor'];
-        return null;
+        // Negocio sin asesor: se comparte con los asesores de LocalPro
+        return ['asesor_id' => null, 'texto' => 'los asesores de LocalPro'];
     }
 
     // Activar o quitar "Compartir mi base de datos con mis asesores"
