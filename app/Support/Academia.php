@@ -389,6 +389,34 @@ class Academia
                 ],
             ],
 
+            // Solo aparece en institutos y academias (y para los asesores, que lo venden)
+            'instituto' => [
+                'titulo' => 'Su instituto en LocalPro', 'icono' => 'fa-graduation-cap', 'color' => '#6366f1', 'para' => ['todos', 'asesor'], 'modulo' => 'es_instituto',
+                'resumen' => 'Programas, inscripciones, matrículas de contado o a crédito, cuotas, recibos y cartera de estudiantes.',
+                'lecciones' => [
+                    ['titulo' => 'Programas e inscripciones', 'min' => 3, 'accion' => ['instituto.programas', 'Ver programas'], 'contenido' => [
+                        'En <b>Programas</b> cree los técnicos o cursos que ofrece, con la duración y el <b>valor del semestre y de la inscripción</b>. Puede cargar los de ejemplo y editarlos.',
+                        'En <b>Nueva inscripción</b> llena el mismo formulario de papel: datos personales, trabajo, estudios y acudiente. El consecutivo sale solo.',
+                        'Marque las <b>autorizaciones</b> de datos personales (Ley 1581 de 2012) y de uso de imagen. Con un botón imprime el formulario lleno para que lo firme.',
+                    ], 'tip' => 'Si el programa tiene valor de inscripción, el cobro queda cargado al aspirante desde el primer día.'],
+                    ['titulo' => 'La matrícula y las cuotas', 'min' => 3, 'accion' => ['instituto.estudiantes', 'Ver estudiantes'], 'contenido' => [
+                        'En la ficha del estudiante toque <b>Matricular</b>: programa, periodo, semestre, jornada y módulos pendientes.',
+                        'Elija <b>contado</b> (un solo cobro) o <b>crédito</b>: escriba la cuota inicial y en cuántas cuotas paga el resto. El sistema arma las cuotas con la fecha de pago de cada mes.',
+                        'Imprima el <b>formato de matrícula</b> lleno, con las autorizaciones y las firmas.',
+                    ], 'tip' => 'Las cuotas vencen el día que usted elija (por defecto el 5: se pagan del 1 al 5 de cada mes).'],
+                    ['titulo' => 'Pagos, recibos y cartera', 'min' => 2, 'accion' => ['instituto.cartera', 'Ver cartera'], 'contenido' => [
+                        'En la ficha del estudiante registre cada pago: se aplica a la cuota más antigua y sale un <b>recibo numerado</b> para imprimir o enviar por WhatsApp.',
+                        'En <b>Cartera y morosos</b> ve quién debe, cuánto y desde hace cuántos días, y le recuerda por WhatsApp con un toque.',
+                        'Solo el dueño o el administrador pueden anular recibos, cobros o matrículas.',
+                    ], 'tip' => 'Recuerde los pagos los primeros días del mes: así casi nadie se atrasa.'],
+                ],
+                'prueba' => [
+                    ['p' => 'Un estudiante paga el semestre en cuotas. ¿Qué elijo al matricularlo?', 'o' => ['Crédito, con la cuota inicial y el número de cuotas', 'Contado', 'No se puede'], 'r' => 0],
+                    ['p' => '¿Dónde veo quién está atrasado con las cuotas?', 'o' => ['En Cartera y morosos', 'En Programas', 'En ningún lado'], 'r' => 0],
+                    ['p' => 'Al registrar un pago, ¿a qué cuota se aplica?', 'o' => ['A la más antigua primero', 'A la última', 'A ninguna'], 'r' => 0],
+                ],
+            ],
+
             // Solo aparece en negocios con el módulo Consultorio (y para los asesores, que lo venden)
             'consultorio' => [
                 'titulo' => 'Su consultorio en LocalPro', 'icono' => 'fa-user-doctor', 'color' => '#0ea5e9', 'para' => ['todos', 'asesor'], 'modulo' => 'mod_consultorio',

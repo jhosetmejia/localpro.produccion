@@ -141,11 +141,13 @@
                 @endforeach
                 @can('editar-negocio')
                 <a class="nav-link {{ $on('negocio.*') }}" href="{{ route('negocio.edit') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-gear"></i></div>Datos del instituto</a>
+                <a class="nav-link {{ $on('beneficios.*') }}" href="{{ route('beneficios.index') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-gift"></i></div>Comparta y gane</a>
                 <a class="nav-link {{ $on('plan.*') }}" href="{{ route('plan.index') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-gem"></i></div>Mi plan</a>
                 @endcan
                 @can('ver-user')
                 <a class="nav-link {{ $on('users.*') }}" href="{{ route('users.index') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-user-gear"></i></div>Usuarios</a>
                 @endcan
+                <a class="nav-link {{ $on('aprende.*') }}" href="{{ route('aprende.index') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-graduation-cap"></i></div>Aprende</a>
                 @elseif ($tiendaMenu && $tiendaMenu->es_conjunto)
                 <div class="sb-sidenav-menu-heading">Administración</div>
                 @php $menuConj = [
