@@ -20,7 +20,7 @@ class menuController extends Controller
         $tienda = $this->tienda();
         return view('negocio.menu', [
             'tienda' => $tienda,
-            'grupos' => collect(Tienda::MENU_OPCIONAL)->groupBy(fn ($x) => $x[2], true),
+            'grupos' => collect(Tienda::MENU_OPCIONAL)->when(!$tienda->usa_tiquetera, fn ($c) => $c->forget('tiquetera'))->groupBy(fn ($x) => $x[2], true),
             'sugerido' => Tienda::MENU_OCULTO_POR_TIPO[$tienda->tipo_negocio] ?? [],
         ]);
     }

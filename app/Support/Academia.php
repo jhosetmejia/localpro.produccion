@@ -186,6 +186,7 @@ class Academia
                         'Elija siempre el <b>método de pago real</b>: si pagó por Nequi, márquelo como Nequi, no como efectivo. Al cierre, eso es lo que cuadra.',
                         'Si el cliente paga con billete grande, LocalPro le dice cuánto devolver.',
                         'Para dejar un producto apartado use <b>Separados</b>: el cliente abona y se le entrega al completar.',
+                        '¿Restaurante o cafetería? Venda <b>tiqueteras</b> (por ejemplo, 20 almuerzos pagados por adelantado) en el menú <b>Tiquetera</b>: cada día busca al cliente y toca <b>Marcar almuerzo</b>, sin volver a cobrarle.',
                     ], 'tip' => 'Revise la transferencia en su celular ANTES de entregar el producto.'],
                     ['titulo' => 'Devoluciones y cambios', 'min' => 2, 'accion' => ['pos.ventas', 'Ver ventas'], 'contenido' => [
                         'Busque la venta original y haga la <b>devolución</b> desde ahí: el producto vuelve al inventario y la plata sale de la caja.',

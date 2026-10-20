@@ -196,6 +196,13 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-cash-register"></i></div>
                     Vender (POS)
                 </a>@endif
+                @if ($tiendaMenu?->usa_tiquetera && $ver('tiquetera') && \Illuminate\Support\Facades\Route::has('tiqueteras.index'))
+                @php $tqAct = \Illuminate\Support\Facades\Schema::hasTable('tiqueteras') ? \App\Models\Tiquetera::where('estado', 'activa')->count() : 0; @endphp
+                <a class="nav-link {{ $on('tiqueteras.*') }}" href="{{ route('tiqueteras.index') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-ticket"></i></div>
+                    Tiquetera @if ($tqAct)<span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c">{{ $tqAct }}</span>@endif
+                </a>
+                @endif
                 @php $sepAct = \Illuminate\Support\Facades\Schema::hasTable('separados') ? \App\Models\Separado::where('estado', 'activo')->count() : 0; @endphp
                 @if ($ver('separados'))<a class="nav-link {{ $on('separados.*') }}" href="{{ route('separados.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-box-archive"></i></div>

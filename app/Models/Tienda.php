@@ -44,6 +44,7 @@ class Tienda extends Model
         'contabilidad' => ['Contabilidad (retenciones e IVA)', 'fa-calculator', 'Inicio', 'Cruce DIAN vs. contabilidad y borrador del 350'],
         'pos' => ['Vender (POS)', 'fa-cash-register', 'Inicio', 'La caja para cobrar'],
         'separados' => ['Separados y abonos', 'fa-box-archive', 'Inicio', 'Apartar productos con abonos'],
+        'tiquetera' => ['Tiquetera', 'fa-ticket', 'Inicio', 'Almuerzos o servicios prepagados (restaurantes y cafeterías)'],
         'egresos' => ['Egresos', 'fa-arrow-trend-down', 'Inicio', 'Gastos y pagos del negocio'],
         'alquiler' => ['Alquiler', 'fa-calendar-days', 'Inicio', 'Alquiler de equipos, trajes, salones…'],
         'caja' => ['Mi caja', 'fa-vault', 'Inicio', 'Abrir y cerrar la caja del turno'],
@@ -66,6 +67,8 @@ class Tienda extends Model
 
     // Lo que se esconde de entrada según el tipo de negocio (el dueño lo puede volver a mostrar)
     public const MENU_OCULTO_POR_TIPO = [
+        'restaurante' => ['separados'],
+        'cafeteria' => ['separados'],
         'funeraria' => ['separados', 'existencias', 'entradas', 'categorias'],
         'contable' => ['separados', 'existencias', 'entradas', 'categorias', 'catalogo', 'redes'],
         'consultorio' => ['separados', 'existencias', 'entradas', 'categorias', 'catalogo'],
@@ -340,6 +343,14 @@ class Tienda extends Model
     }
 
     // ¿Se muestra esta sección en el menú?
+    // La Tiquetera es para restaurantes y cafeterías
+    public const TIPOS_TIQUETERA = ['restaurante', 'cafeteria'];
+
+    public function getUsaTiqueteraAttribute(): bool
+    {
+        return in_array($this->tipo_negocio, self::TIPOS_TIQUETERA, true);
+    }
+
     public function enMenu(string $clave): bool
     {
         return !in_array($clave, (array) ($this->menu_oculto ?? []), true);

@@ -6,6 +6,24 @@
 // palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
+    'tiquetera-de-almuerzos-para-restaurantes' => [
+        'titulo' => 'Tiquetera digital para restaurantes: venda almuerzos por adelantado y descuéntelos con un toque',
+        'resumen' => 'Olvídese de la tarjeta de cartón que se pierde. En LocalProo vende la tiquetera (por ejemplo, 20 almuerzos), el pago entra a la caja y cada día marca el almuerzo del cliente; él recibe por WhatsApp cuántos le quedan.',
+        'fecha' => '20 de octubre de 2026',
+        'publicado' => '2026-10-20',
+        'minutos' => 3,
+        'icono' => 'fa-ticket',
+        'rol' => 'negocios',
+        'seo_titulo' => 'Tiquetera de almuerzos digital para restaurantes | LocalProo',
+        'descripcion' => 'Venda tiqueteras de almuerzos prepagados, descuente cada consumo con un toque y avise al cliente por WhatsApp cuántos le quedan. La venta cuadra en la caja.',
+        'keywords' => ['tiquetera de almuerzos', 'tiquetera restaurante', 'almuerzos prepagados', 'tarjeta de almuerzos restaurante', 'software para restaurantes', 'almuerzo ejecutivo tiquetera'],
+        'faq' => [
+            ['¿Dónde está la tiquetera?', 'En el menú Tiquetera, que sale en los negocios de tipo restaurante y cafetería (en lugar de Separados y abonos).'],
+            ['¿El pago de la tiquetera cuadra en la caja?', 'Sí. Al venderla, el pago entra a su caja como una venta, con el método de pago que use el cliente. Cuando el cliente consume no se cobra de nuevo.'],
+            ['¿Y si marco un almuerzo por error?', 'Quien lo marcó lo puede quitar en los primeros 15 minutos; el dueño o el administrador, siempre.'],
+            ['¿Puede vencer?', 'Si quiere, le pone fecha de vencimiento. Pasada la fecha ya no deja marcar consumos.'],
+        ],
+    ],
     'precios-de-contado-y-financiacion-instituto' => [
         'titulo' => 'Instituto técnico: cargue sus precios de contado y financiación y matricule en un minuto',
         'resumen' => 'Ponga en cada programa el precio pleno, el precio de contado y el plan financiado (cuota inicial + cuotas). Al matricular, LocalProo llena los valores solo y arma las cuotas con su fecha de pago.',

@@ -366,6 +366,13 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::get('/mis-redes/conectar/paginas', [redesController::class, 'elegir'])->name('redes.elegir');
     Route::post('/mis-redes/conectar/paginas', [redesController::class, 'guardarPaginas'])->name('redes.elegir.guardar');
     Route::post('/mis-redes/cuentas/{cuenta}/desconectar', [redesController::class, 'desconectar'])->whereNumber('cuenta')->name('redes.desconectar');
+    // Tiquetera (restaurantes y cafeterías): almuerzos prepagados
+    Route::get('/tiqueteras', [\App\Http\Controllers\tiqueteraController::class, 'index'])->name('tiqueteras.index');
+    Route::get('/tiqueteras/nueva', [\App\Http\Controllers\tiqueteraController::class, 'create'])->name('tiqueteras.create');
+    Route::post('/tiqueteras', [\App\Http\Controllers\tiqueteraController::class, 'store'])->name('tiqueteras.store');
+    Route::get('/tiqueteras/{tiquetera}', [\App\Http\Controllers\tiqueteraController::class, 'show'])->whereNumber('tiquetera')->name('tiqueteras.show');
+    Route::post('/tiqueteras/{tiquetera}/usar', [\App\Http\Controllers\tiqueteraController::class, 'usar'])->whereNumber('tiquetera')->name('tiqueteras.usar');
+    Route::post('/tiqueteras/usos/{uso}/anular', [\App\Http\Controllers\tiqueteraController::class, 'anularUso'])->whereNumber('uso')->name('tiqueteras.uso.anular');
     Route::get('/separados/nuevo', [separadoController::class, 'create'])->name('separados.create');
     Route::post('/separados', [separadoController::class, 'store'])->name('separados.store');
     Route::get('/separados/{separado}', [separadoController::class, 'show'])->whereNumber('separado')->name('separados.show');
