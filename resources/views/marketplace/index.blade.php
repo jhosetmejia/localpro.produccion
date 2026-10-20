@@ -114,13 +114,13 @@ section{margin-top:22px}
             <input type="search" name="q" value="{{ $q }}" placeholder="Buscar productos, marcas y tiendas…" aria-label="Buscar" maxlength="80">
             <button type="submit" aria-label="Buscar">🔍</button>
         </form>
+        @if (count($paisesConTiendas) > 1)
         <form method="get" action="{{ route('marketplace') }}" class="paisf">
             <select name="pais" aria-label="País" onchange="this.form.submit()">
-                @foreach (\App\Support\Paises::LISTA as $cod => $dp)
-                    @if (isset($paisesConTiendas[$cod]) || $cod === $pais)<option value="{{ $cod }}" @selected($cod === $pais)>{{ $dp[0] }}</option>@endif
-                @endforeach
+                @foreach ($paisesConTiendas as $cod => $n)<option value="{{ $cod }}" @selected($cod === $pais)>{{ \App\Support\Paises::LISTA[$cod][0] }}</option>@endforeach
             </select>
         </form>
+        @endif
         <a class="crear" href="{{ route('registro', ['desde' => 'marketplace']) }}">🏪 Venda aquí</a>
     </div>
 </header>
@@ -192,14 +192,7 @@ section{margin-top:22px}
         </div>
 
         @if ($productos->isEmpty())
-            @if (!$filtrando && $totalTiendas === 0)
-            <div class="vacio"><b>Todavía no hay tiendas de {{ $nombrePais }} en el Marketplace</b>
-                ¿Tiene un negocio en {{ $nombrePais }}? <a href="{{ route('registro', ['desde' => 'marketplace']) }}" style="color:var(--g2);font-weight:800">Sea el primero</a>.
-                @if ($paisesConTiendas)<div style="margin-top:10px">Vea las tiendas de: @foreach ($paisesConTiendas as $cod => $n)<a class="chip" style="display:inline-block;margin:4px" href="{{ route('marketplace', ['pais' => $cod]) }}">{{ \App\Support\Paises::LISTA[$cod][0] }} <small>{{ $n }}</small></a>@endforeach</div>@endif
-            </div>
-            @else
             <div class="vacio"><b>No encontramos productos{{ $q !== '' ? ' para "' . $q . '"' : '' }}</b>Pruebe con otra palabra o quite los filtros.</div>
-            @endif
         @else
             <div class="grid">
                 @foreach ($productos as $p)
