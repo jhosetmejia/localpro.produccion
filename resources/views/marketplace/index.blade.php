@@ -1,6 +1,6 @@
 @php
     $titulo = $q !== '' ? $q . ' · LocalProo Marketplace' : ($tipo !== '' ? \App\Models\Tienda::TIPOS[$tipo][0] . ($ciudad ? ' en ' . $ciudad : '') . ' · LocalProo Marketplace' : 'LocalProo Marketplace · Todas las tiendas en un solo lugar');
-    $desc = 'Encuentre productos de ' . number_format($totalTiendas, 0, ',', '.') . ' tiendas locales y compre directo por WhatsApp. Ropa, calzado, tecnología, comida y más.';
+    $desc = 'Encuentre productos de ' . number_format($totalTiendas, 0, ',', '.') . ' tiendas de ' . $nombrePais . ' y compre directo por WhatsApp. Ropa, calzado, tecnología, comida y más.';
     $url = fn (array $cambios) => route('marketplace', array_filter(array_merge(['q' => $q, 'tipo' => $tipo, 'ciudad' => $ciudad, 'orden' => $orden !== 'menor' ? $orden : null], $cambios), fn ($v) => $v !== null && $v !== ''));
 @endphp
 <!DOCTYPE html>
@@ -39,6 +39,8 @@ button,select,input{font:inherit;color:inherit}
 .busca button{width:56px;background:var(--g);border:0;cursor:pointer;font-size:1.15rem}
 .top .crear{background:rgba(255,255,255,.1);border-radius:12px;padding:.6rem .9rem;font-weight:800;font-size:.85rem;white-space:nowrap}
 .top .crear:hover{background:#a6f34a;color:var(--k)}
+.paisf select{height:42px;border-radius:12px;border:0;background:rgba(255,255,255,.1);color:#fff;font-weight:800;font-size:.85rem;padding:0 .6rem;max-width:170px}
+.paisf select option{color:#151a17}
 @media(max-width:760px){.top .wrap{flex-wrap:wrap;height:auto;padding:10px 0;gap:10px}.busca{order:3;flex-basis:100%}.top .crear{margin-left:auto}}
 /* Portada */
 .hero{background:linear-gradient(180deg,var(--k),#121a15);color:#fff;padding:26px 0 30px}
@@ -112,6 +114,13 @@ section{margin-top:22px}
             <input type="search" name="q" value="{{ $q }}" placeholder="Buscar productos, marcas y tiendas…" aria-label="Buscar" maxlength="80">
             <button type="submit" aria-label="Buscar">🔍</button>
         </form>
+        <form method="get" action="{{ route('marketplace') }}" class="paisf">
+            <select name="pais" aria-label="País" onchange="this.form.submit()">
+                @foreach (\App\Support\Paises::LISTA as $cod => $dp)
+                    @if (isset($paisesConTiendas[$cod]) || $cod === $pais)<option value="{{ $cod }}" @selected($cod === $pais)>{{ $dp[0] }}</option>@endif
+                @endforeach
+            </select>
+        </form>
         <a class="crear" href="{{ route('registro', ['desde' => 'marketplace']) }}">🏪 Venda aquí</a>
     </div>
 </header>
@@ -119,7 +128,7 @@ section{margin-top:22px}
 @if (!$filtrando)
 <div class="hero">
     <div class="wrap">
-        <h1>Todas las tiendas locales <em>en un solo lugar</em></h1>
+        <h1>Las tiendas de {{ $nombrePais }} <em>en un solo lugar</em></h1>
         <p>Busque lo que necesita, compare precios y compre directo al negocio por WhatsApp.</p>
         <div class="cifras">
             <span><b>{{ number_format($totalTiendas, 0, ',', '.') }}</b> {{ $totalTiendas === 1 ? 'tienda' : 'tiendas' }}</span>
@@ -183,7 +192,14 @@ section{margin-top:22px}
         </div>
 
         @if ($productos->isEmpty())
+            @if (!$filtrando && $totalTiendas === 0)
+            <div class="vacio"><b>Todavía no hay tiendas de {{ $nombrePais }} en el Marketplace</b>
+                ¿Tiene un negocio en {{ $nombrePais }}? <a href="{{ route('registro', ['desde' => 'marketplace']) }}" style="color:var(--g2);font-weight:800">Sea el primero</a>.
+                @if ($paisesConTiendas)<div style="margin-top:10px">Vea las tiendas de: @foreach ($paisesConTiendas as $cod => $n)<a class="chip" style="display:inline-block;margin:4px" href="{{ route('marketplace', ['pais' => $cod]) }}">{{ \App\Support\Paises::LISTA[$cod][0] }} <small>{{ $n }}</small></a>@endforeach</div>@endif
+            </div>
+            @else
             <div class="vacio"><b>No encontramos productos{{ $q !== '' ? ' para "' . $q . '"' : '' }}</b>Pruebe con otra palabra o quite los filtros.</div>
+            @endif
         @else
             <div class="grid">
                 @foreach ($productos as $p)

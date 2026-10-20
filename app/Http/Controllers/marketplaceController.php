@@ -16,6 +16,9 @@ class marketplaceController extends Controller
 {
     public const POR_PAGINA = 48;
 
+    // País que se está viendo: cada país ve solo sus tiendas y sus precios (en su moneda)
+    private string $pais = 'CO';
+
     // Tiendas que se muestran: tienda en línea activa, negocio activo, registro terminado y datos sin depurar
     private function tiendasVisibles()
     {
@@ -24,6 +27,9 @@ class marketplaceController extends Controller
             ->where('tiendas.estado', 'activa')
             ->where('tiendas.onboarding_completo', true)
             ->whereNull('tiendas.datos_depurados_at')
+            ->where(fn ($w) => $this->pais === 'CO'
+                ? $w->where('tiendas.pais', 'CO')->orWhereNull('tiendas.pais')->orWhere('tiendas.pais', '')
+                : $w->where('tiendas.pais', $this->pais))
             ->whereNotIn('tiendas.tipo_negocio', ['contable', 'conjunto', 'instituto']);
     }
 
@@ -51,6 +57,17 @@ class marketplaceController extends Controller
     {
         // Página pública de todas las tiendas: sin el filtro de "tienda actual" (aunque entre el admin o un dueño con sesión)
         \App\Support\TiendaActual::set(null);
+
+        // País: el que elija (se recuerda un año) → el que recordamos → el de la conexión (Cloudflare) → Colombia
+        $elegido = strtoupper((string) $request->query('pais', ''));
+        $pais = isset(Paises::LISTA[$elegido]) ? $elegido : strtoupper((string) $request->cookie('mk_pais', ''));
+        if (!isset(Paises::LISTA[$pais])) $pais = strtoupper((string) $request->header('CF-IPCountry', ''));
+        if (!isset(Paises::LISTA[$pais])) $pais = 'CO';
+        $this->pais = $pais;
+        if (isset(Paises::LISTA[$elegido])) cookie()->queue('mk_pais', $elegido, 60 * 24 * 365);
+
+        // Países que tienen tiendas (para el selector)
+        $paisesConTiendas = $this->paisesConTiendas();
 
         $q = trim(Str::limit((string) $request->query('q', ''), 80, ''));
         $tipo = (string) $request->query('tipo', '');
@@ -119,6 +136,25 @@ class marketplaceController extends Controller
         $totalProductos = (int) $conteo->sum();
         $filtrando = $q !== '' || $tipo !== '' || $ciudad !== '';
 
-        return view('marketplace.index', compact('productos', 'tiendas', 'tipos', 'ciudades', 'q', 'tipo', 'ciudad', 'orden', 'totalTiendas', 'totalProductos', 'filtrando'));
+        $nombrePais = Paises::LISTA[$pais][0];
+        return view('marketplace.index', compact('productos', 'tiendas', 'tipos', 'ciudades', 'q', 'tipo', 'ciudad', 'orden', 'totalTiendas', 'totalProductos', 'filtrando', 'pais', 'nombrePais', 'paisesConTiendas'));
+    }
+
+    // {código: número de tiendas} de los países con al menos una tienda con productos visibles
+    private function paisesConTiendas(): array
+    {
+        $actual = $this->pais;
+        $res = [];
+        $filas = Tienda::query()->where('catalogo_activo', true)->where('estado', 'activa')->where('onboarding_completo', true)
+            ->whereNull('datos_depurados_at')->whereNotIn('tipo_negocio', ['contable', 'conjunto', 'instituto'])
+            ->selectRaw("COALESCE(NULLIF(pais, ''), 'CO') as p, id")->get();
+        foreach ($filas->groupBy('p') as $p => $ts) {
+            $this->pais = $p;
+            $n = $this->productosVisibles()->distinct()->count('productos.tienda_id');
+            if ($n > 0 && isset(Paises::LISTA[$p])) $res[$p] = $n;
+        }
+        $this->pais = $actual;
+        arsort($res);
+        return $res;
     }
 }
