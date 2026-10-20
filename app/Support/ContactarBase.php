@@ -145,7 +145,7 @@ class ContactarBase
         $arriba = self::deArriba($a);
         $propia = (int) ($a->user?->tienda_id ?? 0);
         return Tienda::where('compartir_asesores', true)
-            ->where(fn ($q) => $q->whereNull('compartir_asesor_id')->orWhereIn('compartir_asesor_id', $arriba ?: [0]))
+            ->where(fn ($q) => $q->whereNull('compartir_asesor_id')->orWhereIn('compartir_asesor_id', array_merge($arriba, [$a->id])))
             ->when($propia, fn ($q) => $q->where('id', '<>', $propia))
             ->orderBy('nombre')->get();
     }

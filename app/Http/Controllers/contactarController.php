@@ -24,21 +24,44 @@ class contactarController extends Controller
 
     private function esJefe(): bool
     {
-        return (bool) auth()->user()?->hasAnyRole(['dueno', 'administrador']);
+        $u = auth()->user();
+        return (bool) ($u?->es_superadmin || $u?->hasAnyRole(['dueno', 'administrador']));
     }
 
     // La lógica de reparto vive en App\Support\ContactarBase (la usan también los asesores con quienes se comparte la base)
     private function libres() { return ContactarBase::libres(); }
     private function asignar(int $userId, int $cuantos): int { return ContactarBase::asignar($userId, $cuantos); }
 
-    // Quién puede compartir la base con "sus asesores": el súper admin (con todos) o un dueño que es de la red (con su gente)
+    /**
+     * Con quién se comparte la base cuando el dueño marca "Compartir mi base de datos con mis asesores":
+     * - Negocio del súper admin o venta directa de LocalPro → todos los asesores de LocalPro.
+     * - Dueño que es de la red (asesor o líder) → la gente de su red.
+     * - Negocio que trajo un asesor → ese asesor y la gente de su red.
+     */
     private function compartirCon(): ?array
     {
-        $u = auth()->user();
         if (!$this->esJefe()) return null;
-        if ($u->es_superadmin) return ['asesor_id' => null, 'texto' => 'todos los asesores de LocalPro'];
+        $u = auth()->user();
+        $t = TiendaActual::tienda();
+        $duenoSuper = $t && User::where('tienda_id', $t->id)->where('es_superadmin', true)->exists();
+        if ($u->es_superadmin || $duenoSuper || $t?->venta_directa_id) return ['asesor_id' => null, 'texto' => 'todos los asesores de LocalPro'];
         if ($a = $u->asesor) return ['asesor_id' => $a->id, 'texto' => 'los asesores de su red'];
+        if ($t?->asesor_id) return ['asesor_id' => (int) $t->asesor_id, 'texto' => 'su asesor de LocalPro y el equipo de su asesor'];
         return null;
+    }
+
+    // Activar o quitar "Compartir mi base de datos con mis asesores"
+    public function compartir(Request $request)
+    {
+        $c = $this->compartirCon();
+        abort_unless($c, 403, 'Su negocio todavía no tiene asesores con quién compartir la base.');
+        $t = TiendaActual::tienda();
+        $t->compartir_asesores = $request->boolean('compartir_asesores');
+        $t->compartir_asesor_id = $t->compartir_asesores ? $c['asesor_id'] : null;
+        $t->save();
+        return back()->with('success', $t->compartir_asesores
+            ? '👥 Listo: su base de datos quedó compartida con ' . $c['texto'] . '. A cada número se le escribe una sola vez.'
+            : 'Su base de datos ya no se comparte con los asesores.');
     }
 
     public function index()
@@ -134,12 +157,7 @@ class contactarController extends Controller
         $t = TiendaActual::tienda();
         $t->mensaje_contacto = trim($d['mensaje']) === trim(self::MENSAJE) ? null : $d['mensaje'];
         $t->contactos_diarios = $d['contactos_diarios'];
-        // Compartir la base de datos con los asesores (solo quien tiene asesores: súper admin o dueño que es de la red)
-        if ($c = $this->compartirCon()) {
-            $t->compartir_asesores = $request->boolean('compartir_asesores');
-            $t->compartir_asesor_id = $t->compartir_asesores ? $c['asesor_id'] : null;
-        }
         $t->save();
-        return back()->with('success', 'Guardado.' . ($t->compartir_asesores ? ' Su base de datos está compartida con ' . ($c['texto'] ?? 'sus asesores') . '.' : ''));
+        return back()->with('success', 'Mensaje y cantidad diaria guardados.');
     }
 }

@@ -258,6 +258,7 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::get('/vender-mas', [\App\Http\Controllers\venderMasController::class, 'index'])->name('vender.index');
     Route::get('/clientes/contactar', [\App\Http\Controllers\contactarController::class, 'index'])->name('clientes.contactar');
     Route::post('/clientes/contactar/mas', [\App\Http\Controllers\contactarController::class, 'mas'])->name('clientes.contactar.mas');
+    Route::post('/clientes/contactar/compartir', [\App\Http\Controllers\contactarController::class, 'compartir'])->name('clientes.contactar.compartir');
     Route::post('/clientes/contactar/ajustes', [\App\Http\Controllers\contactarController::class, 'ajustes'])->name('clientes.contactar.ajustes');
     Route::post('/clientes/{cliente}/contactado', [\App\Http\Controllers\contactarController::class, 'marcar'])->whereNumber('cliente')->name('clientes.contactado');
     Route::get('/clientes/{cliente}/contactado', [\App\Http\Controllers\contactarController::class, 'revisar'])->whereNumber('cliente')->name('clientes.contactado.revisar');

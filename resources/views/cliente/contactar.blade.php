@@ -39,7 +39,9 @@
 .cc-item.malo .cc-av{background:#fde2e8;color:#b0173f}
 .cc-msg{white-space:pre-wrap;background:#e7fbe9;border-radius:14px 14px 14px 4px;padding:.8rem 1rem;font-size:.92rem;line-height:1.45;border:1px solid #c9efcf}
 .cc-compartir{display:flex;gap:.7rem;align-items:flex-start;background:#f4fcf6;border:1.5px solid #bfeccb;border-radius:16px;padding:.8rem 1rem;cursor:pointer}
-.cc-compartir input{width:1.4rem;height:1.4rem;flex:none;margin-top:.1rem}
+.cc-compartir.on{background:#dcfce7;border-color:#16b84e}
+.cc-compartir input{width:1.5rem;height:1.5rem;flex:none;margin-top:.1rem;cursor:pointer}
+.cc-compartir label{cursor:pointer;flex:1}
 .cc-compartir small{display:block;color:#56615b;font-weight:600;margin-top:.2rem;line-height:1.35}
 .cc-tag{background:#dcfce7;color:#11702f;border-radius:999px;padding:.05rem .5rem;font-size:.72rem;font-weight:800;margin-left:.3rem}
 .cc-vacio{text-align:center;padding:2rem 1rem;color:#6b7570}
@@ -58,6 +60,21 @@
     @include('layouts.partials.lp-flash')
     @if ($errors->any())<div class="alert alert-danger">{{ $errors->first() }}</div>@endif
     @if (!$catalogo)<div class="alert alert-warning fw-bold">Active su tienda en línea en "Mi catálogo en línea" para que el mensaje lleve el enlace de su catálogo.</div>@endif
+
+    @if ($esJefe)
+    <form method="post" action="{{ route('clientes.contactar.compartir') }}" class="cc-compartir mb-3 {{ $tienda->compartir_asesores ? 'on' : '' }}">
+        @csrf
+        <input type="checkbox" name="compartir_asesores" value="1" id="ccCompartir" class="form-check-input" @checked($tienda->compartir_asesores) @disabled(!$compartir) onchange="this.form.submit()">
+        <label for="ccCompartir"><b>👥 Compartir mi base de datos con mis asesores</b>
+            @if ($compartir)
+            <small>{{ $tienda->compartir_asesores ? '✅ Compartida con ' . $compartir['texto'] . '.' : 'Se la damos a ' . $compartir['texto'] . ' para que también envíen mensajes.' }}
+                Cada asesor elige si manda <b>su mensaje</b> o el mensaje normal de LocalPro. A cada número se le escribe <b>una sola vez</b>: a los que usted o su equipo ya les escribieron no les sale a ningún asesor.</small>
+            @else
+            <small>Su negocio todavía no tiene asesores de LocalPro con quién compartirla.</small>
+            @endif
+        </label>
+    </form>
+    @endif
 
     <div class="cc-top">
         <div class="v"><b><span id="ccHechos">{{ $hechos }}</span> / {{ $total }}</b><small>sus contactos de hoy</small></div>
@@ -115,13 +132,6 @@
                     @csrf
                     <label class="form-label small fw-bold">Cambiar el mensaje</label>
                     <textarea name="mensaje" id="ccMensaje" rows="8" class="form-control" maxlength="1000">{{ old('mensaje', $mensaje) }}</textarea>
-                    @if ($compartir)
-                    <label class="cc-compartir mt-3">
-                        <input type="checkbox" name="compartir_asesores" value="1" class="form-check-input" @checked(old('compartir_asesores', $tienda->compartir_asesores))>
-                        <span><b>👥 Compartir mi base de datos con mis asesores</b>
-                            <small>Se la damos a {{ $compartir['texto'] }} para que también envíen mensajes. Cada asesor elige si manda <b>este mensaje</b> o el mensaje normal de LocalPro. A cada número se le escribe <b>una sola vez</b>: a los que usted o su equipo ya les escribieron no les sale a ningún asesor, y lo que escribe un asesor ya no le sale a usted.</small></span>
-                    </label>
-                    @endif
                     <div class="d-flex gap-2 align-items-end mt-2 flex-wrap">
                         <div><label class="form-label small fw-bold mb-1">Contactos al día por persona</label>
                             <input type="number" name="contactos_diarios" min="1" max="200" class="form-control" style="width:120px" value="{{ old('contactos_diarios', $cuota) }}"></div>
@@ -134,9 +144,6 @@
                 @endif
             </div>
 
-            @if ($esJefe && $tienda->compartir_asesores)
-            <div class="alert alert-success fw-bold small mt-3 mb-0">👥 Su base de datos está compartida con {{ $compartir['texto'] ?? 'sus asesores' }}.</div>
-            @endif
             @if ($esJefe && $equipo->isNotEmpty())
             <div class="cc-card mt-3">
                 <h3>Avance del equipo hoy</h3>
