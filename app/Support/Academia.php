@@ -273,6 +273,11 @@ class Academia
                         'En <b>Mis redes</b> responde los mensajes de Messenger e Instagram en un solo lugar y publica sus productos con foto y precio.',
                         'En <b>Mis enlaces</b> arma una página con su WhatsApp, redes y promociones para poner en un código QR en el mostrador.',
                     ], 'tip' => 'Responda rápido: el cliente que escribe por redes casi siempre le escribe también a la competencia.'],
+                    ['titulo' => 'Comparta LocalProo y gane', 'min' => 2, 'accion' => ['beneficios.index', 'Ver mi código'], 'contenido' => [
+                        'Su negocio tiene un <b>código (LCT-…)</b> y un enlace. Compártalo con otros dueños de negocio: su colega recibe <b>3 meses gratis</b>.',
+                        'Cada vez que ese negocio pague su <b>plan anual</b>, a usted se le abona un valor <b>de por vida</b>, que se descuenta solo cuando paga su propio plan. Si alcanza, su plan le sale gratis.',
+                        'Además, los negocios que recomiendan LocalProo reciben primero las herramientas nuevas y recursos como cursos y plantillas.',
+                    ], 'tip' => 'Compártalo con el vecino, su proveedor o un amigo emprendedor: la recomendación de un colega vale más que cualquier anuncio.'],
                 ],
                 'prueba' => [
                     ['p' => '¿Qué dato es clave guardar de cada cliente?', 'o' => ['Su WhatsApp', 'Su color favorito', 'Nada'], 'r' => 0],

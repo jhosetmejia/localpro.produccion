@@ -54,6 +54,13 @@
     <li>Los valores son fijos: si cambia el precio del plan, las comisiones no cambian, salvo que LocalProo las actualice y lo avise. Si un pago se devuelve o se anula, la comisión de ese pago también se anula.</li>
     <li>Los negocios y asesores de Venezuela reciben sus comisiones en dólares, según los valores vigentes en dólares.</li>
 </ul>
+<h3>Comparta y gane (negocios que recomiendan LocalProo)</h3>
+<ul>
+    <li>Cada negocio tiene un código (LCT-…). El negocio que se registra con ese código recibe la prueba gratis de 3 meses.</li>
+    <li>Cada vez que el negocio invitado paga su <strong>plan anual</strong> (sin contar pagos de prueba), el negocio que lo invitó recibe un abono de {{ \App\Support\Moneda::formato(\App\Support\Referidos::valor('COP'), 'COP') }} ({{ \App\Support\Moneda::formato(\App\Support\Referidos::valor('USD'), 'USD') }} en Venezuela), mientras el invitado siga pagando.</li>
+    <li>El abono <strong>no se consigna en dinero</strong>: es saldo que se descuenta automáticamente cuando el negocio paga su propio plan anual. No se transfiere a otros negocios ni se cambia por dinero.</li>
+    <li>LocalProo puede cambiar el valor del abono avisándolo con anticipación; los abonos ya ganados se respetan. Si un pago se devuelve o se anula, el abono de ese pago también se anula. Los negocios suspendidos no reciben abonos.</li>
+</ul>
 <h2>7. Limitaciones</h2>
 <p>Trabajamos para que el servicio esté siempre disponible, pero puede haber interrupciones por mantenimiento o por servicios de terceros (por ejemplo, Facebook o Instagram).</p>
 @endsection

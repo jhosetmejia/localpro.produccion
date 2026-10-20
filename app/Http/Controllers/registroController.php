@@ -32,6 +32,13 @@ class registroController extends Controller
     // Enlace del asesor: guarda su código (60 días) y abre el registro
     public function referido(string $codigo, array $query = [])
     {
+        // Código de un negocio (LCT-00012): "Comparta LocalProo y gane"
+        if (\App\Support\Referidos::esCodigoNegocio($codigo)) {
+            $t = \App\Support\Referidos::tiendaPorCodigo($codigo);
+            if (!$t) return redirect()->route('registro', $query);
+            session(['codigo_asesor' => $t->codigo]);
+            return redirect()->route('registro', $query)->withCookie(cookie('lp_asesor', $t->codigo, 60 * 24 * 60));
+        }
         $asesor = \App\Models\Asesor::porCodigo($codigo)->aceptaNegocios()->first();
         $guardar = $asesor?->codigo ?? (\App\Models\Asesor::esCodigoLocalpro($codigo) ? \App\Models\Asesor::CODIGO_LOCALPRO : null);
         if (!$guardar) {
@@ -96,7 +103,15 @@ class registroController extends Controller
 
         // Si llegó por un asesor (enlace o código), el negocio queda en su red
         $codigo = strtoupper(trim((string) ($datos['codigo_asesor'] ?? '') ?: (string) session('codigo_asesor', $request->cookie('lp_asesor'))));
-        $asesor = $codigo !== '' ? \App\Models\Asesor::porCodigo($codigo)->aceptaNegocios()->first() : null;
+        // Código de otro negocio (LCT-00012): el invitado queda con el mismo asesor (o venta directa) de quien lo invitó
+        $refTienda = \App\Support\Referidos::esCodigoNegocio($codigo) ? \App\Support\Referidos::tiendaPorCodigo($codigo) : null;
+        if ($refTienda && (int) $refTienda->id !== (int) $user->tienda->id) {
+            $prueba = \App\Models\Plan::where('nombre', 'Prueba 3 meses')->first();
+            $user->tienda->forceFill(['referida_por_tienda_id' => $refTienda->id, 'asesor_id' => $refTienda->asesor_id, 'venta_directa_id' => $refTienda->venta_directa_id]
+                + ($prueba ? ['plan_id' => $prueba->id, 'plan_vence' => today()->addDays(($prueba->dias ?: 90) - 1)] : []))->save();
+            $codigo = '';
+        }
+        $asesor = $codigo !== '' && !\App\Support\Referidos::esCodigoNegocio($codigo) ? \App\Models\Asesor::porCodigo($codigo)->aceptaNegocios()->first() : null;
         // Código LOCALPRO (súper administrador): el negocio queda directo con LocalPro, sin asesor
         if ($asesor || \App\Models\Asesor::esCodigoLocalpro($codigo)) {
             // Los negocios que llegan por un asesor (o por LocalPro) arrancan con prueba gratis de 3 meses; luego pagan su plan anual

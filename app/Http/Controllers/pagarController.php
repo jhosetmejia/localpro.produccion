@@ -32,6 +32,11 @@ class pagarController extends Controller
             return back()->withErrors('El pago en línea aún no está disponible. Comuníquese con LocalPro.');
         }
         $pago = self::crearPago($tienda, $plan, Auth::id(), Auth::check() ? 'Pagado desde enlace por ' . Auth::user()->name : 'Pagado desde enlace de pago');
+        if ((float) $pago->monto <= 0) {
+            // Todo lo cubre el saldo por referidos: se activa sin pasar por Wompi
+            $pago->aprobar();
+            return view('pagar.retorno', ['pago' => $pago->fresh(['tienda', 'plan']), 'tienda' => $tienda]);
+        }
 
         return redirect()->away(Wompi::urlCheckout($pago, route('pagar.retorno', ['ref' => $pago->referencia]), $tienda->email, $tienda->nombre, $tienda->telefono));
     }
@@ -54,13 +59,18 @@ class pagarController extends Controller
         // Venezuela paga en dólares o bolívares: el pago queda en esa moneda y Wompi cobra su equivalente en pesos (tasa de Admin → Planes)
         $moneda = $tienda->moneda_cobro;
         $monto = $plan->precioEn($moneda);
+        // Saldo por referidos ("Comparta LocalProo y gane"): se descuenta solo del plan anual
+        $abono = \App\Support\Referidos::descuento($tienda, $plan, $monto);
+        $monto = round($monto - $abono, 2);
+        if ($abono > 0) $nota = trim(($nota ?? '') . ' · Saldo por referidos: ' . \App\Support\Moneda::formato($abono, $moneda));
         return PagoSuscripcion::create([
             'tienda_id' => $tienda->id,
             'plan_id' => $plan->id,
+            'abono_saldo' => $abono > 0 ? $abono : null,
             'monto' => $monto,
             'moneda' => $moneda,
             'cobro_cop' => \App\Support\Moneda::esExtranjera($moneda) ? \App\Support\Moneda::aCop($monto, $moneda) : null,
-            'metodo' => 'wompi',
+            'metodo' => $monto <= 0 ? 'saldo' : 'wompi',
             'referencia' => 'LP-' . $tienda->id . '-' . now()->format('ymdHis') . '-' . Str::upper(Str::random(4)),
             'estado' => 'pendiente',
             'registrado_por' => $usuario,

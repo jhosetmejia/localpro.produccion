@@ -27,6 +27,20 @@
     </div>
     @endif
 
+    @if ($tienda->codigo)
+    @php $saldoRef = (float) ($tienda->saldo_referidos ?? 0); $mRef = $tienda->moneda_cobro; @endphp
+    <div class="lp-box mb-3" style="background:linear-gradient(120deg,#0b0d0c,#18301f);border-color:#0b0d0c;color:#fff">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div style="min-width:0;flex:1">
+                <div class="fw-bold" style="color:#a6f34a;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em"><i class="fa-solid fa-gift me-1"></i>Comparta y gane</div>
+                <div class="fw-bold fs-5">Comparta su código <span style="color:#a6f34a">{{ $tienda->codigo }}</span> con otro empresario</div>
+                <small style="color:#c9d3cc">Gane {{ \App\Support\Moneda::formato(\App\Support\Referidos::valor($mRef), $mRef) }} de por vida cada vez que pague su plan anual: se descuenta de su plan. Su colega recibe 3 meses gratis.@if ($saldoRef > 0) <b style="color:#fff">Su saldo: {{ \App\Support\Moneda::formato($saldoRef, $mRef) }}</b> (se descuenta solo al pagar el plan anual).@endif</small>
+            </div>
+            <a href="{{ route('beneficios.index') }}" class="btn rounded-pill fw-bold" style="background:#a6f34a;color:#0b0d0c"><i class="fa-solid fa-gift me-1"></i>Ver mis beneficios</a>
+        </div>
+    </div>
+    @endif
+
     <div class="lp-kpis dos">
         <div class="lp-kpi hero">
             <div class="ic"><i class="fa-solid fa-gem"></i></div>

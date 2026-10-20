@@ -6,6 +6,23 @@
 // palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
+    'comparta-localproo-y-gane-descuentos-plan' => [
+        'titulo' => 'Comparta LocalProo con otros empresarios y gane descuentos en su plan, de por vida',
+        'resumen' => 'Cada negocio tiene su código. Si un colega se registra con él, recibe 3 meses gratis, y cada vez que pague su plan anual a usted se le abona un valor que se descuenta solo de su plan.',
+        'fecha' => '20 de octubre de 2026',
+        'publicado' => '2026-10-20',
+        'minutos' => 2,
+        'icono' => 'fa-gift',
+        'rol' => 'negocios',
+        'seo_titulo' => 'Recomiende LocalProo y gane descuentos | LocalProo',
+        'descripcion' => 'Programa de referidos para negocios: comparta su código, su colega recibe 3 meses gratis y usted gana un abono de por vida para su plan anual.',
+        'keywords' => ['programa de referidos para negocios', 'descuento sistema pos', 'recomendar software y ganar', 'código de referido localproo', 'plan anual con descuento'],
+        'faq' => [
+            ['¿Dónde está mi código?', 'En Mi plan y en el menú "Comparta y gane". Es el código de su negocio (LCT-…) con su enlace para compartir.'],
+            ['¿Cuánto gano?', 'Un abono por cada pago anual de cada negocio que invite, todos los años que siga pagando. Se descuenta solo cuando paga su plan anual.'],
+            ['¿Me consignan la plata?', 'No. Es saldo para su plan: si alcanza a cubrirlo, su plan le sale gratis.'],
+        ],
+    ],
     'corregir-venta-y-venta-olvidada-caja-cuadrada' => [
         'titulo' => '¿Se equivocó en la caja? Corrija una venta o registre una venta olvidada y la caja vuelve a cuadrar',
         'resumen' => 'Se digitaron productos de más o se vendió algo que no se registró, y la caja ya está cerrada. Con LocalProo el dueño corrige la venta o la carga con la fecha de ese día: el inventario, los reportes y el cierre se recalculan solos.',

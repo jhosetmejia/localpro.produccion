@@ -16,7 +16,7 @@ class PagoSuscripcion extends Model
         return str_starts_with((string) $this->referencia, self::PREFIJO_PRUEBA);
     }
 
-    protected $fillable = ['tienda_id', 'plan_id', 'monto', 'moneda', 'cobro_cop', 'metodo', 'referencia', 'estado', 'periodo_desde', 'periodo_hasta', 'nota', 'registrado_por', 'respuesta'];
+    protected $fillable = ['tienda_id', 'plan_id', 'monto', 'moneda', 'cobro_cop', 'metodo', 'referencia', 'estado', 'periodo_desde', 'periodo_hasta', 'nota', 'registrado_por', 'respuesta', 'abono_saldo'];
 
     protected $casts = ['periodo_desde' => 'date', 'periodo_hasta' => 'date', 'respuesta' => 'array'];
 
@@ -71,6 +71,12 @@ class PagoSuscripcion extends Model
         // Comisiones de la red comercial (si el negocio llegó por un asesor)
         try {
             \App\Support\Comisiones::generar($this->fresh());
+        } catch (\Throwable $e) {
+            report($e);
+        }
+        // Referidos entre negocios: descuenta el saldo usado y abona al negocio que lo invitó
+        try {
+            \App\Support\Referidos::alAprobar($this->fresh());
         } catch (\Throwable $e) {
             report($e);
         }

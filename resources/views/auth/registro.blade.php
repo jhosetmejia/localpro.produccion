@@ -89,10 +89,10 @@
                     </div>
                 </div>
                 <div class="field">
-                    <label for="codigo_asesor">Código de asesor <span style="font-weight:500;opacity:.7">(opcional)</span></label>
+                    <label for="codigo_asesor">Código de asesor o de un negocio amigo <span style="font-weight:500;opacity:.7">(opcional)</span></label>
                     <div class="input">
                         <i class="fa-solid fa-user-tie"></i>
-                        <input id="codigo_asesor" name="codigo_asesor" type="text" maxlength="20" placeholder="Si un asesor le ayudó, su código (ej. LCP-00012)" value="{{ old('codigo_asesor', $codigoAsesor ?? '') }}" style="text-transform:uppercase" autocomplete="off" />
+                        <input id="codigo_asesor" name="codigo_asesor" type="text" maxlength="20" placeholder="Código de su asesor (LCP-00012) o del negocio que lo invitó (LCT-00012)" value="{{ old('codigo_asesor', $codigoAsesor ?? '') }}" style="text-transform:uppercase" autocomplete="off" />
                     </div>
                 </div>
                 {{-- Sección para contadores: crean su cuenta como contador (herramienta de Contabilidad) --}}

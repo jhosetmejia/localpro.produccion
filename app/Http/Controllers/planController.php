@@ -69,6 +69,11 @@ class planController extends Controller
         }
 
         $pago = pagarController::crearPago($tienda, $plan, Auth::id(), 'Pagado por ' . Auth::user()->name . ' desde Mi plan');
+        if ((float) $pago->monto <= 0) {
+            // Todo lo cubre el saldo por referidos: se activa sin pasar por Wompi
+            $pago->aprobar();
+            return redirect()->route('plan.index')->with('success', '🎁 ¡Su plan ' . $plan->nombre . ' quedó activo con su saldo por referidos! Vence el ' . optional($pago->fresh()->periodo_hasta)->format('d/m/Y') . '.');
+        }
         $url = Wompi::urlCheckout($pago, route('plan.retorno', ['ref' => $pago->referencia]), Auth::user()->email, Auth::user()->name, $tienda->telefono);
 
         return redirect()->away($url);

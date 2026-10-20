@@ -141,6 +141,7 @@
                 @can('editar-negocio')
                 <a class="nav-link {{ $on('negocio.*') }}" href="{{ route('negocio.edit') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-gear"></i></div>Datos del conjunto</a>
                 <a class="nav-link {{ $on('plan.*') }}" href="{{ route('plan.index') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-gem"></i></div>Mi plan</a>
+                <a class="nav-link {{ $on('beneficios.*') }}" href="{{ route('beneficios.index') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-gift"></i></div>Comparta y gane</a>
                 @endcan
                 @can('ver-user')
                 <a class="nav-link {{ $on('users.*') }}" href="{{ route('users.index') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-user-gear"></i></div>Usuarios</a>
@@ -330,6 +331,10 @@
                 <a class="nav-link {{ $on('plan.*') }}" href="{{ route('plan.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-gem"></i></div>
                     Mi plan
+                </a>
+                <a class="nav-link {{ $on('beneficios.*') }}" href="{{ route('beneficios.index') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-gift"></i></div>
+                    Comparta y gane
                 </a>
                 @endcan
                 @can('ver-user')

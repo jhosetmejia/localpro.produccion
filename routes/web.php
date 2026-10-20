@@ -400,6 +400,7 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::get('/reportes/exportar/{tipo}', [reporteController::class, 'exportar'])->whereIn('tipo', ['ventas', 'productos', 'inventario'])->name('reportes.exportar');
 
     // Plan de LocalPro
+    Route::get('/beneficios', [\App\Http\Controllers\beneficiosController::class, 'index'])->name('beneficios.index');
     Route::get('/mi-plan', [planController::class, 'index'])->name('plan.index');
     Route::get('/mi-plan/vencido', [planController::class, 'vencido'])->name('plan.vencido');
     Route::post('/mi-plan/{plan}/pagar', [planController::class, 'pagar'])->name('plan.pagar');
