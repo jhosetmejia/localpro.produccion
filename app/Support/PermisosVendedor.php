@@ -43,6 +43,10 @@ class PermisosVendedor
             'ver-cajas' => 'Ver cajas',
             'ver-cajas-todas' => 'Ver cierres de caja de todos',
             'ver-reportes' => 'Ver reportes (incluye ganancias)',
+            'ver-egresos-todos' => 'Ver los egresos (gastos) de todos',
+        ],
+        'Mis enlaces' => [
+            'gestionar-enlaces' => 'Crear y editar Mis enlaces (la página de enlaces del negocio para Instagram, TikTok y WhatsApp)',
         ],
         'Consultorio' => [
             'historia-clinica' => 'Historia clínica (profesional de salud: ve y escribe historias)',
@@ -64,6 +68,19 @@ class PermisosVendedor
         'ver-role', 'crear-role', 'editar-role', 'eliminar-role',
     ];
 
+    // Permisos que solo se ofrecen si la tienda tiene ese módulo (una tienda de ropa no ve "Historia clínica")
+    private static function aplica(string $p): bool
+    {
+        $t = TiendaActual::tienda();
+        if (!$t) return true;
+        return match ($p) {
+            'historia-clinica', 'agenda-consultorio' => (bool) $t->mod_consultorio,
+            'contabilidad' => (bool) $t->mod_contable,
+            'facturacion-dian' => !$t->pais || $t->pais === 'CO',
+            default => true,
+        };
+    }
+
     // [grupo => [permiso => etiqueta]] solo con lo que se puede dar
     public static function disponibles(): array
     {
@@ -74,7 +91,7 @@ class PermisosVendedor
         $existen = Permission::pluck('name')->all();
 
         $ok = fn ($p) => in_array($p, $existen, true) && in_array($p, $deDueno, true)
-            && !in_array($p, $yaTiene, true) && !in_array($p, self::PROHIBIDOS, true);
+            && !in_array($p, $yaTiene, true) && !in_array($p, self::PROHIBIDOS, true) && self::aplica($p);
 
         $out = [];
         $listados = [];

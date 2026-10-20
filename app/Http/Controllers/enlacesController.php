@@ -18,8 +18,15 @@ class enlacesController extends Controller
 {
     private function tienda(): Tienda
     {
-        abort_unless(auth()->user()->can('editar-negocio'), 403);
+        abort_unless(self::puedeEditar(), 403);
         return TiendaActual::tienda();
+    }
+
+    // Dueño/administrador, o vendedor al que el dueño le dio el permiso "Mis enlaces"
+    public static function puedeEditar(): bool
+    {
+        $u = auth()->user();
+        return $u && ($u->can('editar-negocio') || $u->can('gestionar-enlaces'));
     }
 
     private function mio(Enlace $enlace): Enlace
@@ -182,7 +189,7 @@ class enlacesController extends Controller
     // Publicar la página con un toque (desde el aviso "Sin publicar")
     public function publicar()
     {
-        $t = TiendaActual::tienda();
+        $t = $this->tienda();
         $t->forceFill(['enlaces_activo' => true])->save();
         return back()->with('success', '¡Su página ya está publicada! Ahora sí la puede compartir: ' . self::urlPublica($t));
     }

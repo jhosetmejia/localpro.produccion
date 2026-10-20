@@ -284,7 +284,7 @@
                 </a>@endif
                 @endcan
 
-                @canany(['ver-user', 'ver-metodo-pago', 'editar-negocio'])
+                @canany(['ver-user', 'ver-metodo-pago', 'editar-negocio', 'gestionar-enlaces'])
                 <div class="sb-sidenav-menu-heading">Mi negocio</div>
                 @endcanany
                 @can('editar-negocio')
@@ -301,14 +301,14 @@
                 </a>@endif
                 @endif
                 @endcan
-                @can('editar-negocio')
+                @canany(['editar-negocio', 'gestionar-enlaces'])
                 @if (\Illuminate\Support\Facades\Route::has('enlaces.index'))
                 @if ($ver('enlaces'))<a class="nav-link {{ $on('enlaces.*') }}" href="{{ route('enlaces.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-link"></i></div>
                     Mis enlaces <span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c;font-size:.6rem">NUEVO</span>
                 </a>@endif
                 @endif
-                @endcan
+                @endcanany
                 @if ($tiendaMenu && $tiendaMenu->catalogo_activo && $tiendaMenu->slug)
                 @if ($ver('catalogo'))<a class="nav-link" href="{{ $tiendaMenu->url_catalogo_navegador }}" target="_blank" rel="noopener">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-globe"></i></div>

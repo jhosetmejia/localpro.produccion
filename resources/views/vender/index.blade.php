@@ -94,7 +94,7 @@
             <span class="ir">Activarla →</span>
         </a>
         @endif
-        @if ($hayEnlaces)
+        @if ($hayEnlaces && \App\Http\Controllers\enlacesController::puedeEditar())
         <a href="{{ route('enlaces.index') }}" class="vm-card">
             <div class="ic" style="background:#fff4e5;color:#ea7a0c"><i class="fa-solid fa-link"></i></div>
             <h3>Mis enlaces</h3>
