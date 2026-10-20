@@ -275,6 +275,13 @@ Route::middleware(['auth', 'tienda'])->group(function () {
 
     Route::delete('/productos/{producto}/eliminar', [ProductoController::class, 'eliminar'])->whereNumber('producto')->name('productos.eliminar');
     Route::delete('/categorias/{categoria}/eliminar', [categoriaController::class, 'eliminar'])->whereNumber('categoria')->name('categorias.eliminar');
+    // Importar proveedores desde Excel, CSV u hoja de Google (mismo importador inteligente de clientes)
+    Route::get('/proveedores/importar', [\App\Http\Controllers\importarProveedoresController::class, 'index'])->name('proveedores.importar');
+    Route::get('/proveedores/importar/plantilla', [\App\Http\Controllers\importarProveedoresController::class, 'plantilla'])->name('proveedores.importar.plantilla');
+    Route::post('/proveedores/importar', [\App\Http\Controllers\importarProveedoresController::class, 'subir'])->name('proveedores.importar.subir');
+    Route::get('/proveedores/importar/revisar', [\App\Http\Controllers\importarProveedoresController::class, 'revisar'])->name('proveedores.importar.revisar');
+    Route::post('/proveedores/importar/confirmar', [\App\Http\Controllers\importarProveedoresController::class, 'confirmar'])->name('proveedores.importar.confirmar');
+    Route::post('/proveedores/importar/cancelar', [\App\Http\Controllers\importarProveedoresController::class, 'cancelar'])->name('proveedores.importar.cancelar');
     Route::resources([
         'categorias' => categoriaController::class,
         'productos' => ProductoController::class,

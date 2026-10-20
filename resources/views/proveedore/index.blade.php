@@ -20,10 +20,11 @@
     </ol>
 
     @can('crear-proveedore')
-    <div class="mb-4">
+    <div class="mb-4 d-flex flex-wrap gap-2">
         <a href="{{route('proveedores.create')}}">
             <button type="button" class="btn btn-primary">Añadir nuevo registro</button>
         </a>
+        <a href="{{ route('proveedores.importar') }}" class="btn btn-dark d-inline-flex align-items-center"><i class="fa-solid fa-file-excel me-2" style="color:#a6f34a"></i>Importar Excel de proveedores</a>
     </div>
     @endcan
 

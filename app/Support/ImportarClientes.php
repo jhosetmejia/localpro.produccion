@@ -25,7 +25,7 @@ class ImportarClientes
 
     private const SINONIMOS = [
         'apellido' => ['apellido', 'apellidos', 'last name', 'lastname', 'surname', 'primer apellido'],
-        'nombre' => ['nombre', 'nombres', 'nombre completo', 'cliente', 'razon social', 'contacto', 'name', 'full name', 'first name', 'persona', 'nombre cliente', 'nombre y apellido', 'nombres y apellidos'],
+        'nombre' => ['nombre', 'nombres', 'nombre completo', 'cliente', 'razon social', 'contacto', 'name', 'full name', 'first name', 'persona', 'nombre cliente', 'nombre y apellido', 'nombres y apellidos', 'proveedor', 'nombre proveedor', 'empresa', 'nombre empresa', 'nombre o empresa'],
         'documento' => ['cedula', 'cc', 'c c', 'documento', 'nit', 'identificacion', 'numero de documento', 'no documento', 'num documento', 'dni', 'id', 'rut', 'ruc', 'n documento', 'doc', 'nro documento'],
         'telefono' => ['celular', 'telefono', 'tel', 'cel', 'movil', 'whatsapp', 'wpp', 'phone', 'mobile', 'numero', 'numero celular', 'telefono celular', 'contacto telefono'],
         'email' => ['correo', 'email', 'e mail', 'mail', 'correo electronico', 'e-mail'],
@@ -156,19 +156,23 @@ class ImportarClientes
         return $out;
     }
 
-    /** Crea los clientes. No duplica: si ya existe la cédula, el celular o el correo, lo salta. */
-    public static function guardar(array $clientes): array
+    /**
+     * Crea los clientes (o proveedores con $relacion = 'proveedore'). No duplica: si ya existe la cédula,
+     * el celular o el correo entre los de ese tipo, lo salta. Un proveedor que ya existe como cliente
+     * (misma cédula/NIT) se marca también como proveedor, sin crear otra persona.
+     */
+    public static function guardar(array $clientes, string $relacion = 'cliente'): array
     {
         $docCC = Documento::orderByRaw("tipo_documento = 'Cédula de ciudadanía' desc")->value('id');
         $docNIT = Documento::where('tipo_documento', 'NIT')->value('id') ?: $docCC;
-        $existentes = Persona::whereHas('cliente')->get(['numero_documento', 'telefono', 'email']);
+        $existentes = Persona::whereHas($relacion)->get(['numero_documento', 'telefono', 'email']);
         $docs = $existentes->pluck('numero_documento')->filter()->map(fn ($v) => mb_strtolower($v))->flip()->all();
         $tels = $existentes->pluck('telefono')->filter()->flip()->all();
         $mails = $existentes->pluck('email')->filter()->map(fn ($v) => mb_strtolower($v))->flip()->all();
         $todosDocs = Persona::pluck('numero_documento')->map(fn ($v) => mb_strtolower($v))->flip()->all();
 
         $r = ['creados' => 0, 'repetidos' => 0, 'sin_datos' => 0];
-        DB::transaction(function () use ($clientes, $docCC, $docNIT, &$docs, &$tels, &$mails, &$todosDocs, &$r) {
+        DB::transaction(function () use ($clientes, $docCC, $docNIT, $relacion, &$docs, &$tels, &$mails, &$todosDocs, &$r) {
             foreach ($clientes as $c) {
                 if ($c['nombre'] === '' || ($c['documento'] === '' && $c['telefono'] === '' && $c['email'] === '')) {
                     $r['sin_datos']++;
@@ -180,7 +184,13 @@ class ImportarClientes
                     continue;
                 }
                 $numero = $c['documento'] !== '' ? $c['documento'] : ($c['telefono'] !== '' ? 'TEL-' . $c['telefono'] : 'IMP-' . Str::upper(Str::random(8)));
-                if (isset($todosDocs[mb_strtolower($numero)])) { $r['repetidos']++; continue; }
+                if (isset($todosDocs[mb_strtolower($numero)])) {
+                    // Ya existe la persona con otro papel (ej. es cliente y ahora se sube como proveedor): se le agrega este
+                    $ya = $relacion !== 'cliente' ? Persona::where('numero_documento', $numero)->whereDoesntHave($relacion)->first() : null;
+                    if ($ya) { $ya->$relacion()->create(['persona_id' => $ya->id]); $r['creados']++; }
+                    else $r['repetidos']++;
+                    continue;
+                }
                 $esNit = str_contains($c['documento'], '-') || preg_match('/^[89]\d{8}$/', $c['documento']);
                 $p = Persona::create([
                     'razon_social' => $c['nombre'],
@@ -191,7 +201,7 @@ class ImportarClientes
                     'documento_id' => $esNit ? $docNIT : $docCC,
                     'numero_documento' => $numero,
                 ]);
-                $p->cliente()->create(['persona_id' => $p->id]);
+                $p->$relacion()->create(['persona_id' => $p->id]);
                 if ($dk !== '') $docs[$dk] = 1;
                 if ($c['telefono'] !== '') $tels[$c['telefono']] = 1;
                 if ($c['email'] !== '') $mails[$c['email']] = 1;
