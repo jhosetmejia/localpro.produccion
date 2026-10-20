@@ -190,11 +190,17 @@ class importarClientesController extends Controller
             return back()->withErrors('Elija cuál columna tiene el nombre.');
         }
         $c = $this->cfg();
-        $r = ImportarClientes::guardar(ImportarClientes::filas($this->lote($a), $mapa), $c['relacion']);
+        try {
+            $r = ImportarClientes::guardar(ImportarClientes::filas($this->lote($a), $mapa), $c['relacion']);
+        } catch (Throwable $e) {
+            report($e);
+            return back()->withErrors('No se pudieron crear los ' . $c['plural'] . '. Detalle: ' . mb_substr($e->getMessage(), 0, 200));
+        }
 
         $msg = $r['creados'] === 1 ? '¡Listo! Se creó 1 ' . $c['singular'] . '.' : '¡Listo! Se crearon ' . number_format($r['creados'], 0, ',', '.') . ' ' . $c['plural'] . '.';
         if ($r['repetidos']) $msg .= ' ' . $r['repetidos'] . ' ya existían y no se duplicaron.';
         if ($r['sin_datos']) $msg .= ' ' . $r['sin_datos'] . ' filas sin nombre o sin cédula/celular/correo se saltaron.';
+        if (!empty($r['errores'])) $msg .= ' ' . $r['errores'] . ' filas no se pudieron crear (ej. ' . $r['error'] . ').';
 
         // ¿Quedan más? Se pasa a la siguiente parte con las mismas columnas
         $sig = (int) ($a['desde'] ?? 0) + self::LOTE;

@@ -142,6 +142,8 @@ class ImportarClientes
             $telTxt = preg_split('/\s*(?::::|,|;|\/|\|)\s*/', $val($f, 'telefono'))[0] ?? '';
             $tel = preg_replace('/\D/', '', $telTxt);
             if (strlen($tel) === 12 && str_starts_with($tel, '57')) $tel = substr($tel, 2);
+            // Varios números pegados o con extensión ("602 7345678 - 300 1234567", "ext. 12"): se toma el celular o los primeros 10
+            if (strlen($tel) > 12) $tel = preg_match('/3\d{9}/', $tel, $cel) ? $cel[0] : substr($tel, 0, 10);
             // Contacto sin nombre pero con celular: se guarda igual para no perderlo
             if ($nombre === '' && strlen($tel) >= 7) $nombre = 'Contacto ' . $tel;
             $email = mb_strtolower($val($f, 'email'));
@@ -183,7 +185,7 @@ class ImportarClientes
                     $r['repetidos']++;
                     continue;
                 }
-                $numero = $c['documento'] !== '' ? $c['documento'] : ($c['telefono'] !== '' ? 'TEL-' . $c['telefono'] : 'IMP-' . Str::upper(Str::random(8)));
+                $numero = mb_substr($c['documento'] !== '' ? $c['documento'] : ($c['telefono'] !== '' ? 'TEL-' . $c['telefono'] : 'IMP-' . Str::upper(Str::random(8))), 0, 20);
                 if (isset($todosDocs[mb_strtolower($numero)])) {
                     // Ya existe la persona con otro papel (ej. es cliente y ahora se sube como proveedor): se le agrega este
                     $ya = $relacion !== 'cliente' ? Persona::where('numero_documento', $numero)->whereDoesntHave($relacion)->first() : null;
@@ -192,16 +194,25 @@ class ImportarClientes
                     continue;
                 }
                 $esNit = str_contains($c['documento'], '-') || preg_match('/^[89]\d{8}$/', $c['documento']);
-                $p = Persona::create([
-                    'razon_social' => $c['nombre'],
-                    'direccion' => $c['direccion'],
-                    'telefono' => $c['telefono'] ?: null,
-                    'email' => $c['email'] ?: null,
-                    'tipo_persona' => $esNit ? 'juridica' : 'natural',
-                    'documento_id' => $esNit ? $docNIT : $docCC,
-                    'numero_documento' => $numero,
-                ]);
-                $p->$relacion()->create(['persona_id' => $p->id]);
+                try {
+                    DB::transaction(function () use ($c, $esNit, $docNIT, $docCC, $numero, $relacion) {
+                        $p = Persona::create([
+                            'razon_social' => mb_substr($c['nombre'], 0, 80),
+                            'direccion' => mb_substr($c['direccion'], 0, 80),
+                            'telefono' => $c['telefono'] ?: null,
+                            'email' => $c['email'] ?: null,
+                            'tipo_persona' => $esNit ? 'juridica' : 'natural',
+                            'documento_id' => $esNit ? $docNIT : $docCC,
+                            'numero_documento' => $numero,
+                        ]);
+                        $p->$relacion()->create(['persona_id' => $p->id]);
+                    });
+                } catch (\Throwable $e) {
+                    report($e);
+                    $r['errores'] = ($r['errores'] ?? 0) + 1;
+                    $r['error'] ??= $c['nombre'] . ': ' . mb_substr($e->getMessage(), 0, 160);
+                    continue;
+                }
                 if ($dk !== '') $docs[$dk] = 1;
                 if ($c['telefono'] !== '') $tels[$c['telefono']] = 1;
                 if ($c['email'] !== '') $mails[$c['email']] = 1;
