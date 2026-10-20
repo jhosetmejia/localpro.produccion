@@ -64,10 +64,14 @@ class marketplaceController extends Controller
         if (!isset(Paises::LISTA[$pais])) $pais = strtoupper((string) $request->header('CF-IPCountry', ''));
         if (!isset(Paises::LISTA[$pais])) $pais = 'CO';
         $this->pais = $pais;
-        if (isset(Paises::LISTA[$elegido])) cookie()->queue('mk_pais', $elegido, 60 * 24 * 365);
 
-        // Países que tienen tiendas (para el selector)
+        // Solo se muestran países que tienen tiendas: si el suyo aún no tiene, se ve Colombia (o el país con más tiendas)
         $paisesConTiendas = $this->paisesConTiendas();
+        if ($paisesConTiendas && !isset($paisesConTiendas[$pais])) {
+            $pais = isset($paisesConTiendas['CO']) ? 'CO' : array_key_first($paisesConTiendas);
+            $this->pais = $pais;
+        }
+        if (isset(Paises::LISTA[$elegido]) && $elegido === $pais) cookie()->queue('mk_pais', $elegido, 60 * 24 * 365);
 
         $q = trim(Str::limit((string) $request->query('q', ''), 80, ''));
         $tipo = (string) $request->query('tipo', '');
