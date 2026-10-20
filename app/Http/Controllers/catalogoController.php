@@ -111,7 +111,12 @@ class catalogoController extends Controller
             ->map(fn ($p) => $this->datos($tienda, $p))
             // El dueño puede elegir mostrar solo lo que tiene existencias
             ->filter(fn ($p) => $p['disponible'] || $tienda->catalogo_agotados !== false)
-            ->sortByDesc('disponible')->values();
+            // Primero lo disponible y siempre del más barato al más caro (enganchan los precios bajos)
+            ->sortBy([
+                fn ($a, $b) => (int) $b['disponible'] <=> (int) $a['disponible'],
+                fn ($a, $b) => ($a['desde'] ?? $a['precio']) <=> ($b['desde'] ?? $b['precio']),
+                fn ($a, $b) => strnatcasecmp($a['nombre'], $b['nombre']),
+            ])->values();
     }
 
     public function show(string $slug)
@@ -168,7 +173,8 @@ class catalogoController extends Controller
             ->when($catIds->isNotEmpty(), fn ($q) => $q->whereHas('categorias', fn ($c) => $c->whereIn('categorias.id', $catIds)))
             ->inRandomOrder()->take(12)->get()->map(fn ($r) => $this->datos($tienda, $r))->filter(fn ($r) => $r['disponible'])
             // Primero los que tienen foto (se ven mejor al lado del producto)
-            ->sortByDesc(fn ($r) => (bool) $r['img'])->take(8)->values();
+            ->sortByDesc(fn ($r) => (bool) $r['img'])->take(8)
+            ->sortBy(fn ($r) => $r['desde'] ?? $r['precio'])->values();
 
         return view('catalogo.producto', ['tienda' => $tienda, 'p' => $dato, 'relacionados' => $relacionados]);
     }
