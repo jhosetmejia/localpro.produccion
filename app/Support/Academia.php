@@ -191,7 +191,8 @@ class Academia
                         'Busque la venta original y haga la <b>devolución</b> desde ahí: el producto vuelve al inventario y la plata sale de la caja.',
                         'Nunca borre una venta para "corregir": haga la devolución. Así queda registro de todo.',
                         'Si en la caja se digitaron productos <b>de más</b> (aunque la caja ya esté cerrada), el dueño o el administrador usa <b>Corregir venta</b> en Ventas: baja la cantidad, el producto vuelve al inventario y la caja y los reportes se cuadran solos.',
-                    ], 'tip' => null],
+                        'Si se vendió algo y <b>no se registró</b>, el dueño o el administrador usa <b>Registrar venta olvidada</b> en Ventas: queda con la fecha y en la caja de ese día, descuenta el inventario y el cierre se vuelve a cuadrar.',
+                    ], 'tip' => 'Si al cerrar le sobra o le falta plata por un error al digitar, avísele al dueño: con Corregir venta o Registrar venta olvidada la caja queda cuadrada.'],
                     ['titulo' => 'Cerrar la caja sin descuadres', 'min' => 3, 'accion' => ['cajas.index', 'Ver mis cajas'], 'contenido' => [
                         'Al final del turno cuente el efectivo y escriba lo que hay. LocalPro compara con lo que debería haber.',
                         'Si hay <b>faltante o sobrante</b>, escriba el motivo en la nota. Es normal un error pequeño; lo importante es explicarlo.',
@@ -212,6 +213,7 @@ class Academia
                     ['p' => 'Pagó un domicilio con $8.000 de la caja. ¿Qué hace?', 'o' => ['Lo anoto en Egresos', 'No anoto nada', 'Lo saco y lo repongo otro día'], 'r' => 0],
                     ['p' => 'El cliente pagó por Nequi. ¿Cómo se registra?', 'o' => ['Como Nequi', 'Como efectivo', 'No se registra'], 'r' => 0],
                     ['p' => 'Si me equivoqué en una venta, ¿qué hago?', 'o' => ['Hago una devolución', 'Borro la venta', 'Lo dejo así'], 'r' => 0],
+                    ['p' => 'Ayer se vendió algo y no se registró. ¿Qué se hace?', 'o' => ['El dueño o el administrador usa "Registrar venta olvidada" con la caja de ayer', 'Se vende hoy como si fuera de hoy', 'No se hace nada'], 'r' => 0],
                     ['p' => 'Al cerrar falta plata. ¿Qué hago?', 'o' => ['Escribo el motivo en la nota del cierre', 'No cierro la caja', 'Cambio el valor de una venta'], 'r' => 0],
                     ['p' => '¿Cómo agrego rápido una prenda a la venta?', 'o' => ['Escaneo su código de barras con la cámara', 'Escribo el precio a mano', 'Le tomo una foto y la envío'], 'r' => 0],
                 ],
@@ -265,6 +267,7 @@ class Academia
                     ['titulo' => 'Su tienda en línea', 'min' => 2, 'accion' => ['negocio.edit', 'Configurar mi tienda'], 'contenido' => [
                         'Su catálogo en internet con botón de <b>comprar por WhatsApp</b>, que además aparece en Google.',
                         'Compártala en sus estados de WhatsApp, en la biografía de Instagram y en sus grupos. En el panel ve cuántas visitas tiene.',
+                        'Los productos salen siempre <b>del más barato al más caro</b>: los precios bajos enganchan al cliente y lo hacen seguir mirando.',
                     ], 'tip' => 'Publique en sus estados un producto distinto cada día con el enlace de su tienda.'],
                     ['titulo' => 'Facebook, Instagram y Mis enlaces', 'min' => 2, 'accion' => ['redes.index', 'Ir a Mis redes'], 'contenido' => [
                         'En <b>Mis redes</b> responde los mensajes de Messenger e Instagram en un solo lugar y publica sus productos con foto y precio.',
@@ -285,6 +288,7 @@ class Academia
                     ['titulo' => 'Registrar la mercancía que llega', 'min' => 3, 'accion' => ['inventario.index', 'Ver inventario'], 'contenido' => [
                         'Cada vez que llega mercancía, regístrela como <b>entrada</b> (o compra): suma al inventario y guarda el costo.',
                         'Si cambia el costo del proveedor, actualícelo: así la ganancia de los reportes es real.',
+                        '¿Tiene la lista de proveedores en Excel o en una hoja de Google? En <b>Proveedores → Importar Excel de proveedores</b> la sube y LocalPro reconoce solo las columnas (nombre, NIT, celular, correo, dirección).',
                     ], 'tip' => 'Imprima las etiquetas con código de barras al registrar la entrada: vender después es mucho más rápido.'],
                     ['titulo' => 'Revisar existencias', 'min' => 2, 'accion' => ['inventario.movimientos', 'Ver movimientos'], 'contenido' => [
                         'En <b>Inventario</b> ve cuánto queda de cada producto, talla y color, y en <b>Movimientos</b> quién vendió, devolvió o ajustó.',

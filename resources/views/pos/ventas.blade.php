@@ -6,7 +6,8 @@
 <div class="lp-dash">
     <div class="lp-hello">
         <div><small>POS</small><h1>Ventas del <span>punto de venta</span></h1></div>
-        <div class="lp-quick">@can('usar-pos')<a href="{{ route('pos.index') }}" class="btn btn-primary"><i class="fa-solid fa-cash-register me-1"></i>Abrir POS</a>@endcan</div>
+        <div class="lp-quick">@can('usar-pos')<a href="{{ route('pos.index') }}" class="btn btn-primary"><i class="fa-solid fa-cash-register me-1"></i>Abrir POS</a>@endcan
+            @if (auth()->user()->es_superadmin || auth()->user()->hasAnyRole(['dueno', 'administrador']))<a href="{{ route('pos.olvidada') }}" class="btn btn-light border"><i class="fa-solid fa-clock-rotate-left me-1"></i>Registrar venta olvidada</a>@endif</div>
     </div>
     @include('layouts.partials.lp-flash')
     <div class="lp-box">
@@ -27,7 +28,7 @@
                     <td>{{ $v->user->name ?? '—' }}</td>
                     <td>{{ $v->cliente_nombre ?? 'Mostrador' }}@if($v->cliente_telefono)<br><small class="text-muted">{{ $v->cliente_telefono }}</small>@endif</td>
                     <td><small>{{ $v->pagos->map(fn ($p) => $p->metodo->nombre)->implode(', ') }}</small></td>
-                    <td class="fw-bold">@pesos($v->total) @if($v->estado === 'anulada')<span class="badge bg-danger">Anulada</span>@endif @if($v->corregida_en)<span class="badge bg-warning text-dark" title="Corregida el {{ $v->corregida_en->format('d/m/Y h:i a') }}">Corregida</span>@endif</td>
+                    <td class="fw-bold">@pesos($v->total) @if($v->estado === 'anulada')<span class="badge bg-danger">Anulada</span>@endif @if($v->registrada_despues_en)<span class="badge bg-info text-dark" title="Registrada el {{ $v->registrada_despues_en->format('d/m/Y h:i a') }}">Registrada después</span>@endif @if($v->corregida_en)<span class="badge bg-warning text-dark" title="Corregida el {{ $v->corregida_en->format('d/m/Y h:i a') }}">Corregida</span>@endif</td>
                     <td class="text-end text-nowrap">
                         <a href="{{ route('pos.ticket', $v) }}" target="_blank" class="btn btn-sm btn-dark"><i class="fa-solid fa-receipt"></i></a>
                         @if ($v->estado === 'pagada' && (auth()->user()->es_superadmin || auth()->user()->hasAnyRole(['dueno', 'administrador'])))
