@@ -32,16 +32,19 @@
         <div class="lp-box mb-3">
             <h3>1. ¿De qué día y qué caja?</h3>
             <div class="row g-2">
-                <div class="col-md-8">
-                    <select name="caja_id" class="form-select" required>
+                <div class="col-md-6"><label class="form-label small fw-bold">Caja</label>
+                    <select name="caja_id" id="voCaja" class="form-select" required>
                         @foreach ($cajas as $c)
-                        <option value="{{ $c->id }}" @selected(old('caja_id', $sugerida?->id) == $c->id)>{{ $c->abierta_en->translatedFormat('l d/m/Y') }} · {{ $c->user->name ?? '—' }} · {{ $c->estado === 'cerrada' ? 'cerrada ' . $c->cerrada_en?->format('h:i a') : 'abierta' }}</option>
+                        @php $fin = $c->cerrada_en ?? now(); @endphp
+                        <option value="{{ $c->id }}" data-desde="{{ $c->abierta_en->toDateString() }}" data-hasta="{{ $fin->toDateString() }}" @selected(old('caja_id', $sugerida?->id) == $c->id)>{{ $c->user->name ?? '—' }} · {{ $c->abierta_en->format('d/m') }}{{ $c->abierta_en->toDateString() !== $fin->toDateString() ? ' al ' . $fin->format('d/m') : '' }} · {{ $c->estado === 'cerrada' ? 'cerrada' : 'abierta' }}</option>
                         @endforeach
-                    </select>
-                </div>
-                <div class="col-md-4"><input type="time" name="hora" class="form-control" value="{{ old('hora') }}" title="Hora aproximada (opcional)"></div>
+                    </select></div>
+                <div class="col-md-3"><label class="form-label small fw-bold">Día de la venta</label>
+                    <input type="date" name="fecha" id="voFecha" class="form-control" required value="{{ old('fecha', now()->subDay()->toDateString()) }}" max="{{ now()->subDay()->toDateString() }}"></div>
+                <div class="col-md-3"><label class="form-label small fw-bold">Hora (opcional)</label>
+                    <input type="time" name="hora" class="form-control" value="{{ old('hora') }}"></div>
             </div>
-            <small class="text-muted">La venta queda a nombre del vendedor de esa caja. La hora es opcional.</small>
+            <small class="text-muted">Si la caja estuvo abierta varios días, elija el día exacto de la venta. Queda a nombre del vendedor de esa caja.</small>
         </div>
 
         <div class="lp-box mb-3">
@@ -73,6 +76,17 @@
 @push('js')
 <script>
 (function () {
+    // El día de la venta debe estar dentro del turno de la caja elegida (y no puede ser hoy)
+    var caja = document.getElementById('voCaja'), fecha = document.getElementById('voFecha');
+    if (caja && fecha) {
+        var ayer = fecha.max;
+        function rango() {
+            var o = caja.options[caja.selectedIndex]; if (!o) return;
+            fecha.min = o.dataset.desde; fecha.max = o.dataset.hasta < ayer ? o.dataset.hasta : ayer;
+            if (fecha.value < fecha.min || fecha.value > fecha.max) fecha.value = fecha.max;
+        }
+        caja.addEventListener('change', rango); rango();
+    }
     var buscar = document.getElementById('voBuscar'); if (!buscar) return;
     var res = document.getElementById('voRes'), cuerpo = document.getElementById('voItems'), URL_B = @json(route('pos.buscar'));
     var fmt = new Intl.NumberFormat('es-CO', { maximumFractionDigits: {{ (int) (moneda()['decimales'] ?? 0) }} }), SIM = @json(moneda()['simbolo'] ?? '$');

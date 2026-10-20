@@ -197,7 +197,7 @@ class Academia
                         'Al final del turno cuente el efectivo y escriba lo que hay. LocalPro compara con lo que debería haber.',
                         'Si hay <b>faltante o sobrante</b>, escriba el motivo en la nota. Es normal un error pequeño; lo importante es explicarlo.',
                         'El dueño ve el reporte de cada cierre con las ventas por método de pago.',
-                    ], 'tip' => 'Cierre todos los días, aunque haya vendido poco.'],
+                    ], 'tip' => 'Cierre todos los días, aunque haya vendido poco: una caja abierta varios días mezcla las ventas y es más difícil encontrar un descuadre.'],
                     ['titulo' => 'Anotar los egresos (gastos)', 'min' => 3, 'accion' => ['egresos.index', 'Ir a Egresos'], 'contenido' => [
                         'Cada vez que salga plata del negocio (un domicilio, bolsas, el internet, un arreglo) anótela en <b>Egresos</b>: qué fue, cuánto, el tipo de gasto y cómo se pagó. Si tiene el recibo, tómele una foto.',
                         'Si lo paga <b>en efectivo con la plata de su caja abierta</b>, LocalPro lo descuenta solo del efectivo que debe haber. Así la caja cuadra al cerrar y no aparece un "faltante".',

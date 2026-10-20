@@ -46,7 +46,8 @@ class ventaOlvidadaController extends Controller
 
     private function cajas()
     {
-        return Caja::with('user:id,name')->where('abierta_en', '>=', now()->subDays(self::DIAS)->startOfDay())
+        return Caja::with('user:id,name')
+            ->where(fn ($q) => $q->where('abierta_en', '>=', now()->subDays(self::DIAS)->startOfDay())->orWhere('estado', 'abierta'))
             ->orderByDesc('abierta_en')->limit(60)->get();
     }
 
@@ -73,6 +74,7 @@ class ventaOlvidadaController extends Controller
         if ($b = $this->bloqueo()) return back()->withErrors($b);
         $datos = $request->validate([
             'caja_id' => 'required|integer',
+            'fecha' => 'required|date',
             'hora' => 'nullable|date_format:H:i',
             'items' => 'required|array|min:1|max:100',
             'items.*.variante_id' => 'required|integer',
@@ -88,13 +90,23 @@ class ventaOlvidadaController extends Controller
 
         $res = DB::transaction(function () use ($datos) {
             $caja = Caja::whereKey($datos['caja_id'])->lockForUpdate()->firstOrFail();
-            abort_unless($caja->abierta_en && $caja->abierta_en->gte(now()->subDays(self::DIAS)->startOfDay()), 422, 'Esa caja es muy antigua.');
+            abort_unless($caja->abierta_en, 422, 'Esa caja no es válida.');
+            if (Carbon::parse($datos['fecha'])->lt(now()->subDays(self::DIAS)->startOfDay())) {
+                throw ValidationException::withMessages(['fecha' => 'Solo se pueden registrar ventas de los últimos ' . self::DIAS . ' días.']);
+            }
             $metodo = $this->metodos()->firstWhere('id', (int) $datos['metodo_id']);
             if (!$metodo) throw ValidationException::withMessages(['metodo_id' => 'Elija un método de pago válido.']);
 
-            // Fecha de la venta: el día de esa caja, a la hora indicada (dentro del turno)
+            // Fecha de la venta: el día elegido (la caja puede llevar varios días abierta), a la hora indicada, dentro del turno
             $fin = $caja->cerrada_en ?? now();
-            $fecha = $datos['hora'] ? Carbon::parse($caja->abierta_en->toDateString() . ' ' . $datos['hora']) : $fin->copy()->subMinute();
+            $dia = Carbon::parse($datos['fecha'])->startOfDay();
+            if ($dia->lt($caja->abierta_en->copy()->startOfDay()) || $dia->gt($fin->copy()->startOfDay())) {
+                throw ValidationException::withMessages(['fecha' => 'Esa caja estuvo abierta del ' . $caja->abierta_en->format('d/m/Y') . ' al ' . $fin->format('d/m/Y') . '. Elija un día dentro de ese turno.']);
+            }
+            if ($dia->isToday()) {
+                throw ValidationException::withMessages(['fecha' => 'Las ventas de hoy se registran en la caja (POS), no aquí.']);
+            }
+            $fecha = $datos['hora'] ? Carbon::parse($dia->toDateString() . ' ' . $datos['hora']) : $dia->copy()->setTime(18, 0);
             if ($fecha->lt($caja->abierta_en)) $fecha = $caja->abierta_en->copy()->addMinute();
             if ($fecha->gt($fin)) $fecha = $fin->copy()->subMinute();
 
