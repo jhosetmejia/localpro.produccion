@@ -26,7 +26,7 @@
                 <div class="col-md-6"><label class="form-label">Programa</label>
                     <select name="programa_id" class="form-select" id="m-prog" required>
                         <option value="">— Elegir —</option>
-                        @foreach ($programas as $p)<option value="{{ $p->id }}" data-valor="{{ (int) $p->valor_semestre }}" data-sem="{{ $p->semestres }}" @selected($progSel === $p->id)>{{ $p->nombre }}</option>@endforeach
+                        @foreach ($programas as $p)<option value="{{ $p->id }}" data-valor="{{ (int) $p->valor_semestre }}" data-contado="{{ (int) $p->precio_contado }}" data-fin="{{ $p->tiene_financiacion ? (int) $p->precio_financiado : 0 }}" data-ini="{{ (int) $p->fin_cuota_inicial }}" data-n="{{ (int) $p->fin_num_cuotas }}" data-sem="{{ $p->semestres }}" @selected($progSel === $p->id)>{{ $p->nombre }}</option>@endforeach
                     </select></div>
                 <div class="col-6 col-md-3"><label class="form-label">Periodo</label>
                     <select name="periodo" class="form-select">@foreach ($periodos as $pe)<option value="{{ $pe }}" @selected(old('periodo', $actual) === $pe)>{{ str_replace(['-1', '-2'], [' - I', ' - II'], $pe) }}</option>@endforeach</select></div>
@@ -47,7 +47,8 @@
                         <input type="radio" class="btn-check" name="modalidad" value="credito" id="mod-k" @checked(old('modalidad') === 'credito')><label class="btn btn-outline-dark" for="mod-k">Crédito (cuotas)</label>
                     </div>
                 </div>
-                <div class="col-md-4"><label class="form-label">Valor del semestre</label><input data-dinero type="number" name="valor_semestre" class="form-control fw-bold" min="0" required id="m-valor" value="{{ old('valor_semestre') }}"></div>
+                <div class="col-12"><div class="small fw-semibold" id="m-precios" style="color:#11702f"></div></div>
+                <div class="col-md-4"><label class="form-label">Valor a pagar</label><input data-dinero type="number" name="valor_semestre" class="form-control fw-bold" min="0" required id="m-valor" value="{{ old('valor_semestre') }}"></div>
                 <div class="col-md-4 m-cred"><label class="form-label">Cuota inicial</label><input data-dinero type="number" name="cuota_inicial" class="form-control" min="0" id="m-inicial" value="{{ old('cuota_inicial', 0) }}"></div>
                 <div class="col-md-4 m-cred"><label class="form-label">No. de cuotas mensuales</label><input type="number" name="num_cuotas" class="form-control" min="1" max="24" id="m-n" value="{{ old('num_cuotas', 5) }}"></div>
                 <div class="col-12 m-cred"><div class="p-3 rounded-3" style="background:#f4fcf6;border:1.5px solid #bfeccb" id="m-plan"></div>
@@ -87,11 +88,29 @@
         }
         plan.innerHTML = html + '</div>';
     }
-    prog.addEventListener('change', function () { var o = prog.options[prog.selectedIndex]; if (o && o.dataset.valor && (!tocado || !valor.value)) valor.value = o.dataset.valor; calc(); });
+    // Precios del programa: contado (con descuento) o financiado (cuota inicial + cuotas); si no tiene, el precio pleno
+    var precios = document.getElementById('m-precios');
+    function aplicar() {
+        var o = prog.options[prog.selectedIndex], dd = o ? o.dataset : {};
+        var pleno = +dd.valor || 0, cont = +dd.contado || 0, fin = +dd.fin || 0;
+        var t = [];
+        if (pleno) t.push('Precio pleno $' + fmt.format(pleno));
+        if (cont) t.push('Contado $' + fmt.format(cont) + (pleno > cont ? ' (ahorra $' + fmt.format(pleno - cont) + ')' : ''));
+        if (fin) t.push('Financiado $' + fmt.format(fin) + ': inicial $' + fmt.format(+dd.ini || 0) + ' + ' + dd.n + ' cuotas');
+        precios.textContent = t.join(' · ');
+        if (!o || !o.value) return;
+        if (credito()) {
+            valor.value = fin || pleno;
+            if (fin) { ini.value = +dd.ini || 0; n.value = +dd.n || 1; }
+        } else {
+            valor.value = cont || pleno;
+        }
+    }
+    prog.addEventListener('change', function () { aplicar(); calc(); });
     valor.addEventListener('input', function () { tocado = true; calc(); });
     [ini, n, fecha].forEach(function (x) { x.addEventListener('input', calc); });
-    f.querySelectorAll('[name=modalidad]').forEach(function (r) { r.addEventListener('change', calc); });
-    if (!valor.value) { var o = prog.options[prog.selectedIndex]; if (o && o.dataset.valor) valor.value = o.dataset.valor; }
+    f.querySelectorAll('[name=modalidad]').forEach(function (r) { r.addEventListener('change', function () { aplicar(); calc(); }); });
+    if (!valor.value) aplicar(); else { var v0 = valor.value, i0 = ini.value, n0 = n.value; aplicar(); valor.value = v0; ini.value = i0; n.value = n0; }
     calc();
 })();
 </script>

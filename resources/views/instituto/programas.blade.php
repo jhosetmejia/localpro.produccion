@@ -7,8 +7,8 @@
     <div class="lp-hello">
         <div><small><i class="fa-solid fa-school me-1"></i>Instituto</small><h1>Programas <span>académicos</span></h1>
             <span class="text-muted fw-semibold">{{ $programas->where('activo', true)->count() }} activos</span></div>
-        @if ($programas->isEmpty())
-        <form method="post" action="{{ route('instituto.programas.ejemplo') }}" class="lp-quick">@csrf<button class="btn btn-dark"><i class="fa-solid fa-wand-magic-sparkles me-1"></i>Cargar programas técnicos de ejemplo</button></form>
+        @if ($programas->isEmpty() || $programas->filter(fn ($p) => isset(\App\Models\Instituto\Programa::PRECIOS_EJEMPLO[$p->nombre]) && $p->valor_semestre <= 0)->isNotEmpty())
+        <form method="post" action="{{ route('instituto.programas.ejemplo') }}" class="lp-quick">@csrf<button class="btn btn-dark"><i class="fa-solid fa-wand-magic-sparkles me-1"></i>{{ $programas->isEmpty() ? 'Cargar programas técnicos de ejemplo' : 'Poner precios de ejemplo' }}</button></form>
         @endif
     </div>
     @include('layouts.partials.lp-flash')
@@ -27,7 +27,14 @@
             @forelse ($programas as $p)
             <li style="flex-wrap:wrap;{{ $p->activo ? '' : 'opacity:.55' }}">
                 <div class="av"><i class="fa-solid fa-book-open"></i></div>
-                <div class="t"><b>{{ $p->nombre }}</b><small>{{ $p->tipo }} · {{ $p->semestres }} semestre(s) · semestre {{ $p->valor_semestre > 0 ? dinero($p->valor_semestre) : 'sin valor' }}{{ $p->valor_inscripcion > 0 ? ' · inscripción ' . dinero($p->valor_inscripcion) : '' }} · {{ $p->matriculados }} matriculado(s){{ $p->activo ? '' : ' · inactivo' }}</small></div>
+                <div class="t"><b>{{ $p->nombre }}</b><small>{{ $p->tipo }} · {{ $p->semestres }} semestre(s) · semestre {{ $p->valor_semestre > 0 ? dinero($p->valor_semestre) : 'sin valor' }}{{ $p->valor_inscripcion > 0 ? ' · inscripción ' . dinero($p->valor_inscripcion) : '' }} · {{ $p->matriculados }} matriculado(s){{ $p->activo ? '' : ' · inactivo' }}</small>
+                    @if ($p->precio_contado || $p->tiene_financiacion)
+                    <small class="d-block fw-semibold" style="color:#11702f">
+                        @if ($p->precio_contado)Contado {{ dinero($p->precio_contado) }}@if ($a = $p->ahorro($p->precio_contado)) ({{ number_format($a[1], 2, ',', '.') }}% · −{{ dinero($a[0]) }})@endif @endif
+                        @if ($p->tiene_financiacion){{ $p->precio_contado ? ' · ' : '' }}Financiado {{ dinero($p->precio_financiado) }}: inicial {{ dinero((float) $p->fin_cuota_inicial) }} + {{ $p->fin_num_cuotas }} cuotas de {{ dinero($p->valor_cuota_fin) }}@endif
+                    </small>
+                    @endif
+                </div>
                 <details style="width:100%">
                     <summary class="small fw-bold" style="cursor:pointer;color:#16b34a">Editar</summary>
                     <form method="post" action="{{ route('instituto.programas.update', $p) }}" class="row g-2 mt-1">

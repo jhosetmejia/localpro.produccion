@@ -6,6 +6,23 @@
 // palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
+    'precios-de-contado-y-financiacion-instituto' => [
+        'titulo' => 'Instituto técnico: cargue sus precios de contado y financiación y matricule en un minuto',
+        'resumen' => 'Ponga en cada programa el precio pleno, el precio de contado y el plan financiado (cuota inicial + cuotas). Al matricular, LocalProo llena los valores solo y arma las cuotas con su fecha de pago.',
+        'fecha' => '20 de octubre de 2026',
+        'publicado' => '2026-10-20',
+        'minutos' => 3,
+        'icono' => 'fa-hand-holding-dollar',
+        'rol' => 'negocios',
+        'seo_titulo' => 'Precios de contado y financiación para institutos | LocalProo',
+        'descripcion' => 'Cómo cargar la lista de precios de un instituto técnico (pleno, contado y financiado con cuotas) y matricular estudiantes con su plan de pagos.',
+        'keywords' => ['precios instituto técnico financiación', 'cuotas de matrícula instituto', 'software para institutos técnicos', 'matrícula a crédito cuotas', 'cartera de estudiantes', 'plan de pagos estudiantes'],
+        'faq' => [
+            ['¿Los precios son por semestre?', 'Sí. Cada programa lleva el precio pleno del semestre, el de contado y el financiado. Si cambia la lista de precios, edita el programa y las próximas matrículas toman los nuevos valores.'],
+            ['¿Puedo cambiar el valor al matricular a un estudiante?', 'Sí. Los valores se llenan solos, pero los puede ajustar en ese momento (por ejemplo, una beca o un descuento especial).'],
+            ['¿Qué pasa si un estudiante no paga una cuota?', 'Queda en Cartera y morosos con los días de mora, y le puede enviar un recordatorio por WhatsApp con un toque.'],
+        ],
+    ],
     'software-para-institutos-tecnicos-matriculas-y-cuotas' => [
         'titulo' => 'Software para institutos técnicos y academias: inscripciones, matrículas y cuotas sin papeles',
         'resumen' => 'Pase el formulario de inscripción y el formato de matrícula al sistema, matricule de contado o a crédito, cobre las cuotas mensuales con recibo por WhatsApp y vea en un solo lugar quién está en mora.',

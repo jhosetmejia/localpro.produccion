@@ -396,12 +396,13 @@ class Academia
                 'lecciones' => [
                     ['titulo' => 'Programas e inscripciones', 'min' => 3, 'accion' => ['instituto.programas', 'Ver programas'], 'contenido' => [
                         'En <b>Programas</b> cree los técnicos o cursos que ofrece, con la duración y el <b>valor del semestre y de la inscripción</b>. Puede cargar los de ejemplo y editarlos.',
+                        'En cada programa ponga su lista de precios: <b>precio pleno</b>, <b>precio de contado</b> (con descuento) y <b>financiado</b> (cuota inicial + número de cuotas). LocalPro calcula el valor de cada cuota y el % de descuento.',
                         'En <b>Nueva inscripción</b> llena el mismo formulario de papel: datos personales, trabajo, estudios y acudiente. El consecutivo sale solo.',
                         'Marque las <b>autorizaciones</b> de datos personales (Ley 1581 de 2012) y de uso de imagen. Con un botón imprime el formulario lleno para que lo firme.',
                     ], 'tip' => 'Si el programa tiene valor de inscripción, el cobro queda cargado al aspirante desde el primer día.'],
                     ['titulo' => 'La matrícula y las cuotas', 'min' => 3, 'accion' => ['instituto.estudiantes', 'Ver estudiantes'], 'contenido' => [
                         'En la ficha del estudiante toque <b>Matricular</b>: programa, periodo, semestre, jornada y módulos pendientes.',
-                        'Elija <b>contado</b> (un solo cobro) o <b>crédito</b>: escriba la cuota inicial y en cuántas cuotas paga el resto. El sistema arma las cuotas con la fecha de pago de cada mes.',
+                        'Elija <b>contado</b> o <b>crédito</b>: si el programa tiene sus precios, el valor, la cuota inicial y el número de cuotas se llenan solos (y los puede cambiar). El sistema arma las cuotas con la fecha de pago de cada mes.',
                         'Imprima el <b>formato de matrícula</b> lleno, con las autorizaciones y las firmas.',
                     ], 'tip' => 'Las cuotas vencen el día que usted elija (por defecto el 5: se pagan del 1 al 5 de cada mes).'],
                     ['titulo' => 'Pagos, recibos y cartera', 'min' => 2, 'accion' => ['instituto.cartera', 'Ver cartera'], 'contenido' => [

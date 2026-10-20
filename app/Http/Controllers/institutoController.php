@@ -81,8 +81,20 @@ class institutoController extends Controller
             'valor_semestre' => 'required|numeric|min:0|max:1000000000',
             'valor_inscripcion' => 'nullable|numeric|min:0|max:1000000000',
             'modulos' => 'nullable|string|max:5000',
+            'precio_contado' => 'nullable|numeric|min:0|max:1000000000',
+            'precio_financiado' => 'nullable|numeric|min:0|max:1000000000',
+            'fin_cuota_inicial' => 'nullable|numeric|min:0|max:1000000000',
+            'fin_num_cuotas' => 'nullable|integer|min:1|max:24',
         ], ['nombre.required' => 'Escriba el nombre del programa.']);
         $d['tipo'] = $d['tipo'] ?: 'Técnico laboral por competencias';
+        foreach (['precio_contado', 'precio_financiado', 'fin_cuota_inicial'] as $k) $d[$k] = ($d[$k] ?? null) > 0 ? (float) $d[$k] : null;
+        $d['fin_num_cuotas'] = ($d['fin_num_cuotas'] ?? null) ?: null;
+        if ($d['precio_financiado'] && $d['fin_cuota_inicial'] && $d['fin_cuota_inicial'] > $d['precio_financiado']) {
+            return back()->withInput()->withErrors('La cuota inicial no puede ser mayor que el precio financiado.');
+        }
+        if ($d['precio_financiado'] && !$d['fin_num_cuotas'] && (float) $d['fin_cuota_inicial'] < $d['precio_financiado']) {
+            return back()->withInput()->withErrors('Escriba en cuántas cuotas se paga el precio financiado.');
+        }
         $d['valor_inscripcion'] = (float) ($d['valor_inscripcion'] ?? 0);
         $d['activo'] = $request->boolean('activo', true);
         if ($programa?->id) {
@@ -97,11 +109,17 @@ class institutoController extends Controller
     {
         $n = 0;
         foreach (Programa::EJEMPLOS as $nom) {
-            if (Programa::where('nombre', $nom)->exists()) continue;
-            Programa::create(['nombre' => $nom, 'semestres' => 2, 'valor_semestre' => 0, 'valor_inscripcion' => 0, 'activo' => true]);
+            $pr = Programa::PRECIOS_EJEMPLO[$nom] ?? null;
+            $precios = $pr ? ['valor_semestre' => $pr[0], 'precio_contado' => $pr[1], 'precio_financiado' => $pr[2], 'fin_cuota_inicial' => $pr[3], 'fin_num_cuotas' => $pr[4]] : ['valor_semestre' => 0];
+            if ($ya = Programa::where('nombre', $nom)->first()) {
+                // Si ya existe sin precio, se le ponen los precios de ejemplo
+                if ($pr && (float) $ya->valor_semestre <= 0 && !$ya->precio_contado) { $ya->update($precios); $n++; }
+                continue;
+            }
+            Programa::create(['nombre' => $nom, 'semestres' => 2, 'valor_inscripcion' => 0, 'activo' => true] + $precios);
             $n++;
         }
-        return back()->with('success', "$n programas cargados. Póngale a cada uno el valor del semestre y la duración.");
+        return back()->with('success', "$n programas listos con precios de ejemplo (pleno, contado y financiado). Revise y ajuste cada uno con sus precios y la duración.");
     }
 
     // ===================== Estudiantes e inscripciones =====================
