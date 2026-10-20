@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Cliente;
 use App\Models\User;
+use App\Support\ContactarBase;
 use App\Support\TiendaActual;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,77 +27,18 @@ class contactarController extends Controller
         return (bool) auth()->user()?->hasAnyRole(['dueno', 'administrador']);
     }
 
-    // Los que se le pueden asignar: con celular, sin contactar y sin asignar hoy a otra persona
-    private function libres()
-    {
-        $hoy = now()->toDateString();
-        return Cliente::query()
-            ->whereNull('contactado_at')
-            ->where(fn ($q) => $q->whereNull('asignado_fecha')->orWhere('asignado_fecha', '<', $hoy))
-            ->whereHas('persona', fn ($p) => $p->where('estado', 1)->whereNotNull('telefono')->where('telefono', '<>', ''));
-    }
+    // La lógica de reparto vive en App\Support\ContactarBase (la usan también los asesores con quienes se comparte la base)
+    private function libres() { return ContactarBase::libres(); }
+    private function asignar(int $userId, int $cuantos): int { return ContactarBase::asignar($userId, $cuantos); }
 
-    // El número tal como se usa en WhatsApp (solo dígitos y con indicativo), para saber si dos clientes son la misma persona
-    private function numero(?string $tel): string
+    // Quién puede compartir la base con "sus asesores": el súper admin (con todos) o un dueño que es de la red (con su gente)
+    private function compartirCon(): ?array
     {
-        return (string) numero_whatsapp($tel);
-    }
-
-    // Números que ya no se pueden dar: ya contactados por alguien, o asignados hoy a otra persona
-    private function numerosOcupados(): array
-    {
-        $hoy = now()->toDateString();
-        $ocupados = [];
-        Cliente::query()
-            ->where(fn ($q) => $q->whereNotNull('contactado_at')->orWhere('asignado_fecha', $hoy))
-            ->with('persona:id,telefono')->select(['id', 'persona_id'])
-            ->chunkById(1000, function ($lote) use (&$ocupados) {
-                foreach ($lote as $c) {
-                    $n = $this->numero($c->persona?->telefono);
-                    if ($n !== '') $ocupados[$n] = true;
-                }
-            });
-        return $ocupados;
-    }
-
-    // Reparte contactos sin repetir número: una persona se contacta UNA sola vez, aunque esté cargada dos veces en la base
-    private function asignar(int $userId, int $cuantos): int
-    {
-        if ($cuantos <= 0) return 0;
-        return DB::transaction(function () use ($userId, $cuantos) {
-            $ocupados = $this->numerosOcupados();
-            $elegidos = [];
-            $desde = 0;
-            while (count($elegidos) < $cuantos) {
-                $lote = $this->libres()->with('persona:id,telefono')->where('id', '>', $desde)
-                    ->orderBy('id')->limit(300)->lockForUpdate()->get(['id', 'persona_id']);
-                if ($lote->isEmpty()) break;
-                foreach ($lote as $c) {
-                    $desde = $c->id;
-                    $n = $this->numero($c->persona?->telefono);
-                    if ($n === '' || isset($ocupados[$n])) continue;
-                    $ocupados[$n] = true;
-                    $elegidos[] = $c->id;
-                    if (count($elegidos) >= $cuantos) break;
-                }
-            }
-            if (!$elegidos) return 0;
-            Cliente::whereIn('id', $elegidos)->update(['asignado_a' => $userId, 'asignado_fecha' => now()->toDateString()]);
-            return count($elegidos);
-        });
-    }
-
-    // Los clientes de la base que tienen el mismo número (la misma persona cargada varias veces)
-    private function mismoNumero(Cliente $cliente)
-    {
-        $n = $this->numero($cliente->persona?->telefono);
-        if ($n === '') return collect([$cliente->id]);
-        $digitos = substr($n, -7);
-        return Cliente::with('persona:id,telefono')
-            ->whereHas('persona', fn ($p) => $p->where('telefono', 'like', '%' . $digitos . '%'))
-            ->get(['id', 'persona_id'])
-            ->filter(fn ($c) => $this->numero($c->persona?->telefono) === $n)
-            ->pluck('id')->push($cliente->id)->unique();
+        $u = auth()->user();
+        if (!$this->esJefe()) return null;
+        if ($u->es_superadmin) return ['asesor_id' => null, 'texto' => 'todos los asesores de LocalPro'];
+        if ($a = $u->asesor) return ['asesor_id' => $a->id, 'texto' => 'los asesores de su red'];
+        return null;
     }
 
     public function index()
@@ -115,9 +57,13 @@ class contactarController extends Controller
 
         $equipo = collect();
         if ($this->esJefe()) {
-            $equipo = User::where('tienda_id', TiendaActual::id())->orderBy('name')->get(['id', 'name'])->map(function ($u) use ($hoy) {
+            // Gente del equipo + asesores a quienes se les compartió la base y ya tienen contactos de aquí
+            $deFuera = Cliente::where('asignado_fecha', $hoy)->distinct()->pluck('asignado_a')
+                ->merge(Cliente::whereNotNull('contactado_por')->distinct()->pluck('contactado_por'))->filter()->unique();
+            $equipo = User::with('asesor:id,user_id')->where(fn ($q) => $q->where('tienda_id', TiendaActual::id())->orWhereIn('id', $deFuera))
+                ->orderBy('name')->get(['id', 'name', 'tienda_id'])->map(function ($u) use ($hoy) {
                 $q = Cliente::where('asignado_a', $u->id)->where('asignado_fecha', $hoy);
-                return ['nombre' => $u->name, 'asignados' => (clone $q)->count(), 'hechos' => (clone $q)->whereNotNull('contactado_at')->count(),
+                return ['nombre' => $u->name, 'asesor' => (int) $u->tienda_id !== (int) TiendaActual::id() && $u->asesor, 'asignados' => (clone $q)->count(), 'hechos' => (clone $q)->whereNotNull('contactado_at')->count(),
                     'total' => Cliente::where('contactado_por', $u->id)->count()];
             })->filter(fn ($e) => $e['asignados'] || $e['total'])->values();
         }
@@ -132,6 +78,7 @@ class contactarController extends Controller
             'equipo' => $equipo,
             'pendientesBase' => $this->libres()->count(),
             'contactadosTotal' => Cliente::whereNotNull('contactado_at')->count(),
+            'compartir' => $this->compartirCon(),
         ]);
     }
 
@@ -142,7 +89,7 @@ class contactarController extends Controller
         abort_unless((int) $cliente->asignado_a === (int) auth()->id() || $this->esJefe(), 403);
         $estado = $request->input('estado');
         $cliente->loadMissing('persona');
-        $ids = $this->mismoNumero($cliente);
+        $ids = ContactarBase::mismoNumero($cliente);
 
         if ($estado === 'deshacer') {
             // Quitar la marca: el jefe siempre; la persona que lo marcó, solo en los primeros 30 minutos (por si se equivocó)
@@ -157,32 +104,16 @@ class contactarController extends Controller
         abort_unless(in_array($estado, ['enviado', 'numero_malo', 'no_interesa'], true), 422);
 
         // Si otra persona ya le escribió (el mismo número cargado dos veces), no se le vuelve a escribir
-        if ($estado === 'enviado') {
-            $previo = Cliente::with('contactadoPor:id,name')->whereIn('id', $ids)->whereNotNull('contactado_at')
-                ->where('id', '<>', $cliente->id)->first();
-            if ($previo && (int) $previo->contactado_por !== (int) auth()->id()) {
-                Cliente::whereIn('id', $ids)->whereNull('contactado_at')->update([
-                    'contactado_at' => $previo->contactado_at, 'contactado_por' => $previo->contactado_por, 'contacto_estado' => $previo->contacto_estado,
-                ]);
-                return response()->json(['ok' => false, 'repetido' => true,
-                    'mensaje' => 'A este número ya le escribió ' . ($previo->contactadoPor->name ?? 'otra persona del equipo') . '. No le escriba otra vez.'], 409);
-            }
-        }
-
-        Cliente::whereIn('id', $ids)->update(['contactado_at' => now(), 'contactado_por' => auth()->id(), 'contacto_estado' => $estado]);
-        return response()->json(['ok' => true]);
+        [$ok, $mensaje, $repetido] = ContactarBase::marcar($cliente, (int) auth()->id(), $estado);
+        return $ok ? response()->json(['ok' => true]) : response()->json(['ok' => false, 'repetido' => $repetido, 'mensaje' => $mensaje], 409);
     }
 
     // Revisar antes de abrir WhatsApp que nadie más le haya escrito ya a ese número
     public function revisar(Cliente $cliente)
     {
         abort_unless((int) $cliente->asignado_a === (int) auth()->id() || $this->esJefe(), 403);
-        $cliente->loadMissing('persona');
-        $previo = Cliente::with('contactadoPor:id,name')->whereIn('id', $this->mismoNumero($cliente))->whereNotNull('contactado_at')->first();
-        return response()->json([
-            'libre' => !$previo,
-            'mensaje' => $previo ? 'A este número ya le escribió ' . ($previo->contactadoPor->name ?? 'otra persona del equipo') . ' el ' . $previo->contactado_at->format('d/m/Y') . '. No le escriba otra vez.' : null,
-        ]);
+        $mensaje = ContactarBase::yaEscrito($cliente);
+        return response()->json(['libre' => !$mensaje, 'mensaje' => $mensaje]);
     }
 
     // Pedir más contactos hoy (cuando ya terminó los suyos)
@@ -203,7 +134,12 @@ class contactarController extends Controller
         $t = TiendaActual::tienda();
         $t->mensaje_contacto = trim($d['mensaje']) === trim(self::MENSAJE) ? null : $d['mensaje'];
         $t->contactos_diarios = $d['contactos_diarios'];
+        // Compartir la base de datos con los asesores (solo quien tiene asesores: súper admin o dueño que es de la red)
+        if ($c = $this->compartirCon()) {
+            $t->compartir_asesores = $request->boolean('compartir_asesores');
+            $t->compartir_asesor_id = $t->compartir_asesores ? $c['asesor_id'] : null;
+        }
         $t->save();
-        return back()->with('success', 'Mensaje y cantidad diaria guardados.');
+        return back()->with('success', 'Guardado.' . ($t->compartir_asesores ? ' Su base de datos está compartida con ' . ($c['texto'] ?? 'sus asesores') . '.' : ''));
     }
 }

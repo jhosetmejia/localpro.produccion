@@ -45,6 +45,7 @@ class Academia
                     ['titulo' => 'Sus contactos y la base de LocalPro', 'min' => 3, 'accion' => ['asesor.contactos', 'Ir a Mis contactos'], 'contenido' => [
                         'En <b>Mis contactos</b> suba los contactos de su celular: cada día le salen 20 para escribirles con su enlace de prueba gratis.',
                         'Además, LocalPro le da <b>contactos de negocios para hoy</b>. A cada persona se le escribe una sola vez: si usted le escribe, no le sale a ningún otro asesor.',
+                        'Si un negocio de su red le comparte su base de datos, también le salen sus contactos: usted elige si manda el mensaje del negocio o el de LocalPro.',
                         'Si alguien se inscribe con su enlace, el negocio queda a su nombre automáticamente.',
                     ], 'tip' => 'Escriba sus 20 contactos en la mañana y dedique la tarde a visitar.'],
                     ['titulo' => 'La rutina que da resultados', 'min' => 2, 'accion' => null, 'contenido' => [
@@ -257,6 +258,7 @@ class Academia
                     ['titulo' => 'WhatsApp marketing', 'min' => 3, 'accion' => ['clientes.contactar', 'Contactar clientes'], 'contenido' => [
                         'Cada día a usted y a su equipo les salen clientes para escribirles con un toque, con un mensaje listo y el enlace de su tienda.',
                         'A cada persona se le escribe <b>una sola vez</b>: nadie del equipo le repite el mensaje.',
+                        'Si usted tiene asesores, marque <b>"Compartir mi base de datos con mis asesores"</b> y ellos también le escriben a su base, sin repetir a nadie.',
                         'Escriba de 9 a. m. a 7 p. m. y si alguien pide no recibir más mensajes, márquelo como "No le interesa" (Ley 1581 de datos personales).',
                     ], 'tip' => 'Lo mejor es poco y todos los días: 20 mensajes diarios venden más que 500 de una vez.'],
                     ['titulo' => 'Su tienda en línea', 'min' => 2, 'accion' => ['negocio.edit', 'Configurar mi tienda'], 'contenido' => [

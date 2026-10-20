@@ -4,7 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\AsesorContacto;
 use App\Models\RedContacto;
+use App\Models\Cliente;
+use App\Models\Tienda;
+use App\Support\ContactarBase;
 use App\Support\RedContactos;
+use App\Support\TiendaActual;
 use App\Support\HojaCalculo;
 use App\Support\ImportarClientes;
 use Illuminate\Http\Request;
@@ -50,8 +54,36 @@ class asesorContactosController extends Controller
             $redLista = RedContacto::where('asignado_a', $a->id)->where('asignado_fecha', now()->toDateString())
                 ->orderByRaw('contactado_at IS NOT NULL')->orderBy('id')->get();
         }
+        // Bases de datos que le comparten los negocios (el dueño marcó "Compartir mi base de datos con mis asesores")
+        $compartidas = collect();
+        $userId = (int) auth()->id();
+        foreach (ContactarBase::tiendasPara($a) as $t) {
+            $lista2 = TiendaActual::como($t->id, function () use ($t, $userId) {
+                $hoy = now()->toDateString();
+                $deHoy = Cliente::where('asignado_a', $userId)->where('asignado_fecha', $hoy)->count();
+                $cuota = ContactarBase::diariosAsesor($t);
+                if ($deHoy < $cuota) ContactarBase::asignar($userId, $cuota - $deHoy);
+                return Cliente::with('persona:id,razon_social,telefono')->where('asignado_a', $userId)->where('asignado_fecha', $hoy)
+                    ->orderByRaw('contactado_at IS NOT NULL')->orderBy('id')->get()
+                    ->map(function ($c) {
+                        $nombre = trim((string) $c->persona?->razon_social);
+                        return ['id' => $c->id, 'nombre' => $nombre ?: 'Sin nombre', 'telefono' => $c->persona?->telefono,
+                            'wa' => ContactarBase::numero($c->persona?->telefono),
+                            'primer' => preg_match('/^contacto\s/i', $nombre) ? '' : (string) \Illuminate\Support\Str::of($nombre)->explode(' ')->first(),
+                            'hecho' => (bool) $c->contactado_at, 'estado' => $c->contacto_estado,
+                            'otro' => $c->contactado_at && (int) $c->contactado_por !== (int) auth()->id()];
+                    })->filter(fn ($c) => $c['wa'] !== '')->values();
+            });
+            if ($lista2->isEmpty()) continue;
+            $compartidas->push([
+                'tienda' => $t, 'lista' => $lista2,
+                'mensaje' => $t->mensaje_contacto ?: contactarController::MENSAJE,
+                'catalogo' => $t->catalogo_activo && $t->slug ? $t->url_catalogo : '',
+            ]);
+        }
+
         return view('asesor.contactos', [
-            'yo' => $a, 'r' => $r, 'lista' => $lista, 'hechosHoy' => $hechosHoy, 'redLista' => $redLista,
+            'yo' => $a, 'r' => $r, 'lista' => $lista, 'hechosHoy' => $hechosHoy, 'redLista' => $redLista, 'compartidas' => $compartidas,
             'mensaje' => self::MENSAJE, 'volver' => $request->query('volver') === 'curso' ? route('curso.leccion', \App\Support\CursoAsesor::LECCION_CONTACTOS) : null,
         ]);
     }
@@ -105,5 +137,32 @@ class asesorContactosController extends Controller
             return response()->json(['ok' => false, 'mensaje' => 'A este contacto ya le escribió otro asesor. No le escriba otra vez.'], 409);
         }
         return response()->json(['ok' => true]);
+    }
+
+    // Contacto de la base que le compartió un negocio. Una sola vez: si alguien ya le escribió, se avisa y no se repite.
+    private function clienteCompartido(int $tienda, int $cliente): array
+    {
+        $a = $this->yo();
+        abort_unless(ContactarBase::puede($a, $tienda), 403, 'Ese negocio ya no le comparte su base de datos.');
+        $c = TiendaActual::como($tienda, fn () => Cliente::with('persona')->find($cliente));
+        abort_unless($c && (int) $c->asignado_a === (int) auth()->id(), 403);
+        return [$a, $c];
+    }
+
+    public function revisarTienda(int $tienda, int $cliente)
+    {
+        [, $c] = $this->clienteCompartido($tienda, $cliente);
+        $mensaje = TiendaActual::como($tienda, fn () => ContactarBase::yaEscrito($c));
+        return response()->json(['libre' => !$mensaje, 'mensaje' => $mensaje]);
+    }
+
+    public function marcarTienda(Request $request, int $tienda, int $cliente)
+    {
+        [, $c] = $this->clienteCompartido($tienda, $cliente);
+        $estado = $request->input('estado');
+        abort_unless(in_array($estado, ['enviado', 'numero_malo', 'no_interesa'], true), 422);
+        if ($c->contactado_at && (int) $c->contactado_por === (int) auth()->id()) return response()->json(['ok' => true]);
+        [$ok, $mensaje, $repetido] = TiendaActual::como($tienda, fn () => ContactarBase::marcar($c, (int) auth()->id(), $estado));
+        return $ok ? response()->json(['ok' => true]) : response()->json(['ok' => false, 'repetido' => $repetido, 'mensaje' => $mensaje], 409);
     }
 }

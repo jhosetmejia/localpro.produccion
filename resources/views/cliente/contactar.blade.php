@@ -38,6 +38,10 @@
 .cc-item.hecho.malo .cc-wa,.cc-item.malo .cc-wa:disabled{background:#fde2e8;color:#b0173f}
 .cc-item.malo .cc-av{background:#fde2e8;color:#b0173f}
 .cc-msg{white-space:pre-wrap;background:#e7fbe9;border-radius:14px 14px 14px 4px;padding:.8rem 1rem;font-size:.92rem;line-height:1.45;border:1px solid #c9efcf}
+.cc-compartir{display:flex;gap:.7rem;align-items:flex-start;background:#f4fcf6;border:1.5px solid #bfeccb;border-radius:16px;padding:.8rem 1rem;cursor:pointer}
+.cc-compartir input{width:1.4rem;height:1.4rem;flex:none;margin-top:.1rem}
+.cc-compartir small{display:block;color:#56615b;font-weight:600;margin-top:.2rem;line-height:1.35}
+.cc-tag{background:#dcfce7;color:#11702f;border-radius:999px;padding:.05rem .5rem;font-size:.72rem;font-weight:800;margin-left:.3rem}
 .cc-vacio{text-align:center;padding:2rem 1rem;color:#6b7570}
 .cc-vacio i{font-size:2.2rem;color:#16b84e;margin-bottom:.5rem}
 </style>
@@ -111,6 +115,13 @@
                     @csrf
                     <label class="form-label small fw-bold">Cambiar el mensaje</label>
                     <textarea name="mensaje" id="ccMensaje" rows="8" class="form-control" maxlength="1000">{{ old('mensaje', $mensaje) }}</textarea>
+                    @if ($compartir)
+                    <label class="cc-compartir mt-3">
+                        <input type="checkbox" name="compartir_asesores" value="1" class="form-check-input" @checked(old('compartir_asesores', $tienda->compartir_asesores))>
+                        <span><b>👥 Compartir mi base de datos con mis asesores</b>
+                            <small>Se la damos a {{ $compartir['texto'] }} para que también envíen mensajes. Cada asesor elige si manda <b>este mensaje</b> o el mensaje normal de LocalPro. A cada número se le escribe <b>una sola vez</b>: a los que usted o su equipo ya les escribieron no les sale a ningún asesor, y lo que escribe un asesor ya no le sale a usted.</small></span>
+                    </label>
+                    @endif
                     <div class="d-flex gap-2 align-items-end mt-2 flex-wrap">
                         <div><label class="form-label small fw-bold mb-1">Contactos al día por persona</label>
                             <input type="number" name="contactos_diarios" min="1" max="200" class="form-control" style="width:120px" value="{{ old('contactos_diarios', $cuota) }}"></div>
@@ -123,12 +134,15 @@
                 @endif
             </div>
 
+            @if ($esJefe && $tienda->compartir_asesores)
+            <div class="alert alert-success fw-bold small mt-3 mb-0">👥 Su base de datos está compartida con {{ $compartir['texto'] ?? 'sus asesores' }}.</div>
+            @endif
             @if ($esJefe && $equipo->isNotEmpty())
             <div class="cc-card mt-3">
                 <h3>Avance del equipo hoy</h3>
                 @foreach ($equipo as $e)
                 <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                    <span class="fw-bold">{{ $e['nombre'] }}</span>
+                    <span class="fw-bold">{{ $e['nombre'] }}@if ($e['asesor'])<span class="cc-tag">Asesor</span>@endif</span>
                     <span class="small"><b>{{ $e['hechos'] }}</b> / {{ $e['asignados'] }} hoy · {{ $e['total'] }} en total</span>
                 </div>
                 @endforeach
