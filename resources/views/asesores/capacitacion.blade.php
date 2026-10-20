@@ -155,6 +155,7 @@
                 <li><b>Sube sus clientes y ventas anteriores desde Excel</b> para no empezar de cero.</li>
             </ul>
             <ul style="margin:0;padding-left:1.1rem;font-weight:600">
+                <li><b>🛍️ Marketplace LocalProo</b> (<b>localproo.com/marketplace</b>): todas las tiendas en línea de LocalPro en un solo lugar, como Mercado Libre. El cliente busca un producto, compara precios entre tiendas y compra directo al negocio por WhatsApp. Cada negocio nuevo que inscriba sale ahí solo, con todos sus productos: ¡clientes gratis!</li>
                 <li><b>🌐 Página web / tienda en línea</b> por categorías, botón <b>Comprar</b> por WhatsApp (le llega el producto exacto) y que <b>aparece en Google</b>.</li>
                 <li><b>💬 Contactar clientes nuevos</b>: cada día el sistema le reparte a cada persona del equipo 20 contactos de la base de datos con un mensaje listo y el enlace del catálogo; se envía por WhatsApp con un toque y el dueño ve el avance.</li>
                 <li><b>📱 Base de datos con los contactos del celular</b>: el negocio exporta los contactos de su celular (Android, Samsung, iPhone o Google) y los sube; LocalPro los vuelve clientes sin repetidos, listos para ofrecerles su tienda y promociones.</li>

@@ -68,6 +68,9 @@ Route::get('/restablecer/{token}', [recuperarController::class, 'enlaceViejo'])-
 Route::get('/t/{slug}', [catalogoController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('catalogo.show');
 Route::get('/t/{slug}/yo', [catalogoController::class, 'yo'])->where('slug', '[a-z0-9-]+')->middleware('throttle:60,1')->name('catalogo.yo');
 Route::get('/t/{slug}/p/{producto}', [catalogoController::class, 'producto'])->where(['slug' => '[a-z0-9-]+', 'producto' => '[0-9]+(-[a-z0-9-]*)?'])->name('catalogo.producto');
+// LocalProo Marketplace: todas las tiendas en línea y sus productos en un solo lugar
+Route::get('/marketplace', [\App\Http\Controllers\marketplaceController::class, 'index'])->middleware('throttle:120,1')->name('marketplace');
+Route::get('/mercado', fn () => redirect()->route('marketplace', request()->query(), 301));
 Route::get('/sitemap.xml', [catalogoController::class, 'sitemap'])->name('sitemap');
 Route::post('/webhooks/wompi', [wompiController::class, 'evento'])->middleware('throttle:60,1');
 Route::get('/webhooks/meta', [metaWebhookController::class, 'verificar']);

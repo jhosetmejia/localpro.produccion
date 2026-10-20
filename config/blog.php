@@ -6,6 +6,23 @@
 // palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
+    'marketplace-localproo-tiendas-locales' => [
+        'titulo' => 'Marketplace LocalProo: su tienda al lado de todas las tiendas locales, como un Mercado Libre de su ciudad',
+        'resumen' => 'Todas las tiendas en línea de LocalProo aparecen en un solo lugar. Los clientes buscan un producto, comparan precios y le compran directo por WhatsApp, sin comisiones por venta.',
+        'fecha' => '20 de octubre de 2026',
+        'publicado' => '2026-10-20',
+        'minutos' => 2,
+        'icono' => 'fa-store',
+        'rol' => 'negocios',
+        'seo_titulo' => 'Marketplace de tiendas locales con compra por WhatsApp | LocalProo',
+        'descripcion' => 'Publique sus productos en el Marketplace LocalProo: los clientes buscan, comparan precios y le compran por WhatsApp. Sin comisión por venta.',
+        'keywords' => ['marketplace tiendas locales', 'vender en línea sin comisión', 'marketplace colombia whatsapp', 'publicar productos gratis', 'alternativa a mercado libre para negocios'],
+        'faq' => [
+            ['¿Cómo aparece mi tienda?', 'Sola: con la tienda en línea activa y productos con foto, su negocio sale en el Marketplace.'],
+            ['¿Cobran comisión por venta?', 'No. El cliente le compra directo a usted por WhatsApp; el Marketplace va incluido en su plan.'],
+            ['¿Dónde está?', 'En localproo.com/marketplace.'],
+        ],
+    ],
     'comparta-localproo-y-gane-descuentos-plan' => [
         'titulo' => 'Comparta LocalProo con otros empresarios y gane descuentos en su plan, de por vida',
         'resumen' => 'Cada negocio tiene su código. Si un colega se registra con él, recibe 3 meses gratis, y cada vez que pague su plan anual a usted se le abona un valor que se descuenta solo de su plan.',

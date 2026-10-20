@@ -269,6 +269,11 @@ class Academia
                         'Compártala en sus estados de WhatsApp, en la biografía de Instagram y en sus grupos. En el panel ve cuántas visitas tiene.',
                         'Los productos salen siempre <b>del más barato al más caro</b>: los precios bajos enganchan al cliente y lo hacen seguir mirando.',
                     ], 'tip' => 'Publique en sus estados un producto distinto cada día con el enlace de su tienda.'],
+                    ['titulo' => 'Su tienda en el Marketplace LocalProo', 'min' => 2, 'accion' => ['negocio.edit', 'Configurar mi tienda'], 'contenido' => [
+                        'En <b>localproo.com/marketplace</b> están todas las tiendas en línea de LocalPro, como un Mercado Libre de negocios locales.',
+                        'Su tienda y sus productos aparecen solos: basta con tener la tienda en línea activa y productos con foto.',
+                        'El cliente busca un producto, compara precios y entra a su tienda a comprarle por WhatsApp. Usted no paga comisión por esas ventas.',
+                    ], 'tip' => 'Ponga buenas fotos y precios claros: en el Marketplace su producto queda al lado del de otras tiendas.'],
                     ['titulo' => 'Facebook, Instagram y Mis enlaces', 'min' => 2, 'accion' => ['redes.index', 'Ir a Mis redes'], 'contenido' => [
                         'En <b>Mis redes</b> responde los mensajes de Messenger e Instagram en un solo lugar y publica sus productos con foto y precio.',
                         'En <b>Mis enlaces</b> arma una página con su WhatsApp, redes y promociones para poner en un código QR en el mostrador.',
@@ -282,6 +287,7 @@ class Academia
                 'prueba' => [
                     ['p' => '¿Qué dato es clave guardar de cada cliente?', 'o' => ['Su WhatsApp', 'Su color favorito', 'Nada'], 'r' => 0],
                     ['p' => '¿Qué funciona mejor para escribir a los clientes?', 'o' => ['Pocos mensajes todos los días', '500 mensajes de una vez', 'Escribir a medianoche'], 'r' => 0],
+                    ['p' => '¿Qué necesita para que sus productos salgan en el Marketplace LocalProo?', 'o' => ['Tener la tienda en línea activa y productos con foto', 'Pagar un anuncio aparte', 'Llamar a cada cliente'], 'r' => 0],
                     ['p' => 'Alguien pide que no le escriban más. ¿Qué hace?', 'o' => ['Lo marca como "No le interesa"', 'Le sigue escribiendo', 'Le escribe desde otro número'], 'r' => 0],
                 ],
             ],

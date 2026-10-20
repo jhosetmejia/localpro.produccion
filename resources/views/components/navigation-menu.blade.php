@@ -19,6 +19,10 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-crown"></i></div>
                     Empresas inscritas
                 </a>
+                <a class="nav-link" href="{{ route('marketplace') }}" target="_blank" rel="noopener">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-store"></i></div>
+                    Ver todas las tiendas
+                </a>
                 <a class="nav-link {{ $on('admin.planes.*') }}" href="{{ route('admin.planes.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-gem"></i></div>
                     Planes y cobros
