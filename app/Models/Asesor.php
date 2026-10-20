@@ -12,7 +12,7 @@ class Asesor extends Model
 
     protected $fillable = ['user_id', 'cargo', 'padre_id', 'pais', 'departamento', 'ciudad', 'zona', 'codigo', 'documento', 'experiencia', 'banco', 'activo', 'estado', 'reclutado_por', 'aprobado_at', 'curso_modulos', 'curso_nota', 'curso_aprobado_at', 'certificado'];
 
-    protected $casts = ['activo' => 'boolean', 'aprobado_at' => 'datetime', 'curso_modulos' => 'array', 'curso_aprobado_at' => 'datetime'];
+    protected $casts = ['activo' => 'boolean', 'compartir_contactos' => 'boolean', 'aprobado_at' => 'datetime', 'curso_modulos' => 'array', 'curso_aprobado_at' => 'datetime'];
 
     // Solo en memoria: el administrador recorriendo el curso en modo vista (nunca se guarda)
     public bool $vistaAdmin = false;

@@ -21,6 +21,11 @@
 .ci-wa:hover{background:#1ebe5b}
 .ci-mini{border:0;background:#f1f5f2;border-radius:999px;width:36px;height:36px;display:grid;place-items:center;flex:none}
 .ac-msg{white-space:pre-wrap;background:#e7fbe9;border:1px solid #c9efcf;border-radius:14px 14px 14px 4px;padding:.8rem 1rem;font-size:.92rem;line-height:1.45}
+.ac-compartir{display:flex;gap:.7rem;align-items:flex-start;background:#f4fcf6;border:1.5px solid #bfeccb;border-radius:16px;padding:.8rem 1rem}
+.ac-compartir.on{background:#dcfce7;border-color:#16b84e}
+.ac-compartir input{width:1.5rem;height:1.5rem;flex:none;margin-top:.1rem;cursor:pointer}
+.ac-compartir label{cursor:pointer;flex:1}
+.ac-compartir small{display:block;color:#56615b;font-weight:600;margin-top:.2rem;line-height:1.35}
 .ac-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#b0173f;color:#fff;border-radius:16px;padding:.7rem 1.1rem;font-weight:700;z-index:2000;max-width:92vw;box-shadow:0 12px 30px rgba(0,0,0,.25)}
 @media (max-width:480px){.ci-wa{padding:.5rem .8rem}}
 </style>
@@ -45,6 +50,36 @@
         <div><b>{{ number_format($r['total'], 0, ',', '.') }}</b><small>contactos en su base</small></div>
         <div><b>{{ number_format($r['contactados'], 0, ',', '.') }}</b><small>escritos en total</small></div>
     </div>
+
+    @if ($miRed > 0)
+    <form method="post" action="{{ route('asesor.contactos.compartir') }}" class="ac-compartir mb-3 {{ $yo->compartir_contactos ? 'on' : '' }}">
+        @csrf
+        <input type="checkbox" name="compartir_contactos" value="1" id="acCompartir" class="form-check-input" @checked($yo->compartir_contactos) onchange="this.form.submit()">
+        <label for="acCompartir"><b>👥 Compartir mi base de datos con mis asesores</b>
+            <small>{{ $yo->compartir_contactos ? '✅ Compartida con los ' . $miRed . ' asesores de su red' . ($escritosPorRed ? ' · ya escribieron a ' . number_format($escritosPorRed, 0, ',', '.') . ' de sus contactos' : '') . '.' : 'Márquela para que los ' . $miRed . ' asesores que usted sumó o tiene en su red también escriban a sus contactos.' }}
+                A cada número se le escribe <b>una sola vez</b>: si usted ya le escribió, a ellos no les sale. Cada uno envía el mensaje con su propio enlace.</small>
+        </label>
+    </form>
+    @endif
+
+    @foreach ($deLideres as $b)
+    @php $hechosL = $b['lista']->whereNotNull('contactado_at')->count(); @endphp
+    <div class="lp-box mb-3" style="border-color:#c7d7fe;background:linear-gradient(180deg,#f5f8ff,#fff 40%)">
+        <h3><span>👥 Base de datos de {{ $b['lider']->user->name ?? $b['lider']->codigo }}</span><small class="text-muted">{{ $hechosL }} / {{ $b['lista']->count() }}</small></h3>
+        <p class="text-muted fw-semibold small" style="margin-top:-.6rem">Su líder le comparte sus contactos. El mensaje lleva <b>su enlace</b>: si se inscriben, el negocio queda a su nombre. A cada persona se le escribe una sola vez.</p>
+        @foreach ($b['lista'] as $c)
+        @php $d = preg_replace('/\D/', '', $c->telefono); @endphp
+        <div class="ci {{ $c->contactado_at ? 'hecho' : '' }}" data-lider="1" data-id="{{ $c->id }}" data-wa="{{ strlen($d) === 10 && str_starts_with($d, '3') ? '57' . $d : $d }}" data-nombre="{{ preg_match('/^contacto\s/i', $c->nombre) ? '' : \Illuminate\Support\Str::of($c->nombre)->explode(' ')->first() }}">
+            <div class="av">{{ $c->contactado_at ? '✓' : mb_strtoupper(mb_substr($c->nombre, 0, 1)) }}</div>
+            <div class="t"><b>{{ $c->nombre }}</b><small>{{ $c->telefono }}@if ($c->estado) · {{ \App\Models\RedContacto::ESTADOS[$c->estado] ?? '' }}@endif</small></div>
+            @if (!$c->contactado_at)
+            <button type="button" class="ci-wa" data-enviar><i class="fa-brands fa-whatsapp"></i> Enviar</button>
+            <button type="button" class="ci-mini" data-marcar="numero_malo" title="Número malo">📵</button>
+            @endif
+        </div>
+        @endforeach
+    </div>
+    @endforeach
 
     @if ($redLista->isNotEmpty())
     @php $redHechos = $redLista->whereNotNull('contactado_at')->count(); @endphp
@@ -106,7 +141,7 @@
 <script>
 (function () {
     var MSG = @json($mensaje), ASESOR = @json(\Illuminate\Support\Str::of(auth()->user()->name)->explode(' ')->first()), ENLACE = @json($yo->enlace);
-    var URL = @json(url('/asesor/contactos/__ID__/marcar')), URL_RED = @json(url('/asesor/contactos/red/__ID__/marcar')), TOKEN = @json(csrf_token());
+    var URL = @json(url('/asesor/contactos/__ID__/marcar')), URL_RED = @json(url('/asesor/contactos/red/__ID__/marcar')), URL_LIDER = @json(url('/asesor/contactos/lider/__ID__/marcar')), TOKEN = @json(csrf_token());
     function armar(n) { return MSG.replace('{nombre}', n || '').replace('¡Hola !', '¡Hola!').replace('{asesor}', ASESOR).replace('{enlace}', ENLACE); }
     var vista = document.getElementById('acVista'); if (vista) vista.textContent = armar('María');
     function aviso(m) {
@@ -117,7 +152,7 @@
         it.classList.add('hecho');
         // Una sola vez: se quitan los botones para que no se le vuelva a escribir
         it.querySelectorAll('[data-enviar],[data-marcar]').forEach(function (x) { x.remove(); });
-        var u = (it.dataset.red ? URL_RED : URL).replace('__ID__', it.dataset.id);
+        var u = (it.dataset.lider ? URL_LIDER : it.dataset.red ? URL_RED : URL).replace('__ID__', it.dataset.id);
         return fetch(u, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': TOKEN, 'Accept': 'application/json' }, body: JSON.stringify({ estado: estado }) })
             .then(function (r) { return r.json().catch(function () { return {}; }); })
             .then(function (d) { if (d && d.ok === false && d.mensaje) aviso(d.mensaje); });

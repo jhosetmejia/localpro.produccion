@@ -45,6 +45,7 @@ class Academia
                     ['titulo' => 'Sus contactos y la base de LocalPro', 'min' => 3, 'accion' => ['asesor.contactos', 'Ir a Mis contactos'], 'contenido' => [
                         'En <b>Mis contactos</b> suba los contactos de su celular: cada día le salen 20 para escribirles con su enlace de prueba gratis.',
                         'Además, LocalPro le da <b>contactos de negocios para hoy</b>. A cada persona se le escribe una sola vez: si usted le escribe, no le sale a ningún otro asesor.',
+                        'Si usted tiene asesores en su red, marque <b>"Compartir mi base de datos con mis asesores"</b>: ellos también escriben a sus contactos (cada uno con su enlace) y a nadie se le escribe dos veces.',
                         'Si alguien se inscribe con su enlace, el negocio queda a su nombre automáticamente.',
                     ], 'tip' => 'Escriba sus 20 contactos en la mañana y dedique la tarde a visitar.'],
                     ['titulo' => 'La rutina que da resultados', 'min' => 2, 'accion' => null, 'contenido' => [

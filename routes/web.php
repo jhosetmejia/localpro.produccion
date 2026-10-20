@@ -148,6 +148,8 @@ Route::middleware('auth')->get('/asesor/simulador', [unirseController::class, 'i
 Route::middleware('auth')->get('/asesor/contactos', [\App\Http\Controllers\asesorContactosController::class, 'index'])->name('asesor.contactos');
 Route::middleware('auth')->post('/asesor/contactos', [\App\Http\Controllers\asesorContactosController::class, 'subir'])->name('asesor.contactos.subir');
 Route::middleware('auth')->post('/asesor/contactos/{contacto}/marcar', [\App\Http\Controllers\asesorContactosController::class, 'marcar'])->whereNumber('contacto')->name('asesor.contactos.marcar');
+Route::middleware('auth')->post('/asesor/contactos/compartir', [\App\Http\Controllers\asesorContactosController::class, 'compartir'])->name('asesor.contactos.compartir');
+Route::middleware('auth')->post('/asesor/contactos/lider/{contacto}/marcar', [\App\Http\Controllers\asesorContactosController::class, 'marcarLider'])->whereNumber('contacto')->name('asesor.contactos.lider.marcar');
 Route::middleware('auth')->post('/asesor/contactos/red/{contacto}/marcar', [\App\Http\Controllers\asesorContactosController::class, 'marcarRed'])->whereNumber('contacto')->name('asesor.contactos.red.marcar');
 Route::middleware('auth')->get('/asesor/capacitacion', [unirseController::class, 'capacitacion'])->name('asesor.capacitacion');
 Route::middleware('auth')->get('/asesor/ejemplos', [\App\Http\Controllers\asesorEjemplosController::class, 'index'])->name('asesor.ejemplos');

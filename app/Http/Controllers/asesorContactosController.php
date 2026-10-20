@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AsesorContacto;
 use App\Models\RedContacto;
+use App\Support\BaseLider;
 use App\Support\RedContactos;
 use App\Support\HojaCalculo;
 use App\Support\ImportarClientes;
@@ -31,8 +32,10 @@ class asesorContactosController extends Controller
     public static function resumen(int $asesorId): array
     {
         $q = AsesorContacto::where('asesor_id', $asesorId);
+        // "Escritos hoy" son solo los que escribió él (no los que escribió su gente con la base compartida)
+        $propios = fn ($x) => $x->where(fn ($y) => $y->whereNull('contactado_por')->orWhere('contactado_por', $asesorId));
         return ['total' => (clone $q)->count(), 'contactados' => (clone $q)->whereNotNull('contactado_at')->count(),
-            'hoy' => (clone $q)->whereDate('contactado_at', now()->toDateString())->count()];
+            'hoy' => $propios((clone $q)->whereDate('contactado_at', now()->toDateString()))->count()];
     }
 
     public function index(Request $request)
@@ -40,8 +43,26 @@ class asesorContactosController extends Controller
         $a = $this->yo();
         $r = self::resumen($a->id);
         $faltanHoy = max(0, self::DIARIOS - $r['hoy']);
-        $lista = AsesorContacto::where('asesor_id', $a->id)->whereNull('contactado_at')->orderBy('id')->limit($faltanHoy)->get();
-        $hechosHoy = AsesorContacto::where('asesor_id', $a->id)->whereDate('contactado_at', now()->toDateString())->orderByDesc('contactado_at')->get();
+        $hoy = now()->toDateString();
+        // Los suyos: sin escribir y que no estén asignados hoy a alguien de su red (si compartió su base)
+        $lista = AsesorContacto::where('asesor_id', $a->id)->whereNull('contactado_at')
+            ->where(fn ($q) => $q->whereNull('asignado_fecha')->orWhere('asignado_fecha', '<', $hoy)->orWhere('asignado_a', $a->id))
+            ->orderBy('id')->limit($faltanHoy)->get();
+        $hechosHoy = AsesorContacto::where('asesor_id', $a->id)->whereDate('contactado_at', $hoy)
+            ->where(fn ($y) => $y->whereNull('contactado_por')->orWhere('contactado_por', $a->id))->orderByDesc('contactado_at')->get();
+
+        // Gente de su red (para la casilla "Compartir mi base de datos con mis asesores")
+        $miRed = count($a->arbolVisible()) - 1;
+        $escritosPorRed = AsesorContacto::where('asesor_id', $a->id)->whereNotNull('contactado_por')->where('contactado_por', '<>', $a->id)->count();
+
+        // Bases que le comparten sus líderes (solo dentro de la red de LocalPro)
+        $deLideres = collect();
+        foreach (BaseLider::lideresPara($a) as $l) {
+            BaseLider::asignarHoy($l->id, $a->id, self::DIARIOS);
+            $items = AsesorContacto::where('asesor_id', $l->id)->where('asignado_a', $a->id)->where('asignado_fecha', $hoy)
+                ->orderByRaw('contactado_at IS NOT NULL')->orderBy('id')->get();
+            if ($items->isNotEmpty()) $deLideres->push(['lider' => $l, 'lista' => $items]);
+        }
 
         // Contactos de LocalPro (base compartida que sube el administrador): solo los que le salieron hoy a este asesor
         $redLista = collect();
@@ -52,6 +73,7 @@ class asesorContactosController extends Controller
         }
         return view('asesor.contactos', [
             'yo' => $a, 'r' => $r, 'lista' => $lista, 'hechosHoy' => $hechosHoy, 'redLista' => $redLista,
+            'miRed' => $miRed, 'escritosPorRed' => $escritosPorRed, 'deLideres' => $deLideres,
             'mensaje' => self::MENSAJE, 'volver' => $request->query('volver') === 'curso' ? route('curso.leccion', \App\Support\CursoAsesor::LECCION_CONTACTOS) : null,
         ]);
     }
@@ -86,7 +108,7 @@ class asesorContactosController extends Controller
         abort_unless((int) $contacto->asesor_id === (int) $this->yo()->id, 403);
         $estado = $request->input('estado');
         abort_unless(in_array($estado, ['enviado', 'numero_malo', 'no_interesa'], true), 422);
-        $contacto->update(['contactado_at' => now(), 'estado' => $estado]);
+        $contacto->update(['contactado_at' => now(), 'estado' => $estado, 'contactado_por' => $contacto->asesor_id]);
         // Ese número ya no le sale a ningún asesor en la base de LocalPro
         RedContactos::marcarDesdePropia($contacto->telefono, $contacto->asesor_id, $estado);
         return response()->json(['ok' => true]);
@@ -104,6 +126,38 @@ class asesorContactosController extends Controller
         if (!$hecho && (int) $contacto->contactado_por !== (int) $a->id) {
             return response()->json(['ok' => false, 'mensaje' => 'A este contacto ya le escribió otro asesor. No le escriba otra vez.'], 409);
         }
+        return response()->json(['ok' => true]);
+    }
+
+    // El líder comparte (o deja de compartir) su base de datos con los asesores de su red
+    public function compartir(Request $request)
+    {
+        $a = $this->yo();
+        $a->compartir_contactos = $request->boolean('compartir_contactos');
+        $a->save();
+        if (!$a->compartir_contactos) {
+            // Lo que su gente no alcanzó a escribir hoy vuelve a su base
+            AsesorContacto::where('asesor_id', $a->id)->whereNull('contactado_at')->whereNotNull('asignado_a')->where('asignado_a', '<>', $a->id)
+                ->update(['asignado_a' => null, 'asignado_fecha' => null]);
+        }
+        return back()->with('success', $a->compartir_contactos
+            ? '👥 Listo: los asesores de su red ya reciben contactos de su base. A cada número se le escribe una sola vez.'
+            : 'Su base de datos ya no se comparte con su red.');
+    }
+
+    // Marcar un contacto de la base que le compartió su líder. Una sola vez.
+    public function marcarLider(Request $request, AsesorContacto $contacto)
+    {
+        $a = $this->yo();
+        abort_unless((int) $contacto->asignado_a === (int) $a->id && BaseLider::puede($a, (int) $contacto->asesor_id), 403);
+        $estado = $request->input('estado');
+        abort_unless(in_array($estado, ['enviado', 'numero_malo', 'no_interesa'], true), 422);
+        $hecho = AsesorContacto::whereKey($contacto->id)->whereNull('contactado_at')
+            ->update(['contactado_at' => now(), 'contactado_por' => $a->id, 'estado' => $estado]);
+        if (!$hecho && (int) $contacto->contactado_por !== (int) $a->id) {
+            return response()->json(['ok' => false, 'mensaje' => 'A este contacto ya le escribió otra persona. No le escriba otra vez.'], 409);
+        }
+        RedContactos::marcarDesdePropia($contacto->telefono, $a->id, $estado);
         return response()->json(['ok' => true]);
     }
 }

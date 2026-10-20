@@ -8,6 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class AsesorContacto extends Model
 {
     protected $table = 'asesor_contactos';
-    protected $fillable = ['asesor_id', 'nombre', 'telefono', 'contactado_at', 'estado'];
-    protected $casts = ['contactado_at' => 'datetime'];
+    protected $fillable = ['asesor_id', 'nombre', 'telefono', 'contactado_at', 'estado', 'asignado_a', 'asignado_fecha', 'contactado_por'];
+    protected $casts = ['contactado_at' => 'datetime', 'asignado_fecha' => 'date'];
 }
