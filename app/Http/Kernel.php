@@ -73,6 +73,7 @@ class Kernel extends HttpKernel
         'superadmin' => \App\Http\Middleware\SoloSuperadmin::class,
         'asesor' => \App\Http\Middleware\SoloAsesor::class,
         'conjunto' => \App\Http\Middleware\SoloConjunto::class,
+        'instituto' => \App\Http\Middleware\SoloInstituto::class,
         'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
         'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
         'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,

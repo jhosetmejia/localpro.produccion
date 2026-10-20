@@ -6,6 +6,23 @@
 // palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
+    'software-para-institutos-tecnicos-matriculas-y-cuotas' => [
+        'titulo' => 'Software para institutos técnicos y academias: inscripciones, matrículas y cuotas sin papeles',
+        'resumen' => 'Pase el formulario de inscripción y el formato de matrícula al sistema, matricule de contado o a crédito, cobre las cuotas mensuales con recibo por WhatsApp y vea en un solo lugar quién está en mora.',
+        'fecha' => '20 de octubre de 2026',
+        'publicado' => '2026-10-20',
+        'minutos' => 3,
+        'icono' => 'fa-graduation-cap',
+        'rol' => 'negocios',
+        'seo_titulo' => 'Software para institutos técnicos: matrículas y cartera | LocalProo',
+        'descripcion' => 'Programa para institutos técnicos laborales y academias: inscripciones, matrículas a crédito, cuotas mensuales, recibos y cartera de estudiantes.',
+        'keywords' => ['software para institutos técnicos', 'programa de matrículas', 'control de cuotas estudiantes', 'cartera de estudiantes', 'software academia cursos'],
+        'faq' => [
+            ['¿Puedo imprimir el formulario de inscripción?', 'Sí. El formulario de inscripción y el formato de matrícula salen llenos con los datos del estudiante y el logo del instituto, listos para firmar.'],
+            ['¿Cómo funcionan las cuotas?', 'Al matricular a crédito escribe la cuota inicial y el número de cuotas; el sistema arma el plan con las fechas de pago de cada mes.'],
+            ['¿Me avisa quién debe?', 'Sí. En Cartera y morosos ve quién está en mora y cuántos días, y le recuerda por WhatsApp con un toque.'],
+        ],
+    ],
     'marketplace-localproo-tiendas-locales' => [
         'titulo' => 'Marketplace LocalProo: su tienda al lado de todas las tiendas locales, como un Mercado Libre de su ciudad',
         'resumen' => 'Todas las tiendas en línea de LocalProo aparecen en un solo lugar. Los clientes buscan un producto, comparan precios y le compran directo por WhatsApp, sin comisiones por venta.',

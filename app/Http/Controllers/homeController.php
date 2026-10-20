@@ -47,6 +47,10 @@ class homeController extends Controller
         if ($tienda->es_conjunto) {
             return redirect()->route('conjunto.inicio');
         }
+        // Institutos y academias: su inicio es el resumen del instituto
+        if ($tienda->es_instituto) {
+            return redirect()->route('instituto.inicio');
+        }
         // Consultorios: su inicio es la agenda del día (el panel de ventas sigue en /?ventas=1)
         if ($tienda->tipo_negocio === 'consultorio' && $tienda->mod_consultorio && !request()->boolean('ventas')
             && (Auth::user()->can('agenda-consultorio') || Auth::user()->can('historia-clinica'))) {

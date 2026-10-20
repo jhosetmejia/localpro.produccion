@@ -126,7 +126,27 @@
                     {{ $esConsultorio ? 'Ventas del consultorio' : 'Panel' }}
                 </a>
 
-                @if ($tiendaMenu && $tiendaMenu->es_conjunto)
+                @if ($tiendaMenu && $tiendaMenu->es_instituto)
+                <div class="sb-sidenav-menu-heading">Instituto</div>
+                @php $menuInst = [
+                    ['instituto.inicio', 'instituto.inicio', 'fa-school', 'Resumen'],
+                    ['instituto.inscripcion', 'instituto.inscripcion', 'fa-user-plus', 'Nueva inscripción'],
+                    ['instituto.estudiantes', 'instituto.estudiante*', 'fa-user-graduate', 'Estudiantes'],
+                    ['instituto.programas', 'instituto.programas*', 'fa-book-open', 'Programas'],
+                    ['instituto.pagos', 'instituto.pagos', 'fa-receipt', 'Pagos y recibos'],
+                    ['instituto.cartera', 'instituto.cartera', 'fa-triangle-exclamation', 'Cartera y morosos'],
+                ]; @endphp
+                @foreach ($menuInst as [$r, $pat, $ic, $txt])
+                <a class="nav-link {{ $on($pat) }}" href="{{ route($r) }}"><div class="sb-nav-link-icon"><i class="fa-solid {{ $ic }}"></i></div>{{ $txt }}</a>
+                @endforeach
+                @can('editar-negocio')
+                <a class="nav-link {{ $on('negocio.*') }}" href="{{ route('negocio.edit') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-gear"></i></div>Datos del instituto</a>
+                <a class="nav-link {{ $on('plan.*') }}" href="{{ route('plan.index') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-gem"></i></div>Mi plan</a>
+                @endcan
+                @can('ver-user')
+                <a class="nav-link {{ $on('users.*') }}" href="{{ route('users.index') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-user-gear"></i></div>Usuarios</a>
+                @endcan
+                @elseif ($tiendaMenu && $tiendaMenu->es_conjunto)
                 <div class="sb-sidenav-menu-heading">Administración</div>
                 @php $menuConj = [
                     ['conjunto.inicio', 'conjunto.inicio', 'fa-building', 'Resumen del conjunto'],

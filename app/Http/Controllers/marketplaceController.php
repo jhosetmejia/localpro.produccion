@@ -24,7 +24,7 @@ class marketplaceController extends Controller
             ->where('tiendas.estado', 'activa')
             ->where('tiendas.onboarding_completo', true)
             ->whereNull('tiendas.datos_depurados_at')
-            ->whereNotIn('tiendas.tipo_negocio', ['contable', 'conjunto']);
+            ->whereNotIn('tiendas.tipo_negocio', ['contable', 'conjunto', 'instituto']);
     }
 
     // Productos que se ven en la tienda en línea, de todas las tiendas visibles (sin el filtro de tienda actual)

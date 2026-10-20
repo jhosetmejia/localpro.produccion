@@ -57,6 +57,8 @@ Route::post('/login', [loginController::class, 'login'])->middleware('throttle:1
 Route::get('/logout', [logoutController::class, 'logout'])->name('logout');
 Route::get('/registro', [registroController::class, 'index'])->name('registro');
 // Enlace corto para contadores: abre el registro con el tipo "Contador / analista contable" y la herramienta activa
+// Enlace corto para institutos y academias: abre el registro con el tipo "Instituto / academia"
+Route::get('/institutos', fn () => redirect()->route('registro', ['tipo' => 'instituto'] + request()->only('desde')))->name('registro.institutos');
 Route::get('/contadores', fn () => redirect()->route('registro', ['tipo' => 'contable'] + request()->only('desde')))->name('registro.contadores');
 Route::get('/contadores/{codigo}', [registroController::class, 'referidoContador'])->where('codigo', '[A-Za-z0-9\-]+')->name('registro.contadores.asesor');
 Route::post('/registro', [registroController::class, 'store'])->middleware('throttle:5,1');
@@ -164,6 +166,35 @@ Route::middleware(['auth', 'tienda:asistente'])->prefix('bienvenida')->name('bie
     Route::post('/productos', [bienvenidaController::class, 'productos'])->name('productos');
     Route::post('/cobro', [bienvenidaController::class, 'cobro'])->name('cobro');
     Route::get('/paso/{paso}', [bienvenidaController::class, 'irAPaso'])->whereNumber('paso')->name('paso');
+});
+
+// ===== Instituto / academia =====
+Route::middleware(['auth', 'tienda', 'instituto'])->prefix('instituto')->name('instituto.')->controller(\App\Http\Controllers\institutoController::class)->group(function () {
+    Route::get('/', 'inicio')->name('inicio');
+    Route::get('/programas', 'programas')->name('programas');
+    Route::post('/programas', 'programaGuardar')->name('programas.store');
+    Route::post('/programas/ejemplo', 'programasEjemplo')->name('programas.ejemplo');
+    Route::put('/programas/{programa}', 'programaGuardar')->name('programas.update');
+    Route::get('/estudiantes', 'estudiantes')->name('estudiantes');
+    Route::get('/inscripcion', 'inscripcion')->name('inscripcion');
+    Route::post('/estudiantes', 'estudianteGuardar')->name('estudiantes.store');
+    Route::get('/estudiantes/{estudiante}', 'estudiante')->name('estudiante');
+    Route::get('/estudiantes/{estudiante}/editar', 'inscripcion')->name('estudiante.editar');
+    Route::put('/estudiantes/{estudiante}', 'estudianteGuardar')->name('estudiantes.update');
+    Route::post('/estudiantes/{estudiante}/estado', 'estadoGuardar')->name('estudiante.estado');
+    Route::get('/estudiantes/{estudiante}/formato-inscripcion', 'formatoInscripcion')->name('formato.inscripcion');
+    Route::get('/estudiantes/{estudiante}/matricula', 'matricula')->name('matricula');
+    Route::post('/estudiantes/{estudiante}/matricula', 'matriculaGuardar')->name('matricula.store');
+    Route::post('/estudiantes/{estudiante}/cobro', 'cargoGuardar')->name('cargo.store');
+    Route::post('/estudiantes/{estudiante}/pago', 'pagoGuardar')->name('pago.store');
+    Route::get('/matriculas/{matricula}/formato', 'formatoMatricula')->name('formato.matricula');
+    Route::post('/matriculas/{matricula}/anular', 'matriculaAnular')->name('matricula.anular');
+    Route::post('/cobros/{cargo}/anular', 'cargoAnular')->name('cargo.anular');
+    Route::get('/pagos', 'pagos')->name('pagos');
+    Route::get('/pagos/{pago}', 'recibo')->name('recibo');
+    Route::post('/pagos/{pago}/anular', 'pagoAnular')->name('pago.anular');
+    Route::get('/cartera', 'cartera')->name('cartera');
+    Route::post('/configuracion', 'config')->name('config');
 });
 
 // ===== Administración de conjuntos residenciales =====

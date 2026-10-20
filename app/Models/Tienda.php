@@ -86,6 +86,7 @@ class Tienda extends Model
         'contable' => ['Contador / analista contable', 'fa-calculator', false, 'Retenciones, IVA y cruce de facturas con la DIAN para sus clientes'],
         'conjunto' => ['Conjunto residencial / edificio', 'fa-building', false, 'Administración de conjuntos, torres y edificios'],
         'consultorio' => ['Consultorio / salud', 'fa-user-doctor', false, 'Psicología, odontología, estética, fisioterapia, nutrición, medicina'],
+        'instituto' => ['Instituto / academia', 'fa-graduation-cap', false, 'Institutos técnicos, academias y cursos: inscripciones, matrículas y cuotas'],
         'otro' => ['Otro negocio', 'fa-store', false, 'Cualquier otro comercio'],
     ];
 
@@ -183,7 +184,7 @@ class Tienda extends Model
     public const ICONO_PRODUCTO = [
         'moda' => 'fa-shirt', 'calzado' => 'fa-shoe-prints', 'accesorios' => 'fa-gem', 'restaurante' => 'fa-burger',
         'cafeteria' => 'fa-mug-hot', 'minimercado' => 'fa-basket-shopping', 'belleza' => 'fa-spa', 'tecnologia' => 'fa-mobile-screen',
-        'papeleria' => 'fa-pen-ruler', 'ferreteria' => 'fa-screwdriver-wrench', 'funeraria' => 'fa-dove', 'conjunto' => 'fa-building', 'contable' => 'fa-calculator', 'consultorio' => 'fa-stethoscope',
+        'papeleria' => 'fa-pen-ruler', 'ferreteria' => 'fa-screwdriver-wrench', 'funeraria' => 'fa-dove', 'conjunto' => 'fa-building', 'contable' => 'fa-calculator', 'consultorio' => 'fa-stethoscope', 'instituto' => 'fa-graduation-cap',
     ];
 
     public function getIconoProductoAttribute(): string
@@ -307,6 +308,12 @@ class Tienda extends Model
     public function scopeSinAsignar($q)
     {
         return $q->whereNull('asesor_id')->whereNull('venta_directa_id');
+    }
+
+    // Instituto / academia (inscripciones, matrículas y cuotas)
+    public function getEsInstitutoAttribute(): bool
+    {
+        return $this->tipo_negocio === 'instituto';
     }
 
     // Administración de conjuntos residenciales

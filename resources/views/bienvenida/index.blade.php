@@ -159,14 +159,14 @@
             var mods = document.getElementById('mods'); if (!mods) return;
             mods.addEventListener('change', function (e) { if (e.target.dataset.mod) tocados[e.target.dataset.mod] = true; });
             function aplicar(tipo) {
-                mods.style.display = tipo === 'conjunto' ? 'none' : '';
+                mods.style.display = (tipo === 'conjunto' || tipo === 'instituto') ? 'none' : '';
                 var on = MAP[tipo] || [];
                 mods.querySelectorAll('[data-mod]').forEach(function (c) { if (!tocados[c.dataset.mod]) c.checked = on.indexOf(c.dataset.mod) !== -1; });
             }
             document.querySelectorAll('input[name=tipo_negocio]').forEach(function (r) { r.addEventListener('change', function () { aplicar(r.value); }); });
             var marcado = document.querySelector('input[name=tipo_negocio]:checked');
             if (marcado && {{ ($tienda->mod_medida || $tienda->mod_vencimiento || $tienda->mod_recetas || $tienda->mod_alquiler || $tienda->mod_obituarios || $tienda->mod_contable || $tienda->mod_consultorio || old('mod_medida') !== null) ? 'false' : 'true' }}) aplicar(marcado.value);
-            else if (marcado) mods.style.display = marcado.value === 'conjunto' ? 'none' : '';
+            else if (marcado) mods.style.display = (marcado.value === 'conjunto' || marcado.value === 'instituto') ? 'none' : '';
         })();
         </script>
         @endif

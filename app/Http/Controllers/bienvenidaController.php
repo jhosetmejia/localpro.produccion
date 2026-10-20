@@ -132,6 +132,12 @@ class bienvenidaController extends Controller
             $tienda->update($datos);
             return redirect()->route('contabilidad.index')->with('success', '¡Listo! Registre su primer cliente para empezar.');
         }
+        if ($datos['tipo_negocio'] === 'instituto') {
+            $datos['onboarding_paso'] = 5;
+            $datos['onboarding_completo'] = true;
+            $tienda->update($datos);
+            return redirect()->route('instituto.programas')->with('success', '¡Listo! Empiece creando los programas que ofrece (o cargue los de ejemplo) con el valor del semestre.');
+        }
         if ($datos['tipo_negocio'] === 'conjunto') {
             $datos['onboarding_paso'] = 5;
             $datos['onboarding_completo'] = true;
