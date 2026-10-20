@@ -24,7 +24,7 @@
     </div>
     <div class="ot-foto-col">
         <div class="ot-foto-fondo"></div>
-        <div class="ot-foto-marco">
+        <div class="ot-foto-marco {{ str_contains($fe['clase'], 'forma-libre') ? 'marco-libre' : '' }}">
             <div class="obi-foto {{ $fe['clase'] }}" style="{{ $fe['estilo'] }}">
                 <svg viewBox="0 0 100 100" @if ($d['foto']) style="display:none" @endif><circle cx="50" cy="38" r="17" fill="#fff" opacity=".85"/><path d="M18 92c2-20 16-30 32-30s30 10 32 30z" fill="#fff" opacity=".85"/></svg>
                 @if ($d['foto'])<img src="{{ $d['foto'] }}" alt="">@endif

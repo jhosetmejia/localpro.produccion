@@ -14,7 +14,7 @@ class Obituario extends Model
 
     protected $table = 'obituarios';
 
-    protected $fillable = ['plantilla_id', 'sala_id', 'nombre', 'nacimiento', 'fallecimiento', 'frase', 'fecha_exequias', 'hora_exequias', 'lugar_exequias', 'destino_final', 'invitan', 'mostrar_hasta', 'estado', 'foto_fondo', 'foto_color', 'foto_forma'];
+    protected $fillable = ['plantilla_id', 'sala_id', 'nombre', 'nacimiento', 'fallecimiento', 'frase', 'fecha_exequias', 'hora_exequias', 'lugar_exequias', 'destino_final', 'invitan', 'mostrar_hasta', 'estado', 'foto_fondo', 'foto_color', 'foto_forma', 'foto_rot', 'foto_x', 'foto_y', 'foto_zoom'];
 
     protected $casts = ['nacimiento' => 'date', 'fallecimiento' => 'date', 'fecha_exequias' => 'date', 'mostrar_hasta' => 'datetime'];
 
@@ -106,7 +106,20 @@ class Obituario extends Model
         $fondo = $o->foto_fondo ?? 'suave';
         $forma = $o->foto_forma ?? 'circulo';
         $color = $fondo === 'color' && $o?->foto_color ? $o->foto_color : null;
-        return ['clase' => "f-$fondo forma-$forma", 'estilo' => $color ? "background:$color" : ''];
+        // Ajuste fino: giro en grados, movimiento en % y tamaño en % (variables que usa la foto en el CSS)
+        $aj = self::ajusteFoto($o);
+        $vars = "--pr:{$aj['r']}deg;--px:{$aj['x']}%;--py:{$aj['y']}%;--pz:" . ($aj['z'] / 100);
+        return ['clase' => "f-$fondo forma-$forma", 'estilo' => ($color ? "background:$color;" : '') . $vars];
+    }
+
+    public static function ajusteFoto(?self $o): array
+    {
+        return [
+            'r' => max(-180, min(180, (int) ($o?->foto_rot ?? 0))),
+            'x' => max(-100, min(100, (int) ($o?->foto_x ?? 0))),
+            'y' => max(-100, min(100, (int) ($o?->foto_y ?? 0))),
+            'z' => max(50, min(300, (int) ($o?->foto_zoom ?: 100))),
+        ];
     }
 
     public const INVITAN_EJEMPLO = "Su esposa: \nSus hijos: \nSus hermanos: \nSus nietos\nDemás familiares y amigos";

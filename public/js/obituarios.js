@@ -200,6 +200,18 @@
                 fb.className = 'obi-foto f-' + fondo + ' forma-' + forma;
                 fb.style.background = fondo === 'color' && d.foto_color ? d.foto_color : '';
             });
+            // Recorte libre: también se quita el aro redondo de las tarjetas
+            el.querySelectorAll('.ot-foto-marco').forEach(function (m) { m.classList.toggle('marco-libre', forma === 'libre'); });
+        }
+        // Ajuste fino de la foto: {r: grados, x: %, y: %, z: %}
+        if (d.foto_ajuste) {
+            var a = d.foto_ajuste;
+            el.querySelectorAll('.obi-foto').forEach(function (fb) {
+                fb.style.setProperty('--pr', (+a.r || 0) + 'deg');
+                fb.style.setProperty('--px', (+a.x || 0) + '%');
+                fb.style.setProperty('--py', (+a.y || 0) + '%');
+                fb.style.setProperty('--pz', ((+a.z || 100) / 100) + '');
+            });
         }
         Obi.ajustar(el);
     };

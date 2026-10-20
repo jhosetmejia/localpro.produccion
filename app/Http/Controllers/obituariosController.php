@@ -140,6 +140,10 @@ class obituariosController extends Controller
             'foto_fondo' => ['nullable', Rule::in(array_keys(Obituario::FOTO_FONDOS))],
             'foto_color' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'foto_forma' => ['nullable', Rule::in(array_keys(Obituario::FOTO_FORMAS))],
+            'foto_rot' => ['nullable', 'integer', 'between:-180,180'],
+            'foto_x' => ['nullable', 'integer', 'between:-100,100'],
+            'foto_y' => ['nullable', 'integer', 'between:-100,100'],
+            'foto_zoom' => ['nullable', 'integer', 'between:50,300'],
         ], [
             'nombre.required' => 'Escriba el nombre del fallecido.',
             'foto.max' => 'La foto pesa mucho (máximo 8 MB).',
@@ -148,6 +152,7 @@ class obituariosController extends Controller
         unset($datos['foto']);
         $datos['foto_fondo'] = $datos['foto_fondo'] ?? 'suave';
         $datos['foto_forma'] = $datos['foto_forma'] ?? 'circulo';
+        foreach (['foto_rot' => 0, 'foto_x' => 0, 'foto_y' => 0, 'foto_zoom' => 100] as $k => $v) $datos[$k] = (int) ($datos[$k] ?? $v);
         return $datos;
     }
 
