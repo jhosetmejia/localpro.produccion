@@ -27,9 +27,12 @@
                     <td>{{ $v->user->name ?? '—' }}</td>
                     <td>{{ $v->cliente_nombre ?? 'Mostrador' }}@if($v->cliente_telefono)<br><small class="text-muted">{{ $v->cliente_telefono }}</small>@endif</td>
                     <td><small>{{ $v->pagos->map(fn ($p) => $p->metodo->nombre)->implode(', ') }}</small></td>
-                    <td class="fw-bold">@pesos($v->total) @if($v->estado === 'anulada')<span class="badge bg-danger">Anulada</span>@endif</td>
+                    <td class="fw-bold">@pesos($v->total) @if($v->estado === 'anulada')<span class="badge bg-danger">Anulada</span>@endif @if($v->corregida_en)<span class="badge bg-warning text-dark" title="Corregida el {{ $v->corregida_en->format('d/m/Y h:i a') }}">Corregida</span>@endif</td>
                     <td class="text-end text-nowrap">
                         <a href="{{ route('pos.ticket', $v) }}" target="_blank" class="btn btn-sm btn-dark"><i class="fa-solid fa-receipt"></i></a>
+                        @if ($v->estado === 'pagada' && (auth()->user()->es_superadmin || auth()->user()->hasAnyRole(['dueno', 'administrador'])))
+                        <a href="{{ route('pos.corregir', $v) }}" class="btn btn-sm btn-light border" title="Corregir venta (error al digitar)"><i class="fa-solid fa-pen-to-square"></i></a>
+                        @endif
                         @if ($v->estado === 'pagada')
                         @can('devolver-venta')
                         <a href="{{ route('devoluciones.create', $v) }}" class="btn btn-sm btn-warning" title="Cambio o devolución"><i class="fa-solid fa-right-left"></i></a>

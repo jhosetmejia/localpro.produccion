@@ -345,6 +345,8 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::get('/pos/ventas', [posController::class, 'ventas'])->name('pos.ventas');
     Route::get('/pos/ventas/{venta}/ticket', [posController::class, 'ticket'])->name('pos.ticket');
     Route::post('/pos/ventas/{venta}/anular', [posController::class, 'anular'])->name('pos.anular');
+    Route::get('/pos/ventas/{venta}/corregir', [\App\Http\Controllers\correccionVentaController::class, 'create'])->name('pos.corregir');
+    Route::post('/pos/ventas/{venta}/corregir', [\App\Http\Controllers\correccionVentaController::class, 'store'])->name('pos.corregir.guardar');
     Route::get('/pos/ventas/{venta}/devolucion', [devolucionController::class, 'create'])->name('devoluciones.create');
     Route::post('/pos/ventas/{venta}/devolucion', [devolucionController::class, 'store'])->name('devoluciones.store');
     Route::get('/devoluciones/{devolucion}', [devolucionController::class, 'show'])->name('devoluciones.show');

@@ -13,10 +13,10 @@ class PosVenta extends Model
 
     protected $fillable = [
         'numero', 'tipo_doc', 'base_gravable', 'impuestos', 'impuestos_detalle', 'adquiriente', 'caja_id', 'user_id', 'cliente_id', 'cliente_nombre', 'cliente_telefono', 'subtotal',
-        'descuento', 'total', 'cambio', 'estado', 'anulada_en', 'anulada_por', 'tasa_bs',
+        'descuento', 'total', 'cambio', 'estado', 'anulada_en', 'anulada_por', 'tasa_bs', 'corregida_en',
     ];
 
-    protected $casts = ['anulada_en' => 'datetime', 'impuestos_detalle' => 'array', 'adquiriente' => 'array'];
+    protected $casts = ['anulada_en' => 'datetime', 'corregida_en' => 'datetime', 'impuestos_detalle' => 'array', 'adquiriente' => 'array'];
 
     // Documento electrónico (factura o POS electrónico) enviado a la DIAN por el proveedor
     public function documento()
@@ -28,6 +28,12 @@ class PosVenta extends Model
     public function alquiler()
     {
         return $this->hasOne(Alquiler::class, 'pos_venta_id');
+    }
+
+    // Correcciones por error al digitar (las hace el administrador)
+    public function correcciones()
+    {
+        return $this->hasMany(PosVentaCorreccion::class);
     }
 
     public function items()
