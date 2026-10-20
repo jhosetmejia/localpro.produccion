@@ -33,6 +33,8 @@ class marketplaceController extends Controller
         $ids = $this->tiendasVisibles()->select('tiendas.id');
         return Producto::withoutGlobalScope('tienda')
             ->enCatalogo()
+            // Sin precio no se muestra (se vería $0)
+            ->where('productos.precio_venta', '>', 0)
             ->whereIn('productos.tienda_id', $ids)
             // Con existencias (o que no controla inventario)
             ->where(fn ($q) => $q->where('productos.controla_inventario', false)
