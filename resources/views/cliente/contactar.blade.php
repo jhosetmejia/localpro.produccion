@@ -38,12 +38,14 @@
 .cc-item.hecho.malo .cc-wa,.cc-item.malo .cc-wa:disabled{background:#fde2e8;color:#b0173f}
 .cc-item.malo .cc-av{background:#fde2e8;color:#b0173f}
 .cc-msg{white-space:pre-wrap;background:#e7fbe9;border-radius:14px 14px 14px 4px;padding:.8rem 1rem;font-size:.92rem;line-height:1.45;border:1px solid #c9efcf}
-.cc-compartir{display:flex;gap:.7rem;align-items:flex-start;background:#f4fcf6;border:1.5px solid #bfeccb;border-radius:16px;padding:.8rem 1rem;cursor:pointer}
+.cc-compartir{display:flex;gap:.7rem;align-items:flex-start;background:#f4fcf6;border:1.5px solid #bfeccb;border-radius:16px;padding:.8rem 1rem}
 .cc-compartir.on{background:#dcfce7;border-color:#16b84e}
 .cc-compartir input{width:1.5rem;height:1.5rem;flex:none;margin-top:.1rem;cursor:pointer}
 .cc-compartir label{cursor:pointer;flex:1}
 .cc-compartir small{display:block;color:#56615b;font-weight:600;margin-top:.2rem;line-height:1.35}
-.cc-tag{background:#dcfce7;color:#11702f;border-radius:999px;padding:.05rem .5rem;font-size:.72rem;font-weight:800;margin-left:.3rem}
+.cc-elige{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;margin-bottom:.6rem}
+.cc-op{border:1.5px solid #d6dde8;background:#fff;border-radius:999px;padding:.35rem .9rem;font-weight:800;font-size:.85rem}
+.cc-op.on{background:#0b0d0c;border-color:#0b0d0c;color:#a6f34a}
 .cc-vacio{text-align:center;padding:2rem 1rem;color:#6b7570}
 .cc-vacio i{font-size:2.2rem;color:#16b84e;margin-bottom:.5rem}
 </style>
@@ -64,16 +66,14 @@
     @if ($esJefe)
     <form method="post" action="{{ route('clientes.contactar.compartir') }}" class="cc-compartir mb-3 {{ $tienda->compartir_asesores ? 'on' : '' }}">
         @csrf
-        <input type="checkbox" name="compartir_asesores" value="1" id="ccCompartir" class="form-check-input" @checked($tienda->compartir_asesores) @disabled(!$compartir) onchange="this.form.submit()">
+        <input type="checkbox" name="compartir_asesores" value="1" id="ccCompartir" class="form-check-input" @checked($tienda->compartir_asesores) onchange="this.form.submit()">
         <label for="ccCompartir"><b>👥 Compartir mi base de datos con mis asesores</b>
-            @if ($compartir)
-            <small>{{ $tienda->compartir_asesores ? '✅ Compartida con ' . $compartir['texto'] . '.' : 'Se la damos a ' . $compartir['texto'] . ' para que también envíen mensajes.' }}
-                Cada asesor elige si manda <b>su mensaje</b> o el mensaje normal de LocalPro. A cada número se le escribe <b>una sola vez</b>: a los que usted o su equipo ya les escribieron no les sale a ningún asesor.</small>
-            @else
-            <small>Su negocio todavía no tiene asesores de LocalPro con quién compartirla.</small>
-            @endif
+            <small>{{ $tienda->compartir_asesores ? '✅ Compartida: sus asesores (vendedores) también reciben contactos cada día.' : 'Márquela para que sus asesores (vendedores) también reciban contactos cada día y envíen mensajes.' }}
+                Ellos eligen si mandan <b>su mensaje</b> o el mensaje normal del programa. A cada número se le escribe <b>una sola vez</b>: si usted ya le escribió a alguien, a ellos no les sale.</small>
         </label>
     </form>
+    @elseif (!$puede)
+    <div class="alert alert-warning fw-bold">👥 El dueño del negocio todavía no le comparte la base de datos. Cuando la comparta, aquí le salen sus contactos del día.</div>
     @endif
 
     <div class="cc-top">
@@ -117,14 +117,25 @@
                 </div>
             </div>
             @empty
+            @if (!$puede)
+            <div class="cc-vacio"><i class="fa-solid fa-lock d-block"></i><b>Todavía no tiene contactos.</b><br>Cuando el dueño comparta la base de datos, aquí le salen los suyos.</div>
+            @else
             <div class="cc-vacio"><i class="fa-solid fa-address-book d-block"></i><b>No hay contactos para escribir.</b><br>Suba los contactos de su celular para crear su base de datos.<br>
                 <a href="{{ route('clientes.contactos') }}" class="btn btn-dark rounded-pill fw-bold mt-2">📱 Crear base de datos</a></div>
+            @endif
             @endforelse
         </div>
 
         <div>
             <div class="cc-card">
                 <h3>Mensaje que se envía</h3>
+                @if (!$esJefe && $propio)
+                <div class="cc-elige">
+                    <span class="small fw-bold me-1">¿Qué mensaje envía?</span>
+                    <button type="button" class="cc-op on" data-op="negocio">Mensaje del negocio</button>
+                    <button type="button" class="cc-op" data-op="normal">Mensaje normal</button>
+                </div>
+                @endif
                 <div class="cc-msg" id="ccVista"></div>
                 <small class="text-muted d-block mt-2">Se cambia solo: <b>{nombre}</b> por el nombre de cada persona, <b>{tienda}</b> por su negocio y <b>{catalogo}</b> por el enlace de su tienda en línea.</small>
                 @if ($esJefe)
@@ -149,7 +160,7 @@
                 <h3>Avance del equipo hoy</h3>
                 @foreach ($equipo as $e)
                 <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                    <span class="fw-bold">{{ $e['nombre'] }}@if ($e['asesor'])<span class="cc-tag">Asesor</span>@endif</span>
+                    <span class="fw-bold">{{ $e['nombre'] }}</span>
                     <span class="small"><b>{{ $e['hechos'] }}</b> / {{ $e['asignados'] }} hoy · {{ $e['total'] }} en total</span>
                 </div>
                 @endforeach
@@ -170,8 +181,17 @@
     var URL_MARCAR = @json(url('/clientes/__ID__/contactado'));
     var original = @json(\App\Http\Controllers\contactarController::MENSAJE);
     var caja = document.getElementById('ccMensaje');
+    // El asesor (vendedor) elige si manda el mensaje del negocio o el mensaje normal del programa
+    var opcion = 'negocio', CLAVE = 'lp_contactar_msg_' + @json($tienda->id);
+    try { opcion = localStorage.getItem(CLAVE) || 'negocio'; } catch (e) {}
+    function pintarOp() { document.querySelectorAll('.cc-op').forEach(function (b) { b.classList.toggle('on', b.dataset.op === opcion); }); }
+    document.querySelectorAll('.cc-op').forEach(function (b) {
+        b.addEventListener('click', function () { opcion = b.dataset.op; try { localStorage.setItem(CLAVE, opcion); } catch (e) {} pintarOp(); vista(); });
+    });
+    if (!document.querySelector('.cc-op')) opcion = 'negocio';
+    pintarOp();
     function armar(nombre) {
-        return (caja.value || original)
+        return ((opcion === 'normal' ? original : caja.value) || original)
             .replace(/\{nombre\}/g, nombre || '').replace(/¡Hola\s+!/, '¡Hola!').replace(/Hola\s+,/, 'Hola,')
             .replace(/\{tienda\}/g, TIENDA).replace(/\{catalogo\}/g, CATALOGO);
     }
