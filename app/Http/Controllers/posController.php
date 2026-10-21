@@ -43,7 +43,25 @@ class posController extends Controller
                 'url' => route('pos.tasa'),
             ] : null,
             'negocio' => Negocio::datos(),
+            'pedido' => $this->pedidoParaCobrar(),
         ]);
+    }
+
+    // Pedido de restaurante que caja va a cobrar: el POS lo abre con sus productos cargados
+    private function pedidoParaCobrar(): ?array
+    {
+        $id = (int) request()->query('pedido');
+        if (!$id || !\Illuminate\Support\Facades\Schema::hasTable('pedidos')) return null;
+        $p = \App\Models\Pedido::with('items.variante.producto')->where('pagado', false)->whereNotIn('estado', ['anulado', 'cerrado'])->find($id);
+        if (!$p) return null;
+        $items = [];
+        foreach ($p->items->where('estado', '<>', 'anulado') as $i) {
+            $v = $i->variante;
+            if (!$v || !$v->producto) continue;
+            $items[] = ['variante_id' => $v->id, 'nombre' => $v->producto->nombre, 'etiqueta' => $v->etiqueta, 'precio' => $v->precio_final,
+                'stock' => round((float) $v->stock, 3), 'controla' => (bool) $v->producto->controla_inventario, 'cantidad' => (float) $i->cantidad];
+        }
+        return ['id' => $p->id, 'titulo' => $p->titulo, 'cliente' => $p->cliente_nombre, 'items' => $items, 'volver' => route('pedidos.caja')];
     }
 
     // Busca prendas por nombre, código del producto o código de barras de la talla/color
@@ -143,6 +161,7 @@ class posController extends Controller
             'cliente_nombre' => 'nullable|string|max:80',
             'cliente_telefono' => 'nullable|string|max:20',
             'factura_electronica' => 'nullable|boolean',
+            'pedido_id' => 'nullable|integer',
         ], [
             'items.required' => 'Agregue al menos una prenda.',
             'pagos.required' => 'Indique cómo pagó el cliente.',
@@ -346,6 +365,12 @@ class posController extends Controller
 
             // Factura / POS electrónico: queda registrado y se envía al proveedor apenas se guarde la venta
             \App\Support\Dian\Facturador::enviarDespues(\App\Support\Dian\Facturador::registrarVenta($venta));
+
+            // Pedido de restaurante cobrado: queda pagado y (si paga primero) pasa a las estaciones
+            if (!empty($datos['pedido_id']) && \Illuminate\Support\Facades\Schema::hasTable('pedidos')) {
+                $ped = \App\Models\Pedido::whereKey($datos['pedido_id'])->lockForUpdate()->first();
+                if ($ped && !$ped->pagado && $ped->estado !== 'anulado') $ped->marcarPagado($venta);
+            }
 
             return $venta;
         });

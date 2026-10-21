@@ -31,6 +31,12 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
+    // Rol propio del negocio (Caja, Mesero, Cocina…)
+    public function negocioRol()
+    {
+        return $this->belongsTo(NegocioRol::class, 'negocio_rol_id');
+    }
+
     public function tienda()
     {
         return $this->belongsTo(Tienda::class);

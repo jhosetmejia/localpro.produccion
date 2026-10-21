@@ -64,8 +64,23 @@ class homeController extends Controller
         $hoy = Carbon::today();
         $pos = fn () => PosVenta::where('estado', 'pagada');
 
-        // Vendedores (caja): su propio panel, sin ganancias, con sus ventas y su meta
+        // Empleados con rol propio del negocio: entran directo a su pantalla (mesero, caja, cocina…)
         $yo = Auth::user();
+        if ($yo->negocio_rol_id && !request()->boolean('panel') && ($rolPropio = $yo->negocioRol) && $tienda->mod_pedidos) {
+            $destino = match ($rolPropio->inicio) {
+                'mesero' => $yo->can('pedidos-tomar') ? 'pedidos.mesero' : null,
+                'caja' => $yo->can('pedidos-cobrar') ? 'pedidos.caja' : null,
+                'estacion' => $yo->can('pedidos-preparar') ? 'pedidos.estacion' : null,
+                'pos' => $yo->can('usar-pos') ? 'pos.index' : null,
+                default => null,
+            };
+            if ($destino && \Illuminate\Support\Facades\Route::has($destino)) return redirect()->route($destino);
+        }
+        if ($yo->negocio_rol_id && !request()->boolean('panel') && ($rolPropio ?? $yo->negocioRol)?->inicio === 'pos' && $yo->can('usar-pos')) {
+            return redirect()->route('pos.index');
+        }
+
+        // Vendedores (caja): su propio panel, sin ganancias, con sus ventas y su meta
         if (!$yo->es_superadmin && !$yo->hasAnyRole(['dueno', 'administrador'])) {
             $mias = fn () => $pos()->where('user_id', $yo->id);
             $mes = [$hoy->copy()->startOfMonth(), now()];

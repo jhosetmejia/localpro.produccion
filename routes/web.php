@@ -545,3 +545,4 @@ Route::get('/500', fn () => view('pages.500'));
 require __DIR__ . '/nomina.php';
 require __DIR__ . '/obituarios.php';
 require __DIR__ . '/contabilidad.php';
+require __DIR__ . '/pedidos.php';

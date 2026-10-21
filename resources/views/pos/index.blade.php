@@ -243,6 +243,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
 
         <aside class="cart" id="cart">
             <div class="ch"><h2><i class="fa-solid fa-bag-shopping me-1" style="color:#16b34a"></i> Venta actual</h2><div><button id="clear">Vaciar</button></div></div>
+            @if ($pedido)<div style="margin:.4rem .8rem 0;background:#fef3c7;color:#92400e;border-radius:12px;padding:.5rem .7rem;font-weight:800;font-size:.85rem"><i class="fa-solid fa-receipt me-1"></i>Cobrando pedido {{ $pedido['titulo'] }} · <a href="{{ $pedido['volver'] }}" style="color:inherit">volver</a></div>@endif
             <div class="items" id="items"></div>
             <div class="cf">
                 <div class="line"><span>Subtotal</span><b id="sub">$0</b></div>
@@ -394,6 +395,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
     };
     var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); };
 
+    var PEDIDO = @json($pedido ?? null);
     var productos = [], cart = [], actual = null, sel = { talla: null, color: null }, pagos = {}, ultima = null, enviando = false, clienteId = null, credito = null;
 
     // ---------- Catálogo ----------
@@ -813,7 +815,8 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
                 cliente_id: clienteId,
                 cliente_nombre: $('cn').value.trim() || null,
                 cliente_telefono: $('ct').value.trim() || null,
-                factura_electronica: !!($('pFe') && $('pFe').checked)
+                factura_electronica: !!($('pFe') && $('pFe').checked),
+                pedido_id: PEDIDO ? PEDIDO.id : null
             })
         }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
           .then(function (res) {
@@ -853,6 +856,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         window.open('https://wa.me/' + t + '?text=' + encodeURIComponent(msg), '_blank');
     });
     function nuevaVenta() {
+        if (PEDIDO && ultima) { location.href = PEDIDO.volver; return; }
         cart = []; ultima = null;
         $('desc').value = ''; quitarCliente();
         pintarCarrito(); cerrar('ovOk'); $('cart').classList.remove('open');
@@ -887,6 +891,11 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
 
     if (window.innerWidth < 600) $('q').placeholder = 'Buscar o escanear…';
     if (window.innerWidth <= 900) $('q').blur();
+    // Pedido de restaurante para cobrar: sus productos llegan cargados con el nombre del cliente
+    if (PEDIDO) {
+        PEDIDO.items.forEach(function (i) { cart.push({ variante_id: i.variante_id, nombre: i.nombre, etiqueta: i.etiqueta, precio: i.precio, stock: i.stock, controla: i.controla, cantidad: i.cantidad }); });
+        if (PEDIDO.cliente) $('cn').value = PEDIDO.cliente;
+    }
     pintarCarrito();
     buscar('');
     @if (session('bienvenida'))

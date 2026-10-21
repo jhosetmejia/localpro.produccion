@@ -69,7 +69,7 @@ class PermisosVendedor
     ];
 
     // Permisos que solo se ofrecen si la tienda tiene ese módulo (una tienda de ropa no ve "Historia clínica")
-    private static function aplica(string $p): bool
+    public static function aplica(string $p): bool
     {
         $t = TiendaActual::tienda();
         if (!$t) return true;

@@ -104,7 +104,7 @@
                     </div>
                     <div class="col-lg-4">
                         <div class="form-text" id="rolHelpBlock">
-                            Escoja un rol para el usuario.
+                            Escoja un rol para el usuario. @can('editar-negocio')<a href="{{ route('roles-negocio.index') }}">Crear o editar roles</a>@endcan
                         </div>
                     </div>
                     <div class="col-lg-2">

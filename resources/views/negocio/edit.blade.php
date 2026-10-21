@@ -73,6 +73,7 @@
                 'mod_medida' => ['Vender por metro, kilo o litro', 'En cada producto elige cómo se vende y en la caja vende medidas con decimales (1,5 m · 0,250 kg).', false],
                 'mod_vencimiento' => ['Fechas de vencimiento', 'Lotes con fecha de vencimiento y alertas de lo que está por vencer.', true],
                 'mod_recetas' => ['Recetas e insumos', 'Al vender se descuentan los ingredientes de cada receta.', true],
+                'mod_pedidos' => ['Pedidos: mesero, caja y cocina', 'Para restaurantes, cafeterías, granjas y parques: el mesero toma el pedido, caja lo cobra, cada estación (cocina, cafetería, entradas…) lo ve en su pantalla y avisa cuando está listo.', false],
                 'mod_alquiler' => ['Alquiler', 'Para negocios que alquilan (sonido, trajes, salones, equipos…): fechas, abonos, entrega y devolución. Apagado, no aparece en el menú.', false],
                 'mod_contable' => ['Contabilidad: retenciones e IVA', 'Para contadores y analistas: cruce de facturas de la DIAN con la contabilidad, borrador del 350 y del IVA, certificados de retención.', false],
                 'mod_obituarios' => ['Obituarios (funerarias)', 'Salas de velación y obituarios con foto para los televisores de cada sala. Se enciende solo si el negocio es funeraria.', false],

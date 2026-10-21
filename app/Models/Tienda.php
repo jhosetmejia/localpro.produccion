@@ -10,7 +10,7 @@ class Tienda extends Model
     protected $table = 'tiendas';
 
     protected $fillable = [
-        'nombre', 'departamento', 'slug', 'catalogo_activo', 'catalogo_agotados', 'mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'mod_contable', 'mod_consultorio', 'cliente_obligatorio', 'pais', 'tipo_negocio', 'descripcion', 'usa_tallas', 'nit', 'regimen',
+        'nombre', 'departamento', 'slug', 'catalogo_activo', 'catalogo_agotados', 'mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'mod_contable', 'mod_consultorio', 'mod_pedidos', 'pedidos_cobro', 'cliente_obligatorio', 'pais', 'tipo_negocio', 'descripcion', 'usa_tallas', 'nit', 'regimen',
         'resolucion_numero', 'resolucion_fecha', 'resolucion_vigencia', 'resolucion_prefijo', 'resolucion_desde', 'resolucion_hasta', 'direccion', 'ciudad', 'telefono',
         'email', 'logo_path', 'mensaje_tiquete', 'menu_oculto',
         // Facturación DIAN
@@ -18,7 +18,7 @@ class Tienda extends Model
         'fe_activa', 'fe_ambiente', 'fe_resolucion_numero', 'fe_resolucion_fecha', 'fe_resolucion_vigencia', 'fe_prefijo', 'fe_desde', 'fe_hasta', 'fe_clave_tecnica', 'fe_credenciales', 'estado', 'onboarding_paso', 'onboarding_completo', 'conj_dia_vence', 'conj_interes_mora', 'conj_zonas',
     ];
 
-    protected $casts = ['mod_medida' => 'boolean', 'mod_vencimiento' => 'boolean', 'mod_recetas' => 'boolean', 'mod_alquiler' => 'boolean', 'mod_obituarios' => 'boolean', 'mod_contable' => 'boolean', 'mod_consultorio' => 'boolean', 'usa_tallas' => 'boolean', 'onboarding_completo' => 'boolean', 'catalogo_activo' => 'boolean', 'compartir_asesores' => 'boolean', 'catalogo_agotados' => 'boolean', 'cliente_obligatorio' => 'boolean', 'plan_vence' => 'date', 'datos_depurados_at' => 'datetime', 'resolucion_fecha' => 'date', 'resolucion_vigencia' => 'date', 'pos_electronico' => 'boolean', 'fe_activa' => 'boolean', 'fe_resolucion_fecha' => 'date', 'fe_resolucion_vigencia' => 'date', 'fe_clave_tecnica' => 'encrypted', 'fe_credenciales' => 'encrypted:array', 'enlaces_activo' => 'boolean', 'enlaces_catalogo' => 'boolean', 'enlaces_redes' => 'array', 'menu_oculto' => 'array'];
+    protected $casts = ['mod_medida' => 'boolean', 'mod_vencimiento' => 'boolean', 'mod_recetas' => 'boolean', 'mod_alquiler' => 'boolean', 'mod_obituarios' => 'boolean', 'mod_contable' => 'boolean', 'mod_consultorio' => 'boolean', 'mod_pedidos' => 'boolean', 'usa_tallas' => 'boolean', 'onboarding_completo' => 'boolean', 'catalogo_activo' => 'boolean', 'compartir_asesores' => 'boolean', 'catalogo_agotados' => 'boolean', 'cliente_obligatorio' => 'boolean', 'plan_vence' => 'date', 'datos_depurados_at' => 'datetime', 'resolucion_fecha' => 'date', 'resolucion_vigencia' => 'date', 'pos_electronico' => 'boolean', 'fe_activa' => 'boolean', 'fe_resolucion_fecha' => 'date', 'fe_resolucion_vigencia' => 'date', 'fe_clave_tecnica' => 'encrypted', 'fe_credenciales' => 'encrypted:array', 'enlaces_activo' => 'boolean', 'enlaces_catalogo' => 'boolean', 'enlaces_redes' => 'array', 'menu_oculto' => 'array'];
 
     // Las llaves de facturación nunca salen en JSON ni en registros
     protected $hidden = ['fe_clave_tecnica', 'fe_credenciales'];
@@ -29,8 +29,8 @@ class Tienda extends Model
         'minimercado' => ['mod_vencimiento'],
         'belleza' => ['mod_vencimiento'],
         'ferreteria' => ['mod_medida'],
-        'restaurante' => ['mod_recetas'],
-        'cafeteria' => ['mod_recetas', 'mod_vencimiento'],
+        'restaurante' => ['mod_recetas', 'mod_pedidos'],
+        'cafeteria' => ['mod_recetas', 'mod_vencimiento', 'mod_pedidos'],
         'funeraria' => ['mod_obituarios'],
         'contable' => ['mod_contable'],
         'consultorio' => ['mod_consultorio'],
@@ -43,6 +43,7 @@ class Tienda extends Model
         'obituarios' => ['Obituarios', 'fa-dove', 'Inicio', 'Salas de velación y pantallas (funerarias)'],
         'contabilidad' => ['Contabilidad (retenciones e IVA)', 'fa-calculator', 'Inicio', 'Cruce DIAN vs. contabilidad y borrador del 350'],
         'pos' => ['Vender (POS)', 'fa-cash-register', 'Inicio', 'La caja para cobrar'],
+        'pedidos' => ['Pedidos (mesero, caja y cocina)', 'fa-bell-concierge', 'Inicio', 'Mesero toma el pedido, caja cobra y cocina lo prepara'],
         'separados' => ['Separados y abonos', 'fa-box-archive', 'Inicio', 'Apartar productos con abonos'],
         'tiquetera' => ['Tiquetera', 'fa-ticket', 'Inicio', 'Almuerzos o servicios prepagados (restaurantes y cafeterías)'],
         'egresos' => ['Egresos', 'fa-arrow-trend-down', 'Inicio', 'Gastos y pagos del negocio'],

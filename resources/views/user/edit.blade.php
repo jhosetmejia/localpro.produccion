@@ -96,18 +96,15 @@
                     <label for="role" class="col-lg-2 col-form-label">Seleccionar rol:</label>
                     <div class="col-lg-4">
                         <select name="role" id="role" class="form-select">
+                            @php $rolActual = $user->negocio_rol_id ? 'r' . $user->negocio_rol_id : $user->roles->pluck('name')->first(); @endphp
                             @foreach ($roles as $item)
-                            @if ( in_array($item->name,$user->roles->pluck('name')->toArray()) )
-                            <option selected value="{{$item->name}}" @selected(old('role')==$item->name)>{{$item->etiqueta ?? $item->name}}</option>
-                            @else
-                            <option value="{{$item->name}}" @selected(old('role')==$item->name)>{{$item->etiqueta ?? $item->name}}</option>
-                            @endif
+                            <option value="{{$item->name}}" @selected(old('role', $rolActual)==$item->name)>{{$item->etiqueta ?? $item->name}}</option>
                             @endforeach
                         </select>
                     </div>
                     <div class="col-lg-4">
                         <div class="form-text">
-                            Escoja un rol para el usuario.
+                            Escoja un rol para el usuario. @can('editar-negocio')<a href="{{ route('roles-negocio.index') }}">Crear o editar roles</a>@endcan
                         </div>
                     </div>
                     <div class="col-lg-2">

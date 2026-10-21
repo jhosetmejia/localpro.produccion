@@ -115,7 +115,7 @@ class bienvenidaController extends Controller
         unset($datos['logo']);
 
         $datos['usa_tallas'] = Tienda::TIPOS[$datos['tipo_negocio']][2];
-        foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'mod_contable', 'mod_consultorio'] as $m) {
+        foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'mod_contable', 'mod_consultorio', 'mod_pedidos'] as $m) {
             $datos[$m] = $request->has($m) ? $request->boolean($m) : in_array($m, Tienda::MODULOS_POR_TIPO[$datos['tipo_negocio']] ?? [], true);
         }
         if ($tienda->menu_oculto === null && isset(Tienda::MENU_OCULTO_POR_TIPO[$datos['tipo_negocio']])) {

@@ -50,7 +50,7 @@
                         <td>{{$item->email}}</td>
                         <td>
                             @php $rol = $item->getRoleNames()->first(); @endphp
-                            {{ $item->es_superadmin ? 'Administrador LocalPro' : (\App\Http\Controllers\userController::ROLES_TIENDA[$rol] ?? $rol) }}
+                            {{ \App\Support\RolesNegocio::etiqueta($item) }}
                             @if ($rol === 'vendedor' && !$item->es_superadmin && ($extra = $item->getDirectPermissions()->count()))
                             <span class="badge bg-info text-dark ms-1" title="Permisos extra dados por el dueño">+{{ $extra }} permisos</span>
                             @endif

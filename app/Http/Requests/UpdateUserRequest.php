@@ -26,7 +26,7 @@ class UpdateUserRequest extends FormRequest
             'name' => 'required|max:255',
             'email' => 'required|email|max:255|unique:users,email,'.$user->id,
             'password' => 'same:password_confirm',
-            'role' => 'required|in:dueno,vendedor'
+            'role' => ['required', 'regex:/^(dueno|vendedor|r\d+)$/']
         ];
     }
 }

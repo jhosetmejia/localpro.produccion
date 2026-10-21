@@ -6,6 +6,24 @@
 // palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
+    'sistema-de-pedidos-para-restaurantes-mesero-caja-cocina' => [
+        'titulo' => 'Sistema de pedidos para restaurantes: mesero, caja y cocina conectados desde el celular',
+        'resumen' => 'El mesero toma el pedido con el nombre del cliente, caja lo cobra, cada estación (cocina, cafetería, entradas) lo ve en su pantalla y al mesero le suena cuando está listo. Con roles a la medida de su equipo.',
+        'fecha' => '21 de octubre de 2026',
+        'publicado' => '2026-10-21',
+        'minutos' => 4,
+        'icono' => 'fa-bell-concierge',
+        'rol' => 'negocios',
+        'seo_titulo' => 'Sistema de pedidos para restaurantes y comandas | LocalProo',
+        'descripcion' => 'Comandas digitales: el mesero toma el pedido en el celular, caja cobra, la cocina lo ve en pantalla y avisa cuando está listo. Roles y cierre del día.',
+        'keywords' => ['sistema de pedidos para restaurantes', 'comandas digitales', 'pantalla de cocina', 'app para meseros', 'software para restaurantes', 'pedidos restaurante celular', 'software para granjas turísticas'],
+        'faq' => [
+            ['¿El cliente paga antes o después?', 'Usted elige: paga primero (comidas rápidas, cafeterías, granjas) o paga al final (restaurante a la mesa). Se cambia en Pedidos → Configurar.'],
+            ['¿Necesito comprar pantallas especiales?', 'No. La cocina y cada estación usan una tablet, un celular o un televisor con navegador; también puede imprimir la comanda.'],
+            ['¿Puedo crear mis propios roles?', 'Sí. El dueño o el administrador crea roles como Caja, Mesero, Cocina, Entradas o Granjero y marca qué puede hacer cada uno.'],
+            ['¿El cobro cuadra con la caja?', 'Sí. El pedido se cobra en el POS de LocalProo: queda en la caja del cajero, en ventas y en los reportes.'],
+        ],
+    ],
     'tiquetera-de-almuerzos-para-restaurantes' => [
         'titulo' => 'Tiquetera digital para restaurantes: venda almuerzos por adelantado y descuéntelos con un toque',
         'resumen' => 'Olvídese de la tarjeta de cartón que se pierde. En LocalProo vende la tiquetera (por ejemplo, 20 almuerzos), el pago entra a la caja y cada día marca el almuerzo del cliente; él recibe por WhatsApp cuántos le quedan.',

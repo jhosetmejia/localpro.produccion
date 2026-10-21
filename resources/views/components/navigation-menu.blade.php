@@ -191,6 +191,22 @@
                     Obituarios
                 </a>@endif
                 @endif
+                @if ($tiendaMenu?->mod_pedidos && $ver('pedidos') && \Illuminate\Support\Facades\Route::has('pedidos.index') && \Illuminate\Support\Facades\Schema::hasTable('pedidos'))
+                @php
+                    $uM = auth()->user();
+                    $admP = $uM->es_superadmin || $uM->can('pedidos-administrar');
+                    $porCobrarM = ($admP || $uM->can('pedidos-cobrar')) ? \App\Models\Pedido::where('estado', 'por_cobrar')->where('pagado', false)->count() : 0;
+                @endphp
+                @if ($admP || $uM->can('pedidos-tomar'))
+                <a class="nav-link {{ $on('pedidos.mesero') }} {{ $on('pedidos.crear') }}" href="{{ route('pedidos.mesero') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-bell-concierge"></i></div>Tomar pedidos</a>
+                @endif
+                @if ($admP || $uM->can('pedidos-cobrar'))
+                <a class="nav-link {{ $on('pedidos.caja') }}" href="{{ route('pedidos.caja') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-receipt"></i></div>Pedidos por cobrar @if ($porCobrarM)<span class="badge rounded-pill ms-auto" style="background:#f59e0b;color:#0b0d0c">{{ $porCobrarM }}</span>@endif</a>
+                @endif
+                @if ($admP || $uM->can('pedidos-preparar'))
+                <a class="nav-link {{ $on('pedidos.estacion') }}" href="{{ route('pedidos.estacion') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-fire-burner"></i></div>Pantalla de cocina</a>
+                @endif
+                @endif
                 @can('usar-pos')
                 @if ($ver('pos'))<a class="nav-link {{ $on('pos.index') }}" href="{{ route('pos.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-cash-register"></i></div>
@@ -375,6 +391,14 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-user-gear"></i></div>
                     Usuarios
                 </a>
+                @endcan
+                @can('editar-negocio')
+                @if (\Illuminate\Support\Facades\Route::has('roles-negocio.index'))
+                <a class="nav-link {{ $on('roles-negocio.*') }}" href="{{ route('roles-negocio.index') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-id-badge"></i></div>
+                    Roles del negocio
+                </a>
+                @endif
                 @endcan
                 @endif
                 @endif

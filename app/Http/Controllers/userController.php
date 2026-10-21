@@ -52,7 +52,11 @@ class userController extends Controller
                 'password' => Hash::make($request->password),
                 'tienda_id' => TiendaActual::id(),
             ]);
-            $user->assignRole($request->role);
+            if (str_starts_with($request->role, 'r')) {
+                \App\Support\RolesNegocio::asignar($user, \App\Models\NegocioRol::findOrFail((int) substr($request->role, 1)));
+            } else {
+                $user->assignRole($request->role);
+            }
         });
 
         return redirect()->route('users.index')->with('success', 'Usuario registrado');
@@ -81,9 +85,16 @@ class userController extends Controller
             $user->update($datos);
             // El superadministrador conserva su rol de plataforma
             if (!$user->es_superadmin) {
-                $user->syncRoles([$request->role]);
-                // El dueño ya tiene todo por su rol: se limpian los permisos extra
-                if ($request->role !== 'vendedor') $user->syncPermissions([]);
+                if (str_starts_with($request->role, 'r')) {
+                    // Rol propio del negocio (Mesero, Cocina…): sus permisos vienen del rol
+                    \App\Support\RolesNegocio::asignar($user, \App\Models\NegocioRol::findOrFail((int) substr($request->role, 1)));
+                } else {
+                    $teniaRolPropio = (bool) $user->negocio_rol_id;
+                    \App\Support\RolesNegocio::asignar($user, null);
+                    $user->syncRoles([$request->role]);
+                    // El dueño ya tiene todo por su rol: se limpian los permisos extra
+                    if ($request->role !== 'vendedor' || $teniaRolPropio) $user->syncPermissions([]);
+                }
             }
         });
 
@@ -135,8 +146,13 @@ class userController extends Controller
     // Solo los roles de tienda, con nombre legible
     private function roles()
     {
-        return Role::whereIn('name', array_keys(self::ROLES_TIENDA))->get()
+        $base = Role::whereIn('name', array_keys(self::ROLES_TIENDA))->get()
             ->each(fn ($r) => $r->etiqueta = self::ROLES_TIENDA[$r->name]);
+        // Roles propios del negocio (Caja, Mesero, Cocina…)
+        $propios = \Illuminate\Support\Facades\Schema::hasTable('negocio_roles')
+            ? \App\Models\NegocioRol::orderBy('orden')->orderBy('nombre')->get()->map(fn ($r) => (object) ['name' => 'r' . $r->id, 'etiqueta' => $r->nombre])
+            : collect();
+        return collect($base->all())->concat($propios);
     }
 
     private function deMiTienda(User $user): void

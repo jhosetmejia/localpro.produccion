@@ -187,6 +187,7 @@ class Academia
                         'Si el cliente paga con billete grande, LocalPro le dice cuánto devolver.',
                         'Para dejar un producto apartado use <b>Separados</b>: el cliente abona y se le entrega al completar.',
                         '¿Restaurante o cafetería? Venda <b>tiqueteras</b> (por ejemplo, 20 almuerzos pagados por adelantado) en el menú <b>Tiquetera</b>: cada día busca al cliente y toca <b>Marcar almuerzo</b>, sin volver a cobrarle.',
+                        '¿Restaurante, cafetería o granja? Use <b>Pedidos</b>: el mesero toma el pedido en el celular, caja lo cobra, la cocina (o la cafetería, las entradas…) lo ve en su pantalla y al mesero le suena cuando está listo. El manual completo está en <b>Pedidos → Cómo funciona</b>.',
                     ], 'tip' => 'Revise la transferencia en su celular ANTES de entregar el producto.'],
                     ['titulo' => 'Devoluciones y cambios', 'min' => 2, 'accion' => ['pos.ventas', 'Ver ventas'], 'contenido' => [
                         'Busque la venta original y haga la <b>devolución</b> desde ahí: el producto vuelve al inventario y la plata sale de la caja.',
