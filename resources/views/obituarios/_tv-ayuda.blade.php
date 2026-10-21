@@ -6,9 +6,9 @@
 
         <p class="mb-1"><b><span class="badge bg-success">Recomendado</span> 1. Que el TV la abra solo</b></p>
         <ul class="mb-2 ps-3">
-            <li><b>Si es Smart TV:</b> abra el navegador del televisor, escriba la dirección de la sala y toque la pantalla (o dé OK con el control) para verla completa.</li>
+            <li><b>Si es Smart TV:</b> abra el navegador del televisor y escriba la <b>dirección corta</b> de la sala, por ejemplo <b>{{ preg_replace('#^https?://(www\.)?#', '', url('/tv')) }}/1234</b> (el código de cada sala aparece en la lista de salas). También puede escribir solo <b>{{ preg_replace('#^https?://(www\.)?#', '', url('/tv')) }}</b> y digitar el código con el control. Luego toque la pantalla (o dé OK) para verla completa.</li>
             <li><b>Si no es Smart TV o su navegador es malo:</b> conéctele por HDMI un <b>Fire TV Stick</b> o un <b>Google TV / Chromecast con control</b> (unos $150.000–$250.000). Instale un navegador (por ejemplo, Silk o Chrome) y abra la dirección.</li>
-            <li>Cada sala tiene <b>su propia dirección</b>: cópiela con el botón <i class="fa-regular fa-copy"></i> de la lista de salas, o con «Abrir la pantalla de la sala».</li>
+            <li>Cada sala tiene <b>su propio código</b>. Si cambia la dirección de una sala, también cambia el código.</li>
             <li>Guárdela como favorito en el navegador del TV para abrirla rápido si se apaga.</li>
         </ul>
 

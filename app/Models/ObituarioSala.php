@@ -21,6 +21,7 @@ class ObituarioSala extends Model
     {
         static::creating(function (ObituarioSala $s) {
             if (empty($s->token)) $s->token = self::nuevoToken();
+            if (empty($s->codigo)) $s->codigo = self::nuevoCodigo();
         });
     }
 
@@ -30,6 +31,25 @@ class ObituarioSala extends Model
             $t = Str::lower(Str::random(24));
         } while (static::withoutGlobalScopes()->where('token', $t)->exists());
         return $t;
+    }
+
+    // Código corto (4 números; 5 o 6 si ya no quedan) para escribir en el TV: localproo.com/tv/1234.
+    // Es único entre todas las salas y pantallas generales de todos los negocios.
+    public static function nuevoCodigo(): string
+    {
+        foreach ([4, 4, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6] as $n) {
+            $c = (string) random_int(10 ** ($n - 1), 10 ** $n - 1);
+            $usado = \Illuminate\Support\Facades\DB::table('obituario_salas')->where('codigo', $c)->exists()
+                || \Illuminate\Support\Facades\DB::table('tiendas')->where('obituarios_codigo', $c)->exists();
+            if (!$usado) return $c;
+        }
+        return (string) random_int(10000000, 99999999);
+    }
+
+    public function getUrlCortaAttribute(): ?string
+    {
+        if (!$this->codigo) return null;
+        return rtrim(preg_replace('#^https?://(www\.)?#', '', url('/tv')), '/') . '/' . $this->codigo;
     }
 
     public function obituarios()

@@ -13,6 +13,7 @@
 .ob-card .tx small{display:block;color:#6b7570}
 .ob-sala{border:1.5px solid #e3efe5;border-radius:16px;padding:.7rem .8rem;margin-bottom:.6rem;background:#fff}
 .ob-sala .top{display:flex;align-items:center;gap:.5rem}
+.ob-codigo{margin:.35rem 0 .2rem;font-size:.9rem}.ob-codigo b{font-size:1.15rem;color:#0b5a25;letter-spacing:.02em;background:#eaf7ee;border-radius:8px;padding:.1rem .45rem;white-space:nowrap}
 .ob-sala code{font-size:.75rem;word-break:break-all;color:#11702f}
 .ob-tabs a{font-weight:700}
 </style>
@@ -86,6 +87,7 @@
                             <button type="button" class="btn btn-sm btn-dark" data-bs-toggle="collapse" data-bs-target="#sala-{{ $s->id }}" title="Editar"><i class="fa-solid fa-pen"></i></button>
                         </div>
                     </div>
+                    @if ($s->codigo)<div class="ob-codigo">En el TV escriba: <b>{{ $s->url_corta }}</b></div>@endif
                     <code>{{ $s->url_pantalla }}</code>
                     <div class="collapse" id="sala-{{ $s->id }}">
                         <form method="post" action="{{ route('obituarios.salas.update', $s) }}" class="mt-2">
@@ -119,6 +121,7 @@
                             <button type="button" class="btn btn-sm btn-light" data-copiar="{{ $urlGeneral }}"><i class="fa-regular fa-copy"></i></button>
                         </div>
                     </div>
+                    @if ($tienda->obituarios_codigo)<div class="ob-codigo">En el TV escriba: <b>{{ preg_replace('#^https?://(www\.)?#', '', url('/tv')) }}/{{ $tienda->obituarios_codigo }}</b></div>@endif
                     <code>{{ $urlGeneral }}</code>
                 </div>
                 <form method="post" action="{{ route('obituarios.general.config') }}" class="d-flex align-items-center gap-2 flex-wrap">

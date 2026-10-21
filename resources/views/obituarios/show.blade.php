@@ -62,6 +62,9 @@
             <div class="lp-box mb-3">
                 <h3><i class="fa-solid fa-tv me-1"></i>{{ $obituario->sala?->nombre ?? 'Pantalla general' }}</h3>
                 <form method="post" action="{{ route('obituarios.ver-ya', $obituario) }}" target="_blank" class="mb-2">@csrf<button class="btn btn-success w-100"><i class="fa-solid fa-display me-1"></i>Ver ya en la pantalla</button></form>
+                @if ($obituario->sala?->codigo)
+                <p class="mb-2 text-center">En el TV escriba:<br><b style="font-size:1.3rem;color:#0b5a25">{{ $obituario->sala->url_corta }}</b></p>
+                @endif
                 @if ($obituario->sala)
                 <a class="btn btn-dark w-100" target="_blank" href="{{ $obituario->sala->url_pantalla }}"><i class="fa-solid fa-up-right-from-square me-1"></i>Abrir la pantalla de la sala</a>
                 @endif

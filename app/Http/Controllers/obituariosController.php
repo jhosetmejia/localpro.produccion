@@ -25,7 +25,7 @@ class obituariosController extends Controller
     public function __construct()
     {
         $this->middleware(function ($request, $next) {
-            if ($request->routeIs('obituarios.pantalla', 'obituarios.version', 'obituarios.general', 'obituarios.general.version')) {
+            if ($request->routeIs('obituarios.pantalla', 'obituarios.version', 'obituarios.general', 'obituarios.general.version', 'obituarios.tv', 'obituarios.tv.codigo')) {
                 return $next($request);
             }
             $u = $request->user();
@@ -66,6 +66,11 @@ class obituariosController extends Controller
         if (!$tienda->obituarios_token) {
             $tienda->forceFill(['obituarios_token' => ObituarioSala::nuevoToken()])->save();
         }
+        if (!$tienda->obituarios_codigo) {
+            $tienda->forceFill(['obituarios_codigo' => ObituarioSala::nuevoCodigo()])->save();
+        }
+        // Salas creadas antes del código corto
+        ObituarioSala::whereNull('codigo')->get()->each(fn ($s) => $s->forceFill(['codigo' => ObituarioSala::nuevoCodigo()])->save());
         $ver = $request->query('ver', 'activos');
         $q = Obituario::with(['sala', 'plantilla'])->latest('id');
         if ($ver === 'activos') $q->where('estado', 'activo');
@@ -263,7 +268,7 @@ class obituariosController extends Controller
         $request->validate(['nombre' => 'required|string|max:60']);
         $sala->update(['nombre' => $request->input('nombre'), 'activa' => $request->boolean('activa', true)]);
         if ($request->boolean('nueva_direccion')) {
-            $sala->forceFill(['token' => ObituarioSala::nuevoToken()])->save();
+            $sala->forceFill(['token' => ObituarioSala::nuevoToken(), 'codigo' => ObituarioSala::nuevoCodigo()])->save();
             return back()->with('success', 'La sala tiene una dirección de pantalla nueva. Ábrala otra vez en el televisor.');
         }
         return back()->with('success', 'Sala actualizada.');
@@ -280,7 +285,10 @@ class obituariosController extends Controller
         $request->validate(['obituarios_rotar' => 'required|integer|min:5|max:120']);
         $t = $this->tienda();
         $t->forceFill(['obituarios_rotar' => (int) $request->input('obituarios_rotar')]);
-        if ($request->boolean('nueva_direccion')) $t->obituarios_token = ObituarioSala::nuevoToken();
+        if ($request->boolean('nueva_direccion')) {
+            $t->obituarios_token = ObituarioSala::nuevoToken();
+            $t->obituarios_codigo = ObituarioSala::nuevoCodigo();
+        }
         $t->save();
         return back()->with('success', 'Pantalla general guardada.');
     }
@@ -428,6 +436,23 @@ class obituariosController extends Controller
     }
 
     // ===================== Pantallas (televisores) =====================
+
+    // localproo.com/tv: el TV muestra un teclado de números para escribir el código de la sala
+    public function tv(Request $request)
+    {
+        if ($c = preg_replace('/\D/', '', (string) $request->query('c'))) return redirect()->route('obituarios.tv.codigo', $c);
+        return response()->view('obituarios.tv', ['error' => $request->query('error')])->header('X-Robots-Tag', 'noindex');
+    }
+
+    // localproo.com/tv/1234 → la pantalla de esa sala (o la pantalla general del negocio)
+    public function tvCodigo(string $codigo)
+    {
+        $sala = ObituarioSala::withoutGlobalScopes()->where('codigo', $codigo)->first();
+        if ($sala) return redirect()->route('obituarios.pantalla', $sala->token);
+        $tienda = Tienda::where('obituarios_codigo', $codigo)->whereNotNull('obituarios_token')->first();
+        if ($tienda) return redirect()->route('obituarios.general', $tienda->obituarios_token);
+        return redirect()->route('obituarios.tv', ['error' => 1]);
+    }
 
     private function salaPublica(string $token): ObituarioSala
     {

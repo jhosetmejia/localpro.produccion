@@ -6,6 +6,12 @@ use Illuminate\Support\Facades\Route;
 // ===== Obituarios (funerarias): salas de velación, plantillas y pantallas =====
 
 // Pantallas de los televisores (sin iniciar sesión, con dirección secreta)
+// Código corto para el TV: localproo.com/tv (teclado) y localproo.com/tv/1234
+Route::controller(obituariosController::class)->middleware('throttle:30,1')->group(function () {
+    Route::get('/tv', 'tv')->name('obituarios.tv');
+    Route::get('/tv/{codigo}', 'tvCodigo')->where('codigo', '[0-9]{4,8}')->name('obituarios.tv.codigo');
+});
+
 Route::controller(obituariosController::class)->middleware('throttle:240,1')->group(function () {
     Route::get('/pantalla/{token}', 'pantalla')->where('token', '[a-z0-9]{20,40}')->name('obituarios.pantalla');
     Route::get('/pantalla/{token}/version', 'version')->where('token', '[a-z0-9]{20,40}')->name('obituarios.version');
