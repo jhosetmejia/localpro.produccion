@@ -360,7 +360,13 @@
 
     // ===== Descargar imagen (PNG o JPG) en la medida exacta de la pantalla (4K, Full HD…) =====
     Obi.exportar = function (el, nombre, formato) {
-        var escala = +el.dataset.escala || 1, cambios = [];
+        formato = formato === 'jpg' ? 'jpg' : 'png';
+        return Obi.imagen(el, formato).then(function (url) { bajar(url, (nombre || 'obituario') + '.' + formato); });
+    };
+
+    // ===== Crear la imagen (devuelve el enlace data:) sin descargarla; la usa también "Enviar por WhatsApp" =====
+    Obi.imagen = function (el, formato, escalaFija) {
+        var escala = escalaFija || +el.dataset.escala || 1, cambios = [];
         formato = formato === 'jpg' ? 'jpg' : 'png';
         return cargarLib().then(function () {
             // El video no sale en la foto: se pone el cuadro que se está viendo
@@ -377,11 +383,61 @@
             return formato === 'jpg'
                 ? window.htmlToImage.toJpeg(el, opciones(el, escala, { quality: 0.93, backgroundColor: '#ffffff' }))
                 : window.htmlToImage.toPng(el, opciones(el, escala, {}));
-        }).then(function (url) {
-            bajar(url, (nombre || 'obituario') + '.' + formato);
         }).finally(function () {
             cambios.forEach(function (x) { x[1].remove(); x[0].style.display = ''; });
         });
+    };
+
+    // ===== Enviar por WhatsApp CON la imagen =====
+    // Celular (y Chrome/Edge en Windows): abre el menú de compartir con la imagen adjunta -> elegir WhatsApp.
+    // Si el navegador no deja compartir archivos: descarga la imagen, copia el texto y abre WhatsApp para adjuntarla.
+    // La imagen se prepara antes (al abrir la página), porque el navegador solo deja compartir justo después del toque.
+    Obi.whatsapp = function (el, boton, op) {
+        var archivo = null, preparando = null;
+        var nombre = (op.nombre || 'obituario') + '.jpg';
+        var ancho = +el.dataset.w || 1920;
+        function preparar() {
+            if (archivo) return Promise.resolve(archivo);
+            if (preparando) return preparando;
+            // Full HD basta para WhatsApp (lo comprime igual) y pesa poco
+            preparando = Obi.imagen(el, 'jpg', Math.min(1, 1920 / ancho) || 1)
+                .then(function (url) { return fetch(url); }).then(function (r) { return r.blob(); })
+                .then(function (b) { archivo = new File([b], nombre, { type: 'image/jpeg' }); return archivo; })
+                .finally(function () { preparando = null; });
+            return preparando;
+        }
+        function puedeCompartir(f) {
+            try { return !!(navigator.canShare && navigator.share && navigator.canShare({ files: [f] })); } catch (e) { return false; }
+        }
+        function respaldo(f) {
+            bajar(URL.createObjectURL(f), nombre);
+            try { navigator.clipboard && navigator.clipboard.writeText(op.texto); } catch (e) {}
+            window.open('https://wa.me/?text=' + encodeURIComponent(op.texto), '_blank');
+            if (window.LP && LP.toast) LP.toast('La imagen se descargó. En WhatsApp toque el clip y adjúntela (el texto ya va escrito).', 'info');
+        }
+        function compartir(f) {
+            if (!puedeCompartir(f)) { respaldo(f); return; }
+            navigator.share({ files: [f], text: op.texto }).catch(function (e) {
+                if (e && e.name === 'AbortError') return; // el usuario cerró el menú
+                // se pasó el tiempo del toque mientras se creaba la imagen: pedir otro toque
+                boton.innerHTML = '<i class="fa-brands fa-whatsapp me-1"></i>Listo: toque de nuevo para enviar';
+            });
+        }
+        var txt = boton.innerHTML;
+        boton.addEventListener('click', function () {
+            if (archivo) { boton.innerHTML = txt; compartir(archivo); return; }
+            boton.disabled = true; boton.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Preparando imagen…';
+            preparar().then(function (f) { boton.innerHTML = txt; compartir(f); })
+                .catch(function () {
+                    boton.innerHTML = txt;
+                    window.open('https://wa.me/?text=' + encodeURIComponent(op.texto), '_blank');
+                    if (window.LP && LP.toast) LP.toast('No se pudo crear la imagen; se envía solo el texto. Descargue la imagen y adjúntela.', 'error');
+                })
+                .finally(function () { boton.disabled = false; });
+        });
+        // Prepararla apenas cargue la página para que el envío sea inmediato
+        var listo = function () { setTimeout(function () { preparar().catch(function () {}); }, 1500); };
+        if (document.fonts) document.fonts.ready.then(listo); else listo();
     };
 
     // ===== Formatos de video que este navegador puede grabar =====
@@ -434,8 +490,9 @@
                 rec.ondataavailable = function (e) { if (e.data && e.data.size) trozos.push(e.data); };
                 rec.onstop = function () { ok(new Blob(trozos, { type: fmt.mime.split(';')[0] })); };
                 if (vid) { try { vid.currentTime = 0; vid.play(); } catch (e) {} }
-                var t0 = performance.now();
+                var t0 = null, fin = false;
                 function cuadro(t) {
+                    if (t0 === null) t0 = t;
                     var pas = (t - t0) / 1000;
                     ctx.clearRect(0, 0, W, H);
                     if (vid && vid.readyState >= 2) {
@@ -446,11 +503,12 @@
                     ctx.drawImage(estatico, 0, 0, W, H);
                     if (particulas) ctx.drawImage(particulas, 0, 0, W, H);
                     if (op.progreso) op.progreso(Math.min(pas / seg, 1));
-                    if (pas >= seg) { rec.stop(); return; }
+                    // medio segundo de más: algunos navegadores pierden el primer trozo y el video quedaba corto (9 s en vez de 10)
+                    if (pas >= seg + 0.5) { if (!fin) { fin = true; try { rec.requestData(); } catch (e) {} rec.stop(); } return; }
                     requestAnimationFrame(cuadro);
                 }
+                rec.onstart = function () { requestAnimationFrame(cuadro); };
                 rec.start(500);
-                requestAnimationFrame(cuadro);
             });
         }).then(function (blob) {
             bajar(URL.createObjectURL(blob), (op.nombre || 'obituario') + '.' + fmt.ext);

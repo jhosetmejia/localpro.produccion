@@ -68,11 +68,11 @@ class Obituario extends Model
         return $h->format($h->minute ? 'g:i' : 'g') . ($h->hour < 12 ? ' a. m.' : ' p. m.');
     }
 
-    // "1958 – 2026"
+    // "07-12-1980 / 27-03-2026" (fecha completa de nacimiento y fallecimiento)
     public function getAniosAttribute(): ?string
     {
         if (!$this->nacimiento && !$this->fallecimiento) return null;
-        return trim(($this->nacimiento?->year ?? '') . ' – ' . ($this->fallecimiento?->year ?? ''), ' –');
+        return trim(($this->nacimiento?->format('d-m-Y') ?? '') . ' / ' . ($this->fallecimiento?->format('d-m-Y') ?? ''), ' /');
     }
 
     // "Su madre: Rosa Rodríguez" → [['Su madre', 'Rosa Rodríguez'], …]

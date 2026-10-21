@@ -246,13 +246,13 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
         });
     });
 
-    function anio(v) { return v ? v.slice(0, 4) : ''; }
+    function anio(v) { return v ? v.slice(8, 10) + '-' + v.slice(5, 7) + '-' + v.slice(0, 4) : ''; }
     function vivo() {
         var f = form.elements, sala = f.sala_id.options[f.sala_id.selectedIndex];
         var a1 = anio(f.nacimiento.value), a2 = anio(f.fallecimiento.value);
         Obi.datos(el, {
             nombre: f.nombre.value || 'Nombre del fallecido',
-            anios: (a1 || a2) ? (a1 + ' – ' + a2).replace(/^ – | – $/g, '') : '',
+            anios: (a1 || a2) ? (a1 + ' / ' + a2).replace(/^ \/ | \/ $/g, '') : '',
             frase: f.frase.value || fraseDefecto,
             sala: f.sala_id.value ? sala.text : '',
             fecha: Obi.fecha(f.fecha_exequias.value),

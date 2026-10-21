@@ -25,7 +25,7 @@
     ] : [
         'nombre' => 'Nombre del fallecido',
         'foto' => null,
-        'anios' => '1950 – ' . now()->year,
+        'anios' => '07-12-1950 / ' . now()->format('d-m-Y'),
         'frase' => $p->frase,
         'sala' => 'Sala 1',
         'fecha' => \App\Models\Obituario::fechaLarga(now()->addDay()),

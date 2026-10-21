@@ -51,13 +51,13 @@
                 <div class="small fw-bold mb-1"><i class="fa-solid fa-film me-1"></i>Video <span class="text-muted fw-normal">(con la animación y el video de fondo)</span></div>
                 <div class="d-flex gap-2 mb-2">
                     <select class="form-select" id="os-vformato"></select>
-                    <select class="form-select" id="os-vseg" style="max-width:110px">
-                        @foreach ([5, 10, 15, 30, 60] as $sg)<option value="{{ $sg }}" @selected($sg === 10)>{{ $sg }} seg</option>@endforeach
+                    <select class="form-select" id="os-vseg" style="max-width:120px" title="Duración del video">
+                        @foreach ([10 => '10 seg', 15 => '15 seg', 20 => '20 seg', 30 => '30 seg', 45 => '45 seg', 60 => '1 min', 90 => '1 min 30', 120 => '2 min'] as $sg => $tx)<option value="{{ $sg }}" @selected($sg === 30)>{{ $tx }}</option>@endforeach
                     </select>
                 </div>
                 <button class="btn btn-dark w-100" id="os-video"><i class="fa-solid fa-video me-1"></i>Grabar y descargar video</button>
                 <div class="progress mt-2" id="os-vprog" style="height:8px;display:none"><div class="progress-bar bg-success" style="width:0"></div></div>
-                <small class="text-muted d-block mt-2" id="os-vayuda">El video se graba en tiempo real: deje esta pestaña abierta mientras termina. Sale máximo en Full HD.</small>
+                <small class="text-muted d-block mt-2" id="os-vayuda">El video se graba en tiempo real (un video de 1 minuto tarda 1 minuto): deje esta pestaña abierta mientras termina. Sale máximo en Full HD.</small>
             </div>
             @if ($obituario->sala)
             <div class="lp-box mb-3">
@@ -67,7 +67,8 @@
             </div>
             @endif
             <div class="lp-box">
-                <a class="btn btn-success w-100 mb-2" target="_blank" href="https://wa.me/?text={{ rawurlencode($texto) }}"><i class="fa-brands fa-whatsapp me-1"></i>Enviar datos por WhatsApp</a>
+                <button type="button" class="btn btn-success w-100 mb-1" id="os-wa"><i class="fa-brands fa-whatsapp me-1"></i>Enviar por WhatsApp (imagen y datos)</button>
+                <small class="text-muted d-block mb-2">En el celular se abre el menú de compartir: elija WhatsApp y el contacto o grupo.</small>
                 <form method="post" action="{{ route('obituarios.estado', $obituario) }}" class="mb-2">@csrf<button class="btn btn-light w-100">@if ($obituario->estado === 'activo')<i class="fa-solid fa-flag-checkered me-1"></i>Finalizar (sacar de la pantalla)@else<i class="fa-solid fa-rotate-left me-1"></i>Volver a mostrar @endif</button></form>
                 <form method="post" action="{{ route('obituarios.destroy', $obituario) }}" data-confirm="¿Eliminar el obituario de {{ $obituario->nombre }}?" data-confirm-ok="Sí, eliminar" data-peligro>@csrf @method('delete')<button class="btn btn-link text-danger w-100">Eliminar</button></form>
             </div>
@@ -95,6 +96,8 @@
                 .finally(function () { ocupado(b, false); });
         });
     });
+
+    Obi.whatsapp(el, document.getElementById('os-wa'), { texto: @json($texto), nombre: base });
 
     var vf = document.getElementById('os-vformato'), vb = document.getElementById('os-video'), prog = document.getElementById('os-vprog');
     var formatos = Obi.formatosVideo();
