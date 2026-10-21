@@ -171,7 +171,7 @@
                 <li><b>Vendedores con metas</b>: el dueño les pone meta (en dinero o en número de ventas) y ellos ven cuánto les falta, sin ver las ganancias.</li>
                 <li>Reportes: cuánto vendió, cuánto ganó, hora pico, todo a Excel.</li>
                 <li>Se instala como <b>app en el celular</b>; sin instalar programas.</li>
-                <li><b>2 meses gratis con todo</b> (usuarios y productos ilimitados) y luego solo {{ $f($plan) }} al año.</li>
+                <li><b>2 meses gratis con todo</b> (hasta 100 productos y usuarios ilimitados) y luego solo {{ $f($plan) }} al año.</li>
             </ul>
         </div>
         @if (\App\Models\Plan::promoVigente())<div class="regla" style="background:#ffe8ec;color:#a0142c;margin-bottom:10px">⏰ <b>Argumento de cierre:</b> el plan anual de {{ $f($plan) }} es <b>precio de lanzamiento solo hasta el 30 de noviembre</b>. Desde el 1 de diciembre sube a $350.000. Dígale al cliente que si paga ahora asegura el precio de oferta por todo el año.</div>@endif
