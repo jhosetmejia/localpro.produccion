@@ -490,10 +490,12 @@
                 rec.ondataavailable = function (e) { if (e.data && e.data.size) trozos.push(e.data); };
                 rec.onstop = function () { ok(new Blob(trozos, { type: fmt.mime.split(';')[0] })); };
                 if (vid) { try { vid.currentTime = 0; vid.play(); } catch (e) {} }
-                var t0 = null, fin = false;
+                // Se dibuja desde ya (Chrome no arranca a grabar un lienzo que no tiene cuadros);
+                // el tiempo se cuenta desde que la grabadora de verdad empezó, para que dure exacto lo elegido
+                var t0 = null, fin = false, arranco = false;
                 function cuadro(t) {
-                    if (t0 === null) t0 = t;
-                    var pas = (t - t0) / 1000;
+                    if (arranco && t0 === null) t0 = t;
+                    var pas = t0 === null ? 0 : (t - t0) / 1000;
                     ctx.clearRect(0, 0, W, H);
                     if (vid && vid.readyState >= 2) {
                         // video de fondo cubriendo todo
@@ -504,11 +506,13 @@
                     if (particulas) ctx.drawImage(particulas, 0, 0, W, H);
                     if (op.progreso) op.progreso(Math.min(pas / seg, 1));
                     // medio segundo de más: algunos navegadores pierden el primer trozo y el video quedaba corto (9 s en vez de 10)
-                    if (pas >= seg + 0.5) { if (!fin) { fin = true; try { rec.requestData(); } catch (e) {} rec.stop(); } return; }
+                    if (t0 !== null && pas >= seg + 0.5) { if (!fin) { fin = true; try { rec.requestData(); } catch (e) {} rec.stop(); } return; }
                     requestAnimationFrame(cuadro);
                 }
-                rec.onstart = function () { requestAnimationFrame(cuadro); };
+                rec.onstart = function () { arranco = true; };
                 rec.start(500);
+                setTimeout(function () { arranco = true; }, 1500); // por si el navegador no avisa que arrancó
+                requestAnimationFrame(cuadro);
             });
         }).then(function (blob) {
             bajar(URL.createObjectURL(blob), (op.nombre || 'obituario') + '.' + fmt.ext);

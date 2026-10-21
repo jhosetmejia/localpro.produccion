@@ -49,5 +49,5 @@
 @endsection
 
 @push('js')
-<script src="{{ asset('js/obituarios.js') }}?v=8"></script>
+<script src="{{ asset('js/obituarios.js') }}?v=9"></script>
 @endpush
