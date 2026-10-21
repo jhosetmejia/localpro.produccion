@@ -66,6 +66,7 @@
                 <a class="btn btn-dark w-100" target="_blank" href="{{ $obituario->sala->url_pantalla }}"><i class="fa-solid fa-up-right-from-square me-1"></i>Abrir la pantalla de la sala</a>
                 @endif
                 <small class="text-muted d-block mt-2">"Ver ya" lo pone en pantalla de inmediato (aunque la fecha "hasta" ya haya pasado o estuviera finalizado) y abre la pantalla. El televisor que ya esté abierto se actualiza solo en menos de un minuto.</small>
+                @include('obituarios._tv-ayuda', ['clase' => 'mt-3'])
             </div>
             <div class="lp-box">
                 <button type="button" class="btn btn-success w-100 mb-1" id="os-wa"><i class="fa-brands fa-whatsapp me-1"></i>Enviar por WhatsApp (imagen y datos)</button>
