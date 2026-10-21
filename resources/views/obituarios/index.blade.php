@@ -74,6 +74,7 @@
             <div class="lp-box mb-3">
                 <h3><i class="fa-solid fa-door-open me-1"></i>Salas de velación</h3>
                 <p class="small text-muted">Abra la dirección de cada sala en el navegador del televisor (Smart TV, TV Box o un computador) y déjela abierta: muestra el obituario de esa sala y se actualiza sola.</p>
+                @include('obituarios._tv-ayuda', ['clase' => 'mb-3'])
                 @forelse ($salas as $s)
                 <div class="ob-sala">
                     <div class="top">
