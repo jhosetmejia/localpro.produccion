@@ -41,7 +41,7 @@
     <div class="ev-hero">
         <small><i class="fa-solid fa-rocket me-1"></i>Empiece a vender LocalPro</small>
         <h1>Le ayudamos a <em>vender LocalPro</em> desde hoy</h1>
-        <p>Siga estos pasos todos los días. Cada mensaje lleva su enlace con su código <b>{{ $yo->codigo }}</b>: el negocio que se registre queda a su nombre y arranca con 3 meses gratis.</p>
+        <p>Siga estos pasos todos los días. Cada mensaje lleva su enlace con su código <b>{{ $yo->codigo }}</b>: el negocio que se registre queda a su nombre y arranca con 2 meses gratis.</p>
         <div class="ev-num">
             <div><b>{{ $hoy }} / {{ $diarios }}</b><span>mensajes hoy</span></div>
             <div><b>{{ number_format($base, 0, ',', '.') }}</b><span>contactos en su base</span></div>

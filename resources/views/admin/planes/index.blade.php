@@ -25,12 +25,13 @@
             <h3>Planes (precios en COP · y en US$ para Venezuela; si Venezuela está en bolívares se pasan con la tasa)</h3>
             <div class="table-responsive">
                 <table class="table align-middle">
-                    <thead><tr><th>Nombre</th><th style="width:150px">Precio COP</th><th style="width:120px" title="Lo que paga un negocio de Venezuela">Precio US$</th><th style="width:120px">Días</th><th style="width:110px">Productos máx.</th><th style="width:110px">Personas máx.</th><th>Descripción</th><th>Activo</th><th class="text-end">Tiendas</th></tr></thead>
+                    <thead><tr><th>Nombre</th><th style="width:150px">Precio COP</th><th style="width:130px" title="Precio anterior que sale tachado (déjelo vacío para no mostrarlo)">Antes COP</th><th style="width:120px" title="Lo que paga un negocio de Venezuela">Precio US$</th><th style="width:120px">Días</th><th style="width:110px">Productos máx.</th><th style="width:110px">Personas máx.</th><th>Descripción</th><th>Activo</th><th class="text-end">Tiendas</th></tr></thead>
                     <tbody>
                     @foreach ($planes as $p)
                     <tr>
                         <td><input name="planes[{{ $p->id }}][nombre]" class="form-control" value="{{ $p->nombre }}" required></td>
                         <td><input data-dinero type="number" min="0" name="planes[{{ $p->id }}][precio]" class="form-control" value="{{ (int) $p->precio }}"></td>
+                        <td><input data-dinero type="number" min="0" name="planes[{{ $p->id }}][precio_antes]" class="form-control" value="{{ $p->precio_antes ? (int) $p->precio_antes : '' }}" placeholder="—"></td>
                         <td><input type="number" step="0.01" min="0" name="planes[{{ $p->id }}][precio_usd]" class="form-control" value="{{ $p->precio_usd }}" placeholder="{{ round($p->precio / \App\Support\Moneda::tasa(), 2) }}"></td>
                         <td><input type="number" min="1" name="planes[{{ $p->id }}][dias]" class="form-control" value="{{ $p->dias }}" placeholder="No vence"></td>
                         <td><input type="number" min="1" name="planes[{{ $p->id }}][max_productos]" class="form-control" value="{{ $p->max_productos }}" placeholder="Sin límite"></td>
@@ -43,6 +44,7 @@
                     <tr>
                         <td><input name="nuevo[nombre]" class="form-control" placeholder="+ Nuevo plan"></td>
                         <td><input data-dinero type="number" min="0" name="nuevo[precio]" class="form-control" placeholder="0"></td>
+                        <td></td>
                         <td><input type="number" step="0.01" min="0" name="nuevo[precio_usd]" class="form-control" placeholder="US$"></td>
                         <td><input type="number" min="1" name="nuevo[dias]" class="form-control" placeholder="30"></td>
                         <td colspan="5"></td>

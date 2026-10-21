@@ -20,11 +20,11 @@ class asesorVenderController extends Controller
     {
         return [
             'directo' => ['titulo' => 'Mensaje por WhatsApp (uno a uno)', 'icono' => 'fa-whatsapp', 'texto' =>
-                "¡Hola {nombre}! 👋\n\n¿No sabes cómo organizar tu negocio? 🤔 Con *LocalPro* lo manejas todo desde el celular:\n\n✅ Ventas y caja (cada vendedor con su caja)\n✅ Inventario por talla y color\n✅ Cuánto ganas cada día\n✅ Tu propia *tienda en línea* que sale en Google\n✅ Facturas por WhatsApp\n\n🎁 Regístrate y pruébalo *3 meses gratis* aquí 👉 {enlace}\n\nSi quieres te lo muestro en 5 minutos. ¡Feliz día! 💚"],
+                "¡Hola {nombre}! 👋\n\n¿No sabes cómo organizar tu negocio? 🤔 Con *LocalPro* lo manejas todo desde el celular:\n\n✅ Ventas y caja (cada vendedor con su caja)\n✅ Inventario por talla y color\n✅ Cuánto ganas cada día\n✅ Tu propia *tienda en línea* que sale en Google\n✅ Facturas por WhatsApp\n\n🎁 Regístrate y pruébalo *2 meses gratis* aquí 👉 {enlace}\n\nSi quieres te lo muestro en 5 minutos. ¡Feliz día! 💚"],
             'grupo' => ['titulo' => 'Publicación para grupos de Facebook y WhatsApp', 'icono' => 'fa-users', 'texto' =>
-                "📢 ¿Tienes un negocio y todavía anotas en cuaderno? 📒\n\nTe presento *LocalPro*, el sistema para organizar tu negocio desde el celular:\n\n🛒 Vende con caja y tiquete por WhatsApp\n📦 Controla tu inventario (tallas, colores, existencias)\n💰 Mira cuánto vendes y cuánto ganas cada día\n👥 Cada vendedor con su usuario y su meta\n🌐 Tu tienda en línea con botón de comprar por WhatsApp\n\nSirve para tiendas de ropa, calzado, misceláneas, tiendas de barrio, restaurantes y más.\n\n🎁 *3 meses GRATIS* para probarlo. Regístrate aquí 👉 {enlace}\n\n¿Dudas? Escríbeme y te ayudo a dejarlo listo 🙌"],
+                "📢 ¿Tienes un negocio y todavía anotas en cuaderno? 📒\n\nTe presento *LocalPro*, el sistema para organizar tu negocio desde el celular:\n\n🛒 Vende con caja y tiquete por WhatsApp\n📦 Controla tu inventario (tallas, colores, existencias)\n💰 Mira cuánto vendes y cuánto ganas cada día\n👥 Cada vendedor con su usuario y su meta\n🌐 Tu tienda en línea con botón de comprar por WhatsApp\n\nSirve para tiendas de ropa, calzado, misceláneas, tiendas de barrio, restaurantes y más.\n\n🎁 *2 meses GRATIS* para probarlo. Regístrate aquí 👉 {enlace}\n\n¿Dudas? Escríbeme y te ayudo a dejarlo listo 🙌"],
             'estado' => ['titulo' => 'Para sus estados de WhatsApp', 'icono' => 'fa-circle-notch', 'texto' =>
-                "¿Tienes negocio? 🏪 Organízalo desde tu celular con LocalPro: ventas, inventario, ganancias y tienda en línea 🚀\n🎁 3 meses gratis 👉 {enlace}"],
+                "¿Tienes negocio? 🏪 Organízalo desde tu celular con LocalPro: ventas, inventario, ganancias y tienda en línea 🚀\n🎁 2 meses gratis 👉 {enlace}"],
         ];
     }
 

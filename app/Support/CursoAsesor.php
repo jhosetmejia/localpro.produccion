@@ -80,7 +80,7 @@ class CursoAsesor
                 'puntos' => [
                     'Usted tendrá un <b>código propio</b> (por ejemplo LCP-00012) y un <b>enlace</b> para inscribir negocios.',
                     'El negocio se registra con su enlace o escribiendo su código: así queda a su nombre.',
-                    'Arranca con <b>3 meses de prueba gratis</b>.',
+                    'Arranca con <b>2 meses de prueba gratis</b>.',
                     'Cuando termina la prueba, el negocio paga su plan anual de <b>' . $plan . '</b> (menos de ' . $mes . ' al mes).',
                     'Ayúdele a subir sus primeros productos y a hacer su primera venta: el que vende el primer día, se queda.',
                 ],
@@ -166,7 +166,7 @@ class CursoAsesor
             2 => ['El negocio que usted va a inscribir no tiene computador. ¿Puede usar LocalPro?', ['No, necesita un computador especial', 'Sí, funciona en el navegador del celular, sin instalar nada', 'Solo si compra una impresora'], 1],
             3 => ['¿Qué pasa con el inventario del negocio que usted inscribió cuando hace una venta?', ['El dueño tiene que descontarlo a mano', 'No cambia', 'Se descuenta solo con cada venta'], 2],
             4 => ['El negocio que usted inscribió no tiene impresora. ¿Cómo le entrega la factura a su cliente?', ['No puede facturar', 'Se la envía por WhatsApp', 'Tiene que comprar una impresora primero'], 1],
-            5 => ['Cuando usted inscribe un negocio con su enlace, ¿cuánto tiempo lo puede usar gratis?', ['3 meses', '1 semana', 'No tiene prueba gratis'], 0],
+            5 => ['Cuando usted inscribe un negocio con su enlace, ¿cuánto tiempo lo puede usar gratis?', ['2 meses', '1 semana', 'No tiene prueba gratis'], 0],
             6 => ['Al terminar la prueba gratis, ¿cuánto paga al año el negocio que usted inscribió?', [$plan, self::plata(Moneda::convertir(20000, Moneda::COP, Moneda::actual())), self::plata(Moneda::convertir(1000000, Moneda::COP, Moneda::actual()))], 0],
             7 => ['¿Qué debe hacer para que el negocio que usted consiguió quede a su nombre?', ['Llamar a LocalPro después', 'Que se registre con su enlace o escriba su código de asesor', 'Nada, todos los negocios quedan a su nombre'], 1],
             8 => ['¿Cuándo gana usted la comisión de ' . $com . ' por el negocio que inscribió?', ['Apenas el negocio se registra', 'Cuando el negocio paga su plan anual', 'Cada vez que el negocio vende algo'], 1],

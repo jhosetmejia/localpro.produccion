@@ -76,7 +76,7 @@ class Academia
                         'Si vende ropa, calzado o mercancía, muestre el <b>código de barras</b>: en <b>Ejemplos</b> hay etiquetas de muestra y una caja de prueba. Escanee con la cámara de su celular y el dueño ve cómo cae la prenda con su precio, sin comprar lector.',
                     ], 'tip' => 'Practique la demostración con un familiar hasta que la haga en menos de 5 minutos.'],
                     ['titulo' => 'Cierre con la prueba gratis', 'min' => 2, 'accion' => ['asesor.index', 'Ver mi enlace'], 'contenido' => [
-                        'No pida la venta de una: ofrezca la <b>prueba gratis de 3 meses</b> con su enlace. Es fácil decir que sí a algo gratis.',
+                        'No pida la venta de una: ofrezca la <b>prueba gratis de 2 meses</b> con su enlace. Es fácil decir que sí a algo gratis.',
                         'Inscríbalo ahí mismo, con él, desde el celular. Créele 3 productos y hagan juntos la primera venta.',
                         'Un negocio que ya hizo su primera venta en LocalPro casi nunca vuelve al cuaderno.',
                     ], 'tip' => 'Nunca deje la inscripción "para después": el 80 % de los "después lo hago" nunca lo hacen.'],
@@ -103,7 +103,7 @@ class Academia
                         '"Déjeme pensarlo": pregunte con respeto <b>"¿Qué es lo que lo hace dudar?"</b>. Ahí sale la verdadera objeción.',
                     ], 'tip' => null],
                     ['titulo' => 'De prueba gratis a plan anual', 'min' => 3, 'accion' => ['asesor.index', 'Ver mis negocios'], 'contenido' => [
-                        'La prueba dura 3 meses. Llame o visite al negocio en la <b>semana 1</b> (que esté usando), en el <b>mes 2</b> (que vea sus reportes) y <b>2 semanas antes</b> de que termine.',
+                        'La prueba dura 2 meses. Llame o visite al negocio en la <b>semana 1</b> (que esté usando), en la <b>semana 4</b> (que vea sus reportes) y <b>2 semanas antes</b> de que termine.',
                         "Cuando el negocio paga el plan anual cuenta como <b>venta nueva</b>: usted gana <b>$com</b>, y cada año que renueve gana <b>$renov</b> de por vida. Para cobrar debe hacer mínimo una venta nueva cada mes.",
                         'Cobre con el botón <b>Cobrar</b> de Mis negocios: le llega al negocio un enlace para pagar con tarjeta, PSE o Nequi.',
                     ], 'tip' => 'El negocio que ve su ganancia en el panel se renueva solo. Ayúdelo a poner los costos de sus productos.'],
@@ -280,7 +280,7 @@ class Academia
                         'En <b>Mis enlaces</b> arma una página con su WhatsApp, redes y promociones para poner en un código QR en el mostrador.',
                     ], 'tip' => 'Responda rápido: el cliente que escribe por redes casi siempre le escribe también a la competencia.'],
                     ['titulo' => 'Comparta LocalProo y gane', 'min' => 2, 'accion' => ['beneficios.index', 'Ver mi código'], 'contenido' => [
-                        'Su negocio tiene un <b>código (LCT-…)</b> y un enlace. Compártalo con otros dueños de negocio: su colega recibe <b>3 meses gratis</b>.',
+                        'Su negocio tiene un <b>código (LCT-…)</b> y un enlace. Compártalo con otros dueños de negocio: su colega recibe <b>2 meses gratis</b>.',
                         'Cada vez que ese negocio pague su <b>plan anual</b>, a usted se le abona un valor <b>de por vida</b>, que se descuenta solo cuando paga su propio plan. Si alcanza, su plan le sale gratis.',
                         'Además, los negocios que recomiendan LocalProo reciben primero las herramientas nuevas y recursos como cursos y plantillas.',
                     ], 'tip' => 'Compártalo con el vecino, su proveedor o un amigo emprendedor: la recomendación de un colega vale más que cualquier anuncio.'],

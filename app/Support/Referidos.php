@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * "Comparta LocalProo y gane": referidos entre negocios.
  * - Cada negocio tiene su código (LCT-00001) y su enlace localproo.com/r/LCT-00001.
- * - El negocio invitado arranca con 3 meses gratis y queda con el mismo asesor (o venta directa) del que lo invitó.
+ * - El negocio invitado arranca con 2 meses gratis y queda con el mismo asesor (o venta directa) del que lo invitó.
  * - Cada vez que el invitado paga su plan ANUAL (de por vida), el que lo invitó recibe un abono (10.000 por defecto,
  *   ajuste `ref_negocio_valor`; en dólares `ref_negocio_usd`) que se descuenta solo cuando él paga su plan anual.
  * - Los pagos de prueba no cuentan. LocalPro no consigna plata: es saldo para el plan.

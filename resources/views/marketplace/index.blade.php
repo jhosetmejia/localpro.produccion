@@ -222,7 +222,7 @@ section{margin-top:22px}
     </section>
 
     <div class="cta">
-        <div><b>¿Tiene un negocio? Aparezca aquí</b><p>Cree su tienda en línea con LocalProo y sus productos salen en el Marketplace. 3 meses gratis.</p></div>
+        <div><b>¿Tiene un negocio? Aparezca aquí</b><p>Cree su tienda en línea con LocalProo y sus productos salen en el Marketplace. 2 meses gratis.</p></div>
         <a href="{{ route('registro', ['desde' => 'marketplace']) }}">Crear mi tienda →</a>
     </div>
 </main>

@@ -141,7 +141,7 @@
         </div>
         <div class="d-flex gap-2 flex-wrap mt-3">
             <a class="btn btn-success" href="#mis-negocios"><i class="fa-solid fa-hand-holding-dollar me-1"></i>Cobrar a mis negocios</a>
-            <a class="btn btn-light" target="_blank" href="https://wa.me/?text={{ rawurlencode('Hola 👋 Le cuento de LocalPro: un sistema para manejar su negocio desde el celular (ventas, inventario, caja y facturas por WhatsApp). Pruébelo 3 meses gratis aquí: ' . $yo->enlace) }}"><i class="fa-brands fa-whatsapp me-1"></i>Ofrecer LocalPro</a>
+            <a class="btn btn-light" target="_blank" href="https://wa.me/?text={{ rawurlencode('Hola 👋 Le cuento de LocalPro: un sistema para manejar su negocio desde el celular (ventas, inventario, caja y facturas por WhatsApp). Pruébelo 2 meses gratis aquí: ' . $yo->enlace) }}"><i class="fa-brands fa-whatsapp me-1"></i>Ofrecer LocalPro</a>
             <a class="btn btn-outline-light" href="{{ route('asesor.comisiones') }}"><i class="fa-solid fa-coins me-1"></i>Ver mis comisiones</a>
         </div>
     </div>

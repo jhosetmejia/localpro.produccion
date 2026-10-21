@@ -7,7 +7,7 @@
 @if ($paso === 1)
 <p style="margin:0 0 14px">Le escribo de LocalProo. Hicimos una herramienta para contadores que llevan varios clientes: sube el listado de facturas de la DIAN y el auxiliar contable, y en minutos le muestra <b>lo que falta contabilizar</b>, las <b>retenciones y el reteIVA</b> que faltaron o sobraron, el <b>borrador del 350</b> y el IVA del periodo.</p>
 <p style="margin:0 0 14px">También trae el <b>calendario tributario por último dígito del NIT</b> de cada cliente, con recordatorio por correo 3 días antes y el día del vencimiento.</p>
-<p style="margin:0 0 14px">Puede probarlo <b>3 meses gratis</b>, con una empresa de ejemplo ya cargada, sin subir nada suyo: <a href="{{ $registro }}" style="color:#118a3a">crear mi cuenta de contador</a>.</p>
+<p style="margin:0 0 14px">Puede probarlo <b>2 meses gratis</b>, con una empresa de ejemplo ya cargada, sin subir nada suyo: <a href="{{ $registro }}" style="color:#118a3a">crear mi cuenta de contador</a>.</p>
 <p style="margin:0 0 14px">¿Le muestro en 15 minutos cómo funciona con uno de sus clientes? Respóndame con el día que le quede bien.</p>
 @elseif ($paso === 2)
 <p style="margin:0 0 14px">Le dejo un dato sobre el correo anterior: el sistema trae una empresa de ejemplo con el mes ya cargado, así que en 5 minutos ve el cruce DIAN vs. contabilidad funcionando sin subir nada suyo.</p>

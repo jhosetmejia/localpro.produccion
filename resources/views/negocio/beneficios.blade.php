@@ -29,7 +29,7 @@
 
 @section('content')
 @php
-    $msg = "¡Hola! 👋 Yo manejo mi negocio con *LocalProo*: ventas, caja, inventario y mi tienda en línea, todo desde el celular.\n\nTe lo recomiendo 💚 Regístrate con mi código *{$tienda->codigo}* y tienes *3 meses gratis*:\n👉 {$enlace}";
+    $msg = "¡Hola! 👋 Yo manejo mi negocio con *LocalProo*: ventas, caja, inventario y mi tienda en línea, todo desde el celular.\n\nTe lo recomiendo 💚 Regístrate con mi código *{$tienda->codigo}* y tienes *2 meses gratis*:\n👉 {$enlace}";
 @endphp
 <div class="lp-dash">
     <div class="lp-hello">
@@ -42,7 +42,7 @@
     <div class="bf-hero">
         <div>
             <h2>Gane <span>{{ $valor }}</span> cada vez que un colega pague su plan anual. ¡De por vida!</h2>
-            <p>Comparta su código con otros dueños de negocio. Su colega recibe <b style="color:#fff">3 meses gratis</b> y, cada año que pague su plan anual, a usted se le abona <b style="color:#fff">{{ $valor }}</b> para su propio plan.</p>
+            <p>Comparta su código con otros dueños de negocio. Su colega recibe <b style="color:#fff">2 meses gratis</b> y, cada año que pague su plan anual, a usted se le abona <b style="color:#fff">{{ $valor }}</b> para su propio plan.</p>
         </div>
         <div class="bf-cod">
             <small>El código de su negocio</small>
@@ -58,7 +58,7 @@
     <div class="bf-grid">
         <div class="bf-b"><i class="fa-solid fa-coins"></i><b>Abono de por vida</b><small>{{ $valor }} por cada pago anual de cada negocio que invite, todos los años que siga pagando.</small></div>
         <div class="bf-b"><i class="fa-solid fa-tags"></i><b>Descuento en su plan</b><small>Lo que acumule se descuenta solo cuando paga su plan anual. Si alcanza, ¡su plan le sale gratis!</small></div>
-        <div class="bf-b"><i class="fa-solid fa-gift"></i><b>Su colega gana</b><small>Su colega empieza con 3 meses gratis para probar todo LocalProo.</small></div>
+        <div class="bf-b"><i class="fa-solid fa-gift"></i><b>Su colega gana</b><small>Su colega empieza con 2 meses gratis para probar todo LocalProo.</small></div>
         <div class="bf-b"><i class="fa-solid fa-rocket"></i><b>Herramientas primero</b><small>Los negocios que recomiendan LocalProo reciben primero las herramientas nuevas y recursos como cursos y plantillas.</small></div>
     </div>
 

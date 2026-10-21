@@ -41,6 +41,7 @@ class adminPlanController extends Controller
             'planes.*.nombre' => 'required|string|max:40',
             'planes.*.precio' => 'required|numeric|min:0',
             'planes.*.precio_usd' => 'nullable|numeric|min:0|max:1000000',
+            'planes.*.precio_antes' => 'nullable|integer|min:0|max:100000000',
             'nuevo.precio_usd' => 'nullable|numeric|min:0|max:1000000',
             'productos_paquete_precio_usd' => 'nullable|numeric|min:0|max:1000000',
             'tasa_usd_cop' => 'nullable|integer|min:1|max:1000000',
@@ -64,6 +65,7 @@ class adminPlanController extends Controller
         foreach ((array) $request->input('planes') as $id => $d) {
             Plan::whereKey($id)->update([
                 'nombre' => $d['nombre'], 'precio' => $d['precio'], 'precio_usd' => isset($d['precio_usd']) && $d['precio_usd'] !== '' ? round((float) $d['precio_usd'], 2) : null, 'dias' => $d['dias'] ?: null,
+                'precio_antes' => ($d['precio_antes'] ?? null) ?: null,
                 'descripcion' => $d['descripcion'] ?? null, 'activo' => !empty($d['activo']),
                 'max_productos' => ($d['max_productos'] ?? null) ?: null, 'max_usuarios' => ($d['max_usuarios'] ?? null) ?: null,
             ]);

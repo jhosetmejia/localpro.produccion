@@ -5,7 +5,7 @@ Le escribo de LocalProo. Hicimos una herramienta para contadores que llevan vari
 
 También trae el calendario tributario por último dígito del NIT de cada cliente, con recordatorio por correo 3 días antes y el día del vencimiento.
 
-Puede probarlo 3 meses gratis, con una empresa de ejemplo ya cargada, sin subir nada suyo:
+Puede probarlo 2 meses gratis, con una empresa de ejemplo ya cargada, sin subir nada suyo:
 {{ $registro }}
 
 ¿Le muestro en 15 minutos cómo funciona con uno de sus clientes? Respóndame con el día que le quede bien.

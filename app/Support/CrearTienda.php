@@ -34,8 +34,8 @@ class CrearTienda
                 'onboarding_paso' => 2,
                 'onboarding_completo' => false,
             ]);
-            // Plan Gratis: 3 meses sin costo (usuarios ilimitados); al terminar debe pagar para seguir
-            $t->forceFill(['plan_id' => \App\Models\Plan::gratis()?->id, 'plan_vence' => today()->addDays(89)])->save();
+            // Plan Gratis: 2 meses sin costo (usuarios ilimitados); al terminar debe pagar para seguir
+            $t->forceFill(['plan_id' => \App\Models\Plan::gratis()?->id, 'plan_vence' => today()->addDays(59)])->save();
 
             TiendaActual::como($t->id, function () use ($t) {
                 foreach (self::metodosPorPais($t->pais) as $i => $m) {

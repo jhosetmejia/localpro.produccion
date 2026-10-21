@@ -77,14 +77,14 @@ return [
     ],
     'comparta-localproo-y-gane-descuentos-plan' => [
         'titulo' => 'Comparta LocalProo con otros empresarios y gane descuentos en su plan, de por vida',
-        'resumen' => 'Cada negocio tiene su código. Si un colega se registra con él, recibe 3 meses gratis, y cada vez que pague su plan anual a usted se le abona un valor que se descuenta solo de su plan.',
+        'resumen' => 'Cada negocio tiene su código. Si un colega se registra con él, recibe 2 meses gratis, y cada vez que pague su plan anual a usted se le abona un valor que se descuenta solo de su plan.',
         'fecha' => '20 de octubre de 2026',
         'publicado' => '2026-10-20',
         'minutos' => 2,
         'icono' => 'fa-gift',
         'rol' => 'negocios',
         'seo_titulo' => 'Recomiende LocalProo y gane descuentos | LocalProo',
-        'descripcion' => 'Programa de referidos para negocios: comparta su código, su colega recibe 3 meses gratis y usted gana un abono de por vida para su plan anual.',
+        'descripcion' => 'Programa de referidos para negocios: comparta su código, su colega recibe 2 meses gratis y usted gana un abono de por vida para su plan anual.',
         'keywords' => ['programa de referidos para negocios', 'descuento sistema pos', 'recomendar software y ganar', 'código de referido localproo', 'plan anual con descuento'],
         'faq' => [
             ['¿Dónde está mi código?', 'En Mi plan y en el menú "Comparta y gane". Es el código de su negocio (LCT-…) con su enlace para compartir.'],

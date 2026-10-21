@@ -20,7 +20,7 @@ class asesorContactosController extends Controller
 {
     public const DIARIOS = 20;
     // Mensaje por defecto: el mismo de "Empiece a vender LocalPro" ({nombre}, {enlace}; {asesor} se mantiene por compatibilidad)
-    public const MENSAJE = "¡Hola {nombre}! 👋\n\n¿No sabes cómo organizar tu negocio? 🤔 Con *LocalPro* lo manejas todo desde el celular:\n\n✅ Ventas y caja (cada vendedor con su caja)\n✅ Inventario por talla y color\n✅ Cuánto ganas cada día\n✅ Tu propia *tienda en línea* que sale en Google\n✅ Facturas por WhatsApp\n\n🎁 Regístrate y pruébalo *3 meses gratis* aquí 👉 {enlace}\n\nSi quieres te lo muestro en 5 minutos. Soy {asesor}, asesor de LocalPro 💚";
+    public const MENSAJE = "¡Hola {nombre}! 👋\n\n¿No sabes cómo organizar tu negocio? 🤔 Con *LocalPro* lo manejas todo desde el celular:\n\n✅ Ventas y caja (cada vendedor con su caja)\n✅ Inventario por talla y color\n✅ Cuánto ganas cada día\n✅ Tu propia *tienda en línea* que sale en Google\n✅ Facturas por WhatsApp\n\n🎁 Regístrate y pruébalo *2 meses gratis* aquí 👉 {enlace}\n\nSi quieres te lo muestro en 5 minutos. Soy {asesor}, asesor de LocalPro 💚";
 
     private function yo()
     {

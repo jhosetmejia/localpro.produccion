@@ -106,17 +106,17 @@ class registroController extends Controller
         // Código de otro negocio (LCT-00012): el invitado queda con el mismo asesor (o venta directa) de quien lo invitó
         $refTienda = \App\Support\Referidos::esCodigoNegocio($codigo) ? \App\Support\Referidos::tiendaPorCodigo($codigo) : null;
         if ($refTienda && (int) $refTienda->id !== (int) $user->tienda->id) {
-            $prueba = \App\Models\Plan::where('nombre', 'Prueba 3 meses')->first();
+            $prueba = \App\Models\Plan::prueba();
             $user->tienda->forceFill(['referida_por_tienda_id' => $refTienda->id, 'asesor_id' => $refTienda->asesor_id, 'venta_directa_id' => $refTienda->venta_directa_id]
-                + ($prueba ? ['plan_id' => $prueba->id, 'plan_vence' => today()->addDays(($prueba->dias ?: 90) - 1)] : []))->save();
+                + ($prueba ? ['plan_id' => $prueba->id, 'plan_vence' => today()->addDays(($prueba->dias ?: 60) - 1)] : []))->save();
             $codigo = '';
         }
         $asesor = $codigo !== '' && !\App\Support\Referidos::esCodigoNegocio($codigo) ? \App\Models\Asesor::porCodigo($codigo)->aceptaNegocios()->first() : null;
         // Código LOCALPRO (súper administrador): el negocio queda directo con LocalPro, sin asesor
         if ($asesor || \App\Models\Asesor::esCodigoLocalpro($codigo)) {
-            // Los negocios que llegan por un asesor (o por LocalPro) arrancan con prueba gratis de 3 meses; luego pagan su plan anual
-            $prueba = \App\Models\Plan::where('nombre', 'Prueba 3 meses')->first();
-            $user->tienda->forceFill(['asesor_id' => $asesor?->id, 'venta_directa_id' => null] + ($prueba ? ['plan_id' => $prueba->id, 'plan_vence' => today()->addDays(($prueba->dias ?: 90) - 1)] : []))->save();
+            // Los negocios que llegan por un asesor (o por LocalPro) arrancan con prueba gratis de 2 meses; luego pagan su plan anual
+            $prueba = \App\Models\Plan::prueba();
+            $user->tienda->forceFill(['asesor_id' => $asesor?->id, 'venta_directa_id' => null] + ($prueba ? ['plan_id' => $prueba->id, 'plan_vence' => today()->addDays(($prueba->dias ?: 60) - 1)] : []))->save();
         }
 
         $user->forceFill(['terminos_aceptados_at' => now()])->save();

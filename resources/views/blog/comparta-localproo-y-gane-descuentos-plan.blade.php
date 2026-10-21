@@ -16,7 +16,7 @@
 <ol>
     <li>Entre a <b>Comparta y gane</b> en el menú (o a <b>Mi plan</b>). Ahí está el código de su negocio, por ejemplo <b>LCT-00012</b>, con su enlace.</li>
     <li>Compártalo por WhatsApp con un botón. Su colega se registra con su enlace o escribe su código al crear la cuenta.</li>
-    <li>Su colega empieza con <b>3 meses gratis</b>.</li>
+    <li>Su colega empieza con <b>2 meses gratis</b>.</li>
     <li>Cada vez que su colega paga su <b>plan anual</b>, a usted se le abona un valor para su propio plan. <b>De por vida</b>: todos los años que siga pagando.</li>
 </ol>
 

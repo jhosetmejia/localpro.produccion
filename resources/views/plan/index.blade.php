@@ -34,7 +34,7 @@
             <div style="min-width:0;flex:1">
                 <div class="fw-bold" style="color:#a6f34a;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em"><i class="fa-solid fa-gift me-1"></i>Comparta y gane</div>
                 <div class="fw-bold fs-5">Comparta su código <span style="color:#a6f34a">{{ $tienda->codigo }}</span> con otro empresario</div>
-                <small style="color:#c9d3cc">Gane {{ \App\Support\Moneda::formato(\App\Support\Referidos::valor($mRef), $mRef) }} de por vida cada vez que pague su plan anual: se descuenta de su plan. Su colega recibe 3 meses gratis.@if ($saldoRef > 0) <b style="color:#fff">Su saldo: {{ \App\Support\Moneda::formato($saldoRef, $mRef) }}</b> (se descuenta solo al pagar el plan anual).@endif</small>
+                <small style="color:#c9d3cc">Gane {{ \App\Support\Moneda::formato(\App\Support\Referidos::valor($mRef), $mRef) }} de por vida cada vez que pague su plan anual: se descuenta de su plan. Su colega recibe 2 meses gratis.@if ($saldoRef > 0) <b style="color:#fff">Su saldo: {{ \App\Support\Moneda::formato($saldoRef, $mRef) }}</b> (se descuenta solo al pagar el plan anual).@endif</small>
             </div>
             <a href="{{ route('beneficios.index') }}" class="btn rounded-pill fw-bold" style="background:#a6f34a;color:#0b0d0c"><i class="fa-solid fa-gift me-1"></i>Ver mis beneficios</a>
         </div>
@@ -90,10 +90,11 @@
                 <b style="font-size:1.25rem">{{ $p->nombre }}</b>
                 @if ((int) $tienda->plan_id === (int) $p->id)<span class="badge bg-success">Su plan</span>@endif
             </div>
+            @if (!$p->es_gratis && $p->precioAntesTexto($tienda))<div class="small" style="color:#9aa39c;margin-top:.3rem">Antes <s>{{ $p->precioAntesTexto($tienda) }}</s></div>@endif
             <div style="font-size:1.8rem;font-weight:800;letter-spacing:-.03em;margin:.4rem 0">{{ $p->es_gratis ? 'Gratis' : $p->precioTexto($tienda) }}<small style="font-size:.85rem;color:var(--lp-muted)">{{ $p->es_gratis ? '' : ' ' . $tienda->moneda_cobro . ($p->dias ? ' / ' . ($p->dias >= 365 ? 'año' : ($p->dias >= 28 ? 'mes' : $p->dias . ' días')) : '') }}</small></div>
             @if (!$p->es_gratis && $tienda->usa_bolivares)<small class="d-block fw-bold mb-1" style="color:#5b665e">Equivale a {{ \App\Support\Moneda::formato(round($p->precioEn($tienda->moneda_cobro) * $tienda->tasa_bs_vigente, 2), 'VES') }} a la tasa de hoy</small>@endif
             <p class="text-muted small mb-2">{{ $p->descripcion }}</p>
-            <p class="small fw-bold mb-3" style="color:#11702f"><i class="fa-solid fa-box me-1"></i>{{ $p->max_productos ? 'Hasta ' . number_format($p->max_productos, 0, ',', '.') . ' productos' . ($p->es_gratis ? '' : ' (ampliable)') : 'Productos ilimitados' }} · <i class="fa-solid fa-users ms-1 me-1"></i>{{ (float) $p->precio <= 0 && !$p->dias ? '3 meses · ' : '' }}{{ $p->max_usuarios ? ($p->max_usuarios > 1 ? 'Dueño + ' . ($p->max_usuarios - 1) . ' vendedores' : 'Solo el dueño') : 'Vendedores ilimitados' }}</p>
+            <p class="small fw-bold mb-3" style="color:#11702f"><i class="fa-solid fa-box me-1"></i>{{ $p->max_productos ? 'Hasta ' . number_format($p->max_productos, 0, ',', '.') . ' productos' . ($p->es_gratis ? '' : ' (ampliable)') : 'Productos ilimitados' }} · <i class="fa-solid fa-users ms-1 me-1"></i>{{ (float) $p->precio <= 0 && !$p->dias ? '2 meses · ' : '' }}{{ $p->max_usuarios ? ($p->max_usuarios > 1 ? 'Dueño + ' . ($p->max_usuarios - 1) . ' vendedores' : 'Solo el dueño') : 'Vendedores ilimitados' }}</p>
             @unless ($p->es_gratis)
                 @can('editar-negocio')
                 <form method="post" action="{{ route('plan.pagar', $p) }}">@csrf

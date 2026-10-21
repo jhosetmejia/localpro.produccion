@@ -171,7 +171,7 @@
                 <li><b>Vendedores con metas</b>: el dueño les pone meta (en dinero o en número de ventas) y ellos ven cuánto les falta, sin ver las ganancias.</li>
                 <li>Reportes: cuánto vendió, cuánto ganó, hora pico, todo a Excel.</li>
                 <li>Se instala como <b>app en el celular</b>; sin instalar programas.</li>
-                <li><b>3 meses gratis con todo</b> (usuarios y productos ilimitados) y luego solo {{ $f($plan) }} al año.</li>
+                <li><b>2 meses gratis con todo</b> (usuarios y productos ilimitados) y luego solo {{ $f($plan) }} al año.</li>
             </ul>
         </div>
         <div class="regla" style="background:#fff8e6;color:#7a4b00;margin-bottom:10px">🔜 <b>Muy pronto:</b> recetas e insumos (restaurantes y panaderías) y fechas de vencimiento por lote (droguerías y alimentos). Si su cliente los necesita, inscríbalo ya con la prueba gratis.</div>
@@ -204,7 +204,7 @@
             <li><b>Elige tu zona y haz tu lista</b><span>Tiendas de ropa, calzado, minimercados, cafeterías, misceláneas, restaurantes de tu comuna. Anota 20 negocios por día.</span></li>
             <li><b>Saluda y pregunta (no vendas todavía)</b><span>"¿Cómo llevas hoy el control de lo que vendes y lo que tienes en bodega?". Escucha el problema.</span></li>
             <li><b>Muéstralo en tu celular</b><span>Abre una venta de ejemplo: busca un producto, cóbralo y manda la factura por WhatsApp. En 1 minuto lo entienden.</span></li>
-            <li><b>Inscríbelo ahí mismo con tu enlace</b><span>Que se registre con <b>tu enlace</b> (o escriba tu código) para que quede a tu nombre. Arranca con 3 meses gratis.</span></li>
+            <li><b>Inscríbelo ahí mismo con tu enlace</b><span>Que se registre con <b>tu enlace</b> (o escriba tu código) para que quede a tu nombre. Arranca con 2 meses gratis.</span></li>
             <li><b>Ayúdale a subir sus primeros productos</b><span>Acompáñalo 10 minutos: crear 3 productos y hacer su primera venta. El que vende el primer día, se queda.</span></li>
             <li><b>Haz seguimiento</b><span>Escríbele a los 3 días, al mes y antes de que termine la prueba. Cuando paga su plan anual, <b>ganas {{ $f($com) }}</b>.</span></li>
             <li><b>Cóbrale con el enlace de pago</b><span>En tu panel, en <b>Mis negocios</b>, toca <b>Cobrar</b>: le llega por WhatsApp un enlace para pagar en línea (tarjeta, PSE o Nequi). Apenas paga, su plan queda activo solo. Si el cliente te da el efectivo, con el botón 💳 pagas tú mismo desde tu celular. La comisión queda a tu nombre igual.</span></li>
@@ -217,9 +217,9 @@
         <p class="sub">Cópialos, ajústalos a tu estilo y envíalos.</p>
         @php
             $guiones = [
-                ['Primer mensaje por WhatsApp', "¡Hola! 👋 Soy {nombre}, asesor de LocalPro. Ayudamos a negocios como el tuyo a vender más rápido y saber exactamente cuánto ganan cada día, desde el celular.\n\nTe regalo 3 meses gratis para que lo pruebes. ¿Te muestro en 5 minutos cómo funciona? 😊"],
+                ['Primer mensaje por WhatsApp', "¡Hola! 👋 Soy {nombre}, asesor de LocalPro. Ayudamos a negocios como el tuyo a vender más rápido y saber exactamente cuánto ganan cada día, desde el celular.\n\nTe regalo 2 meses gratis para que lo pruebes. ¿Te muestro en 5 minutos cómo funciona? 😊"],
                 ['En persona (en el local)', "Hola, ¿cómo está? Soy {nombre}, de LocalPro. Una pregunta rápida: ¿cómo lleva el control de lo que vende y de lo que tiene en inventario?\n\n(Escuchar)\n\nMire, con esto lo hace desde el celular: vende, ve lo que le queda y al final del día sabe cuánto ganó. ¿Le muestro una venta de ejemplo? Son 2 minutos."],
-                ['Cuando se termina la prueba', "¡Hola {negocio}! 🙌 Ya llevas 3 meses usando LocalPro. Tu prueba gratis termina pronto.\n\nPara seguir con todo (ventas, inventario, caja y tu página web en Google) el plan anual es de {plan}, menos de {mes} al mes. Te mando el enlace para pagarlo en línea (tarjeta, PSE o Nequi) y queda activo de una vez. ¿Te lo envío?"],
+                ['Cuando se termina la prueba', "¡Hola {negocio}! 🙌 Ya llevas 2 meses usando LocalPro. Tu prueba gratis termina pronto.\n\nPara seguir con todo (ventas, inventario, caja y tu página web en Google) el plan anual es de {plan}, menos de {mes} al mes. Te mando el enlace para pagarlo en línea (tarjeta, PSE o Nequi) y queda activo de una vez. ¿Te lo envío?"],
                 ['Para sumar asesores a tu equipo', "¡Hola! Estoy trabajando con LocalPro y me está yendo muy bien. Ganas {comision} por cada negocio que inscribes y no necesitas invertir.\n\n¿Te gustaría trabajar conmigo? Te enseño todo. Inscríbete aquí: {enlace_equipo}"],
             ];
             $rep = ['{nombre}' => $yo ? strtok($yo->nombre, ' ') : '(tu nombre)', '{plan}' => $f($plan), '{mes}' => $f(\App\Support\Moneda::esExtranjera($mon) ? ceil($plan / 12 * 100) / 100 : ceil($plan / 12 / 100) * 100), '{comision}' => $f($com), '{enlace_equipo}' => $yo?->enlace_reclutar ?? '(tu enlace)'];
@@ -234,11 +234,11 @@
     <section class="card" id="dudas">
         <h2><span class="n">🙋</span>Dudas frecuentes y qué responder</h2>
         @php $dudas = [
-            ['"Es muy caro."', 'Son ' . $f($plan) . ' al año: menos de ' . $f(\App\Support\Moneda::esExtranjera($mon) ? ceil($plan / 12 * 100) / 100 : ceil($plan / 12 / 100) * 100) . ' al mes. Con evitar una sola pérdida de mercancía o un error de caja ya se paga. Y los primeros 3 meses son gratis.'],
+            ['"Es muy caro."', 'Son ' . $f($plan) . ' al año: menos de ' . $f(\App\Support\Moneda::esExtranjera($mon) ? ceil($plan / 12 * 100) / 100 : ceil($plan / 12 / 100) * 100) . ' al mes. Con evitar una sola pérdida de mercancía o un error de caja ya se paga. Y los primeros 2 meses son gratis.'],
             ['"Yo lo anoto en un cuaderno."', 'El cuaderno no te dice qué se está acabando, cuánto ganaste hoy ni cuál es tu producto más vendido. LocalPro sí, y sin hacer cuentas.'],
             ['"No sé de tecnología."', 'Si sabes usar WhatsApp, sabes usar LocalPro. Yo te ayudo a subir tus primeros productos ahora mismo.'],
             ['"No tengo computador ni impresora."', 'Funciona en el celular. La factura se manda por WhatsApp; la impresora es opcional.'],
-            ['"Lo voy a pensar."', 'Perfecto, por eso son 3 meses gratis: lo usas sin pagar nada y decides con tu negocio funcionando. Inscribámoslo ya y lo pruebas hoy.'],
+            ['"Lo voy a pensar."', 'Perfecto, por eso son 2 meses gratis: lo usas sin pagar nada y decides con tu negocio funcionando. Inscribámoslo ya y lo pruebas hoy.'],
             ['"¿Y si se me va el internet?"', 'Tus datos quedan guardados en la nube; apenas vuelve la señal sigues donde ibas. No se pierde nada.'],
             ['"Tengo muchísimos productos, me da pereza crearlos."', 'No los creas uno por uno: si los tienes en Excel se importan en 2 minutos, y si no, nos mandas el archivo (o fotos) y el equipo de LocalPro te los carga.'],
             ['"Ya tengo página en Facebook / Instagram."', 'Perfecto, y con LocalPro además tienes tu propia tienda en línea que aparece en Google, con botón Comprar por WhatsApp. La compartes en tus redes y te llegan pedidos con el producto exacto.'],
@@ -294,7 +294,7 @@
             <code id="lnkNeg">{{ $enlace }}</code>
             <div class="bt">
                 <button type="button" class="btn btn-g" onclick="copiarTxt('lnkNeg','Enlace de negocios copiado')"><i class="fa-regular fa-copy"></i> Copiar mi enlace</button>
-                <a class="btn btn-w" target="_blank" href="https://wa.me/?text={{ rawurlencode('¡Hola! 👋 Te recomiendo LocalPro para manejar tu negocio desde el celular: ventas, caja, inventario y tu tienda en línea. Pruébalo 3 meses gratis aquí: ' . $enlace) }}"><i class="fa-brands fa-whatsapp"></i> Enviar a un negocio</a>
+                <a class="btn btn-w" target="_blank" href="https://wa.me/?text={{ rawurlencode('¡Hola! 👋 Te recomiendo LocalPro para manejar tu negocio desde el celular: ventas, caja, inventario y tu tienda en línea. Pruébalo 2 meses gratis aquí: ' . $enlace) }}"><i class="fa-brands fa-whatsapp"></i> Enviar a un negocio</a>
             </div>
         </div>
 
