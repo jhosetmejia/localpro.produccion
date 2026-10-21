@@ -59,13 +59,14 @@
                 <div class="progress mt-2" id="os-vprog" style="height:8px;display:none"><div class="progress-bar bg-success" style="width:0"></div></div>
                 <small class="text-muted d-block mt-2" id="os-vayuda">El video se graba en tiempo real (un video de 1 minuto tarda 1 minuto): deje esta pestaña abierta mientras termina. Sale máximo en Full HD.</small>
             </div>
-            @if ($obituario->sala)
             <div class="lp-box mb-3">
-                <h3><i class="fa-solid fa-tv me-1"></i>{{ $obituario->sala->nombre }}</h3>
+                <h3><i class="fa-solid fa-tv me-1"></i>{{ $obituario->sala?->nombre ?? 'Pantalla general' }}</h3>
+                <form method="post" action="{{ route('obituarios.ver-ya', $obituario) }}" target="_blank" class="mb-2">@csrf<button class="btn btn-success w-100"><i class="fa-solid fa-display me-1"></i>Ver ya en la pantalla</button></form>
+                @if ($obituario->sala)
                 <a class="btn btn-dark w-100" target="_blank" href="{{ $obituario->sala->url_pantalla }}"><i class="fa-solid fa-up-right-from-square me-1"></i>Abrir la pantalla de la sala</a>
-                <small class="text-muted d-block mt-2">El televisor de la sala se actualiza solo en menos de un minuto.</small>
+                @endif
+                <small class="text-muted d-block mt-2">"Ver ya" lo pone en pantalla de inmediato (aunque la fecha "hasta" ya haya pasado o estuviera finalizado) y abre la pantalla. El televisor que ya esté abierto se actualiza solo en menos de un minuto.</small>
             </div>
-            @endif
             <div class="lp-box">
                 <button type="button" class="btn btn-success w-100 mb-1" id="os-wa"><i class="fa-brands fa-whatsapp me-1"></i>Enviar por WhatsApp (imagen y datos)</button>
                 <small class="text-muted d-block mb-2">En el celular se abre el menú de compartir: elija WhatsApp y el contacto o grupo.</small>

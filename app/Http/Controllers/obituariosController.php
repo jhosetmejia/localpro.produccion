@@ -220,6 +220,25 @@ class obituariosController extends Controller
         return back()->with('success', $obituario->estado === 'activo' ? 'El obituario volvió a la pantalla.' : 'Obituario finalizado: ya no sale en la pantalla.');
     }
 
+    // "Ver ya en la pantalla": lo deja visible (activo, sin fecha vencida, sala encendida) y abre la pantalla
+    public function verYa(Obituario $obituario)
+    {
+        $this->mio($obituario);
+        $obituario->estado = 'activo';
+        if ($obituario->mostrar_hasta && !$obituario->mostrar_hasta->isFuture()) $obituario->mostrar_hasta = null;
+        $obituario->updated_at = now(); // cambia la huella: el televisor se recarga solo
+        $obituario->save();
+
+        $sala = $obituario->sala;
+        if ($sala) {
+            if (!$sala->activa) $sala->forceFill(['activa' => true])->save();
+            return redirect()->away($sala->url_pantalla);
+        }
+        $tienda = $this->tienda();
+        if (!$tienda->obituarios_token) $tienda->forceFill(['obituarios_token' => ObituarioSala::nuevoToken()])->save();
+        return redirect()->route('obituarios.general', $tienda->obituarios_token);
+    }
+
     public function destroy(Obituario $obituario)
     {
         $this->mio($obituario);

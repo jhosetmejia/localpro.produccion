@@ -22,6 +22,7 @@ Route::middleware(['auth', 'tienda'])->prefix('obituarios')->name('obituarios.')
     Route::get('/{obituario}/editar', 'edit')->whereNumber('obituario')->name('edit');
     Route::put('/{obituario}', 'update')->whereNumber('obituario')->name('update');
     Route::post('/{obituario}/estado', 'estado')->whereNumber('obituario')->name('estado');
+    Route::post('/{obituario}/ver-ya', 'verYa')->whereNumber('obituario')->name('ver-ya');
     Route::delete('/{obituario}', 'destroy')->whereNumber('obituario')->name('destroy');
 
     // Salas de velación
