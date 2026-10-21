@@ -16,7 +16,7 @@
 <ol>
     <li><b>Cree sus salas de velación</b> (Sala 1, Sala San José…). Cada sala tiene su propia dirección para abrir en el televisor (Smart TV, TV Box o un computador). Se deja abierta y se actualiza sola.</li>
     <li><b>Elija una plantilla.</b> Vienen listas cinco tarjetas prediseñadas y seis diseños clásicos.</li>
-    <li><b>Ponga los datos del fallecido:</b> nombre, foto, fecha y hora de las exequias, lugar, destino final y quiénes invitan.</li>
+    <li><b>Ponga los datos del fallecido:</b> nombre, foto, fechas completas de nacimiento y fallecimiento (salen así: 07-12-1980 / 27-03-2026), fecha y hora de las exequias, lugar, destino final y quiénes invitan.</li>
     <li>Guarde: en menos de un minuto aparece en el televisor de la sala.</li>
 </ol>
 
@@ -44,8 +44,8 @@
 <h2>Para la recepción y las redes</h2>
 <ul>
     <li><b>Pantalla general:</b> en la entrada muestra todos los obituarios del día, uno tras otro.</li>
-    <li><b>Descargue la imagen</b> en PNG o JPG (hasta 4K) o un <b>video</b> en MP4 con la animación, para WhatsApp, Facebook o una memoria USB.</li>
-    <li><b>Envíe los datos por WhatsApp</b> a la familia con un toque.</li>
+    <li><b>Descargue la imagen</b> en PNG o JPG (hasta 4K) o un <b>video</b> en MP4 con la animación, para WhatsApp, Facebook o una memoria USB. Usted elige cuánto dura el video: de 10 segundos a 2 minutos (30 segundos por defecto).</li>
+    <li><b>Envíe el obituario por WhatsApp con la imagen:</b> en el celular se abre el menú de compartir con la imagen y los datos de las exequias; elija WhatsApp y el contacto o grupo de la familia. En el computador la imagen se descarga y WhatsApp se abre con el texto listo para adjuntarla.</li>
 </ul>
 
 <div class="box">
