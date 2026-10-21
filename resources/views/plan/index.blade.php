@@ -90,12 +90,13 @@
                 <b style="font-size:1.25rem">{{ $p->nombre }}</b>
                 @if ((int) $tienda->plan_id === (int) $p->id)<span class="badge bg-success">Su plan</span>@endif
             </div>
-            @if (!$p->es_gratis && $p->precioAntesTexto($tienda))<div class="small" style="color:#9aa39c;margin-top:.3rem">Antes <s>{{ $p->precioAntesTexto($tienda) }}</s></div>@endif
+            @unless ($p->es_gratis) @include('plan._promo') @endunless
             <div style="font-size:1.8rem;font-weight:800;letter-spacing:-.03em;margin:.4rem 0">{{ $p->es_gratis ? 'Gratis' : $p->precioTexto($tienda) }}<small style="font-size:.85rem;color:var(--lp-muted)">{{ $p->es_gratis ? '' : ' ' . $tienda->moneda_cobro . ($p->dias ? ' / ' . ($p->dias >= 365 ? 'año' : ($p->dias >= 28 ? 'mes' : $p->dias . ' días')) : '') }}</small></div>
             @if (!$p->es_gratis && $tienda->usa_bolivares)<small class="d-block fw-bold mb-1" style="color:#5b665e">Equivale a {{ \App\Support\Moneda::formato(round($p->precioEn($tienda->moneda_cobro) * $tienda->tasa_bs_vigente, 2), 'VES') }} a la tasa de hoy</small>@endif
             <p class="text-muted small mb-2">{{ $p->descripcion }}</p>
             <p class="small fw-bold mb-3" style="color:#11702f"><i class="fa-solid fa-box me-1"></i>{{ $p->max_productos ? 'Hasta ' . number_format($p->max_productos, 0, ',', '.') . ' productos' . ($p->es_gratis ? '' : ' (ampliable)') : 'Productos ilimitados' }} · <i class="fa-solid fa-users ms-1 me-1"></i>{{ (float) $p->precio <= 0 && !$p->dias ? '2 meses · ' : '' }}{{ $p->max_usuarios ? ($p->max_usuarios > 1 ? 'Dueño + ' . ($p->max_usuarios - 1) . ' vendedores' : 'Solo el dueño') : 'Vendedores ilimitados' }}</p>
             @unless ($p->es_gratis)
+                @include('plan._promo_fin')
                 @can('editar-negocio')
                 <form method="post" action="{{ route('plan.pagar', $p) }}">@csrf
                     <button class="btn {{ $wompi ? 'btn-primary' : 'btn-success' }} w-100">

@@ -40,6 +40,28 @@ class Plan extends Model
         return \App\Support\Moneda::formato($v, $m);
     }
 
+    // Promoción del precio actual: vale hasta esta fecha; desde el día siguiente rige el precio "antes"
+    public const PROMO_HASTA = '2026-11-30';
+
+    public static function promoVigente(): bool
+    {
+        return now()->startOfDay()->lte(\Carbon\Carbon::parse(static::PROMO_HASTA)->endOfDay());
+    }
+
+    public static function promoDiasRestantes(): int
+    {
+        return max(0, (int) now()->startOfDay()->diffInDays(\Carbon\Carbon::parse(static::PROMO_HASTA)->startOfDay(), false));
+    }
+
+    // Cuánto se ahorra frente al precio "antes" ($130.000), en la moneda de la tienda
+    public function ahorroTexto(?Tienda $tienda = null): ?string
+    {
+        if (!$this->precio_antes || $this->precio_antes <= $this->precio || $this->precio <= 0) return null;
+        $m = $tienda?->moneda_cobro ?? \App\Support\Moneda::COP;
+        $antes = strtoupper($m) === 'COP' ? (float) $this->precio_antes : round($this->precioEn($m) * $this->precio_antes / $this->precio, 2);
+        return \App\Support\Moneda::formato($antes - $this->precioEn($m), $m);
+    }
+
     // Plan de prueba para negocios que llegan por un asesor o por un código (2 meses; antes 3)
     public static function prueba(): ?self
     {

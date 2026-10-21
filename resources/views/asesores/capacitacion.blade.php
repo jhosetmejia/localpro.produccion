@@ -174,6 +174,7 @@
                 <li><b>2 meses gratis con todo</b> (usuarios y productos ilimitados) y luego solo {{ $f($plan) }} al año.</li>
             </ul>
         </div>
+        @if (\App\Models\Plan::promoVigente())<div class="regla" style="background:#ffe8ec;color:#a0142c;margin-bottom:10px">⏰ <b>Argumento de cierre:</b> el plan anual de {{ $f($plan) }} es <b>precio de lanzamiento solo hasta el 30 de noviembre</b>. Desde el 1 de diciembre sube a $350.000. Dígale al cliente que si paga ahora asegura el precio de oferta por todo el año.</div>@endif
         <div class="regla" style="background:#fff8e6;color:#7a4b00;margin-bottom:10px">🔜 <b>Muy pronto:</b> recetas e insumos (restaurantes y panaderías) y fechas de vencimiento por lote (droguerías y alimentos). Si su cliente los necesita, inscríbalo ya con la prueba gratis.</div>
         <p class="regla" style="background:#e8f8ec;color:#11702f">💡 Frase clave: <i>"Por solo {{ $f($plan) }} al año tiene su sistema de ventas con stock actualizado y además una página web de su tienda que aparece en Google. Por menos de {{ $f(\App\Support\Moneda::esExtranjera($mon) ? ceil($plan / 12 * 100) / 100 : ceil($plan / 12 / 100) * 100) }} al mes tienes tu negocio organizado y sabes cuánto ganas cada día."</i></p>
     </section>

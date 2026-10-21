@@ -85,9 +85,10 @@ body{margin:0;min-height:100vh;font-family:'Plus Jakarta Sans',system-ui,sans-se
             <div class="pv-plan {{ $anual ? 'top' : '' }}">
                 @if ($anual && $ahorro > 0)<div class="tag">Ahorra {{ $fmt($ahorro) }}</div>@endif
                 <h3>{{ $p->nombre }}</h3>
-                @if ($p->precioAntesTexto($tienda))<div style="font-size:.9rem;opacity:.65;margin-bottom:-.2rem">Antes <s>{{ $p->precioAntesTexto($tienda) }}</s></div>@endif
+                @include('plan._promo')
                 <div class="p">{{ $fmt($p->precioEn($mc)) }} <small>{{ $anual ? '/ año' : ($p->dias >= 28 ? '/ mes' : '/ ' . $p->dias . ' días') }}</small></div>
                 <div class="d">{{ $anual ? 'Equivale a ' . $fmt(\App\Support\Moneda::esExtranjera($mc) ? round($p->precioEn($mc) / 12, 2) : round((float) $p->precio / 12)) . ' al mes. ' : '' }}{{ $p->descripcion }}</div>
+                @include('plan._promo_fin')
                 @if ($puedePagar)
                     <form method="post" action="{{ route('plan.pagar', $p) }}">@csrf
                         <button type="submit">
