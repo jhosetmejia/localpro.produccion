@@ -61,7 +61,9 @@ class ProductoController extends Controller
         }
         // Etiquetas de código de barras ya pegadas a la mercancía (en blanco o del fabricante):
         // se revisan antes de guardar para que no se repitan con otro producto
-        $conTallas = \App\Support\TiendaActual::tienda()->usa_tallas && $request->boolean('con_tallas');
+        // Servicio: no se acaba ni lleva stock (solo si el negocio maneja servicios)
+        $esServicio = (bool) \App\Support\TiendaActual::tienda()->mod_servicios && $request->boolean('es_servicio');
+        $conTallas = \App\Support\TiendaActual::tienda()->usa_tallas && $request->boolean('con_tallas') && !$esServicio;
         $barrasFilas = $conTallas ? array_map(fn ($f) => \App\Support\CodigoBarras::lista($f['barras'] ?? ''), (array) $request->input('variantes', [])) : [];
         $barrasUnica = \App\Support\CodigoBarras::lista($request->input('codigo_barras'));
         if ($e = \App\Support\CodigoBarras::validarVarias(array_merge($barrasFilas, [$barrasUnica]))) {
@@ -86,7 +88,8 @@ class ProductoController extends Controller
                 'precio_antes' => $request->boolean('en_promo') && (float) $request->precio_antes > (float) $request->precio_venta ? $request->precio_antes : null,
                 'precio_venta' => $request->precio_venta,
                 'precio_costo' => $request->precio_costo ?: 0,
-                'controla_inventario' => $request->boolean('controla_inventario'),
+                'controla_inventario' => $esServicio ? false : $request->boolean('controla_inventario'),
+                'es_servicio' => $esServicio,
                 'mostrar_sin_foto' => $request->boolean('mostrar_sin_foto'),
                 'descripcion' => $request->descripcion,
                 'fecha_vencimiento' => $request->fecha_vencimiento,
@@ -148,7 +151,7 @@ class ProductoController extends Controller
             return back()->withInput()->withErrors('No se pudo guardar el producto. Intente de nuevo.');
         }
 
-        $msg = 'Producto "' . $producto->nombre . '" guardado y listo para vender'
+        $msg = ($producto->es_servicio ? 'Servicio "' : 'Producto "') . $producto->nombre . '" guardado y listo para vender'
             . ($controla ? ' (' . ($producto->es_fraccion ? cantidad($total, $producto->unidad) : $total . ' ' . ($total == 1 ? 'unidad' : 'unidades')) . ')' : '') . '.';
         return redirect()->route('productos.index')->with('success', $msg);
     }
@@ -183,6 +186,8 @@ class ProductoController extends Controller
      */
     public function update(UpdateProductoRequest $request, Producto $producto)
     {
+        // Servicio: no se acaba ni lleva stock. Si el negocio no maneja servicios, se deja como estaba.
+        $esServicio = \App\Support\TiendaActual::tienda()->mod_servicios ? $request->boolean('es_servicio') : (bool) $producto->es_servicio;
         try{
             DB::beginTransaction();
 
@@ -206,7 +211,8 @@ class ProductoController extends Controller
                 'precio_antes' => $request->boolean('en_promo') && (float) $request->precio_antes > (float) $request->precio_venta ? $request->precio_antes : null,
                 'precio_venta' => $request->precio_venta,
                 'precio_costo' => $request->precio_costo ?: 0,
-                'controla_inventario' => $request->boolean('controla_inventario'),
+                'controla_inventario' => $esServicio ? false : $request->boolean('controla_inventario'),
+                'es_servicio' => $esServicio,
                 'mostrar_sin_foto' => $request->boolean('mostrar_sin_foto'),
                 'descripcion' => $request->descripcion,
                 'fecha_vencimiento' => $request->fecha_vencimiento,

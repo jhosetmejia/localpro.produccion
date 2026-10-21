@@ -36,6 +36,7 @@ class negocioController extends Controller
             'mod_contable' => 'nullable|boolean',
             'mod_consultorio' => 'nullable|boolean',
             'mod_pedidos' => 'nullable|boolean',
+            'mod_servicios' => 'nullable|boolean',
             'pais' => ['required', \Illuminate\Validation\Rule::in(array_keys(\App\Support\Paises::LISTA))],
             'tipo_negocio' => ['required', \Illuminate\Validation\Rule::in(array_keys(\App\Models\Tienda::TIPOS))],
             'nit' => 'nullable|string|max:30',
@@ -72,7 +73,7 @@ class negocioController extends Controller
         $datos['catalogo_activo'] = $request->boolean('catalogo_activo');
         $datos['catalogo_agotados'] = $request->boolean('catalogo_agotados', true);
         $datos['cliente_obligatorio'] = $request->boolean('cliente_obligatorio');
-        foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'mod_contable', 'mod_consultorio', 'mod_pedidos'] as $m) {
+        foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'mod_contable', 'mod_consultorio', 'mod_pedidos', 'mod_servicios'] as $m) {
             $datos[$m] = $request->boolean($m);
         }
         // Al pasar a consultorio se enciende solo el módulo de pacientes e historia clínica
@@ -92,5 +93,16 @@ class negocioController extends Controller
 
         $negocio->update($datos);
         return back()->with('success', 'Datos del negocio guardados.');
+    }
+
+    // Un clic desde Productos: el negocio empieza a manejar servicios (sin stock) o los apaga
+    public function activarServicios(Request $request)
+    {
+        $negocio = Negocio::datos();
+        $on = $request->boolean('activar', true);
+        $negocio->update(['mod_servicios' => $on]);
+        return redirect()->route('productos.index', $on ? ['ver' => 'servicios'] : [])->with('success', $on
+            ? 'Listo: ya puede crear y administrar servicios. No llevan inventario y siempre están disponibles para vender.'
+            : 'Servicios apagados. Los que ya tenía siguen a la venta como productos sin control de stock.');
     }
 }

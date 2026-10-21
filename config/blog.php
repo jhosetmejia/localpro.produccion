@@ -6,6 +6,24 @@
 // palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
+    'software-para-negocios-de-servicios-sin-inventario' => [
+        'titulo' => 'Software para negocios de servicios: venda cortes, consultas y reparaciones sin llevar inventario',
+        'resumen' => 'Cree sus servicios una vez y quedan siempre disponibles: no se acaban, no llevan stock y nunca salen agotados. Véndalos en la caja junto a sus productos y adminístrelos aparte.',
+        'fecha' => '21 de octubre de 2026',
+        'publicado' => '2026-10-21',
+        'minutos' => 3,
+        'icono' => 'fa-hand-holding-heart',
+        'rol' => 'negocios',
+        'seo_titulo' => 'Software para negocios de servicios sin inventario | LocalProo',
+        'descripcion' => 'Programa para peluquerías, barberías, talleres y consultorios: cree servicios sin stock, véndalos en la caja con sus productos y lleve sus ventas al día.',
+        'keywords' => ['software para negocios de servicios', 'programa para peluquerías y barberías', 'sistema para talleres de reparación', 'facturar servicios', 'caja para negocio de servicios', 'servicios sin inventario', 'POS para servicios'],
+        'faq' => [
+            ['¿Tengo que ponerle cantidad a un servicio?', 'No. Un servicio no se acaba: no lleva cantidad ni inventario y siempre está disponible para vender.'],
+            ['¿Puedo vender productos y servicios juntos?', 'Sí. Una barbería puede cobrar el corte (servicio) y la cera (producto) en la misma venta; solo el producto descuenta inventario.'],
+            ['Ya tengo cuenta en LocalProo, ¿cómo activo los servicios?', 'En Productos toque "Activar servicios" o en Datos del negocio → Módulos encienda "Servicios". No pierde nada de lo que ya tiene.'],
+            ['¿Los servicios salen en mi tienda en línea?', 'Sí, salen como cualquier producto y nunca aparecen como "Agotado".'],
+        ],
+    ],
     'sistema-de-pedidos-para-restaurantes-mesero-caja-cocina' => [
         'titulo' => 'Sistema de pedidos para restaurantes: mesero, caja y cocina conectados desde el celular',
         'resumen' => 'El mesero toma el pedido con el nombre del cliente, caja lo cobra, cada estación (cocina, cafetería, entradas) lo ve en su pantalla y al mesero le suena cuando está listo. Con roles a la medida de su equipo.',

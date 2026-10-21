@@ -469,6 +469,7 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::get('/primeros-pasos', [homeController::class, 'primerosPasos'])->name('primeros.pasos');
     Route::get('/negocio', [negocioController::class, 'edit'])->name('negocio.edit');
     Route::put('/negocio', [negocioController::class, 'update'])->name('negocio.update');
+    Route::post('/negocio/servicios', [negocioController::class, 'activarServicios'])->name('negocio.servicios');
     // Facturación electrónica DIAN
     Route::get('/facturacion', [\App\Http\Controllers\facturacionController::class, 'index'])->name('facturacion.index');
     Route::put('/facturacion', [\App\Http\Controllers\facturacionController::class, 'update'])->name('facturacion.update');

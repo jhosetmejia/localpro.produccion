@@ -22,6 +22,7 @@ class Producto extends Model
         'impuesto',
         'precio_costo',
         'controla_inventario',
+        'es_servicio',
         'descripcion',
         'fecha_vencimiento',
         'marca_id',
@@ -93,7 +94,7 @@ class Producto extends Model
         return self::UNIDADES[$this->unidad ?: 'und'][1] ?? 'und';
     }
 
-    protected $casts = ['controla_inventario' => 'boolean'];
+    protected $casts = ['controla_inventario' => 'boolean', 'es_servicio' => 'boolean'];
 
     public function variantes()
     {

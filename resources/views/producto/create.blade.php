@@ -33,6 +33,11 @@
     details.pf-mas summary::-webkit-details-marker{display:none}
     details.pf-mas summary::after{content:"▾";margin-left:auto;color:var(--lp-muted)}
     details.pf-mas[open] summary::after{content:"▴"}
+    .pf-tipo{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
+    .pf-tipo button{border:2px solid var(--lp-line,#dfe6e2);background:#fff;border-radius:16px;padding:.8rem;text-align:left;display:flex;flex-direction:column;gap:2px}
+    .pf-tipo button i{font-size:1.2rem;color:#16b84e}
+    .pf-tipo button small{color:#6b7a72;font-size:.75rem}
+    .pf-tipo button.on{border-color:#16b84e;background:#ecfbf0}
 </style>
 @endpush
 
@@ -41,10 +46,12 @@
     $tienda = \App\Support\TiendaActual::tienda();
     $moda = (bool) $tienda?->usa_tallas;
     $sinConteo = in_array($tienda?->tipo_negocio, ['restaurante', 'cafeteria']);
+    $conServ = (bool) $tienda?->mod_servicios;
+    $esServ = $conServ && old('es_servicio', request('tipo') === 'servicio' ? '1' : '0') === '1';
 @endphp
 <div class="lp-dash" style="max-width:760px;margin:0 auto">
     <div class="lp-hello">
-        <div><small><a href="{{ route('productos.index') }}" class="text-decoration-none" style="color:inherit"><i class="fa-solid fa-arrow-left me-1"></i>Productos</a></small><h1>Nuevo <span>producto</span></h1></div>
+        <div><small><a href="{{ route('productos.index') }}" class="text-decoration-none" style="color:inherit"><i class="fa-solid fa-arrow-left me-1"></i>Productos</a></small><h1>Nuevo <span id="tTit">{{ $esServ ? 'servicio' : 'producto' }}</span></h1></div>
     </div>
     @include('layouts.partials.lp-flash')
 
@@ -54,9 +61,16 @@
         {{-- 1. Lo básico --}}
         <div class="pf-sec">
             <h3><span class="pf-num">1</span>¿Qué va a vender?</h3>
+            @if ($conServ)
+            <input type="hidden" name="es_servicio" id="esServ" value="{{ $esServ ? '1' : '0' }}">
+            <div class="pf-tipo" id="pfTipo">
+                <button type="button" data-t="0" class="{{ $esServ ? '' : 'on' }}"><i class="fa-solid fa-box"></i><b>Producto</b><small>Se acaba: lleva cantidad e inventario</small></button>
+                <button type="button" data-t="1" class="{{ $esServ ? 'on' : '' }}"><i class="fa-solid fa-hand-holding-heart"></i><b>Servicio</b><small>No se acaba: siempre disponible, sin stock</small></button>
+            </div>
+            @endif
             <div class="row g-3">
                 <div class="col-12">
-                    <label for="nombre" class="form-label">Nombre del producto</label>
+                    <label for="nombre" class="form-label">Nombre del <span data-tn>{{ $esServ ? 'servicio' : 'producto' }}</span></label>
                     <input type="text" name="nombre" id="nombre" class="form-control form-control-lg" value="{{ old('nombre') }}" placeholder="{{ $moda ? 'Ej: Chaqueta de cuero con ovejero' : 'Ej: Hamburguesa sencilla' }}" maxlength="80" required autofocus>
                     @error('nombre')<small class="text-danger">{{ $message }}</small>@enderror
                     @include('producto._seo')
@@ -97,8 +111,8 @@
             </div>
         </div>
 
-        {{-- 2. Cantidades --}}
-        <div class="pf-sec">
+        {{-- 2. Cantidades (los servicios no llevan) --}}
+        <div class="pf-sec" id="secCant" @if($esServ) style="display:none" @endif>
             <h3><span class="pf-num">2</span>¿Cuántas unidades tiene?</h3>
 
             @if ($moda)
@@ -179,7 +193,7 @@
                         <label for="descripcion" class="form-label">Descripción</label>
                         <textarea name="descripcion" id="descripcion" rows="2" class="form-control" maxlength="255" style="resize:none" placeholder="Material, detalles… (sale en el catálogo)">{{ old('descripcion') }}</textarea>
                     </div>
-                    <div class="col-12">
+                    <div class="col-12" id="boxControla" @if($esServ) style="display:none" @endif>
                         <input type="hidden" name="controla_inventario" value="0">
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" role="switch" name="controla_inventario" value="1" id="controla_inventario" @checked(old('controla_inventario', $sinConteo ? '0' : '1') === '1')>
@@ -191,7 +205,7 @@
         </div>
 
         <div class="pf-guardar">
-            <button type="submit" class="btn btn-primary btn-lg w-100" style="padding:1rem;font-size:1.1rem"><i class="fa-solid fa-check me-1"></i>Guardar producto</button>
+            <button type="submit" class="btn btn-primary btn-lg w-100" style="padding:1rem;font-size:1.1rem"><i class="fa-solid fa-check me-1"></i>Guardar <span data-tn>{{ $esServ ? 'servicio' : 'producto' }}</span></button>
         </div>
     </form>
 </div>
@@ -305,6 +319,26 @@
     f.addEventListener('input', function () { cambios = true; });
     f.addEventListener('submit', function () { cambios = false; });
     window.addEventListener('beforeunload', function (e) { if (cambios) { e.preventDefault(); e.returnValue = ''; } });
+})();
+</script>
+@endpush
+@push('js')
+<script>
+// Producto o servicio: el servicio no pide cantidades ni control de inventario
+(function () {
+    var box = document.getElementById('pfTipo'); if (!box) return;
+    var h = document.getElementById('esServ');
+    box.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-t]'); if (!b) return;
+        var s = b.dataset.t === '1';
+        h.value = s ? '1' : '0';
+        box.querySelectorAll('[data-t]').forEach(function (x) { x.classList.toggle('on', x === b); });
+        document.getElementById('secCant').style.display = s ? 'none' : '';
+        document.getElementById('boxControla').style.display = s ? 'none' : '';
+        document.getElementById('tTit').textContent = s ? 'servicio' : 'producto';
+        document.querySelectorAll('[data-tn]').forEach(function (x) { x.textContent = s ? 'servicio' : 'producto'; });
+        var ct = document.getElementById('conTallasVal'); if (ct && s) ct.value = '0';
+    });
 })();
 </script>
 @endpush

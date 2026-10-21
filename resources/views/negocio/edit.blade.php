@@ -70,6 +70,7 @@
         <div class="lp-box mt-3">
             <h3 class="d-flex align-items-center">Módulos de su negocio @if (\Illuminate\Support\Facades\Route::has('menu.edit'))<a href="{{ route('menu.edit') }}" class="btn btn-sm btn-light ms-auto"><i class="fa-solid fa-sliders me-1"></i>Personalizar menú</a>@endif</h3>
             @foreach ([
+                'mod_servicios' => ['Servicios (sin inventario)', 'Para lo que no se acaba ni lleva stock: cortes, consultas, reparaciones, asesorías, clases, lavados… En Productos podrá crear y administrar sus servicios aparte; siempre están disponibles para vender o agendar.', false],
                 'mod_medida' => ['Vender por metro, kilo o litro', 'En cada producto elige cómo se vende y en la caja vende medidas con decimales (1,5 m · 0,250 kg).', false],
                 'mod_vencimiento' => ['Fechas de vencimiento', 'Lotes con fecha de vencimiento y alertas de lo que está por vencer.', true],
                 'mod_recetas' => ['Recetas e insumos', 'Al vender se descuentan los ingredientes de cada receta.', true],

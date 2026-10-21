@@ -68,6 +68,9 @@ a.pl-foto.sinfoto:hover{border-color:#16b84e;color:#16b84e;background:#f0fbf4}
     $baseWeb = $u ? ($u['scheme'] ?? 'https') . '://' . $u['host'] . (isset($u['port']) ? ':' . $u['port'] : '') : '';
     $activos = $productos->where('estado', 1)->count();
     $ocultos = $productos->count() - $activos;
+    // Servicios: no se acaban ni llevan stock
+    $conServ = (bool) $tiendaCat?->mod_servicios;
+    $nServ = $productos->where('estado', 1)->where('es_servicio', true)->count();
 @endphp
 
 <div class="container-fluid px-3 px-md-4 pb-5">
@@ -77,7 +80,7 @@ a.pl-foto.sinfoto:hover{border-color:#16b84e;color:#16b84e;background:#f0fbf4}
     <div class="alert border-0 mt-2 mb-0 small fw-semibold" style="background:#fff8e6;color:#8a5a00;border-radius:16px"><i class="fa-regular fa-image me-1"></i>{{ $sinFotoN }} {{ $sinFotoN == 1 ? 'producto no tiene foto y no se muestra' : 'productos no tienen foto y no se muestran' }} en su catálogo en línea. Súbales foto, o entre al producto y marque "Mostrar aunque no tenga foto".</div>
     @endif
     <div class="pl-top">
-        <h1>Productos <small class="text-muted fw-bold" style="font-size:.9rem">({{ $activos }})</small></h1>
+        <h1>{{ $conServ ? 'Productos y servicios' : 'Productos' }} <small class="text-muted fw-bold" style="font-size:.9rem">({{ $activos }})</small></h1>
         @can('ver-inventario')
         <a href="{{ route('inventario.resumen') }}" class="pl-imp pl-inv"><i class="fa-solid fa-clipboard-check"></i> Inventario y conteo</a>
         @endcan
@@ -88,9 +91,21 @@ a.pl-foto.sinfoto:hover{border-color:#16b84e;color:#16b84e;background:#f0fbf4}
         @endif
         @can('crear-producto')
         <a href="{{ route('productos.importar') }}" class="pl-imp"><i class="fa-solid fa-file-excel"></i> Importar Excel</a>
+        @if ($conServ)
+        <a href="{{ route('productos.create', ['tipo' => 'servicio']) }}" class="pl-imp"><i class="fa-solid fa-hand-holding-heart"></i> Nuevo servicio</a>
+        @endif
         <a href="{{ route('productos.create') }}" class="pl-nuevo"><i class="fa-solid fa-plus"></i> Nuevo producto</a>
         @endcan
     </div>
+    @if (!$conServ)
+    @can('editar-negocio')
+    <form method="post" action="{{ route('negocio.servicios') }}" class="alert border-0 small d-flex align-items-center gap-2 flex-wrap" style="background:#ecfbf0;color:#14532d;border-radius:16px">
+        @csrf
+        <span class="flex-grow-1"><i class="fa-solid fa-hand-holding-heart me-1"></i><b>¿También ofrece servicios?</b> (cortes, consultas, reparaciones, asesorías…) Actívelos para crearlos y administrarlos aparte: no llevan stock y siempre están disponibles.</span>
+        <button class="btn btn-sm btn-dark" style="border-radius:999px">Activar servicios</button>
+    </form>
+    @endcan
+    @endif
 
     @if ($productos->isEmpty())
         <div class="pl-item pl-vacio">
@@ -112,6 +127,10 @@ a.pl-foto.sinfoto:hover{border-color:#16b84e;color:#16b84e;background:#f0fbf4}
         <script src="{{ asset('js/escaner.js') }}?v=1"></script>
         <div class="pl-filtros" id="plF">
             <button type="button" class="on" data-f="activos">Activos ({{ $activos }})</button>
+            @if ($conServ)
+            <button type="button" data-f="prod">Productos ({{ $activos - $nServ }})</button>
+            <button type="button" data-f="serv">Servicios ({{ $nServ }})</button>
+            @endif
             <button type="button" data-f="bajo">Poco stock</button>
             <button type="button" data-f="agotados">Agotados</button>
             @if ($ocultos)
@@ -130,7 +149,7 @@ a.pl-foto.sinfoto:hover{border-color:#16b84e;color:#16b84e;background:#f0fbf4}
             @endphp
             <div class="pl-item {{ $item->estado == 1 ? '' : 'off' }}"
                  data-q="{{ mb_strtolower($item->nombre . ' ' . $item->codigo . ' ' . $cats . ' ' . $item->variantes->pluck('codigo_barras')->filter()->implode(' ')) }}"
-                 data-estado="{{ $item->estado == 1 ? 1 : 0 }}" data-st="{{ $controla ? $st : -1 }}">
+                 data-estado="{{ $item->estado == 1 ? 1 : 0 }}" data-st="{{ $controla ? $st : -1 }}" data-serv="{{ $item->es_servicio ? 1 : 0 }}">
                 <div class="pl-cab">
                     @php $faltaFoto = $item->estado == 1 && !$item->tiene_foto && !$item->mostrar_sin_foto; @endphp
                     @if ($faltaFoto)
@@ -156,6 +175,7 @@ a.pl-foto.sinfoto:hover{border-color:#16b84e;color:#16b84e;background:#f0fbf4}
                         @endif
                         <span class="pl-stk {{ $clase }}">
                             @if ($item->estado != 1) Oculto
+                            @elseif ($item->es_servicio) <i class="fa-solid fa-hand-holding-heart"></i> Servicio · siempre disponible
                             @elseif (!$controla) Sin control de stock
                             @elseif ($st <= 0) Agotado
                             @elseif ($item->es_fraccion) {{ cantidad($st, $item->unidad) }} disponibles
@@ -223,6 +243,8 @@ a.pl-foto.sinfoto:hover{border-color:#16b84e;color:#16b84e;background:#f0fbf4}
             if (filtro === 'ocultos') ok = !e;
             else if (filtro === 'bajo') ok = e && st > 0 && st <= 5;
             else if (filtro === 'agotados') ok = e && st === 0;
+            else if (filtro === 'serv') ok = e && el.dataset.serv === '1';
+            else if (filtro === 'prod') ok = e && el.dataset.serv !== '1';
             else ok = e;
             if (ok && t) ok = el.dataset.q.indexOf(t) !== -1;
             el.style.display = ok ? '' : 'none'; if (ok) n++;
@@ -249,6 +271,8 @@ a.pl-foto.sinfoto:hover{border-color:#16b84e;color:#16b84e;background:#f0fbf4}
             if (v.q) q.value = v.q;
         }
     } catch (e) {}
+    // Viene de activar servicios: abre la pestaña de servicios
+    if (/[?&]ver=servicios/.test(location.search) && document.querySelector('#plF [data-f="serv"]')) { filtro = 'serv'; marcar('serv'); }
     aplicar();
     try { if (v && v.y) setTimeout(function () { window.scrollTo(0, v.y); }, 30); } catch (e) {}
 })();

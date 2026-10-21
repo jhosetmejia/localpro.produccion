@@ -160,6 +160,7 @@ class Academia
                         'Cada producto tiene nombre, precio de venta, costo y cantidad en inventario. Si vende ropa o calzado, puede manejar <b>tallas y colores</b>.',
                         'El <b>costo</b> es importante: con él LocalPro le calcula la ganancia real de cada venta.',
                         '¿Ya tiene sus productos en Excel? Súbalos en <b>Productos → Importar</b> y no tiene que crearlos uno por uno.',
+                        '¿Ofrece <b>servicios</b> (cortes, consultas, reparaciones, asesorías, clases)? Actívelos en <b>Productos → Activar servicios</b> o en <b>Datos del negocio → Módulos</b>. Al crear elige <b>Producto</b> o <b>Servicio</b>: el servicio no lleva cantidad ni inventario, nunca sale "Agotado" y siempre está disponible para vender. Los ve aparte en la pestaña <b>Servicios</b>.',
                     ], 'tip' => 'Póngale foto a cada producto: se ve en la caja y en su tienda en línea, y vende mucho más.'],
                     ['titulo' => 'Su primera venta', 'min' => 3, 'accion' => ['pos.index', 'Abrir la caja'], 'contenido' => [
                         'Para vender primero se <b>abre la caja</b> con la plata que hay en el cajón (la base).',

@@ -55,6 +55,8 @@ class bienvenidaController extends Controller
             $datos['ejemplos'] = array_map(fn ($e) => [
                 'nombre' => $e[0], 'precio' => $cop ? $e[1] : '', 'tallas' => $tienda->usa_tallas ? $e[2] : '',
                 'colores' => $tienda->usa_tallas ? $e[3] : '', 'cantidad' => $e[4],
+                // Si maneja servicios, los ejemplos sin cantidad (consultas, planes, servicios) salen como servicio
+                'servicio' => $tienda->mod_servicios && ($e[4] === 0 || $tienda->tipo_negocio === 'consultorio') ? 1 : 0,
             ], $ej);
         }
         if ($paso === 4) {
@@ -92,6 +94,7 @@ class bienvenidaController extends Controller
             'mod_obituarios' => 'nullable|boolean',
             'mod_contable' => 'nullable|boolean',
             'mod_consultorio' => 'nullable|boolean',
+            'mod_servicios' => 'nullable|boolean',
         ] + \App\Support\Ubicaciones::reglas($request->input('pais'), $request->input('departamento')),
         ['nombre.required' => 'Escriba el nombre de su negocio.', 'tipo_negocio.required' => 'Elija el tipo de negocio.'] + \App\Support\Ubicaciones::mensajes());
 
@@ -115,7 +118,7 @@ class bienvenidaController extends Controller
         unset($datos['logo']);
 
         $datos['usa_tallas'] = Tienda::TIPOS[$datos['tipo_negocio']][2];
-        foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'mod_contable', 'mod_consultorio', 'mod_pedidos'] as $m) {
+        foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'mod_contable', 'mod_consultorio', 'mod_pedidos', 'mod_servicios'] as $m) {
             $datos[$m] = $request->has($m) ? $request->boolean($m) : in_array($m, Tienda::MODULOS_POR_TIPO[$datos['tipo_negocio']] ?? [], true);
         }
         if ($tienda->menu_oculto === null && isset(Tienda::MENU_OCULTO_POR_TIPO[$datos['tipo_negocio']])) {
@@ -162,6 +165,7 @@ class bienvenidaController extends Controller
                 'productos.*.tallas' => 'nullable|string|max:200',
                 'productos.*.colores' => 'nullable|string|max:300',
                 'productos.*.cantidad' => 'nullable|integer|min:0|max:100000',
+                'productos.*.servicio' => 'nullable|boolean',
             ]);
 
             $elegidos = collect($request->input('productos'))
@@ -183,16 +187,20 @@ class bienvenidaController extends Controller
                     }
                     $controla = !in_array($tienda->tipo_negocio, ['restaurante', 'cafeteria', 'consultorio'], true)
                         && !($tienda->tipo_negocio === 'funeraria' && preg_match('/\\b(plan|servicio)\\b/iu', $nombre)); // en funerarias los planes y servicios no llevan inventario
+                    // Servicio: no se acaba ni lleva stock, siempre está disponible
+                    $servicio = $tienda->mod_servicios && !empty($p['servicio']);
+                    if ($servicio) $controla = false;
                     $producto = Producto::create([
                         'codigo' => CrearTienda::siguienteCodigo(),
                         'nombre' => $nombre,
                         'precio_venta' => $p['precio'],
                         'controla_inventario' => $controla,
+                        'es_servicio' => $servicio,
                     ]);
                     $producto->categorias()->attach($categoria->id);
 
-                    $tallas = $tienda->usa_tallas ? \App\Support\Listas::valores($p['tallas'] ?? '', 40, 'tallas') : [];
-                    $colores = $tienda->usa_tallas ? \App\Support\Listas::valores($p['colores'] ?? '', 60, 'colores') : [];
+                    $tallas = $tienda->usa_tallas && !$servicio ? \App\Support\Listas::valores($p['tallas'] ?? '', 40, 'tallas') : [];
+                    $colores = $tienda->usa_tallas && !$servicio ? \App\Support\Listas::valores($p['colores'] ?? '', 60, 'colores') : [];
                     foreach (($tallas ?: [null]) as $t) {
                         foreach (($colores ?: [null]) as $c) {
                             $v = $producto->variantes()->create(['talla' => $t, 'color' => $c, 'stock' => 0]);

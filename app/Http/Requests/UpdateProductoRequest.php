@@ -33,6 +33,7 @@ class UpdateProductoRequest extends FormRequest
             'impuesto' => ['nullable', \Illuminate\Validation\Rule::in(array_keys(\App\Support\Dian\Catalogos::IMPUESTOS))],
             'precio_costo' => 'nullable|numeric|min:0|max:999999999',
             'controla_inventario' => 'nullable|boolean',
+            'es_servicio' => 'nullable|boolean',
             'marca_id' => 'nullable|integer|exists:marcas,id',
             'presentacione_id' => 'nullable|integer|exists:presentaciones,id',
             'precio_antes' => 'nullable|numeric|min:0|max:999999999',

@@ -17,6 +17,11 @@
     .pe-fila b{flex:1;font-size:.9rem}
     .pe-fila input{width:90px;text-align:center;font-weight:800}
     .pe-fila input.cambio{border-color:#16b34a;background:#ecfbf0}
+    .pf-tipo{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:.8rem}
+    .pf-tipo button{border:2px solid var(--lp-line,#dfe6e2);background:#fff;border-radius:16px;padding:.6rem .8rem;text-align:left;display:flex;flex-direction:column;gap:2px}
+    .pf-tipo button i{font-size:1.1rem;color:#16b84e}
+    .pf-tipo button small{color:#6b7a72;font-size:.72rem}
+    .pf-tipo button.on{border-color:#16b84e;background:#ecfbf0}
     .pe-tot{display:flex;justify-content:space-between;font-weight:800;font-size:.85rem;margin-top:.5rem;color:var(--lp-muted)}
     .pe-cgrid{display:flex;flex-wrap:wrap;gap:8px}
     .pe-c{width:84px;cursor:pointer;text-align:center}
@@ -37,7 +42,8 @@
 @endphp
 <div class="lp-dash" style="max-width:1200px;margin:0 auto">
     <div class="lp-hello">
-        <div><small><a href="{{ route('productos.index') }}" class="text-decoration-none" style="color:inherit"><i class="fa-solid fa-arrow-left me-1"></i>Productos</a></small><h1>Editar <span>producto</span></h1></div>
+        <div><small><a href="{{ route('productos.index') }}" class="text-decoration-none" style="color:inherit"><i class="fa-solid fa-arrow-left me-1"></i>Productos</a></small>@php $conServ = (bool) \App\Support\TiendaActual::tienda()?->mod_servicios; $esServ = $conServ && old('es_servicio', $producto->es_servicio ? '1' : '0') == '1'; @endphp
+            <h1>Editar <span id="tTit">{{ $esServ ? 'servicio' : 'producto' }}</span></h1></div>
     </div>
     @include('layouts.partials.lp-flash')
 
@@ -49,6 +55,13 @@
             <div class="col-lg-7">
                 <div class="pe-sec">
                     <h3>Datos y precio</h3>
+                    @if ($conServ)
+                    <input type="hidden" name="es_servicio" id="esServ" value="{{ $esServ ? '1' : '0' }}">
+                    <div class="pf-tipo" id="pfTipo">
+                        <button type="button" data-t="0" class="{{ $esServ ? '' : 'on' }}"><i class="fa-solid fa-box"></i><b>Producto</b><small>Lleva cantidad e inventario</small></button>
+                        <button type="button" data-t="1" class="{{ $esServ ? 'on' : '' }}"><i class="fa-solid fa-hand-holding-heart"></i><b>Servicio</b><small>Siempre disponible, sin stock</small></button>
+                    </div>
+                    @endif
                     <div class="row g-2">
                         <div class="col-md-8">
                             <label for="nombre" class="form-label">Nombre</label>
@@ -144,7 +157,13 @@
                     @endif
                 </div>
 
-                <div class="pe-sec">
+                @if ($conServ)
+                <div class="pe-sec" id="secServ" @unless($esServ) style="display:none" @endunless>
+                    <h3>Servicio</h3>
+                    <p class="text-muted small mb-0"><i class="fa-solid fa-hand-holding-heart me-1" style="color:#16b84e"></i>Es un servicio: no se acaba ni lleva inventario. Siempre está disponible para vender en la caja, en pedidos y en su catálogo.</p>
+                </div>
+                @endif
+                <div class="pe-sec" id="secCant" @if($esServ) style="display:none" @endif>
                     <h3>{{ $soloUna ? 'Cantidad disponible' : 'Cantidad por talla y color' }}
                         @can('editar-producto')<a href="{{ route('productos.variantes', $producto) }}"><i class="fa-solid fa-plus me-1"></i>{{ \App\Support\TiendaActual::tienda()?->usa_tallas ? 'Agregar tallas / colores' : 'Más opciones' }}</a>@endcan
                     </h3>
@@ -214,6 +233,25 @@
     f.addEventListener('change', function () { cambios = true; });
     f.addEventListener('submit', function () { cambios = false; });
     window.addEventListener('beforeunload', function (e) { if (cambios) { e.preventDefault(); e.returnValue = ''; } });
+})();
+</script>
+@endpush
+
+@push('js')
+<script>
+// Producto o servicio: el servicio no muestra cantidades
+(function () {
+    var box = document.getElementById('pfTipo'); if (!box) return;
+    box.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-t]'); if (!b) return;
+        var s = b.dataset.t === '1';
+        document.getElementById('esServ').value = s ? '1' : '0';
+        box.querySelectorAll('[data-t]').forEach(function (x) { x.classList.toggle('on', x === b); });
+        document.getElementById('secCant').style.display = s ? 'none' : '';
+        document.getElementById('secServ').style.display = s ? '' : 'none';
+        document.getElementById('tTit').textContent = s ? 'servicio' : 'producto';
+        if (!s) { var c = document.getElementById('controla_inventario'); if (c) c.checked = true; }
+    });
 })();
 </script>
 @endpush

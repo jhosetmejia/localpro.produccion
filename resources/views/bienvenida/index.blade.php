@@ -52,8 +52,9 @@
         .prod.off{opacity:.45}
         .prod .chk{width:24px;height:24px;margin-top:10px;accent-color:#16b34a}
         .prod .row{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px}
+        .prod .row.r4{grid-template-columns:2fr 1fr 1fr 1fr}
         .prod .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
-        @media(max-width:640px){.prod .row,.prod .row2{grid-template-columns:1fr}}
+        @media(max-width:640px){.prod .row,.prod .row.r4,.prod .row2{grid-template-columns:1fr}}
         .prod small{display:block;font-size:.72rem;font-weight:800;color:var(--muted);margin:0 0 .25rem .2rem;text-transform:uppercase;letter-spacing:.06em}
         .mets{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:1.2rem}
         .met input{position:absolute;opacity:0}
@@ -117,6 +118,7 @@
             <div class="mods" id="mods">
                 <div class="field" style="margin-bottom:.4rem"><label>¿Qué necesita su negocio? <span style="color:var(--muted);font-weight:600">(lo marcamos según su tipo; puede cambiarlo cuando quiera)</span></label></div>
                 @foreach ([
+                    'mod_servicios' => ['fa-hand-holding-heart', '¿Ofrece servicios?', 'Ej: cortes, consultas, reparaciones, asesorías, lavados, clases. Los servicios no se acaban ni llevan inventario: siempre están disponibles para venderlos o agendarlos.'],
                     'mod_medida' => ['fa-ruler-combined', 'Vendo por metro, kilo o litro', 'Ej: vidrio, telas, cables, carnes, granos. En la caja se venden medidas como 1,5 m o 0,250 kg.'],
                     'mod_vencimiento' => ['fa-calendar-xmark', 'Mis productos tienen fecha de vencimiento', 'Ej: droguería, alimentos, cosméticos. Le avisamos lo que está por vencer.'],
                     'mod_recetas' => ['fa-bowl-food', 'Preparo productos con insumos (recetas)', 'Ej: restaurante, panadería. Al vender se descuentan los ingredientes.'],
@@ -165,7 +167,7 @@
             }
             document.querySelectorAll('input[name=tipo_negocio]').forEach(function (r) { r.addEventListener('change', function () { aplicar(r.value); }); });
             var marcado = document.querySelector('input[name=tipo_negocio]:checked');
-            if (marcado && {{ ($tienda->mod_medida || $tienda->mod_vencimiento || $tienda->mod_recetas || $tienda->mod_alquiler || $tienda->mod_obituarios || $tienda->mod_contable || $tienda->mod_consultorio || old('mod_medida') !== null) ? 'false' : 'true' }}) aplicar(marcado.value);
+            if (marcado && {{ ($tienda->mod_servicios || $tienda->mod_medida || $tienda->mod_vencimiento || $tienda->mod_recetas || $tienda->mod_alquiler || $tienda->mod_obituarios || $tienda->mod_contable || $tienda->mod_consultorio || old('mod_medida') !== null) ? 'false' : 'true' }}) aplicar(marcado.value);
             else if (marcado) mods.style.display = (marcado.value === 'conjunto' || marcado.value === 'instituto') ? 'none' : '';
         })();
         </script>
@@ -173,7 +175,7 @@
 
         {{-- ===== PASO 3: PRODUCTOS ===== --}}
         @if ($paso === 3)
-        <h1>Sus primeros <span class="grad-text">productos</span></h1>
+        <h1>Sus primeros <span class="grad-text">{{ $tienda->mod_servicios ? 'productos y servicios' : 'productos' }}</span></h1>
         <p class="lead">Le dejamos {{ count($ejemplos) }} ejemplos de {{ mb_strtolower($tienda->tipo_nombre) }}. Cámbielos por los suyos, desmarque los que no quiera o agregue más. Después podrá cargar todo su inventario.</p>
         @if ($tienda->usa_tallas)
             <div class="tip"><i class="fa-solid fa-lightbulb me-1"></i> Escriba las tallas y colores separados por coma. Se crea cada combinación con la cantidad indicada (ej. 4 tallas × 2 colores = 8 referencias).</div>
@@ -183,6 +185,9 @@
         @if ($sinConteo)
             <div class="tip"><i class="fa-solid fa-utensils me-1"></i> En su tipo de negocio no hace falta contar unidades: se vende sin límite. Si algún producto sí lo necesita, actívelo luego en Productos.</div>
         @endif
+        @if ($tienda->mod_servicios)
+            <div class="tip"><i class="fa-solid fa-hand-holding-heart me-1"></i> Marque como <b>Servicio</b> lo que no se acaba (consultas, cortes, reparaciones, planes…): no lleva cantidad ni inventario y siempre está disponible para vender.</div>
+        @endif
         <form method="post" action="{{ route('bienvenida.productos') }}">
             @csrf
             <div class="prods" id="prods">
@@ -191,10 +196,14 @@
                     <input type="hidden" name="productos[{{ $i }}][incluir]" value="0">
                     <input class="chk" type="checkbox" name="productos[{{ $i }}][incluir]" value="1" @checked(old("productos.$i.incluir", 1)) onchange="this.closest('.prod').classList.toggle('off', !this.checked)">
                     <div>
-                        <div class="row">
-                            <div><small>Producto</small><input class="in" name="productos[{{ $i }}][nombre]" value="{{ $p['nombre'] ?? '' }}" maxlength="80"></div>
+                        <div class="row {{ $tienda->mod_servicios ? 'r4' : '' }}">
+                            <div><small>{{ $tienda->mod_servicios ? 'Nombre' : 'Producto' }}</small><input class="in" name="productos[{{ $i }}][nombre]" value="{{ $p['nombre'] ?? '' }}" maxlength="80"></div>
                             <div><small>Precio ({{ moneda()['moneda'] }})</small><input data-dinero class="in" type="number" min="0" step="{{ paso_dinero() }}" name="productos[{{ $i }}][precio]" value="{{ $p['precio'] ?? '' }}" placeholder="0"></div>
-                            <div @if($sinConteo) style="display:none" @endif><small>{{ $tienda->usa_tallas ? 'Cantidad c/u' : 'Cantidad' }}</small><input class="in" type="number" min="0" name="productos[{{ $i }}][cantidad]" value="{{ $p['cantidad'] ?? 0 }}"></div>
+                            @php $esServ = $tienda->mod_servicios && !empty($p['servicio']); @endphp
+                            @if ($tienda->mod_servicios)
+                            <div><small>Es un…</small><select class="in" name="productos[{{ $i }}][servicio]" data-serv><option value="0" @selected(!$esServ)>Producto</option><option value="1" @selected($esServ)>Servicio</option></select></div>
+                            @endif
+                            <div data-cant @if($sinConteo || $esServ) style="display:none" @endif><small>{{ $tienda->usa_tallas ? 'Cantidad c/u' : 'Cantidad' }}</small><input class="in" type="number" min="0" name="productos[{{ $i }}][cantidad]" value="{{ $p['cantidad'] ?? 0 }}"></div>
                         </div>
                         @if ($tienda->usa_tallas)
                         <div class="row2">
@@ -206,7 +215,7 @@
                 </div>
                 @endforeach
             </div>
-            <button type="button" class="btn btn-ghost" id="mas" style="margin-top:12px"><i class="fa-solid fa-plus"></i> Agregar otro producto</button>
+            <button type="button" class="btn btn-ghost" id="mas" style="margin-top:12px"><i class="fa-solid fa-plus"></i> Agregar otro {{ $tienda->mod_servicios ? 'producto o servicio' : 'producto' }}</button>
             <div class="acts">
                 <button class="btn btn-ghost" name="omitir" value="1" formnovalidate>Omitir por ahora</button>
                 <button class="btn btn-ink">Guardar y continuar <i class="fa-solid fa-arrow-right"></i></button>
@@ -220,6 +229,7 @@
                     if (n >= 8) { btn.disabled = true; return; }
                     var c = box.children[0].cloneNode(true);
                     c.classList.remove('off');
+                    c.querySelectorAll('select').forEach(function (s) { s.name = s.name.replace(/productos\[\d+\]/, 'productos[' + n + ']'); });
                     c.querySelectorAll('input').forEach(function (i) {
                         i.name = i.name.replace(/productos\[\d+\]/, 'productos[' + n + ']');
                         if (i.type === 'checkbox') i.checked = true;
@@ -228,6 +238,12 @@
                     box.appendChild(c);
                     c.querySelector('input[name$="[nombre]"]').focus();
                     if (n + 1 >= 8) btn.disabled = true;
+                });
+                // Servicio: no lleva cantidad
+                box.addEventListener('change', function (e) {
+                    if (!e.target.matches('[data-serv]')) return;
+                    var c = e.target.closest('.prod').querySelector('[data-cant]');
+                    if (c && !{{ $sinConteo ? 'true' : 'false' }}) c.style.display = e.target.value === '1' ? 'none' : '';
                 });
             })();
         </script>
