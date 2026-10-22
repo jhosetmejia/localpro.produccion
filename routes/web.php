@@ -527,6 +527,9 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::put('/red/{asesor}', [adminRedController::class, 'update'])->name('red.update');
     Route::post('/tiendas/{tienda}/asesor', [adminRedController::class, 'asignar'])->name('tiendas.asesor');
     // Prospección automática (firmas contables): envío diario, lista y resultados
+    Route::get('/pruebas', [\App\Http\Controllers\adminPruebasController::class, 'index'])->name('pruebas');
+    Route::post('/pruebas/ejecutar', [\App\Http\Controllers\adminPruebasController::class, 'ejecutar'])->middleware('throttle:10,1')->name('pruebas.ejecutar');
+    Route::post('/pruebas/recorrido', [\App\Http\Controllers\adminPruebasController::class, 'recorrido'])->middleware('throttle:10,1')->name('pruebas.recorrido');
     Route::get('/prospectos', [\App\Http\Controllers\adminProspectosController::class, 'index'])->name('prospectos');
     Route::post('/prospectos/ajustes', [\App\Http\Controllers\adminProspectosController::class, 'guardar'])->name('prospectos.guardar');
     Route::post('/prospectos/agregar', [\App\Http\Controllers\adminProspectosController::class, 'agregar'])->name('prospectos.agregar');

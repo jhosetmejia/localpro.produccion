@@ -52,6 +52,37 @@ class RolesNegocio
         'admin' => ['Administrador', 'fa-user-tie', ['*'], 'panel', null],
     ];
 
+    // Roles que ya quedan creados al abrir un negocio con pedidos (el dueño no tiene que inventarlos)
+    public const POR_DEFECTO = [
+        'restaurante' => ['admin', 'caja', 'mesero', 'cocina', 'bar'],
+        'cafeteria' => ['admin', 'caja', 'mesero', 'cafeteria'],
+        'otro' => ['caja', 'mesero', 'cocina'],
+    ];
+
+    public static function plantillasPorDefecto(?string $tipo): array
+    {
+        return self::POR_DEFECTO[$tipo] ?? self::POR_DEFECTO['otro'];
+    }
+
+    /**
+     * Crea los roles por defecto (con sus permisos y estaciones) si el negocio tiene pedidos y aún no tiene roles.
+     * Devuelve cuántos creó.
+     */
+    public static function crearPorDefecto(\App\Models\Tienda $tienda): int
+    {
+        if (!$tienda->mod_pedidos) return 0;
+        return (int) TiendaActual::como($tienda->id, function () use ($tienda) {
+            if (NegocioRol::exists()) return 0;
+            PedidoEstacion::asegurar();
+            $n = 0;
+            foreach (self::plantillasPorDefecto($tienda->tipo_negocio) as $clave) {
+                self::desdePlantilla($clave);
+                $n++;
+            }
+            return $n;
+        });
+    }
+
     // [grupo => [permiso => texto]] con lo que este negocio puede dar
     public static function disponibles(): array
     {

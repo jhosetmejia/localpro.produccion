@@ -28,6 +28,7 @@
 <p>Se cambia con un toque en <b>Pedidos → Configurar</b>.</p>
 
 <h2>Roles a la medida de su negocio</h2>
+<p><b>Al crear su restaurante, los roles ya vienen listos:</b> Administrador, Caja, Mesero, Cocina y Bar, cada uno con sus permisos y su pantalla de inicio. No tiene que inventarlos: solo asigna a cada persona de su equipo.</p>
 <p>El dueño o el administrador crea los roles de su equipo y marca qué puede hacer cada uno. Vienen plantillas listas: <b>Caja, Mesero, Cocina, Cafetería, Bar, Entradas, Paseos con animales, Granjero y Administrador</b>. Si cambia los permisos de un rol, se actualizan todas las personas que lo tienen. Cada empleado, al entrar, ve directo su pantalla.</p>
 
 <h2>Pantallas para la cocina y para los clientes</h2>

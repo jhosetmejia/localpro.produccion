@@ -45,7 +45,8 @@
             <li><b>Productos:</b> cree sus platos, bebidas, entradas o paseos en <b>Productos</b>, con su precio. Si no lleva control de existencias de un plato, apague "controla inventario".</li>
             <li><b>Estaciones:</b> en <b>Pedidos → Configurar</b> cree las estaciones que preparan o atienden: Cocina, Cafetería, Bar… En una granja: Entradas, Paseos con animales, Granja.</li>
             <li><b>Qué prepara cada estación:</b> en la misma pantalla diga a qué estación va cada producto (o una categoría completa). Lo que no tenga estación va a la primera.</li>
-            <li><b>Roles:</b> en <b>Roles del negocio</b> cree los roles con las plantillas (Caja, Mesero, Cocina, Cafetería, Entradas, Paseos con animales, Granjero) y ajuste los permisos de cada uno.</li>
+            <li><b>Roles listos:</b> si su negocio es restaurante o cafetería, ya tiene creados <b>Administrador, Caja, Mesero, Cocina y Bar y bebidas</b> (cafetería: Cafetería en vez de Cocina y Bar) con sus permisos. Solo asigne a cada persona su rol en <b>Usuarios</b>.</li>
+            <li><b>Roles:</b> en <b>Roles del negocio</b> puede crear más roles con las plantillas (Caja, Mesero, Cocina, Cafetería, Entradas, Paseos con animales, Granjero) y ajuste los permisos de cada uno.</li>
             <li><b>Personas:</b> en <b>Usuarios</b> cree a cada empleado con su correo y clave, y elija su rol. Al entrar, cada uno ve directo su pantalla.</li>
             <li><b>Pantallas:</b> en la cocina (y cada estación) deje abierta su pantalla en una tablet, celular o TV con <b>Pantalla completa</b>. Si quiere, active "Imprimir al llegar".</li>
         </ol>

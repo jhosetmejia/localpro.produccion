@@ -48,6 +48,10 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-users"></i></div>
                     Usuarios del sistema
                 </a>
+                <a class="nav-link {{ $on('admin.pruebas*') }}" href="{{ route('admin.pruebas') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-vial-circle-check"></i></div>
+                    Probar sistemas
+                </a>
                 <a class="nav-link {{ $on('admin.prospectos*') }}" href="{{ route('admin.prospectos') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-bullhorn"></i></div>
                     Prospectos

@@ -108,6 +108,17 @@ class Tienda extends Model
                 $t->slug = $slug;
             }
         });
+        // Al encender Pedidos (restaurante, cafetería…) quedan creados los roles Caja, Mesero, Cocina… con sus permisos
+        static::saved(function (Tienda $t) {
+            if ($t->mod_pedidos && ($t->wasRecentlyCreated || $t->wasChanged('mod_pedidos'))
+                && \Illuminate\Support\Facades\Schema::hasTable('negocio_roles')) {
+                try {
+                    \App\Support\RolesNegocio::crearPorDefecto($t);
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            }
+        });
         // Código del negocio: LCT-00001, LCT-00002…
         static::creating(function (Tienda $t) {
             if (empty($t->codigo) && \Illuminate\Support\Facades\Schema::hasColumn('tiendas', 'codigo')) {

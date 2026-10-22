@@ -41,3 +41,21 @@ Artisan::command('localpro:superadmin {email} {clave} {--nombre=Administrador Lo
     }
     return 0;
 })->purpose('Crear o actualizar el superadministrador');
+
+// Roles por defecto (Caja, Mesero, Cocina…) para los negocios con Pedidos que todavía no tienen roles
+Artisan::command('pedidos:roles-por-defecto {--simular}', function () {
+    $n = 0;
+    \App\Models\Tienda::where('mod_pedidos', true)->orderBy('id')->each(function ($t) use (&$n) {
+        $tiene = \App\Support\TiendaActual::como($t->id, fn () => \App\Models\NegocioRol::exists());
+        if ($tiene) return;
+        $roles = implode(', ', \App\Support\RolesNegocio::plantillasPorDefecto($t->tipo_negocio));
+        if ($this->option('simular')) {
+            $this->line("[simular] {$t->nombre} ({$t->tipo_negocio}): {$roles}");
+        } else {
+            $c = \App\Support\RolesNegocio::crearPorDefecto($t);
+            $this->line("{$t->nombre}: {$c} roles ({$roles})");
+        }
+        $n++;
+    });
+    $this->info("Negocios: {$n}");
+})->purpose('Crea los roles por defecto en negocios con Pedidos que no tienen roles');
