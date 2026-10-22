@@ -3,7 +3,7 @@
 @php
     $lugarT = trim(implode(', ', array_filter([$tienda->ciudad, $tienda->departamento !== $tienda->ciudad ? $tienda->departamento : null])));
     $desc = \Illuminate\Support\Str::limit(($tienda->descripcion ?: $tienda->tipo_nombre) . ($lugarT ? ' en ' . $lugarT : '') . '. ' . $productos->count() . ' productos: ' . $categorias->take(5)->implode(', ') . '. Compre por WhatsApp.', 158);
-    $lista = $productos->where('disponible', true)->take(30)->values();
+    $lista = $productos->where('disponible', true)->take(60)->values();
     // Enlaces compartidos por categoría: ?categoria=chaquetas o ?ver=promos (el título del enlace lo dice)
     $catSlugs = $categorias->mapWithKeys(fn ($c) => [\Illuminate\Support\Str::slug($c) => $c]);
     $catSel = request('categoria') ? ($catSlugs[request('categoria')] ?? null) : null;
@@ -84,6 +84,8 @@
 body:not(.filtrando) .filtro-solo,body.filtrando .inicio-solo{display:none!important}
 .sec h2 .ver-todo{margin-left:auto;background:none;border:0;color:#11702f;font-weight:800;font-size:.85rem;cursor:pointer;padding:.2rem .1rem;font-family:inherit}
 .sec h2 .ver-todo:hover{text-decoration:underline}
+.grid .card.oc{display:none}
+.ver-mas{display:block;margin:16px auto 0;background:var(--k);color:#fff;border:0;border-radius:999px;padding:.75rem 1.4rem;font-weight:800;font-family:inherit;cursor:pointer}
 .carril{position:relative}
 .riel{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding:2px 2px 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .riel::-webkit-scrollbar{display:none}
@@ -141,9 +143,23 @@ body:not(.filtrando) .filtro-solo,body.filtrando .inicio-solo{display:none!impor
     @php
         // Inicio de la tienda: las categorías con más productos van en filas que se deslizan a los lados
         // (máximo 5) y los demás productos quedan juntos en una sola cuadrícula, sin huecos.
-        $filas = collect($secciones)->filter(fn ($i) => count($i) >= 3)->take(5);
+        // Cada categoría con 2 o más productos es una fila deslizable (máx. 8 filas, 10 productos c/u, del más barato al más caro).
+        // Arriba va "Lo más económico". Lo demás sale en una cuadrícula corta con botón "Ver más".
+        $filas = collect($secciones)->filter(fn ($i) => count($i) >= 2)->take(8);
         $resto = collect($secciones)->except($filas->keys())->flatten(1)->unique('id')->values();
+        $baratos = $productos->where('disponible', true)->take(12)->values();
+        $verResto = 8;
     @endphp
+    @if ($productos->count() > 12)
+    <section class="sec fila inicio-solo">
+        <h2>💸 Lo más económico</h2>
+        <div class="carril">
+            <button type="button" class="flecha izq" data-mover="-1" aria-label="Anteriores">‹</button>
+            <div class="riel">@foreach ($baratos as $p)@include('catalogo._card')@endforeach</div>
+            <button type="button" class="flecha der" data-mover="1" aria-label="Siguientes">›</button>
+        </div>
+    </section>
+    @endif
     @if ($categorias->count() > 1)
     @foreach ($filas as $cat => $items)
     <section class="sec fila inicio-solo" data-fila="{{ $cat }}">
@@ -152,8 +168,8 @@ body:not(.filtrando) .filtro-solo,body.filtrando .inicio-solo{display:none!impor
         <div class="carril">
             <button type="button" class="flecha izq" data-mover="-1" aria-label="Anteriores">‹</button>
             <div class="riel">
-                @foreach (collect($items)->take(12) as $p)@include('catalogo._card')@endforeach
-                @if (count($items) > 12)<button type="button" class="card mas-card" data-ver="{{ $cat }}"><b>+{{ count($items) - 12 }}</b>Ver todos</button>@endif
+                @foreach (collect($items)->take(10) as $p)@include('catalogo._card')@endforeach
+                @if (count($items) > 10)<button type="button" class="card mas-card" data-ver="{{ $cat }}"><b>+{{ count($items) - 10 }}</b>Ver todos</button>@endif
             </div>
             <button type="button" class="flecha der" data-mover="1" aria-label="Siguientes">›</button>
         </div>
@@ -162,7 +178,8 @@ body:not(.filtrando) .filtro-solo,body.filtrando .inicio-solo{display:none!impor
     @if ($resto->isNotEmpty())
     <section class="sec inicio-solo" data-resto>
         <h2>{{ $filas->isEmpty() ? 'Todos los productos' : 'Más productos' }} <small>{{ $resto->count() }}</small></h2>
-        <div class="grid">@foreach ($resto as $p)@include('catalogo._card')@endforeach</div>
+        <div class="grid">@foreach ($resto as $i => $p)@include('catalogo._card', ['oculto' => $i >= $verResto])@endforeach</div>
+        @if ($resto->count() > $verResto)<button type="button" class="ver-mas" id="verMas">Ver más productos ({{ $resto->count() - $verResto }})</button>@endif
     </section>
     @endif
     @endif
@@ -379,5 +396,6 @@ body:not(.filtrando) .filtro-solo,body.filtrando .inicio-solo{display:none!impor
         if (a) { var p2 = P[a.dataset.agregar]; LPC.agregar(p2, p2.variantes[0], 1); }
     });
 })();
+(function(){var b=document.getElementById('verMas');if(!b)return;b.addEventListener('click',function(){var o=b.parentNode.querySelectorAll('.card.oc');for(var i=0;i<o.length&&i<12;i++)o[i].classList.remove('oc');var r=o.length-12;if(r>0)b.textContent='Ver más productos ('+r+')';else b.remove();});})();
 </script>
 @endpush

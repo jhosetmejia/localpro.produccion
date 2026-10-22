@@ -195,14 +195,15 @@ class catalogoController extends Controller
                 if (!$t->en_google) continue;
                 $urls[] = ['loc' => $t->url_catalogo, 'pri' => '0.9', 'mod' => $t->updated_at];
                 TiendaActual::como($t->id, function () use ($t, &$urls) {
-                    foreach (Producto::enCatalogo()->get(['id', 'nombre', 'updated_at']) as $p) {
-                        $urls[] = ['loc' => self::urlProducto($t, $p), 'pri' => '0.7', 'mod' => $p->updated_at];
+                    foreach (Producto::enCatalogo()->get(['id', 'nombre', 'img_path', 'updated_at']) as $p) {
+                        $urls[] = ['loc' => self::urlProducto($t, $p), 'pri' => '0.7', 'mod' => $p->updated_at,
+                            'img' => $p->img_path ? asset('storage/productos/' . rawurlencode($p->img_path)) : null, 'tit' => \App\Support\Textos::titulo($p->nombre)];
                     }
                 });
             }
-            $out = '<?xml version="1.0" encoding="UTF-8"?>' . "\n" . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+            $out = '<?xml version="1.0" encoding="UTF-8"?>' . "\n" . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">' . "\n";
             foreach ($urls as $u) {
-                $out .= '<url><loc>' . e($u['loc']) . '</loc>' . ($u['mod'] ? '<lastmod>' . $u['mod']->toAtomString() . '</lastmod>' : '') . '<priority>' . $u['pri'] . '</priority></url>' . "\n";
+                $out .= '<url><loc>' . e($u['loc']) . '</loc>' . ($u['mod'] ? '<lastmod>' . $u['mod']->toAtomString() . '</lastmod>' : '') . '<priority>' . $u['pri'] . '</priority>' . (!empty($u['img']) ? '<image:image><image:loc>' . e($u['img']) . '</image:loc><image:title>' . e($u['tit'] ?? '') . '</image:title></image:image>' : '') . '</url>' . "\n";
             }
             return $out . '</urlset>';
         });

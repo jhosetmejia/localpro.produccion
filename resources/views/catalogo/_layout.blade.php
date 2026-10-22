@@ -52,6 +52,8 @@ button{font:inherit;border:0;background:none;cursor:pointer;color:inherit}
 /* Tarjetas de producto */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
 @media(max-width:520px){.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
+.subir-top{position:fixed;right:14px;bottom:calc(90px + env(safe-area-inset-bottom));z-index:35;width:48px;height:48px;border-radius:50%;border:0;background:var(--k);color:#a6f34a;font-size:1.3rem;font-weight:900;box-shadow:0 10px 24px -8px rgba(0,0,0,.55);cursor:pointer;opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity .2s,transform .2s}
+.subir-top.ver{opacity:1;transform:none;pointer-events:auto}
 .card{background:#fff;border:1.5px solid var(--line);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;transition:transform .15s,box-shadow .15s;min-width:0}
 .card:hover{transform:translateY(-3px);box-shadow:0 18px 30px -22px rgba(22,179,74,.9)}
 .card.off{opacity:.55}
@@ -285,6 +287,8 @@ window.LPC = (function () {
     };
 })();
 </script>
+<button type="button" class="subir-top" id="subirTop" aria-label="Subir al inicio" title="Subir">↑</button>
+<script>(function(){var b=document.getElementById('subirTop');if(!b)return;var f=function(){b.classList.toggle('ver',window.scrollY>700)};window.addEventListener('scroll',f,{passive:true});f();b.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'})});})();</script>
 @stack('js')
 @php $edUrl = \App\Http\Controllers\catalogoController::puedeEditar($tienda) ? url('/productos/__ID__/edit') : null; @endphp
 <script>
