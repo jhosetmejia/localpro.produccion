@@ -8,6 +8,9 @@
 .aq-fil a{border-radius:999px;padding:.45rem .9rem;font-weight:800;font-size:.85rem;text-decoration:none;background:#fff;border:1.5px solid #e3ebe6;color:#151a17}
 .aq-fil a.on{background:#0b0d0c;color:#a6f34a;border-color:#0b0d0c}
 .aq-card{display:flex;gap:1rem;align-items:center;flex-wrap:wrap;background:#fff;border:1.5px solid #e3ebe6;border-radius:20px;padding:.9rem 1rem;margin-bottom:.6rem}
+.aq-card.anulado{background:#e9ebea;border-color:#d4d8d6;filter:grayscale(1);opacity:.6}
+.aq-card.anulado .t b,.aq-card.anulado .t>*:first-child{text-decoration:line-through}
+.aq-card.anulado:hover{opacity:.9}
 .aq-fecha{min-width:64px;text-align:center;background:#f1f5f2;border-radius:14px;padding:.45rem .5rem;line-height:1.1}
 .aq-fecha b{display:block;font-size:1.35rem;font-weight:900}
 .aq-fecha small{font-weight:800;font-size:.72rem;text-transform:uppercase;color:#6b7570}
@@ -98,7 +101,7 @@
                 ? 'Hola 👋 Gracias por alquilar con ' . $negocio->nombre . '. Aquí está su factura ' . $a->venta->numero . ' del alquiler ' . $a->numero . ' (' . $a->que_alquila . ') por ' . dinero($a->valor) . ': ' . $a->venta->url_factura
                 : 'Hola 👋 Le escribimos de ' . $negocio->nombre . ' por el alquiler ' . $a->numero . ': ' . $a->que_alquila . ' el ' . $a->fecha->format('d/m/Y') . ', ' . $a->horario_texto . ' en ' . $a->lugar . '. Valor: ' . dinero($a->valor) . '.');
         @endphp
-        <div class="aq-card">
+        <div class="aq-card {{ $a->estado === 'cancelado' ? 'anulado' : '' }}">
             <div class="aq-fecha {{ $esHoy && $a->estado === 'programado' ? 'hoy' : '' }}"><small>{{ $meses[$a->fecha->month - 1] }}</small><b>{{ $a->fecha->format('d') }}</b><small>{{ $a->fecha->year != now()->year ? $a->fecha->year : $a->hora_texto }}</small></div>
             <div class="t">
                 <b><span class="num">{{ $a->numero }}</span>{{ $a->que_alquila }}</b>
