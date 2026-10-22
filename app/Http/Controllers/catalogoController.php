@@ -191,7 +191,11 @@ class catalogoController extends Controller
                 $f = $a['actualizado'] ?? $a['publicado'] ?? null;
                 $urls[] = ['loc' => route('blog.show', $slug), 'pri' => '0.7', 'mod' => $f ? \Illuminate\Support\Carbon::parse($f) : null];
             }
+            $mk = [];
             foreach (Tienda::with('plan')->where('catalogo_activo', true)->where('estado', 'activa')->where('onboarding_completo', true)->get() as $t) {
+                // Páginas del Marketplace por ciudad y por tipo de negocio
+                if ($t->ciudad) $mk['c:' . $t->ciudad] = route('marketplace', ['ciudad' => $t->ciudad]);
+                if ($t->tipo_negocio && isset(Tienda::TIPOS[$t->tipo_negocio])) $mk['t:' . $t->tipo_negocio] = route('marketplace', ['tipo' => $t->tipo_negocio]);
                 if (!$t->en_google) continue;
                 $urls[] = ['loc' => $t->url_catalogo, 'pri' => '0.9', 'mod' => $t->updated_at];
                 TiendaActual::como($t->id, function () use ($t, &$urls) {
@@ -201,6 +205,7 @@ class catalogoController extends Controller
                     }
                 });
             }
+            foreach ($mk as $u) $urls[] = ['loc' => $u, 'pri' => '0.8', 'mod' => null];
             $out = '<?xml version="1.0" encoding="UTF-8"?>' . "\n" . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">' . "\n";
             foreach ($urls as $u) {
                 $out .= '<url><loc>' . e($u['loc']) . '</loc>' . ($u['mod'] ? '<lastmod>' . $u['mod']->toAtomString() . '</lastmod>' : '') . '<priority>' . $u['pri'] . '</priority>' . (!empty($u['img']) ? '<image:image><image:loc>' . e($u['img']) . '</image:loc><image:title>' . e($u['tit'] ?? '') . '</image:title></image:image>' : '') . '</url>' . "\n";

@@ -179,6 +179,7 @@ main,.pie-sep{flex:none}
         </div>
         @php $urlCrear = (app()->environment('production') && config('app.dominio') ? 'https://' . config('app.dominio') . '/registro' : route('registro')) . '?desde=' . rawurlencode('tienda:' . \Illuminate\Support\Str::limit($tienda->slug, 70, '')) . ($tienda->tipo_negocio ? '&tipo=' . rawurlencode($tienda->tipo_negocio) : ''); @endphp
         <div class="lp">Tienda en línea creada con <b>LocalPro</b> · <a class="crear" href="{{ $urlCrear }}">¿Tiene un negocio? Cree su tienda aquí →</a>
+            · <a class="crear" href="{{ route('marketplace', $tienda->ciudad ? ['ciudad' => $tienda->ciudad] : []) }}">🛍️ Compre en nuestro Marketplace: productos impulsados por LocalProo</a>
             @if ((int) $tienda->catalogo_visitas > 0)<span class="visitas" title="Visitas a esta tienda en línea"><i></i>{{ number_format((int) $tienda->catalogo_visitas, 0, ',', '.') }} {{ (int) $tienda->catalogo_visitas === 1 ? 'visita' : 'visitas' }}</span>@endif
         </div>
     </div>

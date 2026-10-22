@@ -187,6 +187,17 @@
     </section>
     @endif
 
+    <section class="section" id="marketplace" style="padding-top:0">
+        <div class="wrap">
+            <div class="section-head">
+                <span class="eyebrow">Marketplace</span>
+                <h2 class="serif">Compre en nuestro <span class="grad-text">Marketplace.</span></h2>
+                <p>Productos de tiendas locales impulsados por LocalProo. Busque, compare precios y compre directo por WhatsApp.</p>
+            </div>
+            <p><a class="btn btn-amber" href="{{ route('marketplace') }}"><i class="fa-solid fa-store me-1"></i> Ir al Marketplace</a></p>
+        </div>
+    </section>
+
     <section class="cta">
         <div class="wrap"><div class="box">
             <h2 class="serif">Su negocio, <span class="grad-text">más ordenado</span> desde hoy.</h2>

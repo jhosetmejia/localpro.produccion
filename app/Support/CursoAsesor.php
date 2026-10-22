@@ -116,6 +116,7 @@ class CursoAsesor
                     '<b>Palabras e íconos según el negocio:</b> una tienda de ropa ve "prendas", una ferretería "productos", una funeraria "planes y servicios". Los servicios no salen como "Agotado".',
                     '<b>Tienda en línea solo con existencias:</b> el dueño escoge si su página muestra todos los productos o solo los que tiene en inventario, para no recibir pedidos de lo que no hay.',
                     '<b>Tienda en línea ordenada:</b> arriba sale "Lo más económico" y cada categoría va en una fila que se desliza, del más barato al más caro; la página ya no queda larguísima (botón "Ver más productos") y trae un botón para subir. Cada producto sale en Google con su foto, precio y nombre de la tienda.',
+                    '<b>Marketplace:</b> localproo.com/marketplace reúne todas las tiendas y sus productos; tiene páginas por ciudad y tipo de negocio que salen en Google (ej. "Tiendas en Pasto"). Cada tienda en línea y la página principal llevan el botón "Compre en nuestro Marketplace".',
                     '<b>Permisos del vendedor:</b> el dueño decide qué más puede hacer cada vendedor además de vender: crear o editar productos, registrar entradas de mercancía, hacer devoluciones, ver reportes, etc. Se hace en Usuarios → menú del vendedor → Permisos. Nunca puede manejar usuarios, datos del negocio ni el plan.',
                     '<b>Fotos livianas automáticas:</b> las fotos que suben se achican solas sin perder calidad, para que la página cargue rápido en el celular.',
                 ],

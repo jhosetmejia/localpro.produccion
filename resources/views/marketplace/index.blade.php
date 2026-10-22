@@ -1,7 +1,10 @@
 @php
     $titulo = $q !== '' ? $q . ' · LocalProo Marketplace' : ($tipo !== '' ? \App\Models\Tienda::TIPOS[$tipo][0] . ($ciudad ? ' en ' . $ciudad : '') . ' · LocalProo Marketplace' : 'LocalProo Marketplace · Todas las tiendas en un solo lugar');
-    $desc = 'Encuentre productos de ' . number_format($totalTiendas, 0, ',', '.') . ' tiendas de ' . $nombrePais . ' y compre directo por WhatsApp. Ropa, calzado, tecnología, comida y más.';
+    // Páginas por tipo y ciudad se indexan solas (ej. "Tiendas de ropa en Pasto"); la búsqueda libre no
+    if ($q === '' && $tipo === '' && $ciudad !== '') $titulo = 'Tiendas en ' . $ciudad . ' · Compre en línea · LocalProo Marketplace';
+    $desc = ($ciudad !== '' ? 'Tiendas y productos en ' . $ciudad . '. ' : '') . 'Encuentre productos de ' . number_format($totalTiendas, 0, ',', '.') . ' tiendas de ' . $nombrePais . ' y compre directo por WhatsApp. Ropa, calzado, tecnología, comida y más.';
     $url = fn (array $cambios) => route('marketplace', array_filter(array_merge(['q' => $q, 'tipo' => $tipo, 'ciudad' => $ciudad, 'orden' => $orden !== 'menor' ? $orden : null], $cambios), fn ($v) => $v !== null && $v !== ''));
+    $canon = $q === '' ? $url(['orden' => null, 'q' => null]) : route('marketplace');
 @endphp
 <!DOCTYPE html>
 <html lang="es">
@@ -10,13 +13,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ $titulo }}</title>
 <meta name="description" content="{{ $desc }}">
-<link rel="canonical" href="{{ $filtrando ? $url([]) : route('marketplace') }}">
+<link rel="canonical" href="{{ $canon }}">
 <meta name="robots" content="{{ $q !== '' || $productos->currentPage() > 1 ? 'noindex, follow' : 'index, follow' }}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="LocalProo">
 <meta property="og:title" content="{{ $titulo }}">
 <meta property="og:description" content="{{ $desc }}">
-<meta property="og:url" content="{{ route('marketplace') }}">
+<meta property="og:url" content="{{ $canon }}">
+<script type="application/ld+json">{!! json_encode(['@context' => 'https://schema.org', '@graph' => [
+    ['@type' => 'WebSite', 'name' => 'LocalProo Marketplace', 'url' => route('marketplace'),
+        'potentialAction' => ['@type' => 'SearchAction', 'target' => route('marketplace') . '?q={search_term_string}', 'query-input' => 'required name=search_term_string']],
+    ['@type' => 'ItemList', 'name' => $titulo, 'itemListElement' => $tiendas->take(50)->values()->map(fn ($t, $i) => ['@type' => 'ListItem', 'position' => $i + 1, 'url' => $t->url_catalogo, 'name' => $t->nombre])->all()],
+]], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}</script>
 <meta name="theme-color" content="#0b0d0c">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -227,6 +235,14 @@ section{margin-top:22px}
     </div>
 </main>
 
-<footer class="pie"><b>LocalProo</b> · Todos los derechos reservados</footer>
+<footer class="pie">
+    @if ($ciudades->isNotEmpty() || $tipos->isNotEmpty())
+    <nav style="max-width:1100px;margin:0 auto 12px;display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;font-size:.85rem">
+        @foreach ($ciudades->take(30) as $c)<a href="{{ route('marketplace', ['ciudad' => $c]) }}" style="color:inherit">Tiendas en {{ $c }}</a>@endforeach
+        @foreach ($tipos->keys()->take(20) as $k)<a href="{{ route('marketplace', ['tipo' => $k]) }}" style="color:inherit">{{ \App\Models\Tienda::TIPOS[$k][0] }}</a>@endforeach
+    </nav>
+    @endif
+    <b>LocalProo</b> · Todos los derechos reservados
+</footer>
 </body>
 </html>
