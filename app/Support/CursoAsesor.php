@@ -146,7 +146,7 @@ class CursoAsesor
                 'intro' => 'El asesor que más gana es el que más negocios contacta. Sus contactos del celular son su primera base de datos, y LocalPro le ayuda a escribirles todos los días.',
                 'puntos' => [
                     '<b>Su herramienta "Mis contactos":</b> exporta los contactos de su celular (Android, Samsung, iPhone o Google) y los sube. No se repiten.',
-                    '<b>20 al día:</b> cada día le salen 20 contactos con un botón verde. Al tocarlo se abre WhatsApp con un mensaje listo, con el nombre de la persona y <b>su enlace de prueba gratis</b>. Si se inscriben, el negocio queda a su nombre.',
+                    '<b>20 al día:</b> cada día le salen 20 contactos con un botón verde. Al tocarlo se abre WhatsApp con un mensaje listo, con el nombre de la persona y <b>su enlace de prueba gratis</b>. Arriba del mensaje elige <b>Con nombre</b> ("¡Hola María!") o <b>Sin nombre</b> (solo "¡Hola!"), útil cuando el contacto está guardado con un apodo o un nombre raro. Si se inscriben, el negocio queda a su nombre.',
                     '<b>Lo mismo para los negocios:</b> el dueño que usa LocalPro también puede subir los contactos de su celular en Clientes → "Crear base de datos" y escribirles con "Contactar clientes": a cada vendedor le salen 20 al día con el enlace de su tienda en línea. Muéstreselo: es una razón fuerte para que compren.',
                     '<b>Respeto:</b> escriba de 9 a. m. a 7 p. m. y si alguien no quiere más mensajes, márquelo y no le vuelva a escribir.',
                 ],

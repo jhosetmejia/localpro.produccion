@@ -21,6 +21,9 @@
 .ci-wa:hover{background:#1ebe5b}
 .ci-mini{border:0;background:#f1f5f2;border-radius:999px;width:36px;height:36px;display:grid;place-items:center;flex:none}
 .ac-msg{white-space:pre-wrap;background:#e7fbe9;border:1px solid #c9efcf;border-radius:14px 14px 14px 4px;padding:.8rem 1rem;font-size:.92rem;line-height:1.45}
+.ac-elige{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;margin-bottom:.6rem}
+.ac-nom{border:1.5px solid #d6dde8;background:#fff;border-radius:999px;padding:.35rem .9rem;font-weight:800;font-size:.85rem}
+.ac-nom.on{background:#0b0d0c;border-color:#0b0d0c;color:#a6f34a}
 .ac-compartir{display:flex;gap:.7rem;align-items:flex-start;background:#f4fcf6;border:1.5px solid #bfeccb;border-radius:16px;padding:.8rem 1rem}
 .ac-compartir.on{background:#dcfce7;border-color:#16b84e}
 .ac-compartir input{width:1.5rem;height:1.5rem;flex:none;margin-top:.1rem;cursor:pointer}
@@ -142,7 +145,15 @@
 (function () {
     var MSG = @json($mensaje), ASESOR = @json(\Illuminate\Support\Str::of(auth()->user()->name)->explode(' ')->first()), ENLACE = @json($yo->enlace);
     var URL = @json(url('/asesor/contactos/__ID__/marcar')), URL_RED = @json(url('/asesor/contactos/red/__ID__/marcar')), URL_LIDER = @json(url('/asesor/contactos/lider/__ID__/marcar')), TOKEN = @json(csrf_token());
-    function armar(n) { return MSG.replace('{nombre}', n || '').replace('¡Hola !', '¡Hola!').replace('{asesor}', ASESOR).replace('{enlace}', ENLACE); }
+    // Con nombre: "¡Hola María!" · Sin nombre: solo "¡Hola!"
+    var conNombre = 'con', CLAVE_NOM = 'lp_asesor_contactos_nombre';
+    try { conNombre = localStorage.getItem(CLAVE_NOM) || 'con'; } catch (e) {}
+    function pintarNom() { document.querySelectorAll('.ac-nom').forEach(function (b) { b.classList.toggle('on', b.dataset.nom === conNombre); }); }
+    document.querySelectorAll('.ac-nom').forEach(function (b) {
+        b.addEventListener('click', function () { conNombre = b.dataset.nom; try { localStorage.setItem(CLAVE_NOM, conNombre); } catch (e) {} pintarNom(); var v = document.getElementById('acVista'); if (v) v.textContent = armar('María'); });
+    });
+    pintarNom();
+    function armar(n) { if (conNombre === 'sin') n = ''; return MSG.replace('{nombre}', n || '').replace(/¡Hola\s+!/, '¡Hola!').replace('{asesor}', ASESOR).replace('{enlace}', ENLACE); }
     var vista = document.getElementById('acVista'); if (vista) vista.textContent = armar('María');
     function aviso(m) {
         var c = document.createElement('div'); c.className = 'ac-toast'; c.textContent = m;

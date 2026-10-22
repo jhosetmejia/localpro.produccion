@@ -44,8 +44,8 @@
 .cc-compartir label{cursor:pointer;flex:1}
 .cc-compartir small{display:block;color:#56615b;font-weight:600;margin-top:.2rem;line-height:1.35}
 .cc-elige{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;margin-bottom:.6rem}
-.cc-op{border:1.5px solid #d6dde8;background:#fff;border-radius:999px;padding:.35rem .9rem;font-weight:800;font-size:.85rem}
-.cc-op.on{background:#0b0d0c;border-color:#0b0d0c;color:#a6f34a}
+.cc-op,.cc-nom{border:1.5px solid #d6dde8;background:#fff;border-radius:999px;padding:.35rem .9rem;font-weight:800;font-size:.85rem}
+.cc-op.on,.cc-nom.on{background:#0b0d0c;border-color:#0b0d0c;color:#a6f34a}
 .cc-vacio{text-align:center;padding:2rem 1rem;color:#6b7570}
 .cc-vacio i{font-size:2.2rem;color:#16b84e;margin-bottom:.5rem}
 </style>
@@ -136,6 +136,11 @@
                     <button type="button" class="cc-op" data-op="normal">Mensaje normal</button>
                 </div>
                 @endif
+                <div class="cc-elige">
+                    <span class="small fw-bold me-1">¿Saludo con el nombre?</span>
+                    <button type="button" class="cc-nom on" data-nom="con">Con nombre</button>
+                    <button type="button" class="cc-nom" data-nom="sin">Sin nombre</button>
+                </div>
                 <div class="cc-msg" id="ccVista"></div>
                 <small class="text-muted d-block mt-2">Se cambia solo: <b>{nombre}</b> por el nombre de cada persona, <b>{tienda}</b> por su negocio y <b>{catalogo}</b> por el enlace de su tienda en línea.</small>
                 @if ($esJefe)
@@ -190,9 +195,18 @@
     });
     if (!document.querySelector('.cc-op')) opcion = 'negocio';
     pintarOp();
+    // Con nombre: "¡Hola María!" · Sin nombre: solo "¡Hola!"
+    var conNombre = 'con', CLAVE_NOM = 'lp_contactar_nombre_' + @json($tienda->id);
+    try { conNombre = localStorage.getItem(CLAVE_NOM) || 'con'; } catch (e) {}
+    function pintarNom() { document.querySelectorAll('.cc-nom').forEach(function (b) { b.classList.toggle('on', b.dataset.nom === conNombre); }); }
+    document.querySelectorAll('.cc-nom').forEach(function (b) {
+        b.addEventListener('click', function () { conNombre = b.dataset.nom; try { localStorage.setItem(CLAVE_NOM, conNombre); } catch (e) {} pintarNom(); vista(); });
+    });
+    pintarNom();
     function armar(nombre) {
+        if (conNombre === 'sin') nombre = '';
         return ((opcion === 'normal' ? original : caja.value) || original)
-            .replace(/\{nombre\}/g, nombre || '').replace(/¡Hola\s+!/, '¡Hola!').replace(/Hola\s+,/, 'Hola,')
+            .replace(/\{nombre\}/g, nombre || '').replace(/¡Hola\s+!/, '¡Hola!').replace(/Hola\s+,/, 'Hola,').replace(/Hola {2,}/g, 'Hola ')
             .replace(/\{tienda\}/g, TIENDA).replace(/\{catalogo\}/g, CATALOGO);
     }
     function vista() { document.getElementById('ccVista').textContent = armar('María'); }
