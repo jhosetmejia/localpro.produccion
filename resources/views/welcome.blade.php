@@ -16,6 +16,7 @@
             <a class="link" href="{{ route('marketplace') }}">Marketplace</a>
             <a class="link link-blog" href="{{ route('blog.index') }}">Blog</a>
             <div class="nav-cta">
+                <button type="button" class="btn btn-app" id="btnDescargarApp" onclick="window.lpInstalarApp && window.lpInstalarApp()" title="Descargar app"><i class="fa-solid fa-mobile-screen-button"></i><span> Descargar app</span></button>
                 <a class="btn btn-ghost" href="{{ route('login') }}">Ingresar</a>
                 <a class="btn btn-ink" href="{{ route('registro') }}">Crear cuenta</a>
             </div>
