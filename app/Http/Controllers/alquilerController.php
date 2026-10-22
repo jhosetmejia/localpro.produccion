@@ -403,7 +403,13 @@ class alquilerController extends Controller
     public function destroy(Alquiler $alquiler)
     {
         if ($alquiler->cobrado) return back()->withErrors('El alquiler ' . $alquiler->numero . ' ya se cobró; no se puede eliminar. Si hubo un error, anule la venta ' . $alquiler->venta?->numero . '.');
-        if ($alquiler->abonos()->exists()) return back()->withErrors('El alquiler ' . $alquiler->numero . ' tiene abonos; no se puede eliminar. Cancélelo y devuelva los abonos si es necesario.');
+        if ($alquiler->abonos()->exists()) {
+            if ($alquiler->estado !== 'cancelado') return back()->withErrors('El alquiler ' . $alquiler->numero . ' tiene abonos; no se puede eliminar. Cancélelo primero.');
+            // Cancelado con abonos: se puede borrar si las cajas donde se recibieron siguen abiertas (así el cuadre de caja queda bien)
+            $cerradas = Caja::whereIn('id', $alquiler->abonos()->pluck('caja_id')->filter())->where('estado', '!=', 'abierta')->exists();
+            if ($cerradas) return back()->withErrors('El alquiler ' . $alquiler->numero . ' tiene abonos en una caja ya cerrada; no se puede eliminar para no descuadrar esa caja. Queda en Cancelados.');
+            DB::transaction(fn () => $alquiler->abonos()->delete());
+        }
         $num = $alquiler->numero;
         if ($alquiler->doc_archivo) Storage::disk('local')->delete($alquiler->doc_archivo);
         $alquiler->delete();
