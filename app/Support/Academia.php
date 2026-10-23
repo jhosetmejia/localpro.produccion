@@ -193,7 +193,7 @@ class Academia
                     ['titulo' => 'Devoluciones y cambios', 'min' => 2, 'accion' => ['pos.ventas', 'Ver ventas'], 'contenido' => [
                         'Busque la venta original y haga la <b>devolución</b> desde ahí: el producto vuelve al inventario y la plata sale de la caja.',
                         'Nunca borre una venta para "corregir": haga la devolución. Así queda registro de todo.',
-                        'Si en la caja se digitaron productos <b>de más</b> (aunque la caja ya esté cerrada), el dueño o el administrador usa <b>Corregir venta</b> en Ventas: baja la cantidad, el producto vuelve al inventario y la caja y los reportes se cuadran solos.',
+                        'Si en la caja se digitaron productos <b>de más</b> (aunque la caja ya esté cerrada), el dueño o el administrador usa <b>Corregir venta</b> en Ventas: baja la cantidad o corrige el precio mal digitado (ej. se vendió en $150.000 y se registró en $125.000), el producto vuelve al inventario y la caja y los reportes se cuadran solos.',
                         'Si se vendió algo y <b>no se registró</b>, el dueño o el administrador usa <b>Registrar venta olvidada</b> en Ventas: queda con la fecha y en la caja de ese día, descuenta el inventario y el cierre se vuelve a cuadrar.',
                     ], 'tip' => 'Si al cerrar le sobra o le falta plata por un error al digitar, avísele al dueño: con Corregir venta o Registrar venta olvidada la caja queda cuadrada.'],
                     ['titulo' => 'Cerrar la caja sin descuadres', 'min' => 3, 'accion' => ['cajas.index', 'Ver mis cajas'], 'contenido' => [

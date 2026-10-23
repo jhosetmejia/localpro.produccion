@@ -16,7 +16,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Corregir venta (error al digitar): el administrador baja la cantidad de productos que se registraron de más,
+ * Corregir venta (error al digitar): el administrador baja la cantidad de productos que se registraron de más
+ * y/o corrige el precio (ej. se vendió en $150.000 y se digitó $125.000),
  * aunque la caja de ese día ya esté cerrada. Todo cuadra solo:
  * - Los productos vuelven al inventario (movimiento "correccion").
  * - Se recalculan subtotal, descuento, total, IVA y ganancia de la venta (los reportes salen de ahí).
@@ -57,6 +58,8 @@ class correccionVentaController extends Controller
         $datos = $request->validate([
             'cantidades' => 'required|array',
             'cantidades.*' => 'nullable|numeric|min:0',
+            'precios' => 'nullable|array',
+            'precios.*' => 'nullable|string|max:20',
             'pago_id' => 'nullable|integer',
             'motivo' => 'required|string|min:3|max:255',
         ], ['motivo.required' => 'Escriba el motivo de la corrección (ej. "se digitaron 2 de más").']);
@@ -69,26 +72,32 @@ class correccionVentaController extends Controller
             $esperadoAntes = $caja ? $caja->efectivoEsperado() : null;
             $totalAntes = (float) $venta->total;
 
-            // 1) Productos: solo se puede bajar la cantidad (error al digitar de más)
+            // 1) Productos: la cantidad solo se baja (digitada de más); el precio se puede subir o bajar
             $cambios = [];
             foreach ($venta->items as $item) {
                 if (!array_key_exists($item->id, $datos['cantidades'])) continue;
                 $nueva = round((float) $datos['cantidades'][$item->id], 3);
                 $antes = (float) $item->cantidad;
+                $precioAntes = (float) $item->precio;
+                $txt = $datos['precios'][$item->id] ?? null;
+                $precioNuevo = ($txt === null || trim($txt) === '') ? $precioAntes : (float) preg_replace('/\D/', '', $txt);
                 if ($nueva > $antes + 0.0001) {
                     throw ValidationException::withMessages(['cantidades' => 'Solo se puede bajar la cantidad. Para vender más, haga una venta nueva.']);
                 }
-                if (abs($nueva - $antes) < 0.0001) continue;
+                if ($nueva > 0 && $precioNuevo <= 0) {
+                    throw ValidationException::withMessages(['cantidades' => 'El precio real de "' . $item->descripcion . '" debe ser mayor a $0.']);
+                }
+                if (abs($nueva - $antes) < 0.0001 && abs($precioNuevo - $precioAntes) < 0.5) continue;
                 $quita = round($antes - $nueva, 3);
-                if ($item->variante && $item->variante->controla) {
+                if ($quita > 0 && $item->variante && $item->variante->controla) {
                     $item->variante->moverStock($quita, 'correccion', $venta->numero, 'Corrección de venta por error al digitar');
                 }
                 $cambios[] = ['producto' => trim($item->descripcion . ' ' . ($item->talla ? 'T.' . $item->talla : '') . ' ' . ($item->color ?: '')),
-                    'antes' => $antes, 'despues' => $nueva, 'precio' => (float) $item->precio];
+                    'antes' => $antes, 'despues' => $nueva, 'precio' => $precioAntes, 'precio_despues' => $precioNuevo];
                 if ($nueva <= 0) $item->delete();
-                else $item->update(['cantidad' => $nueva, 'subtotal' => round($nueva * (float) $item->precio, 2)]);
+                else $item->update(['cantidad' => $nueva, 'precio' => $precioNuevo, 'subtotal' => round($nueva * $precioNuevo, 2)]);
             }
-            if (!$cambios) throw ValidationException::withMessages(['cantidades' => 'No cambió ninguna cantidad.']);
+            if (!$cambios) throw ValidationException::withMessages(['cantidades' => 'No cambió ninguna cantidad ni precio.']);
 
             $items = $venta->items()->get();
             $pagosDet = [];
@@ -110,9 +119,17 @@ class correccionVentaController extends Controller
                 $venta->update(['subtotal' => $subtotal, 'descuento' => $descuento, 'total' => $totalDespues,
                     'base_gravable' => $imp['base'], 'impuestos' => $imp['impuestos'], 'impuestos_detalle' => $imp['detalle'] ?: null, 'corregida_en' => now()]);
 
-                // 3) Pagos: se baja lo que sobra; primero el pago elegido, luego el efectivo, luego los demás
+                // 3) Pagos: primero el pago elegido, luego el efectivo, luego los demás
                 $sobra = round((float) $venta->pagos->sum('monto') - $totalDespues, 2);
                 $orden = $venta->pagos->sortBy(fn ($p) => [(int) $p->id !== (int) ($datos['pago_id'] ?? 0), !($p->metodo->es_efectivo ?? false), -(float) $p->monto])->values();
+                // Se cobró más de lo registrado (precio mal digitado): la diferencia se suma a ese pago
+                if ($sobra < -0.004 && ($p = $orden->first())) {
+                    $nuevo = round((float) $p->monto - $sobra, 2);
+                    $pagosDet[] = ['metodo' => $p->metodo->nombre ?? 'Pago', 'antes' => (float) $p->monto, 'despues' => $nuevo];
+                    $extra = ($p->moneda ?? null) === 'VES' && (float) $p->monto > 0 ? ['monto_moneda' => round((float) $p->monto_moneda * $nuevo / (float) $p->monto, 2)] : [];
+                    $p->update(['monto' => $nuevo] + $extra);
+                    $sobra = 0;
+                }
                 foreach ($orden as $p) {
                     if ($sobra <= 0.004) break;
                     $resta = round(min($sobra, (float) $p->monto), 2);
@@ -148,10 +165,13 @@ class correccionVentaController extends Controller
                 'detalle' => ['productos' => $cambios, 'pagos' => $pagosDet], 'motivo' => $datos['motivo'],
             ]);
 
-            return ['menos' => $totalAntes - $totalDespues, 'caja' => $caja?->fresh(), 'anulada' => $items->isEmpty()];
+            return ['menos' => $totalAntes - $totalDespues, 'total' => $totalDespues, 'caja' => $caja?->fresh(), 'anulada' => $items->isEmpty()];
         });
 
-        $msg = '✅ Venta ' . $venta->numero . ' corregida: ' . dinero($res['menos']) . ' menos. Los productos volvieron al inventario y los reportes ya están al día.';
+        $dif = (float) $res['menos'];
+        $msg = '✅ Venta ' . $venta->numero . ' corregida: ahora vale ' . dinero($res['total'])
+            . (abs($dif) < 0.01 ? '' : ' (' . ($dif > 0 ? dinero($dif) . ' menos' : dinero(-$dif) . ' más') . ')')
+            . '. Inventario, reportes y ganancia ya están al día.';
         if ($res['anulada']) $msg = '✅ Se quitaron todos los productos: la venta ' . $venta->numero . ' quedó anulada y los productos volvieron al inventario.';
         if ($res['caja'] && $res['caja']->estado === 'cerrada') {
             $d = (float) $res['caja']->diferencia;
