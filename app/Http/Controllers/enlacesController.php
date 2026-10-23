@@ -118,9 +118,13 @@ class enlacesController extends Controller
             }
         }
 
+        // Si pegaron la dirección como título, se guarda un nombre amable ("Síguenos en Instagram")
+        $titulo = trim((string) $request->input('titulo'));
+        if ($url && Enlace::pareceUrl($titulo)) $titulo = Enlace::tituloAmable($titulo, $url);
+
         return [
             'tipo' => $request->input('tipo'),
-            'titulo' => $request->input('titulo'),
+            'titulo' => $titulo,
             'url' => $url,
             'icono' => $request->input('icono') ?: null,
             'destacado' => $request->boolean('destacado'),

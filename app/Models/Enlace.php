@@ -63,7 +63,44 @@ class Enlace extends Model
 
     public function getIconoFinalAttribute(): string
     {
-        return $this->icono ?: self::iconoPara((string) $this->url);
+        $auto = self::iconoPara((string) $this->url);
+        // Si el negocio escogió el ícono de otra red (ej. WhatsApp en un enlace de Instagram), manda el de la dirección
+        if ($this->icono && str_starts_with($auto, 'fa-brands') && str_starts_with($this->icono, 'fa-brands') && $this->icono !== $auto) {
+            return $auto;
+        }
+        return $this->icono ?: $auto;
+    }
+
+    // Texto que se muestra en el botón: si el negocio pegó una dirección como título, se cambia por un nombre amable
+    public function getTituloMostrarAttribute(): string
+    {
+        return self::tituloAmable((string) $this->titulo, (string) $this->url);
+    }
+
+    public static function pareceUrl(string $texto): bool
+    {
+        $t = trim($texto);
+        return (bool) preg_match('#^(https?://|www\.)#i', $t) || (bool) preg_match('#^[\w\-]+(\.[\w\-]+)+/\S*$#', $t);
+    }
+
+    public static function tituloAmable(string $titulo, string $url): string
+    {
+        $titulo = trim($titulo);
+        if ($titulo !== '' && !self::pareceUrl($titulo)) return $titulo;
+        $u = strtolower($url ?: $titulo);
+        $mapa = [
+            'wa.me' => 'Escríbenos por WhatsApp', 'whatsapp' => 'Escríbenos por WhatsApp', 'instagram' => 'Síguenos en Instagram',
+            'facebook' => 'Síguenos en Facebook', 'fb.com' => 'Síguenos en Facebook', 'tiktok' => 'Síguenos en TikTok',
+            'youtu' => 'Míranos en YouTube', 'twitter' => 'Síguenos en X', 'x.com' => 'Síguenos en X', 't.me' => 'Únete en Telegram',
+            'telegram' => 'Únete en Telegram', 'spotify' => 'Escúchanos en Spotify', 'linkedin' => 'Visítanos en LinkedIn',
+            'pinterest' => 'Síguenos en Pinterest', 'maps' => 'Cómo llegar', 'goo.gl' => 'Cómo llegar', 'waze' => 'Cómo llegar',
+            'mailto:' => 'Escríbenos un correo', 'tel:' => 'Llámanos', '.pdf' => 'Ver documento',
+        ];
+        foreach ($mapa as $k => $txt) {
+            if (str_contains($u, $k)) return $txt;
+        }
+        $host = parse_url(str_contains($u, '://') ? $u : 'https://' . $u, PHP_URL_HOST);
+        return $host ? 'Visitar ' . preg_replace('/^www\./', '', $host) : 'Abrir enlace';
     }
 
     // Ícono según la dirección del enlace

@@ -45,7 +45,9 @@ h1{font-size:1.35rem;font-weight:800;margin-top:16px;text-align:center;letter-sp
 .bt{position:relative;display:flex;align-items:center;justify-content:center;min-height:58px;padding:14px 56px;border-radius:var(--r);background:var(--bbg);color:var(--btx);border:2px solid var(--bbd);text-decoration:none;font-weight:700;font-size:1rem;text-align:center;line-height:1.3;box-shadow:0 8px 22px -14px rgba(0,0,0,.55);transition:transform .15s,box-shadow .15s}
 .bt:hover{transform:translateY(-2px) scale(1.01);box-shadow:0 14px 26px -14px rgba(0,0,0,.6)}
 .bt:active{transform:scale(.98)}
-.bt .i{position:absolute;left:18px;width:26px;text-align:center;font-size:1.2rem}
+.bt .i{position:absolute;left:18px;top:50%;transform:translateY(-50%);width:26px;text-align:center;font-size:1.2rem}
+.bt .t{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;min-width:0;max-width:100%;overflow-wrap:anywhere;word-break:break-word}
+@media (max-width:380px){.bt{padding:12px 46px;font-size:.95rem}.bt .i{left:14px}}
 .bt.dest{animation:menear 3.2s ease-in-out infinite}
 @keyframes menear{0%,82%,100%{transform:rotate(0)}85%{transform:rotate(-2deg) scale(1.02)}88%{transform:rotate(2deg) scale(1.02)}91%{transform:rotate(-1.5deg)}94%{transform:rotate(1deg)}}
 @media (prefers-reduced-motion:reduce){.bt.dest{animation:none}.bt,.redes a{transition:none}}
@@ -88,12 +90,12 @@ h1{font-size:1.35rem;font-weight:800;margin-top:16px;text-align:center;letter-sp
             <div class="sep">{{ $e->titulo }}</div>
             @else
             <a class="bt {{ $e->destacado ? 'dest' : '' }}" href="{{ route('enlaces.ir', ['slug' => $tienda->slug, 'enlace' => $e->id]) }}" target="_blank" rel="noopener">
-                <span class="i"><i class="{{ $e->icono_final }}"></i></span>{{ $e->titulo }}
+                <span class="i"><i class="{{ $e->icono_final }}"></i></span><span class="t">{{ $e->titulo_mostrar }}</span>
             </a>
             @endif
         @endforeach
         @if ($catalogo)
-        <a class="bt" href="{{ $catalogo }}"><span class="i"><i class="fa-solid fa-store"></i></span>Ver nuestra tienda en línea</a>
+        <a class="bt" href="{{ $catalogo }}"><span class="i"><i class="fa-solid fa-store"></i></span><span class="t">Ver nuestra tienda en línea</span></a>
         @endif
         @if ($enlaces->isEmpty() && !$catalogo)
         <p class="vacio">Pronto encontrará aquí nuestros enlaces.</p>
