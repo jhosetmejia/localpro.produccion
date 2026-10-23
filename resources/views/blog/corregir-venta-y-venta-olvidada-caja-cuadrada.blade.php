@@ -18,6 +18,7 @@
     <li>Toque el botón ✏️ <b>Corregir venta</b>.</li>
     <li>Baje la cantidad a lo que realmente se vendió. Abajo ve cuánto se quita.</li>
     <li>¿Se digitó mal el <b>precio</b>? (ej. se vendió en $150.000 y quedó en $125.000) Escriba el valor correcto en <b>Precio real</b>: la venta, la ganancia y la caja suben solas y el sobrante desaparece.</li>
+    <li>¿Quedó en <b>Efectivo</b> y el cliente pagó por <b>Transferencia</b> (o al revés)? Cámbielo en <b>¿Cómo pagó realmente?</b>: la caja de ese día deja de esperar esa plata en efectivo y cuadra.</li>
     <li>Si la venta se pagó con dos métodos, elija de cuál se descuenta (por defecto, el efectivo). Escriba el motivo y confirme.</li>
 </ol>
 <p>Los productos vuelven al inventario, la venta recalcula su total, el IVA y la ganancia, y <b>la caja de ese día</b> recalcula el total de ventas, el efectivo esperado y la diferencia. Si el error dejó un faltante, la caja queda cuadrada.</p>

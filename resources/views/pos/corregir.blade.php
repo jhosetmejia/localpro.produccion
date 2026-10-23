@@ -19,6 +19,7 @@
         <div class="mb-1"><b>¿Qué hago?</b> Deje cada producto como <b>realmente</b> se vendió:</div>
         <ul class="mb-1 ps-3">
             <li><b>Precio mal digitado</b> (ej. se vendió en $150.000 y se registró $125.000): escriba <b>150.000</b> en <b>Precio real</b> y deje la cantidad igual.</li>
+            <li><b>Método de pago equivocado</b> (ej. quedó en Efectivo y fue Transferencia): cámbielo abajo en <b>¿Cómo pagó realmente?</b>.</li>
             <li><b>Productos de más</b> (ej. se digitaron 2 y se vendió 1): baje la <b>Cantidad real</b>; el producto vuelve al inventario.</li>
         </ul>
         El reporte de ventas, la ganancia
@@ -59,8 +60,19 @@
             @else
             <p class="small text-muted mb-2">La diferencia se ajusta en el pago: <b>{{ $venta->pagos->first()->metodo->nombre ?? '—' }}</b>.</p>
             @endif
+            <label class="form-label fw-bold small">¿Cómo pagó realmente?</label>
+            @foreach ($venta->pagos as $p)
+            <div class="d-flex align-items-center gap-2 mb-2">
+                @if ($venta->pagos->count() > 1)<span class="small text-muted text-nowrap">@pesos($p->monto):</span>@endif
+                <select name="metodos[{{ $p->id }}]" class="form-select" @disabled(($p->moneda ?? null) === 'VES')>
+                    @if (!$metodos->contains('id', $p->metodo_pago_id))<option value="">{{ $p->metodo->nombre ?? 'Pago' }}</option>@endif
+                    @foreach ($metodos as $m)<option value="{{ $m->id }}" @selected((int) $m->id === (int) $p->metodo_pago_id)>{{ $m->nombre }}</option>@endforeach
+                </select>
+            </div>
+            @endforeach
+            <small class="text-muted d-block mb-3">Si cambia Efectivo por Transferencia, la caja de ese día deja de esperar esa plata en efectivo.</small>
             <label class="form-label fw-bold small">Motivo</label>
-            <input type="text" name="motivo" class="form-control" maxlength="255" required value="{{ old('motivo') }}" placeholder="Ej.: se vendió en $150.000 y se digitó $125.000">
+            <input type="text" name="motivo" class="form-control" maxlength="255" required value="{{ old('motivo') }}" placeholder="Ej.: se vendió en $150.000 por transferencia y se digitó $125.000 en efectivo">
             <button class="btn btn-primary btn-lg rounded-pill fw-bold mt-3"><i class="fa-solid fa-check me-1"></i>Corregir venta</button>
         </div>
     </form>
@@ -73,6 +85,7 @@
         <div class="border-bottom py-2 small">
             <b>{{ $c->created_at->format('d/m/Y h:i a') }}</b> · {{ $c->user->name ?? '—' }} · @pesos($c->total_antes) → @pesos($c->total_despues)<br>
             @foreach ($c->detalle['productos'] ?? [] as $d){{ $d['producto'] }}: {{ cantidad($d['antes']) }} → {{ cantidad($d['despues']) }}@if (isset($d['precio_despues']) && abs($d['precio_despues'] - $d['precio']) >= 0.5), precio @pesos($d['precio']) → @pesos($d['precio_despues'])@endif. @endforeach
+            @foreach ($c->detalle['metodos'] ?? [] as $d)Pago @pesos($d['monto']): {{ $d['antes'] }} → {{ $d['despues'] }}. @endforeach
             <span class="text-muted">Motivo: {{ $c->motivo }}</span>
         </div>
         @endforeach

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Alquiler;
 use App\Models\Caja;
 use App\Models\Devolucion;
+use App\Models\MetodoPago;
 use App\Models\PosVenta;
 use App\Models\PosVentaCorreccion;
 use App\Models\Separado;
@@ -45,11 +46,19 @@ class correccionVentaController extends Controller
         return null;
     }
 
+    // Métodos a los que se puede cambiar un pago (en pesos, no crédito)
+    public static function metodosCambio()
+    {
+        $q = MetodoPago::activos();
+        if (\Illuminate\Support\Facades\Schema::hasColumn('metodos_pago', 'moneda')) $q->where(fn ($w) => $w->whereNull('moneda')->orWhere('moneda', 'COP'));
+        return $q->get(['id', 'nombre', 'es_efectivo']);
+    }
+
     public function create(PosVenta $venta)
     {
         $this->soloAdmin();
         $venta->load(['items', 'pagos.metodo', 'caja.user:id,name', 'user:id,name', 'correcciones.user:id,name']);
-        return view('pos.corregir', ['venta' => $venta, 'bloqueo' => self::bloqueo($venta)]);
+        return view('pos.corregir', ['venta' => $venta, 'bloqueo' => self::bloqueo($venta), 'metodos' => self::metodosCambio()]);
     }
 
     public function store(Request $request, PosVenta $venta)
@@ -61,6 +70,8 @@ class correccionVentaController extends Controller
             'precios' => 'nullable|array',
             'precios.*' => 'nullable|string|max:20',
             'pago_id' => 'nullable|integer',
+            'metodos' => 'nullable|array',
+            'metodos.*' => 'nullable|integer',
             'motivo' => 'required|string|min:3|max:255',
         ], ['motivo.required' => 'Escriba el motivo de la corrección (ej. "se digitaron 2 de más").']);
 
@@ -97,7 +108,16 @@ class correccionVentaController extends Controller
                 if ($nueva <= 0) $item->delete();
                 else $item->update(['cantidad' => $nueva, 'precio' => $precioNuevo, 'subtotal' => round($nueva * $precioNuevo, 2)]);
             }
-            if (!$cambios) throw ValidationException::withMessages(['cantidades' => 'No cambió ninguna cantidad ni precio.']);
+            // Cambio de método de pago (ej. se registró en Efectivo y fue Transferencia)
+            $validos = self::metodosCambio()->keyBy('id');
+            $cambiosMetodo = [];
+            foreach ($venta->pagos as $p) {
+                $m = (int) ($datos['metodos'][$p->id] ?? 0);
+                if (!$m || $m === (int) $p->metodo_pago_id || ($p->moneda ?? null) === 'VES') continue;
+                if (!$validos->has($m)) throw ValidationException::withMessages(['cantidades' => 'Ese método de pago no está disponible.']);
+                $cambiosMetodo[$p->id] = $m;
+            }
+            if (!$cambios && !$cambiosMetodo) throw ValidationException::withMessages(['cantidades' => 'No cambió ninguna cantidad, precio ni método de pago.']);
 
             $items = $venta->items()->get();
             $pagosDet = [];
@@ -144,6 +164,15 @@ class correccionVentaController extends Controller
                 }
             }
 
+            // Se aplica el nuevo método a los pagos que quedan
+            $metodosDet = [];
+            if ($cambiosMetodo && !$items->isEmpty()) {
+                foreach (\App\Models\PosVentaPago::with('metodo')->whereIn('id', array_keys($cambiosMetodo))->get() as $p) {
+                    $metodosDet[] = ['antes' => $p->metodo->nombre ?? 'Pago', 'despues' => $validos[$cambiosMetodo[$p->id]]->nombre, 'monto' => (float) $p->monto];
+                    $p->update(['metodo_pago_id' => $cambiosMetodo[$p->id]]);
+                }
+            }
+
             // 4) Caja de ese día: si ya está cerrada, se recalcula lo guardado en el cierre (el contado no cambia)
             $esperadoDespues = null;
             if ($caja) {
@@ -162,7 +191,7 @@ class correccionVentaController extends Controller
                 'tienda_id' => TiendaActual::id(), 'pos_venta_id' => $venta->id, 'caja_id' => $caja?->id, 'user_id' => Auth::id(),
                 'total_antes' => $totalAntes, 'total_despues' => $totalDespues,
                 'esperado_antes' => $esperadoAntes, 'esperado_despues' => $esperadoDespues,
-                'detalle' => ['productos' => $cambios, 'pagos' => $pagosDet], 'motivo' => $datos['motivo'],
+                'detalle' => ['productos' => $cambios, 'pagos' => $pagosDet, 'metodos' => $metodosDet], 'motivo' => $datos['motivo'],
             ]);
 
             return ['menos' => $totalAntes - $totalDespues, 'total' => $totalDespues, 'caja' => $caja?->fresh(), 'anulada' => $items->isEmpty()];
