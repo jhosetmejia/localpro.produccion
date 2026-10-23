@@ -100,7 +100,7 @@ class Meta
             $f[] = [true, 'Modo de la app', 'En vivo: cualquier negocio puede conectar.'];
         } else {
             $prueba = array_filter(array_map('trim', explode(',', (string) \App\Models\Ajuste::valor('meta_tiendas_prueba'))));
-            $f[] = [null, 'Modo de la app', 'En desarrollo: solo conectan los negocios de prueba (' . ($prueba ? implode(', ', $prueba) : 'ninguno') . ') y su dueño debe estar agregado como Evaluador en la app de Meta. Para todos: verificar el negocio y pedir la revisión de la app.'];
+            $f[] = [null, 'Modo de la app', 'En desarrollo: todos los negocios ven el botón Conectar, pero Facebook solo deja entrar a quien esté como Evaluador en la app de Meta (negocios de prueba: ' . ($prueba ? implode(', ', $prueba) : 'ninguno') . '). Para que funcione con todos: verificar el negocio, pedir la revisión y activar En vivo.'];
         }
         $hook = \App\Models\Ajuste::valor('meta_ultimo_webhook');
         $f[] = [$hook ? (str_contains($hook, 'INVÁLIDA') ? false : true) : null, 'Último aviso de Meta recibido (webhook)', $hook ?: 'Nunca ha llegado un aviso de Meta. Revise en Meta → Webhooks que la URL sea ' . url('/webhooks/meta') . ' y que esté suscrita a "messages" (Page e Instagram).'];

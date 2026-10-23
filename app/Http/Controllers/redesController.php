@@ -329,10 +329,7 @@ class redesController extends Controller
     public function conectar(Request $request)
     {
         if (!Meta::activo()) return redirect()->route('redes.index')->withErrors('La conexión con Facebook e Instagram aún no está habilitada. Comuníquese con LocalPro.');
-        // Mientras Meta aprueba la app, mandar a Facebook a quien no tiene acceso solo muestra un error de Facebook
-        if (!Meta::tiendaConAcceso(TiendaActual::tienda())) {
-            return view('redes.acceso', ['tienda' => TiendaActual::tienda(), 'soporte' => \App\Models\Ajuste::valor('soporte_whatsapp')]);
-        }
+        // Cada marca conecta sola sus redes: sin pedir acceso a un asesor
         // Cada negocio conecta 1 red (página de Facebook con su Instagram). Reconectar la misma sí se permite.
         if (!$request->boolean('reconectar') && self::cupoRedes() <= 0) {
             return redirect()->route('redes.cuentas')->withErrors('Su negocio ya tiene su red social conectada. Si falla, use "Reconectar".');

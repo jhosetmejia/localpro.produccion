@@ -24,7 +24,7 @@
         @if ($wa)
         <a href="https://wa.me/{{ $wa }}?text={{ rawurlencode($msg) }}" target="_blank" rel="noopener" class="btn btn-success btn-lg rounded-pill fw-bold w-100"><i class="fa-brands fa-whatsapp me-1"></i>Pedir mi acceso por WhatsApp</a>
         @else
-        <div class="alert alert-warning mb-0">Escríbale a su asesor de LocalPro para activar su acceso.</div>
+        <a href="{{ route('redes.conectar') }}" class="btn btn-primary btn-lg rounded-pill fw-bold w-100"><i class="fa-brands fa-facebook-f me-1"></i>Conectar Facebook e Instagram</a>
         @endif
         <a href="{{ route('redes.index') }}" class="btn btn-light rounded-pill w-100 mt-2">Volver</a>
     </div>
