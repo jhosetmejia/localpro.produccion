@@ -16,7 +16,6 @@
             <a class="link" href="{{ route('marketplace') }}">Marketplace</a>
             <a class="link link-blog" href="{{ route('blog.index') }}">Blog</a>
             <div class="nav-cta">
-                <button type="button" class="btn btn-app" id="btnDescargarApp" onclick="window.lpInstalarApp && window.lpInstalarApp()" title="Descargar app"><i class="fa-solid fa-mobile-screen-button"></i><span> Descargar app</span></button>
                 <a class="btn btn-ghost" href="{{ route('login') }}">Ingresar</a>
                 <a class="btn btn-ink" href="{{ route('registro') }}">Crear cuenta</a>
             </div>
@@ -35,6 +34,11 @@
                     <a class="btn btn-amber" href="{{ route('registro') }}"><i class="fa-solid fa-user-plus"></i> Crear cuenta</a>
                     <a class="btn btn-ghost" href="{{ route('login') }}"><i class="fa-solid fa-arrow-right-to-bracket"></i> Ingresar</a>
                 </div>
+                <button type="button" class="app-card rise d3" id="btnDescargarApp" onclick="window.lpInstalarApp && window.lpInstalarApp()">
+                    <span class="app-ico"><i class="fa-solid fa-mobile-screen-button"></i></span>
+                    <span class="app-txt"><b>Descargue la app</b><small>Instálela en su celular en segundos, sin tiendas de apps</small></span>
+                    <i class="fa-solid fa-download app-flecha"></i>
+                </button>
                 <p class="hero-note"><span>🎁 2 meses gratis</span><span>🌐 Página web en Google</span><span>📱 App en su celular</span></p>
             </div>
 
@@ -206,6 +210,7 @@
             <div class="hero-actions">
                 <a class="btn btn-amber" href="{{ route('registro') }}">Crear cuenta</a>
                 <a class="btn btn-ink" href="{{ route('login') }}">Ingresar</a>
+                <button type="button" class="btn btn-app" onclick="window.lpInstalarApp && window.lpInstalarApp()"><i class="fa-solid fa-mobile-screen-button"></i> Descargar app</button>
             </div>
         </div></div>
     </section>

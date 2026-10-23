@@ -127,9 +127,11 @@ main,.pie-sep{flex:none}
 .pie a{color:#a6f34a;font-weight:700}
 .pie .lp{width:100%;text-align:center;border-top:1px solid rgba(255,255,255,.1);padding-top:18px;margin-top:6px;font-size:.78rem}
 .pie .lp b{color:#a6f34a}
-.pie .lp a.crear{display:inline-block;margin-left:4px;background:#a6f34a;color:#0b0d0c;border-radius:999px;padding:.3rem .8rem;font-weight:800;text-decoration:none}
+.pie .lp{display:flex;flex-direction:column;align-items:center;gap:10px}
+.pie .lp .hecha{display:block;margin-bottom:2px}
+.pie .lp a.crear{display:block;width:100%;max-width:380px;background:#a6f34a;color:#0b0d0c;border-radius:16px;padding:.65rem 1rem;font-weight:800;line-height:1.3;text-decoration:none}
 .pie .lp a.crear:hover{background:#fff}
-.pie .lp .visitas{display:flex;align-items:center;justify-content:center;gap:7px;margin-top:12px;color:rgba(255,255,255,.42);font-size:.72rem;font-weight:600;letter-spacing:.02em}
+.pie .lp .visitas{display:flex;align-items:center;justify-content:center;gap:7px;margin-top:4px;color:rgba(255,255,255,.42);font-size:.72rem;font-weight:600;letter-spacing:.02em}
 .pie .lp .visitas i{width:6px;height:6px;border-radius:50%;background:#a6f34a;box-shadow:0 0 0 3px rgba(166,243,74,.15);animation:lpLatido 2.4s ease-in-out infinite}
 @keyframes lpLatido{50%{box-shadow:0 0 0 6px rgba(166,243,74,0)}}
 @stack('css')
@@ -178,8 +180,9 @@ main,.pie-sep{flex:none}
             @if ($wa)<div>💬 <a href="https://wa.me/{{ $wa }}" target="_blank" rel="noopener">Escríbanos por WhatsApp</a></div>@endif
         </div>
         @php $urlCrear = (app()->environment('production') && config('app.dominio') ? 'https://' . config('app.dominio') . '/registro' : route('registro')) . '?desde=' . rawurlencode('tienda:' . \Illuminate\Support\Str::limit($tienda->slug, 70, '')) . ($tienda->tipo_negocio ? '&tipo=' . rawurlencode($tienda->tipo_negocio) : ''); @endphp
-        <div class="lp">Tienda en línea creada con <b>LocalPro</b> · <a class="crear" href="{{ $urlCrear }}">¿Tiene un negocio? Cree su tienda aquí →</a>
-            · <a class="crear" href="{{ route('marketplace', $tienda->ciudad ? ['ciudad' => $tienda->ciudad] : []) }}">🛍️ Compre en nuestro Marketplace: productos impulsados por LocalProo</a>
+        <div class="lp"><span class="hecha">Tienda en línea creada con <b>LocalPro</b></span>
+            <a class="crear" href="{{ $urlCrear }}">¿Tiene un negocio? Cree su tienda aquí →</a>
+            <a class="crear" href="{{ route('marketplace', $tienda->ciudad ? ['ciudad' => $tienda->ciudad] : []) }}">🛍️ Compre en nuestro Marketplace: productos impulsados por LocalProo</a>
             @if ((int) $tienda->catalogo_visitas > 0)<span class="visitas" title="Visitas a esta tienda en línea"><i></i>{{ number_format((int) $tienda->catalogo_visitas, 0, ',', '.') }} {{ (int) $tienda->catalogo_visitas === 1 ? 'visita' : 'visitas' }}</span>@endif
         </div>
     </div>

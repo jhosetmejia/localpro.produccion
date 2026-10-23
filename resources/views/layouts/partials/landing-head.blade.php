@@ -4,7 +4,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-<link href="{{ asset('css/landing.css') }}?v=7" rel="stylesheet" />
+<link href="{{ asset('css/landing.css') }}?v=8" rel="stylesheet" />
 <script src="https://use.fontawesome.com/releases/v6.1.0/js/all.js" crossorigin="anonymous" defer></script>
 <script src="{{ asset('js/optimizar-imagenes.js') }}?v=1" defer></script>
 @include('layouts.partials.pwa')
