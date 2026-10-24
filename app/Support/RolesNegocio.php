@@ -57,7 +57,7 @@ class RolesNegocio
         'paseos' => ['Paseos con animales', 'fa-horse', ['pedidos-preparar'], 'estacion', 'Paseos con animales'],
         'granjero' => ['Granjero', 'fa-tractor', ['pedidos-preparar'], 'estacion', 'Granja'],
         'puerta' => ['Puerta (eventos)', 'fa-qrcode', ['eventos-ingreso'], 'eventos', null],
-        'ev_admin' => ['Administrador del evento', 'fa-user-tie', ['gestionar-eventos', 'eventos-pagos', 'eventos-informacion', 'eventos-diseno', 'eventos-ingreso'], 'eventos', null],
+        'ev_admin' => ['Administrador del evento', 'fa-user-tie', ['gestionar-eventos', 'eventos-pagos', 'eventos-informacion', 'eventos-diseno', 'eventos-ingreso', 'gestionar-enlaces', 'publicar-redes', 'ver-egresos-todos'], 'eventos', null],
         'ev_contabilidad' => ['Contabilidad', 'fa-calculator', ['eventos-pagos'], 'eventos', null],
         'ev_logistica' => ['Logística', 'fa-truck-ramp-box', ['eventos-informacion', 'eventos-ingreso'], 'eventos', null],
         'ev_diseno' => ['Diseño', 'fa-palette', ['eventos-diseno'], 'eventos', null],
