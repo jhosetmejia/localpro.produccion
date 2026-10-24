@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Configura el correo que usa LocalPro para enviar los enlaces de recuperar contraseña.
 # Uso (como root en la Consola web):
-#   bash /home/localpro/htdocs/localpro.narinoexposhow.com/deploy/configurar-correo.sh
+#   bash "$(localproo ruta)/deploy/configurar-correo.sh"
 # Pregunta los datos SMTP (ej. Hostinger: smtp.hostinger.com, puerto 465, ssl) y envía un correo de prueba.
 set -euo pipefail
-RAIZ="$( [ -d /home/localproo/htdocs/localproo.com ] && echo /home/localproo/htdocs/localproo.com || echo /home/localpro/htdocs/localpro.narinoexposhow.com )"
+# Carpeta del sitio de producción (la que atiende localproo.com)
+RAIZ="$(for d in /home/localproo/htdocs/localproo.com /home/*/htdocs/*/; do d="${d%/}"; [ -f "$d/artisan" ] && grep -Eqs '^APP_URL="?https?://(www\.)?localproo\.com/?"?$' "$d/.env" && { echo "$d"; break; }; done)"
 cd "$RAIZ"
 
 read -rp "Servidor SMTP [smtp.hostinger.com]: " HOST; HOST=${HOST:-smtp.hostinger.com}

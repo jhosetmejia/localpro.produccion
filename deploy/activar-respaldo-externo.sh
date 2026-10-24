@@ -4,7 +4,8 @@
 # Le pide las llaves de Backblaze aquí mismo (no se escriben en el chat ni en GitHub).
 set -uo pipefail
 [ "$(id -u)" = 0 ] || { echo "Ejecute como root"; exit 1; }
-RAIZ="$( [ -d /home/localproo/htdocs/localproo.com ] && echo /home/localproo/htdocs/localproo.com || echo /home/localpro/htdocs/localpro.narinoexposhow.com )"
+# Carpeta del sitio de producción (la que atiende localproo.com)
+RAIZ="$(for d in /home/localproo/htdocs/localproo.com /home/*/htdocs/*/; do d="${d%/}"; [ -f "$d/artisan" ] && grep -Eqs '^APP_URL="?https?://(www\.)?localproo\.com/?"?$' "$d/.env" && { echo "$d"; break; }; done)"
 
 if ! command -v rclone >/dev/null 2>&1; then
   echo "==> Instalando rclone"

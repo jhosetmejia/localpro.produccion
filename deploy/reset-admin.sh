@@ -4,10 +4,9 @@
 #   curl -fsSL https://raw.githubusercontent.com/jhosetmejia/localpro.produccion/master/deploy/reset-admin.sh | bash
 # Desarrollado por Jhoset Mejía - DiCreWeb
 set -euo pipefail
-DOMINIO="localpro.narinoexposhow.com"
-USUARIO="localpro"
 EMAIL="${ADMIN_EMAIL:-jmmg1994@gmail.com}"
-RAIZ="/home/$USUARIO/htdocs/$DOMINIO"
+RAIZ="$(for d in /home/localproo/htdocs/localproo.com /home/*/htdocs/*/; do d="${d%/}"; [ -f "$d/artisan" ] && grep -Eqs '^APP_URL="?https?://(www\.)?localproo\.com/?"?$' "$d/.env" && { echo "$d"; break; }; done)"
+USUARIO="$(stat -c %U "$RAIZ")"
 cd "$RAIZ"
 
 # Clave sin letras que se confunden (l, I, O, 0, 1)

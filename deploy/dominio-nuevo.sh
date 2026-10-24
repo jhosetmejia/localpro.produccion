@@ -4,8 +4,8 @@
 set -u
 NUEVO="$(echo "${1:-}" | tr 'A-Z' 'a-z' | sed 's#^https\?://##; s#/.*##; s#^www\.##')"
 [ -z "$NUEVO" ] && { echo "Escriba el dominio: bash dominio-nuevo.sh localproo.com"; exit 1; }
-VIEJO="localpro.narinoexposhow.com"
-RAIZ="/home/localpro/htdocs/$VIEJO"
+RAIZ="$(for d in /home/localproo/htdocs/localproo.com /home/*/htdocs/*/; do d="${d%/}"; [ -f "$d/artisan" ] && grep -Eqs '^APP_URL="?https?://(www\.)?localproo\.com/?"?$' "$d/.env" && { echo "$d"; break; }; done)"
+VIEJO="$(basename "$RAIZ")"
 IP="2.25.153.240"
 VHOST=$(ls /etc/nginx/sites-enabled/ 2>/dev/null | grep -F "$VIEJO" | head -1)
 VHOST="/etc/nginx/sites-enabled/$VHOST"

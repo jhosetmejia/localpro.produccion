@@ -6,10 +6,10 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
 
-// Todo funciona en un solo dominio (APP_URL). El dominio de pruebas y el www redirigen allá.
+// Todo funciona en un solo dominio (APP_URL). El www (y cualquier dominio viejo de VIEJOS) redirigen allá.
 class DominioPrincipal
 {
-    private const VIEJOS = ['localpro.narinoexposhow.com'];
+    private const VIEJOS = [];
 
     public function handle(Request $request, Closure $next)
     {

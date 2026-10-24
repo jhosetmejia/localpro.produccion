@@ -3,7 +3,9 @@
 # Lo usa activar-pruebas.sh y la orden "refrescar-pruebas" de deploy/orden.txt.
 set -uo pipefail
 . /etc/localpro-pruebas.conf || { echo "No existe el sitio de pruebas"; exit 1; }
-PROD="$( [ -d /home/localproo/htdocs/localproo.com ] && echo /home/localproo/htdocs/localproo.com || echo /home/localpro/htdocs/localpro.narinoexposhow.com )"
+# Carpeta del sitio de producción (la que atiende localproo.com)
+RAIZ="$(for d in /home/localproo/htdocs/localproo.com /home/*/htdocs/*/; do d="${d%/}"; [ -f "$d/artisan" ] && grep -Eqs '^APP_URL="?https?://(www\.)?localproo\.com/?"?$' "$d/.env" && { echo "$d"; break; }; done)"
+PROD="$RAIZ"
 SUSR="$(stat -c %U "$RAIZP")"
 PN=$(grep ^DB_DATABASE= "$PROD/.env" | cut -d= -f2-); PU=$(grep ^DB_USERNAME= "$PROD/.env" | cut -d= -f2-); PP=$(grep ^DB_PASSWORD= "$PROD/.env" | cut -d= -f2-)
 echo "    Copiando la base de datos…"

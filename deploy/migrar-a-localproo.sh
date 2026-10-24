@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pasa LocalPro del sitio de pruebas (localpro.narinoexposhow.com) a un sitio propio "localproo.com" en CloudPanel,
+# Pasa LocalPro de la carpeta vieja del VPS a un sitio propio "localproo.com" en CloudPanel (/home/localproo/htdocs/localproo.com),
 # con su carpeta, su base de datos y su certificado SSL. Al final el subdominio viejo ya no se necesita.
 # Si algo falla, deja el sistema como estaba.
 # Uso (como root):
@@ -7,7 +7,8 @@
 # Desarrollado por Jhoset Mejía - DiCreWeb
 set -uo pipefail
 
-VIEJO="localpro.narinoexposhow.com"
+RAIZ="$(for d in /home/localproo/htdocs/localproo.com /home/*/htdocs/*/; do d="${d%/}"; [ -f "$d/artisan" ] && grep -Eqs '^APP_URL="?https?://(www\.)?localproo\.com/?"?$' "$d/.env" && { echo "$d"; break; }; done)"
+VIEJO="$(basename "$RAIZ")"
 NUEVO="localproo.com"
 U_VIEJO="localpro"
 U_NUEVO="localproo"
@@ -125,4 +126,4 @@ echo "Respaldo de todo lo anterior: $RESP"
 OTROS=$(grep -rls "$VIEJO" /home/*/htdocs/*/.env 2>/dev/null | grep -v "^$R_VIEJO" | grep -v "^$R_NUEVO")
 [ -n "$OTROS" ] && echo "OJO: estos otros sistemas todavía usan $VIEJO (cámbielo por $NUEVO): $OTROS"
 echo
-echo "Ahora puede borrar el sitio $VIEJO en CloudPanel y el registro DNS 'localpro' de narinoexposhow.com en Hostinger."
+echo "Ahora puede borrar el sitio viejo ($VIEJO) en CloudPanel."

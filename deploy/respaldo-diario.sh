@@ -3,7 +3,8 @@
 # Lo ejecuta el cron /etc/cron.d/localpro-respaldo (lo instala deploy/actualizar.sh).
 # Desarrollado por Jhoset Mejía - DiCreWeb
 set -uo pipefail
-RAIZ="$( [ -d /home/localproo/htdocs/localproo.com ] && echo /home/localproo/htdocs/localproo.com || echo /home/localpro/htdocs/localpro.narinoexposhow.com )"
+# Carpeta del sitio de producción (la que atiende localproo.com)
+RAIZ="$(for d in /home/localproo/htdocs/localproo.com /home/*/htdocs/*/; do d="${d%/}"; [ -f "$d/artisan" ] && grep -Eqs '^APP_URL="?https?://(www\.)?localproo\.com/?"?$' "$d/.env" && { echo "$d"; break; }; done)"
 USR="$(stat -c %U "$RAIZ")"
 DEST="/home/$USR/respaldos/diario"
 DIAS=10

@@ -6,12 +6,16 @@
 # Desarrollado por Jhoset Mejía - DiCreWeb
 set -uo pipefail
 
-# Desde la migración el sitio vive en /home/localproo/htdocs/localproo.com (antes en la carpeta de pruebas)
-if [ -d /home/localproo/htdocs/localproo.com ]; then CARPETA="localproo.com"; USUARIO="localproo"
-else CARPETA="localpro.narinoexposhow.com"; USUARIO="localpro"; fi
+# Carpeta del sitio de producción: la que atiende localproo.com (se detecta sola, no se escribe a mano)
+RAIZ="$(for d in /home/localproo/htdocs/localproo.com /home/*/htdocs/*/; do d="${d%/}"; [ -f "$d/artisan" ] && grep -Eqs '^APP_URL="?https?://(www\.)?localproo\.com/?"?$' "$d/.env" && { echo "$d"; break; }; done)"
+[ -n "$RAIZ" ] || { echo "No encontré la carpeta de LocalProo (APP_URL=https://localproo.com en el .env)"; exit 1; }
+USUARIO="$(stat -c %U "$RAIZ")"
 DOMINIO="localproo.com"
 PHP="php8.2"
-RAIZ="/home/$USUARIO/htdocs/$CARPETA"
+# Comando corto "localproo" (actualizar, artisan, ruta, logs) para no escribir la ruta de la carpeta
+if [ -z "${LOCALPRO_RAIZ:-}" ] && [ -f "$RAIZ/deploy/localproo-comando.sh" ]; then
+  install -m 755 "$RAIZ/deploy/localproo-comando.sh" /usr/local/bin/localproo 2>/dev/null || true
+fi
 PRUEBAS=0
 # Sitio de pruebas (lo llama deploy/piloto-pruebas.sh): otra carpeta y otro dominio; no instala crons ni toca producción
 if [ -n "${LOCALPRO_RAIZ:-}" ]; then
@@ -84,6 +88,7 @@ for F in $(run git diff --name-only --diff-filter=A HEAD "origin/$RAMA" 2>/dev/n
 done
 # Si no se pudo traer el código, no se tocó nada: no hace falta restaurar
 run git pull --ff-only || { echo "!! No se pudo traer el código nuevo. El sistema sigue igual que antes."; exit 1; }
+[ -z "${LOCALPRO_RAIZ:-}" ] && [ -f "$RAIZ/deploy/localproo-comando.sh" ] && install -m 755 "$RAIZ/deploy/localproo-comando.sh" /usr/local/bin/localproo 2>/dev/null
 
 echo "==> 3/5 Dependencias"
 # Solo se bajan versiones nuevas de librerías cuando cambia composer.json; si no, se instalan las mismas que ya

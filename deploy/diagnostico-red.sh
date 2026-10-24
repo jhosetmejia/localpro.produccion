@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Revisa por qué el sitio no abre en algunas redes WiFi (DNS / IPv6 / puertos).
-D=localpro.narinoexposhow.com
+D=localproo.com
 echo "== IP del servidor =="
 echo "IPv4: $(curl -4 -s --max-time 5 https://api.ipify.org || echo '?')"
 echo "IPv6: $(curl -6 -s --max-time 5 https://api64.ipify.org || echo 'sin IPv6')"
@@ -11,7 +11,7 @@ for S in 8.8.8.8 1.1.1.1; do
   echo "AAAA : $(dig +short AAAA $D @$S | tr '\n' ' ')"
 done
 echo "== DNS del dominio principal =="
-echo "NS   : $(dig +short NS narinoexposhow.com @8.8.8.8 | tr '\n' ' ')"
+echo "NS   : $(dig +short NS localproo.com @8.8.8.8 | tr '\n' ' ')"
 echo "== Puertos que escucha el servidor web =="
 ss -tlnp | grep -E ':(80|443)\s' | awk '{print $4}' | sort -u
 echo "== Prueba IPv4 =="

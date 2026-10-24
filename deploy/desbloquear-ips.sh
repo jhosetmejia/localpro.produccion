@@ -39,4 +39,4 @@ fi
 
 if command -v ufw >/dev/null; then echo "== UFW =="; ufw status | head -20; fi
 echo "== Prueba local =="
-curl -s -o /dev/null -w "HTTPS responde: %{http_code}\n" --max-time 8 https://localpro.narinoexposhow.com/login
+curl -s -o /dev/null -w "HTTPS responde: %{http_code}\n" --max-time 8 https://localproo.com/login

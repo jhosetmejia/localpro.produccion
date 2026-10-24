@@ -5,8 +5,8 @@
 # Desarrollado por Jhoset Mejía - DiCreWeb
 set -euo pipefail
 
-DOMINIO="localpro.narinoexposhow.com"
-USUARIO="localpro"
+DOMINIO="localproo.com"
+USUARIO="localproo"
 PHPV="8.2"
 DB="localpro"
 REPO="https://github.com/jhosetmejia/localpro.produccion.git"

@@ -9,7 +9,8 @@ set -uo pipefail
 exec 9>/var/lock/localpro-piloto.lock
 flock -n 9 || exit 0   # si ya hay una actualización corriendo, esta vuelta se salta
 
-RAIZ="$( [ -d /home/localproo/htdocs/localproo.com ] && echo /home/localproo/htdocs/localproo.com || echo /home/localpro/htdocs/localpro.narinoexposhow.com )"
+# Carpeta del sitio de producción (la que atiende localproo.com)
+RAIZ="$(for d in /home/localproo/htdocs/localproo.com /home/*/htdocs/*/; do d="${d%/}"; [ -f "$d/artisan" ] && grep -Eqs '^APP_URL="?https?://(www\.)?localproo\.com/?"?$' "$d/.env" && { echo "$d"; break; }; done)"
 USR="$(stat -c %U "$RAIZ")"
 PHP="php8.2"
 DOMINIO="localproo.com"
