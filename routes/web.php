@@ -492,6 +492,8 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::get('/tiendas/{tienda}', [adminTiendaController::class, 'show'])->name('tiendas.show');
     Route::post('/tiendas/{tienda}/estado', [adminTiendaController::class, 'estado'])->name('tiendas.estado');
     Route::post('/tiendas/{tienda}/entrar', [adminTiendaController::class, 'entrar'])->name('tiendas.entrar');
+    Route::get('/eventos', [\App\Http\Controllers\adminEventosController::class, 'index'])->name('eventos');
+    Route::post('/eventos/{evento}/abrir', [\App\Http\Controllers\adminEventosController::class, 'abrir'])->whereNumber('evento')->name('eventos.abrir');
     Route::post('/tiendas/{tienda}/plan', [adminTiendaController::class, 'plan'])->name('tiendas.plan');
     Route::post('/tiendas/{tienda}/pago', [adminTiendaController::class, 'pago'])->name('tiendas.pago');
     Route::post('/tiendas/{tienda}/productos-extra', [adminTiendaController::class, 'productosExtra'])->name('tiendas.productosExtra');

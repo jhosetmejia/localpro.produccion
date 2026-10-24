@@ -48,6 +48,10 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-users"></i></div>
                     Usuarios del sistema
                 </a>
+                <a class="nav-link {{ $on('admin.eventos*') }}" href="{{ route('admin.eventos') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-ticket"></i></div>
+                    Eventos
+                </a>
                 <a class="nav-link {{ $on('admin.pruebas*') }}" href="{{ route('admin.pruebas') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-vial-circle-check"></i></div>
                     Probar sistemas
