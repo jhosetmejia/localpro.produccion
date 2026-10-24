@@ -394,7 +394,7 @@ class Academia
 
             // Solo aparece en institutos y academias (y para los asesores, que lo venden)
             'instituto' => [
-                'titulo' => 'Su instituto en LocalPro', 'icono' => 'fa-graduation-cap', 'color' => '#6366f1', 'para' => ['todos', 'asesor'], 'modulo' => 'es_instituto',
+                'titulo' => 'Su instituto en LocalPro', 'icono' => 'fa-graduation-cap', 'color' => '#6366f1', 'para' => ['todos', 'asesor'], 'modulo' => 'es_instituto', 'tipos' => ['instituto'],
                 'resumen' => 'Programas, inscripciones, matrículas de contado o a crédito, cuotas, recibos y cartera de estudiantes.',
                 'lecciones' => [
                     ['titulo' => 'Programas e inscripciones', 'min' => 3, 'accion' => ['instituto.programas', 'Ver programas'], 'contenido' => [
@@ -423,7 +423,7 @@ class Academia
 
             // Solo aparece en negocios con el módulo Eventos (y para los asesores, que lo venden)
             'eventos' => [
-                'titulo' => 'Venda entradas con LocalProo Eventos', 'icono' => 'fa-ticket', 'color' => '#a855f7', 'para' => ['todos', 'asesor'], 'modulo' => 'mod_eventos',
+                'titulo' => 'Venda entradas con LocalProo Eventos', 'icono' => 'fa-ticket', 'color' => '#a855f7', 'para' => ['todos', 'asesor'], 'modulo' => 'mod_eventos', 'tipos' => ['eventos'],
                 'resumen' => 'Página del evento, registro de compradores, pago por Nequi con comprobante por WhatsApp, aprobar pagos y escanear el QR en la puerta.',
                 'lecciones' => [
                     ['titulo' => 'Cree el evento y comparta la página', 'min' => 3, 'accion' => ['eventos.create', 'Crear evento'], 'contenido' => [
@@ -446,6 +446,16 @@ class Academia
                         'En la puerta abra <b>Puerta</b> en el celular y escanee: <b>verde</b> = puede entrar; <b>rojo</b> = ya se usó o no existe; <b>naranja</b> = el pago no está aprobado. Cada QR sirve <b>una sola vez</b>, aunque dos porteros escaneen a la vez.',
                         'Si no lee el QR, busque por número de documento y toque <b>Dejar entrar</b>. Para que alguien solo maneje la puerta, créele el rol <b>Puerta (eventos)</b> en Roles del negocio.',
                     ], 'tip' => 'Revise el documento contra el nombre que sale en pantalla: así nadie entra con el QR de otro.'],
+                    ['titulo' => 'Su formulario de registro y dónde está cada cosa', 'min' => 3, 'accion' => ['eventos.index', 'Ver mis eventos'], 'contenido' => [
+                        'En <b>Editar → Formulario de registro</b> decide si pide fecha de nacimiento y celular. Con <b>Agregar campo</b> crea sus propias preguntas (texto, número, fecha, lista de opciones o Sí/No) y las marca como obligatorias u opcionales; la papelera las quita. Las respuestas salen en Compradores y en el Excel.',
+                        'Fecha, lugar, precio, etapa y Nequi: <b>Editar</b>. Afiche, logo, estilo (ej. Terror) y color: columna derecha de <b>Editar</b>. Pagos: <b>Compradores → Por aprobar</b>. Lista: <b>Excel</b>. Entrada: <b>Puerta</b>.',
+                        'En <b>Editar → Publicación</b> elige si la página muestra "X personas han visto este evento". En Compradores ve las visitas y qué porcentaje se registró.',
+                    ], 'tip' => 'Pida solo lo necesario: cada pregunta de más hace que menos gente termine el registro.'],
+                    ['titulo' => 'Antes de publicar: haga una prueba completa', 'min' => 3, 'accion' => null, 'contenido' => [
+                        'Deje el evento en <b>Borrador</b> (solo usted ve la página) y ábrala en su celular: revise afiche, fecha, precio y que el Nequi esté bien escrito.',
+                        'Regístrese como comprador en una <b>ventana de incógnito</b> o en otro celular, con un correo suyo. Toque <b>Enviar comprobante</b> y mire que abra el WhatsApp correcto.',
+                        'Apruebe ese registro, revise el correo y el QR en <b>Mi entrada</b> (y el PDF). Escanéelo en <b>Puerta</b>: verde la primera vez, rojo la segunda. Luego <b>anule</b> la entrada de prueba y cambie el evento a <b>Publicado</b>.',
+                    ], 'tip' => 'El día del evento: celulares con batería y datos, brillo alto, un portero por fila y pídale a la gente que descargue el PDF de su entrada.'],
                     ['titulo' => 'Su equipo: Contabilidad, Logística, Diseño y Puerta', 'min' => 2, 'accion' => ['users.index', 'Crear usuarios'], 'contenido' => [
                         'Al activar Eventos ya quedan creados los roles <b>Administrador del evento</b>, <b>Contabilidad</b>, <b>Logística</b>, <b>Diseño</b> y <b>Puerta</b>. No tiene que inventarlos.',
                         '<b>Contabilidad</b> aprueba o rechaza pagos y baja el Excel. <b>Logística</b> edita fecha, lugar, descripción, condiciones y redes, y usa la puerta. <b>Diseño</b> cambia afiches, logo, estilo y color. El precio, el Nequi y publicar solo los toca el <b>Administrador del evento</b>.',
@@ -463,7 +473,7 @@ class Academia
 
             // Solo aparece en negocios con el módulo Consultorio (y para los asesores, que lo venden)
             'consultorio' => [
-                'titulo' => 'Su consultorio en LocalPro', 'icono' => 'fa-user-doctor', 'color' => '#0ea5e9', 'para' => ['todos', 'asesor'], 'modulo' => 'mod_consultorio',
+                'titulo' => 'Su consultorio en LocalPro', 'icono' => 'fa-user-doctor', 'color' => '#0ea5e9', 'para' => ['todos', 'asesor'], 'modulo' => 'mod_consultorio', 'tipos' => ['consultorio'],
                 'resumen' => 'Pacientes, agenda de citas, historia clínica firmada, fórmulas e incapacidades, y cómo se cuida la información.',
                 'lecciones' => [
                     ['titulo' => 'Pacientes y agenda', 'min' => 3, 'accion' => ['consultorio.agenda', 'Ir a la agenda'], 'contenido' => [
@@ -491,6 +501,156 @@ class Academia
                     ['p' => '¿Quién puede ver la historia clínica?', 'o' => ['Solo quien tiene permiso de Historia clínica', 'Cualquier usuario del negocio', 'Cualquier persona con el enlace'], 'r' => 0],
                     ['p' => '¿Cómo le recuerdo la cita al paciente?', 'o' => ['Con el botón Recordar por WhatsApp', 'No se puede', 'Llamando a LocalPro'], 'r' => 0],
                     ['p' => '¿Qué hay que pedirle al paciente al registrarlo?', 'o' => ['La autorización de tratamiento de datos', 'La clave de su correo', 'Nada'], 'r' => 0],
+                ],
+            ],
+
+            // ===== Cursos por tipo de negocio: "Cómo manejar su sistema" =====
+            'restaurante' => [
+                'titulo' => 'Su restaurante o cafetería en LocalPro', 'icono' => 'fa-burger', 'color' => '#f97316', 'para' => ['todos', 'asesor'], 'modulo' => 'mod_pedidos', 'tipos' => ['restaurante', 'cafeteria'],
+                'resumen' => 'Pedidos de mesero a caja y cocina, roles del equipo, cobrar antes o al final, avisos de "listo" y cierre del día.',
+                'lecciones' => [
+                    ['titulo' => 'Configure sus pedidos', 'min' => 3, 'accion' => ['pedidos.configurar', 'Configurar pedidos'], 'contenido' => [
+                        'En <b>Pedidos → Configurar</b> elija cómo cobra: <b>paga primero</b> (el pedido llega a cocina cuando la caja cobra) o <b>paga al final</b> (llega de una y el mesero pide la cuenta al terminar).',
+                        'Cree sus <b>estaciones</b> (Cocina, Bar, Cafetería…) y diga qué estación prepara cada producto o categoría.',
+                        'Si quiere, active la <b>pantalla para clientes</b>: un televisor que muestra "Su pedido está listo, Juan".',
+                    ], 'tip' => 'Empiece con una sola estación (Cocina) y agregue Bar cuando el equipo ya esté cómodo.'],
+                    ['titulo' => 'Su equipo y sus roles', 'min' => 2, 'accion' => ['roles-negocio.index', 'Ver roles'], 'contenido' => [
+                        'Los roles ya vienen creados: <b>Administrador, Caja, Mesero, Cocina, Bar</b> (o Cafetería). Revíselos en <b>Roles del negocio</b> y ajuste permisos si quiere.',
+                        'En <b>Usuarios → Nuevo usuario</b> cree a cada persona y elija su rol. Al entrar, cada uno llega directo a su pantalla: el mesero a sus pedidos, la cocina a su estación.',
+                    ], 'tip' => 'Un usuario por persona: así sabe quién tomó, cobró o preparó cada pedido.'],
+                    ['titulo' => 'Mesero, caja y cocina en acción', 'min' => 3, 'accion' => ['pedidos.mesero', 'Tomar un pedido'], 'contenido' => [
+                        'El <b>mesero</b> toca "Tomar pedido", pone mesa o nombre del cliente y notas por producto ("sin cebolla").',
+                        'La <b>caja</b> ve los pedidos por cobrar, toca <b>Cobrar</b> y se abre la caja (POS) con el pedido cargado.',
+                        'La <b>cocina</b> ve las tarjetas con reloj (amarillo a los 10 min, rojo a los 20), marca <b>Todo listo</b> y al mesero le suena el aviso para entregar.',
+                    ], 'tip' => 'Haga una ronda de prueba con el equipo antes de abrir: un pedido completo de mesero a entregado.'],
+                    ['titulo' => 'Cierre del día', 'min' => 2, 'accion' => ['pedidos.cierre', 'Ver el cierre'], 'contenido' => [
+                        'En <b>Pedidos → Cierre</b> ve los pedidos del día, lo cobrado y lo que quedó pendiente.',
+                        'Cierre la caja con el conteo del efectivo para que cuadre con las ventas.',
+                    ], 'tip' => null],
+                ],
+                'prueba' => [
+                    ['p' => 'En modo "paga primero", ¿cuándo llega el pedido a la cocina?', 'o' => ['Cuando la caja lo cobra', 'Apenas el mesero lo toma', 'Al día siguiente'], 'r' => 0],
+                    ['p' => '¿Dónde crea el usuario de un mesero nuevo?', 'o' => ['Usuarios → Nuevo usuario, con el rol Mesero', 'En Productos', 'No se puede'], 'r' => 0],
+                    ['p' => 'La tarjeta de un pedido se puso roja en la cocina. ¿Qué significa?', 'o' => ['Lleva más de 20 minutos', 'Ya se pagó', 'Se anuló'], 'r' => 0],
+                ],
+            ],
+
+            'funeraria' => [
+                'titulo' => 'Su funeraria en LocalPro', 'icono' => 'fa-dove', 'color' => '#64748b', 'para' => ['todos', 'asesor'], 'modulo' => 'mod_obituarios', 'tipos' => ['funeraria'],
+                'resumen' => 'Salas de velación, plantillas, obituarios en el televisor de cada sala y cómo compartirlos por WhatsApp.',
+                'lecciones' => [
+                    ['titulo' => 'Salas y televisores', 'min' => 3, 'accion' => ['obituarios.index', 'Ver obituarios'], 'contenido' => [
+                        'Cree cada <b>sala de velación</b>. Cada una tiene un <b>código de 4 números</b> para su televisor.',
+                        'En el navegador del TV escriba <b>localproo.com/tv</b> y digite el código con el control. Queda en pantalla completa y se actualiza sola.',
+                        'Para recepción está la <b>pantalla general</b>, que rota todos los obituarios activos.',
+                    ], 'tip' => 'Si el TV no es Smart, un Fire TV Stick o Google TV con navegador funciona muy bien.'],
+                    ['titulo' => 'Plantillas', 'min' => 2, 'accion' => ['obituarios.plantillas', 'Ver plantillas'], 'contenido' => [
+                        'Elija un diseño (mármol, negro y dorado, cielo, floral, vela, sencillo), la medida de la pantalla y el fondo: color, imagen o video.',
+                        'Agregue animaciones suaves, su frase y su logo. Las plantillas se reutilizan y se pueden copiar.',
+                    ], 'tip' => null],
+                    ['titulo' => 'Crear y mostrar un obituario', 'min' => 3, 'accion' => ['obituarios.create', 'Nuevo obituario'], 'contenido' => [
+                        'Llene nombre, foto, fechas, exequias y quiénes invitan (una línea por grupo). La vista previa se ve en vivo.',
+                        '<b>Guarde</b>: la pantalla solo muestra lo guardado. Con <b>Ver ya en la pantalla</b> sale de inmediato en la sala.',
+                        'Descargue la imagen o el video y envíela por <b>WhatsApp</b> a la familia.',
+                    ], 'tip' => 'Si el TV muestra la pantalla de espera, revise que el obituario esté guardado, asignado a esa sala y con fecha "hasta" futura.'],
+                ],
+                'prueba' => [
+                    ['p' => '¿Cómo abre el TV de una sala?', 'o' => ['localproo.com/tv y el código de 4 números', 'Con su clave de LocalPro', 'Por Bluetooth'], 'r' => 0],
+                    ['p' => 'El obituario no sale en el TV. ¿Qué hace primero?', 'o' => ['Tocar "Ver ya en la pantalla"', 'Borrar la sala', 'Apagar el TV un día'], 'r' => 0],
+                    ['p' => '¿La vista previa en vivo ya sale en el TV?', 'o' => ['No, hay que guardar', 'Sí, siempre', 'Solo los lunes'], 'r' => 0],
+                ],
+            ],
+
+            'moda' => [
+                'titulo' => 'Su tienda de ropa, calzado o accesorios', 'icono' => 'fa-shirt', 'color' => '#ec4899', 'para' => ['todos', 'asesor'], 'tipos' => ['moda', 'calzado', 'accesorios'],
+                'resumen' => 'Tallas y colores, etiquetas con código, separados con abonos y su catálogo en línea.',
+                'lecciones' => [
+                    ['titulo' => 'Tallas y colores', 'min' => 3, 'accion' => ['productos.index', 'Ver productos'], 'contenido' => [
+                        'Cree el producto una vez y agregue sus <b>variantes</b>: cada talla y color con su propia cantidad.',
+                        'En la caja elige la talla y el color, y el inventario baja solo de esa combinación.',
+                    ], 'tip' => 'Revise cada semana qué tallas se agotan primero para pedir mejor.'],
+                    ['titulo' => 'Etiquetas con código', 'min' => 2, 'accion' => ['etiquetas.todas', 'Imprimir etiquetas'], 'contenido' => [
+                        'Imprima etiquetas con código para cada prenda. En la caja la busca rápido sin escribir.',
+                        'Cuando le llega mercancía nueva, imprima solo las etiquetas de esa entrada.',
+                    ], 'tip' => null],
+                    ['titulo' => 'Separados y catálogo', 'min' => 3, 'accion' => ['separados.index', 'Ver separados'], 'contenido' => [
+                        'Con <b>Separados</b> el cliente aparta una prenda con un abono, paga en cuotas y se la lleva al terminar. El producto queda reservado.',
+                        'Active su <b>catálogo en línea</b> y compártalo por WhatsApp e Instagram: los clientes ven fotos, tallas y precios.',
+                    ], 'tip' => 'Fotos claras y con buena luz venden más en el catálogo.'],
+                ],
+                'prueba' => [
+                    ['p' => '¿Cómo maneja la misma camisa en talla S, M y L?', 'o' => ['Un producto con variantes de talla', 'Tres productos sin relación', 'No se puede'], 'r' => 0],
+                    ['p' => 'Un cliente quiere apartar un vestido y pagarlo en cuotas. ¿Qué usa?', 'o' => ['Separados', 'Un egreso', 'Borrar el producto'], 'r' => 0],
+                    ['p' => '¿Para qué sirven las etiquetas con código?', 'o' => ['Para buscar rápido la prenda en la caja', 'Para cambiar el precio', 'Para nada'], 'r' => 0],
+                ],
+            ],
+
+            'tienda' => [
+                'titulo' => 'Su tienda, minimercado o ferretería', 'icono' => 'fa-basket-shopping', 'color' => '#16a34a', 'para' => ['todos', 'asesor'], 'tipos' => ['minimercado', 'ferreteria', 'papeleria', 'tecnologia', 'otro'],
+                'resumen' => 'Cargar muchos productos rápido, recibir mercancía de proveedores, vencimientos y ventas por metro o kilo.',
+                'lecciones' => [
+                    ['titulo' => 'Cargue sus productos rápido', 'min' => 3, 'accion' => ['productos.importar', 'Importar productos'], 'contenido' => [
+                        'Si ya los tiene en Excel, súbalos en <b>Productos → Importar</b>: el sistema revisa y le muestra antes de guardar.',
+                        'Ponga a cada producto su <b>costo</b> y su <b>precio</b>: así LocalPro le calcula la ganancia real.',
+                    ], 'tip' => 'Use el código de barras del empaque como código del producto para encontrarlo rápido en la caja.'],
+                    ['titulo' => 'Llegó mercancía', 'min' => 2, 'accion' => ['entradas.index', 'Ver entradas'], 'contenido' => [
+                        'Registre lo que le llega en <b>Entradas</b>, con su <b>proveedor</b>. El inventario sube solo.',
+                        'Así sabe a quién le compró, cuánto y a qué precio.',
+                    ], 'tip' => null],
+                    ['titulo' => 'Vencimientos, metros y kilos', 'min' => 2, 'accion' => ['negocio.edit', 'Datos del negocio'], 'contenido' => [
+                        'En <b>Datos del negocio → Módulos</b> active <b>Fechas de vencimiento</b> para manejar lotes y recibir alertas de lo que está por vencer.',
+                        'Si vende por metro, kilo o litro, active <b>Vender por metro, kilo o litro</b> y en la caja venda con decimales.',
+                    ], 'tip' => 'Ponga adelante en el estante lo que vence primero.'],
+                ],
+                'prueba' => [
+                    ['p' => 'Tengo 500 productos en Excel. ¿Qué hago?', 'o' => ['Productos → Importar', 'Crearlos uno por uno', 'No usarlos'], 'r' => 0],
+                    ['p' => 'Me llegó un pedido del proveedor. ¿Dónde lo registro?', 'o' => ['En Entradas', 'En Egresos', 'En Clientes'], 'r' => 0],
+                    ['p' => 'Vendo cable por metros. ¿Qué activo?', 'o' => ['Vender por metro, kilo o litro', 'Separados', 'Eventos'], 'r' => 0],
+                ],
+            ],
+
+            'servicios' => [
+                'titulo' => 'Su negocio de belleza y servicios', 'icono' => 'fa-spa', 'color' => '#a855f7', 'para' => ['todos', 'asesor'], 'tipos' => ['belleza'],
+                'resumen' => 'Servicios sin inventario, productos para la venta y clientes que vuelven.',
+                'lecciones' => [
+                    ['titulo' => 'Servicios y productos', 'min' => 3, 'accion' => ['productos.index', 'Ver productos'], 'contenido' => [
+                        'Cree sus <b>servicios</b> (cortes, tintes, manicure, barba…): no manejan inventario y siempre están disponibles.',
+                        'Los <b>productos</b> que vende (shampoo, cremas) sí llevan inventario. En la caja cobra los dos juntos.',
+                    ], 'tip' => 'Si no le aparece la opción de servicios, actívela en Datos del negocio → Módulos.'],
+                    ['titulo' => 'Clientes que vuelven', 'min' => 2, 'accion' => ['clientes.index', 'Ver clientes'], 'contenido' => [
+                        'Ponga el cliente en cada venta: así sabe qué se hizo y cuándo volvió.',
+                        'Desde <b>Clientes</b> escríbales por WhatsApp a los que no han vuelto, con una promoción.',
+                    ], 'tip' => 'Un mensaje al mes a sus clientes frecuentes trae de vuelta a muchos.'],
+                ],
+                'prueba' => [
+                    ['p' => '¿Un corte de cabello lleva inventario?', 'o' => ['No, es un servicio', 'Sí, siempre', 'Depende del día'], 'r' => 0],
+                    ['p' => '¿Para qué pongo el cliente en cada venta?', 'o' => ['Para saber cuándo volvió y escribirle', 'No sirve', 'Para subir el precio'], 'r' => 0],
+                    ['p' => '¿Puedo cobrar un servicio y un producto en la misma venta?', 'o' => ['Sí', 'No', 'Solo con tarjeta'], 'r' => 0],
+                ],
+            ],
+
+            'contador' => [
+                'titulo' => 'Contabilidad para contadores: retenciones e IVA', 'icono' => 'fa-calculator', 'color' => '#0f766e', 'para' => ['todos', 'asesor'], 'modulo' => 'mod_contable', 'tipos' => ['contable'],
+                'resumen' => 'Sus clientes, cruce del listado DIAN con la contabilidad, borrador del 350, IVA y calendario tributario.',
+                'lecciones' => [
+                    ['titulo' => 'Pruebe con datos de ejemplo', 'min' => 2, 'accion' => ['contabilidad.index', 'Ir a Contabilidad'], 'contenido' => [
+                        'Toque <b>Probar con datos de ejemplo</b>: se crea una empresa de ejemplo con un mes cargado para ver todo funcionando.',
+                        'Descargue los archivos de muestra para ver qué columnas espera el sistema.',
+                    ], 'tip' => null],
+                    ['titulo' => 'Sus clientes y el mes', 'min' => 3, 'accion' => ['contabilidad.index', 'Ver mis clientes'], 'contenido' => [
+                        'Cree cada cliente con su NIT y si es agente de retención, autorretenedor, si practica reteIVA y su periodicidad de IVA.',
+                        'Abra el mes y suba el <b>listado de la DIAN</b> y la <b>base contable</b> (por columnas o auxiliar por cuenta).',
+                        'Revise el <b>cruce</b>: lo que no está contabilizado, lo que no tiene factura DIAN y las retenciones que faltaron o sobraron.',
+                    ], 'tip' => 'La revisión final siempre es suya: el sistema no presenta en la DIAN.'],
+                    ['titulo' => 'Calendario y recordatorios', 'min' => 2, 'accion' => ['contabilidad.calendario', 'Ver calendario'], 'contenido' => [
+                        'El calendario muestra los vencimientos de retención e IVA de cada cliente según el último dígito del NIT.',
+                        'Le llega un correo 3 días antes y el mismo día. Marque "Presentado" para que no le vuelva a avisar.',
+                    ], 'tip' => null],
+                ],
+                'prueba' => [
+                    ['p' => '¿Qué dos archivos se cruzan cada mes?', 'o' => ['El listado DIAN y la base contable', 'Dos facturas', 'Ninguno'], 'r' => 0],
+                    ['p' => '¿LocalPro presenta la declaración en la DIAN?', 'o' => ['No, la revisión y presentación son del contador', 'Sí, sola', 'Solo en diciembre'], 'r' => 0],
+                    ['p' => '¿Cómo deja de recibir recordatorios de un vencimiento?', 'o' => ['Marcándolo como "Presentado"', 'Borrando el cliente', 'No se puede'], 'r' => 0],
                 ],
             ],
         ];
@@ -538,9 +698,24 @@ class Academia
         $tienda = TiendaActual::tienda();
         return array_filter(self::cursos(), function ($c) use ($g, $u, $tienda) {
             if (!array_intersect((array) $c['para'], $g)) return false;
-            // Cursos de un módulo (ej. Consultorio): solo si el negocio lo tiene, o para asesores y LocalPro
-            if (!empty($c['modulo']) && !($tienda?->{$c['modulo']}) && !$u?->es_superadmin && !$u?->asesor) return false;
+            // Cursos de un tipo de negocio o de un módulo: solo si el negocio es de ese tipo o tiene el módulo (asesores y LocalPro ven todos)
+            if ((!empty($c['modulo']) || !empty($c['tipos'])) && !$u?->es_superadmin && !$u?->asesor) {
+                $porTipo = !empty($c['tipos']) && in_array($tienda?->tipo_negocio, (array) $c['tipos'], true);
+                $porModulo = !empty($c['modulo']) && $tienda?->{$c['modulo']};
+                if (!$porTipo && !$porModulo) return false;
+            }
             return true;
         });
+    }
+
+    // El curso "Cómo manejar su sistema" del tipo de negocio actual (ej. restaurante, funeraria, eventos)
+    public static function suCurso(): ?string
+    {
+        $tipo = TiendaActual::tienda()?->tipo_negocio;
+        if (!$tipo) return null;
+        foreach (self::cursosNegocio() as $slug => $c) {
+            if (in_array($tipo, (array) ($c['tipos'] ?? []), true)) return $slug;
+        }
+        return null;
     }
 }

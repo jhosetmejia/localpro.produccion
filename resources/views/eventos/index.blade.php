@@ -21,7 +21,7 @@
     <div class="lp-hello">
         <div><small>LocalProo Eventos</small><h1>Mis <span>eventos</span></h1>
             <p class="text-muted mb-0">Página del evento, compradores, aprobación de pagos y puerta con QR.</p></div>
-        @if ($admin)<div class="lp-quick"><a href="{{ route('eventos.create') }}" class="btn btn-dark"><i class="fa-solid fa-plus me-1"></i>Nuevo evento</a></div>@endif
+        <div class="lp-quick">@if (\Illuminate\Support\Facades\Route::has('aprende.curso'))<a href="{{ route('aprende.curso', 'eventos') }}" class="btn btn-light"><i class="fa-solid fa-graduation-cap me-1"></i>Curso: cómo manejar Eventos</a>@endif @if ($admin)<a href="{{ route('eventos.create') }}" class="btn btn-dark"><i class="fa-solid fa-plus me-1"></i>Nuevo evento</a>@endif</div>
     </div>
     @include('layouts.partials.lp-flash')
 

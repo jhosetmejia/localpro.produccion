@@ -27,6 +27,20 @@
         <small class="d-block mt-2" style="color:#b8c4bc;letter-spacing:0;text-transform:none;font-size:.85rem;position:relative;z-index:1">{{ $hechos }} de {{ $n }} cursos completados</small>
     </div>
 
+    @php $suCurso = \App\Support\Academia::suCurso(); $sc = $suCurso ? ($cursos[$suCurso] ?? null) : null; @endphp
+    @if ($sc)
+    @php $sa = $avances[$suCurso] ?? null; $sp = \App\Http\Controllers\academiaController::porcentaje($sc, $sa); @endphp
+    <a href="{{ route('aprende.curso', $suCurso) }}" class="d-flex align-items-center gap-3 p-3 mt-3 mb-2 text-decoration-none" style="border-radius:20px;background:linear-gradient(135deg,{{ $sc['color'] }},#0b0d0c);color:#fff;box-shadow:0 18px 40px -22px {{ $sc['color'] }}">
+        <div class="d-grid flex-shrink-0" style="width:58px;height:58px;border-radius:16px;background:rgba(255,255,255,.16);place-items:center;font-size:1.6rem"><i class="fa-solid {{ $sc['icono'] }}"></i></div>
+        <div class="flex-grow-1">
+            <small style="opacity:.8;font-weight:800;letter-spacing:.06em;text-transform:uppercase;font-size:.72rem">Empiece aquí · cómo manejar su sistema</small>
+            <div style="font-weight:900;font-size:1.15rem;line-height:1.2">{{ $sc['titulo'] }}</div>
+            <small style="opacity:.85">{{ count($sc['lecciones']) }} lecciones · {{ $sa?->aprobado_at ? '✓ Completado' : $sp . ' %' }}</small>
+        </div>
+        <i class="fa-solid fa-chevron-right"></i>
+    </a>
+    @endif
+
     @php
         $grupos = collect($cursos)->groupBy(fn ($c) => \App\Support\Academia::esOpcional($c) ? 'op' : 'base', true);
     @endphp
