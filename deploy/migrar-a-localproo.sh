@@ -101,7 +101,8 @@ if ! clpctl lets-encrypt:install:certificate --domainName="$NUEVO" --subjectAlte
 fi
 
 echo "==> 7/8 Prueba"
-CODE=$(curl -s -o /dev/null -w '%{http_code}' --resolve "$NUEVO:443:127.0.0.1" "https://$NUEVO/login")
+# -k: si Let's Encrypt aún no salió, CloudPanel deja un certificado propio (Cloudflare en "Full" lo acepta igual)
+CODE=$(curl -sk -o /dev/null -w '%{http_code}' --resolve "$NUEVO:443:127.0.0.1" "https://$NUEVO/login")
 echo "    https://$NUEVO/login -> $CODE"
 [ "$CODE" = "200" ] || volver
 CERT=$(echo | openssl s_client -servername "$NUEVO" -connect 127.0.0.1:443 2>/dev/null | openssl x509 -noout -issuer 2>/dev/null)
@@ -112,10 +113,14 @@ echo "15 3 * * * root /bin/bash $R_NUEVO/deploy/respaldo-diario.sh >> /var/log/l
 chmod 644 /etc/cron.d/localpro-respaldo
 if [ -s "$RESP/crontab-viejo.txt" ]; then
   sed -e "s#$R_VIEJO#$R_NUEVO#g" "$RESP/crontab-viejo.txt" | crontab -u "$U_NUEVO" -
-  crontab -u "$U_VIEJO" -r 2>/dev/null
+  crontab -u "$U_VIEJO" -r 2>/dev/null || true
 else
   echo "* * * * * cd $R_NUEVO && $PHP artisan schedule:run >> /dev/null 2>&1" | crontab -u "$U_NUEVO" -
 fi
+# Tareas de /etc/cron.d (piloto automático, vigilante, respaldos, pruebas) apuntan a la carpeta nueva
+for c in /etc/cron.d/localpro-*; do [ -f "$c" ] && sed -i "s#$R_VIEJO#$R_NUEVO#g" "$c"; done
+# Comando corto "localproo"
+install -m 755 "$R_NUEVO/deploy/localproo-comando.sh" /usr/local/bin/localproo 2>/dev/null
 mkdir -p "/home/$U_NUEVO/respaldos" && cp -a "/home/$U_VIEJO/respaldos/." "/home/$U_NUEVO/respaldos/" 2>/dev/null
 chown -R "$U_NUEVO:$U_NUEVO" "/home/$U_NUEVO/respaldos"
 
@@ -126,4 +131,5 @@ echo "Respaldo de todo lo anterior: $RESP"
 OTROS=$(grep -rls "$VIEJO" /home/*/htdocs/*/.env 2>/dev/null | grep -v "^$R_VIEJO" | grep -v "^$R_NUEVO")
 [ -n "$OTROS" ] && echo "OJO: estos otros sistemas todavía usan $VIEJO (cámbielo por $NUEVO): $OTROS"
 echo
-echo "Ahora puede borrar el sitio viejo ($VIEJO) en CloudPanel."
+echo "Revise https://$NUEVO y, si todo está bien, borre el sitio viejo con:"
+echo "  curl -fsSL https://raw.githubusercontent.com/jhosetmejia/localpro.produccion/master/deploy/borrar-sitio-viejo.sh | bash"
