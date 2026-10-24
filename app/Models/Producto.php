@@ -162,6 +162,14 @@ class Producto extends Model
     // Dirección pública de la foto principal, solo si el archivo existe
     public function getFotoUrlAttribute(): ?string
     {
-        return self::fotoExiste($this->img_path) ? asset('storage/productos/' . rawurlencode($this->img_path)) : null;
+        return self::fotoExiste($this->img_path) ? self::urlFoto($this->img_path) : null;
+    }
+
+    // Dirección de una foto con su versión (?v=fecha del archivo): si Cloudflare o el navegador guardaron
+    // un "no encontrado" viejo, la dirección nueva lo salta y la foto sale de una vez
+    public static function urlFoto(string $path): string
+    {
+        $f = storage_path('app/public/productos/' . $path);
+        return asset('storage/productos/' . rawurlencode($path)) . (is_file($f) ? '?v=' . filemtime($f) : '');
     }
 }

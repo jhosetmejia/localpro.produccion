@@ -20,7 +20,7 @@ class ProductoFoto extends Model
 
     public function getUrlAttribute(): string
     {
-        return asset('storage/productos/' . rawurlencode($this->path));
+        return Producto::urlFoto($this->path);
     }
 
     public function getExisteAttribute(): bool
