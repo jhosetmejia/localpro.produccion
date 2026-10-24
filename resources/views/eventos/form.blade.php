@@ -103,8 +103,20 @@
                         @foreach (\App\Models\Evento::ESTADOS as $k => $n)<option value="{{ $k }}" @selected(old('estado', $evento->estado) === $k)>{{ $n }}</option>@endforeach
                     </select>
                     <small class="text-muted d-block mt-2">En borrador solo usted ve la página (vista previa).</small>
+                    <label class="form-label fw-bold mt-3">Estilo de la página</label>
+                    <select class="form-select" name="tema" data-nativo>
+                        @foreach (\App\Models\Evento::TEMAS as $k => $n)<option value="{{ $k }}" @selected(old('tema', $evento->tema ?: 'normal') === $k)>{{ $n }}</option>@endforeach
+                    </select>
+                    <small class="text-muted d-block mt-1">Terror: fondo oscuro con sangre que escurre, niebla y letras de miedo. Ideal para Halloween.</small>
                     <label class="form-label fw-bold mt-3">Color del evento</label>
                     <input class="form-control form-control-color w-100" type="color" name="color" value="{{ old('color', $evento->color ?: '#a855f7') }}">
+                </div>
+                <div class="lp-box mb-3">
+                    <h3>Logo del evento <small class="text-muted fw-normal">(opcional)</small></h3>
+                    <div class="mb-2 rounded-3 d-grid" style="background:#0b0a10;min-height:120px;place-items:center;padding:10px">@if ($evento->logo_url)<img id="pv-logo" src="{{ $evento->logo_url }}" alt="" style="max-width:100%;max-height:150px">@else<img id="pv-logo" alt="" style="display:none;max-width:100%;max-height:150px"><i class="fa-regular fa-image fa-2x text-secondary" id="ic-logo"></i>@endif</div>
+                    <input type="file" class="form-control" name="logo" accept="image/png,image/jpeg,image/webp" data-prev="logo">
+                    <small class="text-muted d-block mt-1">Sale arriba en la página del evento. Mejor en PNG con fondo transparente.</small>
+                    @if ($evento->logo_url)<div class="form-check mt-1"><input class="form-check-input" type="checkbox" name="quitar_logo" value="1" id="q-logo"><label class="form-check-label small" for="q-logo">Quitar logo</label></div>@endif
                 </div>
                 @foreach (['imagen' => ['Afiche principal', 'imagen_url'], 'imagen2' => ['Afiche con la información (opcional)', 'imagen2_url']] as $campo => [$tit, $url])
                 <div class="lp-box mb-3">

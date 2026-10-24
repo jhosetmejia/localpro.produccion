@@ -15,13 +15,50 @@ class Evento extends Model
     protected $table = 'eventos';
 
     protected $fillable = ['nombre', 'slug', 'subtitulo', 'descripcion', 'fecha_evento', 'lugar', 'ciudad', 'etapa', 'precio', 'venta_hasta', 'cupo',
-        'pago_metodo', 'pago_numero', 'pago_titular', 'whatsapp', 'mensaje_whatsapp', 'instagram', 'tiktok', 'pedir_colegio', 'edad_minima', 'condiciones', 'color', 'estado'];
+        'pago_metodo', 'pago_numero', 'pago_titular', 'whatsapp', 'mensaje_whatsapp', 'instagram', 'tiktok', 'pedir_colegio', 'edad_minima', 'condiciones', 'color', 'estado', 'tema'];
 
     protected $casts = ['fecha_evento' => 'datetime', 'venta_hasta' => 'datetime', 'precio' => 'decimal:2', 'pedir_colegio' => 'boolean', 'cupo' => 'integer', 'edad_minima' => 'integer'];
 
     public const ESTADOS = ['borrador' => 'Borrador (no se ve)', 'publicado' => 'Publicado (a la venta)', 'cerrado' => 'Venta cerrada'];
 
     public const MENSAJE = 'Hola, ya pagué aquí está mi comprobante';
+
+    // Estilo de la página pública
+    public const TEMAS = ['normal' => 'Normal', 'terror' => 'Terror / Halloween (sangriento)'];
+
+    // De "https://www.tiktok.com/@usuario?lang=es", "tiktok.com/@usuario" o "@usuario" deja solo "usuario"
+    public static function usuarioRed(?string $v): ?string
+    {
+        $v = trim((string) $v);
+        if ($v === '') return null;
+        $v = preg_replace('~^(https?://)?([a-z]+\.)?(instagram|tiktok)\.com/~i', '', $v);
+        $v = preg_split('~[/?#\s]~', ltrim($v, '@/'))[0] ?? '';
+        $v = ltrim($v, '@');
+        return $v !== '' ? mb_substr($v, 0, 80) : null;
+    }
+
+    public function getTiktokUrlAttribute(): ?string
+    {
+        if (!$this->tiktok) return null;
+        // Enlaces cortos (vm.tiktok.com/xxxx) se dejan tal cual
+        if (preg_match('~^https?://~i', $this->tiktok)) return $this->tiktok;
+        return 'https://www.tiktok.com/@' . rawurlencode($this->tiktok);
+    }
+
+    public function getInstagramUrlAttribute(): ?string
+    {
+        return $this->instagram ? 'https://www.instagram.com/' . rawurlencode($this->instagram) . '/' : null;
+    }
+
+    public function getLogoUrlAttribute(): ?string
+    {
+        return $this->logo_path ? Storage::disk('public')->url($this->logo_path) : null;
+    }
+
+    public function getEsTerrorAttribute(): bool
+    {
+        return $this->tema === 'terror';
+    }
 
     public function entradas()
     {

@@ -87,7 +87,7 @@ class eventosController extends Controller
     {
         $tienda = $this->tienda();
         $evento = new Evento([
-            'estado' => 'borrador', 'etapa' => 'Primera etapa', 'pago_metodo' => 'Nequi', 'pedir_colegio' => true, 'color' => '#a855f7',
+            'estado' => 'borrador', 'etapa' => 'Primera etapa', 'pago_metodo' => 'Nequi', 'pedir_colegio' => false, 'tema' => 'normal', 'color' => '#a855f7',
             'pago_numero' => $tienda->telefono, 'whatsapp' => $tienda->telefono, 'mensaje_whatsapp' => Evento::MENSAJE,
             'ciudad' => $tienda->ciudad ?? null,
             'condiciones' => "Reservamos el derecho de admisión y permanencia.\nLa entrada es personal e intransferible: presente su documento en la puerta.\nNo hay devolución del dinero una vez aprobado el pago.",
@@ -144,6 +144,8 @@ class eventosController extends Controller
             'estado' => ['required', Rule::in(array_keys(Evento::ESTADOS))],
             'imagen' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:8192',
             'imagen2' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:8192',
+            'logo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'tema' => ['nullable', Rule::in(array_keys(Evento::TEMAS))],
         ], [
             'slug.regex' => 'La dirección solo puede tener letras minúsculas, números y guiones (ej. el-ultimo-grito).',
             'slug.unique' => 'Esa dirección ya la tiene otro evento. Pruebe con otra.',
@@ -152,21 +154,28 @@ class eventosController extends Controller
 
         $datos['pedir_colegio'] = $request->boolean('pedir_colegio');
         $datos['color'] = $datos['color'] ?? '#a855f7';
+        $datos['tema'] = $datos['tema'] ?? 'normal';
         foreach (['instagram', 'tiktok'] as $r) {
-            if (!empty($datos[$r])) $datos[$r] = ltrim(trim(preg_replace('~^https?://(www\.)?(instagram|tiktok)\.com/@?~i', '', $datos[$r]), '/'), '@');
+            // Enlace corto de TikTok (vm.tiktok.com/…): se guarda completo; lo demás queda solo el usuario
+            if ($r === 'tiktok' && preg_match('~^(https?://)?(vm|vt)\.tiktok\.com/~i', (string) ($datos[$r] ?? ''))) {
+                $datos[$r] = preg_match('~^https?://~i', $datos[$r]) ? $datos[$r] : 'https://' . $datos[$r];
+                continue;
+            }
+            $datos[$r] = Evento::usuarioRed($datos[$r] ?? null);
         }
         $datos['whatsapp'] = preg_replace('/\D/', '', $datos['whatsapp']);
         $datos['slug'] = $datos['slug'] ?: ($evento->slug ?: Evento::slugUnico($datos['nombre'], $evento->id));
-        unset($datos['imagen'], $datos['imagen2']);
+        unset($datos['imagen'], $datos['imagen2'], $datos['logo']);
 
         $evento->fill($datos);
         $evento->save();
 
-        foreach (['imagen' => 'imagen_path', 'imagen2' => 'imagen2_path'] as $campo => $col) {
+        foreach (['imagen' => 'imagen_path', 'imagen2' => 'imagen2_path', 'logo' => 'logo_path'] as $campo => $col) {
             if ($request->hasFile($campo)) {
                 if ($evento->$col) Storage::disk('public')->delete($evento->$col);
                 $ruta = $request->file($campo)->store('eventos/' . TiendaActual::id(), 'public');
-                try { Imagenes::optimizar(Storage::disk('public')->path($ruta), 1600); } catch (\Throwable $e) {}
+                // El logo puede venir en PNG con fondo transparente: no se convierte
+                if ($campo !== 'logo') { try { Imagenes::optimizar(Storage::disk('public')->path($ruta), 1600); } catch (\Throwable $e) {} }
                 $evento->forceFill([$col => $ruta])->save();
             } elseif ($request->boolean('quitar_' . $campo) && $evento->$col) {
                 Storage::disk('public')->delete($evento->$col);

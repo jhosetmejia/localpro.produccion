@@ -38,6 +38,9 @@
 .fijo .btn{max-width:528px;margin:0 auto}
 .borr{background:#fde68a;color:#5a3d00;text-align:center;font-weight:700;padding:.5rem;margin:0 -16px;font-size:.85rem}
 .afiche2{width:100%;border-radius:18px;display:block}
+.logo-ev{margin:18px auto 0;text-align:center}
+.logo-ev img{max-width:min(92%,440px);max-height:220px;filter:drop-shadow(0 10px 24px rgba(0,0,0,.7))}
+.visually-hidden{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @endsection
 
 @section('content')
@@ -51,8 +54,14 @@
     @endif
 </div>
 
+@if ($evento->logo_url)
+<div class="logo-ev"><img src="{{ $evento->logo_url }}" alt="{{ $evento->nombre }}"></div>
+@if ($evento->subtitulo)<div class="sub" style="margin-top:6px;text-align:center">{{ $evento->subtitulo }}</div>@endif
+<h1 class="tit visually-hidden">{{ $evento->nombre }}</h1>
+@else
 @if ($evento->subtitulo)<div class="sub" style="margin-top:22px">{{ $evento->subtitulo }}</div>@endif
 <h1 class="tit" @if ($evento->subtitulo) style="margin-top:6px" @endif>{{ $evento->nombre }}</h1>
+@endif
 
 <div class="datos">
     @if ($evento->fecha_evento)
@@ -87,8 +96,8 @@
 
 @if ($evento->instagram || $evento->tiktok || $evento->whatsapp_link)
 <div class="redes">
-    @if ($evento->instagram)<a href="https://instagram.com/{{ $evento->instagram }}" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>@endif
-    @if ($evento->tiktok)<a href="https://www.tiktok.com/@{{ $evento->tiktok }}" target="_blank" rel="noopener" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>@endif
+    @if ($evento->instagram)<a href="{{ $evento->instagram_url }}" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>@endif
+    @if ($evento->tiktok)<a href="{{ $evento->tiktok_url }}" target="_blank" rel="noopener" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>@endif
     @if ($evento->whatsapp_link)<a href="{{ $evento->whatsapp_link }}?text={{ rawurlencode('Hola, quiero información sobre ' . $evento->nombre) }}" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>@endif
 </div>
 @endif
