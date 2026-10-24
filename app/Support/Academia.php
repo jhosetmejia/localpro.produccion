@@ -432,7 +432,7 @@ class Academia
                         'Escriba su <b>Nequi</b> (o la cuenta donde recibe) y el <b>WhatsApp</b> donde le mandan el comprobante. Cambie el estado a <b>Publicado</b> y copie el enlace <b>localproo.com/evento/…</b> para Instagram, TikTok y WhatsApp.',
                     ], 'tip' => 'Mientras está en Borrador solo usted ve la página: úsela para revisar cómo queda antes de publicar.'],
                     ['titulo' => 'Cómo compra la gente', 'min' => 2, 'accion' => null, 'contenido' => [
-                        'La persona abre la página, toca <b>Comprar entrada</b> y llena sus datos: nombre, correo, cédula o tarjeta de identidad, fecha de nacimiento, colegio, celular y una <b>clave</b>. Toca <b>Terminar registro</b>.',
+                        'La persona abre la página, toca <b>Comprar entrada</b> y llena sus datos: nombre, correo, cédula o tarjeta de identidad, celular, fecha de nacimiento, una <b>clave</b> y las preguntas que el organizador agregue en <b>Formulario de registro</b>. Toca <b>Terminar registro</b>.',
                         'Le sale: <b>"Envía tu pago a este Nequi"</b> con el número y el valor, y el botón <b>Enviar comprobante de pago</b>, que abre su WhatsApp con el mensaje listo ("Hola, ya pagué aquí está mi comprobante" + su nombre, documento y número de registro). Solo adjunta la captura.',
                         'Si es menor de edad, debe marcar que su padre, madre o acudiente autoriza el registro. Todos autorizan el tratamiento de datos (Ley 1581 de 2012).',
                     ], 'tip' => null],

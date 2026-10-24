@@ -13,9 +13,9 @@ class EventoEntrada extends Model
 
     protected $table = 'evento_entradas';
 
-    protected $fillable = ['evento_id', 'asistente_id', 'precio', 'etapa', 'estado', 'aviso_pago_at', 'aprobada_at', 'aprobada_por', 'referencia_pago', 'nota', 'ingreso_at', 'ingreso_por'];
+    protected $fillable = ['evento_id', 'asistente_id', 'precio', 'etapa', 'estado', 'aviso_pago_at', 'aprobada_at', 'aprobada_por', 'referencia_pago', 'nota', 'ingreso_at', 'ingreso_por', 'respuestas'];
 
-    protected $casts = ['precio' => 'decimal:2', 'aviso_pago_at' => 'datetime', 'aprobada_at' => 'datetime', 'ingreso_at' => 'datetime'];
+    protected $casts = ['precio' => 'decimal:2', 'aviso_pago_at' => 'datetime', 'aprobada_at' => 'datetime', 'ingreso_at' => 'datetime', 'respuestas' => 'array'];
 
     public const ESTADOS = ['pendiente' => 'Por aprobar', 'aprobada' => 'Pago aprobado', 'rechazada' => 'Rechazada', 'anulada' => 'Anulada'];
 

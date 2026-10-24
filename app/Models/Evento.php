@@ -15,9 +15,9 @@ class Evento extends Model
     protected $table = 'eventos';
 
     protected $fillable = ['nombre', 'slug', 'subtitulo', 'descripcion', 'fecha_evento', 'lugar', 'ciudad', 'etapa', 'precio', 'venta_hasta', 'cupo',
-        'pago_metodo', 'pago_numero', 'pago_titular', 'whatsapp', 'mensaje_whatsapp', 'instagram', 'tiktok', 'pedir_colegio', 'edad_minima', 'condiciones', 'color', 'estado', 'tema', 'mostrar_visitas'];
+        'pago_metodo', 'pago_numero', 'pago_titular', 'whatsapp', 'mensaje_whatsapp', 'instagram', 'tiktok', 'pedir_colegio', 'edad_minima', 'condiciones', 'color', 'estado', 'tema', 'mostrar_visitas', 'campos', 'pedir_nacimiento', 'pedir_celular'];
 
-    protected $casts = ['fecha_evento' => 'datetime', 'venta_hasta' => 'datetime', 'precio' => 'decimal:2', 'pedir_colegio' => 'boolean', 'cupo' => 'integer', 'edad_minima' => 'integer', 'visitas' => 'integer', 'mostrar_visitas' => 'boolean'];
+    protected $casts = ['fecha_evento' => 'datetime', 'venta_hasta' => 'datetime', 'precio' => 'decimal:2', 'pedir_colegio' => 'boolean', 'cupo' => 'integer', 'edad_minima' => 'integer', 'visitas' => 'integer', 'mostrar_visitas' => 'boolean', 'campos' => 'array', 'pedir_nacimiento' => 'boolean', 'pedir_celular' => 'boolean'];
 
     public const ESTADOS = ['borrador' => 'Borrador (no se ve)', 'publicado' => 'Publicado (a la venta)', 'cerrado' => 'Venta cerrada'];
 
@@ -163,5 +163,43 @@ class Evento extends Model
     public static function puedeAlgo(?\App\Models\User $u = null): bool
     {
         return in_array(true, self::puede($u), true);
+    }
+
+    // Tipos de campo que el organizador puede agregar al formulario de registro
+    public const TIPOS_CAMPO = ['texto' => 'Texto corto', 'parrafo' => 'Texto largo', 'numero' => 'Número', 'lista' => 'Lista de opciones', 'fecha' => 'Fecha', 'si_no' => 'Sí / No'];
+
+    // Campos propios del formulario, ya limpios: [['id','etiqueta','tipo','opciones','obligatorio'], …]
+    public function camposFormulario(): array
+    {
+        return collect((array) ($this->campos ?? []))->filter(fn ($c) => is_array($c) && trim((string) ($c['etiqueta'] ?? '')) !== '')
+            ->map(fn ($c) => [
+                'id' => (string) ($c['id'] ?? ''), 'etiqueta' => (string) $c['etiqueta'],
+                'tipo' => isset(self::TIPOS_CAMPO[$c['tipo'] ?? '']) ? $c['tipo'] : 'texto',
+                'opciones' => array_values(array_filter(array_map('trim', (array) ($c['opciones'] ?? [])), 'strlen')),
+                'obligatorio' => (bool) ($c['obligatorio'] ?? false),
+            ])->filter(fn ($c) => $c['id'] !== '')->values()->all();
+    }
+
+    // Reglas de validación para las respuestas de los campos propios (respuestas.{id})
+    public function reglasCampos(): array
+    {
+        $r = [];
+        foreach ($this->camposFormulario() as $c) {
+            $base = [$c['obligatorio'] ? 'required' : 'nullable'];
+            $r['respuestas.' . $c['id']] = array_merge($base, match ($c['tipo']) {
+                'numero' => ['numeric'],
+                'fecha' => ['date'],
+                'lista' => [\Illuminate\Validation\Rule::in($c['opciones'])],
+                'si_no' => ['in:Sí,No'],
+                'parrafo' => ['string', 'max:1000'],
+                default => ['string', 'max:200'],
+            });
+        }
+        return $r;
+    }
+
+    public function nombresCampos(): array
+    {
+        return collect($this->camposFormulario())->mapWithKeys(fn ($c) => ['respuestas.' . $c['id'] => mb_strtolower($c['etiqueta'])])->all();
     }
 }

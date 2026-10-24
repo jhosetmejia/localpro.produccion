@@ -166,8 +166,10 @@ class eventosController extends Controller
         ]);
 
         if ($p['admin']) {
-            $datos['pedir_colegio'] = $request->boolean('pedir_colegio');
             $datos['mostrar_visitas'] = $request->boolean('mostrar_visitas');
+            $datos['pedir_nacimiento'] = $request->boolean('pedir_nacimiento');
+            $datos['pedir_celular'] = $request->boolean('pedir_celular');
+            $datos['campos'] = $this->camposDelFormulario((array) $request->input('campos', []));
         }
         if ($p['admin'] || $p['diseno']) {
             $datos['color'] = $datos['color'] ?? '#a855f7';
@@ -204,6 +206,31 @@ class eventosController extends Controller
                 $evento->forceFill([$col => null])->save();
             }
         }
+    }
+
+    // Campos propios del formulario de registro que armó el organizador (máx. 15)
+    private function camposDelFormulario(array $entrada): array
+    {
+        $out = [];
+        $usados = [];
+        foreach (array_slice(array_values($entrada), 0, 15) as $c) {
+            if (!is_array($c)) continue;
+            $etq = trim(mb_substr(strip_tags((string) ($c['etiqueta'] ?? '')), 0, 80));
+            if ($etq === '') continue;
+            $tipo = isset(Evento::TIPOS_CAMPO[$c['tipo'] ?? '']) ? $c['tipo'] : 'texto';
+            $ops = $tipo === 'lista'
+                ? array_values(array_unique(array_filter(array_map(fn ($o) => trim(mb_substr(strip_tags($o), 0, 60)), explode(',', (string) ($c['opciones'] ?? ''))), 'strlen')))
+                : [];
+            if ($tipo === 'lista' && !$ops) $tipo = 'texto';
+            // El id se conserva para no perder las respuestas ya guardadas
+            $id = preg_match('/^[a-z0-9_]{1,40}$/', (string) ($c['id'] ?? '')) ? $c['id'] : (\Illuminate\Support\Str::slug($etq, '_') ?: 'campo');
+            $id = mb_substr($id, 0, 34);
+            $base = $id; $i = 2;
+            while (in_array($id, $usados, true)) $id = $base . '_' . $i++;
+            $usados[] = $id;
+            $out[] = ['id' => $id, 'etiqueta' => $etq, 'tipo' => $tipo, 'opciones' => $ops, 'obligatorio' => (bool) ($c['obligatorio'] ?? false)];
+        }
+        return $out;
     }
 
     public function show(Request $request, Evento $evento)
@@ -319,15 +346,17 @@ class eventosController extends Controller
         $this->mio($evento);
         $nombre = 'entradas-' . $evento->slug . '-' . now()->format('Y-m-d') . '.csv';
         $filas = EventoEntrada::with('asistente')->where('evento_id', $evento->id)->orderBy('id')->get();
-        return response()->streamDownload(function () use ($filas) {
+        $campos = $evento->camposFormulario();
+        return response()->streamDownload(function () use ($filas, $campos) {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
-            fputcsv($out, ['Nombre', 'Tipo doc.', 'Documento', 'Fecha de nacimiento', 'Edad', 'Colegio', 'Correo', 'Celular', 'Estado', 'Precio', 'Avisó pago', 'Aprobada', 'Referencia', 'Ingresó', 'Código'], ';');
+            fputcsv($out, ['Nombre', 'Tipo doc.', 'Documento', 'Fecha de nacimiento', 'Edad', 'Correo', 'Celular', 'Estado', 'Precio', 'Avisó pago', 'Aprobada', 'Referencia', 'Ingresó', 'Código', ...array_column($campos, 'etiqueta')], ';');
             foreach ($filas as $e) {
                 $a = $e->asistente;
-                fputcsv($out, [$a->nombre, $a->tipo_documento, $a->documento, $a->fecha_nacimiento?->format('d/m/Y'), $a->edad, $a->colegio, $a->email, $a->celular,
+                fputcsv($out, [$a->nombre, $a->tipo_documento, $a->documento, $a->fecha_nacimiento?->format('d/m/Y'), $a->edad, $a->email, $a->celular,
                     $e->estado_texto, (float) $e->precio, $e->aviso_pago_at?->format('d/m/Y H:i'), $e->aprobada_at?->format('d/m/Y H:i'), $e->referencia_pago,
-                    $e->ingreso_at?->format('d/m/Y H:i'), $e->estado === 'aprobada' ? $e->codigo : ''], ';');
+                    $e->ingreso_at?->format('d/m/Y H:i'), $e->estado === 'aprobada' ? $e->codigo : '',
+                    ...array_map(fn ($c) => (string) (($e->respuestas ?? [])[$c['id']] ?? ''), $campos)], ';');
             }
             fclose($out);
         }, $nombre, ['Content-Type' => 'text/csv; charset=UTF-8']);

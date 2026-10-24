@@ -96,7 +96,7 @@
                 <div class="meta">
                     <span><i class="fa-regular fa-id-card me-1"></i>{{ $a->tipo_documento }} {{ $a->documento }}</span>
                     @if ($a->edad !== null)<span>{{ $a->edad }} años @if ($a->edad < 18)<span class="ev-chip c-wait">menor</span>@endif</span>@endif
-                    @if ($a->colegio)<span><i class="fa-solid fa-school me-1"></i>{{ $a->colegio }}</span>@endif
+                    @foreach ($evento->camposFormulario() as $cp)@if (filled(($e->respuestas ?? [])[$cp['id']] ?? null))<span><b>{{ $cp['etiqueta'] }}:</b> {{ $e->respuestas[$cp['id']] }}</span>@endif @endforeach
                     @if ($wa)<a href="https://wa.me/{{ $wa }}" target="_blank" rel="noopener" class="text-success text-decoration-none"><i class="fa-brands fa-whatsapp me-1"></i>{{ $a->celular }}</a>@endif
                     <span><i class="fa-regular fa-envelope me-1"></i>{{ $a->email }}</span>
                     <span>Registro N.° {{ $e->id }} · {{ $e->created_at->format('d/m h:i a') }}</span>

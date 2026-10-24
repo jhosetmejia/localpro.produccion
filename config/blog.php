@@ -15,7 +15,7 @@ return [
         'icono' => 'fa-ticket',
         'rol' => 'negocios',
         'seo_titulo' => 'Venta de entradas con QR para eventos y fiestas | LocalProo',
-        'descripcion' => 'Boletería digital para fiestas, conciertos y eventos de colegio: página del evento, registro, pago por Nequi, aprobación y entrada con QR que no se repite.',
+        'descripcion' => 'Boletería digital para fiestas, conciertos, congresos y todo tipo de eventos: página del evento, registro, pago por Nequi, aprobación y entrada con QR que no se repite.',
         'keywords' => ['venta de entradas con QR', 'boletería digital', 'sistema de boletas para eventos', 'entradas para fiestas', 'control de acceso con QR', 'boletas por Nequi', 'app para vender boletas'],
         'faq' => [
             ['¿Necesito pasarela de pagos?', 'No. La persona le paga a su Nequi (o a la cuenta que usted ponga) y le manda el comprobante por WhatsApp con un botón. Usted aprueba el pago en el panel.'],

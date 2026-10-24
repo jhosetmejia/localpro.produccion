@@ -23,10 +23,7 @@
     @if ($yo)
         <h2>Comprar con tu cuenta</h2>
         <p class="mu">Estás registrado como <b style="color:var(--tx)">{{ $yo->nombre }}</b> ({{ $yo->email }}).</p>
-        @if ($evento->pedir_colegio && !$yo->colegio)
-        <label class="lb" for="colegio">Colegio</label>
-        <input class="in" id="colegio" name="colegio" value="{{ old('colegio') }}" maxlength="120" required>
-        @endif
+        @include('eventos.publico._campos')
         <button class="btn btn-c" style="margin-top:20px"><i class="fa-solid fa-check"></i> Terminar registro</button>
     @else
         <h2>Tus datos</h2>
@@ -48,16 +45,17 @@
             <input class="in" name="documento" value="{{ old('documento') }}" inputmode="numeric" placeholder="Número" maxlength="20" required aria-label="Número de documento">
         </div>
 
+        @if ($evento->pedir_nacimiento || $evento->edad_minima)
         <label class="lb" for="fnac">Fecha de nacimiento</label>
         <input class="in" id="fnac" type="date" name="fecha_nacimiento" value="{{ old('fecha_nacimiento') }}" max="{{ now()->subYear()->format('Y-m-d') }}" required>
-
-        @if ($evento->pedir_colegio)
-        <label class="lb" for="colegio">Colegio</label>
-        <input class="in" id="colegio" name="colegio" value="{{ old('colegio') }}" maxlength="120" required>
         @endif
 
+        @if ($evento->pedir_celular)
         <label class="lb" for="cel">Celular (WhatsApp)</label>
         <input class="in" id="cel" type="tel" name="celular" value="{{ old('celular') }}" inputmode="tel" autocomplete="tel" maxlength="20" required>
+        @endif
+
+        @include('eventos.publico._campos')
 
         <label class="lb" for="clave">Crea una clave</label>
         <div class="ojo"><input class="in" id="clave" type="password" name="password" autocomplete="new-password" minlength="6" required><button type="button" data-ojo="clave" aria-label="Ver clave"><i class="fa-regular fa-eye"></i></button></div>

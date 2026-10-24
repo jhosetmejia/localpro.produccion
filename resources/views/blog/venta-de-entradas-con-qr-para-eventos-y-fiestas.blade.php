@@ -20,7 +20,7 @@
 </ol>
 
 <h2>2. La gente se registra y paga</h2>
-<p>En la página tocan <b>Comprar entrada</b> y llenan sus datos: nombre, correo, cédula o tarjeta de identidad, fecha de nacimiento, colegio, celular y una clave. Al terminar les sale el Nequi y el valor, y el botón <b>Enviar comprobante de pago</b> les abre WhatsApp con el mensaje listo y sus datos para que usted sepa quién es.</p>
+<p>En la página tocan <b>Comprar entrada</b> y llenan sus datos: nombre, correo, cédula o tarjeta de identidad, celular, fecha de nacimiento y una clave, más las preguntas que usted agregue al formulario (talla, empresa, ciudad, acompañante…). Al terminar les sale el Nequi y el valor, y el botón <b>Enviar comprobante de pago</b> les abre WhatsApp con el mensaje listo y sus datos para que usted sepa quién es.</p>
 
 <h2>3. Usted aprueba el pago</h2>
 <p>En el panel ve primero a quienes ya mandaron el comprobante. Revisa la captura, toca <b>Aprobar pago</b> y el sistema le genera a esa persona su entrada con QR, le llega un correo y usted le puede avisar por WhatsApp con un toque.</p>
@@ -48,7 +48,10 @@
 </ul>
 <p>Nadie del equipo ve sus ventas, inventario ni caja: cada uno entra a LocalProo y llega directo a Eventos. Puede cambiar los permisos de cada rol en <b>Roles del negocio</b>.</p>
 
-<h2>6. ¿Cuánta gente ha visto su evento?</h2>
+<h2>6. Arme su propio formulario de registro</h2>
+<p>En <b>Editar → Formulario de registro</b> decide si pide fecha de nacimiento y celular, y agrega sus propias preguntas: texto, número, fecha, lista de opciones o Sí/No, obligatorias u opcionales. Las respuestas salen en Compradores y en el Excel. Sirve para fiestas, conciertos, congresos, ferias, carreras o cualquier evento.</p>
+
+<h2>7. ¿Cuánta gente ha visto su evento?</h2>
 <p>La página cuenta las visitas (una por persona, sin contar robots ni a su equipo). En el panel ve las visitas y qué porcentaje se registró; si quiere, la página muestra al público <b>"X personas han visto este evento"</b> para animar a comprar. Se apaga en <b>Editar → Publicación</b>.</p>
 
 <a class="cta" href="{{ route('registro', ['tipo' => 'eventos', 'desde' => 'blog:' . $slug]) }}">Cree su evento gratis</a>

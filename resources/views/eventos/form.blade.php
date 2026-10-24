@@ -65,10 +65,6 @@
                             <small class="text-muted">Ej: 26 de octubre 11:59 p. m. Para la siguiente etapa cambie el nombre, el precio y esta fecha: las entradas ya registradas conservan su precio.</small></div>
                         <div class="col-md-6"><label class="form-label fw-bold">Edad mínima <small class="text-muted fw-normal">(opcional)</small></label>
                             <input class="form-control" type="number" name="edad_minima" min="1" max="99" value="{{ old('edad_minima', $evento->edad_minima) }}" placeholder="Sin límite"></div>
-                        <div class="col-12">
-                            <input type="hidden" name="pedir_colegio" value="0">
-                            <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="pedir_colegio" value="1" id="pcol" @checked(old('pedir_colegio', $evento->pedir_colegio))><label class="form-check-label fw-bold" for="pcol">Pedir el colegio al registrarse</label></div>
-                        </div>
                     </div>
                 </div>
 
@@ -90,6 +86,19 @@
                     </div>
                 </div>
 
+
+                <div class="lp-box mb-3">
+                    <h3><i class="fa-solid fa-list-check me-1"></i>Formulario de registro</h3>
+                    <p class="text-muted small mb-2">Siempre se piden: nombre, correo, documento y una clave (para ver su entrada y para la puerta). Lo demás lo decide usted.</p>
+                    <input type="hidden" name="pedir_nacimiento" value="0"><input type="hidden" name="pedir_celular" value="0">
+                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="pedir_nacimiento" value="1" id="pnac" @checked(old('pedir_nacimiento', $evento->exists ? $evento->pedir_nacimiento : true))><label class="form-check-label" for="pnac">Pedir fecha de nacimiento <small class="text-muted">(obligatoria si pone edad mínima)</small></label></div>
+                    <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" name="pedir_celular" value="1" id="pcel" @checked(old('pedir_celular', $evento->exists ? $evento->pedir_celular : true))><label class="form-check-label" for="pcel">Pedir celular (WhatsApp)</label></div>
+
+                    <b class="d-block mb-2">Campos propios</b>
+                    <div id="ev-campos"></div>
+                    <button type="button" class="btn btn-light" id="ev-add"><i class="fa-solid fa-plus me-1"></i>Agregar campo</button>
+                    <small class="text-muted d-block mt-2">Ej: Talla de camiseta (lista: S, M, L), Empresa, Ciudad, ¿Viene con acompañante? (Sí / No). Las respuestas salen en Compradores y en el Excel.</small>
+                </div>
                 @endif
 
                 @if ($p['admin'] || $p['info'])
@@ -159,6 +168,36 @@
 @endsection
 
 @push('js')
+<script>
+(function () {
+    var cont = document.getElementById('ev-campos'), add = document.getElementById('ev-add');
+    if (!cont) return;
+    var TIPOS = @json(\App\Models\Evento::TIPOS_CAMPO), n = 0;
+    var datos = @json(old('campos') ? array_values((array) old('campos')) : $evento->camposFormulario());
+    function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+    function fila(c) {
+        c = c || {}; var i = n++, d = document.createElement('div');
+        var ops = Array.isArray(c.opciones) ? c.opciones.join(', ') : (c.opciones || '');
+        var sel = Object.keys(TIPOS).map(function (k) { return '<option value="' + k + '"' + (c.tipo === k ? ' selected' : '') + '>' + TIPOS[k] + '</option>'; }).join('');
+        d.className = 'border rounded-3 p-2 mb-2';
+        d.innerHTML = '<input type="hidden" name="campos[' + i + '][id]" value="' + esc(c.id || '') + '">'
+            + '<div class="row g-2 align-items-center">'
+            + '<div class="col-md-5"><input class="form-control" name="campos[' + i + '][etiqueta]" value="' + esc(c.etiqueta) + '" maxlength="80" placeholder="Pregunta (ej: Talla de camiseta)"></div>'
+            + '<div class="col-md-3"><select class="form-select" data-nativo name="campos[' + i + '][tipo]">' + sel + '</select></div>'
+            + '<div class="col-md-3"><div class="form-check"><input type="hidden" name="campos[' + i + '][obligatorio]" value="0"><input class="form-check-input" type="checkbox" value="1" name="campos[' + i + '][obligatorio]" id="ob' + i + '"' + (c.obligatorio && c.obligatorio !== '0' ? ' checked' : '') + '><label class="form-check-label" for="ob' + i + '">Obligatorio</label></div></div>'
+            + '<div class="col-md-1 text-end"><button type="button" class="btn btn-sm btn-outline-danger" title="Quitar campo"><i class="fa-solid fa-trash"></i></button></div>'
+            + '<div class="col-12 ops"><input class="form-control form-control-sm" name="campos[' + i + '][opciones]" value="' + esc(ops) + '" maxlength="500" placeholder="Opciones separadas por coma (ej: S, M, L, XL)"></div>'
+            + '</div>';
+        var s = d.querySelector('select'), o = d.querySelector('.ops');
+        function ver() { o.style.display = s.value === 'lista' ? '' : 'none'; }
+        s.addEventListener('change', ver); ver();
+        d.querySelector('button').addEventListener('click', function () { d.remove(); });
+        cont.appendChild(d);
+    }
+    datos.forEach(fila);
+    add.addEventListener('click', function () { fila({ tipo: 'texto' }); cont.lastChild.querySelector('input[type=text],input:not([type])').focus(); });
+})();
+</script>
 <script>
 document.querySelectorAll('[data-prev]').forEach(function (i) {
     i.addEventListener('change', function () {

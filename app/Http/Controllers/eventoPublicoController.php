@@ -89,6 +89,7 @@ class eventoPublicoController extends Controller
         }
 
         $yo = $this->yo();
+        $pideNac = $evento->pedir_nacimiento || $evento->edad_minima;
         if (!$yo) {
             $request->merge(['email' => mb_strtolower(trim((string) $request->input('email')))]);
             $datos = $request->validate([
@@ -96,12 +97,11 @@ class eventoPublicoController extends Controller
                 'email' => 'required|email|max:150',
                 'tipo_documento' => ['required', Rule::in(array_keys(EventoAsistente::DOCUMENTOS))],
                 'documento' => ['required', 'string', 'max:30', 'regex:/^[0-9A-Za-z]{5,20}$/'],
-                'fecha_nacimiento' => 'required|date|before:today|after:1920-01-01',
-                'colegio' => [$evento->pedir_colegio ? 'required' : 'nullable', 'string', 'max:120'],
-                'celular' => ['required', 'string', 'regex:/^[0-9+ ]{7,20}$/'],
+                'fecha_nacimiento' => [$pideNac ? 'required' : 'nullable', 'date', 'before:today', 'after:1920-01-01'],
+                'celular' => [$evento->pedir_celular ? 'required' : 'nullable', 'string', 'regex:/^[0-9+ ]{7,20}$/'],
                 'password' => 'required|string|min:6|max:60|confirmed',
                 'acepta_datos' => 'accepted',
-            ], [
+            ] + $evento->reglasCampos(), [
                 'nombre.min' => 'Escriba su nombre completo.',
                 'documento.regex' => 'Escriba el número de documento sin puntos ni espacios.',
                 'fecha_nacimiento.before' => 'Revise la fecha de nacimiento.',
@@ -109,23 +109,32 @@ class eventoPublicoController extends Controller
                 'password.min' => 'La clave debe tener mínimo 6 caracteres.',
                 'password.confirmed' => 'Las dos claves no coinciden.',
                 'acepta_datos.accepted' => 'Debe autorizar el tratamiento de sus datos para registrarse.',
-            ], ['colegio' => 'colegio', 'documento' => 'número de documento', 'fecha_nacimiento' => 'fecha de nacimiento']);
+            ], ['documento' => 'número de documento', 'fecha_nacimiento' => 'fecha de nacimiento'] + $evento->nombresCampos());
 
-            $edad = Carbon::parse($datos['fecha_nacimiento'])->age;
-            if ($edad < 18 && !$request->boolean('autoriza_acudiente')) {
+            $edad = !empty($datos['fecha_nacimiento']) ? Carbon::parse($datos['fecha_nacimiento'])->age : null;
+            if ($edad !== null && $edad < 18 && !$request->boolean('autoriza_acudiente')) {
                 throw ValidationException::withMessages(['autoriza_acudiente' => 'Como es menor de edad, su padre, madre o acudiente debe autorizar el registro (marque la casilla).']);
             }
-            if ($evento->edad_minima && $edad < $evento->edad_minima) {
+            if ($evento->edad_minima && $edad !== null && $edad < $evento->edad_minima) {
                 throw ValidationException::withMessages(['fecha_nacimiento' => "Este evento es para mayores de {$evento->edad_minima} años."]);
             }
             if (EventoAsistente::where('email', $datos['email'])->exists()) {
                 throw ValidationException::withMessages(['email' => 'Ya hay una cuenta con ese correo. Toque "Ya tengo cuenta" e ingrese con su clave.']);
             }
-        } elseif ($evento->edad_minima && $yo->edad !== null && $yo->edad < $evento->edad_minima) {
-            return back()->with('error', "Este evento es para mayores de {$evento->edad_minima} años.");
+        } else {
+            if ($evento->edad_minima && $yo->edad !== null && $yo->edad < $evento->edad_minima) {
+                return back()->with('error', "Este evento es para mayores de {$evento->edad_minima} años.");
+            }
+            $datos = $request->validate($evento->reglasCampos(), [], $evento->nombresCampos());
+        }
+        // Respuestas a los campos propios del organizador
+        $respuestas = [];
+        foreach ($evento->camposFormulario() as $c) {
+            $v = $datos['respuestas'][$c['id']] ?? null;
+            if ($v !== null && $v !== '') $respuestas[$c['id']] = is_string($v) ? trim($v) : $v;
         }
 
-        $entrada = DB::transaction(function () use ($evento, $yo, $request, &$datos) {
+        $entrada = DB::transaction(function () use ($evento, $yo, $request, &$datos, $respuestas) {
             // Bloquea el evento para que el cupo no se pase si se registran muchos a la vez
             $ev = Evento::withoutGlobalScope('tienda')->lockForUpdate()->find($evento->id);
             if ($ev->cupo && $ev->entradas()->whereIn('estado', ['pendiente', 'aprobada'])->count() >= $ev->cupo) {
@@ -135,14 +144,12 @@ class eventoPublicoController extends Controller
                 $yo = EventoAsistente::create([
                     'nombre' => trim($datos['nombre']), 'email' => $datos['email'], 'password' => $datos['password'],
                     'tipo_documento' => $datos['tipo_documento'], 'documento' => strtoupper($datos['documento']),
-                    'fecha_nacimiento' => $datos['fecha_nacimiento'], 'colegio' => $datos['colegio'] ?? null,
-                    'celular' => preg_replace('/\D/', '', $datos['celular']), 'acepta_datos_at' => now(),
+                    'fecha_nacimiento' => $datos['fecha_nacimiento'] ?? null,
+                    'celular' => !empty($datos['celular']) ? preg_replace('/\D/', '', $datos['celular']) : null, 'acepta_datos_at' => now(),
                     'autoriza_acudiente' => $request->boolean('autoriza_acudiente'),
                 ]);
-            } elseif ($ev->pedir_colegio && !$yo->colegio && $request->filled('colegio')) {
-                $yo->forceFill(['colegio' => mb_substr(trim($request->input('colegio')), 0, 120)])->save();
             }
-            $e = new EventoEntrada(['evento_id' => $ev->id, 'asistente_id' => $yo->id, 'precio' => $ev->precio, 'etapa' => $ev->etapa, 'estado' => 'pendiente']);
+            $e = new EventoEntrada(['evento_id' => $ev->id, 'asistente_id' => $yo->id, 'precio' => $ev->precio, 'etapa' => $ev->etapa, 'estado' => 'pendiente', 'respuestas' => $respuestas ?: null]);
             $e->tienda_id = $ev->tienda_id;
             $e->save();
             return $e;
