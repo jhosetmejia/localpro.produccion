@@ -22,6 +22,7 @@
 <meta name="description" content="{{ $desc }}">
 @if ($kw)<meta name="keywords" content="{{ implode(', ', $kw) }}">@endif
 <link rel="canonical" href="{{ url()->current() }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta property="og:type" content="{{ $esArticulo ? 'article' : 'website' }}">
 <meta property="og:locale" content="es_CO">

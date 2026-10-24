@@ -27,6 +27,9 @@
     <details class="ap-lec {{ $hecha ? 'hecha' : '' }}" id="l{{ $i }}" @if ($abierta === $i) open @endif>
         <summary><span class="n">{{ $hecha ? '✓' : $i + 1 }}</span>{{ $l['titulo'] }}<small>{{ $l['min'] }} min</small></summary>
         <div class="cuerpo">
+            @foreach ((array) ($l['rutas'] ?? (isset($l['ruta']) ? [$l['ruta']] : [])) as $r)
+            <x-guia-ruta :ruta="$r" :tipo="$tieneTienda ? null : ($curso['tipos'][0] ?? null)" />
+            @endforeach
             <ul>@foreach ($l['contenido'] as $t)<li>{!! $t !!}</li>@endforeach</ul>
             @if ($l['tip'])<div class="ap-tip">💡 {{ $l['tip'] }}</div>@endif
             <div class="d-flex gap-2 flex-wrap">

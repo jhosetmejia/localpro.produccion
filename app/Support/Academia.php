@@ -156,13 +156,13 @@ class Academia
                         'El <b>menú</b> de la izquierda (en el celular, el botón ☰ de arriba) lleva a todo: caja, productos, clientes, reportes y Vender más.',
                         'Si algo no le aparece en el menú, es porque su usuario no tiene permiso. El dueño lo activa en <b>Usuarios</b>.',
                     ], 'tip' => 'Agregue LocalPro a la pantalla de inicio de su celular: en Chrome toque ⋮ → "Agregar a la pantalla principal". Queda como una app.'],
-                    ['titulo' => 'Sus productos', 'min' => 3, 'accion' => ['productos.index', 'Ver mis productos'], 'contenido' => [
+                    ['titulo' => 'Sus productos', 'rutas' => [['productos', 'Nuevo producto']], 'min' => 3, 'accion' => ['productos.index', 'Ver mis productos'], 'contenido' => [
                         'Cada producto tiene nombre, precio de venta, costo y cantidad en inventario. Si vende ropa o calzado, puede manejar <b>tallas y colores</b>.',
                         'El <b>costo</b> es importante: con él LocalPro le calcula la ganancia real de cada venta.',
                         '¿Ya tiene sus productos en Excel? Súbalos en <b>Productos → Importar</b> y no tiene que crearlos uno por uno.',
                         '¿Ofrece <b>servicios</b> (cortes, consultas, reparaciones, asesorías, clases)? Actívelos en <b>Productos → Activar servicios</b> o en <b>Datos del negocio → Módulos</b>. Al crear elige <b>Producto</b> o <b>Servicio</b>: el servicio no lleva cantidad ni inventario, nunca sale "Agotado" y siempre está disponible para vender. Los ve aparte en la pestaña <b>Servicios</b>.',
                     ], 'tip' => 'Póngale foto a cada producto: se ve en la caja y en su tienda en línea, y vende mucho más.'],
-                    ['titulo' => 'Su primera venta', 'min' => 3, 'accion' => ['pos.index', 'Abrir la caja'], 'contenido' => [
+                    ['titulo' => 'Su primera venta', 'rutas' => [['pos', 'Abrir la caja', 'Agregar productos', 'Cobrar']], 'min' => 3, 'accion' => ['pos.index', 'Abrir la caja'], 'contenido' => [
                         'Para vender primero se <b>abre la caja</b> con la plata que hay en el cajón (la base).',
                         'Busque el producto por nombre o código, agréguelo, elija cómo pagó el cliente (efectivo, Nequi, tarjeta…) y toque <b>Cobrar</b>.',
                         'El tiquete se imprime o se envía por <b>WhatsApp</b> al cliente si no tiene impresora.',
@@ -426,7 +426,7 @@ class Academia
                 'titulo' => 'Venda entradas con LocalProo Eventos', 'icono' => 'fa-ticket', 'color' => '#a855f7', 'para' => ['todos', 'asesor'], 'modulo' => 'mod_eventos', 'tipos' => ['eventos'],
                 'resumen' => 'Página del evento, registro de compradores, pago por Nequi con comprobante por WhatsApp, aprobar pagos y escanear el QR en la puerta.',
                 'lecciones' => [
-                    ['titulo' => 'Cree el evento y comparta la página', 'min' => 3, 'accion' => ['eventos.create', 'Crear evento'], 'contenido' => [
+                    ['titulo' => 'Cree el evento y comparta la página', 'rutas' => [['eventos', 'Nuevo evento', 'Guardar evento']], 'min' => 3, 'accion' => ['eventos.create', 'Crear evento'], 'contenido' => [
                         'En <b>Eventos y entradas → Nuevo evento</b> escriba el nombre, la fecha y hora, el lugar y la publicidad. Suba el <b>afiche</b> (vertical se ve mejor en celular) y, si quiere, un segundo afiche con la información.',
                         'Ponga la <b>etapa</b> (ej. "Primera etapa"), el <b>precio</b> y hasta cuándo va esa etapa. Para la segunda etapa solo cambie nombre, precio y fecha: los que ya se registraron conservan su precio.',
                         'Escriba su <b>Nequi</b> (o la cuenta donde recibe) y el <b>WhatsApp</b> donde le mandan el comprobante. Cambie el estado a <b>Publicado</b> y copie el enlace <b>localproo.com/evento/…</b> para Instagram, TikTok y WhatsApp.',
@@ -436,27 +436,27 @@ class Academia
                         'Le sale: <b>"Envía tu pago a este Nequi"</b> con el número y el valor, y el botón <b>Enviar comprobante de pago</b>, que abre su WhatsApp con el mensaje listo ("Hola, ya pagué aquí está mi comprobante" + su nombre, documento y número de registro). Solo adjunta la captura.',
                         'Si es menor de edad, debe marcar que su padre, madre o acudiente autoriza el registro. Todos autorizan el tratamiento de datos (Ley 1581 de 2012).',
                     ], 'tip' => null],
-                    ['titulo' => 'Aprobar pagos', 'min' => 2, 'accion' => ['eventos.index', 'Ver mis eventos'], 'contenido' => [
+                    ['titulo' => 'Aprobar pagos', 'rutas' => [['eventos', 'Compradores', 'Por aprobar', 'Aprobar pago']], 'min' => 2, 'accion' => ['eventos.index', 'Ver mis eventos'], 'contenido' => [
                         'En el evento, la pestaña <b>Por aprobar</b> muestra primero (con borde verde) a los que ya tocaron "Enviar comprobante". Compare la captura que le llegó por WhatsApp con el nombre y el valor.',
                         'Toque <b>Aprobar pago</b> (puede anotar la referencia de Nequi). El sistema le genera la entrada con <b>QR único</b>, le manda un correo y usted le puede avisar por WhatsApp con un toque.',
                         'Si se equivocó: <b>Deshacer</b> la devuelve a Por aprobar y <b>Anular</b> deja el QR sin servir. Si alguien olvidó la clave, <b>Restablecer clave</b> le pone como clave su número de documento.',
                     ], 'tip' => 'Descargue la lista en Excel para cuadrar con los movimientos de su Nequi.'],
-                    ['titulo' => 'La puerta: escanear el QR', 'min' => 2, 'accion' => null, 'contenido' => [
+                    ['titulo' => 'La puerta: escanear el QR', 'rutas' => [['eventos', 'Puerta', 'Escanear el QR']], 'min' => 2, 'accion' => null, 'contenido' => [
                         'La persona entra a <b>Mi entrada</b> con su correo y su clave y muestra el QR (se recomienda descargarlo en <b>PDF</b> por si no hay internet).',
                         'En la puerta abra <b>Puerta</b> en el celular y escanee: <b>verde</b> = puede entrar; <b>rojo</b> = ya se usó o no existe; <b>naranja</b> = el pago no está aprobado. Cada QR sirve <b>una sola vez</b>, aunque dos porteros escaneen a la vez.',
                         'Si no lee el QR, busque por número de documento y toque <b>Dejar entrar</b>. Para que alguien solo maneje la puerta, créele el rol <b>Puerta (eventos)</b> en Roles del negocio.',
                     ], 'tip' => 'Revise el documento contra el nombre que sale en pantalla: así nadie entra con el QR de otro.'],
-                    ['titulo' => 'Su formulario de registro y dónde está cada cosa', 'min' => 3, 'accion' => ['eventos.index', 'Ver mis eventos'], 'contenido' => [
+                    ['titulo' => 'Su formulario de registro y dónde está cada cosa', 'rutas' => [['eventos', 'Compradores', 'Editar', 'Formulario de registro', 'Agregar campo'], ['eventos', 'Compradores', 'Editar', 'Estilo, logo y afiches (columna derecha)']], 'min' => 3, 'accion' => ['eventos.index', 'Ver mis eventos'], 'contenido' => [
                         'En <b>Editar → Formulario de registro</b> decide si pide fecha de nacimiento y celular. Con <b>Agregar campo</b> crea sus propias preguntas (texto, número, fecha, lista de opciones o Sí/No) y las marca como obligatorias u opcionales; la papelera las quita. Las respuestas salen en Compradores y en el Excel.',
                         'Fecha, lugar, precio, etapa y Nequi: <b>Editar</b>. Afiche, logo, estilo (ej. Terror) y color: columna derecha de <b>Editar</b>. Pagos: <b>Compradores → Por aprobar</b>. Lista: <b>Excel</b>. Entrada: <b>Puerta</b>.',
                         'En <b>Editar → Publicación</b> elige si la página muestra "X personas han visto este evento". En Compradores ve las visitas y qué porcentaje se registró.',
                     ], 'tip' => 'Pida solo lo necesario: cada pregunta de más hace que menos gente termine el registro.'],
-                    ['titulo' => 'Antes de publicar: haga una prueba completa', 'min' => 3, 'accion' => null, 'contenido' => [
+                    ['titulo' => 'Antes de publicar: haga una prueba completa', 'rutas' => [['eventos', 'Compradores', 'Editar', 'Publicación: Borrador'], ['eventos', 'Puerta', 'Escanear el QR de prueba']], 'min' => 3, 'accion' => null, 'contenido' => [
                         'Deje el evento en <b>Borrador</b> (solo usted ve la página) y ábrala en su celular: revise afiche, fecha, precio y que el Nequi esté bien escrito.',
                         'Regístrese como comprador en una <b>ventana de incógnito</b> o en otro celular, con un correo suyo. Toque <b>Enviar comprobante</b> y mire que abra el WhatsApp correcto.',
                         'Apruebe ese registro, revise el correo y el QR en <b>Mi entrada</b> (y el PDF). Escanéelo en <b>Puerta</b>: verde la primera vez, rojo la segunda. Luego <b>anule</b> la entrada de prueba y cambie el evento a <b>Publicado</b>.',
                     ], 'tip' => 'El día del evento: celulares con batería y datos, brillo alto, un portero por fila y pídale a la gente que descargue el PDF de su entrada.'],
-                    ['titulo' => 'Su equipo: Contabilidad, Logística, Diseño y Puerta', 'min' => 2, 'accion' => ['users.index', 'Crear usuarios'], 'contenido' => [
+                    ['titulo' => 'Su equipo: Contabilidad, Logística, Diseño y Puerta', 'rutas' => [['roles', 'Revisar los roles'], ['usuarios', 'Nuevo usuario', 'Elegir su rol']], 'min' => 2, 'accion' => ['users.index', 'Crear usuarios'], 'contenido' => [
                         'Al activar Eventos ya quedan creados los roles <b>Administrador del evento</b>, <b>Contabilidad</b>, <b>Logística</b>, <b>Diseño</b> y <b>Puerta</b>. No tiene que inventarlos.',
                         '<b>Contabilidad</b> aprueba o rechaza pagos y baja el Excel. <b>Logística</b> edita fecha, lugar, descripción, condiciones y redes, y usa la puerta. <b>Diseño</b> cambia afiches, logo, estilo y color. El precio, el Nequi y publicar solo los toca el <b>Administrador del evento</b>.',
                         'En <b>Usuarios → Nuevo usuario</b> cree a cada persona y elija su rol. Al entrar a LocalProo llega directo a Eventos y no ve ventas, caja ni inventario. Los permisos de cada rol se cambian en <b>Roles del negocio</b>.',
@@ -509,21 +509,21 @@ class Academia
                 'titulo' => 'Su restaurante o cafetería en LocalPro', 'icono' => 'fa-burger', 'color' => '#f97316', 'para' => ['todos', 'asesor'], 'modulo' => 'mod_pedidos', 'tipos' => ['restaurante', 'cafeteria'],
                 'resumen' => 'Pedidos de mesero a caja y cocina, roles del equipo, cobrar antes o al final, avisos de "listo" y cierre del día.',
                 'lecciones' => [
-                    ['titulo' => 'Configure sus pedidos', 'min' => 3, 'accion' => ['pedidos.configurar', 'Configurar pedidos'], 'contenido' => [
+                    ['titulo' => 'Configure sus pedidos', 'rutas' => [['pedidos', 'Configurar', 'Estaciones y forma de cobro']], 'min' => 3, 'accion' => ['pedidos.configurar', 'Configurar pedidos'], 'contenido' => [
                         'En <b>Pedidos → Configurar</b> elija cómo cobra: <b>paga primero</b> (el pedido llega a cocina cuando la caja cobra) o <b>paga al final</b> (llega de una y el mesero pide la cuenta al terminar).',
                         'Cree sus <b>estaciones</b> (Cocina, Bar, Cafetería…) y diga qué estación prepara cada producto o categoría.',
                         'Si quiere, active la <b>pantalla para clientes</b>: un televisor que muestra "Su pedido está listo, Juan".',
                     ], 'tip' => 'Empiece con una sola estación (Cocina) y agregue Bar cuando el equipo ya esté cómodo.'],
-                    ['titulo' => 'Su equipo y sus roles', 'min' => 2, 'accion' => ['roles-negocio.index', 'Ver roles'], 'contenido' => [
+                    ['titulo' => 'Su equipo y sus roles', 'rutas' => [['roles', 'Revisar los roles'], ['usuarios', 'Nuevo usuario', 'Elegir su rol']], 'min' => 2, 'accion' => ['roles-negocio.index', 'Ver roles'], 'contenido' => [
                         'Los roles ya vienen creados: <b>Administrador, Caja, Mesero, Cocina, Bar</b> (o Cafetería). Revíselos en <b>Roles del negocio</b> y ajuste permisos si quiere.',
                         'En <b>Usuarios → Nuevo usuario</b> cree a cada persona y elija su rol. Al entrar, cada uno llega directo a su pantalla: el mesero a sus pedidos, la cocina a su estación.',
                     ], 'tip' => 'Un usuario por persona: así sabe quién tomó, cobró o preparó cada pedido.'],
-                    ['titulo' => 'Mesero, caja y cocina en acción', 'min' => 3, 'accion' => ['pedidos.mesero', 'Tomar un pedido'], 'contenido' => [
+                    ['titulo' => 'Mesero, caja y cocina en acción', 'rutas' => [['pedidos', 'Tomar pedido', 'Enviar']], 'min' => 3, 'accion' => ['pedidos.mesero', 'Tomar un pedido'], 'contenido' => [
                         'El <b>mesero</b> toca "Tomar pedido", pone mesa o nombre del cliente y notas por producto ("sin cebolla").',
                         'La <b>caja</b> ve los pedidos por cobrar, toca <b>Cobrar</b> y se abre la caja (POS) con el pedido cargado.',
                         'La <b>cocina</b> ve las tarjetas con reloj (amarillo a los 10 min, rojo a los 20), marca <b>Todo listo</b> y al mesero le suena el aviso para entregar.',
                     ], 'tip' => 'Haga una ronda de prueba con el equipo antes de abrir: un pedido completo de mesero a entregado.'],
-                    ['titulo' => 'Cierre del día', 'min' => 2, 'accion' => ['pedidos.cierre', 'Ver el cierre'], 'contenido' => [
+                    ['titulo' => 'Cierre del día', 'rutas' => [['pedidos', 'Cierre']], 'min' => 2, 'accion' => ['pedidos.cierre', 'Ver el cierre'], 'contenido' => [
                         'En <b>Pedidos → Cierre</b> ve los pedidos del día, lo cobrado y lo que quedó pendiente.',
                         'Cierre la caja con el conteo del efectivo para que cuadre con las ventas.',
                     ], 'tip' => null],
@@ -539,16 +539,16 @@ class Academia
                 'titulo' => 'Su funeraria en LocalPro', 'icono' => 'fa-dove', 'color' => '#64748b', 'para' => ['todos', 'asesor'], 'modulo' => 'mod_obituarios', 'tipos' => ['funeraria'],
                 'resumen' => 'Salas de velación, plantillas, obituarios en el televisor de cada sala y cómo compartirlos por WhatsApp.',
                 'lecciones' => [
-                    ['titulo' => 'Salas y televisores', 'min' => 3, 'accion' => ['obituarios.index', 'Ver obituarios'], 'contenido' => [
+                    ['titulo' => 'Salas y televisores', 'rutas' => [['obituarios', 'Salas', 'Código del TV']], 'min' => 3, 'accion' => ['obituarios.index', 'Ver obituarios'], 'contenido' => [
                         'Cree cada <b>sala de velación</b>. Cada una tiene un <b>código de 4 números</b> para su televisor.',
                         'En el navegador del TV escriba <b>localproo.com/tv</b> y digite el código con el control. Queda en pantalla completa y se actualiza sola.',
                         'Para recepción está la <b>pantalla general</b>, que rota todos los obituarios activos.',
                     ], 'tip' => 'Si el TV no es Smart, un Fire TV Stick o Google TV con navegador funciona muy bien.'],
-                    ['titulo' => 'Plantillas', 'min' => 2, 'accion' => ['obituarios.plantillas', 'Ver plantillas'], 'contenido' => [
+                    ['titulo' => 'Plantillas', 'rutas' => [['obituarios', 'Plantillas', 'Nueva plantilla']], 'min' => 2, 'accion' => ['obituarios.plantillas', 'Ver plantillas'], 'contenido' => [
                         'Elija un diseño (mármol, negro y dorado, cielo, floral, vela, sencillo), la medida de la pantalla y el fondo: color, imagen o video.',
                         'Agregue animaciones suaves, su frase y su logo. Las plantillas se reutilizan y se pueden copiar.',
                     ], 'tip' => null],
-                    ['titulo' => 'Crear y mostrar un obituario', 'min' => 3, 'accion' => ['obituarios.create', 'Nuevo obituario'], 'contenido' => [
+                    ['titulo' => 'Crear y mostrar un obituario', 'rutas' => [['obituarios', 'Nuevo obituario', 'Guardar', 'Ver ya en la pantalla']], 'min' => 3, 'accion' => ['obituarios.create', 'Nuevo obituario'], 'contenido' => [
                         'Llene nombre, foto, fechas, exequias y quiénes invitan (una línea por grupo). La vista previa se ve en vivo.',
                         '<b>Guarde</b>: la pantalla solo muestra lo guardado. Con <b>Ver ya en la pantalla</b> sale de inmediato en la sala.',
                         'Descargue la imagen o el video y envíela por <b>WhatsApp</b> a la familia.',
@@ -565,7 +565,7 @@ class Academia
                 'titulo' => 'Su tienda de ropa, calzado o accesorios', 'icono' => 'fa-shirt', 'color' => '#ec4899', 'para' => ['todos', 'asesor'], 'tipos' => ['moda', 'calzado', 'accesorios'],
                 'resumen' => 'Tallas y colores, etiquetas con código, separados con abonos y su catálogo en línea.',
                 'lecciones' => [
-                    ['titulo' => 'Tallas y colores', 'min' => 3, 'accion' => ['productos.index', 'Ver productos'], 'contenido' => [
+                    ['titulo' => 'Tallas y colores', 'rutas' => [['productos', 'Editar producto', 'Tallas y colores']], 'min' => 3, 'accion' => ['productos.index', 'Ver productos'], 'contenido' => [
                         'Cree el producto una vez y agregue sus <b>variantes</b>: cada talla y color con su propia cantidad.',
                         'En la caja elige la talla y el color, y el inventario baja solo de esa combinación.',
                     ], 'tip' => 'Revise cada semana qué tallas se agotan primero para pedir mejor.'],
@@ -573,7 +573,7 @@ class Academia
                         'Imprima etiquetas con código para cada prenda. En la caja la busca rápido sin escribir.',
                         'Cuando le llega mercancía nueva, imprima solo las etiquetas de esa entrada.',
                     ], 'tip' => null],
-                    ['titulo' => 'Separados y catálogo', 'min' => 3, 'accion' => ['separados.index', 'Ver separados'], 'contenido' => [
+                    ['titulo' => 'Separados y catálogo', 'rutas' => [['separados', 'Nuevo separado'], ['catalogo', 'Compartir enlace']], 'min' => 3, 'accion' => ['separados.index', 'Ver separados'], 'contenido' => [
                         'Con <b>Separados</b> el cliente aparta una prenda con un abono, paga en cuotas y se la lleva al terminar. El producto queda reservado.',
                         'Active su <b>catálogo en línea</b> y compártalo por WhatsApp e Instagram: los clientes ven fotos, tallas y precios.',
                     ], 'tip' => 'Fotos claras y con buena luz venden más en el catálogo.'],
@@ -589,15 +589,15 @@ class Academia
                 'titulo' => 'Su tienda, minimercado o ferretería', 'icono' => 'fa-basket-shopping', 'color' => '#16a34a', 'para' => ['todos', 'asesor'], 'tipos' => ['minimercado', 'ferreteria', 'papeleria', 'tecnologia', 'otro'],
                 'resumen' => 'Cargar muchos productos rápido, recibir mercancía de proveedores, vencimientos y ventas por metro o kilo.',
                 'lecciones' => [
-                    ['titulo' => 'Cargue sus productos rápido', 'min' => 3, 'accion' => ['productos.importar', 'Importar productos'], 'contenido' => [
+                    ['titulo' => 'Cargue sus productos rápido', 'rutas' => [['productos', 'Importar', 'Subir el Excel']], 'min' => 3, 'accion' => ['productos.importar', 'Importar productos'], 'contenido' => [
                         'Si ya los tiene en Excel, súbalos en <b>Productos → Importar</b>: el sistema revisa y le muestra antes de guardar.',
                         'Ponga a cada producto su <b>costo</b> y su <b>precio</b>: así LocalPro le calcula la ganancia real.',
                     ], 'tip' => 'Use el código de barras del empaque como código del producto para encontrarlo rápido en la caja.'],
-                    ['titulo' => 'Llegó mercancía', 'min' => 2, 'accion' => ['entradas.index', 'Ver entradas'], 'contenido' => [
+                    ['titulo' => 'Llegó mercancía', 'rutas' => [['entradas', 'Nueva entrada', 'Elegir proveedor']], 'min' => 2, 'accion' => ['entradas.index', 'Ver entradas'], 'contenido' => [
                         'Registre lo que le llega en <b>Entradas</b>, con su <b>proveedor</b>. El inventario sube solo.',
                         'Así sabe a quién le compró, cuánto y a qué precio.',
                     ], 'tip' => null],
-                    ['titulo' => 'Vencimientos, metros y kilos', 'min' => 2, 'accion' => ['negocio.edit', 'Datos del negocio'], 'contenido' => [
+                    ['titulo' => 'Vencimientos, metros y kilos', 'rutas' => [['negocio', 'Módulos', 'Fechas de vencimiento']], 'min' => 2, 'accion' => ['negocio.edit', 'Datos del negocio'], 'contenido' => [
                         'En <b>Datos del negocio → Módulos</b> active <b>Fechas de vencimiento</b> para manejar lotes y recibir alertas de lo que está por vencer.',
                         'Si vende por metro, kilo o litro, active <b>Vender por metro, kilo o litro</b> y en la caja venda con decimales.',
                     ], 'tip' => 'Ponga adelante en el estante lo que vence primero.'],
@@ -613,11 +613,11 @@ class Academia
                 'titulo' => 'Su negocio de belleza y servicios', 'icono' => 'fa-spa', 'color' => '#a855f7', 'para' => ['todos', 'asesor'], 'tipos' => ['belleza'],
                 'resumen' => 'Servicios sin inventario, productos para la venta y clientes que vuelven.',
                 'lecciones' => [
-                    ['titulo' => 'Servicios y productos', 'min' => 3, 'accion' => ['productos.index', 'Ver productos'], 'contenido' => [
+                    ['titulo' => 'Servicios y productos', 'rutas' => [['productos', 'Activar servicios']], 'min' => 3, 'accion' => ['productos.index', 'Ver productos'], 'contenido' => [
                         'Cree sus <b>servicios</b> (cortes, tintes, manicure, barba…): no manejan inventario y siempre están disponibles.',
                         'Los <b>productos</b> que vende (shampoo, cremas) sí llevan inventario. En la caja cobra los dos juntos.',
                     ], 'tip' => 'Si no le aparece la opción de servicios, actívela en Datos del negocio → Módulos.'],
-                    ['titulo' => 'Clientes que vuelven', 'min' => 2, 'accion' => ['clientes.index', 'Ver clientes'], 'contenido' => [
+                    ['titulo' => 'Clientes que vuelven', 'rutas' => [['clientes', 'Escribir por WhatsApp']], 'min' => 2, 'accion' => ['clientes.index', 'Ver clientes'], 'contenido' => [
                         'Ponga el cliente en cada venta: así sabe qué se hizo y cuándo volvió.',
                         'Desde <b>Clientes</b> escríbales por WhatsApp a los que no han vuelto, con una promoción.',
                     ], 'tip' => 'Un mensaje al mes a sus clientes frecuentes trae de vuelta a muchos.'],
@@ -633,16 +633,16 @@ class Academia
                 'titulo' => 'Contabilidad para contadores: retenciones e IVA', 'icono' => 'fa-calculator', 'color' => '#0f766e', 'para' => ['todos', 'asesor'], 'modulo' => 'mod_contable', 'tipos' => ['contable'],
                 'resumen' => 'Sus clientes, cruce del listado DIAN con la contabilidad, borrador del 350, IVA y calendario tributario.',
                 'lecciones' => [
-                    ['titulo' => 'Pruebe con datos de ejemplo', 'min' => 2, 'accion' => ['contabilidad.index', 'Ir a Contabilidad'], 'contenido' => [
+                    ['titulo' => 'Pruebe con datos de ejemplo', 'rutas' => [['contabilidad', 'Probar con datos de ejemplo']], 'min' => 2, 'accion' => ['contabilidad.index', 'Ir a Contabilidad'], 'contenido' => [
                         'Toque <b>Probar con datos de ejemplo</b>: se crea una empresa de ejemplo con un mes cargado para ver todo funcionando.',
                         'Descargue los archivos de muestra para ver qué columnas espera el sistema.',
                     ], 'tip' => null],
-                    ['titulo' => 'Sus clientes y el mes', 'min' => 3, 'accion' => ['contabilidad.index', 'Ver mis clientes'], 'contenido' => [
+                    ['titulo' => 'Sus clientes y el mes', 'rutas' => [['contabilidad', 'Nuevo cliente', 'Abrir el mes', 'Subir archivos', 'Cruce']], 'min' => 3, 'accion' => ['contabilidad.index', 'Ver mis clientes'], 'contenido' => [
                         'Cree cada cliente con su NIT y si es agente de retención, autorretenedor, si practica reteIVA y su periodicidad de IVA.',
                         'Abra el mes y suba el <b>listado de la DIAN</b> y la <b>base contable</b> (por columnas o auxiliar por cuenta).',
                         'Revise el <b>cruce</b>: lo que no está contabilizado, lo que no tiene factura DIAN y las retenciones que faltaron o sobraron.',
                     ], 'tip' => 'La revisión final siempre es suya: el sistema no presenta en la DIAN.'],
-                    ['titulo' => 'Calendario y recordatorios', 'min' => 2, 'accion' => ['contabilidad.calendario', 'Ver calendario'], 'contenido' => [
+                    ['titulo' => 'Calendario y recordatorios', 'rutas' => [['contabilidad', 'Calendario']], 'min' => 2, 'accion' => ['contabilidad.calendario', 'Ver calendario'], 'contenido' => [
                         'El calendario muestra los vencimientos de retención e IVA de cada cliente según el último dígito del NIT.',
                         'Le llega un correo 3 días antes y el mismo día. Marque "Presentado" para que no le vuelva a avisar.',
                     ], 'tip' => null],

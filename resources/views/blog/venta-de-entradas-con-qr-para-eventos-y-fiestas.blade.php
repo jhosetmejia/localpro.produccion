@@ -54,7 +54,25 @@
 <h2>7. ¿Cuánta gente ha visto su evento?</h2>
 <p>La página cuenta las visitas (una por persona, sin contar robots ni a su equipo). En el panel ve las visitas y qué porcentaje se registró; si quiere, la página muestra al público <b>"X personas han visto este evento"</b> para animar a comprar. Se apaga en <b>Editar → Publicación</b>.</p>
 
-<h2>8. Guía rápida: ¿dónde está cada cosa?</h2>
+<h2>8. Véalo paso a paso: dónde hacer cada cosa</h2>
+<p>Así se ve el menú de LocalPro para un organizador de eventos. La sección que se ilumina es donde debe tocar, y los números son los clics en orden.</p>
+<p><b>Crear el evento</b></p>
+<x-guia-ruta tipo="eventos" :ruta="['eventos', 'Nuevo evento', 'Guardar evento']" />
+<p><b>Aprobar los pagos</b></p>
+<x-guia-ruta tipo="eventos" :ruta="['eventos', 'Compradores', 'Por aprobar', 'Aprobar pago']" />
+<p><b>Agregar, quitar o cambiar preguntas del registro</b></p>
+<x-guia-ruta tipo="eventos" :ruta="['eventos', 'Compradores', 'Editar', 'Formulario de registro', 'Agregar campo']" />
+<p><b>Cambiar afiche, logo, estilo o color</b></p>
+<x-guia-ruta tipo="eventos" :ruta="['eventos', 'Compradores', 'Editar', 'Estilo, logo y afiches (columna derecha)']" />
+<p><b>Ver los roles del equipo y crear a cada persona</b></p>
+<x-guia-ruta tipo="eventos" :ruta="['roles', 'Revisar los roles']" />
+<x-guia-ruta tipo="eventos" :ruta="['usuarios', 'Nuevo usuario', 'Elegir su rol']" />
+<p><b>Escanear en la entrada</b></p>
+<x-guia-ruta tipo="eventos" :ruta="['eventos', 'Puerta', 'Escanear el QR']" />
+<p><b>Mostrar algo que está oculto en el menú (por ejemplo, la caja)</b></p>
+<x-guia-ruta tipo="eventos" :ruta="['menu', 'Activar la sección', 'Guardar']" />
+
+<h2>9. Guía rápida: ¿dónde está cada cosa?</h2>
 <table style="width:100%;border-collapse:collapse;font-size:.95rem">
     <tr><th style="text-align:left;padding:.5rem;border-bottom:2px solid #e5e7eb">Quiero…</th><th style="text-align:left;padding:.5rem;border-bottom:2px solid #e5e7eb">Vaya a…</th></tr>
     <tr><td style="padding:.5rem;border-bottom:1px solid #eee">Crear un evento</td><td style="padding:.5rem;border-bottom:1px solid #eee"><b>Eventos y entradas → Nuevo evento</b></td></tr>
@@ -69,7 +87,7 @@
     <tr><td style="padding:.5rem">Mostrar u ocultar el contador de visitas</td><td style="padding:.5rem"><b>Editar → Publicación</b></td></tr>
 </table>
 
-<h2>9. Antes de publicar: haga una prueba completa</h2>
+<h2>10. Antes de publicar: haga una prueba completa</h2>
 <p>Dedique 15 minutos a probar todo usted mismo antes de compartir el enlace. Es la mejor forma de evitar sorpresas el día de la venta:</p>
 <ol>
     <li><b>Déjelo en Borrador.</b> Así solo usted ve la página. Ábrala en su celular y revise el afiche, la fecha, el precio y que el Nequi esté bien escrito.</li>
@@ -81,7 +99,7 @@
     <li>Cambie el evento a <b>Publicado</b> y comparta el enlace.</li>
 </ol>
 
-<h2>10. Arme su equipo paso a paso</h2>
+<h2>11. Arme su equipo paso a paso</h2>
 <ol>
     <li>Entre a <b>Roles del negocio</b> y revise los roles que ya vienen creados: <b>Administrador del evento, Contabilidad, Logística, Diseño y Puerta</b>. Si quiere, cambie sus permisos o cree otro rol.</li>
     <li>En <b>Usuarios → Nuevo usuario</b> cree a cada persona con su nombre, correo, celular y una clave, y elija su rol.</li>
@@ -89,7 +107,7 @@
     <li>El equipo <b>no se registra solo</b>: si alguien se registra por su cuenta en LocalProo, se le crea otro negocio aparte, sin su evento.</li>
 </ol>
 
-<h2>11. Recomendaciones para que todo salga bien</h2>
+<h2>12. Recomendaciones para que todo salga bien</h2>
 <ul>
     <li><b>Apruebe los pagos varias veces al día.</b> La gente se tranquiliza cuando recibe su QR rápido, y así evita mensajes de "¿ya me aprobaron?".</li>
     <li><b>Compare siempre la captura con el nombre y el valor</b> antes de aprobar. Si tiene dudas, revise el movimiento en su Nequi y anote la referencia.</li>
@@ -101,6 +119,8 @@
     <li><b>Descargue el Excel</b> al cierre de cada día para cuadrar con su Nequi.</li>
     <li><b>Si alguien olvidó su clave</b>, en Compradores toque <b>Restablecer clave</b>: queda su número de documento.</li>
 </ul>
+
+<div class="box"><b>¿Ya tiene cuenta?</b> En LocalPro entre a <b>Aprende → Venda entradas con LocalProo Eventos</b>: es el curso paso a paso, con estas mismas guías y una prueba corta al final.</div>
 
 <a class="cta" href="{{ route('registro', ['tipo' => 'eventos', 'desde' => 'blog:' . $slug]) }}">Cree su evento gratis</a>
 <p style="text-align:center;color:#6b7570">¿Ya tiene LocalProo? Actívelo en <b>Datos del negocio → Módulos → Eventos y venta de entradas</b>.</p>
