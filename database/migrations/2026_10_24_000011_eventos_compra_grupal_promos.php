@@ -12,7 +12,7 @@ return new class extends Migration
     {
         Schema::table('eventos', function (Blueprint $t) {
             if (!Schema::hasColumn('eventos', 'promos')) $t->json('promos')->nullable();
-            if (!Schema::hasColumn('eventos', 'max_por_compra')) $t->unsignedSmallInteger('max_por_compra')->default(10);
+            if (!Schema::hasColumn('eventos', 'max_por_compra')) $t->unsignedSmallInteger('max_por_compra')->default(1);
         });
         Schema::table('evento_entradas', function (Blueprint $t) {
             if (!Schema::hasColumn('evento_entradas', 'grupo')) $t->uuid('grupo')->nullable()->index();

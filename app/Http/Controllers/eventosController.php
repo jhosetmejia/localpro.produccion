@@ -170,7 +170,7 @@ class eventosController extends Controller
             $datos['pedir_nacimiento'] = $request->boolean('pedir_nacimiento');
             $datos['pedir_celular'] = $request->boolean('pedir_celular');
             $datos['campos'] = $this->camposDelFormulario((array) $request->input('campos', []));
-            $datos['max_por_compra'] = max(1, min(20, (int) $request->input('max_por_compra', 10)));
+            $datos['max_por_compra'] = max(1, min(20, (int) $request->input('max_por_compra', 1)));
             $datos['promos'] = $this->promosDelFormulario((array) $request->input('promos', []));
         }
         if ($p['admin'] || $p['diseno']) {

@@ -66,8 +66,8 @@
                         <div class="col-md-6"><label class="form-label fw-bold">Edad mínima <small class="text-muted fw-normal">(opcional)</small></label>
                             <input class="form-control" type="number" name="edad_minima" min="1" max="99" value="{{ old('edad_minima', $evento->edad_minima) }}" placeholder="Sin límite"></div>
                         <div class="col-md-6"><label class="form-label fw-bold">Máximo de entradas por compra</label>
-                            <input class="form-control" type="number" name="max_por_compra" min="1" max="20" value="{{ old('max_por_compra', $evento->exists ? $evento->max_por_compra : 10) }}">
-                            <small class="text-muted">1 = cada persona compra solo la suya. Más de 1 = puede comprar para sus acompañantes (cada uno con su QR).</small></div>
+                            <input class="form-control" type="number" name="max_por_compra" min="1" max="20" value="{{ old('max_por_compra', $evento->exists ? $evento->max_por_compra : 1) }}">
+                            <small class="text-muted">Viene en 1 (cada persona compra solo la suya). Póngale más, por ejemplo 10, para que puedan comprar para sus acompañantes (cada uno con su QR) y para usar promociones.</small></div>
                     </div>
                 </div>
 
