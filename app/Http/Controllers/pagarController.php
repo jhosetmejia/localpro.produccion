@@ -54,7 +54,7 @@ class pagarController extends Controller
         return view('pagar.retorno', ['pago' => $pago->fresh(['tienda', 'plan']), 'tienda' => $pago->tienda]);
     }
 
-    public static function crearPago(Tienda $tienda, Plan $plan, ?int $usuario, ?string $nota = null): PagoSuscripcion
+    public static function crearPago(Tienda $tienda, Plan $plan, ?int $usuario, ?string $nota = null, float $donacion = 0): PagoSuscripcion
     {
         // Venezuela paga en dólares o bolívares: el pago queda en esa moneda y Wompi cobra su equivalente en pesos (tasa de Admin → Planes)
         $moneda = $tienda->moneda_cobro;
@@ -75,6 +75,8 @@ class pagarController extends Controller
             'estado' => 'pendiente',
             'registrado_por' => $usuario,
             'nota' => $nota,
+            // La donación solo va cuando hay algo que pagar en Wompi
+            'donacion' => $donacion > 0 && $monto > 0 ? $donacion : null,
         ]);
     }
 }

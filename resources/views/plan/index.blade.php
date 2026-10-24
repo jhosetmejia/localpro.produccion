@@ -99,6 +99,7 @@
                 @include('plan._promo_fin')
                 @can('editar-negocio')
                 <form method="post" action="{{ route('plan.pagar', $p) }}">@csrf
+                    @include('plan._donacion')
                     <button class="btn {{ $wompi ? 'btn-primary' : 'btn-success' }} w-100">
                         @if ($wompi)<i class="fa-solid fa-credit-card me-1"></i>Pagar en línea @else<i class="fa-brands fa-whatsapp me-1"></i>Pagar con LocalPro @endif
                     </button>

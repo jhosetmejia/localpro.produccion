@@ -91,6 +91,7 @@ body{margin:0;min-height:100vh;font-family:'Plus Jakarta Sans',system-ui,sans-se
                 @include('plan._promo_fin')
                 @if ($puedePagar)
                     <form method="post" action="{{ route('plan.pagar', $p) }}">@csrf
+                        @include('plan._donacion')
                         <button type="submit">
                             @if ($wompi)<i class="fa-solid fa-credit-card"></i> Pagar {{ $fmt($p->precioEn($mc)) }} @else<i class="fa-brands fa-whatsapp"></i> Pagar con LocalProo @endif
                         </button>

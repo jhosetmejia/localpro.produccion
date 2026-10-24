@@ -48,6 +48,10 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-users"></i></div>
                     Usuarios del sistema
                 </a>
+                <a class="nav-link {{ $on('admin.donaciones*') }}" href="{{ route('admin.donaciones') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-gift"></i></div>
+                    Donaciones
+                </a>
                 <a class="nav-link {{ $on('admin.eventos*') }}" href="{{ route('admin.eventos') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-ticket"></i></div>
                     Eventos

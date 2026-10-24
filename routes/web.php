@@ -86,6 +86,7 @@ Route::get('/@{slug}/ir/{enlace}', [\App\Http\Controllers\enlacesController::cla
 Route::get('/l/{slug}', fn (string $slug) => redirect('/@' . $slug, 301))->where('slug', '[a-z0-9-]+');
 
 // Blog público (artículos para compartir con negocios y asesores)
+Route::get('/donaciones', fn () => redirect('/blog/navidad-localproo-ayudas-para-los-ninos-de-pasto'))->name('donaciones');
 Route::get('/blog', fn () => view('blog.index', ['articulos' => config('blog')]))->name('blog.index');
 // Páginas del blog por tipo de cliente (contadores, funerarias, negocios): atraen búsquedas y llevan al registro con el tipo elegido
 Route::get('/blog/para/{rol}', function (string $rol) {
@@ -493,6 +494,9 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::post('/tiendas/{tienda}/estado', [adminTiendaController::class, 'estado'])->name('tiendas.estado');
     Route::post('/tiendas/{tienda}/entrar', [adminTiendaController::class, 'entrar'])->name('tiendas.entrar');
     Route::get('/eventos', [\App\Http\Controllers\adminEventosController::class, 'index'])->name('eventos');
+    Route::get('/donaciones', [\App\Http\Controllers\adminDonacionesController::class, 'index'])->name('donaciones');
+    Route::post('/donaciones', [\App\Http\Controllers\adminDonacionesController::class, 'guardar'])->name('donaciones.guardar');
+    Route::get('/donaciones/exportar', [\App\Http\Controllers\adminDonacionesController::class, 'exportar'])->name('donaciones.exportar');
     Route::post('/eventos/{evento}/abrir', [\App\Http\Controllers\adminEventosController::class, 'abrir'])->whereNumber('evento')->name('eventos.abrir');
     Route::post('/tiendas/{tienda}/plan', [adminTiendaController::class, 'plan'])->name('tiendas.plan');
     Route::post('/tiendas/{tienda}/pago', [adminTiendaController::class, 'pago'])->name('tiendas.pago');

@@ -54,21 +54,23 @@ class planController extends Controller
         ]);
     }
 
-    public function pagar(Plan $plan)
+    public function pagar(Request $request, Plan $plan)
     {
         abort_unless($plan->activo && !$plan->es_gratis, 404);
         $tienda = TiendaActual::tienda();
+        $donar = \App\Support\Donacion::activa() && $request->boolean('donar') ? \App\Support\Donacion::monto() : 0;
 
         if (!self::wompiActivo()) {
             $tel = preg_replace('/\D/', '', (string) Ajuste::valor('soporte_whatsapp'));
             $m = $tienda->moneda_cobro;
             $msg = "Hola LocalPro, quiero pagar el plan {$plan->nombre} (" . \App\Support\Moneda::formato($plan->precioEn($m), $m, true) . ") para la tienda {$tienda->nombre} (#{$tienda->id}).";
+            if ($donar) $msg .= ' Y quiero donar ' . \App\Support\Moneda::formato($donar, 'COP', true) . ' para los niños en diciembre.';
             return $tel
                 ? redirect()->away('https://wa.me/' . $tel . '?text=' . rawurlencode($msg))
                 : back()->withErrors('El pago en línea aún no está disponible. Comuníquese con LocalPro.');
         }
 
-        $pago = pagarController::crearPago($tienda, $plan, Auth::id(), 'Pagado por ' . Auth::user()->name . ' desde Mi plan');
+        $pago = pagarController::crearPago($tienda, $plan, Auth::id(), 'Pagado por ' . Auth::user()->name . ' desde Mi plan', $donar);
         if ((float) $pago->monto <= 0) {
             // Todo lo cubre el saldo por referidos: se activa sin pasar por Wompi
             $pago->aprobar();
@@ -92,7 +94,7 @@ class planController extends Controller
         }
         $r = redirect()->route('plan.index');
         return match ($pago?->estado) {
-            'aprobado' => $r->with('success', '¡Pago aprobado! Su plan ' . ($pago->plan->nombre ?? '') . ' quedó activo hasta el ' . optional($pago->periodo_hasta)->format('d/m/Y') . '.'),
+            'aprobado' => $r->with('success', '¡Pago aprobado! Su plan ' . ($pago->plan->nombre ?? '') . ' quedó activo hasta el ' . optional($pago->periodo_hasta)->format('d/m/Y') . '.' . ($pago->donacion ? ' 🎁 ¡Gracias por su donación para los niños de Pasto! Lo invitaremos a la entrega en diciembre.' : '')),
             'rechazado' => $r->withErrors('El pago no fue aprobado. Puede intentarlo de nuevo con otro medio de pago.'),
             default => $r->with('success', 'Su pago está en proceso. El plan se activa apenas Wompi lo confirme (normalmente en pocos minutos).'),
         };

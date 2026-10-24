@@ -6,6 +6,23 @@
 // palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
+    'navidad-localproo-ayudas-para-los-ninos-de-pasto' => [
+        'titulo' => 'Navidad LocalProo: ayudas para los niños de los barrios más necesitados de Pasto',
+        'resumen' => 'Este diciembre, por primera vez, salimos a los barrios más necesitados de Pasto a entregar ayudas a los niños. Al pagar su plan puede donar $5.000, y las marcas que donen serán invitadas a la entrega y estarán en los agradecimientos.',
+        'fecha' => '24 de octubre de 2026',
+        'publicado' => '2026-10-24',
+        'minutos' => 3,
+        'icono' => 'fa-gift',
+        'rol' => 'negocios',
+        'seo_titulo' => 'Navidad LocalProo: ayudas para los niños de Pasto',
+        'descripcion' => 'Campaña de Navidad de LocalProo: donaciones para entregar ayudas a los niños de los barrios más necesitados de Pasto, Nariño, en diciembre de 2026.',
+        'keywords' => ['donaciones Navidad Pasto', 'ayudas niños Pasto Nariño', 'campaña navideña Pasto', 'LocalProo donación'],
+        'faq' => [
+            ['¿La donación es obligatoria?', 'No. Si al pagar el plan la casilla está marcada y no quiere donar, desmárquela antes de pagar y no se cobra nada adicional.'],
+            ['¿Cuánto se dona?', '$5.000 en el pago en el que deje la casilla marcada, una sola vez.'],
+            ['¿Qué reciben las marcas que donan?', 'Las avisamos para que nos acompañen al evento de entrega en diciembre y aparecen en los agradecimientos cuando publicamos el contenido de la donación.'],
+        ],
+    ],
     'roles-y-permisos-para-el-equipo-de-su-negocio' => [
         'titulo' => 'Roles y permisos para su equipo: cada persona ve solo lo que necesita',
         'resumen' => 'Según su tipo de negocio, LocalProo ya trae los roles listos (vendedor, bodega, recepción, mesero, cocina, profesional de salud…). Usted crea el usuario de cada persona y elige su rol.',

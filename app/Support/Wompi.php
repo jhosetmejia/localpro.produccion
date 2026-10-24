@@ -42,7 +42,9 @@ class Wompi
     // Wompi solo cobra en pesos: si el pago es en dólares (Venezuela) se cobra su equivalente guardado en cobro_cop
     public static function pesos(PagoSuscripcion $pago): float
     {
-        return $pago->cobro_cop !== null ? (float) $pago->cobro_cop : Moneda::aCop($pago->monto, $pago->moneda ?: 'COP');
+        // + la donación opcional (siempre en pesos), que se cobra junto con el plan
+        $plan = $pago->cobro_cop !== null ? (float) $pago->cobro_cop : Moneda::aCop($pago->monto, $pago->moneda ?: 'COP');
+        return $plan + (float) ($pago->donacion ?? 0);
     }
 
     public static function centavos(PagoSuscripcion $pago): int
