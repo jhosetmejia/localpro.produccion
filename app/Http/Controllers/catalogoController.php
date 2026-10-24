@@ -68,7 +68,8 @@ class catalogoController extends Controller
     {
         $vars = $p->variantes->filter(fn ($v) => !$p->controla_inventario || $v->stock > 0)->values();
         $precios = $vars->map(fn ($v) => (float) ($v->precio ?? $p->precio_venta));
-        $fotosColor = $p->relationLoaded('fotos') ? $p->fotos->filter(fn ($f) => $f->color)->mapWithKeys(fn ($f) => [$f->color => $f->url])->all() : [];
+        // Solo fotos cuyo archivo existe: una foto perdida no sale rota, el producto se trata como sin foto
+        $fotosColor = $p->relationLoaded('fotos') ? $p->fotos->filter(fn ($f) => $f->color && $f->existe)->mapWithKeys(fn ($f) => [$f->color => $f->url])->all() : [];
         return [
             'id' => $p->id,
             // Para el público: "CHAQUETA ROMPE VIENTOS" → "Chaqueta rompe vientos" (se lee mejor y Google lo prefiere)
@@ -82,7 +83,8 @@ class catalogoController extends Controller
             'descuento' => $p->descuento,
             'desde' => $precios->count() > 1 && $precios->min() < $precios->max() ? (float) $precios->min() : null,
             // Foto principal; si no tiene, la del primer color
-            'img' => $p->img_path ? asset('storage/productos/' . rawurlencode($p->img_path)) : ($fotosColor ? reset($fotosColor) : null),
+            'img' => $p->foto_url ?: ($fotosColor ? reset($fotosColor) : null),
+            'sin_foto_ok' => (bool) $p->mostrar_sin_foto,
             // Foto de cada color: {"NEGRO": url, ...}
             'fotos' => $fotosColor,
             'url' => self::urlProducto($tienda, $p),
@@ -109,6 +111,8 @@ class catalogoController extends Controller
         return Producto::with(['variantes' => fn ($q) => $q->where('estado', 1)->orderBy('talla')->orderBy('color'), 'categorias.caracteristica', 'fotos'])
             ->enCatalogo()->orderBy('nombre')->get()
             ->map(fn ($p) => $this->datos($tienda, $p))
+            // Sin foto (o con la foto perdida en el servidor) solo sale si el dueño marcó "mostrar aunque no tenga foto"
+            ->filter(fn ($p) => $p['img'] || $p['sin_foto_ok'])
             // El dueño puede elegir mostrar solo lo que tiene existencias
             ->filter(fn ($p) => $p['disponible'] || $tienda->catalogo_agotados !== false)
             // Primero lo disponible y siempre del más barato al más caro (enganchan los precios bajos)
@@ -171,7 +175,7 @@ class catalogoController extends Controller
         $relacionados = Producto::with(['variantes' => fn ($q) => $q->where('estado', 1), 'categorias.caracteristica', 'fotos'])
             ->enCatalogo()->where('id', '<>', $p->id)
             ->when($catIds->isNotEmpty(), fn ($q) => $q->whereHas('categorias', fn ($c) => $c->whereIn('categorias.id', $catIds)))
-            ->inRandomOrder()->take(12)->get()->map(fn ($r) => $this->datos($tienda, $r))->filter(fn ($r) => $r['disponible'])
+            ->inRandomOrder()->take(12)->get()->map(fn ($r) => $this->datos($tienda, $r))->filter(fn ($r) => $r['disponible'] && ($r['img'] || $r['sin_foto_ok']))
             // Primero los que tienen foto (se ven mejor al lado del producto)
             ->sortByDesc(fn ($r) => (bool) $r['img'])->take(8)
             ->sortBy(fn ($r) => $r['desde'] ?? $r['precio'])->values();
@@ -201,7 +205,7 @@ class catalogoController extends Controller
                 TiendaActual::como($t->id, function () use ($t, &$urls) {
                     foreach (Producto::enCatalogo()->get(['id', 'nombre', 'img_path', 'updated_at']) as $p) {
                         $urls[] = ['loc' => self::urlProducto($t, $p), 'pri' => '0.7', 'mod' => $p->updated_at,
-                            'img' => $p->img_path ? asset('storage/productos/' . rawurlencode($p->img_path)) : null, 'tit' => \App\Support\Textos::titulo($p->nombre)];
+                            'img' => $p->foto_url, 'tit' => \App\Support\Textos::titulo($p->nombre)];
                     }
                 });
             }

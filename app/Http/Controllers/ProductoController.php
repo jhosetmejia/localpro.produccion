@@ -148,7 +148,7 @@ class ProductoController extends Controller
         } catch (Exception $e) {
             DB::rollBack();
             report($e);
-            return back()->withInput()->withErrors('No se pudo guardar el producto. Intente de nuevo.');
+            return back()->withInput()->withErrors($e instanceof \RuntimeException && str_contains($e->getMessage(), 'foto') ? $e->getMessage() : 'No se pudo guardar el producto. Intente de nuevo.');
         }
 
         $msg = ($producto->es_servicio ? 'Servicio "' : 'Producto "') . $producto->nombre . '" guardado y listo para vender'
@@ -195,7 +195,7 @@ class ProductoController extends Controller
                 $name = $producto->handleUploadImage($request->file('img_path'));
 
                 //Eliminar si existiese una imagen
-                if(Storage::disk('public')->exists('productos/'.$producto->img_path)){
+                if($producto->img_path && Storage::disk('public')->exists('productos/'.$producto->img_path)){
                     Storage::disk('public')->delete('productos/'.$producto->img_path);
                 }
 
@@ -271,7 +271,8 @@ class ProductoController extends Controller
             DB::commit();
         }catch(Exception $e){
             DB::rollBack();
-            return back()->withInput()->withErrors('No se pudo guardar el producto. Intente de nuevo.');
+            report($e);
+            return back()->withInput()->withErrors($e instanceof \RuntimeException && str_contains($e->getMessage(), 'foto') ? $e->getMessage() : 'No se pudo guardar el producto. Intente de nuevo.');
         }
 
         return redirect()->route('productos.index')->with('success', 'Producto editado' . ($ajustadas ? ' y cantidades actualizadas.' : '.'));

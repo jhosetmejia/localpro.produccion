@@ -156,8 +156,8 @@ a.pl-foto.sinfoto:hover{border-color:#16b84e;color:#16b84e;background:#f0fbf4}
                     <a href="{{ route('productos.edit', $item) }}" class="pl-foto sinfoto" title="Súbale una foto para que se vea en la tienda en línea"><i class="fa-solid fa-camera"></i>Subir foto</a>
                     @else
                     <div class="pl-foto">
-                        @if ($item->img_path)
-                        <img src="{{ asset('storage/productos/' . rawurlencode($item->img_path)) }}" alt="" loading="lazy">
+                        @if ($item->foto_url)
+                        <img src="{{ $item->foto_url }}" alt="" loading="lazy">
                         @else
                         {{ mb_strtoupper(mb_substr($item->nombre, 0, 1)) }}
                         @endif

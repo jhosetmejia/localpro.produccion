@@ -101,7 +101,7 @@ class marketplaceController extends Controller
 
         $productos->getCollection()->transform(function (Producto $p) {
             $t = $p->tienda;
-            $foto = $p->img_path ? asset('storage/productos/' . rawurlencode($p->img_path)) : optional($p->fotos->first())->url;
+            $foto = $p->foto_url ?: optional($p->fotos->first(fn ($f) => $f->existe))->url;
             return (object) [
                 'nombre' => \App\Support\Textos::titulo($p->nombre),
                 'precio' => self::precio($t, $p->precio_venta),

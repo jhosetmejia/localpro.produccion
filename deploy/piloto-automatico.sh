@@ -71,6 +71,14 @@ if [ -n "$OID" ] && [ "$OID" != "$HECHA" ]; then
     migrar) run $PHP artisan migrate --force >> "$LOGACT" 2>&1 || R="falló (ver registro de actualización)" ;;
     colas) run $PHP artisan queue:restart >/dev/null 2>&1 ;;
     refrescar-pruebas) bash "$RAIZ/deploy/refrescar-pruebas.sh" >> /var/log/localpro-pruebas.log 2>&1 || R="falló (ver /var/log/localpro-pruebas.log)" ;;
+    recuperar-fotos)
+      # Fotos de productos que están en la base pero sin archivo: se buscan en las otras carpetas del VPS (ej. la carpeta vieja) y se copian
+      DEST="$RAIZ/storage/app/public/productos"; OK=0; NO=0
+      for F in $(cd "$RAIZ" && run $PHP artisan localpro:fotos-perdidas --solo-archivos 2>/dev/null); do
+        SRC=$(ls -1 /home/*/htdocs/*/storage/app/public/productos/"$F" 2>/dev/null | grep -v "^$DEST/" | head -1)
+        if [ -n "$SRC" ]; then cp -p "$SRC" "$DEST/$F" && chown "$USR:$USR" "$DEST/$F" && OK=$((OK+1)); else NO=$((NO+1)); fi
+      done
+      R="recuperadas $OK, sin copia en el servidor $NO (esas hay que volver a subirlas)" ;;
     diagnostico) : ;;  # solo refresca el reporte con más detalle
     *) R="acción desconocida, no se hizo nada" ;;
   esac

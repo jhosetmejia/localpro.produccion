@@ -35,10 +35,12 @@ class Producto extends Model
     /** ¿Tiene foto? (principal o alguna por color) */
     public function getTieneFotoAttribute(): bool
     {
-        if (!empty($this->img_path)) {
+        // Cuenta solo si el archivo está de verdad en el servidor (una foto perdida pide volver a subirla)
+        if (self::fotoExiste($this->img_path)) {
             return true;
         }
-        return $this->relationLoaded('fotos') ? $this->fotos->isNotEmpty() : $this->fotos()->exists();
+        $fotos = $this->relationLoaded('fotos') ? $this->fotos : $this->fotos()->get();
+        return $fotos->contains(fn ($f) => self::fotoExiste($f->path));
     }
 
     /** ¿Sale en el catálogo en línea? Sin foto no sale, salvo que el negocio pida mostrarlo igual */
@@ -134,13 +136,32 @@ class Producto extends Model
         return $this->hasMany(ProductoFoto::class)->orderBy('orden')->orderBy('id');
     }
 
+    // Guarda la foto en storage/app/public/productos con un nombre limpio y único.
+    // Si el disco no la deja guardar, avisa (antes quedaba el nombre en la base sin archivo y la foto salía rota).
     public function handleUploadImage($image)
     {
-        $file = $image;
-        $name = time() . $file->getClientOriginalName();
-        //$file->move(public_path() . '/img/productos/', $name);
-        Storage::putFileAs('/public/productos/',$file,$name,'public');
-
+        $ext = strtolower($image->getClientOriginalExtension() ?: $image->extension() ?: 'jpg');
+        $base = \Illuminate\Support\Str::slug(pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME)) ?: 'foto';
+        $name = time() . '-' . \Illuminate\Support\Str::lower(\Illuminate\Support\Str::random(6)) . '-' . mb_substr($base, 0, 60) . '.' . $ext;
+        $ok = Storage::disk('public')->putFileAs('productos', $image, $name, 'public');
+        if (!$ok || !self::fotoExiste($name, true)) {
+            throw new \RuntimeException('No se pudo guardar la foto en el servidor. Intente de nuevo; si sigue pasando, avise a LocalPro.');
+        }
         return $name;
+    }
+
+    // ¿El archivo de la foto existe en el servidor? (si no, la foto se trata como si no tuviera)
+    public static function fotoExiste(?string $path, bool $sinCache = false): bool
+    {
+        static $cache = [];
+        if (!$path) return false;
+        if ($sinCache) unset($cache[$path]);
+        return $cache[$path] ??= is_file(storage_path('app/public/productos/' . $path));
+    }
+
+    // Dirección pública de la foto principal, solo si el archivo existe
+    public function getFotoUrlAttribute(): ?string
+    {
+        return self::fotoExiste($this->img_path) ? asset('storage/productos/' . rawurlencode($this->img_path)) : null;
     }
 }

@@ -26,6 +26,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 @stack('jsonld')
 <style>
+/* El texto alternativo de una foto que no carga nunca se ve gigante */
+img{color:transparent;font-size:0}
+.foto-rota{display:grid;place-items:center;width:100%;height:100%;font-weight:800}
+
 :root{--g:linear-gradient(135deg,#a6f34a,#2fd15a 45%,#16b34a);--g2:#16b34a;--k:#0b0d0c;--ink:#151a17;--bg:#f4f8f5;--line:#e3efe5;--mut:#5b665e;--wa:#25d366}
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;scroll-padding-top:130px}
@@ -136,6 +140,19 @@ main,.pie-sep{flex:none}
 @keyframes lpLatido{50%{box-shadow:0 0 0 6px rgba(166,243,74,0)}}
 @stack('css')
 </style>
+<script>
+// Foto que no carga (perdida en el servidor o mala conexión): en vez del texto gigante sale la inicial del producto
+document.addEventListener('error', function (e) {
+    var i = e.target;
+    if (!i || i.tagName !== 'IMG' || i.dataset.rota) return;
+    i.dataset.rota = 1;
+    var t = (i.getAttribute('alt') || '').trim();
+    var s = document.createElement('span');
+    s.className = 'foto-rota';
+    s.textContent = t ? t.charAt(0).toUpperCase() : '🛍️';
+    i.replaceWith(s);
+}, true);
+</script>
 </head>
 {{-- Tiendas de ropa y calzado: fotos verticales 3:4 (como las tiendas de moda); los demás negocios en cuadrado --}}
 <body class="{{ ($tienda->usa_tallas ?? false) ? 'moda' : '' }}">

@@ -29,6 +29,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
+/* El texto alternativo de una foto que no carga nunca se ve gigante */
+img{color:transparent;font-size:0}
+.foto-rota{display:grid;place-items:center;width:100%;height:100%;font-weight:800}
+
 :root{--g:linear-gradient(135deg,#a6f34a,#2fd15a 45%,#16b34a);--g2:#16b34a;--k:#0b0d0c;--ink:#151a17;--bg:#f4f8f5;--line:#e3efe5;--mut:#5b665e;--wa:#25d366}
 *{box-sizing:border-box;margin:0;padding:0}
 html{background:var(--k)}
@@ -111,6 +115,19 @@ section{margin-top:22px}
 .pie{background:var(--k);color:#a9b5ad;margin-top:40px;padding:26px 0;font-size:.82rem;text-align:center}
 .pie b{color:#a6f34a}
 </style>
+<script>
+// Foto que no carga (perdida en el servidor o mala conexión): en vez del texto gigante sale la inicial del producto
+document.addEventListener('error', function (e) {
+    var i = e.target;
+    if (!i || i.tagName !== 'IMG' || i.dataset.rota) return;
+    i.dataset.rota = 1;
+    var t = (i.getAttribute('alt') || '').trim();
+    var s = document.createElement('span');
+    s.className = 'foto-rota';
+    s.textContent = t ? t.charAt(0).toUpperCase() : '🛍️';
+    i.replaceWith(s);
+}, true);
+</script>
 </head>
 <body>
 <header class="top">

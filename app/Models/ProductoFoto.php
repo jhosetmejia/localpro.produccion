@@ -22,4 +22,9 @@ class ProductoFoto extends Model
     {
         return asset('storage/productos/' . rawurlencode($this->path));
     }
+
+    public function getExisteAttribute(): bool
+    {
+        return Producto::fotoExiste($this->path);
+    }
 }
