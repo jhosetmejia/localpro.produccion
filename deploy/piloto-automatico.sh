@@ -45,6 +45,18 @@ if [ -n "$REMOTO" ] && [ "$LOCAL" != "$REMOTO" ] && [ "$REMOTO" != "$FALLIDO" ];
   actualizar
 fi
 
+# ---------- 1b) Enlace de las fotos (public/storage) ----------
+# Debe apuntar a la carpeta de fotos de ESTE sitio. Si apunta a otra (ej. la carpeta vieja tras la migración), las fotos nuevas salen rotas.
+# Se copia lo que haya en la carpeta a la que apuntaba (sin pisar nada) y se rehace el enlace.
+ENL="$RAIZ/public/storage"; FOTOS="$RAIZ/storage/app/public"
+if [ -d "$FOTOS" ] && [ "$(readlink -f "$ENL")" != "$(readlink -f "$FOTOS")" ]; then
+  ANT="$(readlink -f "$ENL" 2>/dev/null || true)"
+  [ -n "$ANT" ] && [ -d "$ANT" ] && cp -an "$ANT/." "$FOTOS/" 2>/dev/null
+  if [ -d "$ENL" ] && [ ! -L "$ENL" ]; then mv "$ENL" "$ENL.viejo-$(date +%s)"; else rm -f "$ENL"; fi
+  ln -s "$FOTOS" "$ENL"; chown -h "$USR:$USR" "$ENL"; chown -R "$USR:$USR" "$FOTOS"
+  echo "$(ahora) Enlace de fotos corregido (antes: ${ANT:-ninguno})" | tee -a "$EST/enlace-fotos"
+fi
+
 # ---------- 2) Órdenes de mantenimiento ----------
 # deploy/orden.txt tiene una línea:  ID|accion   (ej. 20261017-01|reiniciar). Cada ID se ejecuta una sola vez.
 ORDEN=$(grep -v '^\s*#' "$RAIZ/deploy/orden.txt" 2>/dev/null | grep '|' | tail -1 | tr -d '\r')
@@ -97,6 +109,7 @@ set +o pipefail   # en el reporte, que no haya errores (grep sin resultados) no 
 {
   echo "REPORTE LOCALPRO · $(ahora) (hora del servidor)"
   echo "Sitio (/login): $CODE"
+  echo "Enlace de fotos: $(readlink -f "$RAIZ/public/storage" 2>/dev/null) $(tail -1 "$EST/enlace-fotos" 2>/dev/null)"
   echo "Versión en el servidor: $(run git log -1 --format='%h %s' 2>/dev/null | cut -c1-120)"
   echo "Versión en GitHub:      ${REMOTO:0:7}"
   echo "Última actualización:   $(cat "$EST/ultima-actualizacion" 2>/dev/null || echo 'ninguna aún')"

@@ -19,6 +19,8 @@ for d in /home/*/htdocs/*/; do
   [ -f "$d/artisan" ] && grep -Eqs '^APP_URL="?https?://(www\.)?localproo\.com/?"?$' "$d/.env" && { VIEJA="$d"; break; }
 done
 [ -n "$VIEJA" ] || { echo "No hay sitio viejo para borrar. Todo limpio."; exit 0; }
+# Las fotos del sitio nuevo no pueden depender de la carpeta vieja
+case "$(readlink -f "$NUEVA/public/storage")" in "$VIEJA"*) echo "Las fotos de localproo.com todavía salen de la carpeta vieja. No borro nada (el piloto automático lo corrige en unos minutos; vuelva a intentar)."; exit 1 ;; esac
 DOM="$(basename "$VIEJA")"
 U="$(stat -c %U "$VIEJA")"
 STAMP="$(date +%Y%m%d-%H%M%S)"
