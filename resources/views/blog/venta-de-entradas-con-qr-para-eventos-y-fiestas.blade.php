@@ -144,7 +144,7 @@
     <li><b>Prepare la puerta:</b> celulares con batería y datos, brillo alto, un portero por fila, y que revisen el documento contra el nombre que sale en pantalla.</li>
     <li><b>Pida a los asistentes que descarguen el PDF</b> de su entrada antes de llegar, por si no tienen señal.</li>
     <li><b>Descargue el Excel</b> al cierre de cada día para cuadrar con su Nequi.</li>
-    <li><b>Si alguien olvidó su clave</b>, en Compradores toque <b>Restablecer clave</b>: queda su número de documento.</li>
+    <li><b>Si alguien olvidó su clave</b>, en Compradores toque <b>Restablecer clave</b>: le sale una clave temporal para enviársela.</li>
 </ul>
 
 <div class="box"><b>¿Ya tiene cuenta?</b> En LocalPro entre a <b>Aprende → Venda entradas con LocalProo Eventos</b>: es el curso paso a paso, con estas mismas guías y una prueba corta al final.</div>

@@ -130,7 +130,7 @@
                     <form method="post" action="{{ route('eventos.rechazar', [$evento, $e]) }}" data-confirm="¿Anular esta entrada?" data-confirm-texto="El QR ya no servirá para entrar." data-confirm-ok="Anular" data-peligro>@csrf<button class="btn btn-light btn-sm text-danger">Anular</button></form>
                     @endunless
                 @endif
-                <form method="post" action="{{ route('eventos.clave', [$evento, $e]) }}" data-confirm="¿Restablecer la clave de {{ $a->nombre }}?" data-confirm-texto="Su nueva clave será su número de documento ({{ $a->documento }})." data-confirm-ok="Restablecer">@csrf<button class="btn btn-link btn-sm text-muted" title="Olvidó la clave">Restablecer clave</button></form>
+                <form method="post" action="{{ route('eventos.clave', [$evento, $e]) }}" data-confirm="¿Restablecer la clave de {{ $a->nombre }}?" data-confirm-texto="Se le crea una clave temporal para que usted se la envíe." data-confirm-ok="Restablecer">@csrf<button class="btn btn-link btn-sm text-muted" title="Olvidó la clave">Restablecer clave</button></form>
                 @endif
             </div>
         </div>

@@ -92,7 +92,7 @@ class eventosController extends Controller
             'estado' => 'borrador', 'etapa' => 'Primera etapa', 'pago_metodo' => 'Nequi', 'pedir_colegio' => false, 'tema' => 'normal', 'color' => '#a855f7',
             'pago_numero' => $tienda->telefono, 'whatsapp' => $tienda->telefono, 'mensaje_whatsapp' => Evento::MENSAJE,
             'ciudad' => $tienda->ciudad ?? null,
-            'condiciones' => "Reservamos el derecho de admisión y permanencia.\nLa entrada es personal e intransferible: presente su documento en la puerta.\nNo hay devolución del dinero una vez aprobado el pago.",
+            'condiciones' => "Reservamos el derecho de admisión y permanencia.\nLa entrada es personal e intransferible: presente su documento en la puerta.\nNo hay devolución del dinero una vez aprobado el pago, salvo que el evento se cancele o cambie de fecha.",
         ]);
         return view('eventos.form', ['tienda' => $tienda, 'evento' => $evento, 'p' => Evento::puede()]);
     }
@@ -370,8 +370,10 @@ class eventosController extends Controller
     {
         $this->entrada($evento, $entrada);
         $a = $entrada->asistente;
-        $a->forceFill(['password' => $a->documento])->save();
-        return back()->with('success', 'Clave restablecida: ' . $a->nombre . ' ahora entra con su correo y su número de documento como clave.');
+        // Clave temporal al azar (no el documento, que lo conoce cualquiera que tenga la entrada en la mano)
+        $clave = substr(str_shuffle('abcdefghjkmnpqrstuvwxyz23456789'), 0, 4) . random_int(1000, 9999);
+        $a->forceFill(['password' => $clave])->save();
+        return back()->with('success', 'Clave restablecida. Envíele a ' . $a->nombre . ' esta clave temporal: ' . $clave . ' (entra con su correo ' . $a->email . ').');
     }
 
     public function exportar(Evento $evento)

@@ -29,7 +29,9 @@ class DepurarPruebas extends Command
     protected $description = 'Borra los datos de los negocios cuya prueba gratis terminó sin pasar a un plan pago (conserva los datos de contacto)';
 
     // Tablas que NO se tocan: datos del negocio, usuarios, pagos, red comercial y configuración básica
-    private const CONSERVAR = ['tiendas', 'users', 'avisos_plan', 'pagos_suscripcion', 'comisiones', 'asesores', 'planes', 'ajustes', 'metodos_pago'];
+    // Historia clínica (consultorios): la ley obliga a conservarla (Res. 839 de 2017, 15 años); nunca se borra con la depuración
+    private const CONSERVAR = ['tiendas', 'users', 'avisos_plan', 'pagos_suscripcion', 'comisiones', 'asesores', 'planes', 'ajustes', 'metodos_pago',
+        'pacientes', 'citas', 'atenciones', 'atencion_notas', 'clinica_accesos'];
 
     // Días para pagar, contados desde que se le notificó que la prueba terminó (se puede cambiar en ajustes: dias_gracia_depuracion)
     public const DIAS_GRACIA = 15;

@@ -439,7 +439,7 @@ class Academia
                     ['titulo' => 'Aprobar pagos', 'rutas' => [['eventos', 'Compradores', 'Por aprobar', 'Aprobar pago']], 'min' => 2, 'accion' => ['eventos.index', 'Ver mis eventos'], 'contenido' => [
                         'En el evento, la pestaña <b>Por aprobar</b> muestra primero (con borde verde) a los que ya tocaron "Enviar comprobante". Compare la captura que le llegó por WhatsApp con el nombre y el valor.',
                         'Toque <b>Aprobar pago</b> (puede anotar la referencia de Nequi). El sistema le genera la entrada con <b>QR único</b>, le manda un correo y usted le puede avisar por WhatsApp con un toque.',
-                        'Si se equivocó: <b>Deshacer</b> la devuelve a Por aprobar y <b>Anular</b> deja el QR sin servir. Si alguien olvidó la clave, <b>Restablecer clave</b> le pone como clave su número de documento.',
+                        'Si se equivocó: <b>Deshacer</b> la devuelve a Por aprobar y <b>Anular</b> deja el QR sin servir. Si alguien olvidó la clave, <b>Restablecer clave</b> le da una clave temporal para enviársela.',
                     ], 'tip' => 'Descargue la lista en Excel para cuadrar con los movimientos de su Nequi.'],
                     ['titulo' => 'La puerta: escanear el QR', 'rutas' => [['eventos', 'Puerta', 'Escanear el QR']], 'min' => 2, 'accion' => null, 'contenido' => [
                         'La persona entra a <b>Mi entrada</b> con su correo y su clave y muestra el QR (se recomienda descargarlo en <b>PDF</b> por si no hay internet).',
@@ -476,7 +476,7 @@ class Academia
                     ['p' => 'Quiere que quien compre 2 entradas lleve la 3.ª gratis. ¿Qué hace?', 'o' => ['Editar → Promociones: Compra 2, la siguiente Gratis', 'Bajar el precio a todos', 'No se puede'], 'r' => 0],
                     ['p' => 'Alguien ya tiene su entrada y quiere comprar otra para un amigo. ¿Qué le dice?', 'o' => ['Que toque Comprar otra entrada y le envíe el enlace por WhatsApp o le cree una cuenta nueva', 'Que vuelva a comprar con su misma cuenta', 'No se puede'], 'r' => 0],
                     ['p' => 'Su diseñadora debe cambiar el afiche, pero no el precio. ¿Qué rol le da?', 'o' => ['Diseño', 'Administrador del evento', 'Contabilidad'], 'r' => 0],
-                    ['p' => 'Una persona olvidó su clave. ¿Qué hace?', 'o' => ['Restablecer clave: queda su número de documento', 'Borra su registro', 'Le crea otra cuenta con el mismo correo'], 'r' => 0],
+                    ['p' => 'Una persona olvidó su clave. ¿Qué hace?', 'o' => ['Restablecer clave y enviarle la clave temporal', 'Borra su registro', 'Le crea otra cuenta con el mismo correo'], 'r' => 0],
                 ],
             ],
 

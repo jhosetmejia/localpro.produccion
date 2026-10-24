@@ -1,6 +1,6 @@
 @extends('legal._base')
 @section('titulo', 'Condiciones de uso')
-@section('fecha', '17 de octubre de 2026')
+@section('fecha', '24 de octubre de 2026')
 @section('cuerpo')
 @php
     $planAnual = \App\Models\Plan::where('activo', true)->where('precio', '>', 0)->where('dias', '>=', 365)->orderBy('precio')->first();
@@ -61,6 +61,28 @@
     <li>El abono <strong>no se consigna en dinero</strong>: es saldo que se descuenta automáticamente cuando el negocio paga su propio plan anual. No se transfiere a otros negocios ni se cambia por dinero.</li>
     <li>LocalProo puede cambiar el valor del abono avisándolo con anticipación; los abonos ya ganados se respetan. Si un pago se devuelve o se anula, el abono de ese pago también se anula. Los negocios suspendidos no reciben abonos.</li>
 </ul>
-<h2>7. Limitaciones</h2>
+<h2>7. LocalProo Eventos (venta de entradas)</h2>
+<ul>
+    <li>LocalProo presta la herramienta tecnológica. <strong>El organizador es quien vende las entradas y responde por el evento</strong>: su realización, permisos y registros que exija la ley (por ejemplo, el PULEP y la contribución parafiscal de la Ley 1493 de 2011 cuando se trate de espectáculos públicos de las artes escénicas), el control de edad, la seguridad y la información que publica.</li>
+    <li>El comprador le paga directamente al organizador (Nequi u otro medio que este indique). LocalProo no recibe ese dinero. Las promociones, precios y condiciones las define el organizador.</li>
+    <li><strong>Si el evento se cancela o cambia de fecha</strong>, el organizador debe devolver el dinero a quien lo pida, conforme a la Ley 1480 de 2011 (Estatuto del Consumidor).</li>
+    <li>Cada entrada tiene un QR único que sirve una sola vez. El organizador puede pedir el documento en la puerta.</li>
+</ul>
+<h2>8. Donaciones de Navidad</h2>
+<ul>
+    <li>Al pagar el plan, el negocio puede marcar voluntariamente una donación. Solo se cobra si marca la casilla, va aparte del valor del plan y no genera comisión.</li>
+    <li>Lo recogido se destina a ayudas para niños de barrios vulnerables de Pasto. LocalProo publicará cuánto se recogió y cómo se entregó. Las fotos o videos de niños solo se publican con autorización de sus padres o acudientes.</li>
+    <li>LocalProo no es una entidad sin ánimo de lucro: la donación no da derecho a certificado de donación para descontar en la declaración de renta.</li>
+</ul>
+<h2>9. Derecho de retracto y reversión del pago</h2>
+<ul>
+    <li>Como el plan es un servicio que empieza a prestarse apenas el negocio lo paga y lo activa, aplica la excepción al derecho de retracto del artículo 47 de la Ley 1480 de 2011. Si pagó por error y no ha usado el periodo pagado, escríbanos y lo revisamos.</li>
+    <li>Si su pago con tarjeta, PSE u otro medio electrónico fue fraudulento, no autorizado o el servicio no se prestó, puede pedir la reversión del pago (artículo 51 de la Ley 1480) escribiéndonos dentro de los 5 días hábiles siguientes a que se enteró, y avisando también a su banco.</li>
+</ul>
+<h2>10. Datos de clientes, pacientes y asistentes</h2>
+<p>Frente a los datos personales que el negocio registra, el negocio es el responsable y LocalProo actúa como encargado: los trata solo para prestar el servicio, con reserva y seguridad, según la <a href="{{ route('legal.privacidad') }}">política de privacidad</a>. Al aceptar estas condiciones, el negocio le encarga a LocalProo ese tratamiento.</p>
+<h2>11. Limitaciones</h2>
 <p>Trabajamos para que el servicio esté siempre disponible, pero puede haber interrupciones por mantenimiento o por servicios de terceros (por ejemplo, Facebook o Instagram).</p>
+<h2>12. Ley aplicable y peticiones</h2>
+<p>Estas condiciones se rigen por las leyes de Colombia. Peticiones, quejas o reclamos: <a href="mailto:{{ $correo }}">{{ $correo }}</a>. Respondemos en máximo 15 días hábiles.</p>
 @endsection
