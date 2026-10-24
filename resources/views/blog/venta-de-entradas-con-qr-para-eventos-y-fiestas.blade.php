@@ -61,6 +61,20 @@
 <x-guia-ruta tipo="eventos" :ruta="['eventos', 'Compradores', 'Editar', 'Promociones', 'Agregar promoción']" />
 <div class="box">Las promos se repiten por bloque: con "compra 2 y la 3.ª gratis", quien compra 6 lleva 2 gratis. Puede ponerles fecha de fin o apagarlas cuando quiera, y si hay varias, el sistema aplica la que más le ahorra al comprador.</div>
 
+<h3 id="comprar-otra-entrada">¿Ya compró y quiere otra entrada para alguien más?</h3>
+<p>Cada entrada es <b>personal</b> y el ingreso es <b>único</b>: en la puerta se valida el QR con el documento de quien la compró. Por eso cada persona compra una vez por evento con su cuenta, y quien ya tiene entrada no puede volver a comprar desde esa misma cuenta. Para que otra persona tenga la suya:</p>
+<ol>
+    <li>En la página del evento, quien ya compró toca <b>Comprar otra entrada</b> (sale debajo de <b>Ver mi entrada</b>).</li>
+    <li>Elige una de dos opciones:
+        <ul>
+            <li><b>Enviar enlace a mi acompañante:</b> abre WhatsApp con el enlace del evento y el mensaje listo. El acompañante se registra con sus datos desde su celular.</li>
+            <li><b>Crear nueva cuenta en este celular:</b> cierra la sesión y abre el registro del evento para llenar los datos de la otra persona. La entrada del primero sigue guardada: vuelve a entrar con su documento y clave.</li>
+        </ul>
+    </li>
+    <li>El acompañante paga por Nequi, envía su comprobante y, cuando usted aprueba el pago, recibe su propia entrada con QR.</li>
+</ol>
+<div class="box">Para grupos, lo más fácil es que compren <b>todas las entradas en una sola compra</b>: suba el <b>máximo de entradas por compra</b> en <b>Editar → Entrada y venta</b> (viene en 1) y así además aplican las promociones. "Comprar otra entrada" es para quien ya compró y después quiere sumar a alguien.</div>
+
 <h2>8. ¿Cuánta gente ha visto su evento?</h2>
 <p>La página cuenta las visitas (una por persona, sin contar robots ni a su equipo). En el panel ve las visitas y qué porcentaje se registró; si quiere, la página muestra al público <b>"X personas han visto este evento"</b> para animar a comprar. Se apaga en <b>Editar → Publicación</b>.</p>
 

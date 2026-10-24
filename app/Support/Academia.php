@@ -456,6 +456,7 @@ class Academia
                         'En <b>Editar → Promociones</b> toque <b>Agregar promoción</b>: escriba cuántas compra (ej. 2) y qué pasa con la siguiente (<b>Gratis</b> o un % de descuento). Ejemplos: "Compra 2 y la 3.ª es gratis", "Compra 5 y la 6.ª con 50 % de descuento". Puede ponerle fecha de fin y apagarla cuando quiera.',
                         'La promo sale en la página del evento y el comprador ve el total con el ahorro al elegir la cantidad. El sistema calcula el precio de cada entrada (no se puede cambiar desde el navegador) y, si hay varias promos, aplica la que más le ahorra.',
                         'Toda la compra se paga con un solo comprobante: en <b>Compradores</b> aprueba en la fila del comprador y se aprueban todas sus entradas juntas.',
+                        '¿Alguien ya compró y quiere otra entrada para un amigo? Como cada entrada es personal y el ingreso es único, en la página del evento toca <b>Comprar otra entrada</b>: puede <b>enviar el enlace por WhatsApp</b> para que el amigo se registre con sus datos, o <b>crear una cuenta nueva en su celular</b> (se cierra su sesión y su entrada sigue guardada). El amigo paga y recibe su propio QR.',
                     ], 'tip' => 'Las promos se repiten: con "compra 2 y la 3.ª gratis", quien compra 6 lleva 2 gratis. Úselas en preventa o los últimos días para mover la venta.'],
                     ['titulo' => 'Antes de publicar: haga una prueba completa', 'rutas' => [['eventos', 'Compradores', 'Editar', 'Publicación: Borrador'], ['eventos', 'Puerta', 'Escanear el QR de prueba']], 'min' => 3, 'accion' => null, 'contenido' => [
                         'Deje el evento en <b>Borrador</b> (solo usted ve la página) y ábrala en su celular: revise afiche, fecha, precio y que el Nequi esté bien escrito.',
@@ -473,6 +474,7 @@ class Academia
                     ['p' => 'Un QR ya se usó y alguien lo vuelve a mostrar en la puerta. ¿Qué pasa?', 'o' => ['Sale en rojo: "ya se usó" y no deja entrar', 'Deja entrar otra vez', 'Se borra el evento'], 'r' => 0],
                     ['p' => 'Pasó la primera etapa y ahora la entrada vale más. ¿Qué hace?', 'o' => ['Edita el evento: cambia la etapa, el precio y la fecha', 'Crea un evento nuevo', 'No se puede'], 'r' => 0],
                     ['p' => 'Quiere que quien compre 2 entradas lleve la 3.ª gratis. ¿Qué hace?', 'o' => ['Editar → Promociones: Compra 2, la siguiente Gratis', 'Bajar el precio a todos', 'No se puede'], 'r' => 0],
+                    ['p' => 'Alguien ya tiene su entrada y quiere comprar otra para un amigo. ¿Qué le dice?', 'o' => ['Que toque Comprar otra entrada y le envíe el enlace por WhatsApp o le cree una cuenta nueva', 'Que vuelva a comprar con su misma cuenta', 'No se puede'], 'r' => 0],
                     ['p' => 'Su diseñadora debe cambiar el afiche, pero no el precio. ¿Qué rol le da?', 'o' => ['Diseño', 'Administrador del evento', 'Contabilidad'], 'r' => 0],
                     ['p' => 'Una persona olvidó su clave. ¿Qué hace?', 'o' => ['Restablecer clave: queda su número de documento', 'Borra su registro', 'Le crea otra cuenta con el mismo correo'], 'r' => 0],
                 ],
