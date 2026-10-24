@@ -2,6 +2,7 @@
 
 Software de gestión para negocios de Jhoset Mejía (DiCreWeb): POS/caja, inventario, ventas, compras, facturación,
 contabilidad para contadores (DIAN, IVA, retenciones, formulario 350), nómina, alquiler, obituarios (funerarias),
+LocalProo Eventos (venta de entradas: landing, registro con clave, pago Nequi + comprobante por WhatsApp, aprobación manual, QR único y puerta),
 catálogo/tienda, red comercial de asesores con curso, blog SEO, prospectos por correo.
 Sitio en vivo: https://localproo.com
 

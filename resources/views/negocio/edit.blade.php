@@ -77,6 +77,7 @@
                 'mod_pedidos' => ['Pedidos: mesero, caja y cocina', 'Para restaurantes, cafeterías, granjas y parques: el mesero toma el pedido, caja lo cobra, cada estación (cocina, cafetería, entradas…) lo ve en su pantalla y avisa cuando está listo.', false],
                 'mod_alquiler' => ['Alquiler', 'Para negocios que alquilan (sonido, trajes, salones, equipos…): fechas, abonos, entrega y devolución. Apagado, no aparece en el menú.', false],
                 'mod_contable' => ['Contabilidad: retenciones e IVA', 'Para contadores y analistas: cruce de facturas de la DIAN con la contabilidad, borrador del 350 y del IVA, certificados de retención.', false],
+                'mod_eventos' => ['Eventos y venta de entradas', 'Página de su evento para compartir, registro de compradores, pago por Nequi con comprobante por WhatsApp, aprobación del pago y entrada con QR que se valida en la puerta.', false],
                 'mod_obituarios' => ['Obituarios (funerarias)', 'Salas de velación y obituarios con foto para los televisores de cada sala. Se enciende solo si el negocio es funeraria.', false],
                 'mod_consultorio' => ['Consultorio (pacientes e historia clínica)', 'Para psicología, odontología, estética, fisioterapia, nutrición o medicina: pacientes, agenda de citas, historia clínica cifrada, fórmulas e incapacidades.', false],
             ] as $k => [$tit, $txt, $pronto])

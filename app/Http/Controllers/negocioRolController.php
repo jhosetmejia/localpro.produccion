@@ -24,7 +24,7 @@ class negocioRolController extends Controller
         $tienda = TiendaActual::tienda();
         return view('roles-negocio.index', [
             'roles' => $roles,
-            'plantillas' => collect(RolesNegocio::PLANTILLAS)->filter(fn ($p, $k) => $tienda->mod_pedidos || !in_array('pedidos-preparar', $p[2], true) && $k !== 'mesero'),
+            'plantillas' => collect(RolesNegocio::PLANTILLAS)->filter(fn ($p, $k) => ($k !== 'puerta' || $tienda->mod_eventos) && ($tienda->mod_pedidos || !in_array('pedidos-preparar', $p[2], true) && $k !== 'mesero')),
             'personas' => User::where('tienda_id', $tienda->id)->orderBy('name')->get(),
             'estaciones' => $tienda->mod_pedidos ? PedidoEstacion::orderBy('orden')->get()->keyBy('id') : collect(),
         ]);

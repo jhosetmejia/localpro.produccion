@@ -33,6 +33,7 @@ class negocioController extends Controller
             'mod_recetas' => 'nullable|boolean',
             'mod_alquiler' => 'nullable|boolean',
             'mod_obituarios' => 'nullable|boolean',
+            'mod_eventos' => 'nullable|boolean',
             'mod_contable' => 'nullable|boolean',
             'mod_consultorio' => 'nullable|boolean',
             'mod_pedidos' => 'nullable|boolean',
@@ -73,7 +74,7 @@ class negocioController extends Controller
         $datos['catalogo_activo'] = $request->boolean('catalogo_activo');
         $datos['catalogo_agotados'] = $request->boolean('catalogo_agotados', true);
         $datos['cliente_obligatorio'] = $request->boolean('cliente_obligatorio');
-        foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'mod_contable', 'mod_consultorio', 'mod_pedidos', 'mod_servicios'] as $m) {
+        foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'mod_eventos', 'mod_contable', 'mod_consultorio', 'mod_pedidos', 'mod_servicios'] as $m) {
             $datos[$m] = $request->boolean($m);
         }
         // Al pasar a consultorio se enciende solo el módulo de pacientes e historia clínica
@@ -85,6 +86,11 @@ class negocioController extends Controller
         // Al pasar a funeraria se enciende solo el módulo de obituarios
         if ($datos['tipo_negocio'] === 'contable' && $negocio->tipo_negocio !== 'contable') {
             $datos['mod_contable'] = true;
+        }
+        // Al pasar a eventos se enciende solo el módulo de eventos y entradas
+        if ($datos['tipo_negocio'] === 'eventos' && $negocio->tipo_negocio !== 'eventos') {
+            $datos['mod_eventos'] = true;
+            if ($negocio->menu_oculto === null) $datos['menu_oculto'] = \App\Models\Tienda::MENU_OCULTO_POR_TIPO['eventos'];
         }
         if ($datos['tipo_negocio'] === 'funeraria' && $negocio->tipo_negocio !== 'funeraria') {
             $datos['mod_obituarios'] = true;

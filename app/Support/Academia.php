@@ -421,6 +421,40 @@ class Academia
                 ],
             ],
 
+            // Solo aparece en negocios con el módulo Eventos (y para los asesores, que lo venden)
+            'eventos' => [
+                'titulo' => 'Venda entradas con LocalProo Eventos', 'icono' => 'fa-ticket', 'color' => '#a855f7', 'para' => ['todos', 'asesor'], 'modulo' => 'mod_eventos',
+                'resumen' => 'Página del evento, registro de compradores, pago por Nequi con comprobante por WhatsApp, aprobar pagos y escanear el QR en la puerta.',
+                'lecciones' => [
+                    ['titulo' => 'Cree el evento y comparta la página', 'min' => 3, 'accion' => ['eventos.create', 'Crear evento'], 'contenido' => [
+                        'En <b>Eventos y entradas → Nuevo evento</b> escriba el nombre, la fecha y hora, el lugar y la publicidad. Suba el <b>afiche</b> (vertical se ve mejor en celular) y, si quiere, un segundo afiche con la información.',
+                        'Ponga la <b>etapa</b> (ej. "Primera etapa"), el <b>precio</b> y hasta cuándo va esa etapa. Para la segunda etapa solo cambie nombre, precio y fecha: los que ya se registraron conservan su precio.',
+                        'Escriba su <b>Nequi</b> (o la cuenta donde recibe) y el <b>WhatsApp</b> donde le mandan el comprobante. Cambie el estado a <b>Publicado</b> y copie el enlace <b>localproo.com/evento/…</b> para Instagram, TikTok y WhatsApp.',
+                    ], 'tip' => 'Mientras está en Borrador solo usted ve la página: úsela para revisar cómo queda antes de publicar.'],
+                    ['titulo' => 'Cómo compra la gente', 'min' => 2, 'accion' => null, 'contenido' => [
+                        'La persona abre la página, toca <b>Comprar entrada</b> y llena sus datos: nombre, correo, cédula o tarjeta de identidad, fecha de nacimiento, colegio, celular y una <b>clave</b>. Toca <b>Terminar registro</b>.',
+                        'Le sale: <b>"Envía tu pago a este Nequi"</b> con el número y el valor, y el botón <b>Enviar comprobante de pago</b>, que abre su WhatsApp con el mensaje listo ("Hola, ya pagué aquí está mi comprobante" + su nombre, documento y número de registro). Solo adjunta la captura.',
+                        'Si es menor de edad, debe marcar que su padre, madre o acudiente autoriza el registro. Todos autorizan el tratamiento de datos (Ley 1581 de 2012).',
+                    ], 'tip' => null],
+                    ['titulo' => 'Aprobar pagos', 'min' => 2, 'accion' => ['eventos.index', 'Ver mis eventos'], 'contenido' => [
+                        'En el evento, la pestaña <b>Por aprobar</b> muestra primero (con borde verde) a los que ya tocaron "Enviar comprobante". Compare la captura que le llegó por WhatsApp con el nombre y el valor.',
+                        'Toque <b>Aprobar pago</b> (puede anotar la referencia de Nequi). El sistema le genera la entrada con <b>QR único</b>, le manda un correo y usted le puede avisar por WhatsApp con un toque.',
+                        'Si se equivocó: <b>Deshacer</b> la devuelve a Por aprobar y <b>Anular</b> deja el QR sin servir. Si alguien olvidó la clave, <b>Restablecer clave</b> le pone como clave su número de documento.',
+                    ], 'tip' => 'Descargue la lista en Excel para cuadrar con los movimientos de su Nequi.'],
+                    ['titulo' => 'La puerta: escanear el QR', 'min' => 2, 'accion' => null, 'contenido' => [
+                        'La persona entra a <b>Mi entrada</b> con su correo y su clave y muestra el QR (se recomienda descargarlo en <b>PDF</b> por si no hay internet).',
+                        'En la puerta abra <b>Puerta</b> en el celular y escanee: <b>verde</b> = puede entrar; <b>rojo</b> = ya se usó o no existe; <b>naranja</b> = el pago no está aprobado. Cada QR sirve <b>una sola vez</b>, aunque dos porteros escaneen a la vez.',
+                        'Si no lee el QR, busque por número de documento y toque <b>Dejar entrar</b>. Para que alguien solo maneje la puerta, créele el rol <b>Puerta (eventos)</b> en Roles del negocio.',
+                    ], 'tip' => 'Revise el documento contra el nombre que sale en pantalla: así nadie entra con el QR de otro.'],
+                ],
+                'prueba' => [
+                    ['p' => '¿Cuándo recibe la persona su entrada con QR?', 'o' => ['Cuando usted aprueba el pago', 'Apenas se registra', 'El día del evento'], 'r' => 0],
+                    ['p' => 'Un QR ya se usó y alguien lo vuelve a mostrar en la puerta. ¿Qué pasa?', 'o' => ['Sale en rojo: "ya se usó" y no deja entrar', 'Deja entrar otra vez', 'Se borra el evento'], 'r' => 0],
+                    ['p' => 'Pasó la primera etapa y ahora la entrada vale más. ¿Qué hace?', 'o' => ['Edita el evento: cambia la etapa, el precio y la fecha', 'Crea un evento nuevo', 'No se puede'], 'r' => 0],
+                    ['p' => 'Una persona olvidó su clave. ¿Qué hace?', 'o' => ['Restablecer clave: queda su número de documento', 'Borra su registro', 'Le crea otra cuenta con el mismo correo'], 'r' => 0],
+                ],
+            ],
+
             // Solo aparece en negocios con el módulo Consultorio (y para los asesores, que lo venden)
             'consultorio' => [
                 'titulo' => 'Su consultorio en LocalPro', 'icono' => 'fa-user-doctor', 'color' => '#0ea5e9', 'para' => ['todos', 'asesor'], 'modulo' => 'mod_consultorio',

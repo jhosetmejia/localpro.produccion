@@ -40,6 +40,12 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        // Compradores de entradas de LocalProo Eventos ("Mis entradas"): cuenta aparte de los usuarios del negocio
+        'asistente' => [
+            'driver' => 'session',
+            'provider' => 'asistentes',
+        ],
     ],
 
     /*
@@ -63,6 +69,11 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
+        ],
+
+        'asistentes' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\EventoAsistente::class,
         ],
 
         // 'users' => [

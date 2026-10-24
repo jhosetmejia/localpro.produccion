@@ -195,6 +195,12 @@
                     Obituarios
                 </a>@endif
                 @endif
+                @if ($tiendaMenu?->mod_eventos && (auth()->user()->can('gestionar-eventos') || auth()->user()->can('eventos-ingreso') || auth()->user()->can('editar-negocio')) && $ver('eventos') && \Illuminate\Support\Facades\Route::has('eventos.index'))
+                <a class="nav-link {{ $on('eventos.*') }}" href="{{ route('eventos.index') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-ticket"></i></div>
+                    Eventos y entradas
+                </a>
+                @endif
                 @if ($tiendaMenu?->mod_pedidos && $ver('pedidos') && \Illuminate\Support\Facades\Route::has('pedidos.index') && \Illuminate\Support\Facades\Schema::hasTable('pedidos'))
                 @php
                     $uM = auth()->user();

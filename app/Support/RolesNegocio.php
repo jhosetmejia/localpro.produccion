@@ -29,6 +29,10 @@ class RolesNegocio
             'pedidos-preparar' => 'Pantalla de estación: ve lo que le toca preparar o atender y lo marca listo',
             'pedidos-administrar' => 'Configurar estaciones y ver todos los pedidos y el cierre',
         ],
+        'Eventos y entradas' => [
+            'eventos-ingreso' => 'Puerta del evento: escanear el QR y dejar entrar',
+            'gestionar-eventos' => 'Crear eventos, ver compradores y aprobar pagos',
+        ],
     ];
 
     // Lo que siempre necesita otro permiso para funcionar
@@ -49,6 +53,7 @@ class RolesNegocio
         'entradas' => ['Entradas', 'fa-ticket', ['pedidos-preparar'], 'estacion', 'Entradas'],
         'paseos' => ['Paseos con animales', 'fa-horse', ['pedidos-preparar'], 'estacion', 'Paseos con animales'],
         'granjero' => ['Granjero', 'fa-tractor', ['pedidos-preparar'], 'estacion', 'Granja'],
+        'puerta' => ['Puerta (eventos)', 'fa-qrcode', ['eventos-ingreso'], 'panel', null],
         'admin' => ['Administrador', 'fa-user-tie', ['*'], 'panel', null],
     ];
 
@@ -93,6 +98,7 @@ class RolesNegocio
             foreach ($ps as $p => $txt) {
                 if (!in_array($p, $existen, true)) continue;
                 if (str_starts_with($p, 'pedidos-') && $t && !$t->mod_pedidos) continue;
+                if (in_array($p, ['eventos-ingreso', 'gestionar-eventos'], true) && $t && !$t->mod_eventos) continue;
                 $out[$g][$p] = $txt;
             }
         }

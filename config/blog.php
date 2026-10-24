@@ -6,6 +6,25 @@
 // palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
+    'venta-de-entradas-con-qr-para-eventos-y-fiestas' => [
+        'titulo' => 'Venta de entradas con QR para fiestas y eventos: registro, pago por Nequi y control en la puerta',
+        'resumen' => 'Cree la página de su evento, la gente se registra y paga por Nequi, usted aprueba el pago y cada persona recibe una entrada con QR único que se escanea una sola vez en la puerta con el celular.',
+        'fecha' => '24 de octubre de 2026',
+        'publicado' => '2026-10-24',
+        'minutos' => 4,
+        'icono' => 'fa-ticket',
+        'rol' => 'negocios',
+        'seo_titulo' => 'Venta de entradas con QR para eventos y fiestas | LocalProo',
+        'descripcion' => 'Boletería digital para fiestas, conciertos y eventos de colegio: página del evento, registro, pago por Nequi, aprobación y entrada con QR que no se repite.',
+        'keywords' => ['venta de entradas con QR', 'boletería digital', 'sistema de boletas para eventos', 'entradas para fiestas', 'control de acceso con QR', 'boletas por Nequi', 'app para vender boletas'],
+        'faq' => [
+            ['¿Necesito pasarela de pagos?', 'No. La persona le paga a su Nequi (o a la cuenta que usted ponga) y le manda el comprobante por WhatsApp con un botón. Usted aprueba el pago en el panel.'],
+            ['¿Qué pasa si alguien reenvía su QR?', 'Cada QR sirve una sola vez: al escanearlo queda usado y si lo vuelven a mostrar sale en rojo con la hora en que se usó. Además en pantalla sale el nombre y el documento para revisarlo.'],
+            ['¿Pueden registrarse menores de edad?', 'Sí: se registran con tarjeta de identidad y deben marcar que su padre, madre o acudiente autoriza. Usted también puede poner una edad mínima.'],
+            ['¿Cómo cambio el precio para la segunda etapa?', 'Edite el evento y cambie la etapa, el precio y la fecha "hasta". Los que ya se registraron conservan su precio.'],
+            ['¿Funciona si no hay internet en la puerta?', 'El asistente puede descargar su entrada en PDF. Para escanear, el celular de la puerta necesita datos o wifi.'],
+        ],
+    ],
     'software-para-negocios-de-servicios-sin-inventario' => [
         'titulo' => 'Software para negocios de servicios: venda cortes, consultas y reparaciones sin llevar inventario',
         'resumen' => 'Cree sus servicios una vez y quedan siempre disponibles: no se acaban, no llevan stock y nunca salen agotados. Véndalos en la caja junto a sus productos y adminístrelos aparte.',

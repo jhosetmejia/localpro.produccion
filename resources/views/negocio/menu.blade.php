@@ -31,6 +31,7 @@
         @php
             $items = collect($items)->filter(fn ($x, $k) => match ($k) {
                 'obituarios' => (bool) $tienda->mod_obituarios,
+                'eventos' => (bool) $tienda->mod_eventos,
                 'consultorio' => (bool) $tienda->mod_consultorio,
                 'contabilidad' => (bool) $tienda->mod_contable,
                 'alquiler' => (bool) $tienda->mod_alquiler,
