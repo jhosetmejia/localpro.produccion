@@ -54,6 +54,54 @@
 <h2>7. ¿Cuánta gente ha visto su evento?</h2>
 <p>La página cuenta las visitas (una por persona, sin contar robots ni a su equipo). En el panel ve las visitas y qué porcentaje se registró; si quiere, la página muestra al público <b>"X personas han visto este evento"</b> para animar a comprar. Se apaga en <b>Editar → Publicación</b>.</p>
 
+<h2>8. Guía rápida: ¿dónde está cada cosa?</h2>
+<table style="width:100%;border-collapse:collapse;font-size:.95rem">
+    <tr><th style="text-align:left;padding:.5rem;border-bottom:2px solid #e5e7eb">Quiero…</th><th style="text-align:left;padding:.5rem;border-bottom:2px solid #e5e7eb">Vaya a…</th></tr>
+    <tr><td style="padding:.5rem;border-bottom:1px solid #eee">Crear un evento</td><td style="padding:.5rem;border-bottom:1px solid #eee"><b>Eventos y entradas → Nuevo evento</b></td></tr>
+    <tr><td style="padding:.5rem;border-bottom:1px solid #eee">Cambiar fecha, lugar, precio o Nequi</td><td style="padding:.5rem;border-bottom:1px solid #eee"><b>Eventos y entradas → su evento → Editar</b></td></tr>
+    <tr><td style="padding:.5rem;border-bottom:1px solid #eee">Cambiar afiche, logo, estilo o color</td><td style="padding:.5rem;border-bottom:1px solid #eee"><b>Editar</b> → columna derecha (Estilo de la página, Logo, Afiches)</td></tr>
+    <tr><td style="padding:.5rem;border-bottom:1px solid #eee">Agregar, quitar o editar preguntas del registro</td><td style="padding:.5rem;border-bottom:1px solid #eee"><b>Editar → Formulario de registro → Agregar campo</b> (la 🗑 lo quita)</td></tr>
+    <tr><td style="padding:.5rem;border-bottom:1px solid #eee">Ver quién compró y aprobar pagos</td><td style="padding:.5rem;border-bottom:1px solid #eee"><b>Eventos y entradas → Compradores</b> (pestaña <b>Por aprobar</b>)</td></tr>
+    <tr><td style="padding:.5rem;border-bottom:1px solid #eee">Descargar la lista</td><td style="padding:.5rem;border-bottom:1px solid #eee"><b>Compradores → Excel</b></td></tr>
+    <tr><td style="padding:.5rem;border-bottom:1px solid #eee">Ver o cambiar lo que puede hacer cada rol</td><td style="padding:.5rem;border-bottom:1px solid #eee"><b>Roles del negocio</b> (menú lateral)</td></tr>
+    <tr><td style="padding:.5rem;border-bottom:1px solid #eee">Darle acceso a alguien del equipo</td><td style="padding:.5rem;border-bottom:1px solid #eee"><b>Usuarios → Nuevo usuario</b> → elija su rol</td></tr>
+    <tr><td style="padding:.5rem;border-bottom:1px solid #eee">Escanear en la entrada</td><td style="padding:.5rem;border-bottom:1px solid #eee"><b>Eventos y entradas → Puerta</b> (desde el celular)</td></tr>
+    <tr><td style="padding:.5rem">Mostrar u ocultar el contador de visitas</td><td style="padding:.5rem"><b>Editar → Publicación</b></td></tr>
+</table>
+
+<h2>9. Antes de publicar: haga una prueba completa</h2>
+<p>Dedique 15 minutos a probar todo usted mismo antes de compartir el enlace. Es la mejor forma de evitar sorpresas el día de la venta:</p>
+<ol>
+    <li><b>Déjelo en Borrador.</b> Así solo usted ve la página. Ábrala en su celular y revise el afiche, la fecha, el precio y que el Nequi esté bien escrito.</li>
+    <li><b>Regístrese como si fuera un comprador.</b> Abra el enlace en una ventana de incógnito (o en otro celular) y llene el formulario con un correo suyo. Revise que las preguntas sean las que quiere.</li>
+    <li><b>Toque "Enviar comprobante de pago".</b> Confirme que se abre el WhatsApp correcto con el mensaje listo.</li>
+    <li><b>Apruebe ese registro de prueba</b> en Compradores y revise que le llegue el correo y que en <b>Mi entrada</b> salga el QR y se descargue el PDF.</li>
+    <li><b>Escanéelo en Puerta</b> con otro celular: debe salir en verde. Escanéelo otra vez: debe salir en rojo, "ya se usó".</li>
+    <li><b>Anule la entrada de prueba</b> para que no le cuente en el cupo ni en el recaudo.</li>
+    <li>Cambie el evento a <b>Publicado</b> y comparta el enlace.</li>
+</ol>
+
+<h2>10. Arme su equipo paso a paso</h2>
+<ol>
+    <li>Entre a <b>Roles del negocio</b> y revise los roles que ya vienen creados: <b>Administrador del evento, Contabilidad, Logística, Diseño y Puerta</b>. Si quiere, cambie sus permisos o cree otro rol.</li>
+    <li>En <b>Usuarios → Nuevo usuario</b> cree a cada persona con su nombre, correo, celular y una clave, y elija su rol.</li>
+    <li>Mándele por WhatsApp: "Entra a <b>localproo.com/login</b> con tu correo y esta clave". Al entrar llega directo a Eventos y solo ve lo de su rol.</li>
+    <li>El equipo <b>no se registra solo</b>: si alguien se registra por su cuenta en LocalProo, se le crea otro negocio aparte, sin su evento.</li>
+</ol>
+
+<h2>11. Recomendaciones para que todo salga bien</h2>
+<ul>
+    <li><b>Apruebe los pagos varias veces al día.</b> La gente se tranquiliza cuando recibe su QR rápido, y así evita mensajes de "¿ya me aprobaron?".</li>
+    <li><b>Compare siempre la captura con el nombre y el valor</b> antes de aprobar. Si tiene dudas, revise el movimiento en su Nequi y anote la referencia.</li>
+    <li><b>Cambie de etapa a tiempo.</b> Edite el nombre de la etapa, el precio y la fecha "hasta"; los ya registrados conservan su precio.</li>
+    <li><b>Ponga cupo</b> si el lugar tiene capacidad limitada: al llenarse, la página muestra "Agotado" sola.</li>
+    <li><b>Pida solo lo necesario</b> en el formulario. Cada pregunta de más hace que menos gente termine el registro.</li>
+    <li><b>Prepare la puerta:</b> celulares con batería y datos, brillo alto, un portero por fila, y que revisen el documento contra el nombre que sale en pantalla.</li>
+    <li><b>Pida a los asistentes que descarguen el PDF</b> de su entrada antes de llegar, por si no tienen señal.</li>
+    <li><b>Descargue el Excel</b> al cierre de cada día para cuadrar con su Nequi.</li>
+    <li><b>Si alguien olvidó su clave</b>, en Compradores toque <b>Restablecer clave</b>: queda su número de documento.</li>
+</ul>
+
 <a class="cta" href="{{ route('registro', ['tipo' => 'eventos', 'desde' => 'blog:' . $slug]) }}">Cree su evento gratis</a>
 <p style="text-align:center;color:#6b7570">¿Ya tiene LocalProo? Actívelo en <b>Datos del negocio → Módulos → Eventos y venta de entradas</b>.</p>
 @endsection
