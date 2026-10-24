@@ -44,8 +44,11 @@ fi
 if ! MYSQL_PWD="$DBP" mysqldump -u "$DBU" --single-transaction --no-tablespaces "$DBN" | gzip > "$RESP/base.sql.gz"; then
   echo "No se pudo respaldar la base de datos. No continúo."; rm -rf "$RESP"; exit 1
 fi
-cp -a "$RAIZ" "$RESP/codigo"
-rm -rf "$RESP/codigo/storage/logs"/*.log "$RESP/codigo/storage/framework/cache/data" 2>/dev/null
+# Copia del código SIN las fotos/videos subidos (storage/app): esos no cambian al actualizar y ya tienen su respaldo diario.
+# Así cada respaldo pesa poco y no se llena el disco.
+command -v rsync >/dev/null || apt-get install -y -qq rsync >/dev/null 2>&1
+rsync -a --exclude 'storage/app/' --exclude 'storage/logs/' --exclude 'storage/framework/cache/data/' "$RAIZ/" "$RESP/codigo/" \
+  || { echo "No se pudo copiar el código. No continúo."; rm -rf "$RESP"; exit 1; }
 chown -R "$USUARIO:$USUARIO" "/home/$USUARIO/respaldos"
 echo "    Respaldo listo."
 # Guarda solo los 3 respaldos de actualización más recientes. La carpeta "diario" (respaldo de cada noche) NO se toca aquí.
@@ -55,8 +58,8 @@ restaurar() {
   echo
   echo "!! Algo falló. Restaurando la versión anterior..."
   cd / || true
-  rm -rf "$RAIZ"
-  cp -a "$RESP/codigo" "$RAIZ"
+  # Vuelve el código como estaba, sin tocar las fotos/videos subidos ni los logs
+  rsync -a --delete --exclude 'storage/app/' --exclude 'storage/logs/' --exclude 'storage/framework/cache/data/' "$RESP/codigo/" "$RAIZ/"
   cd "$RAIZ" || true
   gunzip -c "$RESP/base.sql.gz" | MYSQL_PWD="$DBP" mysql -u "$DBU" "$DBN"
   run $PHP "$RAIZ/artisan" optimize:clear >/dev/null 2>&1

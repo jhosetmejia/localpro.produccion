@@ -2,7 +2,7 @@
 # Respaldo de LocalPro. Lo ejecutan los crons de /etc/cron.d/localpro-respaldo (los instala deploy/actualizar.sh):
 #   respaldo-diario.sh          (3:15 a. m.) base de datos + archivos subidos (fotos, logos, firmas) + configuración (.env)
 #   respaldo-diario.sh --rapido (cada 4 horas) solo la base de datos, para no perder más de unas horas de ventas
-# En el servidor se guardan 10 días (las copias rápidas, 3 días). Afuera (Backblaze, cifradas) 30 días.
+# En el servidor: base 10 días (copias rápidas 3 días), fotos/videos 3 días (pesan mucho). Recorta el log si pasa de 50 MB. Afuera (Backblaze, cifradas) 30 días.
 # Desarrollado por Jhoset Mejía - DiCreWeb
 set -uo pipefail
 RAPIDO=0; [ "${1:-}" = "--rapido" ] && RAPIDO=1
@@ -12,6 +12,7 @@ RAIZ="$(for d in /home/localproo/htdocs/localproo.com /home/*/htdocs/*/; do d="$
 USR="$(stat -c %U "$RAIZ")"
 DEST="/home/$USR/respaldos/diario"
 DIAS=10
+DIAS_ARCH=3
 HOY="$(date +%Y%m%d)"
 NOM="$HOY"; [ $RAPIDO = 1 ] && NOM="$HOY-$(date +%H%M)"
 mkdir -p "$DEST"
@@ -43,8 +44,14 @@ fi
 
 find "$DEST" -name 'base-*-*.sql.gz' -mtime +2 -delete
 find "$DEST" -name 'base-*.sql.gz' -mtime +$DIAS -delete
-find "$DEST" -name 'archivos-*.tar.gz' -mtime +$DIAS -delete
+find "$DEST" -name 'archivos-*.tar.gz' -mtime +$DIAS_ARCH -delete
 find "$DEST" -name 'config-*.tar.gz' -mtime +$DIAS -delete
+# Log de Laravel: si pasa de 50 MB se dejan solo las últimas 20.000 líneas
+LOG="$RAIZ/storage/logs/laravel.log"
+if [ -f "$LOG" ] && [ "$(stat -c %s "$LOG")" -gt 52428800 ]; then
+  tail -n 20000 "$LOG" > "$LOG.tmp" && cat "$LOG.tmp" > "$LOG" && rm -f "$LOG.tmp"
+  echo "$(date '+%F %T') log recortado"
+fi
 chown "$USR:$USR" "/home/$USR/respaldos" 2>/dev/null
 find "/home/$USR/respaldos" ! -name 'config-*' -exec chown "$USR:$USR" {} + 2>/dev/null
 
