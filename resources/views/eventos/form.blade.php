@@ -107,7 +107,7 @@
                     <select class="form-select" name="tema" data-nativo>
                         @foreach (\App\Models\Evento::TEMAS as $k => $n)<option value="{{ $k }}" @selected(old('tema', $evento->tema ?: 'normal') === $k)>{{ $n }}</option>@endforeach
                     </select>
-                    <small class="text-muted d-block mt-1">Terror: fondo oscuro con sangre que escurre, niebla y letras de miedo. Ideal para Halloween.</small>
+                    <small class="text-muted d-block mt-1">Terror: fondo de manos rojas en movimiento y letras de miedo. Ideal para Halloween.</small>
                     <label class="form-label fw-bold mt-3">Color del evento</label>
                     <input class="form-control form-control-color w-100" type="color" name="color" value="{{ old('color', $evento->color ?: '#a855f7') }}">
                 </div>

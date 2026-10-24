@@ -51,22 +51,28 @@ input[type=date].in{color-scheme:dark}
 @if ($terror)
 /* ===== Tema terror / Halloween ===== */
 :root{--bg:#070203;--card:rgba(24,6,8,.88);--line:#4a1015;--tx:#f6eeee;--mu:#c9a3a6}
-body{background:#070203 radial-gradient(ellipse 120% 70% at 50% -10%,#5c0610 0%,rgba(40,3,8,.6) 35%,transparent 70%) fixed;}
-body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:radial-gradient(circle at 12% 78%,rgba(140,0,12,.35),transparent 28%),radial-gradient(circle at 88% 60%,rgba(120,0,10,.3),transparent 26%),radial-gradient(ellipse at 50% 120%,rgba(160,0,15,.45),transparent 55%);}
-body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.18;mix-blend-mode:screen;
-  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012' numOctaves='3'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.9'/%3E%3C/svg%3E");animation:niebla 40s linear infinite}
-@keyframes niebla{from{background-position:0 0}to{background-position:600px 0}}
+body{background:#050001}
+/* Fondo: manos que se mueven */
+.manos{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:#120002}
+.manos i{position:absolute;inset:-10%;background:url("{{ asset('img/eventos/terror-manos.webp') }}") center/cover no-repeat;will-change:transform,opacity}
+.manos .m1{filter:brightness(.8) saturate(1.15);animation:alcanzan 16s ease-in-out infinite alternate}
+.manos .m2{opacity:0;mix-blend-mode:multiply;animation:aparecen 11s ease-in-out infinite}
+.manos .luz{inset:0;background:radial-gradient(ellipse 70% 55% at 50% 40%,rgba(255,40,40,.28),transparent 70%);mix-blend-mode:screen;animation:parpadea 7s steps(1) infinite}
+.manos::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.75) 0,rgba(0,0,0,.25) 22%,rgba(0,0,0,.35) 70%,rgba(0,0,0,.85) 100%),radial-gradient(ellipse 85% 60% at 50% 50%,rgba(0,0,0,.45),transparent 80%)}
+@media (min-width:760px){
+  .manos i{inset:-6%;background-size:auto 112%;background-repeat:repeat-x}
+  .manos::after{background:linear-gradient(90deg,rgba(0,0,0,.1) 0,rgba(0,0,0,.82) 33%,rgba(0,0,0,.82) 67%,rgba(0,0,0,.1) 100%),linear-gradient(180deg,rgba(0,0,0,.6),transparent 25%,transparent 75%,rgba(0,0,0,.8))}
+}
+@keyframes alcanzan{0%{transform:scale(1.02) translate3d(0,0,0)}35%{transform:scale(1.09) translate3d(-1.6%,1.2%,0)}70%{transform:scale(1.05) translate3d(1.4%,-1%,0)}100%{transform:scale(1.11) translate3d(-.6%,-1.8%,0)}}
+@keyframes aparecen{0%,100%{opacity:0;transform:scaleX(-1) scale(1.16) translate3d(0,3%,0)}50%{opacity:.55;transform:scaleX(-1) scale(1.04) translate3d(0,-2%,0)}}
+@keyframes parpadea{0%,40%,58%,100%{opacity:1}42%{opacity:.25}44%{opacity:.9}47%{opacity:.15}52%{opacity:.8}}
+@media (prefers-reduced-motion:reduce){.manos i{animation:none!important}}
 main,header,footer{position:relative;z-index:1}
 .top{background:rgba(7,2,3,.88);border-bottom:1px solid #3a0b10}
-.gotas{position:absolute;top:56px;left:0;right:0;height:64px;z-index:25;pointer-events:none}
-.gotas svg{width:100%;height:100%;display:block}
-.gota{position:absolute;top:56px;width:7px;border-radius:0 0 7px 7px;background:linear-gradient(#8a0010,#e3061b);z-index:24;pointer-events:none;animation:cae 6s ease-in infinite;opacity:.9}
-@keyframes cae{0%{height:0;opacity:.95}70%{height:var(--h);opacity:.95}100%{height:var(--h);transform:translateY(100vh);opacity:0}}
 .tit,.sub,.card h2{font-family:'Creepster','Plus Jakarta Sans',cursive;letter-spacing:.04em}
 .tit{font-weight:400;font-size:2.6rem;color:#f2f2f2;text-shadow:0 0 18px rgba(227,6,27,.6),0 3px 0 #5c0610}
 .sub{font-size:1.15rem;letter-spacing:.12em;text-shadow:0 0 12px rgba(227,6,27,.7)}
-.card{box-shadow:0 0 0 1px rgba(227,6,27,.12),0 20px 50px -25px rgba(227,6,27,.55);backdrop-filter:blur(4px)}
+.card{background:rgba(14,3,5,.9);box-shadow:0 0 0 1px rgba(227,6,27,.14),0 20px 50px -25px rgba(227,6,27,.55);backdrop-filter:blur(6px)}
 .card h2{font-weight:400;font-size:1.5rem;color:#ff2a3a}
 .btn-c{background:linear-gradient(180deg,#ff1f33,#9d0010);box-shadow:0 0 0 1px #ff4b5a inset,0 14px 34px -10px #e3061b;text-transform:uppercase;letter-spacing:.06em}
 .dato i{background:rgba(227,6,27,.18);color:#ff3344}
@@ -75,16 +81,11 @@ main,header,footer{position:relative;z-index:1}
 @endif
 @yield('css')
 </style>
-@if ($terror)<link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">@endif
+@if ($terror)<link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet"><link rel="preload" as="image" href="{{ asset('img/eventos/terror-manos.webp') }}">@endif
 </head>
 <body>
 @if ($terror)
-{{-- Sangre que escurre desde arriba --}}
-<div class="gotas" aria-hidden="true"><svg viewBox="0 0 1200 110" preserveAspectRatio="none"><defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5c0610"/><stop offset=".6" stop-color="#b3000f"/><stop offset="1" stop-color="#e3061b"/></linearGradient></defs>
-<path fill="url(#sg)" d="M0 0H1200V22c-18 0-22 10-30 10s-10-8-24-8-16 52-26 52-8-46-22-46-18 14-34 14-14-12-30-12-12 30-24 30-6-26-22-26-20 8-36 8-14 64-26 64-10-58-24-58-22 16-40 16-18-10-30-10-14 24-26 24-8-20-22-20-24 10-40 10-16 40-28 40-10-36-24-36-20 6-34 6-12 22-26 22-12-18-26-18-26 12-42 12-14 70-26 70-12-64-26-64-18 10-34 10-16-12-30-12-12 34-26 34-10-30-24-30-22 8-38 8-14 26-28 26-10-22-26-22-20 6-34 6-16 48-28 48-12-44-26-44-18 12-34 12-14-10-28-10-14 28-26 28-12-24-26-24-22 8-38 8-12 58-26 58-14-54-28-54-18 8-34 8-14-12-28-12-12 20-26 20-10-16-24-16-20 10-36 10-18 36-30 36-12-32-26-32-18 4-30 4Z"/></svg></div>
-@foreach ([[7,'14%',2.1,140],[18,'31%',4.6,210],[27,'47%',1.2,120],[41,'63%',3.4,260],[52,'79%',5.2,170],[66,'92%',2.8,230],[79,'22%',6.1,190],[88,'71%',0.6,150]] as [$x, $l, $d, $h])
-<span class="gota" aria-hidden="true" style="left:{{ $x }}%;--h:{{ $h }}px;animation-delay:{{ $d }}s;animation-duration:{{ 5 + ($x % 4) }}s"></span>
-@endforeach
+<div class="manos" aria-hidden="true"><i class="m1"></i><i class="m2"></i><i class="luz"></i></div>
 @endif
 <header class="top"><div class="wrap">
     @if ($evento ?? null)
