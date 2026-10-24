@@ -23,6 +23,7 @@
         @if ($ev?->imagen_url)<img src="{{ $ev->imagen_url }}" alt="">@else<span class="ph"><i class="fa-solid fa-ticket"></i></span>@endif
         <div class="tx">
             <b>{{ $ev?->nombre }}</b>
+            @if ($e->es_acompanante)<small class="mu"><i class="fa-solid fa-user"></i> Entrada de <b style="color:var(--tx)">{{ $e->nombre_titular }}</b></small>@endif
             @if ($ev?->fecha_evento)<small class="mu">{{ ucfirst($ev->fecha_evento->locale('es')->isoFormat('ddd D [de] MMMM · h:mm a')) }}</small>@endif
             <div style="margin-top:.4rem">
                 @if ($e->estado === 'aprobada' && $e->ingreso_at)<span class="badge b-ok"><i class="fa-solid fa-check-double"></i> Ya ingresaste</span>
@@ -33,7 +34,7 @@
         </div>
     </div>
     @if ($e->estado === 'aprobada')
-    <a class="btn btn-c" style="margin-top:14px" href="{{ route('mis-entradas.ver', $e->uuid) }}"><i class="fa-solid fa-qrcode"></i> Ver QR</a>
+    <a class="btn btn-c" style="margin-top:14px" href="{{ route('mis-entradas.ver', $e->uuid) }}"><i class="fa-solid fa-qrcode"></i> Ver QR{{ $e->es_acompanante ? ' de ' . \Illuminate\Support\Str::of($e->nombre_titular)->explode(' ')->first() : '' }}</a>
     @elseif (in_array($e->estado, ['pendiente', 'rechazada'], true) && $ev)
     <a class="btn btn-l" style="margin-top:14px" href="{{ route('evento.pago', $ev->slug) }}"><i class="fa-solid fa-money-bill-transfer"></i> Ver cómo pagar</a>
     @endif

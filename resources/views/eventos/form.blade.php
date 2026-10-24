@@ -65,6 +65,9 @@
                             <small class="text-muted">Ej: 26 de octubre 11:59 p. m. Para la siguiente etapa cambie el nombre, el precio y esta fecha: las entradas ya registradas conservan su precio.</small></div>
                         <div class="col-md-6"><label class="form-label fw-bold">Edad mínima <small class="text-muted fw-normal">(opcional)</small></label>
                             <input class="form-control" type="number" name="edad_minima" min="1" max="99" value="{{ old('edad_minima', $evento->edad_minima) }}" placeholder="Sin límite"></div>
+                        <div class="col-md-6"><label class="form-label fw-bold">Máximo de entradas por compra</label>
+                            <input class="form-control" type="number" name="max_por_compra" min="1" max="20" value="{{ old('max_por_compra', $evento->exists ? $evento->max_por_compra : 10) }}">
+                            <small class="text-muted">1 = cada persona compra solo la suya. Más de 1 = puede comprar para sus acompañantes (cada uno con su QR).</small></div>
                     </div>
                 </div>
 
@@ -87,6 +90,14 @@
                 </div>
 
 
+
+                <div class="lp-box mb-3">
+                    <h3><i class="fa-solid fa-tags me-1"></i>Promociones</h3>
+                    <p class="text-muted small mb-2">Arme sus promos para vender en grupo. Ej: <b>Compra 2 y la 3.ª es gratis</b> o <b>Compra 5 y la 6.ª con 50 % de descuento</b>. Se repiten: con "compra 2, la 3.ª gratis", quien compra 6 lleva 2 gratis. Si aplican varias, el sistema le da al comprador la que más le ahorra.</p>
+                    <div id="ev-promos"></div>
+                    <button type="button" class="btn btn-light" id="ev-promo-add"><i class="fa-solid fa-plus me-1"></i>Agregar promoción</button>
+                    <small class="text-muted d-block mt-2">Para que funcionen, el máximo de entradas por compra debe ser al menos la cantidad de la promo (ej. 3 para "compra 2 y la 3.ª gratis").</small>
+                </div>
                 <div class="lp-box mb-3">
                     <h3><i class="fa-solid fa-list-check me-1"></i>Formulario de registro</h3>
                     <p class="text-muted small mb-2">Siempre se piden: nombre, correo, documento y una clave (para ver su entrada y para la puerta). Lo demás lo decide usted.</p>
@@ -168,6 +179,36 @@
 @endsection
 
 @push('js')
+<script>
+(function () {
+    var cont = document.getElementById('ev-promos'), add = document.getElementById('ev-promo-add');
+    if (!cont) return;
+    var datos = @json(old('promos') ? array_values((array) old('promos')) : (array) ($evento->promos ?? [])), n = 0;
+    function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+    function texto(c, d) { c = parseInt(c, 10) || 0; d = parseInt(d, 10) || 0; if (c < 1 || d < 1) return ''; return 'Compra ' + c + ' y la ' + (c + 1) + '.ª ' + (d >= 100 ? 'es gratis' : 'con ' + d + ' % de descuento'); }
+    function fila(p) {
+        p = p || { compra: 2, descuento: 100, activa: true }; var i = n++, d = document.createElement('div');
+        var act = !(p.activa === false || p.activa === '0' || p.activa === 0);
+        d.className = 'border rounded-3 p-2 mb-2';
+        d.innerHTML = '<div class="row g-2 align-items-end">'
+            + '<div class="col-6 col-md-2"><label class="form-label small fw-bold mb-1">Compra</label><input class="form-control" type="number" min="1" max="19" name="promos[' + i + '][compra]" value="' + esc(p.compra) + '"></div>'
+            + '<div class="col-6 col-md-3"><label class="form-label small fw-bold mb-1">La siguiente</label><select class="form-select" data-nativo name="promos[' + i + '][descuento]">'
+            + [100, 75, 50, 30, 25, 20, 10].map(function (v) { return '<option value="' + v + '"' + (parseInt(p.descuento, 10) === v ? ' selected' : '') + '>' + (v === 100 ? 'Gratis' : v + ' % de descuento') + '</option>'; }).join('') + '</select></div>'
+            + '<div class="col-7 col-md-3"><label class="form-label small fw-bold mb-1">Hasta <small class="text-muted fw-normal">(opcional)</small></label><input class="form-control" type="date" name="promos[' + i + '][hasta]" value="' + esc(p.hasta || '') + '"></div>'
+            + '<div class="col-3 col-md-3"><div class="form-check form-switch mb-2"><input type="hidden" name="promos[' + i + '][activa]" value="0"><input class="form-check-input" type="checkbox" value="1" name="promos[' + i + '][activa]" id="pa' + i + '"' + (act ? ' checked' : '') + '><label class="form-check-label small" for="pa' + i + '">Activa</label></div></div>'
+            + '<div class="col-2 col-md-1 text-end"><button type="button" class="btn btn-sm btn-outline-danger mb-1" title="Quitar promoción"><i class="fa-solid fa-trash"></i></button></div>'
+            + '<div class="col-12"><small class="fw-bold text-success" data-txt></small></div></div>';
+        var c = d.querySelector('[name$="[compra]"]'), s = d.querySelector('select'), t = d.querySelector('[data-txt]');
+        function ver() { t.textContent = texto(c.value, s.value); }
+        c.addEventListener('input', ver); s.addEventListener('change', ver); ver();
+        d.querySelector('button').addEventListener('click', function () { d.remove(); });
+        cont.appendChild(d);
+    }
+    datos.forEach(fila);
+    add.addEventListener('click', function () { fila(); });
+})();
+</script>
+
 <script>
 (function () {
     var cont = document.getElementById('ev-campos'), add = document.getElementById('ev-add');

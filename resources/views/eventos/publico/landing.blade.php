@@ -86,6 +86,11 @@
         @if ($evento->venta_hasta && !$motivo)<span class="badge b-wait"><i class="fa-regular fa-clock"></i> Hasta el {{ $evento->venta_hasta->locale('es')->isoFormat('D [de] MMMM') }}</span>@endif
     </div>
     @if ($evento->quedan !== null && !$motivo && $evento->quedan <= 50)<p class="mu" style="margin-top:.6rem"><i class="fa-solid fa-fire" style="color:var(--warn)"></i> {{ $evento->quedan === 1 ? '¡Queda 1 entrada!' : '¡Quedan ' . $evento->quedan . ' entradas!' }}</p>@endif
+    @if (!$motivo && ($promosL = $evento->promosVigentes()))
+    <div style="display:grid;gap:.5rem;margin-top:.9rem">
+        @foreach ($promosL as $pr)<div style="background:color-mix(in srgb,var(--c) 14%,transparent);border:1px dashed color-mix(in srgb,var(--c) 60%,transparent);border-radius:14px;padding:.6rem .8rem;font-weight:700"><i class="fa-solid fa-tags" style="color:var(--c)"></i> ¡Promo! {{ $pr['texto'] }}@if ($pr['hasta']) <small class="mu" style="font-weight:600">· hasta el {{ \Illuminate\Support\Carbon::parse($pr['hasta'])->locale('es')->isoFormat('D [de] MMMM') }}</small>@endif</div>@endforeach
+    </div>
+    @endif
     @if ($motivo)<div class="aviso" style="margin-top:14px">{{ $motivo }}</div>@endif
     <p class="mu" style="margin-top:.8rem;font-size:.9rem"><i class="fa-solid fa-shield-halved"></i> Te registras, pagas por {{ $evento->pago_metodo }} y cuando confirmamos tu pago recibes tu entrada con QR.</p>
 </div>
@@ -118,7 +123,7 @@
     @elseif ($motivo)
         <button class="btn btn-l" disabled>{{ $evento->estado === 'publicado' && !$evento->quedan && $evento->cupo ? 'Agotado' : 'Venta no disponible' }}</button>
     @else
-        <a class="btn btn-c" href="{{ route('evento.comprar', $evento->slug) }}"><i class="fa-solid fa-ticket"></i> Comprar entrada</a>
+        <a class="btn btn-c" href="{{ route('evento.comprar', $evento->slug) }}"><i class="fa-solid fa-ticket"></i> {{ (int) $evento->max_por_compra > 1 ? 'Comprar entradas' : 'Comprar entrada' }}</a>
     @endif
 </div>
 @endsection

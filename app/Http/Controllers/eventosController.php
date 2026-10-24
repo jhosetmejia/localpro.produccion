@@ -170,6 +170,8 @@ class eventosController extends Controller
             $datos['pedir_nacimiento'] = $request->boolean('pedir_nacimiento');
             $datos['pedir_celular'] = $request->boolean('pedir_celular');
             $datos['campos'] = $this->camposDelFormulario((array) $request->input('campos', []));
+            $datos['max_por_compra'] = max(1, min(20, (int) $request->input('max_por_compra', 10)));
+            $datos['promos'] = $this->promosDelFormulario((array) $request->input('promos', []));
         }
         if ($p['admin'] || $p['diseno']) {
             $datos['color'] = $datos['color'] ?? '#a855f7';
@@ -206,6 +208,21 @@ class eventosController extends Controller
                 $evento->forceFill([$col => null])->save();
             }
         }
+    }
+
+    // Promociones: "Compra X y la siguiente con Y % de descuento" (máx. 5)
+    private function promosDelFormulario(array $entrada): array
+    {
+        $out = [];
+        foreach (array_slice(array_values($entrada), 0, 5) as $p) {
+            if (!is_array($p)) continue;
+            $compra = (int) ($p['compra'] ?? 0);
+            $desc = (int) ($p['descuento'] ?? 0);
+            if ($compra < 1 || $compra > 19 || $desc < 1 || $desc > 100) continue;
+            $hasta = !empty($p['hasta']) && strtotime((string) $p['hasta']) ? date('Y-m-d', strtotime((string) $p['hasta'])) : null;
+            $out[] = ['compra' => $compra, 'descuento' => $desc, 'hasta' => $hasta, 'activa' => (bool) (int) ($p['activa'] ?? 1)];
+        }
+        return $out;
     }
 
     // Campos propios del formulario de registro que armó el organizador (máx. 15)
@@ -247,12 +264,16 @@ class eventosController extends Controller
         };
         if ($b = trim((string) $request->query('q'))) {
             $q->where(function ($w) use ($b) {
-                $w->where('codigo', 'like', '%' . $b . '%')->orWhereHas('asistente', fn ($a) => $a->where('nombre', 'like', '%' . $b . '%')
+                $w->where('codigo', 'like', '%' . $b . '%')->orWhere('titular_nombre', 'like', '%' . $b . '%')->orWhere('titular_documento', 'like', '%' . $b . '%')->orWhereHas('asistente', fn ($a) => $a->where('nombre', 'like', '%' . $b . '%')
                     ->orWhere('documento', 'like', '%' . $b . '%')->orWhere('email', 'like', '%' . $b . '%')->orWhere('celular', 'like', '%' . $b . '%'));
             });
         }
         // Primero los que ya avisaron que mandaron el comprobante
         $entradas = $q->orderByRaw('aviso_pago_at IS NULL')->orderByDesc('aviso_pago_at')->orderByDesc('id')->paginate(40)->withQueryString();
+
+        // Compras de varias entradas: cuántas y cuánto suman (para mostrarlo en la fila del comprador)
+        $grupos = EventoEntrada::where('evento_id', $evento->id)->whereIn('grupo', $entradas->pluck('grupo')->filter()->unique())
+            ->selectRaw("grupo, COUNT(*) n, SUM(CASE WHEN estado <> 'anulada' THEN precio ELSE 0 END) total")->groupBy('grupo')->get()->keyBy('grupo');
 
         $base = EventoEntrada::where('evento_id', $evento->id);
         $stats = [
@@ -264,7 +285,7 @@ class eventosController extends Controller
             'recaudo' => (float) (clone $base)->where('estado', 'aprobada')->sum('precio'),
         ];
 
-        return view('eventos.show', ['tienda' => $this->tienda(), 'evento' => $evento, 'entradas' => $entradas, 'stats' => $stats, 'ver' => $ver, 'p' => Evento::puede()]);
+        return view('eventos.show', ['tienda' => $this->tienda(), 'evento' => $evento, 'entradas' => $entradas, 'stats' => $stats, 'ver' => $ver, 'p' => Evento::puede(), 'grupos' => $grupos]);
     }
 
     public function destroy(Evento $evento)
@@ -295,10 +316,12 @@ class eventosController extends Controller
         if (!in_array($entrada->estado, ['pendiente', 'rechazada'], true)) {
             return back()->with('error', 'Esta entrada ya estaba aprobada o anulada.');
         }
-        $entrada->forceFill([
+        // Una compra de varias entradas se paga con un solo comprobante: se aprueban todas juntas
+        $n = $entrada->delGrupo()->whereIn('estado', ['pendiente', 'rechazada'])->update([
             'estado' => 'aprobada', 'aprobada_at' => now(), 'aprobada_por' => auth()->id(),
-            'referencia_pago' => $datos['referencia_pago'] ?? $entrada->referencia_pago,
-        ])->save();
+            'referencia_pago' => $datos['referencia_pago'] ?? $entrada->referencia_pago, 'updated_at' => now(),
+        ]);
+        $entrada->refresh();
 
         $a = $entrada->asistente;
         $correo = false;
@@ -309,7 +332,7 @@ class eventosController extends Controller
             Log::warning('No se pudo enviar el correo de la entrada', ['entrada' => $entrada->id, 'error' => $e->getMessage()]);
         }
 
-        return back()->with('success', 'Pago aprobado: ' . $a->nombre . ' ya tiene su entrada con QR.' . ($correo ? ' Le enviamos un correo.' : ''))
+        return back()->with('success', 'Pago aprobado: ' . $a->nombre . ($n > 1 ? " y sus acompañantes ya tienen sus {$n} entradas con QR." : ' ya tiene su entrada con QR.') . ($correo ? ' Le enviamos un correo.' : ''))
             ->with('avisar', $entrada->id);
     }
 
@@ -320,7 +343,13 @@ class eventosController extends Controller
         if ($entrada->estado === 'aprobada' && $entrada->ingreso_at) {
             return back()->with('error', 'Esta persona ya ingresó al evento.');
         }
-        $entrada->forceFill(['estado' => $entrada->estado === 'aprobada' ? 'anulada' : 'rechazada', 'nota' => $datos['nota'] ?? $entrada->nota])->save();
+        if ($entrada->estado === 'pendiente') {
+            // El pago de una compra grupal es uno solo: se rechazan todas las entradas pendientes de esa compra
+            $entrada->delGrupo()->where('estado', 'pendiente')->update(['estado' => 'rechazada', 'nota' => $datos['nota'] ?? $entrada->nota, 'updated_at' => now()]);
+            $entrada->refresh();
+        } else {
+            $entrada->forceFill(['estado' => $entrada->estado === 'aprobada' ? 'anulada' : 'rechazada', 'nota' => $datos['nota'] ?? $entrada->nota])->save();
+        }
         return back()->with('success', $entrada->estado === 'anulada' ? 'Entrada anulada: el QR ya no sirve.' : 'Pago rechazado.');
     }
 
@@ -350,10 +379,10 @@ class eventosController extends Controller
         return response()->streamDownload(function () use ($filas, $campos) {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
-            fputcsv($out, ['Nombre', 'Tipo doc.', 'Documento', 'Fecha de nacimiento', 'Edad', 'Correo', 'Celular', 'Estado', 'Precio', 'Avisó pago', 'Aprobada', 'Referencia', 'Ingresó', 'Código', ...array_column($campos, 'etiqueta')], ';');
+            fputcsv($out, ['Titular de la entrada', 'Documento del titular', 'Comprador', 'Grupo', 'Promoción', 'Tipo doc.', 'Documento', 'Fecha de nacimiento', 'Edad', 'Correo', 'Celular', 'Estado', 'Precio', 'Avisó pago', 'Aprobada', 'Referencia', 'Ingresó', 'Código', ...array_column($campos, 'etiqueta')], ';');
             foreach ($filas as $e) {
                 $a = $e->asistente;
-                fputcsv($out, [$a->nombre, $a->tipo_documento, $a->documento, $a->fecha_nacimiento?->format('d/m/Y'), $a->edad, $a->email, $a->celular,
+                fputcsv($out, [$e->nombre_titular, $e->documento_titular, $a->nombre, $e->grupo ? substr($e->grupo, 0, 8) : '', $e->promo, $a->tipo_documento, $a->documento, $a->fecha_nacimiento?->format('d/m/Y'), $a->edad, $a->email, $a->celular,
                     $e->estado_texto, (float) $e->precio, $e->aviso_pago_at?->format('d/m/Y H:i'), $e->aprobada_at?->format('d/m/Y H:i'), $e->referencia_pago,
                     $e->ingreso_at?->format('d/m/Y H:i'), $e->estado === 'aprobada' ? $e->codigo : '',
                     ...array_map(fn ($c) => (string) (($e->respuestas ?? [])[$c['id']] ?? ''), $campos)], ';');
@@ -387,13 +416,16 @@ class eventosController extends Controller
         $q = EventoEntrada::with('asistente')->where('evento_id', $evento->id);
         $entrada = str_starts_with($codigo, 'LPE-')
             ? (clone $q)->where('codigo', $codigo)->first()
-            : (clone $q)->whereHas('asistente', fn ($a) => $a->where('documento', preg_replace('/[^0-9A-Z]/', '', $codigo)))->orderByRaw("estado = 'aprobada' DESC")->first();
+            : (clone $q)->where(function ($w) use ($codigo) {
+                $doc = preg_replace('/[^0-9A-Z]/', '', $codigo);
+                $w->where('titular_documento', $doc)->orWhere(fn ($x) => $x->whereNull('titular_documento')->whereHas('asistente', fn ($a) => $a->where('documento', $doc)));
+            })->orderByRaw("estado = 'aprobada' DESC")->first();
 
         $resp = fn (string $estado, string $msg, ?EventoEntrada $e = null, array $extra = []) => response()->json(array_merge([
             'estado' => $estado, 'mensaje' => $msg,
             'persona' => $e ? [
-                'nombre' => $e->asistente->nombre, 'documento' => $e->asistente->tipo_documento . ' ' . $e->asistente->documento,
-                'edad' => $e->asistente->edad, 'colegio' => $e->asistente->colegio, 'codigo' => $e->codigo,
+                'nombre' => $e->nombre_titular, 'documento' => $e->documento_titular,
+                'edad' => $e->es_acompanante ? null : $e->asistente->edad, 'colegio' => $e->asistente->colegio, 'codigo' => $e->codigo,
             ] : null,
             'conteo' => $this->conteoPuerta($evento),
         ], $extra));

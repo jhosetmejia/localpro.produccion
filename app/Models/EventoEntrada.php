@@ -13,9 +13,10 @@ class EventoEntrada extends Model
 
     protected $table = 'evento_entradas';
 
-    protected $fillable = ['evento_id', 'asistente_id', 'precio', 'etapa', 'estado', 'aviso_pago_at', 'aprobada_at', 'aprobada_por', 'referencia_pago', 'nota', 'ingreso_at', 'ingreso_por', 'respuestas'];
+    protected $fillable = ['evento_id', 'asistente_id', 'precio', 'etapa', 'estado', 'aviso_pago_at', 'aprobada_at', 'aprobada_por', 'referencia_pago', 'nota', 'ingreso_at', 'ingreso_por', 'respuestas',
+        'grupo', 'titular_nombre', 'titular_tipo_documento', 'titular_documento', 'titular_email', 'precio_lista', 'promo'];
 
-    protected $casts = ['precio' => 'decimal:2', 'aviso_pago_at' => 'datetime', 'aprobada_at' => 'datetime', 'ingreso_at' => 'datetime', 'respuestas' => 'array'];
+    protected $casts = ['precio' => 'decimal:2', 'aviso_pago_at' => 'datetime', 'aprobada_at' => 'datetime', 'ingreso_at' => 'datetime', 'respuestas' => 'array', 'precio_lista' => 'decimal:2'];
 
     public const ESTADOS = ['pendiente' => 'Por aprobar', 'aprobada' => 'Pago aprobado', 'rechazada' => 'Rechazada', 'anulada' => 'Anulada'];
 
@@ -56,5 +57,31 @@ class EventoEntrada extends Model
     {
         if ($this->estado === 'aprobada' && $this->ingreso_at) return 'Ya ingresó';
         return self::ESTADOS[$this->estado] ?? $this->estado;
+    }
+
+    // Cuando alguien compra varias entradas, cada una puede ser de otra persona (acompañante).
+    // Si no tiene titular propio, la entrada es del comprador.
+    public function getNombreTitularAttribute(): string
+    {
+        return $this->titular_nombre ?: (string) $this->asistente?->nombre;
+    }
+
+    public function getDocumentoTitularAttribute(): string
+    {
+        return $this->titular_documento
+            ? trim($this->titular_tipo_documento . ' ' . $this->titular_documento)
+            : trim($this->asistente?->tipo_documento . ' ' . $this->asistente?->documento);
+    }
+
+    public function getEsAcompananteAttribute(): bool
+    {
+        return (bool) $this->titular_documento;
+    }
+
+    // Todas las entradas de la misma compra (una sola si es una compra individual o antigua)
+    public function delGrupo()
+    {
+        $q = static::withoutGlobalScope('tienda')->where('evento_id', $this->evento_id);
+        return $this->grupo ? $q->where('grupo', $this->grupo) : $q->whereKey($this->id);
     }
 }

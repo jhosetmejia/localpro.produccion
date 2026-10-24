@@ -83,11 +83,13 @@
     </div>
 
     @forelse ($entradas as $e)
-    @php $a = $e->asistente; $wa = $tel($a->celular); @endphp
+    @php $a = $e->asistente; $wa = $tel($a->celular); $gr = $e->grupo ? ($grupos[$e->grupo] ?? null) : null; @endphp
     <div class="ev-p {{ $e->estado === 'pendiente' && $e->aviso_pago_at ? 'aviso' : '' }}" id="e{{ $e->id }}">
         <div class="top">
             <div class="tx">
-                <b>{{ $a->nombre }}</b>
+                <b>{{ $e->nombre_titular }}</b>
+                @if ($e->es_acompanante)<span class="ev-chip ms-1" style="background:#eef2ff;color:#4338ca"><i class="fa-solid fa-user-group me-1"></i>Acompañante de {{ $a->nombre }}</span>
+                @elseif ($gr && $gr->n > 1)<span class="ev-chip ms-1" style="background:#eef2ff;color:#4338ca"><i class="fa-solid fa-user-group me-1"></i>Compra de {{ $gr->n }} entradas · {{ dinero($gr->total) }}@if ($e->promo) · {{ $e->promo }}@endif</span>@endif
                 @if ($e->estado === 'pendiente' && $e->aviso_pago_at)<span class="ev-chip c-wa ms-1"><i class="fa-brands fa-whatsapp me-1"></i>Mandó comprobante {{ $e->aviso_pago_at->locale('es')->diffForHumans() }}</span>
                 @elseif ($e->estado === 'pendiente')<span class="ev-chip c-wait ms-1">Registrado, sin avisar pago</span>
                 @elseif ($e->estado === 'aprobada' && $e->ingreso_at)<span class="ev-chip c-in ms-1"><i class="fa-solid fa-door-open me-1"></i>Ingresó {{ $e->ingreso_at->format('d/m h:i a') }}</span>
@@ -100,21 +102,22 @@
                     @if ($wa)<a href="https://wa.me/{{ $wa }}" target="_blank" rel="noopener" class="text-success text-decoration-none"><i class="fa-brands fa-whatsapp me-1"></i>{{ $a->celular }}</a>@endif
                     <span><i class="fa-regular fa-envelope me-1"></i>{{ $a->email }}</span>
                     <span>Registro N.° {{ $e->id }} · {{ $e->created_at->format('d/m h:i a') }}</span>
-                    <span>{{ dinero($e->precio) }}@if ($e->etapa) · {{ $e->etapa }}@endif</span>
+                    <span>{{ dinero($e->precio) }}@if ($e->precio_lista && (float) $e->precio_lista != (float) $e->precio) <s class="text-muted">{{ dinero($e->precio_lista) }}</s>@endif @if ($e->etapa) · {{ $e->etapa }}@endif</span>
+                    @if ($e->es_acompanante)<span><i class="fa-regular fa-id-card me-1"></i>{{ $e->documento_titular }}</span>@endif
                     @if ($e->aprobada_at)<span>Aprobó {{ $e->aprobador?->name ?? '—' }} el {{ $e->aprobada_at->format('d/m h:i a') }}@if ($e->referencia_pago) · Ref. {{ $e->referencia_pago }}@endif</span>@endif
                     @if ($e->nota)<span>Nota: {{ $e->nota }}</span>@endif
                 </div>
             </div>
             <div class="acc">
                 @if ($p['admin'] || $p['pagos'])
-                @if (in_array($e->estado, ['pendiente', 'rechazada'], true))
-                <form method="post" action="{{ route('eventos.aprobar', [$evento, $e]) }}" class="d-flex gap-1" data-confirm="¿Aprobar el pago de {{ $a->nombre }}?" data-confirm-texto="Revise que el comprobante sea por {{ dinero($e->precio) }}. Se le genera la entrada con QR." data-confirm-ok="Sí, aprobar pago">
+                @if (in_array($e->estado, ['pendiente', 'rechazada'], true) && !$e->es_acompanante)
+                <form method="post" action="{{ route('eventos.aprobar', [$evento, $e]) }}" class="d-flex gap-1" data-confirm="¿Aprobar el pago de {{ $a->nombre }}{{ $gr && $gr->n > 1 ? ' (' . $gr->n . ' entradas · ' . dinero($gr->total) . ')' : '' }}?" data-confirm-texto="Revise que el comprobante sea por {{ dinero($e->precio) }}. Se le genera la entrada con QR." data-confirm-ok="Sí, aprobar pago">
                     @csrf
                     <input class="form-control form-control-sm" name="referencia_pago" placeholder="Ref. Nequi (opcional)" maxlength="80">
                     <button class="btn btn-success"><i class="fa-solid fa-check me-1"></i>Aprobar pago</button>
                 </form>
                 @endif
-                @if ($e->estado === 'pendiente')
+                @if ($e->estado === 'pendiente' && !$e->es_acompanante)
                 <form method="post" action="{{ route('eventos.rechazar', [$evento, $e]) }}" data-confirm="¿Rechazar este pago?" data-confirm-texto="La persona verá que su pago no se pudo confirmar." data-confirm-ok="Rechazar" data-peligro>@csrf<button class="btn btn-light btn-sm">Rechazar</button></form>
                 @endif
                 @if ($e->estado === 'aprobada')

@@ -41,8 +41,8 @@
     </div>
     <div class="corte"></div>
     <div class="filas">
-        <div><span>Nombre</span><b>{{ $yo->nombre }}</b></div>
-        <div><span>Documento</span><b>{{ $yo->tipo_documento }} {{ $yo->documento }}</b></div>
+        <div><span>Nombre</span><b>{{ $entrada->nombre_titular }}</b></div>
+        <div><span>Documento</span><b>{{ $entrada->documento_titular }}</b></div>
         @if ($evento->fecha_evento)<div><span>Fecha</span><b>{{ ucfirst($evento->fecha_evento->locale('es')->isoFormat('ddd D [de] MMMM · h:mm a')) }}</b></div>@endif
         @if ($evento->lugar)<div><span>Lugar</span><b>{{ $evento->lugar }}</b></div>@endif
         <div><span>Entrada</span><b>{{ $entrada->etapa ?: 'General' }}</b></div>
@@ -64,7 +64,7 @@
 @if ($entrada->estado === 'aprobada')
 @php $pdf = [
         'codigo' => $entrada->codigo, 'evento' => $evento->nombre, 'sub' => $evento->subtitulo, 'org' => $tienda?->nombre,
-        'nombre' => $yo->nombre, 'doc' => $yo->tipo_documento . ' ' . $yo->documento,
+        'nombre' => $entrada->nombre_titular, 'doc' => $entrada->documento_titular,
         'fecha' => $evento->fecha_evento ? ucfirst($evento->fecha_evento->locale('es')->isoFormat('dddd D [de] MMMM [de] YYYY · h:mm a')) : '',
         'lugar' => trim(($evento->lugar ?? '') . ($evento->ciudad ? ', ' . $evento->ciudad : ''), ', '),
         'etapa' => $entrada->etapa ?: 'General', 'color' => $evento->color ?: '#a855f7',

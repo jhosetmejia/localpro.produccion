@@ -51,10 +51,20 @@
 <h2>6. Arme su propio formulario de registro</h2>
 <p>En <b>Editar → Formulario de registro</b> decide si pide fecha de nacimiento y celular, y agrega sus propias preguntas: texto, número, fecha, lista de opciones o Sí/No, obligatorias u opcionales. Las respuestas salen en Compradores y en el Excel. Sirve para fiestas, conciertos, congresos, ferias, carreras o cualquier evento.</p>
 
-<h2>7. ¿Cuánta gente ha visto su evento?</h2>
+<h2>7. Promociones: "compra 2 y la 3.ª es gratis"</h2>
+<p>Venda más en grupo. En <b>Editar → Promociones</b> arme sus propias promos: diga cuántas entradas compra la persona y qué pasa con la siguiente (<b>gratis</b> o con un <b>% de descuento</b>). Por ejemplo:</p>
+<ul>
+    <li><b>Compra 2 y la 3.ª es gratis</b> (ideal para parches de amigos).</li>
+    <li><b>Compra 5 y la 6.ª con 50 % de descuento</b> (para grupos grandes).</li>
+</ul>
+<p>Para que alguien pueda comprar para sus amigos, ponga el <b>máximo de entradas por compra</b> (ej. 10). El comprador elige la cantidad, ve el total con lo que se ahorra y llena el nombre y el documento de cada acompañante: <b>cada uno recibe su propio QR</b>. Usted aprueba un solo comprobante y se aprueban todas las entradas de esa compra.</p>
+<x-guia-ruta tipo="eventos" :ruta="['eventos', 'Compradores', 'Editar', 'Promociones', 'Agregar promoción']" />
+<div class="box">Las promos se repiten por bloque: con "compra 2 y la 3.ª gratis", quien compra 6 lleva 2 gratis. Puede ponerles fecha de fin o apagarlas cuando quiera, y si hay varias, el sistema aplica la que más le ahorra al comprador.</div>
+
+<h2>8. ¿Cuánta gente ha visto su evento?</h2>
 <p>La página cuenta las visitas (una por persona, sin contar robots ni a su equipo). En el panel ve las visitas y qué porcentaje se registró; si quiere, la página muestra al público <b>"X personas han visto este evento"</b> para animar a comprar. Se apaga en <b>Editar → Publicación</b>.</p>
 
-<h2>8. Véalo paso a paso: dónde hacer cada cosa</h2>
+<h2>9. Véalo paso a paso: dónde hacer cada cosa</h2>
 <p>Así se ve el menú de LocalPro para un organizador de eventos. La sección que se ilumina es donde debe tocar, y los números son los clics en orden.</p>
 <p><b>Crear el evento</b></p>
 <x-guia-ruta tipo="eventos" :ruta="['eventos', 'Nuevo evento', 'Guardar evento']" />
@@ -67,18 +77,21 @@
 <p><b>Ver los roles del equipo y crear a cada persona</b></p>
 <x-guia-ruta tipo="eventos" :ruta="['roles', 'Revisar los roles']" />
 <x-guia-ruta tipo="eventos" :ruta="['usuarios', 'Nuevo usuario', 'Elegir su rol']" />
+<p><b>Crear una promoción (ej. compra 2 y la 3.ª gratis)</b></p>
+<x-guia-ruta tipo="eventos" :ruta="['eventos', 'Compradores', 'Editar', 'Promociones', 'Agregar promoción']" />
 <p><b>Escanear en la entrada</b></p>
 <x-guia-ruta tipo="eventos" :ruta="['eventos', 'Puerta', 'Escanear el QR']" />
 <p><b>Mostrar algo que está oculto en el menú (por ejemplo, la caja)</b></p>
 <x-guia-ruta tipo="eventos" :ruta="['menu', 'Activar la sección', 'Guardar']" />
 
-<h2>9. Guía rápida: ¿dónde está cada cosa?</h2>
+<h2>10. Guía rápida: ¿dónde está cada cosa?</h2>
 <table style="width:100%;border-collapse:collapse;font-size:.95rem">
     <tr><th style="text-align:left;padding:.5rem;border-bottom:2px solid #e5e7eb">Quiero…</th><th style="text-align:left;padding:.5rem;border-bottom:2px solid #e5e7eb">Vaya a…</th></tr>
     <tr><td style="padding:.5rem;border-bottom:1px solid #eee">Crear un evento</td><td style="padding:.5rem;border-bottom:1px solid #eee"><b>Eventos y entradas → Nuevo evento</b></td></tr>
     <tr><td style="padding:.5rem;border-bottom:1px solid #eee">Cambiar fecha, lugar, precio o Nequi</td><td style="padding:.5rem;border-bottom:1px solid #eee"><b>Eventos y entradas → su evento → Editar</b></td></tr>
     <tr><td style="padding:.5rem;border-bottom:1px solid #eee">Cambiar afiche, logo, estilo o color</td><td style="padding:.5rem;border-bottom:1px solid #eee"><b>Editar</b> → columna derecha (Estilo de la página, Logo, Afiches)</td></tr>
     <tr><td style="padding:.5rem;border-bottom:1px solid #eee">Agregar, quitar o editar preguntas del registro</td><td style="padding:.5rem;border-bottom:1px solid #eee"><b>Editar → Formulario de registro → Agregar campo</b> (la 🗑 lo quita)</td></tr>
+    <tr><td style="padding:.5rem;border-bottom:1px solid #eee">Crear promociones o permitir comprar varias entradas</td><td style="padding:.5rem;border-bottom:1px solid #eee"><b>Editar → Promociones</b> y <b>Editar → Entrada y venta → Máximo de entradas por compra</b></td></tr>
     <tr><td style="padding:.5rem;border-bottom:1px solid #eee">Ver quién compró y aprobar pagos</td><td style="padding:.5rem;border-bottom:1px solid #eee"><b>Eventos y entradas → Compradores</b> (pestaña <b>Por aprobar</b>)</td></tr>
     <tr><td style="padding:.5rem;border-bottom:1px solid #eee">Descargar la lista</td><td style="padding:.5rem;border-bottom:1px solid #eee"><b>Compradores → Excel</b></td></tr>
     <tr><td style="padding:.5rem;border-bottom:1px solid #eee">Ver o cambiar lo que puede hacer cada rol</td><td style="padding:.5rem;border-bottom:1px solid #eee"><b>Roles del negocio</b> (menú lateral)</td></tr>
@@ -87,7 +100,7 @@
     <tr><td style="padding:.5rem">Mostrar u ocultar el contador de visitas</td><td style="padding:.5rem"><b>Editar → Publicación</b></td></tr>
 </table>
 
-<h2>10. Antes de publicar: haga una prueba completa</h2>
+<h2>11. Antes de publicar: haga una prueba completa</h2>
 <p>Dedique 15 minutos a probar todo usted mismo antes de compartir el enlace. Es la mejor forma de evitar sorpresas el día de la venta:</p>
 <ol>
     <li><b>Déjelo en Borrador.</b> Así solo usted ve la página. Ábrala en su celular y revise el afiche, la fecha, el precio y que el Nequi esté bien escrito.</li>
@@ -99,7 +112,7 @@
     <li>Cambie el evento a <b>Publicado</b> y comparta el enlace.</li>
 </ol>
 
-<h2>11. Arme su equipo paso a paso</h2>
+<h2>12. Arme su equipo paso a paso</h2>
 <ol>
     <li>Entre a <b>Roles del negocio</b> y revise los roles que ya vienen creados: <b>Administrador del evento, Contabilidad, Logística, Diseño y Puerta</b>. Si quiere, cambie sus permisos o cree otro rol.</li>
     <li>En <b>Usuarios → Nuevo usuario</b> cree a cada persona con su nombre, correo, celular y una clave, y elija su rol.</li>
@@ -107,7 +120,7 @@
     <li>El equipo <b>no se registra solo</b>: si alguien se registra por su cuenta en LocalProo, se le crea otro negocio aparte, sin su evento.</li>
 </ol>
 
-<h2>12. Recomendaciones para que todo salga bien</h2>
+<h2>13. Recomendaciones para que todo salga bien</h2>
 <ul>
     <li><b>Apruebe los pagos varias veces al día.</b> La gente se tranquiliza cuando recibe su QR rápido, y así evita mensajes de "¿ya me aprobaron?".</li>
     <li><b>Compare siempre la captura con el nombre y el valor</b> antes de aprobar. Si tiene dudas, revise el movimiento en su Nequi y anote la referencia.</li>

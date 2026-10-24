@@ -22,6 +22,7 @@ class EventoEntradaMail extends Mailable
         return $this->subject('Tu entrada para ' . $ev->nombre . ' está lista')
             ->view('emails.evento-entrada', [
                 'e' => $this->entrada, 'ev' => $ev, 'a' => $this->entrada->asistente, 'tienda' => $tienda,
+                'cantidad' => $this->entrada->delGrupo()->where('estado', 'aprobada')->count(),
                 'url' => route('mis-entradas.ver', $this->entrada->uuid),
             ]);
     }

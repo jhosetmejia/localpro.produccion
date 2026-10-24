@@ -13,6 +13,7 @@
     </td></tr>
     <tr><td style="padding:26px">
         <h1 style="margin:0 0 12px;font-size:21px">¡Hola, {{ \Illuminate\Support\Str::of($a->nombre)->explode(' ')->first() }}! Tu pago fue aprobado 🎉</h1>
+        @if (($cantidad ?? 1) > 1)<p style="line-height:1.55;margin:0 0 12px">Compraste <b>{{ $cantidad }} entradas</b>: cada persona tiene su propio QR. Las ves todas en "Mis entradas" y puedes enviarle a cada acompañante la suya.</p>@endif
         <p style="line-height:1.55;margin:0 0 14px">Tu entrada para <b>{{ $ev->nombre }}</b> ya está lista con su código QR.</p>
         @if ($ev->fecha_texto)<p style="line-height:1.55;margin:0 0 6px"><b>Fecha:</b> {{ ucfirst($ev->fecha_texto) }}</p>@endif
         @if ($ev->lugar)<p style="line-height:1.55;margin:0 0 14px"><b>Lugar:</b> {{ $ev->lugar }}@if ($ev->ciudad), {{ $ev->ciudad }}@endif</p>@endif

@@ -48,7 +48,8 @@ class eventoPublicoController extends Controller
     private function entradaDe(Evento $evento, ?EventoAsistente $a): ?EventoEntrada
     {
         if (!$a) return null;
-        return EventoEntrada::withoutGlobalScope('tienda')->where('evento_id', $evento->id)->where('asistente_id', $a->id)->first();
+        return EventoEntrada::withoutGlobalScope('tienda')->where('evento_id', $evento->id)->where('asistente_id', $a->id)
+            ->orderByRaw('titular_documento IS NOT NULL')->latest('id')->first();
     }
 
     public function show(Request $request, string $slug)
@@ -127,6 +128,34 @@ class eventoPublicoController extends Controller
             }
             $datos = $request->validate($evento->reglasCampos(), [], $evento->nombresCampos());
         }
+        // Varias entradas en una compra: cada acompañante con su nombre y documento (cada uno recibe su propio QR)
+        $max = max(1, min(20, (int) ($evento->max_por_compra ?: 1)));
+        $cantidad = max(1, min($max, (int) $request->input('cantidad', 1)));
+        $acomp = [];
+        if ($cantidad > 1) {
+            $reglas = []; $nombres = [];
+            for ($i = 2; $i <= $cantidad; $i++) {
+                $reglas["acompanantes.$i.nombre"] = 'required|string|min:5|max:120';
+                $reglas["acompanantes.$i.tipo_documento"] = ['required', Rule::in(array_keys(EventoAsistente::DOCUMENTOS))];
+                $reglas["acompanantes.$i.documento"] = ['required', 'string', 'max:30', 'regex:/^[0-9A-Za-z]{5,20}$/'];
+                $reglas["acompanantes.$i.email"] = 'nullable|email|max:150';
+                $nombres["acompanantes.$i.nombre"] = "nombre de la persona $i";
+                $nombres["acompanantes.$i.documento"] = "documento de la persona $i";
+                $nombres["acompanantes.$i.email"] = "correo de la persona $i";
+            }
+            $v = $request->validate($reglas, ['regex' => 'Escriba el :attribute sin puntos ni espacios.'], $nombres);
+            $docs = [strtoupper((string) ($yo?->documento ?? $request->input('documento')))];
+            for ($i = 2; $i <= $cantidad; $i++) {
+                $a = $v['acompanantes'][$i];
+                $doc = strtoupper($a['documento']);
+                if (in_array($doc, $docs, true)) {
+                    throw ValidationException::withMessages(["acompanantes.$i.documento" => "La persona $i tiene el mismo documento que otra de la compra: cada entrada es de una persona distinta."]);
+                }
+                $docs[] = $doc;
+                $acomp[] = ['nombre' => trim($a['nombre']), 'tipo_documento' => $a['tipo_documento'], 'documento' => $doc, 'email' => !empty($a['email']) ? mb_strtolower(trim($a['email'])) : null];
+            }
+        }
+
         // Respuestas a los campos propios del organizador
         $respuestas = [];
         foreach ($evento->camposFormulario() as $c) {
@@ -134,11 +163,13 @@ class eventoPublicoController extends Controller
             if ($v !== null && $v !== '') $respuestas[$c['id']] = is_string($v) ? trim($v) : $v;
         }
 
-        $entrada = DB::transaction(function () use ($evento, $yo, $request, &$datos, $respuestas) {
+        $entrada = DB::transaction(function () use ($evento, $yo, $request, &$datos, $respuestas, $cantidad, $acomp) {
             // Bloquea el evento para que el cupo no se pase si se registran muchos a la vez
             $ev = Evento::withoutGlobalScope('tienda')->lockForUpdate()->find($evento->id);
-            if ($ev->cupo && $ev->entradas()->whereIn('estado', ['pendiente', 'aprobada'])->count() >= $ev->cupo) {
-                throw ValidationException::withMessages(['nombre' => 'Lo sentimos: las entradas se acaban de agotar.']);
+            if ($ev->cupo) {
+                $quedan = $ev->cupo - $ev->entradas()->whereIn('estado', ['pendiente', 'aprobada'])->count();
+                if ($quedan <= 0) throw ValidationException::withMessages(['nombre' => 'Lo sentimos: las entradas se acaban de agotar.']);
+                if ($quedan < $cantidad) throw ValidationException::withMessages(['cantidad' => "Solo quedan {$quedan} entradas: elija una cantidad menor."]);
             }
             if (!$yo) {
                 $yo = EventoAsistente::create([
@@ -149,10 +180,24 @@ class eventoPublicoController extends Controller
                     'autoriza_acudiente' => $request->boolean('autoriza_acudiente'),
                 ]);
             }
-            $e = new EventoEntrada(['evento_id' => $ev->id, 'asistente_id' => $yo->id, 'precio' => $ev->precio, 'etapa' => $ev->etapa, 'estado' => 'pendiente', 'respuestas' => $respuestas ?: null]);
-            $e->tienda_id = $ev->tienda_id;
-            $e->save();
-            return $e;
+            // El precio de cada entrada sale de la promoción que aplique (el servidor lo calcula, no el navegador)
+            $cot = $ev->cotizar($cantidad);
+            $grupo = $cantidad > 1 ? (string) \Illuminate\Support\Str::uuid() : null;
+            $primera = null;
+            for ($i = 0; $i < $cantidad; $i++) {
+                $a = $i === 0 ? null : $acomp[$i - 1];
+                $e = new EventoEntrada([
+                    'evento_id' => $ev->id, 'asistente_id' => $yo->id, 'precio' => $cot['precios'][$i], 'etapa' => $ev->etapa, 'estado' => 'pendiente',
+                    'respuestas' => $i === 0 ? ($respuestas ?: null) : null, 'grupo' => $grupo,
+                    'precio_lista' => $cot['promo'] ? $ev->precio : null, 'promo' => $cot['promo'],
+                    'titular_nombre' => $a['nombre'] ?? null, 'titular_tipo_documento' => $a['tipo_documento'] ?? null,
+                    'titular_documento' => $a['documento'] ?? null, 'titular_email' => $a['email'] ?? null,
+                ]);
+                $e->tienda_id = $ev->tienda_id;
+                $e->save();
+                $primera ??= $e;
+            }
+            return $primera;
         });
 
         if (!$this->yo()) {
@@ -170,7 +215,8 @@ class eventoPublicoController extends Controller
         $entrada = $this->entradaDe($evento, $yo);
         if (!$entrada) return redirect()->route('evento.comprar', $evento->slug);
         if (in_array($entrada->estado, ['aprobada', 'anulada'], true)) return redirect()->route('mis-entradas.ver', $entrada->uuid);
-        return view('eventos.publico.pago', ['evento' => $evento, 'tienda' => $evento->tienda, 'yo' => $yo, 'entrada' => $entrada]);
+        $grupo = $entrada->delGrupo()->orderBy('id')->get();
+        return view('eventos.publico.pago', ['evento' => $evento, 'tienda' => $evento->tienda, 'yo' => $yo, 'entrada' => $entrada, 'grupo' => $grupo]);
     }
 
     // "Enviar comprobante de pago": queda la constancia de que avisó y se abre el WhatsApp con el mensaje listo
@@ -180,13 +226,15 @@ class eventoPublicoController extends Controller
         $yo = $this->yo();
         $entrada = $this->entradaDe($evento, $yo);
         abort_unless($entrada && $evento->whatsapp_link, 404);
-        if (!$entrada->aviso_pago_at) $entrada->forceFill(['aviso_pago_at' => now()])->save();
+        if (!$entrada->aviso_pago_at) $entrada->delGrupo()->whereNull('aviso_pago_at')->update(['aviso_pago_at' => now()]);
+        $grupo = $entrada->delGrupo()->orderBy('id')->get();
         $texto = ($evento->mensaje_whatsapp ?: Evento::MENSAJE)
             . "\n\nEvento: {$evento->nombre}"
             . "\nNombre: {$yo->nombre}"
             . "\nDocumento: {$yo->tipo_documento} {$yo->documento}"
             . "\nCorreo: {$yo->email}"
-            . "\nRegistro N.° {$entrada->id}";
+            . "\nRegistro N.° {$entrada->id}"
+            . ($grupo->count() > 1 ? "\nEntradas: {$grupo->count()} · Total: " . $evento->plata($grupo->sum('precio')) . ($entrada->promo ? " ({$entrada->promo})" : '') : '');
         return redirect()->away($evento->whatsapp_link . '?text=' . rawurlencode($texto));
     }
 

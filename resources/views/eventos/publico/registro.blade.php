@@ -4,6 +4,13 @@
 @section('meta')<meta name="robots" content="noindex, nofollow">@endsection
 
 @section('css')
+.promos{display:grid;gap:.5rem;margin-bottom:6px}
+.promo{background:color-mix(in srgb,var(--c) 14%,transparent);border:1px dashed color-mix(in srgb,var(--c) 60%,transparent);border-radius:14px;padding:.6rem .8rem;font-size:.92rem}
+.promo i{color:var(--c)}
+.cuenta{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:.3rem;margin-top:10px;padding:.7rem .9rem;border-radius:14px;background:#0f0e14;border:1.5px solid var(--line)}
+.cuenta b{font-size:1.2rem;color:var(--c)}.cuenta small{width:100%;color:var(--ok);font-weight:700}
+.persona{margin-top:18px;padding:14px;border-radius:16px;border:1.5px solid var(--line);background:rgba(255,255,255,.02)}
+.persona .pt{font-weight:800;color:var(--c)}
 .res{display:flex;gap:.8rem;align-items:center}
 .res img{width:64px;height:86px;object-fit:cover;border-radius:12px;flex:0 0 64px}
 .dos{display:grid;grid-template-columns:120px 1fr;gap:.6rem}
@@ -20,13 +27,15 @@
 
 <form method="post" action="{{ route('evento.registrar', $evento->slug) }}" class="card" id="ev-form" novalidate>
     @csrf
+    @include('eventos.publico._cantidad')
     @if ($yo)
         <h2>Comprar con tu cuenta</h2>
         <p class="mu">Estás registrado como <b style="color:var(--tx)">{{ $yo->nombre }}</b> ({{ $yo->email }}).</p>
         @include('eventos.publico._campos')
+        @include('eventos.publico._acompanantes')
         <button class="btn btn-c" style="margin-top:20px"><i class="fa-solid fa-check"></i> Terminar registro</button>
     @else
-        <h2>Tus datos</h2>
+        <h2 style="margin-top:14px">Tus datos</h2>
         <p class="mu" style="font-size:.9rem">Tu entrada es personal: en la puerta revisan tu documento.</p>
 
         <label class="lb" for="nombre">Nombre completo</label>
@@ -56,6 +65,8 @@
         @endif
 
         @include('eventos.publico._campos')
+
+        @include('eventos.publico._acompanantes')
 
         <label class="lb" for="clave">Crea una clave</label>
         <div class="ojo"><input class="in" id="clave" type="password" name="password" autocomplete="new-password" minlength="6" required><button type="button" data-ojo="clave" aria-label="Ver clave"><i class="fa-regular fa-eye"></i></button></div>

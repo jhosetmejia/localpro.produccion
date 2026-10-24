@@ -15,9 +15,9 @@ class Evento extends Model
     protected $table = 'eventos';
 
     protected $fillable = ['nombre', 'slug', 'subtitulo', 'descripcion', 'fecha_evento', 'lugar', 'ciudad', 'etapa', 'precio', 'venta_hasta', 'cupo',
-        'pago_metodo', 'pago_numero', 'pago_titular', 'whatsapp', 'mensaje_whatsapp', 'instagram', 'tiktok', 'pedir_colegio', 'edad_minima', 'condiciones', 'color', 'estado', 'tema', 'mostrar_visitas', 'campos', 'pedir_nacimiento', 'pedir_celular'];
+        'pago_metodo', 'pago_numero', 'pago_titular', 'whatsapp', 'mensaje_whatsapp', 'instagram', 'tiktok', 'pedir_colegio', 'edad_minima', 'condiciones', 'color', 'estado', 'tema', 'mostrar_visitas', 'campos', 'pedir_nacimiento', 'pedir_celular', 'promos', 'max_por_compra'];
 
-    protected $casts = ['fecha_evento' => 'datetime', 'venta_hasta' => 'datetime', 'precio' => 'decimal:2', 'pedir_colegio' => 'boolean', 'cupo' => 'integer', 'edad_minima' => 'integer', 'visitas' => 'integer', 'mostrar_visitas' => 'boolean', 'campos' => 'array', 'pedir_nacimiento' => 'boolean', 'pedir_celular' => 'boolean'];
+    protected $casts = ['fecha_evento' => 'datetime', 'venta_hasta' => 'datetime', 'precio' => 'decimal:2', 'pedir_colegio' => 'boolean', 'cupo' => 'integer', 'edad_minima' => 'integer', 'visitas' => 'integer', 'mostrar_visitas' => 'boolean', 'campos' => 'array', 'pedir_nacimiento' => 'boolean', 'pedir_celular' => 'boolean', 'promos' => 'array', 'max_por_compra' => 'integer'];
 
     public const ESTADOS = ['borrador' => 'Borrador (no se ve)', 'publicado' => 'Publicado (a la venta)', 'cerrado' => 'Venta cerrada'];
 
@@ -201,5 +201,47 @@ class Evento extends Model
     public function nombresCampos(): array
     {
         return collect($this->camposFormulario())->mapWithKeys(fn ($c) => ['respuestas.' . $c['id'] => mb_strtolower($c['etiqueta'])])->all();
+    }
+
+    /**
+     * Promociones que arma el organizador: "Compra X y la siguiente con Y % de descuento" (100 % = gratis).
+     * Se repite por cada bloque: con "compra 2, la 3.ª gratis", quien compra 6 lleva 2 gratis.
+     * Cada una: ['compra' => 2, 'descuento' => 100, 'activa' => true, 'hasta' => '2026-10-30' | null]
+     */
+    public function promosVigentes(): array
+    {
+        return collect((array) ($this->promos ?? []))
+            ->filter(fn ($p) => is_array($p) && ($p['activa'] ?? true) && (int) ($p['compra'] ?? 0) >= 1
+                && (int) ($p['descuento'] ?? 0) >= 1 && (int) ($p['descuento'] ?? 0) <= 100
+                && (empty($p['hasta']) || now()->lte(\Illuminate\Support\Carbon::parse($p['hasta'])->endOfDay())))
+            ->map(fn ($p) => ['compra' => (int) $p['compra'], 'descuento' => (int) $p['descuento'], 'hasta' => $p['hasta'] ?? null] + ['texto' => self::textoPromo((int) $p['compra'], (int) $p['descuento'])])
+            ->values()->all();
+    }
+
+    public static function textoPromo(int $compra, int $descuento): string
+    {
+        $n = $compra + 1;
+        return "Compra {$compra} y la {$n}.ª " . ($descuento >= 100 ? 'es gratis' : "con {$descuento} % de descuento");
+    }
+
+    /**
+     * Precio de cada entrada en una compra de $cantidad, con la mejor promoción que aplique.
+     * Devuelve ['precios' => [..], 'total', 'lista', 'ahorro', 'promo' => texto|null]
+     */
+    public function cotizar(int $cantidad): array
+    {
+        $precio = (float) $this->precio;
+        $cantidad = max(1, $cantidad);
+        $mejor = ['precios' => array_fill(0, $cantidad, $precio), 'ahorro' => 0.0, 'promo' => null];
+        foreach ($this->promosVigentes() as $p) {
+            $bloque = $p['compra'] + 1;
+            $precios = [];
+            for ($i = 1; $i <= $cantidad; $i++) {
+                $precios[] = $i % $bloque === 0 ? round($precio * (100 - $p['descuento']) / 100, 2) : $precio;
+            }
+            $ahorro = $precio * $cantidad - array_sum($precios);
+            if ($ahorro > $mejor['ahorro']) $mejor = ['precios' => $precios, 'ahorro' => $ahorro, 'promo' => $p['texto']];
+        }
+        return $mejor + ['total' => array_sum($mejor['precios']), 'lista' => $precio * $cantidad];
     }
 }

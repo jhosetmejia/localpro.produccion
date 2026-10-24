@@ -23,7 +23,12 @@
 </div>
 
 <div class="card">
-    <div class="valor"><span>Total a pagar</span><span style="color:var(--c)">{{ $evento->plata($entrada->precio) }}</span></div>
+    @php $g = $grupo ?? collect([$entrada]); $tot = $g->where('estado', '!=', 'anulada')->sum('precio'); @endphp
+    @if ($g->count() > 1)
+    <div class="mu" style="font-size:.9rem;margin-bottom:8px"><b style="color:var(--tx)">{{ $g->count() }} entradas</b> · {{ $g->map->nombre_titular->join(', ') }}</div>
+    @if ($entrada->promo)<div class="badge b-ok" style="margin-bottom:8px"><i class="fa-solid fa-tags"></i> {{ $entrada->promo }} · ahorras {{ $evento->plata($g->sum(fn ($x) => (float) ($x->precio_lista ?? $x->precio)) - $tot) }}</div>@endif
+    @endif
+    <div class="valor"><span>Total a pagar</span><span style="color:var(--c)">{{ $evento->plata($tot) }}</span></div>
 
     <div class="paso"><span class="n">1</span><div><b>Envía tu pago a este {{ $evento->pago_metodo }}</b>
         <div class="nq"><div class="mu" style="font-size:.85rem">{{ $evento->pago_metodo }}</div><div class="num" id="nq">{{ $evento->pago_numero }}</div>

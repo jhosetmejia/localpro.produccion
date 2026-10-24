@@ -451,6 +451,12 @@ class Academia
                         'Fecha, lugar, precio, etapa y Nequi: <b>Editar</b>. Afiche, logo, estilo (ej. Terror) y color: columna derecha de <b>Editar</b>. Pagos: <b>Compradores → Por aprobar</b>. Lista: <b>Excel</b>. Entrada: <b>Puerta</b>.',
                         'En <b>Editar → Publicación</b> elige si la página muestra "X personas han visto este evento". En Compradores ve las visitas y qué porcentaje se registró.',
                     ], 'tip' => 'Pida solo lo necesario: cada pregunta de más hace que menos gente termine el registro.'],
+                    ['titulo' => 'Promociones y compras en grupo', 'rutas' => [['eventos', 'Compradores', 'Editar', 'Promociones', 'Agregar promoción']], 'min' => 3, 'accion' => ['eventos.index', 'Ver mis eventos'], 'contenido' => [
+                        'En <b>Editar → Entrada y venta</b> ponga el <b>máximo de entradas por compra</b> (ej. 10). Así una persona puede comprar para sus amigos: llena el nombre y el documento de cada uno y <b>cada uno recibe su propio QR</b>.',
+                        'En <b>Editar → Promociones</b> toque <b>Agregar promoción</b>: escriba cuántas compra (ej. 2) y qué pasa con la siguiente (<b>Gratis</b> o un % de descuento). Ejemplos: "Compra 2 y la 3.ª es gratis", "Compra 5 y la 6.ª con 50 % de descuento". Puede ponerle fecha de fin y apagarla cuando quiera.',
+                        'La promo sale en la página del evento y el comprador ve el total con el ahorro al elegir la cantidad. El sistema calcula el precio de cada entrada (no se puede cambiar desde el navegador) y, si hay varias promos, aplica la que más le ahorra.',
+                        'Toda la compra se paga con un solo comprobante: en <b>Compradores</b> aprueba en la fila del comprador y se aprueban todas sus entradas juntas.',
+                    ], 'tip' => 'Las promos se repiten: con "compra 2 y la 3.ª gratis", quien compra 6 lleva 2 gratis. Úselas en preventa o los últimos días para mover la venta.'],
                     ['titulo' => 'Antes de publicar: haga una prueba completa', 'rutas' => [['eventos', 'Compradores', 'Editar', 'Publicación: Borrador'], ['eventos', 'Puerta', 'Escanear el QR de prueba']], 'min' => 3, 'accion' => null, 'contenido' => [
                         'Deje el evento en <b>Borrador</b> (solo usted ve la página) y ábrala en su celular: revise afiche, fecha, precio y que el Nequi esté bien escrito.',
                         'Regístrese como comprador en una <b>ventana de incógnito</b> o en otro celular, con un correo suyo. Toque <b>Enviar comprobante</b> y mire que abra el WhatsApp correcto.',
@@ -466,6 +472,7 @@ class Academia
                     ['p' => '¿Cuándo recibe la persona su entrada con QR?', 'o' => ['Cuando usted aprueba el pago', 'Apenas se registra', 'El día del evento'], 'r' => 0],
                     ['p' => 'Un QR ya se usó y alguien lo vuelve a mostrar en la puerta. ¿Qué pasa?', 'o' => ['Sale en rojo: "ya se usó" y no deja entrar', 'Deja entrar otra vez', 'Se borra el evento'], 'r' => 0],
                     ['p' => 'Pasó la primera etapa y ahora la entrada vale más. ¿Qué hace?', 'o' => ['Edita el evento: cambia la etapa, el precio y la fecha', 'Crea un evento nuevo', 'No se puede'], 'r' => 0],
+                    ['p' => 'Quiere que quien compre 2 entradas lleve la 3.ª gratis. ¿Qué hace?', 'o' => ['Editar → Promociones: Compra 2, la siguiente Gratis', 'Bajar el precio a todos', 'No se puede'], 'r' => 0],
                     ['p' => 'Su diseñadora debe cambiar el afiche, pero no el precio. ¿Qué rol le da?', 'o' => ['Diseño', 'Administrador del evento', 'Contabilidad'], 'r' => 0],
                     ['p' => 'Una persona olvidó su clave. ¿Qué hace?', 'o' => ['Restablecer clave: queda su número de documento', 'Borra su registro', 'Le crea otra cuenta con el mismo correo'], 'r' => 0],
                 ],
