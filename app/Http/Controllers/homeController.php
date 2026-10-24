@@ -51,6 +51,11 @@ class homeController extends Controller
         if ($tienda->es_instituto) {
             return redirect()->route('instituto.inicio');
         }
+        // Organizadores de eventos: su inicio es Eventos y entradas (el panel de ventas sigue en /?ventas=1)
+        if ($tienda->tipo_negocio === 'eventos' && $tienda->mod_eventos && !request()->boolean('ventas')
+            && \App\Models\Evento::puedeAlgo(Auth::user()) && \Illuminate\Support\Facades\Route::has('eventos.index')) {
+            return redirect()->route('eventos.index');
+        }
         // Consultorios: su inicio es la agenda del día (el panel de ventas sigue en /?ventas=1)
         if ($tienda->tipo_negocio === 'consultorio' && $tienda->mod_consultorio && !request()->boolean('ventas')
             && (Auth::user()->can('agenda-consultorio') || Auth::user()->can('historia-clinica'))) {

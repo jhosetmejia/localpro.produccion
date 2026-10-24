@@ -73,7 +73,11 @@ class Tienda extends Model
         'restaurante' => ['separados'],
         'cafeteria' => ['separados'],
         'funeraria' => ['separados', 'existencias', 'entradas', 'categorias'],
-        'eventos' => ['separados', 'existencias', 'entradas', 'categorias'],
+        // Organizador de eventos: solo Eventos, Egresos (gastos del evento) y Mis enlaces. Caja, ventas, inventario,
+        // facturación DIAN, clientes, etc. quedan ocultos; se pueden mostrar en Personalizar menú si los necesita.
+        'eventos' => ['consultorio', 'obituarios', 'contabilidad', 'pos', 'pedidos', 'separados', 'tiquetera', 'alquiler', 'caja', 'ventas',
+            'reportes', 'nomina', 'cierres', 'productos', 'existencias', 'entradas', 'categorias', 'redes', 'clientes', 'proveedores',
+            'facturacion', 'catalogo', 'metodos'],
         'contable' => ['separados', 'existencias', 'entradas', 'categorias', 'catalogo', 'redes'],
         'consultorio' => ['separados', 'existencias', 'entradas', 'categorias', 'catalogo'],
     ];

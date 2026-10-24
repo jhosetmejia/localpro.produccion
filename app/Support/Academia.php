@@ -148,7 +148,7 @@ class Academia
     {
         return [
             'primeros-pasos' => [
-                'titulo' => 'Primeros pasos en LocalPro', 'icono' => 'fa-seedling', 'color' => '#16b34a', 'para' => 'todos',
+                'no_tipos' => ['eventos'], 'titulo' => 'Primeros pasos en LocalPro', 'icono' => 'fa-seedling', 'color' => '#16b34a', 'para' => 'todos',
                 'resumen' => 'Conozca el panel, sus productos y cómo hacer su primera venta en 10 minutos.',
                 'lecciones' => [
                     ['titulo' => 'Su panel en un vistazo', 'min' => 2, 'accion' => ['panel', 'Ir al panel'], 'contenido' => [
@@ -176,7 +176,7 @@ class Academia
             ],
 
             'caja' => [
-                'titulo' => 'La caja paso a paso', 'icono' => 'fa-cash-register', 'color' => '#0ea5e9', 'para' => 'todos',
+                'no_tipos' => ['eventos'], 'titulo' => 'La caja paso a paso', 'icono' => 'fa-cash-register', 'color' => '#0ea5e9', 'para' => 'todos',
                 'resumen' => 'Abrir, vender escaneando el código de barras, cobrar, devoluciones, anotar los gastos y cerrar la caja sin descuadres.',
                 'lecciones' => [
                     ['titulo' => 'Abrir la caja', 'min' => 2, 'accion' => ['pos.index', 'Ir a la caja'], 'contenido' => [
@@ -223,7 +223,7 @@ class Academia
             ],
 
             'tecnicas-de-venta' => [
-                'titulo' => 'Técnicas de venta', 'icono' => 'fa-handshake', 'color' => '#f59e0b', 'para' => ['todos', 'asesor'],
+                'no_tipos' => ['eventos'], 'titulo' => 'Técnicas de venta', 'icono' => 'fa-handshake', 'color' => '#f59e0b', 'para' => ['todos', 'asesor'],
                 'resumen' => 'Cómo atender, ofrecer y cerrar la venta en el mostrador y por WhatsApp.',
                 'lecciones' => [
                     ['titulo' => 'El saludo que vende', 'min' => 2, 'accion' => null, 'contenido' => [
@@ -254,7 +254,7 @@ class Academia
             ],
 
             'vender-mas' => [
-                'titulo' => 'Vender más con LocalPro', 'icono' => 'fa-rocket', 'color' => '#22c55e', 'para' => 'todos',
+                'no_tipos' => ['eventos'], 'titulo' => 'Vender más con LocalPro', 'icono' => 'fa-rocket', 'color' => '#22c55e', 'para' => 'todos',
                 'resumen' => 'Base de datos, WhatsApp marketing, tienda en línea y redes para conseguir más clientes.',
                 'lecciones' => [
                     ['titulo' => 'Su base de datos de clientes', 'min' => 3, 'accion' => ['vender.index', 'Ir a Vender más'], 'contenido' => [
@@ -296,7 +296,7 @@ class Academia
             ],
 
             'inventario' => [
-                'titulo' => 'Inventario sin pérdidas', 'icono' => 'fa-boxes-stacked', 'color' => '#8b5cf6', 'para' => 'dueno',
+                'no_tipos' => ['eventos'], 'titulo' => 'Inventario sin pérdidas', 'icono' => 'fa-boxes-stacked', 'color' => '#8b5cf6', 'para' => 'dueno',
                 'resumen' => 'Entradas de mercancía, etiquetas con código de barras, existencias, conteo físico con el celular y cómo evitar faltantes.',
                 'lecciones' => [
                     ['titulo' => 'Registrar la mercancía que llega', 'min' => 3, 'accion' => ['inventario.index', 'Ver inventario'], 'contenido' => [
@@ -698,6 +698,8 @@ class Academia
         $tienda = TiendaActual::tienda();
         return array_filter(self::cursos(), function ($c) use ($g, $u, $tienda) {
             if (!array_intersect((array) $c['para'], $g)) return false;
+            // Cursos que no aplican a ese tipo de negocio (ej. caja e inventario para un organizador de eventos)
+            if (!empty($c['no_tipos']) && in_array($tienda?->tipo_negocio, (array) $c['no_tipos'], true) && !$u?->es_superadmin && !$u?->asesor) return false;
             // Cursos de un tipo de negocio o de un módulo: solo si el negocio es de ese tipo o tiene el módulo (asesores y LocalPro ven todos)
             if ((!empty($c['modulo']) || !empty($c['tipos'])) && !$u?->es_superadmin && !$u?->asesor) {
                 $porTipo = !empty($c['tipos']) && in_array($tienda?->tipo_negocio, (array) $c['tipos'], true);
