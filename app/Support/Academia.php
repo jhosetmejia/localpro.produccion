@@ -495,6 +495,11 @@ class Academia
                         'Lo clínico se guarda <b>cifrado</b>, y el dueño ve quién abrió, escribió o imprimió cada historia.',
                         'Un paciente con historia clínica <b>no se puede borrar</b>: la ley obliga a conservarla.',
                     ], 'tip' => 'Nunca preste su usuario: lo que se firma con él queda a su nombre.'],
+                    ['titulo' => 'Su equipo y sus roles', 'rutas' => [['roles', 'Revisar los roles'], ['usuarios', 'Nuevo usuario', 'Elegir su rol']], 'min' => 2, 'accion' => ['users.index', 'Crear usuarios'], 'contenido' => [
+                        'Su negocio ya trae roles listos: <b>Administrador</b>, <b>Recepción del consultorio</b> (agenda, caja y pacientes) y <b>Profesional de salud</b> (agenda e historia clínica). Revíselos en <b>Roles del negocio</b> y cambie lo que cada uno puede hacer.',
+                        'En <b>Usuarios → Nuevo usuario</b> cree a cada persona con su correo y una clave, y elija su rol. Cada uno ve solo lo de su rol; los datos del negocio, los usuarios y los roles solo los maneja el dueño.',
+                        'Si cambia los permisos de un rol, se actualizan para todas las personas que lo tienen. Lo que haga en su negocio no afecta a ningún otro negocio.',
+                    ], 'tip' => 'Un usuario por persona: así sabe quién vendió, cobró o cambió cada cosa.'],
                 ],
                 'prueba' => [
                     ['p' => 'Cerré una atención y me equivoqué en una dosis. ¿Qué hago?', 'o' => ['Agrego una nota aclaratoria', 'Borro la atención', 'Le pido a LocalPro que la cambie'], 'r' => 0],
@@ -553,6 +558,11 @@ class Academia
                         '<b>Guarde</b>: la pantalla solo muestra lo guardado. Con <b>Ver ya en la pantalla</b> sale de inmediato en la sala.',
                         'Descargue la imagen o el video y envíela por <b>WhatsApp</b> a la familia.',
                     ], 'tip' => 'Si el TV muestra la pantalla de espera, revise que el obituario esté guardado, asignado a esa sala y con fecha "hasta" futura.'],
+                    ['titulo' => 'Su equipo y sus roles', 'rutas' => [['roles', 'Revisar los roles'], ['usuarios', 'Nuevo usuario', 'Elegir su rol']], 'min' => 2, 'accion' => ['users.index', 'Crear usuarios'], 'contenido' => [
+                        'Su negocio ya trae roles listos: <b>Administrador</b>, <b>Recepción</b> (obituarios, caja y clientes), <b>Salas y obituarios</b> (solo obituarios) y <b>Contador</b>. Revíselos en <b>Roles del negocio</b> y cambie lo que cada uno puede hacer.',
+                        'En <b>Usuarios → Nuevo usuario</b> cree a cada persona con su correo y una clave, y elija su rol. Cada uno ve solo lo de su rol; los datos del negocio, los usuarios y los roles solo los maneja el dueño.',
+                        'Si cambia los permisos de un rol, se actualizan para todas las personas que lo tienen. Lo que haga en su negocio no afecta a ningún otro negocio.',
+                    ], 'tip' => 'Un usuario por persona: así sabe quién vendió, cobró o cambió cada cosa.'],
                 ],
                 'prueba' => [
                     ['p' => '¿Cómo abre el TV de una sala?', 'o' => ['localproo.com/tv y el código de 4 números', 'Con su clave de LocalPro', 'Por Bluetooth'], 'r' => 0],
@@ -577,6 +587,11 @@ class Academia
                         'Con <b>Separados</b> el cliente aparta una prenda con un abono, paga en cuotas y se la lleva al terminar. El producto queda reservado.',
                         'Active su <b>catálogo en línea</b> y compártalo por WhatsApp e Instagram: los clientes ven fotos, tallas y precios.',
                     ], 'tip' => 'Fotos claras y con buena luz venden más en el catálogo.'],
+                    ['titulo' => 'Su equipo y sus roles', 'rutas' => [['roles', 'Revisar los roles'], ['usuarios', 'Nuevo usuario', 'Elegir su rol']], 'min' => 2, 'accion' => ['users.index', 'Crear usuarios'], 'contenido' => [
+                        'Su negocio ya trae roles listos: <b>Administrador</b>, <b>Vendedor</b> (caja, clientes y separados), <b>Bodega e inventario</b> (productos, entradas y proveedores) y <b>Redes y ventas en línea</b> (Mis redes, Mis enlaces y catálogo). Revíselos en <b>Roles del negocio</b> y cambie lo que cada uno puede hacer.',
+                        'En <b>Usuarios → Nuevo usuario</b> cree a cada persona con su correo y una clave, y elija su rol. Cada uno ve solo lo de su rol; los datos del negocio, los usuarios y los roles solo los maneja el dueño.',
+                        'Si cambia los permisos de un rol, se actualizan para todas las personas que lo tienen. Lo que haga en su negocio no afecta a ningún otro negocio.',
+                    ], 'tip' => 'Un usuario por persona: así sabe quién vendió, cobró o cambió cada cosa.'],
                 ],
                 'prueba' => [
                     ['p' => '¿Cómo maneja la misma camisa en talla S, M y L?', 'o' => ['Un producto con variantes de talla', 'Tres productos sin relación', 'No se puede'], 'r' => 0],
@@ -601,6 +616,11 @@ class Academia
                         'En <b>Datos del negocio → Módulos</b> active <b>Fechas de vencimiento</b> para manejar lotes y recibir alertas de lo que está por vencer.',
                         'Si vende por metro, kilo o litro, active <b>Vender por metro, kilo o litro</b> y en la caja venda con decimales.',
                     ], 'tip' => 'Ponga adelante en el estante lo que vence primero.'],
+                    ['titulo' => 'Su equipo y sus roles', 'rutas' => [['roles', 'Revisar los roles'], ['usuarios', 'Nuevo usuario', 'Elegir su rol']], 'min' => 2, 'accion' => ['users.index', 'Crear usuarios'], 'contenido' => [
+                        'Su negocio ya trae roles listos: <b>Administrador</b>, <b>Vendedor</b> (caja y clientes), <b>Bodega e inventario</b> (productos, entradas de mercancía y proveedores) y <b>Contador</b> (reportes, cierres, egresos y facturación). Revíselos en <b>Roles del negocio</b> y cambie lo que cada uno puede hacer.',
+                        'En <b>Usuarios → Nuevo usuario</b> cree a cada persona con su correo y una clave, y elija su rol. Cada uno ve solo lo de su rol; los datos del negocio, los usuarios y los roles solo los maneja el dueño.',
+                        'Si cambia los permisos de un rol, se actualizan para todas las personas que lo tienen. Lo que haga en su negocio no afecta a ningún otro negocio.',
+                    ], 'tip' => 'Un usuario por persona: así sabe quién vendió, cobró o cambió cada cosa.'],
                 ],
                 'prueba' => [
                     ['p' => 'Tengo 500 productos en Excel. ¿Qué hago?', 'o' => ['Productos → Importar', 'Crearlos uno por uno', 'No usarlos'], 'r' => 0],
@@ -621,6 +641,11 @@ class Academia
                         'Ponga el cliente en cada venta: así sabe qué se hizo y cuándo volvió.',
                         'Desde <b>Clientes</b> escríbales por WhatsApp a los que no han vuelto, con una promoción.',
                     ], 'tip' => 'Un mensaje al mes a sus clientes frecuentes trae de vuelta a muchos.'],
+                    ['titulo' => 'Su equipo y sus roles', 'rutas' => [['roles', 'Revisar los roles'], ['usuarios', 'Nuevo usuario', 'Elegir su rol']], 'min' => 2, 'accion' => ['users.index', 'Crear usuarios'], 'contenido' => [
+                        'Su negocio ya trae roles listos: <b>Administrador</b>, <b>Caja</b> y <b>Estilista / barbero</b> (cobra sus servicios y ve sus clientes). Revíselos en <b>Roles del negocio</b> y cambie lo que cada uno puede hacer.',
+                        'En <b>Usuarios → Nuevo usuario</b> cree a cada persona con su correo y una clave, y elija su rol. Cada uno ve solo lo de su rol; los datos del negocio, los usuarios y los roles solo los maneja el dueño.',
+                        'Si cambia los permisos de un rol, se actualizan para todas las personas que lo tienen. Lo que haga en su negocio no afecta a ningún otro negocio.',
+                    ], 'tip' => 'Un usuario por persona: así sabe quién vendió, cobró o cambió cada cosa.'],
                 ],
                 'prueba' => [
                     ['p' => '¿Un corte de cabello lleva inventario?', 'o' => ['No, es un servicio', 'Sí, siempre', 'Depende del día'], 'r' => 0],
@@ -646,6 +671,11 @@ class Academia
                         'El calendario muestra los vencimientos de retención e IVA de cada cliente según el último dígito del NIT.',
                         'Le llega un correo 3 días antes y el mismo día. Marque "Presentado" para que no le vuelva a avisar.',
                     ], 'tip' => null],
+                    ['titulo' => 'Su equipo y sus roles', 'rutas' => [['roles', 'Revisar los roles'], ['usuarios', 'Nuevo usuario', 'Elegir su rol']], 'min' => 2, 'accion' => ['users.index', 'Crear usuarios'], 'contenido' => [
+                        'Su negocio ya trae roles listos: <b>Administrador</b> y <b>Auxiliar contable</b> (solo el módulo de Contabilidad). Revíselos en <b>Roles del negocio</b> y cambie lo que cada uno puede hacer.',
+                        'En <b>Usuarios → Nuevo usuario</b> cree a cada persona con su correo y una clave, y elija su rol. Cada uno ve solo lo de su rol; los datos del negocio, los usuarios y los roles solo los maneja el dueño.',
+                        'Si cambia los permisos de un rol, se actualizan para todas las personas que lo tienen. Lo que haga en su negocio no afecta a ningún otro negocio.',
+                    ], 'tip' => 'Un usuario por persona: así sabe quién vendió, cobró o cambió cada cosa.'],
                 ],
                 'prueba' => [
                     ['p' => '¿Qué dos archivos se cruzan cada mes?', 'o' => ['El listado DIAN y la base contable', 'Dos facturas', 'Ninguno'], 'r' => 0],

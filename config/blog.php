@@ -6,6 +6,23 @@
 // palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
+    'roles-y-permisos-para-el-equipo-de-su-negocio' => [
+        'titulo' => 'Roles y permisos para su equipo: cada persona ve solo lo que necesita',
+        'resumen' => 'Según su tipo de negocio, LocalProo ya trae los roles listos (vendedor, bodega, recepción, mesero, cocina, profesional de salud…). Usted crea el usuario de cada persona y elige su rol.',
+        'fecha' => '24 de octubre de 2026',
+        'publicado' => '2026-10-24',
+        'minutos' => 4,
+        'icono' => 'fa-id-badge',
+        'rol' => 'negocios',
+        'seo_titulo' => 'Roles y permisos para empleados en su negocio | LocalProo',
+        'descripcion' => 'Usuarios y permisos para vendedores, bodega, caja, mesero, recepción y más. Roles listos según su tipo de negocio, sin configurar nada.',
+        'keywords' => ['roles y permisos empleados', 'usuarios para vendedores', 'permisos de caja', 'software punto de venta con usuarios', 'control de empleados en el negocio', 'sistema para tienda con varios usuarios'],
+        'faq' => [
+            ['¿Tengo que crear los roles yo mismo?', 'No. Según su tipo de negocio ya vienen creados (por ejemplo, Vendedor, Bodega e inventario y Redes para una tienda de ropa). Usted los puede ajustar en Roles del negocio.'],
+            ['¿Cómo le doy acceso a un empleado?', 'En Usuarios → Nuevo usuario escriba su nombre, correo y una clave, y elija su rol. El empleado entra en localproo.com/login.'],
+            ['¿Un empleado puede cambiar los datos del negocio?', 'No. Los datos del negocio, los usuarios, los roles y el plan solo los maneja el dueño o quien tenga el rol Dueño / administrador.'],
+        ],
+    ],
     'venta-de-entradas-con-qr-para-eventos-y-fiestas' => [
         'titulo' => 'Venta de entradas con QR para fiestas y eventos: registro, pago por Nequi y control en la puerta',
         'resumen' => 'Cree la página de su evento, la gente se registra y paga por Nequi, usted aprueba el pago y cada persona recibe una entrada con QR único que se escanea una sola vez en la puerta con el celular.',

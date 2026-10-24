@@ -48,7 +48,7 @@ Artisan::command('pedidos:roles-por-defecto {--simular}', function () {
     \App\Models\Tienda::where('mod_pedidos', true)->orderBy('id')->each(function ($t) use (&$n) {
         $tiene = \App\Support\TiendaActual::como($t->id, fn () => \App\Models\NegocioRol::exists());
         if ($tiene) return;
-        $roles = implode(', ', \App\Support\RolesNegocio::plantillasPorDefecto($t->tipo_negocio));
+        $roles = implode(', ', \App\Support\RolesNegocio::plantillasPorDefecto($t->tipo_negocio, true));
         if ($this->option('simular')) {
             $this->line("[simular] {$t->nombre} ({$t->tipo_negocio}): {$roles}");
         } else {
@@ -59,3 +59,20 @@ Artisan::command('pedidos:roles-por-defecto {--simular}', function () {
     });
     $this->info("Negocios: {$n}");
 })->purpose('Crea los roles por defecto en negocios con Pedidos que no tienen roles');
+
+// Roles por defecto según el tipo de negocio para los negocios que todavía no tienen ningún rol
+Artisan::command('negocios:roles-por-defecto {--simular}', function () {
+    $n = 0;
+    \App\Models\Tienda::whereNotNull('tipo_negocio')->orderBy('id')->each(function ($t) use (&$n) {
+        if (\App\Support\TiendaActual::como($t->id, fn () => \App\Models\NegocioRol::exists())) return;
+        $roles = \App\Support\RolesNegocio::plantillasPorDefecto($t->tipo_negocio, (bool) $t->mod_pedidos);
+        if (!$roles) return;
+        if ($this->option('simular')) {
+            $this->line("[simular] {$t->nombre} ({$t->tipo_negocio}): " . implode(', ', $roles));
+        } else {
+            $this->line("{$t->nombre}: " . \App\Support\RolesNegocio::crearPorDefecto($t) . ' roles');
+        }
+        $n++;
+    });
+    $this->info("Negocios: {$n}");
+})->purpose('Crea los roles por defecto (según el tipo) en negocios que no tienen roles');

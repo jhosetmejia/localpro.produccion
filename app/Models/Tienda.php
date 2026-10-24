@@ -78,7 +78,11 @@ class Tienda extends Model
         'eventos' => ['consultorio', 'obituarios', 'contabilidad', 'pos', 'pedidos', 'separados', 'tiquetera', 'alquiler', 'caja', 'ventas',
             'reportes', 'nomina', 'cierres', 'productos', 'existencias', 'entradas', 'categorias', 'clientes', 'proveedores',
             'facturacion', 'catalogo', 'metodos'],
-        'contable' => ['separados', 'existencias', 'entradas', 'categorias', 'catalogo', 'redes'],
+        // Firma contable: trabaja en Contabilidad; la caja, el inventario y la tienda en línea no los usa
+        'contable' => ['pos', 'caja', 'ventas', 'cierres', 'reportes', 'separados', 'tiquetera', 'productos', 'existencias', 'entradas',
+            'categorias', 'catalogo', 'redes', 'clientes', 'proveedores', 'metodos'],
+        'minimercado' => ['separados'],
+        'belleza' => ['separados', 'entradas'],
         'consultorio' => ['separados', 'existencias', 'entradas', 'categorias', 'catalogo'],
     ];
 
@@ -118,7 +122,8 @@ class Tienda extends Model
         });
         // Al encender Pedidos (restaurante, cafetería…) quedan creados los roles Caja, Mesero, Cocina… con sus permisos
         static::saved(function (Tienda $t) {
-            if ($t->mod_pedidos && ($t->wasRecentlyCreated || $t->wasChanged('mod_pedidos'))
+            // Roles por defecto según el tipo de negocio (y Caja/Mesero/Cocina si enciende Pedidos)
+            if ($t->tipo_negocio && ($t->wasRecentlyCreated || $t->wasChanged(['tipo_negocio', 'mod_pedidos', 'mod_alquiler']))
                 && \Illuminate\Support\Facades\Schema::hasTable('negocio_roles')) {
                 try {
                     \App\Support\RolesNegocio::crearPorDefecto($t);
