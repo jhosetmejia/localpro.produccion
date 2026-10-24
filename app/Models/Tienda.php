@@ -122,6 +122,15 @@ class Tienda extends Model
                     report($e);
                 }
             }
+            // Al encender Eventos quedan creados: Administrador del evento, Contabilidad, Logística, Diseño y Puerta
+            if ($t->mod_eventos && ($t->wasRecentlyCreated || $t->wasChanged('mod_eventos'))
+                && \Illuminate\Support\Facades\Schema::hasTable('negocio_roles')) {
+                try {
+                    \App\Support\RolesNegocio::crearEventosPorDefecto($t);
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            }
         });
         // Código del negocio: LCT-00001, LCT-00002…
         static::creating(function (Tienda $t) {

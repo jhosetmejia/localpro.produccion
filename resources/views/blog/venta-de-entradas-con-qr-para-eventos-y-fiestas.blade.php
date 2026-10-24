@@ -35,7 +35,18 @@
     <li><b>Rojo:</b> ese QR ya se usó (y a qué hora) o no existe.</li>
     <li><b>Naranja:</b> se registró pero el pago no está aprobado.</li>
 </ul>
-<p>Aunque dos porteros escaneen el mismo QR al mismo tiempo, solo uno lo deja entrar. Cree el rol <b>Puerta (eventos)</b> para que su equipo solo vea el escáner.</p>
+<p>Aunque dos porteros escaneen el mismo QR al mismo tiempo, solo uno lo deja entrar.</p>
+
+<h2>5. Su equipo del evento, cada uno con su parte</h2>
+<p>Al activar Eventos, LocalProo ya deja creados los roles del equipo de organización. Usted solo crea el usuario de cada persona y le asigna su rol en <b>Usuarios</b>:</p>
+<ul>
+    <li><b>Administrador del evento:</b> todo, incluido el precio, los datos de pago y publicar.</li>
+    <li><b>Contabilidad:</b> ve a los compradores, aprueba o rechaza los pagos y descarga el Excel.</li>
+    <li><b>Logística:</b> edita la información del evento (fecha, lugar, descripción, condiciones, redes), ve a los asistentes y usa la puerta.</li>
+    <li><b>Diseño:</b> cambia el afiche o banner, el logo, el estilo y el color de la página.</li>
+    <li><b>Puerta:</b> solo el escáner del QR.</li>
+</ul>
+<p>Nadie del equipo ve sus ventas, inventario ni caja: cada uno entra a LocalProo y llega directo a Eventos. Puede cambiar los permisos de cada rol en <b>Roles del negocio</b>.</p>
 
 <a class="cta" href="{{ route('registro', ['tipo' => 'eventos', 'desde' => 'blog:' . $slug]) }}">Cree su evento gratis</a>
 <p style="text-align:center;color:#6b7570">¿Ya tiene LocalProo? Actívelo en <b>Datos del negocio → Módulos → Eventos y venta de entradas</b>.</p>

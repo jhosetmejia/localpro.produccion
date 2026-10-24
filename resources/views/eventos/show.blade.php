@@ -39,8 +39,8 @@
             <p class="text-muted mb-0">{{ $evento->fecha_evento ? ucfirst($evento->fecha_evento->locale('es')->isoFormat('dddd D [de] MMMM [de] YYYY · h:mm a')) : '' }} @if ($evento->lugar)· {{ $evento->lugar }}@endif · {{ $evento->etapa ?: 'Entrada' }}: {{ dinero($evento->precio) }}</p></div>
         <div class="lp-quick">
             <a href="{{ route('eventos.index') }}" class="btn btn-light"><i class="fa-solid fa-arrow-left me-1"></i>Eventos</a>
-            <a href="{{ route('eventos.edit', $evento) }}" class="btn btn-light"><i class="fa-solid fa-pen me-1"></i>Editar</a>
-            <a href="{{ route('eventos.puerta', $evento) }}" class="btn btn-dark"><i class="fa-solid fa-qrcode me-1"></i>Puerta (escanear)</a>
+            @if ($p['admin'] || $p['info'] || $p['diseno'])<a href="{{ route('eventos.edit', $evento) }}" class="btn btn-light"><i class="fa-solid fa-pen me-1"></i>Editar</a>@endif
+            @if ($p['admin'] || $p['puerta'])<a href="{{ route('eventos.puerta', $evento) }}" class="btn btn-dark"><i class="fa-solid fa-qrcode me-1"></i>Puerta (escanear)</a>@endif
         </div>
     </div>
     @include('layouts.partials.lp-flash')
@@ -105,6 +105,7 @@
                 </div>
             </div>
             <div class="acc">
+                @if ($p['admin'] || $p['pagos'])
                 @if (in_array($e->estado, ['pendiente', 'rechazada'], true))
                 <form method="post" action="{{ route('eventos.aprobar', [$evento, $e]) }}" class="d-flex gap-1" data-confirm="¿Aprobar el pago de {{ $a->nombre }}?" data-confirm-texto="Revise que el comprobante sea por {{ dinero($e->precio) }}. Se le genera la entrada con QR." data-confirm-ok="Sí, aprobar pago">
                     @csrf
@@ -126,6 +127,7 @@
                     @endunless
                 @endif
                 <form method="post" action="{{ route('eventos.clave', [$evento, $e]) }}" data-confirm="¿Restablecer la clave de {{ $a->nombre }}?" data-confirm-texto="Su nueva clave será su número de documento ({{ $a->documento }})." data-confirm-ok="Restablecer">@csrf<button class="btn btn-link btn-sm text-muted" title="Olvidó la clave">Restablecer clave</button></form>
+                @endif
             </div>
         </div>
     </div>
@@ -134,7 +136,7 @@
     @endforelse
     {{ $entradas->links() }}
 
-    @if ($evento->entradas()->count() === 0)
+    @if ($p['admin'] && $evento->entradas()->count() === 0)
     <form method="post" action="{{ route('eventos.destroy', $evento) }}" class="mt-4 text-end" data-confirm="¿Borrar este evento?" data-confirm-ok="Sí, borrar" data-peligro>@csrf @method('delete')<button class="btn btn-link text-danger btn-sm">Borrar evento</button></form>
     @endif
 </div>

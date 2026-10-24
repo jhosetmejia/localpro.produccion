@@ -30,8 +30,11 @@ class RolesNegocio
             'pedidos-administrar' => 'Configurar estaciones y ver todos los pedidos y el cierre',
         ],
         'Eventos y entradas' => [
+            'gestionar-eventos' => 'Administrar eventos: crear, borrar, precio, datos de pago y publicar (todo)',
+            'eventos-pagos' => 'Contabilidad: ver compradores, aprobar o rechazar pagos y descargar el Excel',
+            'eventos-informacion' => 'Logística: editar la información del evento (fecha, lugar, descripción, condiciones, redes) y ver asistentes',
+            'eventos-diseno' => 'Diseño: cambiar afiches/banner, logo, estilo y color de la página del evento',
             'eventos-ingreso' => 'Puerta del evento: escanear el QR y dejar entrar',
-            'gestionar-eventos' => 'Crear eventos, ver compradores y aprobar pagos',
         ],
     ];
 
@@ -53,7 +56,11 @@ class RolesNegocio
         'entradas' => ['Entradas', 'fa-ticket', ['pedidos-preparar'], 'estacion', 'Entradas'],
         'paseos' => ['Paseos con animales', 'fa-horse', ['pedidos-preparar'], 'estacion', 'Paseos con animales'],
         'granjero' => ['Granjero', 'fa-tractor', ['pedidos-preparar'], 'estacion', 'Granja'],
-        'puerta' => ['Puerta (eventos)', 'fa-qrcode', ['eventos-ingreso'], 'panel', null],
+        'puerta' => ['Puerta (eventos)', 'fa-qrcode', ['eventos-ingreso'], 'eventos', null],
+        'ev_admin' => ['Administrador del evento', 'fa-user-tie', ['gestionar-eventos', 'eventos-pagos', 'eventos-informacion', 'eventos-diseno', 'eventos-ingreso'], 'eventos', null],
+        'ev_contabilidad' => ['Contabilidad', 'fa-calculator', ['eventos-pagos'], 'eventos', null],
+        'ev_logistica' => ['Logística', 'fa-truck-ramp-box', ['eventos-informacion', 'eventos-ingreso'], 'eventos', null],
+        'ev_diseno' => ['Diseño', 'fa-palette', ['eventos-diseno'], 'eventos', null],
         'admin' => ['Administrador', 'fa-user-tie', ['*'], 'panel', null],
     ];
 
@@ -63,6 +70,27 @@ class RolesNegocio
         'cafeteria' => ['admin', 'caja', 'mesero', 'cafeteria'],
         'otro' => ['caja', 'mesero', 'cocina'],
     ];
+
+    // Roles que quedan creados al encender Eventos (el empresario no tiene que inventarlos)
+    public const EVENTOS_POR_DEFECTO = ['ev_admin', 'ev_contabilidad', 'ev_logistica', 'ev_diseno', 'puerta'];
+
+    /**
+     * Crea los roles de Eventos que falten (por nombre). No toca los que el negocio ya tenga ni repite los existentes.
+     * Devuelve cuántos creó.
+     */
+    public static function crearEventosPorDefecto(\App\Models\Tienda $tienda): int
+    {
+        if (!$tienda->mod_eventos) return 0;
+        return (int) TiendaActual::como($tienda->id, function () {
+            $n = 0;
+            foreach (self::EVENTOS_POR_DEFECTO as $clave) {
+                if (NegocioRol::where('nombre', self::PLANTILLAS[$clave][0])->exists()) continue;
+                self::desdePlantilla($clave);
+                $n++;
+            }
+            return $n;
+        });
+    }
 
     public static function plantillasPorDefecto(?string $tipo): array
     {
@@ -98,7 +126,7 @@ class RolesNegocio
             foreach ($ps as $p => $txt) {
                 if (!in_array($p, $existen, true)) continue;
                 if (str_starts_with($p, 'pedidos-') && $t && !$t->mod_pedidos) continue;
-                if (in_array($p, ['eventos-ingreso', 'gestionar-eventos'], true) && $t && !$t->mod_eventos) continue;
+                if (($p === 'gestionar-eventos' || str_starts_with($p, 'eventos-')) && $t && !$t->mod_eventos) continue;
                 $out[$g][$p] = $txt;
             }
         }

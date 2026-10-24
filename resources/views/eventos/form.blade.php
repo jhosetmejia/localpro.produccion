@@ -25,6 +25,7 @@
         @csrf @if ($evento->exists) @method('put') @endif
         <div class="row g-4">
             <div class="col-lg-8">
+                @if ($p['admin'] || $p['info'])
                 <div class="lp-box mb-3">
                     <h3><i class="fa-solid fa-star me-1"></i>El evento</h3>
                     <div class="row g-3">
@@ -40,11 +41,16 @@
                             <input class="form-control" name="lugar" value="{{ old('lugar', $evento->lugar) }}" maxlength="150" placeholder="Ej: Discoteca X, Calle 18 #25-30"></div>
                         <div class="col-12"><label class="form-label fw-bold">Descripción / publicidad</label>
                             <textarea class="form-control" name="descripcion" rows="5" maxlength="5000" placeholder="¡Ya está a la venta la boletería! Asegura tu entrada y prepárate para vivir una noche inolvidable.">{{ old('descripcion', $evento->descripcion) }}</textarea></div>
+                        @if ($p['admin'])
                         <div class="col-12"><label class="form-label fw-bold">Dirección de la página</label>
                             <div class="ev-url"><span>localproo.com/evento/</span><input name="slug" value="{{ old('slug', $evento->slug) }}" maxlength="80" placeholder="se arma sola con el nombre" pattern="[a-z0-9]+(-[a-z0-9]+)*"></div></div>
+                        @endif
                     </div>
                 </div>
 
+                @endif
+
+                @if ($p['admin'])
                 <div class="lp-box mb-3">
                     <h3><i class="fa-solid fa-ticket me-1"></i>Entrada y venta</h3>
                     <div class="row g-3">
@@ -84,6 +90,9 @@
                     </div>
                 </div>
 
+                @endif
+
+                @if ($p['admin'] || $p['info'])
                 <div class="lp-box mb-3">
                     <h3><i class="fa-solid fa-scale-balanced me-1"></i>Condiciones y redes</h3>
                     <div class="row g-3">
@@ -94,15 +103,27 @@
                             <input class="form-control" name="tiktok" value="{{ old('tiktok', $evento->tiktok) }}" maxlength="80" placeholder="ultimo__grito"></div>
                     </div>
                 </div>
+                @endif
             </div>
 
             <div class="col-lg-4">
+                @if (!$p['admin'])
+                <div class="lp-box mb-3" style="border-left:4px solid #a855f7">
+                    <b><i class="fa-solid fa-user-shield me-1"></i>Su rol puede cambiar:</b>
+                    <div class="text-muted small">{{ collect([$p['info'] ? 'la información del evento' : null, $p['diseno'] ? 'el diseño (afiches, logo, estilo y color)' : null])->filter()->join(' y ') }}. Precio, datos de pago y publicación los maneja el administrador del evento.</div>
+                </div>
+                @endif
+                @if ($p['admin'] || $p['diseno'])
                 <div class="lp-box mb-3">
+                    @if ($p['admin'])
                     <h3>Publicación</h3>
                     <select class="form-select" name="estado" data-nativo>
                         @foreach (\App\Models\Evento::ESTADOS as $k => $n)<option value="{{ $k }}" @selected(old('estado', $evento->estado) === $k)>{{ $n }}</option>@endforeach
                     </select>
                     <small class="text-muted d-block mt-2">En borrador solo usted ve la página (vista previa).</small>
+                    @else
+                    <h3>Diseño de la página</h3>
+                    @endif
                     <label class="form-label fw-bold mt-3">Estilo de la página</label>
                     <select class="form-select" name="tema" data-nativo>
                         @foreach (\App\Models\Evento::TEMAS as $k => $n)<option value="{{ $k }}" @selected(old('tema', $evento->tema ?: 'normal') === $k)>{{ $n }}</option>@endforeach
@@ -127,6 +148,7 @@
                     @if ($evento->$url)<div class="form-check mt-1"><input class="form-check-input" type="checkbox" name="quitar_{{ $campo }}" value="1" id="q-{{ $campo }}"><label class="form-check-label small" for="q-{{ $campo }}">Quitar imagen</label></div>@endif
                 </div>
                 @endforeach
+                @endif
                 <button class="btn btn-primary btn-lg w-100"><i class="fa-solid fa-floppy-disk me-1"></i>Guardar evento</button>
             </div>
         </div>

@@ -24,7 +24,7 @@ class Evento extends Model
     public const MENSAJE = 'Hola, ya pagué aquí está mi comprobante';
 
     // Estilo de la página pública
-    public const TEMAS = ['normal' => 'Normal', 'terror' => 'Terror / Halloween (sangriento)'];
+    public const TEMAS = ['normal' => 'Normal', 'terror' => 'Terror / Halloween (manos)'];
 
     // De "https://www.tiktok.com/@usuario?lang=es", "tiktok.com/@usuario" o "@usuario" deja solo "usuario"
     public static function usuarioRed(?string $v): ?string
@@ -139,5 +139,29 @@ class Evento extends Model
     public function getFechaTextoAttribute(): ?string
     {
         return $this->fecha_evento?->locale('es')->isoFormat('dddd D [de] MMMM [·] h:mm a');
+    }
+
+    /**
+     * Qué puede hacer la persona en Eventos (cada rol del negocio tiene su parte):
+     * admin = todo (crear, borrar, precio, pago, publicar) · pagos = compradores y aprobar pagos (contabilidad)
+     * info = datos del evento (logística) · diseno = afiches, logo, estilo y color · puerta = escanear el QR
+     */
+    public static function puede(?\App\Models\User $u = null): array
+    {
+        $u ??= auth()->user();
+        $admin = (bool) ($u && ($u->es_superadmin || $u->can('gestionar-eventos') || $u->can('editar-negocio')));
+        $c = fn (string $p) => $admin || ($u && $u->can($p));
+        return [
+            'admin' => $admin,
+            'pagos' => $c('eventos-pagos'),
+            'info' => $c('eventos-informacion'),
+            'diseno' => $c('eventos-diseno'),
+            'puerta' => $c('eventos-ingreso'),
+        ];
+    }
+
+    public static function puedeAlgo(?\App\Models\User $u = null): bool
+    {
+        return in_array(true, self::puede($u), true);
     }
 }

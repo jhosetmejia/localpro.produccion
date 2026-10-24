@@ -27,14 +27,16 @@ class eventosController extends Controller
     public function __construct()
     {
         $this->middleware(function ($request, $next) {
-            $u = $request->user();
-            $admin = $u && ($u->es_superadmin || $u->can('gestionar-eventos') || $u->can('editar-negocio'));
-            $puerta = $u && $u->can('eventos-ingreso');
-            if ($request->routeIs('eventos.puerta', 'eventos.validar')) {
-                abort_unless($admin || $puerta, 403);
-            } else {
-                abort_unless($admin || ($puerta && $request->routeIs('eventos.index')), 403);
-            }
+            $p = Evento::puede($request->user());
+            $ok = match (true) {
+                $request->routeIs('eventos.puerta', 'eventos.validar') => $p['admin'] || $p['puerta'],
+                $request->routeIs('eventos.index') => in_array(true, $p, true),
+                $request->routeIs('eventos.edit', 'eventos.update') => $p['admin'] || $p['info'] || $p['diseno'],
+                $request->routeIs('eventos.show', 'eventos.exportar') => $p['admin'] || $p['pagos'] || $p['info'],
+                $request->routeIs('eventos.aprobar', 'eventos.rechazar', 'eventos.pendiente', 'eventos.clave') => $p['admin'] || $p['pagos'],
+                default => $p['admin'], // activar, crear, guardar nuevo y borrar
+            };
+            abort_unless($ok, 403);
             if (!TiendaActual::tienda()?->mod_eventos && !$request->routeIs('eventos.index', 'eventos.activar')) {
                 return redirect()->route('eventos.index');
             }
@@ -55,8 +57,7 @@ class eventosController extends Controller
 
     private function esAdmin(): bool
     {
-        $u = auth()->user();
-        return (bool) ($u && ($u->es_superadmin || $u->can('gestionar-eventos') || $u->can('editar-negocio')));
+        return Evento::puede()['admin'];
     }
 
     // ===================== Eventos =====================
@@ -73,13 +74,14 @@ class eventosController extends Controller
             'entradas as ingresaron' => fn ($q) => $q->where('estado', 'aprobada')->whereNotNull('ingreso_at'),
         ])->orderByRaw("estado = 'cerrado'")->orderByDesc('fecha_evento')->orderByDesc('id')->get();
 
-        return view('eventos.index', ['tienda' => $tienda, 'eventos' => $eventos, 'admin' => $this->esAdmin()]);
+        return view('eventos.index', ['tienda' => $tienda, 'eventos' => $eventos, 'admin' => $this->esAdmin(), 'p' => Evento::puede()]);
     }
 
     public function activar()
     {
         abort_unless($this->esAdmin(), 403);
         $this->tienda()->forceFill(['mod_eventos' => true])->save();
+        \App\Support\RolesNegocio::crearEventosPorDefecto($this->tienda());
         return redirect()->route('eventos.index')->with('success', 'Listo: ya puede crear su primer evento.');
     }
 
@@ -92,7 +94,7 @@ class eventosController extends Controller
             'ciudad' => $tienda->ciudad ?? null,
             'condiciones' => "Reservamos el derecho de admisión y permanencia.\nLa entrada es personal e intransferible: presente su documento en la puerta.\nNo hay devolución del dinero una vez aprobado el pago.",
         ]);
-        return view('eventos.form', ['tienda' => $tienda, 'evento' => $evento]);
+        return view('eventos.form', ['tienda' => $tienda, 'evento' => $evento, 'p' => Evento::puede()]);
     }
 
     public function store(Request $request)
@@ -107,7 +109,7 @@ class eventosController extends Controller
     public function edit(Evento $evento)
     {
         $this->mio($evento);
-        return view('eventos.form', ['tienda' => $this->tienda(), 'evento' => $evento]);
+        return view('eventos.form', ['tienda' => $this->tienda(), 'evento' => $evento, 'p' => Evento::puede()]);
     }
 
     public function update(Request $request, Evento $evento)
@@ -119,7 +121,7 @@ class eventosController extends Controller
 
     private function guardar(Request $request, Evento $evento): void
     {
-        $datos = $request->validate([
+        $reglas = [
             'nombre' => 'required|string|max:120',
             'slug' => ['nullable', 'string', 'max:80', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/', Rule::unique('eventos', 'slug')->ignore($evento->id)],
             'subtitulo' => 'nullable|string|max:120',
@@ -146,16 +148,30 @@ class eventosController extends Controller
             'imagen2' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:8192',
             'logo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
             'tema' => ['nullable', Rule::in(array_keys(Evento::TEMAS))],
-        ], [
+        ];
+        // Cada rol solo cambia su parte: Logística los datos, Diseño la imagen; precio, pago y publicación solo el administrador
+        $p = Evento::puede();
+        if (!$p['admin']) {
+            $campos = array_merge(
+                $p['info'] ? ['nombre', 'subtitulo', 'descripcion', 'fecha_evento', 'lugar', 'ciudad', 'condiciones', 'instagram', 'tiktok'] : [],
+                $p['diseno'] ? ['imagen', 'imagen2', 'logo', 'tema', 'color'] : [],
+            );
+            abort_if(!$campos || !$evento->exists, 403);
+            $reglas = array_intersect_key($reglas, array_flip($campos));
+        }
+        $datos = $request->validate($reglas, [
             'slug.regex' => 'La dirección solo puede tener letras minúsculas, números y guiones (ej. el-ultimo-grito).',
             'slug.unique' => 'Esa dirección ya la tiene otro evento. Pruebe con otra.',
             'whatsapp.regex' => 'Escriba el número de WhatsApp solo con números (ej. 3218981691).',
         ]);
 
-        $datos['pedir_colegio'] = $request->boolean('pedir_colegio');
-        $datos['color'] = $datos['color'] ?? '#a855f7';
-        $datos['tema'] = $datos['tema'] ?? 'normal';
+        if ($p['admin']) $datos['pedir_colegio'] = $request->boolean('pedir_colegio');
+        if ($p['admin'] || $p['diseno']) {
+            $datos['color'] = $datos['color'] ?? '#a855f7';
+            $datos['tema'] = $datos['tema'] ?? 'normal';
+        }
         foreach (['instagram', 'tiktok'] as $r) {
+            if (!array_key_exists($r, $datos)) continue;
             // Enlace corto de TikTok (vm.tiktok.com/…): se guarda completo; lo demás queda solo el usuario
             if ($r === 'tiktok' && preg_match('~^(https?://)?(vm|vt)\.tiktok\.com/~i', (string) ($datos[$r] ?? ''))) {
                 $datos[$r] = preg_match('~^https?://~i', $datos[$r]) ? $datos[$r] : 'https://' . $datos[$r];
@@ -163,14 +179,17 @@ class eventosController extends Controller
             }
             $datos[$r] = Evento::usuarioRed($datos[$r] ?? null);
         }
-        $datos['whatsapp'] = preg_replace('/\D/', '', $datos['whatsapp']);
-        $datos['slug'] = $datos['slug'] ?: ($evento->slug ?: Evento::slugUnico($datos['nombre'], $evento->id));
+        if ($p['admin']) {
+            $datos['whatsapp'] = preg_replace('/\D/', '', $datos['whatsapp']);
+            $datos['slug'] = $datos['slug'] ?: ($evento->slug ?: Evento::slugUnico($datos['nombre'], $evento->id));
+        }
         unset($datos['imagen'], $datos['imagen2'], $datos['logo']);
 
         $evento->fill($datos);
         $evento->save();
 
         foreach (['imagen' => 'imagen_path', 'imagen2' => 'imagen2_path', 'logo' => 'logo_path'] as $campo => $col) {
+            if (!$p['admin'] && !$p['diseno']) break;
             if ($request->hasFile($campo)) {
                 if ($evento->$col) Storage::disk('public')->delete($evento->$col);
                 $ruta = $request->file($campo)->store('eventos/' . TiendaActual::id(), 'public');
@@ -215,7 +234,7 @@ class eventosController extends Controller
             'recaudo' => (float) (clone $base)->where('estado', 'aprobada')->sum('precio'),
         ];
 
-        return view('eventos.show', ['tienda' => $this->tienda(), 'evento' => $evento, 'entradas' => $entradas, 'stats' => $stats, 'ver' => $ver]);
+        return view('eventos.show', ['tienda' => $this->tienda(), 'evento' => $evento, 'entradas' => $entradas, 'stats' => $stats, 'ver' => $ver, 'p' => Evento::puede()]);
     }
 
     public function destroy(Evento $evento)

@@ -39,8 +39,9 @@
             </div>
         </div>
         <div class="d-flex gap-2 flex-wrap">
-            @if ($admin)<a href="{{ route('eventos.show', $ev) }}" class="btn btn-primary"><i class="fa-solid fa-users me-1"></i>Compradores</a>@endif
-            <a href="{{ route('eventos.puerta', $ev) }}" class="btn btn-dark"><i class="fa-solid fa-qrcode me-1"></i>Puerta</a>
+            @if ($p['admin'] || $p['pagos'] || $p['info'])<a href="{{ route('eventos.show', $ev) }}" class="btn btn-primary"><i class="fa-solid fa-users me-1"></i>Compradores</a>@endif
+            @if (!$p['admin'] && ($p['info'] || $p['diseno']))<a href="{{ route('eventos.edit', $ev) }}" class="btn btn-light"><i class="fa-solid fa-pen me-1"></i>{{ $p['info'] ? 'Editar evento' : 'Diseño de la página' }}</a>@endif
+            @if ($p['admin'] || $p['puerta'])<a href="{{ route('eventos.puerta', $ev) }}" class="btn btn-dark"><i class="fa-solid fa-qrcode me-1"></i>Puerta</a>@endif
         </div>
     </div>
     @empty

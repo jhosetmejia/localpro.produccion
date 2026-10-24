@@ -446,11 +446,17 @@ class Academia
                         'En la puerta abra <b>Puerta</b> en el celular y escanee: <b>verde</b> = puede entrar; <b>rojo</b> = ya se usó o no existe; <b>naranja</b> = el pago no está aprobado. Cada QR sirve <b>una sola vez</b>, aunque dos porteros escaneen a la vez.',
                         'Si no lee el QR, busque por número de documento y toque <b>Dejar entrar</b>. Para que alguien solo maneje la puerta, créele el rol <b>Puerta (eventos)</b> en Roles del negocio.',
                     ], 'tip' => 'Revise el documento contra el nombre que sale en pantalla: así nadie entra con el QR de otro.'],
+                    ['titulo' => 'Su equipo: Contabilidad, Logística, Diseño y Puerta', 'min' => 2, 'accion' => ['users.index', 'Crear usuarios'], 'contenido' => [
+                        'Al activar Eventos ya quedan creados los roles <b>Administrador del evento</b>, <b>Contabilidad</b>, <b>Logística</b>, <b>Diseño</b> y <b>Puerta</b>. No tiene que inventarlos.',
+                        '<b>Contabilidad</b> aprueba o rechaza pagos y baja el Excel. <b>Logística</b> edita fecha, lugar, descripción, condiciones y redes, y usa la puerta. <b>Diseño</b> cambia afiches, logo, estilo y color. El precio, el Nequi y publicar solo los toca el <b>Administrador del evento</b>.',
+                        'En <b>Usuarios → Nuevo usuario</b> cree a cada persona y elija su rol. Al entrar a LocalProo llega directo a Eventos y no ve ventas, caja ni inventario. Los permisos de cada rol se cambian en <b>Roles del negocio</b>.',
+                    ], 'tip' => 'Dele a cada persona solo lo que necesita: así nadie cambia el precio o el Nequi por error.'],
                 ],
                 'prueba' => [
                     ['p' => '¿Cuándo recibe la persona su entrada con QR?', 'o' => ['Cuando usted aprueba el pago', 'Apenas se registra', 'El día del evento'], 'r' => 0],
                     ['p' => 'Un QR ya se usó y alguien lo vuelve a mostrar en la puerta. ¿Qué pasa?', 'o' => ['Sale en rojo: "ya se usó" y no deja entrar', 'Deja entrar otra vez', 'Se borra el evento'], 'r' => 0],
                     ['p' => 'Pasó la primera etapa y ahora la entrada vale más. ¿Qué hace?', 'o' => ['Edita el evento: cambia la etapa, el precio y la fecha', 'Crea un evento nuevo', 'No se puede'], 'r' => 0],
+                    ['p' => 'Su diseñadora debe cambiar el afiche, pero no el precio. ¿Qué rol le da?', 'o' => ['Diseño', 'Administrador del evento', 'Contabilidad'], 'r' => 0],
                     ['p' => 'Una persona olvidó su clave. ¿Qué hace?', 'o' => ['Restablecer clave: queda su número de documento', 'Borra su registro', 'Le crea otra cuenta con el mismo correo'], 'r' => 0],
                 ],
             ],

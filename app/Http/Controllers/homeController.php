@@ -76,6 +76,10 @@ class homeController extends Controller
             };
             if ($destino && \Illuminate\Support\Facades\Route::has($destino)) return redirect()->route($destino);
         }
+        if ($yo->negocio_rol_id && !request()->boolean('panel') && ($rolPropio ?? $yo->negocioRol)?->inicio === 'eventos'
+            && $tienda->mod_eventos && \App\Models\Evento::puedeAlgo($yo) && \Illuminate\Support\Facades\Route::has('eventos.index')) {
+            return redirect()->route('eventos.index');
+        }
         if ($yo->negocio_rol_id && !request()->boolean('panel') && ($rolPropio ?? $yo->negocioRol)?->inicio === 'pos' && $yo->can('usar-pos')) {
             return redirect()->route('pos.index');
         }

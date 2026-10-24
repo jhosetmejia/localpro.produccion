@@ -23,6 +23,7 @@ class NegocioRol extends Model
         'caja' => 'Pedidos por cobrar (caja)',
         'estacion' => 'Pantalla de su estación (cocina, cafetería, entradas…)',
         'pos' => 'Vender (POS)',
+        'eventos' => 'Eventos y entradas',
     ];
 
     public function users()
