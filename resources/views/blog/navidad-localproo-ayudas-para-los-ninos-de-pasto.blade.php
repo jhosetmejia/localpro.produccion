@@ -12,7 +12,7 @@
 <p>Este diciembre, por <b>primera vez</b>, en <b>LocalProo</b> vamos a salir a los <b>barrios más necesitados de Pasto, Nariño</b>, a entregar ayudas a los niños que más lo necesitan. Y queremos hacerlo junto a los negocios que confían en nosotros.</p>
 
 <h2>¿Cómo puedo ayudar?</h2>
-<p>Cuando pague su plan de LocalProo verá la opción <b>"Dona $5.000 para recolectar ayudas para los niños más necesitados en diciembre"</b>. Los $5.000 se suman al valor de su plan en el mismo pago. Si prefiere no donar, solo desmarque la casilla antes de pagar.</p>
+<p>Cuando pague su plan de LocalProo verá la opción <b>"Dona $5.000 para recolectar ayudas para los niños más necesitados en diciembre"</b>. Si quiere ayudar, marque la casilla: los $5.000 se suman al valor de su plan en el mismo pago. Si no la marca, no se cobra nada adicional.</p>
 <div class="box"><b>Su donación va aparte del plan.</b> En LocalProo la registramos por separado: todo lo que se recoge en esta campaña se destina a las ayudas de diciembre.</div>
 
 <h2>¿Qué vamos a hacer?</h2>
@@ -28,9 +28,9 @@
 
 <h2>Preguntas frecuentes</h2>
 <ul>
-    <li><b>¿Es obligatorio?</b> No. Es voluntario: si no quiere donar, desmarque la casilla al pagar.</li>
+    <li><b>¿Es obligatorio?</b> No. Es voluntario: solo se cobra si usted marca la casilla al pagar.</li>
     <li><b>¿Cuánto es?</b> $5.000 por pago, una sola vez.</li>
-    <li><b>¿Me cobran cada mes?</b> No. Se cobra solo en el pago en el que deja la casilla marcada.</li>
+    <li><b>¿Me cobran cada mes?</b> No. Se cobra solo en el pago en el que usted marca la casilla.</li>
     <li><b>¿Cómo sé que mi donación llegó?</b> Al aprobarse el pago le aparece el mensaje de agradecimiento, y su negocio queda en la lista de donantes para invitarlo a la entrega.</li>
     <li><b>¿Puedo donar más?</b> ¡Claro! Escríbanos por WhatsApp y le contamos cómo.</li>
 </ul>

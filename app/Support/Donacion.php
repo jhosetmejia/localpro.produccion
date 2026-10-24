@@ -24,6 +24,6 @@ class Donacion
 
     public static function marcada(): bool
     {
-        return (bool) (int) Ajuste::valor('donacion_marcada', 1);
+        return (bool) (int) Ajuste::valor('donacion_marcada', 0);
     }
 }

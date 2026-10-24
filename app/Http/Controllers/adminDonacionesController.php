@@ -23,7 +23,7 @@ class adminDonacionesController extends Controller
             'pendientes' => (clone $base)->where('estado', 'pendiente')->count(),
             'activa' => (bool) (int) Ajuste::valor('donacion_activa', 0),
             'monto' => (float) Ajuste::valor('donacion_monto', 5000),
-            'marcada' => (bool) (int) Ajuste::valor('donacion_marcada', 1),
+            'marcada' => (bool) (int) Ajuste::valor('donacion_marcada', 0),
         ]);
     }
 

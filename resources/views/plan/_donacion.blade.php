@@ -5,6 +5,6 @@
     <input type="checkbox" name="donar" value="1" id="{{ $did }}" class="form-check-input flex-shrink-0 mt-1" style="width:1.15rem;height:1.15rem" @checked(\App\Support\Donacion::marcada())>
     <span><b style="color:#15803d">🎁 Dona {{ \App\Support\Moneda::formato($dm, 'COP', true) }}</b> para recolectar ayudas para los niños más necesitados en diciembre. Junto a LocalProo realizaremos esta labor en los barrios de Pasto, Nariño.
         <a href="{{ route('donaciones') }}" target="_blank" rel="noopener" style="color:#15803d;font-weight:700" onclick="event.stopPropagation()">Más info</a>
-        <small class="d-block" style="color:#4d7c5d">Se suma al valor del plan. Si no quiere donar, desmarque la casilla.</small></span>
+        <small class="d-block" style="color:#4d7c5d">Es voluntario: marque la casilla si quiere ayudar y se suma al valor del plan.</small></span>
 </label>
 @endif

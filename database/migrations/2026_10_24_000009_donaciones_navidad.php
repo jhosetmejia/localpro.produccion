@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('pagos_suscripcion', function (Blueprint $t) {
             if (!Schema::hasColumn('pagos_suscripcion', 'donacion')) $t->decimal('donacion', 12, 2)->nullable();
         });
-        foreach (['donacion_activa' => '1', 'donacion_monto' => '5000', 'donacion_marcada' => '1'] as $k => $v) {
+        foreach (['donacion_activa' => '1', 'donacion_monto' => '5000', 'donacion_marcada' => '0'] as $k => $v) {
             if (!DB::table('ajustes')->where('clave', $k)->exists()) {
                 DB::table('ajustes')->insert(['clave' => $k, 'valor' => $v, 'created_at' => now(), 'updated_at' => now()]);
             }
