@@ -266,6 +266,12 @@ class eventoPublicoController extends Controller
     {
         $this->guard()->logout();
         $request->session()->regenerateToken();
+        // "Comprar otra entrada": cierra la sesión de este celular y abre el registro del evento para la otra persona
+        $volver = (string) $request->input('volver', '');
+        if (preg_match('/^[a-z0-9]+(-[a-z0-9]+)*$/', $volver) && Evento::where('slug', $volver)->exists()) {
+            return redirect()->route('evento.comprar', $volver)
+                ->with('success', 'Listo. Ahora registre los datos de la otra persona: su entrada queda a su nombre con su propio QR. La suya sigue guardada; entra de nuevo con su documento y clave.');
+        }
         return redirect()->route('mis-entradas.ingresar')->with('success', 'Cerró sesión.');
     }
 

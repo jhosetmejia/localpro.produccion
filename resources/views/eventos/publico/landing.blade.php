@@ -45,6 +45,16 @@
 .logo-ev{margin:18px auto 0;text-align:center}
 .logo-ev img{max-width:min(92%,440px);max-height:220px;filter:drop-shadow(0 10px 24px rgba(0,0,0,.7))}
 .visually-hidden{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.fijo .btn-otra{min-height:44px;font-size:.92rem;margin-top:8px;background:rgba(11,10,16,.7)}
+.hoja{position:fixed;inset:0;z-index:60;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(4px)}
+.hoja.on{display:flex}
+.hoja .caja{width:100%;max-width:560px;max-height:92vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:24px 24px 0 0;padding:22px 18px calc(18px + env(safe-area-inset-bottom))}
+.hoja h2{font-size:1.25rem;margin-bottom:.6rem}
+.hoja .pasos{margin:.8rem 0 1rem;padding-left:1.2rem;color:#dcd6e8;font-size:.93rem}
+.hoja .pasos li{margin:.25rem 0}
+.hoja .btn{margin-top:10px}
+.hoja .nota{font-size:.8rem;color:var(--mu);margin-top:6px;text-align:center}
+@media (min-width:600px){.hoja{align-items:center}.hoja .caja{border-radius:24px}}
 @endsection
 
 @section('content')
@@ -125,5 +135,49 @@
     @else
         <a class="btn btn-c" href="{{ route('evento.comprar', $evento->slug) }}"><i class="fa-solid fa-ticket"></i> {{ (int) $evento->max_por_compra > 1 ? 'Comprar entradas' : 'Comprar entrada' }}</a>
     @endif
+    @if ($entrada && in_array($entrada->estado, ['aprobada', 'pendiente'], true) && !$motivo)
+        <button type="button" class="btn btn-l btn-otra" data-abrir-otra><i class="fa-solid fa-user-plus"></i> Comprar otra entrada</button>
+    @endif
 </div>
+
+@if ($entrada && in_array($entrada->estado, ['aprobada', 'pendiente'], true) && !$motivo)
+@php
+    $msgOtra = '¡Vamos a ' . $evento->nombre . '! 🎟️ Compra tu entrada aquí con tus propios datos (la entrada es personal y tiene tu propio QR para el ingreso): ' . $evento->url;
+@endphp
+<div class="hoja" id="hoja-otra" role="dialog" aria-modal="true" aria-labelledby="hoja-otra-t">
+    <div class="caja">
+        <h2 id="hoja-otra-t"><i class="fa-solid fa-user-plus" style="color:var(--c)"></i> Comprar otra entrada</h2>
+        <div class="aviso"><i class="fa-solid fa-id-card"></i> <b>Cada entrada es personal y el ingreso es único:</b> en la puerta se valida el QR con el documento de quien la compró. Por eso la otra persona debe crear su propia cuenta y comprar su entrada a su nombre.</div>
+        <ol class="pasos">
+            <li>Envíale el enlace del evento por WhatsApp.</li>
+            <li>Ella se registra con sus datos y crea su clave.</li>
+            <li>Paga por {{ $evento->pago_metodo ?: 'Nequi' }} y envía su comprobante.</li>
+            <li>Cuando se apruebe el pago, recibe su entrada con su propio QR.</li>
+        </ol>
+        <a class="btn btn-wa" href="https://wa.me/?text={{ rawurlencode($msgOtra) }}" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> Enviar enlace a mi acompañante</a>
+        <form method="post" action="{{ route('mis-entradas.salir') }}">
+            @csrf
+            <input type="hidden" name="volver" value="{{ $evento->slug }}">
+            <button class="btn btn-l"><i class="fa-solid fa-user-pen"></i> Crear nueva cuenta en este celular</button>
+        </form>
+        <p class="nota">Si eliges crear la cuenta aquí, se cierra tu sesión en este celular. Tu entrada sigue guardada: vuelves a entrar con tu documento y clave.</p>
+        <button type="button" class="btn btn-l" data-cerrar-otra style="min-height:44px;font-size:.92rem">Cancelar</button>
+    </div>
+</div>
+@endif
+@endsection
+
+@section('js')
+<script>
+(function () {
+    var hoja = document.getElementById('hoja-otra');
+    if (!hoja) return;
+    function abrir() { hoja.classList.add('on'); document.body.style.overflow = 'hidden'; }
+    function cerrar() { hoja.classList.remove('on'); document.body.style.overflow = ''; }
+    document.querySelectorAll('[data-abrir-otra]').forEach(function (b) { b.addEventListener('click', abrir); });
+    document.querySelectorAll('[data-cerrar-otra]').forEach(function (b) { b.addEventListener('click', cerrar); });
+    hoja.addEventListener('click', function (e) { if (e.target === hoja) cerrar(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') cerrar(); });
+})();
+</script>
 @endsection
