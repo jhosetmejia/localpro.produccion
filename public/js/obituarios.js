@@ -528,7 +528,7 @@
             if (el) { Obi.escalar(el); Obi.ajustar(el); var v = el.querySelector('video'); if (v) v.play().catch(function () {}); }
         }
         if (slides.length) mostrar(0);
-        if (slides.length > 1) setInterval(function () { i = (i + 1) % slides.length; mostrar(i); }, (op.rotar || 12) * 1000);
+        if (slides.length > 1) setInterval(function () { i = (i + 1) % slides.length; mostrar(i); }, (op.rotar || 30) * 1000);
 
         if (op.version) {
             setInterval(function () {

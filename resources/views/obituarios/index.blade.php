@@ -127,7 +127,7 @@
                 <form method="post" action="{{ route('obituarios.general.config') }}" class="d-flex align-items-center gap-2 flex-wrap">
                     @csrf
                     <label class="small fw-bold">Cambiar cada</label>
-                    <input type="number" class="form-control form-control-sm" style="width:80px" name="obituarios_rotar" min="5" max="120" value="{{ $tienda->obituarios_rotar ?: 12 }}">
+                    <input type="number" class="form-control form-control-sm" style="width:80px" name="obituarios_rotar" min="5" max="120" value="{{ $tienda->obituarios_rotar ?: 30 }}">
                     <span class="small">segundos</span>
                     <div class="form-check small"><input class="form-check-input" type="checkbox" name="nueva_direccion" value="1" id="ndg"><label class="form-check-label" for="ndg">Nueva dirección</label></div>
                     <button class="btn btn-sm btn-dark ms-auto">Guardar</button>
