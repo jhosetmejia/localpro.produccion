@@ -48,6 +48,9 @@
 </ul>
 <p>Nadie del equipo ve sus ventas, inventario ni caja: cada uno entra a LocalProo y llega directo a Eventos. Puede cambiar los permisos de cada rol en <b>Roles del negocio</b>.</p>
 
+<h2>6. ¿Cuánta gente ha visto su evento?</h2>
+<p>La página cuenta las visitas (una por persona, sin contar robots ni a su equipo). En el panel ve las visitas y qué porcentaje se registró; si quiere, la página muestra al público <b>"X personas han visto este evento"</b> para animar a comprar. Se apaga en <b>Editar → Publicación</b>.</p>
+
 <a class="cta" href="{{ route('registro', ['tipo' => 'eventos', 'desde' => 'blog:' . $slug]) }}">Cree su evento gratis</a>
 <p style="text-align:center;color:#6b7570">¿Ya tiene LocalProo? Actívelo en <b>Datos del negocio → Módulos → Eventos y venta de entradas</b>.</p>
 @endsection

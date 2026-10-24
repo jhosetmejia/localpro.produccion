@@ -51,9 +51,17 @@ class eventoPublicoController extends Controller
         return EventoEntrada::withoutGlobalScope('tienda')->where('evento_id', $evento->id)->where('asistente_id', $a->id)->first();
     }
 
-    public function show(string $slug)
+    public function show(Request $request, string $slug)
     {
         $evento = $this->evento($slug);
+        // Visitas: una por persona (sesión) y por evento; no cuentan robots ni el equipo del negocio con sesión abierta
+        $clave = 'ev_visto_' . $evento->id;
+        $robot = preg_match('/bot|crawl|spider|slurp|facebookexternalhit|whatsapp|telegram|preview|curl|wget|headless/i', (string) $request->userAgent());
+        if (!$robot && !Auth::guard('web')->check() && !$request->session()->has($clave)) {
+            $request->session()->put($clave, 1);
+            DB::table('eventos')->where('id', $evento->id)->increment('visitas');
+            $evento->visitas = (int) $evento->visitas + 1;
+        }
         return view('eventos.publico.landing', [
             'evento' => $evento, 'tienda' => $evento->tienda, 'yo' => $this->yo(),
             'entrada' => $this->entradaDe($evento, $this->yo()), 'motivo' => $evento->motivoSinVenta(),

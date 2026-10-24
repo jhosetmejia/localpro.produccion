@@ -15,9 +15,9 @@ class Evento extends Model
     protected $table = 'eventos';
 
     protected $fillable = ['nombre', 'slug', 'subtitulo', 'descripcion', 'fecha_evento', 'lugar', 'ciudad', 'etapa', 'precio', 'venta_hasta', 'cupo',
-        'pago_metodo', 'pago_numero', 'pago_titular', 'whatsapp', 'mensaje_whatsapp', 'instagram', 'tiktok', 'pedir_colegio', 'edad_minima', 'condiciones', 'color', 'estado', 'tema'];
+        'pago_metodo', 'pago_numero', 'pago_titular', 'whatsapp', 'mensaje_whatsapp', 'instagram', 'tiktok', 'pedir_colegio', 'edad_minima', 'condiciones', 'color', 'estado', 'tema', 'mostrar_visitas'];
 
-    protected $casts = ['fecha_evento' => 'datetime', 'venta_hasta' => 'datetime', 'precio' => 'decimal:2', 'pedir_colegio' => 'boolean', 'cupo' => 'integer', 'edad_minima' => 'integer'];
+    protected $casts = ['fecha_evento' => 'datetime', 'venta_hasta' => 'datetime', 'precio' => 'decimal:2', 'pedir_colegio' => 'boolean', 'cupo' => 'integer', 'edad_minima' => 'integer', 'visitas' => 'integer', 'mostrar_visitas' => 'boolean'];
 
     public const ESTADOS = ['borrador' => 'Borrador (no se ve)', 'publicado' => 'Publicado (a la venta)', 'cerrado' => 'Venta cerrada'];
 

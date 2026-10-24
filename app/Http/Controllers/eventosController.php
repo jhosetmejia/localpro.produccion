@@ -165,7 +165,10 @@ class eventosController extends Controller
             'whatsapp.regex' => 'Escriba el número de WhatsApp solo con números (ej. 3218981691).',
         ]);
 
-        if ($p['admin']) $datos['pedir_colegio'] = $request->boolean('pedir_colegio');
+        if ($p['admin']) {
+            $datos['pedir_colegio'] = $request->boolean('pedir_colegio');
+            $datos['mostrar_visitas'] = $request->boolean('mostrar_visitas');
+        }
         if ($p['admin'] || $p['diseno']) {
             $datos['color'] = $datos['color'] ?? '#a855f7';
             $datos['tema'] = $datos['tema'] ?? 'normal';

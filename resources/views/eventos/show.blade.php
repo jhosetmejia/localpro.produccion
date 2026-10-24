@@ -56,6 +56,7 @@
         <div class="lp-kpi"><div class="lbl">Aprobadas</div><div class="val">{{ $stats['aprobada'] }}</div><div class="sub">{{ $evento->cupo ? 'de ' . $evento->cupo . ' de cupo' : 'entradas con QR' }}</div><div class="ic"><i class="fa-solid fa-check"></i></div></div>
         <div class="lp-kpi"><div class="lbl">Ingresaron</div><div class="val">{{ $stats['ingreso'] }}</div><div class="sub">pasaron por la puerta</div><div class="ic"><i class="fa-solid fa-door-open"></i></div></div>
         <div class="lp-kpi"><div class="lbl">Recaudado</div><div class="val">{{ dinero($stats['recaudo']) }}</div><div class="sub">pagos aprobados</div><div class="ic"><i class="fa-solid fa-sack-dollar"></i></div></div>
+        <div class="lp-kpi"><div class="lbl">Visitas</div><div class="val">{{ number_format((int) $evento->visitas, 0, ',', '.') }}</div><div class="sub">{{ $evento->visitas ? round(($stats['aprobada'] + $stats['pendiente']) * 100 / max(1, $evento->visitas)) . '% se registró' : 'a la página del evento' }}</div><div class="ic"><i class="fa-regular fa-eye"></i></div></div>
     </div>
 
     <div class="lp-box mb-3">

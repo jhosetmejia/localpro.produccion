@@ -121,6 +121,8 @@
                         @foreach (\App\Models\Evento::ESTADOS as $k => $n)<option value="{{ $k }}" @selected(old('estado', $evento->estado) === $k)>{{ $n }}</option>@endforeach
                     </select>
                     <small class="text-muted d-block mt-2">En borrador solo usted ve la página (vista previa).</small>
+                    <input type="hidden" name="mostrar_visitas" value="0">
+                    <div class="form-check form-switch mt-3"><input class="form-check-input" type="checkbox" name="mostrar_visitas" value="1" id="mvis" @checked(old('mostrar_visitas', $evento->exists ? $evento->mostrar_visitas : true))><label class="form-check-label" for="mvis">Mostrar en la página cuántas personas la han visto</label></div>
                     @else
                     <h3>Diseño de la página</h3>
                     @endif
