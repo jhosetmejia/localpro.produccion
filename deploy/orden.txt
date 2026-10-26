@@ -2,4 +2,4 @@
 # Se ejecuta solo la ÚLTIMA línea con formato  ID|accion  y cada ID una sola vez. Para repetir, use un ID nuevo.
 # Acciones: reiniciar · reiniciar-php · reiniciar-nginx · limpiar-cache · quitar-mantenimiento · liberar-disco
 #           reintentar-actualizacion · migrar · colas · diagnostico · recuperar-fotos · respaldo-ya · probar-respaldo · refrescar-pruebas (copia los datos de producción al sitio de pruebas)
-20261026-01|respaldo-ya
+20261026-02|respaldo-ya
