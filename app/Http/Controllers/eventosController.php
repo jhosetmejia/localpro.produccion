@@ -129,6 +129,8 @@ class eventosController extends Controller
             'fecha_evento' => 'required|date',
             'lugar' => 'nullable|string|max:150',
             'ciudad' => 'nullable|string|max:80',
+            // Solo enlaces de Google Maps (los que da el botón Compartir de Maps)
+            'mapa_url' => ['nullable', 'url', 'max:500', 'regex:#^https://(maps\.app\.goo\.gl/|goo\.gl/maps/|(www\.)?google\.[a-z.]+/maps|maps\.google\.[a-z.]+/)#i'],
             'etapa' => 'nullable|string|max:60',
             'precio' => 'required|numeric|min:0|max:99999999',
             'venta_hasta' => 'nullable|date',
@@ -153,7 +155,7 @@ class eventosController extends Controller
         $p = Evento::puede();
         if (!$p['admin']) {
             $campos = array_merge(
-                $p['info'] ? ['nombre', 'subtitulo', 'descripcion', 'fecha_evento', 'lugar', 'ciudad', 'condiciones', 'instagram', 'tiktok'] : [],
+                $p['info'] ? ['nombre', 'subtitulo', 'descripcion', 'fecha_evento', 'lugar', 'ciudad', 'mapa_url', 'condiciones', 'instagram', 'tiktok'] : [],
                 $p['diseno'] ? ['imagen', 'imagen2', 'logo', 'tema', 'color'] : [],
             );
             abort_if(!$campos || !$evento->exists, 403);
@@ -163,6 +165,8 @@ class eventosController extends Controller
             'slug.regex' => 'La dirección solo puede tener letras minúsculas, números y guiones (ej. el-ultimo-grito).',
             'slug.unique' => 'Esa dirección ya la tiene otro evento. Pruebe con otra.',
             'whatsapp.regex' => 'Escriba el número de WhatsApp solo con números (ej. 3218981691).',
+            'mapa_url.url' => 'Pegue el enlace completo de Google Maps (empieza por https://).',
+            'mapa_url.regex' => 'Ese enlace no es de Google Maps. En Google Maps busque el lugar, toque Compartir y copie el enlace.',
         ]);
 
         if ($p['admin']) {

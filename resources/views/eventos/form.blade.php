@@ -39,6 +39,10 @@
                             <input class="form-control" name="ciudad" value="{{ old('ciudad', $evento->ciudad) }}" maxlength="80"></div>
                         <div class="col-12"><label class="form-label fw-bold">Lugar <small class="text-muted fw-normal">(si aún es sorpresa, déjelo vacío)</small></label>
                             <input class="form-control" name="lugar" value="{{ old('lugar', $evento->lugar) }}" maxlength="150" placeholder="Ej: Discoteca X, Calle 18 #25-30"></div>
+                        <div class="col-12"><label class="form-label fw-bold"><i class="fa-solid fa-map-location-dot me-1"></i>Enlace de Google Maps <small class="text-muted fw-normal">(opcional)</small></label>
+                            <input class="form-control" type="url" name="mapa_url" value="{{ old('mapa_url', $evento->mapa_url) }}" maxlength="500" placeholder="https://maps.app.goo.gl/...">
+                            <small class="text-muted d-block mt-1">En Google Maps busque el lugar, toque <b>Compartir</b> y pegue aquí el enlace. En la página del evento y en cada entrada sale el botón <b>Cómo llegar</b>, que abre Google Maps con la ruta. Si lo deja vacío pero escribe el lugar, el botón busca el lugar en Google Maps.</small>
+                            @error('mapa_url')<small class="text-danger d-block">{{ $message }}</small>@enderror</div>
                         <div class="col-12"><label class="form-label fw-bold">Descripción / publicidad</label>
                             <textarea class="form-control" name="descripcion" rows="5" maxlength="5000" placeholder="¡Ya está a la venta la boletería! Asegura tu entrada y prepárate para vivir una noche inolvidable.">{{ old('descripcion', $evento->descripcion) }}</textarea></div>
                         @if ($p['admin'])

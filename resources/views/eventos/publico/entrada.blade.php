@@ -45,6 +45,7 @@
         <div><span>Documento</span><b>{{ $entrada->documento_titular }}</b></div>
         @if ($evento->fecha_evento)<div><span>Fecha</span><b>{{ ucfirst($evento->fecha_evento->locale('es')->isoFormat('ddd D [de] MMMM · h:mm a')) }}</b></div>@endif
         @if ($evento->lugar)<div><span>Lugar</span><b>{{ $evento->lugar }}</b></div>@endif
+        @if ($evento->como_llegar_url)<a href="{{ $evento->como_llegar_url }}" target="_blank" rel="noopener" style="display:flex;justify-content:center;align-items:center;gap:.45rem;background:#0b0d0c;color:#fff;border-radius:999px;padding:.6rem 1rem;font-weight:800;text-decoration:none;margin:.2rem 0"><i class="fa-solid fa-diamond-turn-right"></i>Cómo llegar (Google Maps)</a>@endif
         <div><span>Entrada</span><b>{{ $entrada->etapa ?: 'General' }}</b></div>
     </div>
 </div>

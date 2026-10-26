@@ -29,6 +29,8 @@
 .dato{display:flex;gap:.8rem;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:.85rem 1rem}
 .dato i{width:40px;height:40px;flex:0 0 40px;border-radius:12px;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 22%,transparent);color:var(--c)}
 .dato b{display:block}.dato small{color:var(--mu)}
+.dato .llegar{flex:none;display:inline-flex;align-items:center;gap:.4rem;background:var(--c);color:#fff;border-radius:999px;padding:.55rem .9rem;font-weight:800;font-size:.85rem;text-decoration:none;white-space:nowrap}
+.dato .llegar i{width:auto;height:auto;flex:none;background:none;color:inherit;border-radius:0}
 .vistas{display:flex;align-items:center;justify-content:center;gap:.4rem;margin:22px auto 0;font-size:.78rem;font-weight:600;color:var(--mu);opacity:.85}
 .vistas .pt{width:6px;height:6px;border-radius:50%;background:var(--c);animation:latir 2.4s ease-in-out infinite}
 @keyframes latir{50%{opacity:.25}}
@@ -86,7 +88,8 @@ main{position:relative;z-index:2}
     <div class="dato"><i class="fa-regular fa-calendar"></i><div><b>{{ ucfirst($evento->fecha_evento->locale('es')->isoFormat('dddd D [de] MMMM')) }}</b><small>{{ $evento->fecha_evento->format('g:i a') }}</small></div></div>
     @endif
     @if ($evento->lugar || $evento->ciudad)
-    <div class="dato"><i class="fa-solid fa-location-dot"></i><div><b>{{ $evento->lugar ?: $evento->ciudad }}</b>@if ($evento->lugar && $evento->ciudad)<small>{{ $evento->ciudad }}</small>@endif</div></div>
+    <div class="dato"><i class="fa-solid fa-location-dot"></i><div style="flex:1;min-width:0"><b>{{ $evento->lugar ?: $evento->ciudad }}</b>@if ($evento->lugar && $evento->ciudad)<small>{{ $evento->ciudad }}</small>@endif</div>
+        @if ($evento->como_llegar_url)<a href="{{ $evento->como_llegar_url }}" target="_blank" rel="noopener" class="llegar"><i class="fa-solid fa-diamond-turn-right"></i>Cómo llegar</a>@endif</div>
     @endif
 </div>
 

@@ -14,7 +14,7 @@ class Evento extends Model
 
     protected $table = 'eventos';
 
-    protected $fillable = ['nombre', 'slug', 'subtitulo', 'descripcion', 'fecha_evento', 'lugar', 'ciudad', 'etapa', 'precio', 'venta_hasta', 'cupo',
+    protected $fillable = ['nombre', 'slug', 'subtitulo', 'descripcion', 'fecha_evento', 'lugar', 'ciudad', 'mapa_url', 'etapa', 'precio', 'venta_hasta', 'cupo',
         'pago_metodo', 'pago_numero', 'pago_titular', 'whatsapp', 'mensaje_whatsapp', 'instagram', 'tiktok', 'pedir_colegio', 'edad_minima', 'condiciones', 'color', 'estado', 'tema', 'mostrar_visitas', 'campos', 'pedir_nacimiento', 'pedir_celular', 'promos', 'max_por_compra'];
 
     protected $casts = ['fecha_evento' => 'datetime', 'venta_hasta' => 'datetime', 'precio' => 'decimal:2', 'pedir_colegio' => 'boolean', 'cupo' => 'integer', 'edad_minima' => 'integer', 'visitas' => 'integer', 'mostrar_visitas' => 'boolean', 'campos' => 'array', 'pedir_nacimiento' => 'boolean', 'pedir_celular' => 'boolean', 'promos' => 'array', 'max_por_compra' => 'integer'];
@@ -129,6 +129,15 @@ class Evento extends Model
         $pais = $this->relationLoaded('tienda') ? $this->tienda?->pais : Tienda::whereKey($this->tienda_id)->value('pais');
         $m = \App\Support\Paises::datos($pais);
         return $m['simbolo'] . number_format((float) $valor, $m['decimales'], $m['decimal'], $m['miles']);
+    }
+
+    // Botón "Cómo llegar": el enlace de Google Maps que puso el organizador; si no lo puso pero hay lugar,
+    // se busca el lugar y la ciudad en Google Maps. Si el lugar es sorpresa (vacío), no hay botón.
+    public function getComoLlegarUrlAttribute(): ?string
+    {
+        if ($this->mapa_url) return $this->mapa_url;
+        if (!$this->lugar) return null;
+        return 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode(trim($this->lugar . ($this->ciudad ? ', ' . $this->ciudad : '')));
     }
 
     public function getPrecioTextoAttribute(): string
