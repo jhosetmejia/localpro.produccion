@@ -50,7 +50,12 @@
     <div class="lp-hello">
         <div><small><i class="fa-solid fa-calendar-days me-1"></i>Ventas</small><h1>Alqui<span>ler</span></h1>
             <span class="text-muted fw-semibold">Ponga en alquiler sus servicios: qué se alquila, fecha, horario, lugar, quién contrata y valor.</span></div>
-        <div class="lp-quick"><a href="{{ route('alquileres.create') }}" class="btn btn-primary btn-lg"><i class="fa-solid fa-plus me-1"></i>Crear servicio en alquiler</a></div>
+        <div class="lp-quick">
+            @if (\Illuminate\Support\Facades\Route::has('cotizaciones.index'))
+            <a href="{{ route('cotizaciones.calendario') }}" class="btn btn-light btn-lg"><i class="fa-solid fa-calendar-check me-1"></i>¿Qué tengo libre?</a>
+            <a href="{{ route('cotizaciones.create') }}" class="btn btn-light btn-lg"><i class="fa-solid fa-file-signature me-1"></i>Cotizar</a>
+            @endif
+            <a href="{{ route('alquileres.create') }}" class="btn btn-primary btn-lg"><i class="fa-solid fa-plus me-1"></i>Crear servicio en alquiler</a></div>
     </div>
     @include('layouts.partials.lp-flash')
     @if ($ventaNueva)

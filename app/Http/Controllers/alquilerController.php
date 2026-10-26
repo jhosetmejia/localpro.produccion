@@ -75,9 +75,23 @@ class alquilerController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return view('alquiler.form', ['alquiler' => new Alquiler(['fecha' => today(), 'hora' => '08:00'])] + $this->datosPago());
+        $a = new Alquiler(['fecha' => today(), 'hora' => '08:00']);
+        // Desde una cotización: ya trae qué se alquila, la fecha, el lugar, el celular y el valor
+        $cot = $request->filled('cotizacion') ? \App\Models\Cotizacion::with('items')->find($request->integer('cotizacion')) : null;
+        if ($cot) {
+            $que = $cot->asunto ?: $cot->items->map(fn ($i) => ($i->cantidad != 1 ? $i->cantidad_texto . ' ' : '') . $i->descripcion)->implode(', ');
+            $a->fill([
+                'que_alquila' => mb_substr($que, 0, 120),
+                'fecha' => $cot->evento_fecha ?? today(),
+                'lugar' => $cot->evento_lugar ?? $cot->cliente_direccion,
+                'responsable_telefono' => $cot->cliente_telefono,
+                'valor' => $cot->total,
+                'nota' => mb_substr('Cotización ' . $cot->numero . ' · ' . $cot->cliente_nombre . ($cot->asunto ? ': ' . $cot->items->map(fn ($i) => ($i->cantidad != 1 ? $i->cantidad_texto . ' ' : '') . $i->descripcion)->implode(', ') : ''), 0, 255),
+            ]);
+        }
+        return view('alquiler.form', ['alquiler' => $a, 'cotizacion' => $cot] + $this->datosPago());
     }
 
     public function store(Request $request)
@@ -89,6 +103,10 @@ class alquilerController extends Controller
         $d['user_id'] = Auth::id();
         $d['estado'] = 'programado';
         $a = Alquiler::create($d);
+        // Si viene de una cotización, queda aceptada y atada a este alquiler (lo cotizado sigue ocupado hasta que se devuelva)
+        if ($request->filled('cotizacion_id') && ($cot = \App\Models\Cotizacion::find($request->integer('cotizacion_id')))) {
+            $cot->update(['alquiler_id' => $a->id, 'estado' => 'aceptada']);
+        }
         if ($pago) {
             [$a, $abono, $venta] = $this->registrarPago($a, $pago['caja'], $pago['metodo'], $pago['monto'], null, $a->numero);
             return $this->respuestaPago($a, $abono, $venta, 'Alquiler ' . $a->numero . ' creado. ');

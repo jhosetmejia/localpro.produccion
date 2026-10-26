@@ -8,18 +8,19 @@
 return [
     'como-crear-mi-negocio-de-alquiler-en-localproo' => [
         'titulo' => 'Cómo crear mi negocio en LocalProo si solo manejo alquiler',
-        'resumen' => 'Si alquila sonido, trajes, salones, carpas o equipos, su negocio puede quedar como "Solo alquila": entra directo a Alquileres, con fechas, abonos, entrega y devolución, sin caja de supermercado ni inventario. Y si mañana vende algo, lo cambia en un clic.',
+        'resumen' => 'Si alquila sonido, trajes, salones, carpas o equipos, su negocio puede quedar como "Solo alquila": entra directo a Alquileres, hace cotizaciones en PDF con su logo, ve qué tiene libre para cada fecha y lleva abonos, entrega y devolución. Y si mañana vende algo, lo cambia en un clic.',
         'fecha' => '26 de octubre de 2026',
         'publicado' => '2026-10-26',
-        'minutos' => 4,
+        'minutos' => 5,
         'icono' => 'fa-calendar-days',
         'rol' => 'negocios',
         'seo_titulo' => 'Software para negocios de alquiler | LocalProo',
         'descripcion' => 'Programa para alquiler de sonido, trajes, salones, carpas y equipos: fechas, abonos, entrega, devolución y caja. Cree su cuenta gratis paso a paso.',
-        'keywords' => ['software para alquiler', 'programa para alquiler de trajes', 'control de alquiler de sonido', 'sistema para alquiler de equipos', 'alquiler de carpas y sillas control', 'app para negocio de alquiler'],
+        'keywords' => ['software para alquiler', 'cotizaciones para alquiler de mobiliario', 'disponibilidad de alquiler por fecha', 'programa para alquiler de trajes', 'control de alquiler de sonido', 'sistema para alquiler de equipos', 'alquiler de carpas y sillas control', 'app para negocio de alquiler'],
         'faq' => [
             ['¿Dónde creo la cuenta?', 'En localproo.com/alquiler. Su negocio queda como "Solo alquila" desde el principio.'],
-            ['¿Tengo que crear productos?', 'No. Con "Solo alquila" el sistema se salta los productos y entra directo a Alquileres. Cada alquiler lleva qué alquila, fecha, valor y abonos.'],
+            ['¿Puedo hacer cotizaciones?', 'Sí. En Cotizaciones arma la cotización con sus productos (el precio sale solo y lo puede cambiar), la descarga en PDF con su logo o la manda por WhatsApp.'],
+            ['¿Cómo sé si tengo disponible para una fecha?', 'Cree cada cosa que alquila con la cantidad que tiene. Al cotizar con la fecha del alquiler, cada producto le dice cuántos quedan libres; lo de cotizaciones aceptadas para esas fechas cuenta como ocupado. También puede verlo en Cotizaciones → ¿Qué tengo libre?'],
             ['¿Y si después quiero vender?', 'En Datos del negocio cambie "¿Qué hace su negocio?" a "Vende y alquila". Vuelven a aparecer la caja de venta y el inventario, sin perder nada.'],
             ['¿Los abonos cuadran con la caja?', 'Sí. Cada abono entra a la caja abierta y, al completar el pago, el alquiler queda como venta con su tiquete o factura.'],
         ],

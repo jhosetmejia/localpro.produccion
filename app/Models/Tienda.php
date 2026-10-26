@@ -50,6 +50,7 @@ class Tienda extends Model
         'tiquetera' => ['Tiquetera', 'fa-ticket', 'Inicio', 'Almuerzos o servicios prepagados (restaurantes y cafeterías)'],
         'egresos' => ['Egresos', 'fa-arrow-trend-down', 'Inicio', 'Gastos y pagos del negocio'],
         'alquiler' => ['Alquiler', 'fa-calendar-days', 'Inicio', 'Alquiler de equipos, trajes, salones…'],
+        'cotizaciones' => ['Cotizaciones', 'fa-file-signature', 'Inicio', 'Cotizaciones en PDF con su logo y disponibilidad por fechas'],
         'caja' => ['Mi caja', 'fa-vault', 'Inicio', 'Abrir y cerrar la caja del turno'],
         'ventas' => ['Ventas', 'fa-receipt', 'Inicio', 'Lista de ventas hechas'],
         'reportes' => ['Reportes', 'fa-chart-pie', 'Inicio', 'Gráficas y exportar a Excel'],
@@ -75,11 +76,11 @@ class Tienda extends Model
         'funeraria' => ['separados', 'existencias', 'entradas', 'categorias'],
         // Organizador de eventos: solo Eventos, Egresos (gastos del evento), Mis enlaces y Mis redes. Caja, ventas, inventario,
         // facturación DIAN, clientes, etc. quedan ocultos; se pueden mostrar en Personalizar menú si los necesita.
-        'eventos' => ['consultorio', 'obituarios', 'contabilidad', 'pos', 'pedidos', 'separados', 'tiquetera', 'alquiler', 'caja', 'ventas',
+        'eventos' => ['consultorio', 'obituarios', 'contabilidad', 'pos', 'pedidos', 'separados', 'tiquetera', 'alquiler', 'cotizaciones', 'caja', 'ventas',
             'reportes', 'nomina', 'cierres', 'productos', 'existencias', 'entradas', 'categorias', 'clientes', 'proveedores',
             'facturacion', 'catalogo', 'metodos'],
         // Firma contable: trabaja en Contabilidad; la caja, el inventario y la tienda en línea no los usa
-        'contable' => ['pos', 'caja', 'ventas', 'cierres', 'reportes', 'separados', 'tiquetera', 'productos', 'existencias', 'entradas',
+        'contable' => ['pos', 'cotizaciones', 'caja', 'ventas', 'cierres', 'reportes', 'separados', 'tiquetera', 'productos', 'existencias', 'entradas',
             'categorias', 'catalogo', 'redes', 'clientes', 'proveedores', 'metodos'],
         'minimercado' => ['separados'],
         'belleza' => ['separados', 'entradas'],
@@ -94,8 +95,9 @@ class Tienda extends Model
     ];
 
     // Lo que se esconde cuando el negocio solo alquila (se vuelve a mostrar solo si pasa a "Vende" o "Vende y alquila").
-    // Se quedan Alquiler, Mi caja (los pagos de los alquileres entran a la caja), Ventas, Reportes, Cierres, Clientes, etc.
-    public const MENU_OCULTO_SOLO_ALQUILER = ['pos', 'pedidos', 'separados', 'tiquetera', 'productos', 'existencias', 'entradas', 'categorias', 'catalogo'];
+    // Se quedan Alquiler, Cotizaciones, Productos (lo que alquila y cuántos tiene: de ahí sale la disponibilidad),
+    // Mi caja (los pagos de los alquileres entran a la caja), Ventas, Reportes, Cierres, Clientes, etc.
+    public const MENU_OCULTO_SOLO_ALQUILER = ['pos', 'pedidos', 'separados', 'tiquetera', 'entradas'];
 
     public const TIPOS = [
         'moda' => ['Moda y ropa', 'fa-shirt', true, 'Ropa para dama, caballero, niños, urbana, deportiva…'],

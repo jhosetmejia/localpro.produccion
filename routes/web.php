@@ -109,6 +109,7 @@ Route::post('/webhooks/meta', [metaWebhookController::class, 'evento'])->middlew
 // Enlace de pago de un negocio (firmado): lo usa el dueño o su asesor para pagar el plan con Wompi sin entrar al sistema
 Route::get('/pagar/retorno', [pagarController::class, 'retorno'])->name('pagar.retorno');
 // Estado de un separado para el cliente (enlace firmado que se envía por WhatsApp)
+Route::get('/cotizacion/{cotizacion}', [\App\Http\Controllers\cotizacionController::class, 'publica'])->whereNumber('cotizacion')->middleware(['signed:relative', 'throttle:60,1'])->name('cotizaciones.publica');
 Route::get('/mi-separado/{separado}', [separadoController::class, 'publico'])->whereNumber('separado')->middleware('signed:relative')->name('separados.publico');
 Route::get('/pagar/{tienda}', [pagarController::class, 'show'])->whereNumber('tienda')->middleware('signed:relative')->name('pagar.show');
 Route::post('/pagar/{tienda}/{plan}', [pagarController::class, 'ir'])->whereNumber(['tienda', 'plan'])->middleware(['signed:relative', 'throttle:10,1'])->name('pagar.ir');
@@ -350,6 +351,23 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::get('/alquileres/{alquiler}/documento', [alquilerController::class, 'documento'])->whereNumber('alquiler')->name('alquileres.documento');
     Route::post('/alquileres/{alquiler}/estado', [alquilerController::class, 'estado'])->whereNumber('alquiler')->name('alquileres.estado');
     Route::delete('/alquileres/{alquiler}', [alquilerController::class, 'destroy'])->whereNumber('alquiler')->name('alquileres.destroy');
+
+    // Cotizaciones: productos creados o líneas libres, PDF con el logo, enlace por WhatsApp y disponibilidad por fechas
+    Route::controller(\App\Http\Controllers\cotizacionController::class)->prefix('cotizaciones')->name('cotizaciones.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/nueva', 'create')->name('create');
+        Route::post('/', 'store')->middleware('throttle:30,1')->name('store');
+        Route::get('/productos', 'productos')->name('productos');
+        Route::get('/clientes', 'clientes')->name('clientes');
+        Route::get('/disponibilidad', 'disponibilidad')->name('disponibilidad');
+        Route::get('/disponibilidad/ver', 'calendario')->name('calendario');
+        Route::get('/{cotizacion}', 'show')->whereNumber('cotizacion')->name('show');
+        Route::get('/{cotizacion}/editar', 'edit')->whereNumber('cotizacion')->name('edit');
+        Route::put('/{cotizacion}', 'update')->whereNumber('cotizacion')->name('update');
+        Route::post('/{cotizacion}/estado', 'estado')->whereNumber('cotizacion')->name('estado');
+        Route::get('/{cotizacion}/alquiler', 'alquiler')->whereNumber('cotizacion')->name('alquiler');
+        Route::delete('/{cotizacion}', 'destroy')->whereNumber('cotizacion')->name('destroy');
+    });
 
     // Mis redes (Facebook e Instagram)
     Route::get('/mis-redes', [redesController::class, 'index'])->name('redes.index');

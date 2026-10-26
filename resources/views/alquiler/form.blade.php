@@ -39,6 +39,10 @@
     <form method="post" action="{{ $nuevo ? route('alquileres.store') : route('alquileres.update', $alquiler) }}" class="lp-box lp-form-wide lp-alq" id="alqForm" enctype="multipart/form-data" novalidate>
         @csrf
         @unless ($nuevo) @method('PUT') @endunless
+        @if (!empty($cotizacion))
+        <input type="hidden" name="cotizacion_id" value="{{ $cotizacion->id }}">
+        <div class="alert border-0" style="background:#e3f9e8;color:#11702f"><i class="fa-solid fa-file-signature me-1"></i>Datos traídos de la cotización <b>{{ $cotizacion->numero }}</b> ({{ $cotizacion->cliente_nombre }}). Revise la hora y el lugar; al guardar, la cotización queda aceptada.</div>
+        @endif
 
         @if ($alquiler->cobrado)
         <div class="alert border-0" style="background:#fff5d6;color:#8a6400"><i class="fa-solid fa-user-shield me-1"></i><b>Edición de administrador.</b> Este alquiler ya se cobró con la venta {{ $alquiler->venta?->numero }}. Si cambia el valor, también se cambia esa venta (solo si es tiquete y la caja sigue abierta).</div>

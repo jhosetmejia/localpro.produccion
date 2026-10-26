@@ -264,7 +264,7 @@ class bienvenidaController extends Controller
         });
 
         if ($tienda->fresh()->solo_alquila) {
-            return redirect()->route('alquileres.index')->with('success', '¡Listo! Su caja quedó abierta. Registre su primer alquiler con "Nuevo alquiler".');
+            return redirect()->route('alquileres.index')->with('success', '¡Listo! Su caja quedó abierta. Cree lo que alquila en Productos (con cuántos tiene) y haga su primera cotización o su primer alquiler.');
         }
         return redirect()->route('pos.index')->with('bienvenida', true);
     }

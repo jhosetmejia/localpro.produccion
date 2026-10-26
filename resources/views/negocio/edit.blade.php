@@ -96,7 +96,7 @@
             <div class="form-check mb-2">
                 <input class="form-check-input" type="radio" name="actividad" value="{{ $clave }}" id="act_{{ $clave }}" @checked(old('actividad', $negocio->actividad_actual) === $clave)>
                 <label class="form-check-label fw-bold" for="act_{{ $clave }}"><i class="fa-solid {{ $icono }} me-1" style="color:var(--lp-green-2,#16b34a)"></i>{{ $nombre }}</label>
-                <small class="text-muted d-block">{{ $desc }}@if ($clave === 'alquila'). Entra directo a Alquileres; la caja de venta y el inventario quedan escondidos.@elseif ($clave === 'ambos'). Alquiler sale en el menú junto a la caja de venta.@endif</small>
+                <small class="text-muted d-block">{{ $desc }}@if ($clave === 'alquila'). Entra directo a Alquileres; la caja de venta y los separados quedan escondidos.@elseif ($clave === 'ambos'). Alquiler sale en el menú junto a la caja de venta.@endif</small>
             </div>
             @endforeach
         </div>

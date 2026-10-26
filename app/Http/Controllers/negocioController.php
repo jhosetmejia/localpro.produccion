@@ -111,8 +111,8 @@ class negocioController extends Controller
 
         $negocio->update($datos);
         if ($actividad && $actividad !== $antes) {
-            $txt = ['alquila' => 'Su negocio quedó como "Solo alquila": entra directo a Alquileres y la caja de venta y el inventario quedaron escondidos.',
-                'ambos' => 'Su negocio quedó como "Vende y alquila": volvieron a aparecer la caja de venta y el inventario, y Alquiler sigue en el menú.',
+            $txt = ['alquila' => 'Su negocio quedó como "Solo alquila": entra directo a Alquileres y la caja de venta y los separados quedaron escondidos.',
+                'ambos' => 'Su negocio quedó como "Vende y alquila": volvieron a aparecer la caja de venta y los separados, y Alquiler sigue en el menú.',
                 'vende' => 'Su negocio quedó como "Vende": Alquiler ya no sale en el menú (sus alquileres no se borraron).'][$actividad];
             return back()->with('success', 'Datos del negocio guardados. ' . $txt);
         }

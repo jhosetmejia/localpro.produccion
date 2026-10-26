@@ -125,7 +125,7 @@
                     </div>
                     @endforeach
                 </div>
-                <div class="tip" id="tip-alquila" style="display:none"><i class="fa-solid fa-lightbulb me-1"></i> Su sistema entra directo a <b>Alquileres</b>: fechas, abonos, entrega y devolución. La caja de venta y el inventario quedan escondidos (no se borra nada). Si más adelante vende algo, cambie a <b>Vende y alquila</b> en Datos del negocio y vuelven a aparecer.</div>
+                <div class="tip" id="tip-alquila" style="display:none"><i class="fa-solid fa-lightbulb me-1"></i> Su sistema entra directo a <b>Alquileres</b>: cotizaciones en PDF, disponibilidad por fecha, abonos, entrega y devolución. La caja de venta y los separados quedan escondidos (no se borra nada). Si más adelante vende algo, cambie a <b>Vende y alquila</b> en Datos del negocio y vuelven a aparecer.</div>
             </div>
 
             <div class="mods" id="mods">
