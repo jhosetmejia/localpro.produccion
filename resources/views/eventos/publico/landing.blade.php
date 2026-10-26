@@ -35,6 +35,8 @@
 @media (prefers-reduced-motion:reduce){.vistas .pt{animation:none}}
 /* El pie deja libre el alto real de los botones fijos (1 o 2 botones) para que no tapen el texto */
 .pie{padding-bottom:calc(var(--fijo-h,160px) + 24px)}
+/* Los botones fijos viven dentro de <main>: main va por encima del pie para que el texto del pie nunca quede encima de ellos */
+main{position:relative;z-index:2}
 .precio{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap}
 .precio .v{font-size:2.1rem;font-weight:800;line-height:1}
 .desc{white-space:pre-line;color:#dcd6e8}
