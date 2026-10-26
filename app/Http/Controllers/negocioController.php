@@ -39,6 +39,7 @@ class negocioController extends Controller
             'mod_consultorio' => 'nullable|boolean',
             'mod_pedidos' => 'nullable|boolean',
             'mod_servicios' => 'nullable|boolean',
+            'actividad' => ['nullable', \Illuminate\Validation\Rule::in(array_keys(\App\Models\Tienda::ACTIVIDADES))],
             'pais' => ['required', \Illuminate\Validation\Rule::in(array_keys(\App\Support\Paises::LISTA))],
             'tipo_negocio' => ['required', \Illuminate\Validation\Rule::in(array_keys(\App\Models\Tienda::TIPOS))],
             'nit' => 'nullable|string|max:30',
@@ -98,7 +99,23 @@ class negocioController extends Controller
             if ($negocio->menu_oculto === null) $datos['menu_oculto'] = \App\Models\Tienda::MENU_OCULTO_POR_TIPO['funeraria'];
         }
 
+        // Vende / solo alquila / vende y alquila: enciende o apaga Alquiler y muestra o esconde la caja de venta y el inventario
+        $actividad = $datos['actividad'] ?? null;
+        unset($datos['actividad']);
+        $antes = $negocio->actividad_actual;
+        if ($actividad) {
+            $datos = array_merge($datos, \App\Models\Tienda::ajustesActividad($datos['menu_oculto'] ?? $negocio->menu_oculto, $datos['tipo_negocio'], $actividad, $antes));
+        } else {
+            $datos['mod_alquiler'] = (bool) $negocio->mod_alquiler;
+        }
+
         $negocio->update($datos);
+        if ($actividad && $actividad !== $antes) {
+            $txt = ['alquila' => 'Su negocio quedó como "Solo alquila": entra directo a Alquileres y la caja de venta y el inventario quedaron escondidos.',
+                'ambos' => 'Su negocio quedó como "Vende y alquila": volvieron a aparecer la caja de venta y el inventario, y Alquiler sigue en el menú.',
+                'vende' => 'Su negocio quedó como "Vende": Alquiler ya no sale en el menú (sus alquileres no se borraron).'][$actividad];
+            return back()->with('success', 'Datos del negocio guardados. ' . $txt);
+        }
         return back()->with('success', 'Datos del negocio guardados.');
     }
 

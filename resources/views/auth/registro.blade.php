@@ -28,6 +28,9 @@
             @if (($tipoRegistro ?? null) && $tipoRegistro !== 'contable' && isset(\App\Models\Tienda::TIPOS[$tipoRegistro]))
             <h1 class="serif">Crear cuenta de empresa</h1>
             <p class="sub">Paso 1 de 4 · Su cuenta queda lista para <b>{{ \App\Models\Tienda::TIPOS[$tipoRegistro][0] }}</b>. Prueba gratis, sin tarjeta.</p>
+            @elseif ($soloAlquiler ?? false)
+            <h1 class="serif">Crear cuenta de empresa</h1>
+            <p class="sub">Paso 1 de 4 · Su cuenta queda lista para <b>negocios de alquiler</b>: fechas, abonos, entrega y devolución. Prueba gratis, sin tarjeta.</p>
             @else
             <h1 class="serif">Crear cuenta de empresa</h1>
             <p class="sub">Paso 1 de 4 · Sus datos como dueño del negocio. En 3 minutos estará vendiendo.</p>

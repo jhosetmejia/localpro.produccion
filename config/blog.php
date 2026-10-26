@@ -6,6 +6,24 @@
 // palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
+    'como-crear-mi-negocio-de-alquiler-en-localproo' => [
+        'titulo' => 'Cómo crear mi negocio en LocalProo si solo manejo alquiler',
+        'resumen' => 'Si alquila sonido, trajes, salones, carpas o equipos, su negocio puede quedar como "Solo alquila": entra directo a Alquileres, con fechas, abonos, entrega y devolución, sin caja de supermercado ni inventario. Y si mañana vende algo, lo cambia en un clic.',
+        'fecha' => '26 de octubre de 2026',
+        'publicado' => '2026-10-26',
+        'minutos' => 4,
+        'icono' => 'fa-calendar-days',
+        'rol' => 'negocios',
+        'seo_titulo' => 'Software para negocios de alquiler | LocalProo',
+        'descripcion' => 'Programa para alquiler de sonido, trajes, salones, carpas y equipos: fechas, abonos, entrega, devolución y caja. Cree su cuenta gratis paso a paso.',
+        'keywords' => ['software para alquiler', 'programa para alquiler de trajes', 'control de alquiler de sonido', 'sistema para alquiler de equipos', 'alquiler de carpas y sillas control', 'app para negocio de alquiler'],
+        'faq' => [
+            ['¿Dónde creo la cuenta?', 'En localproo.com/alquiler. Su negocio queda como "Solo alquila" desde el principio.'],
+            ['¿Tengo que crear productos?', 'No. Con "Solo alquila" el sistema se salta los productos y entra directo a Alquileres. Cada alquiler lleva qué alquila, fecha, valor y abonos.'],
+            ['¿Y si después quiero vender?', 'En Datos del negocio cambie "¿Qué hace su negocio?" a "Vende y alquila". Vuelven a aparecer la caja de venta y el inventario, sin perder nada.'],
+            ['¿Los abonos cuadran con la caja?', 'Sí. Cada abono entra a la caja abierta y, al completar el pago, el alquiler queda como venta con su tiquete o factura.'],
+        ],
+    ],
     'carta-virtual-para-restaurantes-con-pedidos-por-whatsapp' => [
         'titulo' => 'Carta virtual para restaurantes: su menú con diseño bonito y pedidos por WhatsApp',
         'resumen' => 'Su restaurante ya tiene carta virtual en LocalProo: menú por categorías con un diseño elegido por usted, pedidos por WhatsApp a domicilio, para recoger o en la mesa, y un botón para desactivar los platos que se acabaron.',

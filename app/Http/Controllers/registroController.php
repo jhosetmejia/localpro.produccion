@@ -22,11 +22,15 @@ class registroController extends Controller
             session(['tipo_registro' => $tipo]);
         }
         // De dónde viene (ej. un artículo del blog): para saber qué trae clientes
+        // Enlace para negocios que solo alquilan (/alquiler → ?actividad=alquila)
+        if (request()->query('actividad') === 'alquila') {
+            session(['actividad_registro' => 'alquila']);
+        }
         $desde = (string) request()->query('desde', '');
         if (preg_match('/^[a-z0-9:\-]{2,80}$/', $desde)) {
             session(['origen_registro' => $desde]);
         }
-        return view('auth.registro', ['paises' => Paises::lista(), 'codigoAsesor' => session('codigo_asesor', request()->cookie('lp_asesor')), 'tipoRegistro' => session('tipo_registro')]);
+        return view('auth.registro', ['paises' => Paises::lista(), 'codigoAsesor' => session('codigo_asesor', request()->cookie('lp_asesor')), 'tipoRegistro' => session('tipo_registro'), 'soloAlquiler' => session('actividad_registro') === 'alquila']);
     }
 
     // Enlace del asesor: guarda su código (60 días) y abre el registro
@@ -99,6 +103,13 @@ class registroController extends Controller
             $mods = array_fill_keys(\App\Models\Tienda::MODULOS_POR_TIPO[$tipo] ?? [], true);
             if ($mods) $user->tienda->forceFill($mods)->save();
             $request->session()->forget('tipo_registro');
+        }
+
+        // Llegó por el enlace de alquiler: el negocio nace como "Solo alquila" (lo puede cambiar en el paso siguiente)
+        if (session('actividad_registro') === 'alquila' && $tipo !== 'contable') {
+            $t = $user->tienda;
+            $t->forceFill(\App\Models\Tienda::ajustesActividad($t->menu_oculto, $t->tipo_negocio, 'alquila', $t->actividad_actual))->save();
+            $request->session()->forget('actividad_registro');
         }
 
         // Si llegó por un asesor (enlace o código), el negocio queda en su red

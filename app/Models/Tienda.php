@@ -10,7 +10,7 @@ class Tienda extends Model
     protected $table = 'tiendas';
 
     protected $fillable = [
-        'nombre', 'departamento', 'slug', 'catalogo_activo', 'catalogo_agotados', 'carta_tema', 'mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'mod_eventos', 'mod_contable', 'mod_consultorio', 'mod_pedidos', 'mod_servicios', 'pedidos_cobro', 'cliente_obligatorio', 'pais', 'tipo_negocio', 'descripcion', 'usa_tallas', 'nit', 'regimen',
+        'nombre', 'departamento', 'slug', 'catalogo_activo', 'catalogo_agotados', 'carta_tema', 'mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'mod_eventos', 'mod_contable', 'mod_consultorio', 'mod_pedidos', 'mod_servicios', 'pedidos_cobro', 'cliente_obligatorio', 'pais', 'tipo_negocio', 'actividad', 'descripcion', 'usa_tallas', 'nit', 'regimen',
         'resolucion_numero', 'resolucion_fecha', 'resolucion_vigencia', 'resolucion_prefijo', 'resolucion_desde', 'resolucion_hasta', 'direccion', 'ciudad', 'telefono',
         'email', 'logo_path', 'mensaje_tiquete', 'menu_oculto',
         // Facturación DIAN
@@ -85,6 +85,17 @@ class Tienda extends Model
         'belleza' => ['separados', 'entradas'],
         'consultorio' => ['separados', 'existencias', 'entradas', 'categorias', 'catalogo'],
     ];
+
+    // Qué hace el negocio (ajuste encima del tipo): vende, solo alquila o vende y alquila
+    public const ACTIVIDADES = [
+        'vende' => ['Vende', 'fa-cash-register', 'Vende productos o servicios en la caja'],
+        'alquila' => ['Solo alquila', 'fa-calendar-days', 'Alquila sonido, trajes, salones, carpas, equipos… No vende'],
+        'ambos' => ['Vende y alquila', 'fa-arrows-rotate', 'Vende en la caja y también alquila'],
+    ];
+
+    // Lo que se esconde cuando el negocio solo alquila (se vuelve a mostrar solo si pasa a "Vende" o "Vende y alquila").
+    // Se quedan Alquiler, Mi caja (los pagos de los alquileres entran a la caja), Ventas, Reportes, Cierres, Clientes, etc.
+    public const MENU_OCULTO_SOLO_ALQUILER = ['pos', 'pedidos', 'separados', 'tiquetera', 'productos', 'existencias', 'entradas', 'categorias', 'catalogo'];
 
     public const TIPOS = [
         'moda' => ['Moda y ropa', 'fa-shirt', true, 'Ropa para dama, caballero, niños, urbana, deportiva…'],
@@ -412,6 +423,40 @@ class Tienda extends Model
     public function getUsaTiqueteraAttribute(): bool
     {
         return in_array($this->tipo_negocio, self::TIPOS_TIQUETERA, true);
+    }
+
+    // Vende / alquila / ambos. Las tiendas de antes no lo tienen guardado: se deduce del módulo de alquiler
+    public function getActividadActualAttribute(): string
+    {
+        return isset(self::ACTIVIDADES[$this->actividad]) ? $this->actividad : ($this->mod_alquiler ? 'ambos' : 'vende');
+    }
+
+    public function getSoloAlquilaAttribute(): bool
+    {
+        return $this->actividad === 'alquila' && $this->mod_alquiler;
+    }
+
+    // Cambios que trae elegir lo que hace el negocio: módulo de alquiler y menú.
+    // Pasar a "solo alquila" esconde la caja de venta y el inventario; salir de ahí los vuelve a mostrar
+    // (menos lo que su tipo de negocio esconde de entrada). Nunca se borra nada.
+    public static function ajustesActividad(?array $oculto, ?string $tipo, string $nueva, string $anterior): array
+    {
+        $nueva = isset(self::ACTIVIDADES[$nueva]) ? $nueva : 'vende';
+        $porTipo = self::MENU_OCULTO_POR_TIPO[$tipo] ?? [];
+        $base = $oculto ?? $porTipo;
+        $datos = ['actividad' => $nueva, 'mod_alquiler' => $nueva !== 'vende'];
+
+        if ($nueva === 'alquila') {
+            $menu = array_merge(array_diff($base, ['alquiler', 'caja', 'ventas']), self::MENU_OCULTO_SOLO_ALQUILER);
+        } elseif ($anterior === 'alquila') {
+            $menu = array_diff($base, array_diff(self::MENU_OCULTO_SOLO_ALQUILER, $porTipo), $nueva === 'ambos' ? ['alquiler'] : []);
+        } elseif ($nueva === 'ambos' && in_array('alquiler', $base, true)) {
+            $menu = array_diff($base, ['alquiler']);
+        } else {
+            return $datos;
+        }
+        $datos['menu_oculto'] = array_values(array_unique($menu));
+        return $datos;
     }
 
     public function enMenu(string $clave): bool

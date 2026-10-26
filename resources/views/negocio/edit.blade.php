@@ -88,6 +88,19 @@
             <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="cliente_obligatorio" value="1" id="cliObl" @checked(old('cliente_obligatorio', $negocio->cliente_obligatorio))><label class="form-check-label fw-bold" for="cliObl">Pedir siempre el cliente para cobrar</label></div>
             <small class="text-muted d-block mt-1">Apagado: se puede vender como "consumidor final" (la caja recuerda poner el cliente). Encendido: no deja cobrar sin elegir o crear el cliente.</small>
         </div>
+        @if (!in_array($negocio->tipo_negocio, ['contable', 'instituto', 'conjunto', 'eventos'], true))
+        <div class="lp-box mt-3">
+            <h3>¿Qué hace su negocio?</h3>
+            <small class="text-muted d-block mb-2">Cámbielo cuando quiera: no se borra nada, solo se muestra o se esconde en el menú.</small>
+            @foreach (\App\Models\Tienda::ACTIVIDADES as $clave => [$nombre, $icono, $desc])
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="radio" name="actividad" value="{{ $clave }}" id="act_{{ $clave }}" @checked(old('actividad', $negocio->actividad_actual) === $clave)>
+                <label class="form-check-label fw-bold" for="act_{{ $clave }}"><i class="fa-solid {{ $icono }} me-1" style="color:var(--lp-green-2,#16b34a)"></i>{{ $nombre }}</label>
+                <small class="text-muted d-block">{{ $desc }}@if ($clave === 'alquila'). Entra directo a Alquileres; la caja de venta y el inventario quedan escondidos.@elseif ($clave === 'ambos'). Alquiler sale en el menú junto a la caja de venta.@endif</small>
+            </div>
+            @endforeach
+        </div>
+        @endif
         <div class="lp-box mt-3">
             <h3 class="d-flex align-items-center">Módulos de su negocio @if (\Illuminate\Support\Facades\Route::has('menu.edit'))<a href="{{ route('menu.edit') }}" class="btn btn-sm btn-light ms-auto"><i class="fa-solid fa-sliders me-1"></i>Personalizar menú</a>@endif</h3>
             @foreach ([
@@ -96,7 +109,6 @@
                 'mod_vencimiento' => ['Fechas de vencimiento', 'Lotes con fecha de vencimiento y alertas de lo que está por vencer.', true],
                 'mod_recetas' => ['Recetas e insumos', 'Al vender se descuentan los ingredientes de cada receta.', true],
                 'mod_pedidos' => ['Pedidos: mesero, caja y cocina', 'Para restaurantes, cafeterías, granjas y parques: el mesero toma el pedido, caja lo cobra, cada estación (cocina, cafetería, entradas…) lo ve en su pantalla y avisa cuando está listo.', false],
-                'mod_alquiler' => ['Alquiler', 'Para negocios que alquilan (sonido, trajes, salones, equipos…): fechas, abonos, entrega y devolución. Apagado, no aparece en el menú.', false],
                 'mod_contable' => ['Contabilidad: retenciones e IVA', 'Para contadores y analistas: cruce de facturas de la DIAN con la contabilidad, borrador del 350 y del IVA, certificados de retención.', false],
                 'mod_eventos' => ['Eventos y venta de entradas', 'Página de su evento para compartir, registro de compradores, pago por Nequi con comprobante por WhatsApp, aprobación del pago y entrada con QR que se valida en la puerta.', false],
                 'mod_obituarios' => ['Obituarios (funerarias)', 'Salas de velación y obituarios con foto para los televisores de cada sala. Se enciende solo si el negocio es funeraria.', false],

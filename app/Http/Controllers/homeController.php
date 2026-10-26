@@ -61,6 +61,10 @@ class homeController extends Controller
             && (Auth::user()->can('agenda-consultorio') || Auth::user()->can('historia-clinica'))) {
             return redirect()->route('consultorio.inicio');
         }
+        // Negocios que solo alquilan: su inicio es Alquileres (el panel de ventas sigue en /?ventas=1)
+        if ($tienda->solo_alquila && !request()->boolean('ventas') && (Auth::user()->es_superadmin || Auth::user()->can('usar-alquileres') || Auth::user()->can('usar-pos'))) {
+            return redirect()->route('alquileres.index');
+        }
         // Cuenta registrada desde la web, aún sin rol asignado
         if (Auth::user()->roles()->count() === 0) {
             return view('panel.pendiente');

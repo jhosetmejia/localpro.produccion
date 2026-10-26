@@ -59,6 +59,8 @@ Route::get('/registro', [registroController::class, 'index'])->name('registro');
 // Enlace corto para contadores: abre el registro con el tipo "Contador / analista contable" y la herramienta activa
 // Enlace corto para institutos y academias: abre el registro con el tipo "Instituto / academia"
 Route::get('/institutos', fn () => redirect()->route('registro', ['tipo' => 'instituto'] + request()->only('desde')))->name('registro.institutos');
+// Enlace corto para negocios que solo alquilan (sonido, trajes, salones, carpas, equipos…): el registro nace como "Solo alquila"
+Route::get('/alquiler', fn () => redirect()->route('registro', ['actividad' => 'alquila'] + request()->only('desde', 'tipo')))->name('registro.alquiler');
 Route::get('/contadores', fn () => redirect()->route('registro', ['tipo' => 'contable'] + request()->only('desde')))->name('registro.contadores');
 Route::get('/contadores/{codigo}', [registroController::class, 'referidoContador'])->where('codigo', '[A-Za-z0-9\-]+')->name('registro.contadores.asesor');
 Route::post('/registro', [registroController::class, 'store'])->middleware('throttle:5,1');

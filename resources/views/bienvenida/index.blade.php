@@ -115,6 +115,19 @@
                 @endforeach
             </div>
 
+            <div id="actividad">
+                <div class="field"><label>¿Qué hace su negocio? <span style="color:var(--muted);font-weight:600">(lo puede cambiar cuando quiera en Datos del negocio)</span></label></div>
+                <div class="tipos" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">
+                    @foreach (\App\Models\Tienda::ACTIVIDADES as $clave => [$nombre, $icono, $desc])
+                    <div class="tipo">
+                        <input type="radio" name="actividad" id="a_{{ $clave }}" value="{{ $clave }}" @checked(old('actividad', $tienda->actividad_actual) === $clave)>
+                        <label for="a_{{ $clave }}"><i class="fa-solid {{ $icono }}"></i><b>{{ $nombre }}</b><small>{{ $desc }}</small></label>
+                    </div>
+                    @endforeach
+                </div>
+                <div class="tip" id="tip-alquila" style="display:none"><i class="fa-solid fa-lightbulb me-1"></i> Su sistema entra directo a <b>Alquileres</b>: fechas, abonos, entrega y devolución. La caja de venta y el inventario quedan escondidos (no se borra nada). Si más adelante vende algo, cambie a <b>Vende y alquila</b> en Datos del negocio y vuelven a aparecer.</div>
+            </div>
+
             <div class="mods" id="mods">
                 <div class="field" style="margin-bottom:.4rem"><label>¿Qué necesita su negocio? <span style="color:var(--muted);font-weight:600">(lo marcamos según su tipo; puede cambiarlo cuando quiera)</span></label></div>
                 @foreach ([
@@ -122,7 +135,6 @@
                     'mod_medida' => ['fa-ruler-combined', 'Vendo por metro, kilo o litro', 'Ej: vidrio, telas, cables, carnes, granos. En la caja se venden medidas como 1,5 m o 0,250 kg.'],
                     'mod_vencimiento' => ['fa-calendar-xmark', 'Mis productos tienen fecha de vencimiento', 'Ej: droguería, alimentos, cosméticos. Le avisamos lo que está por vencer.'],
                     'mod_recetas' => ['fa-bowl-food', 'Preparo productos con insumos (recetas)', 'Ej: restaurante, panadería. Al vender se descuentan los ingredientes.'],
-                    'mod_alquiler' => ['fa-calendar-days', '¿Maneja alquiler?', 'Ej: sonido, trajes, salones, carpas, equipos. Lleva fechas, abonos y si ya le devolvieron. Si no alquila, déjelo apagado.'],
                     'mod_contable' => ['fa-calculator', 'Llevo la contabilidad de otros', 'Para contadores: cruce de facturas DIAN, retenciones y borrador del 350.'],
                     'mod_eventos' => ['fa-ticket', 'Vendo entradas para eventos', 'Fiestas, conciertos, ferias: página del evento, registro, pago por Nequi y entrada con QR para la puerta.'],
                     'mod_obituarios' => ['fa-dove', 'Obituarios para pantallas', 'Para funerarias: salas de velación y obituarios con foto en el televisor de cada sala.'],
@@ -161,6 +173,13 @@
             var MAP = @json(\App\Models\Tienda::MODULOS_POR_TIPO), tocados = {};
             var mods = document.getElementById('mods'); if (!mods) return;
             mods.addEventListener('change', function (e) { if (e.target.dataset.mod) tocados[e.target.dataset.mod] = true; });
+            var act = document.getElementById('actividad'), tipAlq = document.getElementById('tip-alquila');
+            function verActividad(tipo) { act.style.display = ['conjunto', 'instituto', 'contable', 'eventos'].indexOf(tipo) !== -1 ? 'none' : ''; }
+            function verTip() { var a = document.querySelector('input[name=actividad]:checked'); tipAlq.style.display = a && a.value === 'alquila' ? '' : 'none'; }
+            document.querySelectorAll('input[name=actividad]').forEach(function (r) { r.addEventListener('change', verTip); });
+            verTip();
+            document.querySelectorAll('input[name=tipo_negocio]').forEach(function (r) { r.addEventListener('change', function () { verActividad(r.value); }); });
+            var tipoIni = document.querySelector('input[name=tipo_negocio]:checked'); if (tipoIni) verActividad(tipoIni.value);
             function aplicar(tipo) {
                 mods.style.display = (tipo === 'conjunto' || tipo === 'instituto') ? 'none' : '';
                 var on = MAP[tipo] || [];
@@ -168,7 +187,7 @@
             }
             document.querySelectorAll('input[name=tipo_negocio]').forEach(function (r) { r.addEventListener('change', function () { aplicar(r.value); }); });
             var marcado = document.querySelector('input[name=tipo_negocio]:checked');
-            if (marcado && {{ ($tienda->mod_servicios || $tienda->mod_medida || $tienda->mod_vencimiento || $tienda->mod_recetas || $tienda->mod_alquiler || $tienda->mod_obituarios || $tienda->mod_eventos || $tienda->mod_contable || $tienda->mod_consultorio || old('mod_medida') !== null) ? 'false' : 'true' }}) aplicar(marcado.value);
+            if (marcado && {{ ($tienda->mod_servicios || $tienda->mod_medida || $tienda->mod_vencimiento || $tienda->mod_recetas || $tienda->mod_obituarios || $tienda->mod_eventos || $tienda->mod_contable || $tienda->mod_consultorio || old('mod_medida') !== null) ? 'false' : 'true' }}) aplicar(marcado.value);
             else if (marcado) mods.style.display = (marcado.value === 'conjunto' || marcado.value === 'instituto') ? 'none' : '';
         })();
         </script>

@@ -97,6 +97,7 @@ class bienvenidaController extends Controller
             'mod_contable' => 'nullable|boolean',
             'mod_consultorio' => 'nullable|boolean',
             'mod_servicios' => 'nullable|boolean',
+            'actividad' => ['nullable', Rule::in(array_keys(Tienda::ACTIVIDADES))],
         ] + \App\Support\Ubicaciones::reglas($request->input('pais'), $request->input('departamento')),
         ['nombre.required' => 'Escriba el nombre de su negocio.', 'tipo_negocio.required' => 'Elija el tipo de negocio.'] + \App\Support\Ubicaciones::mensajes());
 
@@ -126,6 +127,12 @@ class bienvenidaController extends Controller
         if ($tienda->menu_oculto === null && isset(Tienda::MENU_OCULTO_POR_TIPO[$datos['tipo_negocio']])) {
             $datos['menu_oculto'] = Tienda::MENU_OCULTO_POR_TIPO[$datos['tipo_negocio']];
         }
+        // Vende / solo alquila / vende y alquila: enciende Alquiler y, si solo alquila, esconde la caja de venta y el inventario
+        $actividad = $datos['actividad'] ?? null;
+        unset($datos['actividad']);
+        if ($actividad && !in_array($datos['tipo_negocio'], ['contable', 'instituto', 'conjunto', 'eventos'], true)) {
+            $datos = array_merge($datos, Tienda::ajustesActividad($datos['menu_oculto'] ?? $tienda->menu_oculto, $datos['tipo_negocio'], $actividad, $tienda->actividad_actual));
+        }
         $datos['onboarding_paso'] = 3;
 
         // Un conjunto residencial no vende productos: termina aquí y pasa a su panel de administración
@@ -148,6 +155,10 @@ class bienvenidaController extends Controller
             $datos['onboarding_completo'] = true;
             $tienda->update($datos);
             return redirect()->route('conjunto.unidades')->with('success', '¡Listo! Empiece creando las unidades (apartamentos o casas) del conjunto.');
+        }
+        // Solo alquila: no necesita productos de ejemplo; pasa directo a Cobro y caja
+        if (($datos['actividad'] ?? null) === 'alquila') {
+            $datos['onboarding_paso'] = 4;
         }
         $tienda->update($datos);
 
@@ -252,6 +263,9 @@ class bienvenidaController extends Controller
             }
         });
 
+        if ($tienda->fresh()->solo_alquila) {
+            return redirect()->route('alquileres.index')->with('success', '¡Listo! Su caja quedó abierta. Registre su primer alquiler con "Nuevo alquiler".');
+        }
         return redirect()->route('pos.index')->with('bienvenida', true);
     }
 
