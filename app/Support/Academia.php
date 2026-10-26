@@ -521,7 +521,7 @@ class Academia
             // ===== Cursos por tipo de negocio: "Cómo manejar su sistema" =====
             'restaurante' => [
                 'titulo' => 'Su restaurante o cafetería en LocalPro', 'icono' => 'fa-burger', 'color' => '#f97316', 'para' => ['todos', 'asesor'], 'modulo' => 'mod_pedidos', 'tipos' => ['restaurante', 'cafeteria'],
-                'resumen' => 'Pedidos de mesero a caja y cocina, roles del equipo, cobrar antes o al final, avisos de "listo" y cierre del día.',
+                'resumen' => 'Pedidos de mesero a caja y cocina, roles del equipo, cobrar antes o al final, avisos de "listo", cierre del día y su carta virtual.',
                 'lecciones' => [
                     ['titulo' => 'Configure sus pedidos', 'rutas' => [['pedidos', 'Configurar', 'Estaciones y forma de cobro']], 'min' => 3, 'accion' => ['pedidos.configurar', 'Configurar pedidos'], 'contenido' => [
                         'En <b>Pedidos → Configurar</b> elija cómo cobra: <b>paga primero</b> (el pedido llega a cocina cuando la caja cobra) o <b>paga al final</b> (llega de una y el mesero pide la cuenta al terminar).',
@@ -541,11 +541,17 @@ class Academia
                         'En <b>Pedidos → Cierre</b> ve los pedidos del día, lo cobrado y lo que quedó pendiente.',
                         'Cierre la caja con el conteo del efectivo para que cuadre con las ventas.',
                     ], 'tip' => null],
+                    ['titulo' => 'Carta virtual y platos agotados', 'min' => 3, 'accion' => ['productos.index', 'Ver productos'], 'contenido' => [
+                        'En el panel toque <b>Ver mi carta virtual</b>: su menú por categorías con pedido por WhatsApp (domicilio, recoger o en la mesa). Compártala o póngala en un QR en las mesas.',
+                        'En <b>Mi negocio</b> elija el diseño de la carta: <b>Bistró</b>, <b>Fresca</b>, <b>Parrilla</b> o <b>Huerta</b>. Con "Ver cómo queda" los compara antes de guardar.',
+                        'Para almuerzos no tiene que poner cantidades: apague <b>Controlar inventario</b>. Cuando se acaben, en <b>Productos</b> toque <b>Desactivar</b>: sale "Agotado por hoy" y nadie lo puede pedir (ni en la carta, ni en la caja, ni con los meseros). Al día siguiente toque <b>Activar</b>.',
+                    ], 'tip' => 'Desactivar no borra el plato ni sus ventas: solo lo deja de ofrecer hasta que lo active.'],
                 ],
                 'prueba' => [
                     ['p' => 'En modo "paga primero", ¿cuándo llega el pedido a la cocina?', 'o' => ['Cuando la caja lo cobra', 'Apenas el mesero lo toma', 'Al día siguiente'], 'r' => 0],
                     ['p' => '¿Dónde crea el usuario de un mesero nuevo?', 'o' => ['Usuarios → Nuevo usuario, con el rol Mesero', 'En Productos', 'No se puede'], 'r' => 0],
                     ['p' => 'La tarjeta de un pedido se puso roja en la cocina. ¿Qué significa?', 'o' => ['Lleva más de 20 minutos', 'Ya se pagó', 'Se anuló'], 'r' => 0],
+                    ['p' => 'Se acabaron los almuerzos de hoy. ¿Qué hace para que no los pidan en la carta?', 'o' => ['En Productos toca Desactivar en el almuerzo', 'Borra el producto', 'Cambia el precio a cero'], 'r' => 0],
                 ],
             ],
 

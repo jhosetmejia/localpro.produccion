@@ -6,6 +6,24 @@
 // palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
+    'carta-virtual-para-restaurantes-con-pedidos-por-whatsapp' => [
+        'titulo' => 'Carta virtual para restaurantes: su menú con diseño bonito y pedidos por WhatsApp',
+        'resumen' => 'Su restaurante ya tiene carta virtual en LocalProo: menú por categorías con un diseño elegido por usted, pedidos por WhatsApp a domicilio, para recoger o en la mesa, y un botón para desactivar los platos que se acabaron.',
+        'fecha' => '26 de octubre de 2026',
+        'publicado' => '2026-10-26',
+        'minutos' => 3,
+        'icono' => 'fa-utensils',
+        'rol' => 'negocios',
+        'seo_titulo' => 'Carta virtual para restaurantes con pedidos | LocalProo',
+        'descripcion' => 'Carta digital para restaurantes y cafeterías: menú con diseño, código QR para las mesas, pedidos por WhatsApp y platos agotados que se desactivan con un toque.',
+        'keywords' => ['carta virtual restaurante', 'menú digital restaurante', 'carta QR restaurante', 'menú digital con pedidos por WhatsApp', 'carta digital gratis', 'software para restaurantes'],
+        'faq' => [
+            ['¿Dónde veo mi carta virtual?', 'En el panel, botón Ver mi carta virtual. También en Mi negocio, donde está el enlace para compartir y ponerlo en un QR en las mesas.'],
+            ['¿Puedo cambiar el diseño?', 'Sí. En Mi negocio elige entre Bistró, Fresca, Parrilla y Huerta. Con "Ver cómo queda" ve cada uno antes de guardar.'],
+            ['¿Tengo que poner cantidades a los almuerzos?', 'No. Apague Controlar inventario y, cuando se acaben, toque Desactivar en el producto. En la carta sale "Agotado por hoy" y no se puede pedir hasta que lo active.'],
+            ['¿Los platos sin foto salen en la carta?', 'Sí. En la carta salen todos los productos activos, con o sin foto.'],
+        ],
+    ],
     'navidad-localproo-ayudas-para-los-ninos-de-pasto' => [
         'titulo' => 'Navidad LocalProo: ayudas para los niños de los barrios más necesitados de Pasto',
         'resumen' => 'Este diciembre, por primera vez, salimos a los barrios más necesitados de Pasto a entregar ayudas a los niños. Al pagar su plan puede donar $5.000 si quiere, y las marcas que donen serán invitadas a la entrega y estarán en los agradecimientos.',
