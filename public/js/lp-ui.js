@@ -487,6 +487,7 @@
     function camposDe(f) {
         return [].filter.call(f.elements, function (e) {
             if (!e.name || e.disabled || e.name === '_token' || e.name === '_method') return false;
+            if (e.hasAttribute('data-no-borrador')) return false; // campos que la pantalla maneja sola (p. ej. elegir plantilla recarga la página)
             var t = (e.type || '').toLowerCase();
             if (t === 'hidden') return e.hasAttribute('data-dinero');
             return ['password', 'file', 'submit', 'button', 'reset'].indexOf(t) === -1;

@@ -50,7 +50,7 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
                     <div class="row g-2">
                         <div class="col-sm-7">
                             <label class="form-label small fw-bold">Plantilla (diseño)</label>
-                            <select class="form-select" name="plantilla_id" id="of-plantilla">
+                            <select class="form-select" name="plantilla_id" id="of-plantilla" data-no-borrador>
                                 @foreach ($plantillas as $pl)
                                 <option value="{{ $pl->id }}" @selected($pl->id === $plantilla->id)>{{ $pl->nombre }} · {{ \App\Models\ObituarioPlantilla::DISENOS[$pl->diseno][0] ?? '' }}</option>
                                 @endforeach
