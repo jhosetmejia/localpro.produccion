@@ -137,7 +137,7 @@
                     'mod_recetas' => ['fa-bowl-food', 'Preparo productos con insumos (recetas)', 'Ej: restaurante, panadería. Al vender se descuentan los ingredientes.'],
                     'mod_contable' => ['fa-calculator', 'Llevo la contabilidad de otros', 'Para contadores: cruce de facturas DIAN, retenciones y borrador del 350.'],
                     'mod_eventos' => ['fa-ticket', 'Vendo entradas para eventos', 'Fiestas, conciertos, ferias: página del evento, registro, pago por Nequi y entrada con QR para la puerta.'],
-                    'mod_obituarios' => ['fa-dove', 'Obituarios para pantallas', 'Para funerarias: salas de velación y obituarios con foto en el televisor de cada sala.'],
+                    'mod_obituarios' => ['fa-dove', 'Obituarios para pantallas', 'Para funerarias: obituarios con foto en cada proyector o televisor.'],
                     'mod_consultorio' => ['fa-user-doctor', 'Atiendo pacientes (consultorio)', 'Para psicología, odontología, estética, fisioterapia, nutrición o medicina: pacientes, agenda de citas e historia clínica.'],
                 ] as $k => [$ic, $tit, $txt])
                 <label class="mod">

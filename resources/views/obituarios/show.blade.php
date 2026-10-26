@@ -13,7 +13,7 @@
     $m = $plantilla->medida_datos;
     $medidas = collect(\App\Models\ObituarioPlantilla::MEDIDAS)->filter(fn ($x) => $x[3] === $m['orientacion']);
     $texto = "En memoria de *{$obituario->nombre}*"
-        . ($obituario->sala ? "\nVelación: {$obituario->sala->nombre} · {$tienda->nombre}" : "\n{$tienda->nombre}")
+        . ($obituario->sala ? "\n{$obituario->sala->nombre} · {$tienda->nombre}" : "\n{$tienda->nombre}")
         . ($obituario->fecha_texto ? "\nExequias: {$obituario->fecha_texto}" . ($obituario->hora_texto ? ", {$obituario->hora_texto}" : '') : '')
         . ($obituario->lugar_exequias ? "\nLugar: {$obituario->lugar_exequias}" : '')
         . ($obituario->destino_final ? "\nDestino final: {$obituario->destino_final}" : '');
@@ -66,7 +66,7 @@
                 <p class="mb-2 text-center">En el TV escriba:<br><b style="font-size:1.3rem;color:#0b5a25">{{ $obituario->sala->url_corta }}</b></p>
                 @endif
                 @if ($obituario->sala)
-                <a class="btn btn-dark w-100" target="_blank" href="{{ $obituario->sala->url_pantalla }}"><i class="fa-solid fa-up-right-from-square me-1"></i>Abrir la pantalla de la sala</a>
+                <a class="btn btn-dark w-100" target="_blank" href="{{ $obituario->sala->url_pantalla }}"><i class="fa-solid fa-up-right-from-square me-1"></i>Abrir la pantalla del proyector</a>
                 @endif
                 <small class="text-muted d-block mt-2">"Ver ya" lo pone en pantalla de inmediato (aunque la fecha "hasta" ya haya pasado o estuviera finalizado) y abre la pantalla. El televisor que ya esté abierto se actualiza solo en menos de un minuto.</small>
                 @include('obituarios._tv-ayuda', ['clase' => 'mt-3'])

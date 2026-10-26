@@ -46,7 +46,7 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
                 @if ($obituario->exists) @method('put') @endif
 
                 <div class="lp-box mb-3">
-                    <h3>1. Plantilla y sala</h3>
+                    <h3>1. Plantilla y proyector</h3>
                     <div class="row g-2">
                         <div class="col-sm-7">
                             <label class="form-label small fw-bold">Plantilla (diseño)</label>
@@ -58,14 +58,14 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
                             <div class="of-ayuda mt-1"><a href="{{ route('obituarios.plantillas.edit', $plantilla) }}">Editar esta plantilla</a> · <a href="{{ route('obituarios.plantillas.create') }}">Crear otra</a></div>
                         </div>
                         <div class="col-sm-5">
-                            <label class="form-label small fw-bold">Sala de velación</label>
+                            <label class="form-label small fw-bold">Proyector</label>
                             <select class="form-select" name="sala_id" id="of-sala">
-                                <option value="">Sin sala</option>
+                                <option value="">Sin proyector</option>
                                 @foreach ($salas as $s)
                                 <option value="{{ $s->id }}" @selected((string) old('sala_id', $obituario->sala_id) === (string) $s->id)>{{ $s->nombre }}</option>
                                 @endforeach
                             </select>
-                            @if ($salas->isEmpty())<div class="of-ayuda mt-1"><a href="{{ route('obituarios.index') }}">Cree sus salas</a> para que salga en el televisor.</div>@endif
+                            @if ($salas->isEmpty())<div class="of-ayuda mt-1"><a href="{{ route('obituarios.index') }}">Cree sus proyectores</a> para que salga en la pantalla.</div>@endif
                         </div>
                     </div>
                 </div>
@@ -175,7 +175,7 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
                     <div class="of-ayuda mt-1">Opcional. Después de esa hora sale de la pantalla solo. Si lo deja vacío, sale hasta que lo finalice.</div>
                 </div>
 
-                <button class="btn btn-primary btn-lg w-100"><i class="fa-solid fa-floppy-disk me-1"></i>{{ $obituario->exists ? 'Guardar cambios' : 'Crear obituario y mostrar en la sala' }}</button>
+                <button class="btn btn-primary btn-lg w-100"><i class="fa-solid fa-floppy-disk me-1"></i>{{ $obituario->exists ? 'Guardar cambios' : 'Crear obituario y mostrarlo en el proyector' }}</button>
             </form>
         </div>
 

@@ -54,7 +54,7 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
 
                 <div class="lp-box mb-3">
                     <label class="form-label small fw-bold">Nombre de la plantilla</label>
-                    <input class="form-control" name="nombre" maxlength="60" required value="{{ old('nombre', $plantilla->nombre) }}" placeholder="Ej: Sala principal 4K">
+                    <input class="form-control" name="nombre" maxlength="60" required value="{{ old('nombre', $plantilla->nombre) }}" placeholder="Ej: Principal 4K">
                 </div>
 
                 <div class="lp-box mb-3">

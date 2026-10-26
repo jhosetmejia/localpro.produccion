@@ -94,7 +94,7 @@ class obituariosController extends Controller
     {
         abort_unless(auth()->user()->can('editar-negocio') || auth()->user()->es_superadmin, 403);
         $this->tienda()->forceFill(['mod_obituarios' => true])->save();
-        return redirect()->route('obituarios.index')->with('success', 'Obituarios activado. Cree sus salas y su primer obituario.');
+        return redirect()->route('obituarios.index')->with('success', 'Obituarios activado. Cree sus proyectores y su primer obituario.');
     }
 
     public function create(Request $request)
@@ -257,9 +257,9 @@ class obituariosController extends Controller
     public function salaStore(Request $request)
     {
         $request->validate(['nombre' => 'required|string|max:60']);
-        abort_if(ObituarioSala::count() >= 40, 422, 'Máximo 40 salas.');
+        abort_if(ObituarioSala::count() >= 40, 422, 'Máximo 40 proyectores.');
         ObituarioSala::create(['nombre' => $request->input('nombre'), 'activa' => true, 'orden' => (int) ObituarioSala::max('orden') + 1]);
-        return back()->with('success', 'Sala creada. Abra su pantalla en el televisor de la sala.');
+        return back()->with('success', 'Proyector creado. Abra su pantalla en el proyector o televisor.');
     }
 
     public function salaUpdate(Request $request, ObituarioSala $sala)
@@ -269,15 +269,15 @@ class obituariosController extends Controller
         $sala->update(['nombre' => $request->input('nombre'), 'activa' => $request->boolean('activa', true)]);
         if ($request->boolean('nueva_direccion')) {
             $sala->forceFill(['token' => ObituarioSala::nuevoToken(), 'codigo' => ObituarioSala::nuevoCodigo()])->save();
-            return back()->with('success', 'La sala tiene una dirección de pantalla nueva. Ábrala otra vez en el televisor.');
+            return back()->with('success', 'El proyector tiene una dirección de pantalla nueva. Ábrala otra vez en el proyector o televisor.');
         }
-        return back()->with('success', 'Sala actualizada.');
+        return back()->with('success', 'Proyector actualizado.');
     }
 
     public function salaDestroy(ObituarioSala $sala)
     {
         $this->mio($sala)->delete();
-        return back()->with('success', 'Sala eliminada. Los obituarios que tenía quedan sin sala.');
+        return back()->with('success', 'Proyector eliminado. Los obituarios que tenía quedan sin proyector.');
     }
 
     public function generalConfig(Request $request)

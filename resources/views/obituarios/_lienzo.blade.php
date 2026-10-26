@@ -27,7 +27,7 @@
         'foto' => null,
         'anios' => '07-12-1950 / ' . now()->format('d-m-Y'),
         'frase' => $p->frase,
-        'sala' => 'Sala 1',
+        'sala' => 'Proyector 1',
         'fecha' => \App\Models\Obituario::fechaLarga(now()->addDay()),
         'hora' => '3 p. m.',
         'lugar' => 'Parroquia Nuestra Señora del Carmen',

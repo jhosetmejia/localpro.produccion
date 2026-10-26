@@ -22,8 +22,8 @@
 @section('content')
 <div class="lp-dash">
     <div class="lp-hello">
-        <div><small>Funeraria</small><h1>Obituarios <span>y salas</span></h1>
-            <p class="text-muted mb-0">Cada sala tiene su pantalla. Cree el obituario, elija la sala y sale solo en el televisor.</p></div>
+        <div><small>Funeraria</small><h1>Obituarios <span>y proyectores</span></h1>
+            <p class="text-muted mb-0">Cada proyector tiene su pantalla. Cree el obituario, elija el proyector y sale solo en la pantalla.</p></div>
         <div class="lp-quick">
             <a href="{{ route('obituarios.plantillas') }}" class="btn btn-dark"><i class="fa-solid fa-palette me-1"></i>Plantillas ({{ $plantillas }})</a>
             <a href="{{ route('obituarios.create') }}" class="btn btn-primary"><i class="fa-solid fa-plus me-1"></i>Nuevo obituario</a>
@@ -49,7 +49,7 @@
                     <div class="tx">
                         <b><a href="{{ route('obituarios.show', $o) }}" class="text-reset text-decoration-none">{{ $o->nombre }}</a></b>
                         <small>
-                            @if ($o->sala)<i class="fa-solid fa-door-open"></i> {{ $o->sala->nombre }} · @endif
+                            @if ($o->sala)<i class="fa-solid fa-video"></i> {{ $o->sala->nombre }} · @endif
                             @if ($o->fecha_texto){{ $o->fecha_texto }}@if ($o->hora_texto) · {{ $o->hora_texto }}@endif · @endif
                             @if ($o->en_pantalla)<span class="text-success fw-bold">En pantalla</span>@elseif ($o->estado === 'activo')<span class="text-muted">Ya salió de la pantalla</span>@else<span class="text-muted">Finalizado</span>@endif
                         </small>
@@ -73,8 +73,8 @@
 
         <div class="col-lg-5">
             <div class="lp-box mb-3">
-                <h3><i class="fa-solid fa-door-open me-1"></i>Salas de velación</h3>
-                <p class="small text-muted">Abra la dirección de cada sala en el navegador del televisor (Smart TV, TV Box o un computador) y déjela abierta: muestra el obituario de esa sala y se actualiza sola.</p>
+                <h3><i class="fa-solid fa-video me-1"></i>Proyectores</h3>
+                <p class="small text-muted">Abra la dirección de cada proyector en el navegador del televisor (Smart TV, TV Box o un computador) y déjela abierta: muestra el obituario de ese proyector y se actualiza sola.</p>
                 @include('obituarios._tv-ayuda', ['clase' => 'mb-3'])
                 @forelse ($salas as $s)
                 <div class="ob-sala">
@@ -94,19 +94,19 @@
                             @csrf @method('put')
                             <div class="input-group input-group-sm mb-2"><input class="form-control" name="nombre" value="{{ $s->nombre }}" maxlength="60" required><button class="btn btn-primary">Guardar</button></div>
                             <input type="hidden" name="activa" value="0">
-                            <div class="form-check form-switch small"><input class="form-check-input" type="checkbox" name="activa" value="1" id="act-{{ $s->id }}" @checked($s->activa)><label class="form-check-label" for="act-{{ $s->id }}">Sala en uso</label></div>
+                            <div class="form-check form-switch small"><input class="form-check-input" type="checkbox" name="activa" value="1" id="act-{{ $s->id }}" @checked($s->activa)><label class="form-check-label" for="act-{{ $s->id }}">Proyector en uso</label></div>
                             <div class="form-check small"><input class="form-check-input" type="checkbox" name="nueva_direccion" value="1" id="nd-{{ $s->id }}"><label class="form-check-label" for="nd-{{ $s->id }}">Cambiar la dirección de la pantalla (si alguien que no debe la tiene)</label></div>
                         </form>
-                        <form method="post" action="{{ route('obituarios.salas.destroy', $s) }}" data-confirm="¿Eliminar la sala «{{ $s->nombre }}»?" data-confirm-ok="Sí, eliminar" data-peligro class="mt-1">@csrf @method('delete')<button class="btn btn-sm btn-link text-danger p-0">Eliminar sala</button></form>
+                        <form method="post" action="{{ route('obituarios.salas.destroy', $s) }}" data-confirm="¿Eliminar el proyector «{{ $s->nombre }}»?" data-confirm-ok="Sí, eliminar" data-peligro class="mt-1">@csrf @method('delete')<button class="btn btn-sm btn-link text-danger p-0">Eliminar proyector</button></form>
                     </div>
                 </div>
                 @empty
-                <p class="text-muted small">Aún no tiene salas. Cree la primera (ej: "Sala 1", "Sala San José").</p>
+                <p class="text-muted small">Aún no tiene proyectores. Cree el primero (ej: "Proyector 1", "Proyector 2").</p>
                 @endforelse
                 <form method="post" action="{{ route('obituarios.salas.store') }}" class="input-group mt-2">
                     @csrf
-                    <input class="form-control" name="nombre" maxlength="60" required placeholder="Nombre de la sala (ej: Sala {{ $salas->count() + 1 }})">
-                    <button class="btn btn-primary"><i class="fa-solid fa-plus me-1"></i>Crear sala</button>
+                    <input class="form-control" name="nombre" maxlength="60" required placeholder="Nombre del proyector (ej: Proyector {{ $salas->count() + 1 }})">
+                    <button class="btn btn-primary"><i class="fa-solid fa-plus me-1"></i>Crear proyector</button>
                 </form>
             </div>
 
@@ -115,7 +115,7 @@
                 <p class="small text-muted">Para la recepción o la entrada: muestra todos los obituarios activos, uno tras otro.</p>
                 @php $urlGeneral = route('obituarios.general', $tienda->obituarios_token); @endphp
                 <div class="ob-sala">
-                    <div class="top"><b>Todas las salas</b>
+                    <div class="top"><b>Todos los proyectores</b>
                         <div class="ms-auto d-flex gap-1">
                             <a class="btn btn-sm btn-light" target="_blank" href="{{ $urlGeneral }}"><i class="fa-solid fa-tv"></i></a>
                             <button type="button" class="btn btn-sm btn-light" data-copiar="{{ $urlGeneral }}"><i class="fa-regular fa-copy"></i></button>
