@@ -29,7 +29,8 @@ class Producto extends Model
         'presentacione_id',
         'img_path',
         'unidad',
-        'mostrar_sin_foto'
+        'mostrar_sin_foto',
+        'disponible'
     ];
 
     /** ¿Tiene foto? (principal o alguna por color) */
@@ -96,7 +97,14 @@ class Producto extends Model
         return self::UNIDADES[$this->unidad ?: 'und'][1] ?? 'und';
     }
 
-    protected $casts = ['controla_inventario' => 'boolean', 'es_servicio' => 'boolean'];
+    protected $casts = ['controla_inventario' => 'boolean', 'es_servicio' => 'boolean', 'disponible' => 'boolean'];
+
+    // Activo para la venta: el negocio lo desactiva cuando se acaba (ej. los almuerzos de hoy) sin borrarlo.
+    // Desactivado no se puede pedir en la carta virtual, la tienda en línea, la caja ni con los meseros.
+    public function getActivoVentaAttribute(): bool
+    {
+        return (int) $this->estado === 1 && $this->disponible !== false;
+    }
 
     public function variantes()
     {

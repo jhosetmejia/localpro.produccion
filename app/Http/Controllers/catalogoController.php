@@ -90,7 +90,9 @@ class catalogoController extends Controller
             'url' => self::urlProducto($tienda, $p),
             'categorias' => $cats = $p->categorias->map(fn ($c) => $c->caracteristica->nombre ?? null)->filter()->values()->all(),
             'para' => $p->para ? ($p->para === 'todos' ? '' : $p->para) : self::para($p->nombre . ' ' . implode(' ', $cats)),
-            'disponible' => $vars->isNotEmpty(),
+            // Desactivado por el negocio (ej. se acabaron los almuerzos) = no se puede pedir
+            'disponible' => $vars->isNotEmpty() && $p->disponible !== false,
+            'desactivado' => $p->disponible === false,
             'variantes' => $vars->map(fn ($v) => ['id' => $v->id, 'etiqueta' => $v->etiqueta, 'talla' => $v->talla, 'color' => $v->color, 'precio' => (float) ($v->precio ?? $p->precio_venta)])->all(),
         ];
     }
@@ -153,6 +155,33 @@ class catalogoController extends Controller
         $enPromo = $productos->where('disponible', true)->where('descuento', '>', 0)->count();
 
         return view('catalogo.show', compact('tienda', 'productos', 'categorias', 'secciones', 'catPara', 'publicos', 'enPromo'));
+    }
+
+    // Carta virtual (restaurantes y cafeterías): menú por categorías con diseño propio y pedido por WhatsApp.
+    // Aquí salen también los platos sin foto (en una carta es normal). Los desactivados salen al final
+    // de su categoría como "Agotado hoy" y no se pueden pedir.
+    public function carta(Request $request, string $slug)
+    {
+        $tienda = $this->tienda($slug);
+        $this->contarVisita($tienda);
+        $productos = Producto::with(['variantes' => fn ($q) => $q->where('estado', 1)->orderBy('talla')->orderBy('color'), 'categorias.caracteristica', 'fotos'])
+            ->where('productos.estado', 1)->get()
+            ->map(fn ($p) => $this->datos($tienda, $p))
+            ->filter(fn ($p) => $p['disponible'] || $p['desactivado'] || $tienda->catalogo_agotados !== false)
+            ->sortBy([
+                fn ($a, $b) => (int) $b['disponible'] <=> (int) $a['disponible'],
+                fn ($a, $b) => ($a['desde'] ?? $a['precio']) <=> ($b['desde'] ?? $b['precio']),
+                fn ($a, $b) => strnatcasecmp($a['nombre'], $b['nombre']),
+            ])->values();
+
+        $secciones = [];
+        foreach ($productos as $p) $secciones[($p['categorias'] ?: ['Otros'])[0]][] = $p;
+        uksort($secciones, fn ($a, $b) => ($a === 'Otros') <=> ($b === 'Otros') ?: count($secciones[$b]) <=> count($secciones[$a]));
+
+        // ?tema=fresca deja ver otro diseño (para que el dueño compare antes de elegir)
+        $tema = isset(Tienda::CARTA_TEMAS[$request->query('tema')]) ? $request->query('tema') : $tienda->carta_tema_actual;
+
+        return view('catalogo.carta', compact('tienda', 'secciones', 'tema') + ['total' => $productos->count()]);
     }
 
     public function producto(string $slug, string $producto)

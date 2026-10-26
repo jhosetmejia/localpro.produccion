@@ -91,6 +91,7 @@ class ProductoController extends Controller
                 'controla_inventario' => $esServicio ? false : $request->boolean('controla_inventario'),
                 'es_servicio' => $esServicio,
                 'mostrar_sin_foto' => $request->boolean('mostrar_sin_foto'),
+                'disponible' => $request->boolean('disponible', true),
                 'descripcion' => $request->descripcion,
                 'fecha_vencimiento' => $request->fecha_vencimiento,
                 'img_path' => $name,
@@ -214,6 +215,7 @@ class ProductoController extends Controller
                 'controla_inventario' => $esServicio ? false : $request->boolean('controla_inventario'),
                 'es_servicio' => $esServicio,
                 'mostrar_sin_foto' => $request->boolean('mostrar_sin_foto'),
+                'disponible' => $request->boolean('disponible', true),
                 'descripcion' => $request->descripcion,
                 'fecha_vencimiento' => $request->fecha_vencimiento,
                 'img_path' => $name,
@@ -321,5 +323,16 @@ class ProductoController extends Controller
         }
 
         return redirect()->back(302, [], route('productos.index'))->with('success', $message);
+    }
+
+    // Activar / desactivar para la venta con un toque (ej. "se acabaron los almuerzos").
+    // No lo oculta del sistema: solo deja de ofrecerse en la carta, la tienda en línea, la caja y los pedidos.
+    public function disponible(Producto $producto)
+    {
+        abort_unless(auth()->user()?->can('editar-producto'), 403);
+        $producto->forceFill(['disponible' => !$producto->disponible])->save();
+        return redirect()->back(302, [], route('productos.index'))->with('success', $producto->disponible
+            ? '"' . $producto->nombre . '" activado: ya se puede pedir.'
+            : '"' . $producto->nombre . '" desactivado: ya no se ofrece en la carta ni se puede vender hasta que lo active.');
     }
 }

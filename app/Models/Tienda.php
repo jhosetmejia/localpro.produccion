@@ -10,7 +10,7 @@ class Tienda extends Model
     protected $table = 'tiendas';
 
     protected $fillable = [
-        'nombre', 'departamento', 'slug', 'catalogo_activo', 'catalogo_agotados', 'mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'mod_eventos', 'mod_contable', 'mod_consultorio', 'mod_pedidos', 'mod_servicios', 'pedidos_cobro', 'cliente_obligatorio', 'pais', 'tipo_negocio', 'descripcion', 'usa_tallas', 'nit', 'regimen',
+        'nombre', 'departamento', 'slug', 'catalogo_activo', 'catalogo_agotados', 'carta_tema', 'mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'mod_eventos', 'mod_contable', 'mod_consultorio', 'mod_pedidos', 'mod_servicios', 'pedidos_cobro', 'cliente_obligatorio', 'pais', 'tipo_negocio', 'descripcion', 'usa_tallas', 'nit', 'regimen',
         'resolucion_numero', 'resolucion_fecha', 'resolucion_vigencia', 'resolucion_prefijo', 'resolucion_desde', 'resolucion_hasta', 'direccion', 'ciudad', 'telefono',
         'email', 'logo_path', 'mensaje_tiquete', 'menu_oculto',
         // Facturación DIAN
@@ -167,6 +167,35 @@ class Tienda extends Model
         return app()->environment('production') && $dominio
             ? 'https://www.' . $dominio . '/t/' . $this->slug
             : $this->url_catalogo;
+    }
+
+    // Carta virtual: para restaurantes y cafeterías (menú con diseño propio y pedido por WhatsApp)
+    public const TIPOS_CARTA = ['restaurante', 'cafeteria'];
+    public const CARTA_TEMAS = [
+        'bistro' => ['Bistró', 'Negro y dorado, elegante', '#14110f', '#d9a441'],
+        'fresca' => ['Fresca', 'Crema y terracota, casera', '#fbf4ea', '#c4532d'],
+        'parrilla' => ['Parrilla', 'Carbón y rojo, para asados y comidas rápidas', '#1c1c1e', '#e63b2e'],
+        'verde' => ['Huerta', 'Verde y blanco, saludable', '#f3f8f1', '#2f7d4a'],
+    ];
+
+    public function getUsaCartaAttribute(): bool
+    {
+        return in_array($this->tipo_negocio, self::TIPOS_CARTA, true);
+    }
+
+    public function getCartaTemaActualAttribute(): string
+    {
+        return isset(self::CARTA_TEMAS[$this->carta_tema]) ? $this->carta_tema : 'bistro';
+    }
+
+    public function getUrlCartaAttribute(): string
+    {
+        return $this->url_catalogo . '/carta';
+    }
+
+    public function getUrlCartaNavegadorAttribute(): string
+    {
+        return $this->url_catalogo_navegador . '/carta';
     }
 
     public function plan()

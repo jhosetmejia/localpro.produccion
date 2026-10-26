@@ -200,6 +200,13 @@
                             <label class="form-check-label" for="controla_inventario"><b>Controlar inventario</b> <small class="text-muted d-block">Apáguelo en comidas preparadas o servicios: se vende sin límite de cantidad.</small></label>
                         </div>
                     </div>
+                    <div class="col-12">
+                        <input type="hidden" name="disponible" value="0">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" name="disponible" value="1" id="disponible" @checked(old('disponible', '1') === '1')>
+                            <label class="form-check-label" for="disponible"><b>Producto activo (disponible para pedir)</b> <small class="text-muted d-block">Apáguelo cuando se acabe, por ejemplo los almuerzos de hoy: no se podrá pedir en la carta virtual ni en la tienda en línea, ni vender en la caja, hasta que lo vuelva a activar. Así no tiene que poner cantidades.</small></label>
+                        </div>
+                    </div>
                 </div>
             </details>
         </div>

@@ -163,6 +163,14 @@
                     <p class="text-muted small mb-0"><i class="fa-solid fa-hand-holding-heart me-1" style="color:#16b84e"></i>Es un servicio: no se acaba ni lleva inventario. Siempre está disponible para vender en la caja, en pedidos y en su catálogo.</p>
                 </div>
                 @endif
+                <div class="pe-sec" style="{{ $producto->disponible === false ? 'background:#fff1f3;border-color:#f6c9d3' : '' }}">
+                    <h3>{{ $producto->disponible === false ? '⛔ Producto desactivado' : 'Disponible para pedir' }}</h3>
+                        <input type="hidden" name="disponible" value="0">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" name="disponible" value="1" id="disponible" @checked(old('disponible', $producto->disponible !== false))>
+                            <label class="form-check-label" for="disponible"><b>Producto activo (disponible para pedir)</b> <small class="text-muted d-block">Apáguelo cuando se acabe, por ejemplo los almuerzos de hoy: no se podrá pedir en la carta virtual ni en la tienda en línea, ni vender en la caja, hasta que lo vuelva a activar. Así no tiene que poner cantidades.</small></label>
+                        </div>
+                </div>
                 <div class="pe-sec" id="secCant" @if($esServ) style="display:none" @endif>
                     <h3>{{ $soloUna ? 'Cantidad disponible' : 'Cantidad por talla y color' }}
                         @can('editar-producto')<a href="{{ route('productos.variantes', $producto) }}"><i class="fa-solid fa-plus me-1"></i>{{ \App\Support\TiendaActual::tienda()?->usa_tallas ? 'Agregar tallas / colores' : 'Más opciones' }}</a>@endcan

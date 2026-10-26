@@ -69,6 +69,7 @@ Route::post('/recuperar/codigo', [recuperarController::class, 'guardarNueva'])->
 Route::get('/restablecer/{token}', [recuperarController::class, 'enlaceViejo'])->name('password.reset');
 Route::get('/t/{slug}', [catalogoController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('catalogo.show');
 Route::get('/t/{slug}/yo', [catalogoController::class, 'yo'])->where('slug', '[a-z0-9-]+')->middleware('throttle:60,1')->name('catalogo.yo');
+Route::get('/t/{slug}/carta', [catalogoController::class, 'carta'])->where('slug', '[a-z0-9-]+')->name('catalogo.carta');
 Route::get('/t/{slug}/p/{producto}', [catalogoController::class, 'producto'])->where(['slug' => '[a-z0-9-]+', 'producto' => '[0-9]+(-[a-z0-9-]*)?'])->name('catalogo.producto');
 // LocalProo Marketplace: todas las tiendas en línea y sus productos en un solo lugar
 Route::get('/marketplace', [\App\Http\Controllers\marketplaceController::class, 'index'])->middleware('throttle:120,1')->name('marketplace');
@@ -308,6 +309,7 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::get('/users/{user}/permisos', [userController::class, 'permisos'])->whereNumber('user')->name('users.permisos');
     Route::put('/users/{user}/permisos', [userController::class, 'guardarPermisos'])->whereNumber('user')->name('users.permisos.guardar');
 
+    Route::post('/productos/{producto}/disponible', [ProductoController::class, 'disponible'])->whereNumber('producto')->name('productos.disponible');
     Route::delete('/productos/{producto}/eliminar', [ProductoController::class, 'eliminar'])->whereNumber('producto')->name('productos.eliminar');
     Route::delete('/categorias/{categoria}/eliminar', [categoriaController::class, 'eliminar'])->whereNumber('categoria')->name('categorias.eliminar');
     // Importar proveedores desde Excel, CSV u hoja de Google (mismo importador inteligente de clientes)

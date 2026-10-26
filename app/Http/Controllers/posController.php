@@ -71,7 +71,7 @@ class posController extends Controller
         $q = \App\Support\CodigoBarras::resolver(trim((string) $request->get('q')));
 
         $variantes = ProductoVariante::query()
-            ->with('producto:id,nombre,codigo,precio_venta,precio_costo,img_path,controla_inventario,unidad')
+            ->with('producto:id,nombre,codigo,precio_venta,precio_costo,img_path,controla_inventario,unidad,disponible')
             ->where('estado', 1)
             ->whereHas('producto', fn ($p) => $p->where('estado', 1))
             ->when($q !== '', function ($w) use ($q) {
@@ -106,6 +106,8 @@ class posController extends Controller
                 'img' => $p->img_path ? asset('storage/productos/' . $p->img_path) : null,
                 'stock' => round((float) $grupo->sum('stock'), 3),
                 'controla' => (bool) $p->controla_inventario,
+                // Desactivado por el negocio: sale en gris y no se deja agregar
+                'pausado' => $p->disponible === false,
                 'unidad' => $p->unidad ?: 'und',
                 'unidad_txt' => $p->unidad_corta,
                 'unidad_pl' => \App\Models\Producto::UNIDADES[$p->unidad ?: 'und'][2] ?? 'unidades',
@@ -129,6 +131,7 @@ class posController extends Controller
         // Lo buscaron exacto por código y está agotado: el POS avisa que hay que agregar existencia
         $agotado = $productos->first(fn ($p) => $p['controla'] && $p['stock'] <= 0);
         if ($exacta && $exacta->producto?->controla_inventario && (float) $exacta->stock <= 0) $exacta = null;
+        if ($exacta && $exacta->producto?->disponible === false) $exacta = null;
 
         return response()->json([
             'productos' => $productos,

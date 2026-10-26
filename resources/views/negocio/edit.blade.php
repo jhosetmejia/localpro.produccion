@@ -59,6 +59,27 @@
                 <div class="form-check"><input class="form-check-input" type="radio" name="catalogo_agotados" value="0" id="agot0" @checked(!$agot)><label class="form-check-label" for="agot0"><b>Solo los que tienen existencias</b> <small class="text-muted d-block">Lo agotado se oculta solo y vuelve a salir cuando entra mercancía. Se ve más ordenado.</small></label></div>
                 <div class="form-check mt-1"><input class="form-check-input" type="radio" name="catalogo_agotados" value="1" id="agot1" @checked($agot)><label class="form-check-label" for="agot1"><b>Todos, también los agotados</b> <small class="text-muted d-block">Los agotados salen al final con la etiqueta "Agotado".</small></label></div>
             </div>
+            @if ($negocio->usa_carta)
+            <div class="mt-3 pt-3" style="border-top:1px dashed #dfe7e1">
+                <label class="form-label small fw-bold mb-1"><i class="fa-solid fa-utensils me-1"></i>Carta virtual de su restaurante</label>
+                <small class="text-muted d-block mb-2">Su menú con diseño de restaurante y pedido por WhatsApp (domicilio, para recoger o en la mesa). Póngala en un QR en las mesas o compártala. Los productos desactivados salen como "Agotado por hoy".</small>
+                <div class="row g-2">
+                    @foreach (\App\Models\Tienda::CARTA_TEMAS as $k => [$nom, $txt, $fondo, $acento])
+                    <div class="col-6">
+                        <label class="d-block p-2 h-100" style="border:2px solid {{ $negocio->carta_tema_actual === $k ? '#16b34a' : '#e3ebe6' }};border-radius:14px;cursor:pointer">
+                            <input type="radio" name="carta_tema" value="{{ $k }}" class="form-check-input me-1" @checked(old('carta_tema', $negocio->carta_tema_actual) === $k)>
+                            <span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:{{ $fondo }};border:3px solid {{ $acento }};vertical-align:middle"></span>
+                            <b class="small">{{ $nom }}</b>
+                            <small class="text-muted d-block" style="font-size:.72rem">{{ $txt }}</small>
+                            <a href="{{ $negocio->url_carta_navegador }}?tema={{ $k }}" target="_blank" rel="noopener" class="small fw-bold" style="color:#11702f">Ver cómo queda →</a>
+                        </label>
+                    </div>
+                    @endforeach
+                </div>
+                <a class="btn btn-dark w-100 mt-2" target="_blank" rel="noopener" href="{{ $negocio->url_carta_navegador }}"><i class="fa-solid fa-utensils me-1"></i>Ver mi carta virtual</a>
+                <input class="form-control mt-2 text-center small" value="{{ $negocio->url_carta }}" readonly onclick="this.select()">
+            </div>
+            @endif
             @unless ($negocio->telefono)<div class="alert border-0 mt-2 mb-0 small" style="background:#fff5d6;color:#8a6400">Ponga el teléfono / WhatsApp del negocio para recibir los pedidos.</div>@endunless
         </div>
         <div class="lp-box">

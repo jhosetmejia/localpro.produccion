@@ -432,11 +432,11 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
         }
         g.innerHTML = productos.map(function (p, i) {
             var cls = !p.controla ? '' : (p.stock <= 0 ? 'zero' : (p.stock <= 5 ? 'low' : ''));
-            var off = p.controla && p.stock <= 0;
+            var off = p.pausado || (p.controla && p.stock <= 0);
             return '<button class="card ' + (off ? 'off' : '') + '" data-i="' + i + '">' +
                 '<div class="thumb">' + (p.img ? '<img src="' + esc(p.img) + '" alt="" loading="lazy">' : esc(p.nombre.charAt(0))) + '</div>' +
                 '<b>' + esc(p.nombre) + '</b>' +
-                '<div class="row"><span class="price">' + fmt(p.precio) + (p.fraccion ? '<small style="font-weight:700;opacity:.7">/' + esc(p.unidad_txt) + '</small>' : '') + '</span><span class="stk ' + cls + '">' + (p.controla ? cant(p.stock) + ' ' + esc(und(p)) : 'Disponible') + '</span></div></button>';
+                '<div class="row"><span class="price">' + fmt(p.precio) + (p.fraccion ? '<small style="font-weight:700;opacity:.7">/' + esc(p.unidad_txt) + '</small>' : '') + '</span><span class="stk ' + (p.pausado ? 'zero' : cls) + '">' + (p.pausado ? 'Desactivado' : p.controla ? cant(p.stock) + ' ' + esc(und(p)) : 'Disponible') + '</span></div></button>';
         }).join('');
     }
     $('grid').addEventListener('click', function (e) {
@@ -448,6 +448,7 @@ kbd{background:rgba(0,0,0,.12);border-radius:6px;padding:.05rem .35rem;font-size
 
     // ---------- Talla y color ----------
     function abrirVariantes(p) {
+        if (p.pausado) { toast(p.nombre + ' está desactivado. Actívelo en Productos para venderlo.', true); return; }
         if (p.variantes.length === 1) { agregar(p, p.variantes[0]); return; }
         var conUnidades = p.controla ? p.variantes.filter(function (v) { return libre(v) > 0; }) : p.variantes;
         if (conUnidades.length === 1) { agregar(p, conUnidades[0]); return; }

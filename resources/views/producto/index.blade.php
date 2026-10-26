@@ -144,6 +144,7 @@ a.pl-foto.sinfoto:hover{border-color:#16b84e;color:#16b84e;background:#f0fbf4}
                 $controla = (bool) $item->controla_inventario;
                 $st = round((float) $item->variantes->sum('stock'), 3);
                 $clase = !$controla ? 'na' : ($st <= 0 ? 'zero' : ($st <= 5 ? 'low' : 'ok'));
+                if ($item->disponible === false) $clase = 'zero';
                 $cats = $item->categorias->map(fn ($c) => $c->caracteristica?->nombre)->filter()->implode(', ');
                 $conVar = $item->variantes->filter(fn ($v) => $v->talla || $v->color);
             @endphp
@@ -175,6 +176,7 @@ a.pl-foto.sinfoto:hover{border-color:#16b84e;color:#16b84e;background:#f0fbf4}
                         @endif
                         <span class="pl-stk {{ $clase }}">
                             @if ($item->estado != 1) Oculto
+                            @elseif ($item->disponible === false) <i class="fa-solid fa-ban"></i> Desactivado · no se puede pedir
                             @elseif ($item->es_servicio) <i class="fa-solid fa-hand-holding-heart"></i> Servicio · siempre disponible
                             @elseif (!$controla) Sin control de stock
                             @elseif ($st <= 0) Agotado
@@ -199,6 +201,15 @@ a.pl-foto.sinfoto:hover{border-color:#16b84e;color:#16b84e;background:#f0fbf4}
                     @can('editar-producto')
                     <a href="{{ route('productos.variantes', ['producto' => $item]) }}" class="pri"><i class="fa-solid fa-boxes-stacked"></i>{{ $tallas ? 'Tallas' : 'Stock' }}</a>
                     <a href="{{ route('productos.edit', ['producto' => $item]) }}"><i class="fa-solid fa-pen"></i>Editar</a>
+                    @if ($item->estado == 1)
+                    <form action="{{ route('productos.disponible', $item) }}" method="post" style="display:contents">@csrf
+                        @if ($item->disponible === false)
+                        <button type="submit" class="pri" title="Volver a ofrecerlo"><i class="fa-solid fa-toggle-off"></i>Activar</button>
+                        @else
+                        <button type="submit" title="Se acabó: deja de ofrecerse sin borrarlo"><i class="fa-solid fa-toggle-on"></i>Desactivar</button>
+                        @endif
+                    </form>
+                    @endif
                     @endcan
                     <a href="{{ route('etiquetas.producto', ['producto' => $item]) }}"><i class="fa-solid fa-barcode"></i>Etiquetas</a>
                     @can('eliminar-producto')

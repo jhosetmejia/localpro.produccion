@@ -165,6 +165,7 @@ document.addEventListener('error', function (e) {
         <div class="acc">
             @php $nPromo = \App\Models\Producto::where('estado', 1)->whereNotNull('precio_antes')->whereColumn('precio_antes', '>', 'precio_venta')->count(); @endphp
             @if ($nPromo)<a class="ib promo" id="btnPromos" href="{{ $tienda->url_catalogo }}?ver=promos" aria-label="Promociones">🔥 <span class="d-sm">Promociones</span></a>@endif
+            @if ($tienda->usa_carta)<a class="ib" href="{{ $tienda->url_carta }}" aria-label="Ver la carta">🍽️ <span class="d-sm">Carta</span></a>@endif
             @if ($wa)<a class="ib wa" href="https://wa.me/{{ $wa }}" target="_blank" rel="noopener" aria-label="WhatsApp">💬 <span class="d-sm">WhatsApp</span></a>@endif
             <button class="ib" id="btnCarrito" aria-label="Carrito">🛒<span class="n" id="topN">0</span></button>
         </div>

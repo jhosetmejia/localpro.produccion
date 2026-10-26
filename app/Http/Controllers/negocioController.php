@@ -28,6 +28,7 @@ class negocioController extends Controller
             'slug' => ['required', 'string', 'max:60', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/', \Illuminate\Validation\Rule::unique('tiendas', 'slug')->ignore($negocio->id)],
             'catalogo_activo' => 'nullable|boolean',
             'catalogo_agotados' => 'nullable|boolean',
+            'carta_tema' => 'nullable|in:' . implode(',', array_keys(\App\Models\Tienda::CARTA_TEMAS)),
             'mod_medida' => 'nullable|boolean',
             'mod_vencimiento' => 'nullable|boolean',
             'mod_recetas' => 'nullable|boolean',

@@ -118,7 +118,7 @@ class pedidosController extends Controller
     // Productos para tomar pedidos, agrupados por categoría
     private function catalogo(): array
     {
-        $vars = ProductoVariante::with(['producto:id,nombre,precio_venta,img_path,controla_inventario,estacion_id', 'producto.categorias.caracteristica:id,nombre'])
+        $vars = ProductoVariante::with(['producto:id,nombre,precio_venta,img_path,controla_inventario,estacion_id,disponible', 'producto.categorias.caracteristica:id,nombre'])
             ->where('estado', 1)->whereHas('producto', fn ($p) => $p->where('estado', 1))
             ->orderBy('producto_id')->limit(600)->get();
         $out = [];
@@ -129,7 +129,7 @@ class pedidosController extends Controller
                 $out[] = [
                     'id' => $v->id, 'n' => $p->nombre, 'et' => $grupo->count() > 1 ? $v->etiqueta : '',
                     'p' => $v->precio_final, 'pt' => dinero($v->precio_final), 'cat' => $cat,
-                    'ag' => $p->controla_inventario && (float) $v->stock <= 0,
+                    'ag' => $p->disponible === false || ($p->controla_inventario && (float) $v->stock <= 0),
                     'img' => $p->img_path ? asset('storage/productos/' . $p->img_path) : null,
                 ];
             }
@@ -157,7 +157,7 @@ class pedidosController extends Controller
         }
 
         $pedido = DB::transaction(function () use ($d, $t) {
-            $vars = ProductoVariante::with('producto:id,nombre,precio_venta,estacion_id')->whereIn('id', collect($d['items'])->pluck('variante_id'))->get()->keyBy('id');
+            $vars = ProductoVariante::with('producto:id,nombre,precio_venta,estacion_id,disponible')->whereIn('id', collect($d['items'])->pluck('variante_id'))->get()->keyBy('id');
             PedidoEstacion::asegurar();
             $estaciones = PedidoEstacion::activas()->pluck('id')->map(fn ($x) => (int) $x)->all();
             $porDefecto = $estaciones[0] ?? null;
@@ -182,6 +182,7 @@ class pedidosController extends Controller
             foreach ($d['items'] as $it) {
                 $v = $vars[$it['variante_id']] ?? null;
                 if (!$v) throw ValidationException::withMessages(['items' => 'Algún producto ya no existe. Recargue la página.']);
+                if ($v->producto->disponible === false) throw ValidationException::withMessages(['items' => '"' . $v->producto->nombre . '" está desactivado (no disponible). Quítelo del pedido.']);
                 $est = $v->producto->estacion_id && in_array((int) $v->producto->estacion_id, $estaciones, true) ? (int) $v->producto->estacion_id : $porDefecto;
                 $cant = round((float) $it['cantidad'], 3);
                 $pedido->items()->create([
