@@ -29,10 +29,12 @@
 .dato{display:flex;gap:.8rem;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:.85rem 1rem}
 .dato i{width:40px;height:40px;flex:0 0 40px;border-radius:12px;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 22%,transparent);color:var(--c)}
 .dato b{display:block}.dato small{color:var(--mu)}
-.vistas{display:flex;align-items:center;justify-content:center;gap:.45rem;margin:14px auto 0;width:max-content;max-width:100%;padding:.4rem .9rem;border-radius:999px;background:color-mix(in srgb,var(--c) 16%,transparent);border:1px solid color-mix(in srgb,var(--c) 40%,transparent);font-size:.88rem;font-weight:700}
-.vistas .pt{width:8px;height:8px;border-radius:50%;background:var(--c);box-shadow:0 0 0 0 var(--c);animation:latir 1.8s infinite}
-@keyframes latir{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--c) 70%,transparent)}100%{box-shadow:0 0 0 10px transparent}}
+.vistas{display:flex;align-items:center;justify-content:center;gap:.4rem;margin:22px auto 0;font-size:.78rem;font-weight:600;color:var(--mu);opacity:.85}
+.vistas .pt{width:6px;height:6px;border-radius:50%;background:var(--c);animation:latir 2.4s ease-in-out infinite}
+@keyframes latir{50%{opacity:.25}}
 @media (prefers-reduced-motion:reduce){.vistas .pt{animation:none}}
+/* El pie deja libre el alto real de los botones fijos (1 o 2 botones) para que no tapen el texto */
+.pie{padding-bottom:calc(var(--fijo-h,160px) + 24px)}
 .precio{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap}
 .precio .v{font-size:2.1rem;font-weight:800;line-height:1}
 .desc{white-space:pre-line;color:#dcd6e8}
@@ -75,10 +77,6 @@
 @else
 @if ($evento->subtitulo)<div class="sub" style="margin-top:22px">{{ $evento->subtitulo }}</div>@endif
 <h1 class="tit" @if ($evento->subtitulo) style="margin-top:6px" @endif>{{ $evento->nombre }}</h1>
-@endif
-
-@if ($evento->mostrar_visitas && $evento->visitas > 0)
-<div class="vistas"><span class="pt"></span><i class="fa-regular fa-eye"></i> {{ number_format($evento->visitas, 0, ',', '.') }} {{ $evento->visitas === 1 ? 'persona ha visto' : 'personas han visto' }} este evento</div>
 @endif
 
 <div class="datos">
@@ -125,6 +123,10 @@
 </div>
 @endif
 
+@if ($evento->mostrar_visitas && $evento->visitas > 0)
+<div class="vistas"><span class="pt"></span><i class="fa-regular fa-eye"></i> {{ number_format($evento->visitas, 0, ',', '.') }} {{ $evento->visitas === 1 ? 'visita' : 'visitas' }}</div>
+@endif
+
 <div class="fijo">
     @if ($entrada && $entrada->estado === 'aprobada')
         <a class="btn btn-c" href="{{ route('mis-entradas.ver', $entrada->uuid) }}"><i class="fa-solid fa-qrcode"></i> Ver mi entrada</a>
@@ -168,6 +170,17 @@
 @endsection
 
 @section('js')
+<script>
+// Mide los botones fijos de abajo para que nunca tapen el texto del final
+(function () {
+    var f = document.querySelector('.fijo');
+    if (!f) return;
+    function medir() { document.documentElement.style.setProperty('--fijo-h', f.offsetHeight + 'px'); }
+    medir();
+    if (window.ResizeObserver) new ResizeObserver(medir).observe(f);
+    window.addEventListener('resize', medir);
+})();
+</script>
 <script>
 (function () {
     var hoja = document.getElementById('hoja-otra');
