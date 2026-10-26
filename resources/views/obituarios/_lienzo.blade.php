@@ -16,7 +16,7 @@
         'foto' => $o->foto_url,
         'anios' => $o->anios,
         'frase' => $o->frase ?: $p->frase,
-        'sala' => $o->sala?->nombre,
+        'sala' => $o->lugar_velacion, // lugar de velación (la sala es solo el proyector)
         'fecha' => $o->fecha_texto,
         'hora' => $o->hora_texto,
         'lugar' => $o->lugar_exequias,
@@ -27,7 +27,7 @@
         'foto' => null,
         'anios' => '07-12-1950 / ' . now()->format('d-m-Y'),
         'frase' => $p->frase,
-        'sala' => 'Proyector 1',
+        'sala' => 'Sala San José',
         'fecha' => \App\Models\Obituario::fechaLarga(now()->addDay()),
         'hora' => '3 p. m.',
         'lugar' => 'Parroquia Nuestra Señora del Carmen',
@@ -84,7 +84,7 @@
             </header>
             <div class="obi-titulo" data-o="titulo" data-fila="titulo" @if (!$p->titulo) hidden @endif>{{ $p->titulo }}</div>
             <div class="obi-sub">
-                <span class="obi-sala" data-o="sala" data-fila="sala" @if (!$d['sala']) hidden @endif>{{ $d['sala'] }}</span>
+                <span class="obi-sala" data-fila="sala" @if (!$d['sala']) hidden @endif>Velación: <span data-o="sala">{{ $d['sala'] }}</span></span>
                 <span class="obi-frase" data-o="frase" data-fila="frase" @if (!$d['frase']) hidden @endif>{{ $d['frase'] }}</span>
             </div>
             <div class="obi-linea"></div>

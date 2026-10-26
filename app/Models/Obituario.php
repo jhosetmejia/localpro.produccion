@@ -14,7 +14,7 @@ class Obituario extends Model
 
     protected $table = 'obituarios';
 
-    protected $fillable = ['plantilla_id', 'sala_id', 'nombre', 'nacimiento', 'fallecimiento', 'frase', 'fecha_exequias', 'hora_exequias', 'lugar_exequias', 'destino_final', 'invitan', 'mostrar_hasta', 'estado', 'foto_fondo', 'foto_color', 'foto_forma', 'foto_rot', 'foto_x', 'foto_y', 'foto_zoom'];
+    protected $fillable = ['plantilla_id', 'sala_id', 'lugar_velacion', 'nombre', 'nacimiento', 'fallecimiento', 'frase', 'fecha_exequias', 'hora_exequias', 'lugar_exequias', 'destino_final', 'invitan', 'mostrar_hasta', 'estado', 'foto_fondo', 'foto_color', 'foto_forma', 'foto_rot', 'foto_x', 'foto_y', 'foto_zoom'];
 
     protected $casts = ['nacimiento' => 'date', 'fallecimiento' => 'date', 'fecha_exequias' => 'date', 'mostrar_hasta' => 'datetime'];
 

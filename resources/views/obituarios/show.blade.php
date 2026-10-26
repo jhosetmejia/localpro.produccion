@@ -13,14 +13,15 @@
     $m = $plantilla->medida_datos;
     $medidas = collect(\App\Models\ObituarioPlantilla::MEDIDAS)->filter(fn ($x) => $x[3] === $m['orientacion']);
     $texto = "En memoria de *{$obituario->nombre}*"
-        . ($obituario->sala ? "\n{$obituario->sala->nombre} · {$tienda->nombre}" : "\n{$tienda->nombre}")
+        . "\n{$tienda->nombre}"
+        . ($obituario->lugar_velacion ? "\nVelación: {$obituario->lugar_velacion}" : '')
         . ($obituario->fecha_texto ? "\nExequias: {$obituario->fecha_texto}" . ($obituario->hora_texto ? ", {$obituario->hora_texto}" : '') : '')
         . ($obituario->lugar_exequias ? "\nLugar: {$obituario->lugar_exequias}" : '')
         . ($obituario->destino_final ? "\nDestino final: {$obituario->destino_final}" : '');
 @endphp
 <div class="lp-dash">
     <div class="lp-hello">
-        <div><small>Obituario @if ($obituario->sala)· {{ $obituario->sala->nombre }}@endif</small><h1>{{ \Illuminate\Support\Str::title(mb_strtolower($obituario->nombre)) }}</h1>
+        <div><small>Obituario @if ($obituario->lugar_velacion)· {{ $obituario->lugar_velacion }}@endif</small><h1>{{ \Illuminate\Support\Str::title(mb_strtolower($obituario->nombre)) }}</h1>
             <p class="mb-0">@if ($obituario->en_pantalla)<span class="badge bg-success">En pantalla</span>@else<span class="badge bg-secondary">No está en pantalla</span>@endif
                 <small class="text-muted ms-1">Plantilla: {{ $plantilla->nombre }} · {{ $m['nombre'] }}</small></p></div>
         <div class="lp-quick">

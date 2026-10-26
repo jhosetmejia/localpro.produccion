@@ -154,8 +154,9 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
                 </div>
 
                 <div class="lp-box mb-3">
-                    <h3>3. Exequias</h3>
+                    <h3>3. Velación y exequias</h3>
                     <div class="row g-2">
+                        <div class="col-12"><label class="form-label small fw-bold">Lugar de velación</label><input class="form-control" name="lugar_velacion" data-c="sala" maxlength="150" value="{{ old('lugar_velacion', $obituario->lugar_velacion) }}" placeholder="Ej: Sala San José · Funerales La Esperanza"><div class="of-ayuda mt-1">Sale en el obituario para que la gente sepa dónde acompañar a la familia.</div></div>
                         <div class="col-7"><label class="form-label small fw-bold">Fecha</label><input type="date" class="form-control" name="fecha_exequias" data-c="fecha" value="{{ old('fecha_exequias', $obituario->fecha_exequias?->format('Y-m-d')) }}"></div>
                         <div class="col-5"><label class="form-label small fw-bold">Hora</label><input type="time" class="form-control" name="hora_exequias" data-c="hora" value="{{ old('hora_exequias', $obituario->hora_exequias ? substr($obituario->hora_exequias, 0, 5) : '') }}"></div>
                         <div class="col-12"><label class="form-label small fw-bold">Lugar de las exequias</label><input class="form-control" name="lugar_exequias" data-c="lugar" maxlength="150" value="{{ old('lugar_exequias', $obituario->lugar_exequias) }}" placeholder="Ej: Parroquia Nuestra Señora del Carmen"></div>
@@ -248,13 +249,13 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
 
     function anio(v) { return v ? v.slice(8, 10) + '-' + v.slice(5, 7) + '-' + v.slice(0, 4) : ''; }
     function vivo() {
-        var f = form.elements, sala = f.sala_id.options[f.sala_id.selectedIndex];
+        var f = form.elements;
         var a1 = anio(f.nacimiento.value), a2 = anio(f.fallecimiento.value);
         Obi.datos(el, {
             nombre: f.nombre.value || 'Nombre del fallecido',
             anios: (a1 || a2) ? (a1 + ' / ' + a2).replace(/^ \/ | \/ $/g, '') : '',
             frase: f.frase.value || fraseDefecto,
-            sala: f.sala_id.value ? sala.text : '',
+            sala: f.lugar_velacion.value, // en el lienzo la fila "sala" es el lugar de velación
             fecha: Obi.fecha(f.fecha_exequias.value),
             hora: Obi.hora(f.hora_exequias.value),
             lugar: f.lugar_exequias.value,
