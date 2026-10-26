@@ -12,7 +12,7 @@ class CabecerasSeguridad
     public function handle(Request $request, Closure $next)
     {
         $r = $next($request);
-        if (!method_exists($r, 'headers')) return $r;
+        if (!isset($r->headers)) return $r; // headers es una propiedad, no un método
         $h = $r->headers;
         if (!$h->has('X-Frame-Options')) $h->set('X-Frame-Options', 'SAMEORIGIN');
         $h->set('X-Content-Type-Options', 'nosniff');
