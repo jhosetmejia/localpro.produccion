@@ -39,6 +39,10 @@ Sitio en vivo: https://localproo.com
   Cada noche `respaldo-diario.sh` (base + storage/app/public + firmas) llama a `respaldo-externo.sh`: cifra con AES-256 (llave `/etc/localpro-respaldo.key`,
   Jhoset la guarda aparte) y conserva 30 días. Restaurar: `deploy/restaurar-respaldo-externo.sh AAAA-MM-DD` (solo baja y descifra, no toca producción).
   El estado de ambos respaldos y del sitio de pruebas sale en el reporte del servidor.
+  - Copias: completa 3:15 a. m. (base + `storage/app/public` + firmas + `config-*.tar.gz` con el `.env`, solo root), base cada 4 h (`respaldo-diario.sh --rapido`, nombre `base-AAAAMMDD-HHMM`), simulacro los domingos (`probar-respaldo.sh`: baja, descifra y revisa; resultado "Simulacro" en el reporte). Crons en `/etc/cron.d/localpro-respaldo` (los reescribe `actualizar.sh`).
+  - Restaurar en el mismo servidor: `localproo restaurar [AAAA-MM-DD]` (copia del estado actual antes, pide escribir RESTAURAR, base completa + fotos que falten, no toca `.env`).
+  - Servidor perdido: en un VPS nuevo con CloudPanel, `deploy/montar-desde-respaldo.sh` (pide llaves de Backblaze y la llave de cifrado; instala, restaura base, fotos y `.env`, crons y piloto; al final cambiar el A de Cloudflare a la IP nueva).
+  - Órdenes del piloto: `respaldo-ya`, `probar-respaldo`. Ver la llave: `localproo llave`.
 - Otros scripts en `deploy/` (instalar VPS, correo, respaldo diario, dominio nuevo, reset admin).
 - Pagos con Wompi (`wompiController`); integración Meta con webhook (`metaWebhookController`).
 

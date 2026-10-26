@@ -9,5 +9,9 @@ case "${1:-}" in
   artisan) shift; cd "$RAIZ" && exec sudo -u "$U" php8.2 artisan "$@" ;;
   ruta) echo "$RAIZ" ;;
   logs) exec tail -n "${2:-80}" "$RAIZ/storage/logs/laravel.log" ;;
-  *) echo "Uso: localproo actualizar | localproo artisan <comando> | localproo ruta | localproo logs [líneas]" ;;
+  respaldo) exec bash "$RAIZ/deploy/respaldo-diario.sh" ;;
+  restaurar) shift; exec bash "$RAIZ/deploy/restaurar.sh" "$@" ;;
+  probar-respaldo) exec bash "$RAIZ/deploy/probar-respaldo.sh" ;;
+  llave) echo "Llave de cifrado de las copias externas (guárdela fuera del servidor, NO la mande por chat):"; echo; cat /etc/localpro-respaldo.key 2>/dev/null || echo "(no está activado el respaldo externo)"; echo ;;
+  *) echo "Uso: localproo actualizar | artisan <comando> | ruta | logs [líneas] | respaldo | restaurar [AAAA-MM-DD] | probar-respaldo | llave" ;;
 esac
