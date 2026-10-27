@@ -120,6 +120,18 @@ main{position:relative;z-index:2}
 <div class="card"><h2>Condiciones</h2><p class="desc mu" style="font-size:.9rem">{{ $evento->condiciones }}</p></div>
 @endif
 
+<div class="card">
+    <h2><i class="fa-solid fa-rotate-left" style="color:var(--c)"></i> Reembolsos y términos de compra</h2>
+    <ul class="mu" style="font-size:.9rem;padding-left:1.1rem;display:grid;gap:.35rem">
+        <li>El reembolso se pide al organizador{{ $tienda?->nombre ? ' (' . $tienda->nombre . ')' : '' }}, con tu comprobante de pago y antes del inicio del evento.</li>
+        <li>No hay reembolso por inasistencia, llegada tarde o retiro por incumplir las normas del evento.</li>
+        <li>Si el evento se cancela o cambia de fecha, el organizador te ofrece reembolso, cambio de fecha o crédito.</li>
+        <li>La entrada es personal e intransferible y está prohibida su reventa no autorizada.</li>
+        <li>LocalProo es la plataforma de venta: la producción y realización del evento son responsabilidad del organizador.</li>
+    </ul>
+    <a href="{{ route('eventos.terminos-compra', ['e' => $evento->slug]) }}" style="display:inline-block;margin-top:.7rem;color:var(--c);font-weight:700;font-size:.9rem">Ver términos completos <i class="fa-solid fa-arrow-right"></i></a>
+</div>
+
 @if ($evento->instagram || $evento->tiktok || $evento->whatsapp_link)
 <div class="redes">
     @if ($evento->instagram)<a href="{{ $evento->instagram_url }}" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>@endif

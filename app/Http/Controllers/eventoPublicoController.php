@@ -240,6 +240,16 @@ class eventoPublicoController extends Controller
 
     // ===================== Mis entradas =====================
 
+    /** Términos de compra de entradas y política de reembolsos (página pública). ?e=slug muestra el organizador del evento. */
+    public function terminos(Request $request)
+    {
+        $evento = $request->query('e') ? Evento::withoutGlobalScope('tienda')->with('tienda')->where('slug', (string) $request->query('e'))->where('estado', '!=', 'borrador')->first() : null;
+        return view('eventos.publico.terminos', [
+            'evento' => $evento, 'tienda' => $evento?->tienda,
+            'correo' => \App\Models\Ajuste::valor('correo_legal') ?: config('mail.from.address'),
+        ]);
+    }
+
     public function ingresar(Request $request)
     {
         if ($this->yo()) return redirect()->route('mis-entradas.index');

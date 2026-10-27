@@ -108,6 +108,8 @@ main,header,footer{position:relative;z-index:1}
 <footer class="pie">
     @if (($tienda ?? null)?->nombre)Organiza: <b>{{ $tienda->nombre }}</b><br>@endif
     Entradas con <a href="{{ url('/') }}?desde=evento" rel="noopener">LocalProo</a>
+    · <a href="{{ route('eventos.terminos-compra', ($evento ?? null)?->slug ? ['e' => $evento->slug] : []) }}">Términos y reembolsos</a>
+    <br><small>LocalProo es la plataforma de venta; el evento es responsabilidad del organizador.</small>
 </footer>
 @yield('js')
 </body>

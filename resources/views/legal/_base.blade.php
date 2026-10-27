@@ -9,6 +9,7 @@
 .lg h1{font-size:clamp(1.8rem,4vw,2.5rem);font-weight:900;margin-bottom:.3rem}
 .lg .f{color:#6b7570;font-weight:600;margin-bottom:24px}
 .lg h2{font-size:1.15rem;font-weight:900;margin:26px 0 8px}
+.lg h3{font-size:1.02rem;font-weight:800;margin:18px 0 6px}
 .lg ul{padding-left:1.2rem}
 .lg .box{background:#f4fcf6;border:1.5px solid #cfe9d6;border-radius:18px;padding:16px 18px;margin:16px 0}
 </style>

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Route;
 // Ojo: el límite "throttle" cuenta por IP para todas las rutas juntas; en un colegio muchos comparten la misma IP (wifi),
 // por eso las páginas que solo se ven no llevan límite y los envíos tienen límites amplios.
 Route::controller(eventoPublicoController::class)->group(function () {
+    Route::get('/eventos/terminos', 'terminos')->name('eventos.terminos-compra');
     Route::get('/evento/{slug}', 'show')->where('slug', '[a-z0-9-]+')->name('evento.publico');
     Route::get('/evento/{slug}/comprar', 'comprar')->where('slug', '[a-z0-9-]+')->name('evento.comprar');
     Route::post('/evento/{slug}/comprar', 'registrar')->where('slug', '[a-z0-9-]+')->middleware('throttle:60,1')->name('evento.registrar');

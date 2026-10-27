@@ -33,7 +33,8 @@
         <p class="mu">Estás registrado como <b style="color:var(--tx)">{{ $yo->nombre }}</b> ({{ $yo->email }}).</p>
         @include('eventos.publico._campos')
         @include('eventos.publico._acompanantes')
-        <button class="btn btn-c" style="margin-top:20px"><i class="fa-solid fa-check"></i> Terminar registro</button>
+        <p class="mu" style="font-size:.85rem;margin-top:16px">Al terminar aceptas las condiciones del evento, los <a href="{{ route('eventos.terminos-compra', ['e' => $evento->slug]) }}#compra" target="_blank" rel="noopener" style="color:var(--c);font-weight:700">términos de compra</a> y la <a href="{{ route('eventos.terminos-compra', ['e' => $evento->slug]) }}#reembolsos" target="_blank" rel="noopener" style="color:var(--c);font-weight:700">política de reembolsos</a>.</p>
+        <button class="btn btn-c" style="margin-top:12px"><i class="fa-solid fa-check"></i> Terminar registro</button>
     @else
         <h2 style="margin-top:14px">Tus datos</h2>
         <p class="mu" style="font-size:.9rem">Tu entrada es personal: en la puerta revisan tu documento.</p>
@@ -79,7 +80,7 @@
             <span>Soy menor de edad y mi <b>padre, madre o acudiente</b> conoce y autoriza este registro y la asistencia al evento.</span></label>
 
         <label class="chk"><input type="checkbox" name="acepta_datos" value="1" @checked(old('acepta_datos')) required>
-            <span>Autorizo a <b>{{ $tienda->nombre }}</b> a usar mis datos para gestionar mi entrada a este evento (Ley 1581 de 2012) y acepto las condiciones del evento.</span></label>
+            <span>Autorizo a <b>{{ $tienda->nombre }}</b> a usar mis datos para gestionar mi entrada a este evento (Ley 1581 de 2012) y acepto las condiciones del evento, los <a href="{{ route('eventos.terminos-compra', ['e' => $evento->slug]) }}#compra" target="_blank" rel="noopener" style="color:var(--c);font-weight:700">términos de compra</a> y la <a href="{{ route('eventos.terminos-compra', ['e' => $evento->slug]) }}#reembolsos" target="_blank" rel="noopener" style="color:var(--c);font-weight:700">política de reembolsos</a>.</span></label>
 
         <button class="btn btn-c" style="margin-top:10px" id="ev-enviar"><i class="fa-solid fa-check"></i> Terminar registro</button>
         <p class="mu" style="text-align:center;margin-top:16px;font-size:.92rem">¿Ya tienes cuenta? <a href="{{ route('mis-entradas.ingresar', ['e' => $evento->slug]) }}" style="color:var(--c);font-weight:700">Ingresa aquí</a></p>

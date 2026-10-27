@@ -1,6 +1,6 @@
 @extends('legal._base')
 @section('titulo', 'Condiciones de uso')
-@section('fecha', '24 de octubre de 2026')
+@section('fecha', '27 de octubre de 2026')
 @section('cuerpo')
 @php
     $planAnual = \App\Models\Plan::where('activo', true)->where('precio', '>', 0)->where('dias', '>=', 365)->orderBy('precio')->first();
@@ -67,7 +67,10 @@
     <li>El comprador le paga directamente al organizador (Nequi u otro medio que este indique). LocalProo no recibe ese dinero. Las promociones, precios y condiciones las define el organizador.</li>
     <li><strong>Si el evento se cancela o cambia de fecha</strong>, el organizador debe devolver el dinero a quien lo pida, conforme a la Ley 1480 de 2011 (Estatuto del Consumidor).</li>
     <li>Cada entrada tiene un QR único que sirve una sola vez. El organizador puede pedir el documento en la puerta.</li>
+    <li>Al publicar un evento, el organizador se compromete a atender directamente las quejas, reclamos y reembolsos de sus compradores, a cumplir la política de reembolsos de abajo y a <strong>mantener libre de responsabilidad a LocalProo</strong> frente a reclamos, sanciones o demandas que surjan del evento o de su venta.</li>
 </ul>
+<p>Los compradores aceptan estos términos al registrarse (también se ven en <a href="{{ route('eventos.terminos-compra') }}">localproo.com/eventos/terminos</a>):</p>
+@include('legal._entradas', ['correo' => $correo])
 <h2>8. Donaciones de Navidad</h2>
 <ul>
     <li>Al pagar el plan, el negocio puede marcar voluntariamente una donación. Solo se cobra si marca la casilla, va aparte del valor del plan y no genera comisión.</li>
