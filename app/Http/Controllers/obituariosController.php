@@ -353,6 +353,7 @@ class obituariosController extends Controller
             'pie_nombre' => 'nullable|string|max:80',
             'pie_eslogan' => 'nullable|string|max:150',
             'pie_modo' => ['nullable', Rule::in(array_keys(ObituarioPlantilla::PIE_MODOS))],
+            'logo_fondo' => ['nullable', Rule::in(array_keys(ObituarioPlantilla::LOGO_FONDOS))],
             'cita' => 'nullable|string|max:160',
             'flor_pos' => ['nullable', Rule::in(array_keys(ObituarioPlantilla::FLOR_POS))],
             'flor_x' => 'nullable|integer|min:-400|max:400',
@@ -374,6 +375,7 @@ class obituariosController extends Controller
         // Colores en blanco = los del diseño
         if (!$request->boolean('colores_propios')) { $datos['color_acento'] = null; $datos['color_texto'] = null; }
         $datos['mostrar_logo'] = $request->boolean('mostrar_logo');
+        $datos['logo_fondo'] = $datos['logo_fondo'] ?? 'sin';
         $datos['pie_modo'] = $datos['pie_modo'] ?? 'frase';
         $datos['pie_mostrar'] = $datos['pie_modo'] !== 'ninguno';
         $datos['oscurecer'] = (int) ($datos['oscurecer'] ?? 0);
@@ -409,6 +411,10 @@ class obituariosController extends Controller
             return back()->withInput()->withErrors(['video' => 'Suba el video de fondo o elija otro tipo de fondo.']);
         }
         $plantilla->save();
+        // Mismo logo, pie y título en todas las plantillas del negocio
+        if ($request->boolean('aplicar_todas')) {
+            ObituarioPlantilla::where('tienda_id', $plantilla->tienda_id)->where('id', '<>', $plantilla->id)->update($plantilla->only(ObituarioPlantilla::COMPARTIDOS));
+        }
 
         if ($request->input('volver') === 'nuevo') {
             return redirect()->route('obituarios.create', ['plantilla' => $plantilla->id])->with('success', 'Plantilla guardada. Ahora ponga los datos del fallecido.');

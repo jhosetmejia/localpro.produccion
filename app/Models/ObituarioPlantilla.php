@@ -14,7 +14,7 @@ class ObituarioPlantilla extends Model
 
     protected $table = 'obituario_plantillas';
 
-    protected $fillable = ['nombre', 'diseno', 'medida', 'fondo_tipo', 'fondo_color', 'fondo_color2', 'oscurecer', 'animacion', 'color_acento', 'color_texto', 'mostrar_logo', 'titulo', 'frase', 'pie', 'pie_mostrar', 'pie_nombre', 'pie_modo', 'pie_eslogan', 'adornos', 'cita', 'base', 'flores', 'anim_op'];
+    protected $fillable = ['nombre', 'diseno', 'medida', 'fondo_tipo', 'fondo_color', 'fondo_color2', 'oscurecer', 'animacion', 'color_acento', 'color_texto', 'mostrar_logo', 'logo_fondo', 'titulo', 'frase', 'pie', 'pie_mostrar', 'pie_nombre', 'pie_modo', 'pie_eslogan', 'adornos', 'cita', 'base', 'flores', 'anim_op'];
 
     protected $casts = ['mostrar_logo' => 'boolean', 'pie_mostrar' => 'boolean', 'oscurecer' => 'integer', 'flores' => 'array', 'anim_op' => 'array'];
 
@@ -101,6 +101,12 @@ class ObituarioPlantilla extends Model
         $n = fn ($k) => max(10, min(500, (int) ($a[$k] ?? 100) ?: 100));
         return ['cant' => $n('cant'), 'tam' => $n('tam'), 'vel' => $n('vel')];
     }
+
+    // Logo: sin fondo (como lo subieron) o sobre un recuadro blanco
+    public const LOGO_FONDOS = ['sin' => 'Sin fondo (como lo subió)', 'blanco' => 'Sobre un recuadro blanco'];
+
+    // Lo que se copia a las demás plantillas al marcar "usar en todas": logo y textos, no el diseño
+    public const COMPARTIDOS = ['mostrar_logo', 'logo_fondo', 'titulo', 'pie_modo', 'pie_mostrar', 'pie', 'pie_nombre', 'pie_eslogan'];
 
     // Pie de la tarjeta: qué se muestra debajo del nombre
     public const PIE_MODOS = ['frase' => 'Solo la frase', 'eslogan' => 'Solo el eslogan', 'ambos' => 'Frase y eslogan', 'ninguno' => 'Quitar el pie'];

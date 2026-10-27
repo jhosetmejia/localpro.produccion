@@ -84,7 +84,7 @@
 @endsection
 
 @push('js')
-<script src="{{ asset('js/obituarios.js') }}?v=9"></script>
+<script src="{{ asset('js/obituarios.js') }}?v=12"></script>
 <script>
 (function () {
     var sel = document.getElementById('os-medida'), el = document.querySelector('[data-obi]');

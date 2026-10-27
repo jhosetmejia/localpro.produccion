@@ -172,6 +172,9 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
                         <input class="form-check-input" type="checkbox" name="mostrar_logo" value="1" id="pf-logo" @checked(old('mostrar_logo', $plantilla->mostrar_logo))>
                         <label class="form-check-label" for="pf-logo">Mostrar logo y nombre de la funeraria</label>
                     </div>
+                    <div class="mt-2" style="max-width:340px"><label class="form-label small fw-bold">Fondo del logo</label>
+                        <select class="form-select" name="logo_fondo">@foreach ($P::LOGO_FONDOS as $k => $t)<option value="{{ $k }}" @selected(old('logo_fondo', $plantilla->logo_fondo ?: 'sin') === $k)>{{ $t }}</option>@endforeach</select>
+                        <div class="pf-ayuda mt-1">Si sube el logo en PNG sin fondo, elija "Sin fondo": se ve tal cual sobre la tarjeta.</div></div>
                     @php $logoObi = $tienda->obituarios_logo_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($tienda->obituarios_logo_path) : null; @endphp
                     <div class="pf-logo-box">
                         <div class="pf-logo-prev" id="pf-logo-prev">@if ($logoObi ?: $tienda->logo_url)<img src="{{ $logoObi ?: $tienda->logo_url }}" alt="">@else<small class="text-muted">Sin logo</small>@endif</div>
@@ -200,6 +203,10 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
                     </div>
                 </div>
 
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" name="aplicar_todas" value="1" id="pf-todas" checked>
+                    <label class="form-check-label small" for="pf-todas"><b>Usar el mismo logo, título y pie en todas mis plantillas</b> (el diseño y los colores de cada una no cambian)</label>
+                </div>
                 <div class="d-flex gap-2">
                     <button class="btn btn-primary btn-lg flex-grow-1"><i class="fa-solid fa-floppy-disk me-1"></i>Guardar plantilla</button>
                     <button class="btn btn-dark btn-lg" name="volver" value="nuevo" title="Guardar y crear un obituario con esta plantilla"><i class="fa-solid fa-plus me-1"></i>Guardar y usar</button>
@@ -219,7 +226,7 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
 @endsection
 
 @push('js')
-<script src="{{ asset('js/obituarios.js') }}?v=9"></script>
+<script src="{{ asset('js/obituarios.js') }}?v=12"></script>
 <script>
 (function () {
     var form = document.getElementById('pf-form'), el = document.querySelector('[data-obi]');
@@ -244,7 +251,7 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
             anim_cant: +f.anim_cant.value, anim_tam: +f.anim_tam.value, anim_vel: +f.anim_vel.value, propios: propios,
             flores: { pos: val('flor_pos'), esq: val('flor_esq'), x: +f.flor_x.value, y: +f.flor_y.value, tam: +f.flor_tam.value },
             acento: propios ? f.color_acento.value : dis[2], texto: propios ? f.color_texto.value : dis[3],
-            logo: f.mostrar_logo.checked, titulo: f.titulo.value, frase: '', pie: '', cita: f.cita.value, tarjeta: TARJETAS.indexOf(val('diseno')) !== -1
+            logo: f.mostrar_logo.checked, logo_fondo: f.logo_fondo.value, titulo: f.titulo.value, frase: '', pie: '', cita: f.cita.value, tarjeta: TARJETAS.indexOf(val('diseno')) !== -1
         });
         var modo = f.pie_modo.value, conPie = modo !== 'ninguno';
         var conFrase = modo === 'frase' || modo === 'ambos', conEsl = modo === 'eslogan' || modo === 'ambos';

@@ -230,8 +230,8 @@
 /* En cuadrado y vertical las flores de abajo estorban el texto */
 .o-c .obi-centro .obi-esq.e3,.o-c .obi-centro .obi-esq.e4{display:none!important}
 
-/* Logos oscuros sobre fondos oscuros: se ponen sobre una placa clara */
-.d-dorado .obi-logo,.d-vela .obi-logo,.fondo-propio .obi-logo{background:rgba(255,255,255,.92);padding:14px 24px;border-radius:20px}
+/* Logo: igual en todas las plantillas. Sin fondo por defecto; con "logo-caja" va sobre un recuadro blanco */
+.logo-caja .obi-logo,.logo-caja .ot-logo{background:rgba(255,255,255,.92);padding:14px 24px;border-radius:20px}
 
 /* Fondo propio: los paneles se vuelven transparentes para que se vea la imagen o el video */
 .fondo-propio.d-dorado,.fondo-propio.d-vela,.fondo-propio.d-clasico,.fondo-propio.d-floral,.fondo-propio.d-sencillo,.fondo-propio.d-cielo{background:#000}
@@ -406,7 +406,6 @@ body.sin-cursor,body.sin-cursor *{cursor:none!important}
 .d-amanecer .ot-foto-marco{border:8px solid rgba(255,255,255,.95);box-shadow:0 0 60px rgba(255,214,150,.8),0 30px 60px -20px rgba(0,0,0,.6)}
 .d-amanecer .ot-main,.d-amanecer .ot-cab,.d-amanecer .ot-cita{text-shadow:0 2px 14px rgba(10,20,40,.55)}
 .d-amanecer .ot-info{background:rgba(12,22,42,.55);border:1.5px solid rgba(255,255,255,.18);border-radius:22px;padding:22px 26px;backdrop-filter:blur(4px)}
-.d-amanecer .ot-logo{background:rgba(255,255,255,.92);padding:10px 22px;border-radius:18px}
 .d-amanecer .ot-cita{color:#fff}
 
 /* ---------- 5. Botánico ---------- */

@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600;1,700&family=Great+Vibes&family=Montserrat:ital,wght@0,500;0,700;0,800;1,500&display=swap">
-<link rel="stylesheet" href="{{ asset('css/obituarios.css') }}?v=10">
+<link rel="stylesheet" href="{{ asset('css/obituarios.css') }}?v=11">
 @endonce
 @php
     $m = $p->medida_datos;
@@ -53,7 +53,7 @@
     // Colores propios también en las tarjetas prediseñadas
     $colTarjeta = ($p->color_acento ? ';--t-acento:' . $p->color_acento : '') . ($p->color_texto ? ';--t-texto:' . $p->color_texto . ';--t-titulo:' . $p->color_texto : '');
 @endphp
-<div class="obi d-{{ $p->diseno }} o-{{ $m['orientacion'] }} adornos-{{ $p->adornos ?: 'muchos' }} {{ $tarjeta ? 'lay-tarjeta' : '' }} flor-{{ $fl['pos'] }} esq-{{ $fl['esq'] }} {{ $p->fondo_tipo !== 'diseno' ? 'fondo-propio' : '' }}" data-obi
+<div class="obi d-{{ $p->diseno }} o-{{ $m['orientacion'] }} adornos-{{ $p->adornos ?: 'muchos' }} {{ $tarjeta ? 'lay-tarjeta' : '' }} flor-{{ $fl['pos'] }} esq-{{ $fl['esq'] }} {{ $p->fondo_tipo !== 'diseno' ? 'fondo-propio' : '' }} {{ $p->logo_fondo === 'blanco' ? 'logo-caja' : '' }}" data-obi
      data-w="{{ $m['base_ancho'] }}" data-h="{{ $m['base_alto'] }}" data-escala="{{ $m['escala'] }}" data-anim="{{ $p->animacion }}" data-anim-cant="{{ $an['cant'] }}" data-anim-tam="{{ $an['tam'] }}" data-anim-vel="{{ $an['vel'] }}"
      style="width:{{ $m['base_ancho'] }}px;height:{{ $m['base_alto'] }}px;--acento:{{ $p->acento }};--texto:{{ $p->texto_color }};--fx:{{ $fl['x'] }}px;--fy:{{ $fl['y'] }}px;--ft:{{ $fl['tam'] / 100 }}{{ $colTarjeta }}">
     <div class="obi-fondo" style="{{ $fondoCss }}">@if ($video)<video src="{{ $video }}" autoplay muted loop playsinline></video>@endif</div>
