@@ -93,6 +93,7 @@ class bienvenidaController extends Controller
             'mod_recetas' => 'nullable|boolean',
             'mod_alquiler' => 'nullable|boolean',
             'mod_obituarios' => 'nullable|boolean',
+            'mod_pantallas' => 'nullable|boolean',
             'mod_eventos' => 'nullable|boolean',
             'mod_contable' => 'nullable|boolean',
             'mod_consultorio' => 'nullable|boolean',
@@ -121,7 +122,7 @@ class bienvenidaController extends Controller
         unset($datos['logo']);
 
         $datos['usa_tallas'] = Tienda::TIPOS[$datos['tipo_negocio']][2];
-        foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'mod_eventos', 'mod_contable', 'mod_consultorio', 'mod_pedidos', 'mod_servicios'] as $m) {
+        foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'mod_eventos', 'mod_contable', 'mod_consultorio', 'mod_pedidos', 'mod_servicios', 'mod_pantallas'] as $m) {
             $datos[$m] = $request->has($m) ? $request->boolean($m) : in_array($m, Tienda::MODULOS_POR_TIPO[$datos['tipo_negocio']] ?? [], true);
         }
         if ($tienda->menu_oculto === null && isset(Tienda::MENU_OCULTO_POR_TIPO[$datos['tipo_negocio']])) {

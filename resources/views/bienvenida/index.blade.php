@@ -138,6 +138,7 @@
                     'mod_contable' => ['fa-calculator', 'Llevo la contabilidad de otros', 'Para contadores: cruce de facturas DIAN, retenciones y borrador del 350.'],
                     'mod_eventos' => ['fa-ticket', 'Vendo entradas para eventos', 'Fiestas, conciertos, ferias: página del evento, registro, pago por Nequi y entrada con QR para la puerta.'],
                     'mod_obituarios' => ['fa-dove', 'Obituarios para pantallas', 'Para funerarias: obituarios con foto en cada proyector o televisor.'],
+                    'mod_pantallas' => ['fa-tv', '¿Su negocio maneja pantallas o televisores?', 'Muestre promociones, menú, precios o videos en los televisores del local, sin cables ni USB: todo desde LocalProo.'],
                     'mod_consultorio' => ['fa-user-doctor', 'Atiendo pacientes (consultorio)', 'Para psicología, odontología, estética, fisioterapia, nutrición o medicina: pacientes, agenda de citas e historia clínica.'],
                 ] as $k => [$ic, $tit, $txt])
                 <label class="mod">
@@ -187,7 +188,7 @@
             }
             document.querySelectorAll('input[name=tipo_negocio]').forEach(function (r) { r.addEventListener('change', function () { aplicar(r.value); }); });
             var marcado = document.querySelector('input[name=tipo_negocio]:checked');
-            if (marcado && {{ ($tienda->mod_servicios || $tienda->mod_medida || $tienda->mod_vencimiento || $tienda->mod_recetas || $tienda->mod_obituarios || $tienda->mod_eventos || $tienda->mod_contable || $tienda->mod_consultorio || old('mod_medida') !== null) ? 'false' : 'true' }}) aplicar(marcado.value);
+            if (marcado && {{ ($tienda->mod_servicios || $tienda->mod_medida || $tienda->mod_vencimiento || $tienda->mod_recetas || $tienda->mod_obituarios || $tienda->mod_pantallas || $tienda->mod_eventos || $tienda->mod_contable || $tienda->mod_consultorio || old('mod_medida') !== null) ? 'false' : 'true' }}) aplicar(marcado.value);
             else if (marcado) mods.style.display = (marcado.value === 'conjunto' || marcado.value === 'instituto') ? 'none' : '';
         })();
         </script>

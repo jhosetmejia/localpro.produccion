@@ -10,7 +10,7 @@ class Tienda extends Model
     protected $table = 'tiendas';
 
     protected $fillable = [
-        'nombre', 'departamento', 'slug', 'catalogo_activo', 'catalogo_agotados', 'carta_tema', 'mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'mod_eventos', 'mod_contable', 'mod_consultorio', 'mod_pedidos', 'mod_servicios', 'pedidos_cobro', 'cliente_obligatorio', 'pais', 'tipo_negocio', 'actividad', 'descripcion', 'usa_tallas', 'nit', 'regimen',
+        'nombre', 'departamento', 'slug', 'catalogo_activo', 'catalogo_agotados', 'carta_tema', 'mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'mod_pantallas', 'mod_eventos', 'mod_contable', 'mod_consultorio', 'mod_pedidos', 'mod_servicios', 'pedidos_cobro', 'cliente_obligatorio', 'pais', 'tipo_negocio', 'actividad', 'descripcion', 'usa_tallas', 'nit', 'regimen',
         'resolucion_numero', 'resolucion_fecha', 'resolucion_vigencia', 'resolucion_prefijo', 'resolucion_desde', 'resolucion_hasta', 'direccion', 'ciudad', 'telefono',
         'email', 'logo_path', 'mensaje_tiquete', 'menu_oculto',
         // Facturación DIAN
@@ -18,7 +18,7 @@ class Tienda extends Model
         'fe_activa', 'fe_ambiente', 'fe_resolucion_numero', 'fe_resolucion_fecha', 'fe_resolucion_vigencia', 'fe_prefijo', 'fe_desde', 'fe_hasta', 'fe_clave_tecnica', 'fe_credenciales', 'estado', 'onboarding_paso', 'onboarding_completo', 'conj_dia_vence', 'conj_interes_mora', 'conj_zonas',
     ];
 
-    protected $casts = ['mod_medida' => 'boolean', 'mod_vencimiento' => 'boolean', 'mod_recetas' => 'boolean', 'mod_alquiler' => 'boolean', 'mod_obituarios' => 'boolean', 'mod_eventos' => 'boolean', 'mod_contable' => 'boolean', 'mod_consultorio' => 'boolean', 'mod_pedidos' => 'boolean', 'mod_servicios' => 'boolean', 'usa_tallas' => 'boolean', 'onboarding_completo' => 'boolean', 'catalogo_activo' => 'boolean', 'compartir_asesores' => 'boolean', 'catalogo_agotados' => 'boolean', 'cliente_obligatorio' => 'boolean', 'plan_vence' => 'date', 'datos_depurados_at' => 'datetime', 'resolucion_fecha' => 'date', 'resolucion_vigencia' => 'date', 'pos_electronico' => 'boolean', 'fe_activa' => 'boolean', 'fe_resolucion_fecha' => 'date', 'fe_resolucion_vigencia' => 'date', 'fe_clave_tecnica' => 'encrypted', 'fe_credenciales' => 'encrypted:array', 'enlaces_activo' => 'boolean', 'enlaces_catalogo' => 'boolean', 'enlaces_redes' => 'array', 'menu_oculto' => 'array'];
+    protected $casts = ['mod_medida' => 'boolean', 'mod_vencimiento' => 'boolean', 'mod_recetas' => 'boolean', 'mod_alquiler' => 'boolean', 'mod_obituarios' => 'boolean', 'mod_pantallas' => 'boolean', 'mod_eventos' => 'boolean', 'mod_contable' => 'boolean', 'mod_consultorio' => 'boolean', 'mod_pedidos' => 'boolean', 'mod_servicios' => 'boolean', 'usa_tallas' => 'boolean', 'onboarding_completo' => 'boolean', 'catalogo_activo' => 'boolean', 'compartir_asesores' => 'boolean', 'catalogo_agotados' => 'boolean', 'cliente_obligatorio' => 'boolean', 'plan_vence' => 'date', 'datos_depurados_at' => 'datetime', 'resolucion_fecha' => 'date', 'resolucion_vigencia' => 'date', 'pos_electronico' => 'boolean', 'fe_activa' => 'boolean', 'fe_resolucion_fecha' => 'date', 'fe_resolucion_vigencia' => 'date', 'fe_clave_tecnica' => 'encrypted', 'fe_credenciales' => 'encrypted:array', 'enlaces_activo' => 'boolean', 'enlaces_catalogo' => 'boolean', 'enlaces_redes' => 'array', 'menu_oculto' => 'array'];
 
     // Las llaves de facturación nunca salen en JSON ni en registros
     protected $hidden = ['fe_clave_tecnica', 'fe_credenciales'];
@@ -42,6 +42,7 @@ class Tienda extends Model
     public const MENU_OPCIONAL = [
         'consultorio' => ['Consultorio', 'fa-user-doctor', 'Inicio', 'Pacientes, agenda e historia clínica'],
         'obituarios' => ['Obituarios', 'fa-dove', 'Inicio', 'Salas de velación y pantallas (funerarias)'],
+        'pantallas' => ['Pantallas', 'fa-tv', 'Inicio', 'Imágenes y videos en los televisores del negocio'],
         'eventos' => ['Eventos y entradas', 'fa-ticket', 'Inicio', 'Página del evento, registro, aprobar pagos y QR en la puerta'],
         'contabilidad' => ['Contabilidad (retenciones e IVA)', 'fa-calculator', 'Inicio', 'Cruce DIAN vs. contabilidad y borrador del 350'],
         'pos' => ['Vender (POS)', 'fa-cash-register', 'Inicio', 'La caja para cobrar'],

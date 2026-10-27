@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
-    <title>Pantalla de proyector · LocalProo</title>
+    <title>Pantalla · LocalProo</title>
     <style>
         html,body{margin:0;height:100%;background:radial-gradient(circle at 50% 35%,#1d2a22,#07100b 70%);color:#fff;font-family:system-ui,Segoe UI,Roboto,sans-serif}
         main{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.4vh;padding:3vh 16px;box-sizing:border-box;text-align:center}
@@ -21,8 +21,8 @@
 </head>
 <body>
 <main>
-    <h1>Escriba el código del proyector</h1>
-    <p>Lo encuentra en LocalProo → Obituarios → Proyectores</p>
+    <h1>Escriba el código de la pantalla</h1>
+    <p>Lo encuentra en LocalProo → Pantallas (o Obituarios → Proyectores)</p>
     @if ($error)<p class="err">Ese código no existe. Revíselo e intente otra vez.</p>@endif
     <form method="get" action="{{ route('obituarios.tv') }}" id="f">
         <input id="codigo" name="c" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" autofocus>
@@ -33,7 +33,7 @@
         <button type="button" data-n="0">0</button>
         <button type="button" class="ok" data-ok>OK</button>
     </div>
-    <p class="marca">LocalProo · Pantallas de proyector</p>
+    <p class="marca">LocalProo · Pantallas</p>
 </main>
 <script>
 (function () {

@@ -203,6 +203,12 @@
                     Obituarios
                 </a>@endif
                 @endif
+                @if ($tiendaMenu?->mod_pantallas && auth()->user()->can('editar-negocio') && $ver('pantallas') && \Illuminate\Support\Facades\Route::has('pantallas.index'))
+                <a class="nav-link {{ $on('pantallas.*') }}" href="{{ route('pantallas.index') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-tv"></i></div>
+                    Pantallas
+                </a>
+                @endif
                 @if ($tiendaMenu?->mod_eventos && \App\Models\Evento::puedeAlgo() && $ver('eventos') && \Illuminate\Support\Facades\Route::has('eventos.index'))
                 <a class="nav-link {{ $on('eventos.*') }}" href="{{ route('eventos.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-ticket"></i></div>

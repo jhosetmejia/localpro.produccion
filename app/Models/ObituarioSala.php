@@ -40,7 +40,8 @@ class ObituarioSala extends Model
         foreach ([4, 4, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6] as $n) {
             $c = (string) random_int(10 ** ($n - 1), 10 ** $n - 1);
             $usado = \Illuminate\Support\Facades\DB::table('obituario_salas')->where('codigo', $c)->exists()
-                || \Illuminate\Support\Facades\DB::table('tiendas')->where('obituarios_codigo', $c)->exists();
+                || \Illuminate\Support\Facades\DB::table('tiendas')->where('obituarios_codigo', $c)->exists()
+                || (\Illuminate\Support\Facades\Schema::hasTable('pantallas') && \Illuminate\Support\Facades\DB::table('pantallas')->where('codigo', $c)->exists());
             if (!$usado) return $c;
         }
         return (string) random_int(10000000, 99999999);

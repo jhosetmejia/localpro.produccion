@@ -34,6 +34,7 @@ class negocioController extends Controller
             'mod_recetas' => 'nullable|boolean',
             'mod_alquiler' => 'nullable|boolean',
             'mod_obituarios' => 'nullable|boolean',
+            'mod_pantallas' => 'nullable|boolean',
             'mod_eventos' => 'nullable|boolean',
             'mod_contable' => 'nullable|boolean',
             'mod_consultorio' => 'nullable|boolean',
@@ -76,7 +77,7 @@ class negocioController extends Controller
         $datos['catalogo_activo'] = $request->boolean('catalogo_activo');
         $datos['catalogo_agotados'] = $request->boolean('catalogo_agotados', true);
         $datos['cliente_obligatorio'] = $request->boolean('cliente_obligatorio');
-        foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'mod_eventos', 'mod_contable', 'mod_consultorio', 'mod_pedidos', 'mod_servicios'] as $m) {
+        foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'mod_eventos', 'mod_contable', 'mod_consultorio', 'mod_pedidos', 'mod_servicios', 'mod_pantallas'] as $m) {
             $datos[$m] = $request->boolean($m);
         }
         // Al pasar a consultorio se enciende solo el módulo de pacientes e historia clínica

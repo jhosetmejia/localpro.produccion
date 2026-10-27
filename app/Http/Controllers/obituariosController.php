@@ -467,6 +467,9 @@ class obituariosController extends Controller
     {
         $sala = ObituarioSala::withoutGlobalScopes()->where('codigo', $codigo)->first();
         if ($sala) return redirect()->route('obituarios.pantalla', $sala->token);
+        // Pantallas del negocio (imágenes y videos) usan el mismo /tv
+        $pantalla = \App\Models\Pantalla::withoutGlobalScopes()->where('codigo', $codigo)->first();
+        if ($pantalla) return redirect()->route('pantallas.ver', $pantalla->token);
         $tienda = Tienda::where('obituarios_codigo', $codigo)->whereNotNull('obituarios_token')->first();
         if ($tienda) return redirect()->route('obituarios.general', $tienda->obituarios_token);
         return redirect()->route('obituarios.tv', ['error' => 1]);
