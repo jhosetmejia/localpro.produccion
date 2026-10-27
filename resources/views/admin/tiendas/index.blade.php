@@ -9,6 +9,9 @@
         <div class="lp-quick"><a href="{{ route('admin.planes.index') }}" class="btn btn-dark"><i class="fa-solid fa-gem me-1"></i>Planes y cobros</a><a href="{{ route('admin.tiendas.create') }}" class="btn btn-primary"><i class="fa-solid fa-plus me-1"></i>Crear tienda</a></div>
     </div>
     @include('layouts.partials.lp-flash')
+    @if (session('aviso_prueba_wa') && session('aviso_prueba_tel'))
+    <div class="alert alert-success d-flex align-items-center gap-2 flex-wrap"><span><i class="fa-solid fa-bell me-1"></i>¿Le avisa también por WhatsApp?</span><a class="btn btn-sm btn-success ms-auto" target="_blank" href="https://wa.me/{{ session('aviso_prueba_tel') }}?text={{ rawurlencode(session('aviso_prueba_wa')) }}"><i class="fa-brands fa-whatsapp me-1"></i>Enviar aviso</a></div>
+    @endif
 
     <div class="lp-counts mb-3" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr))">
         <div class="lp-count"><div class="ci"><i class="fa-solid fa-store"></i></div><b>{{ $resumen['total'] }}</b><small>Empresas</small></div>
@@ -65,6 +68,7 @@
                 </div>
                 <div class="w-100 d-flex align-items-center gap-2 mt-1 ps-5">
                     @if ($t->asesor)<small class="text-muted"><i class="fa-solid fa-user-tie me-1"></i>{{ $t->asesor->nombre }} · {{ $t->asesor->codigo }}</small>@elseif ($t->venta_directa_id)<small class="text-muted"><i class="fa-solid fa-crown me-1" style="color:#16b34a"></i>{{ $t->ventaDirecta->name ?? 'LocalPro' }} · <span class="lp-cod">LocalPro</span></small>@else<small class="text-warning fw-bold"><i class="fa-solid fa-user-slash me-1"></i>Sin asesor</small>@endif
+                    <button type="button" class="btn btn-sm btn-asg btn-prueba" data-prueba="{{ route('admin.tiendas.prueba', $t) }}" data-tienda="{{ $t->nombre }}" data-registro="{{ $t->created_at->format('d/m/Y') }}" data-vence="{{ $t->plan_vence?->format('d/m/Y') }}"><i class="fa-solid fa-gift me-1"></i>Prueba gratis</button>
                     <button type="button" class="btn btn-sm btn-asg ms-auto" data-asignar="{{ route('admin.tiendas.asesor', $t) }}" data-tienda="{{ $t->nombre }}" data-actual="{{ $t->asesor_id ?: ($t->venta_directa_id ? 'localpro' : '') }}">{{ ($t->asesor || $t->venta_directa_id) ? 'Cambiar' : 'Asignar' }}</button>
                 </div>
                 <div class="d-flex gap-1 align-items-center">
@@ -91,7 +95,7 @@
                             </div>
                         </td>
                         <td>{{ $d?->name ?? '—' }}<br><small class="text-muted">{{ $d?->email }}</small></td>
-                        <td>{{ $t->plan->nombre ?? '—' }}@if($t->plan_vence)<br><small class="{{ $t->plan_vencido ? 'text-danger' : 'text-muted' }}">{{ $t->plan_vencido ? 'Venció' : 'Vence' }} {{ $t->plan_vence->format('d/m/y') }}</small>@endif</td>
+                        <td class="text-nowrap">{{ $t->plan->nombre ?? '—' }}@if($t->plan_vence)<br><small class="{{ $t->plan_vencido ? 'text-danger' : 'text-muted' }}">{{ $t->plan_vencido ? 'Venció' : 'Vence' }} {{ $t->plan_vence->format('d/m/y') }}</small>@endif<br><button type="button" class="btn btn-sm btn-asg btn-prueba mt-1" data-prueba="{{ route('admin.tiendas.prueba', $t) }}" data-tienda="{{ $t->nombre }}" data-registro="{{ $t->created_at->format('d/m/Y') }}" data-vence="{{ $t->plan_vence?->format('d/m/Y') }}"><i class="fa-solid fa-gift me-1"></i>Prueba gratis</button></td>
                         <td class="text-nowrap">
                             @if ($t->asesor)<span class="fw-semibold">{{ \Illuminate\Support\Str::limit($t->asesor->nombre, 18) }}</span><br><small class="lp-cod">{{ $t->asesor->codigo }}</small>@elseif ($t->venta_directa_id)<span class="fw-semibold"><i class="fa-solid fa-crown me-1" style="color:#16b34a"></i>{{ \Illuminate\Support\Str::limit($t->ventaDirecta->name ?? 'LocalPro', 18) }}</span><br><small class="lp-cod">LocalPro</small>@else<small class="text-warning fw-bold">Sin asesor</small>@endif
                             <br><button type="button" class="btn btn-sm btn-asg mt-1" data-asignar="{{ route('admin.tiendas.asesor', $t) }}" data-tienda="{{ $t->nombre }}" data-actual="{{ $t->asesor_id ?: ($t->venta_directa_id ? 'localpro' : '') }}"><i class="fa-solid fa-user-plus me-1"></i>{{ ($t->asesor || $t->venta_directa_id) ? 'Cambiar' : 'Asignar' }}</button>
@@ -118,6 +122,26 @@
             </table>
         </div>
     </div>
+</div>
+
+{{-- Ventana para cambiar el tiempo de prueba gratis --}}
+<div class="asg-ov" id="prOv" aria-hidden="true">
+    <form method="post" class="asg-md" id="prForm">
+        @csrf
+        <div class="asg-ic" style="background:#eaf1ff;color:#2563eb"><i class="fa-solid fa-gift"></i></div>
+        <h4>Tiempo de prueba gratis</h4>
+        <p id="prTienda" class="text-muted fw-semibold mb-1"></p>
+        <p id="prInfo" class="small text-muted mb-3"></p>
+        <div class="row g-2">
+            <div class="col-6"><label class="form-label small fw-bold">Tiempo</label><select name="tiempo" class="form-select">@foreach (\App\Http\Controllers\adminTiendaController::PRUEBAS as $k => $tx)<option value="{{ $k }}" @selected($k === '2')>{{ $tx }}</option>@endforeach</select></div>
+            <div class="col-6"><label class="form-label small fw-bold">Contar desde</label><select name="desde" class="form-select"><option value="registro">El registro</option><option value="hoy">Hoy</option></select></div>
+        </div>
+        <small class="text-muted d-block mt-2">La tienda queda con el plan gratis hasta esa fecha y al entrar a su panel le sale el aviso con su nuevo tiempo.</small>
+        <div class="asg-bt">
+            <button type="button" class="btn btn-light" data-pr-cerrar>Cancelar</button>
+            <button class="btn btn-primary">Aplicar</button>
+        </div>
+    </form>
 </div>
 
 {{-- Ventana para asignar asesor --}}
@@ -176,6 +200,20 @@ document.querySelectorAll('form[data-eliminar]').forEach(function (f) {
         });
     });
 });
+(function () {
+    var ov = document.getElementById('prOv'), f = document.getElementById('prForm');
+    document.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-prueba]');
+        if (b) {
+            f.action = b.dataset.prueba;
+            document.getElementById('prTienda').textContent = b.dataset.tienda;
+            document.getElementById('prInfo').textContent = 'Se registró el ' + b.dataset.registro + (b.dataset.vence ? ' · hoy vence el ' + b.dataset.vence : '') + '. Por defecto son 2 meses.';
+            ov.classList.add('on'); ov.setAttribute('aria-hidden', 'false');
+            return;
+        }
+        if (e.target === ov || e.target.closest('[data-pr-cerrar]')) { ov.classList.remove('on'); ov.setAttribute('aria-hidden', 'true'); }
+    });
+})();
 (function () {
     var ov = document.getElementById('asgOv'), f = document.getElementById('asgForm'), sel = document.getElementById('asgSel');
     document.addEventListener('click', function (e) {

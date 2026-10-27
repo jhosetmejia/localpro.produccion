@@ -196,6 +196,7 @@ class adminTiendaController extends Controller
         ])->save();
         $dias = (int) round(today()->diffInDays($hasta)) + 1;
         return back()->with('success', 'Listo: ' . $tienda->nombre . ' tiene prueba gratis de ' . self::PRUEBAS[$datos['tiempo']] . ', hasta el ' . $hasta->format('d/m/Y') . ' (' . $dias . ' ' . ($dias === 1 ? 'día' : 'días') . '). Al entrar a su panel le sale el aviso.')
+            ->with('aviso_prueba_tel', $tienda->telefono ? numero_whatsapp($tienda->telefono) : null)
             ->with('aviso_prueba_wa', 'Hola 👋 Le cuento que su prueba gratis de LocalProo quedó de ' . self::PRUEBAS[$datos['tiempo']] . ': puede usar todo hasta el ' . $hasta->locale('es')->isoFormat('D [de] MMMM [de] YYYY') . ' (' . $dias . ' días). Cualquier duda me escribe.');
     }
 
