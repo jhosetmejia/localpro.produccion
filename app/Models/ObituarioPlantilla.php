@@ -20,6 +20,8 @@ class ObituarioPlantilla extends Model
 
     // Diseños: [nombre, descripción, acento, texto, fondo para la miniatura]
     public const DISENOS = [
+        // Sin diseño: solo la imagen o el video que suba la funeraria, con los datos encima (sin flores, marcos ni adornos)
+        'ninguno' => ['Ninguna (solo mi imagen)', 'Sin diseño de LocalProo: se ve solo la imagen o el video que usted suba, con los datos encima.', '#b08d57', '#1d2422', 'repeating-linear-gradient(45deg,#ffffff 0 12px,#f1f3f2 12px 24px)'],
         'clasico' => ['Clásico mármol', 'Blanco con dorado, foto a un lado y datos al centro.', '#b08d57', '#3b3127', 'linear-gradient(135deg,#ffffff,#ece8e1)'],
         'dorado' => ['Negro y dorado', 'Elegante, fondo oscuro con letras doradas.', '#d4af37', '#f6eedb', 'linear-gradient(135deg,#1b1712,#050505)'],
         'cielo' => ['Cielo sereno', 'Azul suave con nubes, transmite paz.', '#ffffff', '#ffffff', 'linear-gradient(180deg,#6fa8dc,#cfe5f7)'],

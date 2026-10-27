@@ -59,11 +59,11 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
 
                 <div class="lp-box mb-3">
                     <h3>Diseño</h3>
-                    @foreach (['Tarjetas prediseñadas' => true, 'Clásicos (3 columnas)' => false] as $grupoTit => $esTarjeta)
-                    <div class="small fw-bold text-muted mb-1 {{ $esTarjeta ? '' : 'mt-3' }}">{{ $grupoTit }}</div>
+                    @foreach (['Sin diseño (para su propia imagen)' => 'ninguno', 'Tarjetas prediseñadas' => 'tarjeta', 'Clásicos (3 columnas)' => 'clasico'] as $grupoTit => $grupo)
+                    <div class="small fw-bold text-muted mb-1 {{ $grupo === 'ninguno' ? '' : 'mt-3' }}">{{ $grupoTit }}</div>
                     <div class="pf-op">
                         @foreach ($P::DISENOS as $k => [$nom, $desc, $ac, $tx, $bg])
-                        @continue(in_array($k, $P::TARJETAS, true) !== $esTarjeta)
+                        @continue(($k === 'ninguno' ? 'ninguno' : (in_array($k, $P::TARJETAS, true) ? 'tarjeta' : 'clasico')) !== $grupo)
                         <div><input type="radio" name="diseno" id="d-{{ $k }}" value="{{ $k }}" @checked(old('diseno', $plantilla->diseno) === $k)><label for="d-{{ $k }}" style="background:{{ $bg }};color:{{ $tx }}" title="{{ $desc }}">{{ $nom }}</label></div>
                         @endforeach
                     </div>
@@ -328,6 +328,17 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
     form.addEventListener('input', numeros);
     numeros();
     document.getElementById('pf-v0').addEventListener('click', function () { form.elements.velacion_x.value = 0; form.elements.velacion_y.value = 0; form.elements.velacion_x.dispatchEvent(new Event('input', { bubbles: true })); form.elements.velacion_y.dispatchEvent(new Event('input', { bubbles: true })); });
+    // "Ninguna": la imagen de la funeraria sola, sin mezclarse con un diseño (pide subir la imagen y no la oscurece)
+    form.querySelectorAll('[name=diseno]').forEach(function (r) {
+        r.addEventListener('change', function () {
+            if (r.value !== 'ninguno' || !r.checked) return;
+            var fd = form.querySelector('[name=fondo_tipo]:checked');
+            if (!fd || fd.value === 'diseno') { var fi = document.getElementById('f-imagen'); if (fi) fi.checked = true; }
+            form.elements.oscurecer.value = 0;
+            var ad = form.querySelector('[name=adornos][value=ninguno]'); if (ad) ad.checked = true;
+            aplicar();
+        });
+    });
     form.addEventListener('input', aplicar);
     form.addEventListener('change', aplicar);
     aplicar();

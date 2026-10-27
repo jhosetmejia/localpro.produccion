@@ -487,3 +487,11 @@ body.sin-cursor,body.sin-cursor *{cursor:none!important}
 .lay-tarjeta.fondo-propio .ot-deco{display:none}
 .lay-tarjeta.fondo-propio{--t-texto:#fff;--t-titulo:#fff;--t-suave:rgba(255,255,255,.9)}
 .lay-tarjeta.fondo-propio .obi-tarjeta{text-shadow:0 2px 12px rgba(0,0,0,.5)}
+
+/* ===== Ninguna (solo la imagen o el video de la funeraria): sin flores, marcos, esquinas ni paneles ===== */
+.d-ninguno{background:#fff}
+.fondo-propio.d-ninguno{background:#000}
+.d-ninguno .obi-ramo,.d-ninguno .obi-esq,.d-ninguno .obi-marco-deco,.d-ninguno .obi-linea{display:none!important}
+.d-ninguno .obi-lado::before,.d-ninguno .obi-lado::after,.d-ninguno .obi-der::before,.d-ninguno .obi-der::after,.d-ninguno .obi-centro::before,.d-ninguno .obi-centro::after,.d-ninguno .obi-fondo::before,.d-ninguno .obi-fondo::after{display:none!important}
+.d-ninguno .obi-centro,.d-ninguno .obi-lado,.d-ninguno .obi-der{background:transparent!important;box-shadow:none!important;border:0!important}
+.d-ninguno .obi-foto{border-color:var(--acento)}
