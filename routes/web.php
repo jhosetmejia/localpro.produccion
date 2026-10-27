@@ -90,6 +90,8 @@ Route::get('/l/{slug}', fn (string $slug) => redirect('/@' . $slug, 301))->where
 
 // Blog público (artículos para compartir con negocios y asesores)
 Route::get('/donaciones', fn () => redirect('/blog/navidad-localproo-ayudas-para-los-ninos-de-pasto'))->name('donaciones');
+// Todas las funciones de LocalProo explicadas con calma (página pública para Google)
+Route::get('/funciones', fn () => view('funciones'))->name('funciones');
 Route::get('/blog', fn () => view('blog.index', ['articulos' => config('blog')]))->name('blog.index');
 // Páginas del blog por tipo de cliente (contadores, funerarias, negocios): atraen búsquedas y llevan al registro con el tipo elegido
 Route::get('/blog/para/{rol}', function (string $rol) {

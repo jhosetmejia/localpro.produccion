@@ -218,6 +218,7 @@ class catalogoController extends Controller
         $xml = Cache::remember('sitemap.xml', 3600, function () {
             $urls = [['loc' => url('/'), 'pri' => '1.0', 'mod' => null], ['loc' => route('registro'), 'pri' => '0.8', 'mod' => null]];
             $urls[] = ['loc' => route('marketplace'), 'pri' => '0.9', 'mod' => null];
+            $urls[] = ['loc' => route('funciones'), 'pri' => '0.9', 'mod' => null];
             $urls[] = ['loc' => route('blog.index'), 'pri' => '0.6', 'mod' => null];
             foreach (array_keys(config('blog_roles', [])) as $rol) $urls[] = ['loc' => route('blog.rol', $rol), 'pri' => '0.8', 'mod' => null];
             foreach (config('blog', []) as $slug => $a) {

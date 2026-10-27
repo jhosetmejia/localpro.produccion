@@ -11,7 +11,7 @@
     <div class="wrap">
         <a href="{{ url('/') }}" class="brand"><span class="brand-mark">L</span>LocalPro</a>
         <nav class="nav-links">
-            <a class="link" href="#funciones">Funciones</a>
+            <a class="link" href="{{ route('funciones') }}">Funciones</a>
             <a class="link" href="#como-funciona">Cómo funciona</a>
             <a class="link" href="{{ route('marketplace') }}">Marketplace</a>
             <a class="link link-blog" href="{{ route('blog.index') }}">Blog</a>
@@ -39,6 +39,11 @@
                     <span class="app-txt"><b>Descargue la app</b><small>Instálela en su celular en segundos, sin tiendas de apps</small></span>
                     <i class="fa-solid fa-download app-flecha"></i>
                 </button>
+                <a class="app-card rise d3" href="{{ route('funciones') }}" style="text-decoration:none;color:inherit;margin-top:10px;display:flex!important">
+                    <span class="app-ico"><i class="fa-solid fa-list-check"></i></span>
+                    <span class="app-txt"><b>Ver todas las funciones que tiene LocalProo</b><small>Revíselas con calma, una por una</small></span>
+                    <i class="fa-solid fa-arrow-right app-flecha"></i>
+                </a>
                 <p class="hero-note"><span>🎁 2 meses gratis</span><span>🌐 Página web en Google</span><span>📱 App en su celular</span></p>
             </div>
 
@@ -140,6 +145,7 @@
                     <p>Instálela como app en el celular o úsela en el computador. Todo en la nube, sin instalar programas.</p>
                 </article>
             </div>
+            <p style="margin-top:22px;text-align:center"><a class="btn btn-ink" href="{{ route('funciones') }}"><i class="fa-solid fa-list-check"></i> Ver todas las funciones</a></p>
             @php $vp = (float) \App\Models\Ajuste::valor('red_valor_plan', 220000); $antes = (float) (\App\Models\Plan::where('activo', true)->where('precio', '>', 0)->where('dias', '>=', 365)->value('precio_antes') ?? 0); @endphp
             <div class="plus">
                 <div class="plus-t">
@@ -219,7 +225,7 @@
 <footer class="footer">
     <div class="wrap">
         <span>© {{ date('Y') }} LocalProo · Todos los derechos reservados</span>
-        <span style="display:flex;gap:14px;flex-wrap:wrap"><a href="{{ route('blog.index') }}">Blog</a><a href="{{ route('legal.privacidad') }}">Privacidad</a><a href="{{ route('legal.terminos') }}">Condiciones</a><a href="{{ route('legal.eliminar') }}">Eliminar mis datos</a></span>
+        <span style="display:flex;gap:14px;flex-wrap:wrap"><a href="{{ route('funciones') }}">Funciones</a><a href="{{ route('blog.index') }}">Blog</a><a href="{{ route('legal.privacidad') }}">Privacidad</a><a href="{{ route('legal.terminos') }}">Condiciones</a><a href="{{ route('legal.eliminar') }}">Eliminar mis datos</a></span>
     </div>
 </footer>
 
