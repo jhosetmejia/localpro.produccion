@@ -467,6 +467,7 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::get('/beneficios', [\App\Http\Controllers\beneficiosController::class, 'index'])->name('beneficios.index');
     Route::get('/mi-plan', [planController::class, 'index'])->name('plan.index');
     Route::get('/mi-plan/vencido', [planController::class, 'vencido'])->name('plan.vencido');
+    Route::post('/mi-plan/aviso-prueba', [planController::class, 'avisoPruebaVisto'])->name('plan.avisoPrueba');
     Route::post('/mi-plan/{plan}/pagar', [planController::class, 'pagar'])->name('plan.pagar');
     Route::get('/mi-plan/retorno', [planController::class, 'retorno'])->name('plan.retorno');
 
@@ -521,6 +522,7 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::get('/donaciones/exportar', [\App\Http\Controllers\adminDonacionesController::class, 'exportar'])->name('donaciones.exportar');
     Route::post('/eventos/{evento}/abrir', [\App\Http\Controllers\adminEventosController::class, 'abrir'])->whereNumber('evento')->name('eventos.abrir');
     Route::post('/tiendas/{tienda}/plan', [adminTiendaController::class, 'plan'])->name('tiendas.plan');
+    Route::post('/tiendas/{tienda}/prueba', [adminTiendaController::class, 'prueba'])->name('tiendas.prueba');
     Route::post('/tiendas/{tienda}/pago', [adminTiendaController::class, 'pago'])->name('tiendas.pago');
     Route::post('/tiendas/{tienda}/productos-extra', [adminTiendaController::class, 'productosExtra'])->name('tiendas.productosExtra');
     Route::delete('/tiendas/{tienda}', [adminTiendaController::class, 'eliminar'])->name('tiendas.eliminar');

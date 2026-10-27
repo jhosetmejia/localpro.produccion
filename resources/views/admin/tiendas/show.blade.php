@@ -36,6 +36,20 @@
                 <div class="col-md-3"><label class="form-label" title="Página de Facebook con su Instagram">Redes sociales</label><input type="number" min="1" max="20" name="redes_max" class="form-control" value="{{ $tienda->redes_max ?? 1 }}"></div>
                 <div class="col-md-2 d-grid"><button class="btn btn-dark">Guardar</button></div>
             </form>
+            <form method="post" action="{{ route('admin.tiendas.prueba', $tienda) }}" class="mb-3 p-3" style="background:#f6f9ff;border:1.5px solid #d6e3fb;border-radius:16px">
+                @csrf
+                <b><i class="fa-solid fa-gift me-1" style="color:#2563eb"></i>Tiempo de prueba gratis</b>
+                <div class="small text-muted mb-2">Se registró el {{ $tienda->created_at->format('d/m/Y') }}. Por defecto son 2 meses. Al cambiarlo, el dueño ve el aviso con su nueva fecha al entrar a su panel.</div>
+                <div class="row g-2 align-items-end">
+                    <div class="col-6 col-md-4"><label class="form-label small">Tiempo</label><select name="tiempo" class="form-select">@foreach (\App\Http\Controllers\adminTiendaController::PRUEBAS as $k => $t)<option value="{{ $k }}" @selected($k === '2')>{{ $t }}</option>@endforeach</select></div>
+                    <div class="col-6 col-md-4"><label class="form-label small">Contar desde</label><select name="desde" class="form-select"><option value="registro">El registro ({{ $tienda->created_at->format('d/m/Y') }})</option><option value="hoy">Hoy ({{ today()->format('d/m/Y') }})</option></select></div>
+                    <div class="col-md-4 d-grid"><button class="btn btn-primary"><i class="fa-solid fa-check me-1"></i>Aplicar prueba</button></div>
+                </div>
+                @if (session('aviso_prueba_wa') && $tienda->telefono)
+                <a class="btn btn-sm btn-success mt-2" target="_blank" href="https://wa.me/{{ numero_whatsapp($tienda->telefono) }}?text={{ rawurlencode(session('aviso_prueba_wa')) }}"><i class="fa-brands fa-whatsapp me-1"></i>Avisarle también por WhatsApp</a>
+                @endif
+                @if ($tienda->aviso_prueba)<div class="small mt-2 text-primary"><i class="fa-solid fa-bell me-1"></i>Aviso pendiente: el dueño aún no ha visto que su prueba quedó de {{ $tienda->aviso_prueba }}.</div>@endif
+            </form>
             @php
                 $paqCant = \App\Support\AmpliarProductos::cantidad();
                 $baseProd = (int) ($tienda->plan->max_productos ?? 0);

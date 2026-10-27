@@ -3,6 +3,23 @@
     $tCR = \App\Support\TiendaActual::tienda();
     $dCR = $tCR?->plan_vence && !$tCR->plan_vencido ? $tCR->dias_para_vencer : null;
 @endphp
+{{-- Aviso cuando LocalProo le cambia el tiempo de prueba gratis --}}
+@if ($tCR?->aviso_prueba && $tCR->plan_vence && !$tCR->plan_vencido && auth()->user()?->can('editar-negocio'))
+<div class="lp-ap">
+    <div class="lp-ap-ic"><i class="fa-solid fa-gift"></i></div>
+    <div class="lp-ap-tx">
+        <b>Su prueba gratis es de {{ $tCR->aviso_prueba }}</b>
+        <span>Puede usar LocalProo completo hasta el <b>{{ $tCR->plan_vence->locale('es')->isoFormat('D [de] MMMM [de] YYYY') }}</b>: le quedan <b>{{ $dCR }} {{ $dCR === 1 ? 'día' : 'días' }}</b>. Antes de esa fecha active su plan para no perder nada.</span>
+    </div>
+    <form method="post" action="{{ route('plan.avisoPrueba') }}">@csrf<button class="lp-ap-btn">Entendido</button></form>
+</div>
+<style>
+.lp-ap{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;background:linear-gradient(135deg,#eef4ff,#f3fbf5);border:1.5px solid #c9dafb;border-radius:22px;padding:1rem 1.2rem;margin-bottom:1rem}
+.lp-ap-ic{width:52px;height:52px;border-radius:16px;background:#2563eb;color:#fff;display:grid;place-items:center;font-size:1.4rem;flex:0 0 52px}
+.lp-ap-tx{flex:1 1 260px;min-width:0}.lp-ap-tx>b{display:block;font-size:1.15rem;font-weight:900}.lp-ap-tx span{font-size:.92rem;color:#38423c}
+.lp-ap-btn{border:0;background:#0f1411;color:#fff;font-weight:800;border-radius:999px;padding:.7rem 1.3rem}
+</style>
+@endif
 @if ($dCR !== null && $dCR <= 30 && auth()->user()?->can('editar-negocio'))
 @php
     $gratisCR = !$tCR->plan || (float) $tCR->plan->precio <= 0;

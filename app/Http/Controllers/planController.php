@@ -104,4 +104,11 @@ class planController extends Controller
     {
         return Wompi::activo();
     }
+
+    // El dueño ya vio el aviso de que cambió su tiempo de prueba gratis
+    public function avisoPruebaVisto()
+    {
+        \App\Support\TiendaActual::tienda()?->forceFill(['aviso_prueba' => null])->save();
+        return back();
+    }
 }

@@ -35,7 +35,7 @@
         @if (request('ciudad'))<div class="alert alert-success py-2 d-flex align-items-center">Viendo tiendas de <b class="ms-1">{{ request('ciudad') === 'sin' ? 'sin ciudad' : request('ciudad') }}</b><a class="ms-auto small" href="{{ request()->fullUrlWithQuery(['ciudad' => null]) }}">Ver todas</a></div>@endif
         <form class="row g-2 mb-3" method="get">
             @if (request('ciudad'))<input type="hidden" name="ciudad" value="{{ request('ciudad') }}">@endif
-            <div class="col-md-5"><input name="q" value="{{ $q }}" class="form-control" placeholder="Buscar por nombre, código (LCT-00001), correo, ciudad o código de asesor"></div>
+            <div class="col-md-5"><input name="q" value="{{ $q }}" class="form-control" placeholder="Buscar: tienda, dueño, correo, teléfono, NIT, ciudad, código (LCT-00001) o asesor"></div>
             <div class="col-6 col-md-2">
                 <select name="asesor" class="form-select" onchange="this.form.submit()">
                     <option value="">Con y sin asesor</option>

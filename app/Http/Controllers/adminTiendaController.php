@@ -18,6 +18,8 @@ class adminTiendaController extends Controller
         $q = trim((string) $request->get('q'));
         $tiendas = Tienda::query()->with(['plan', 'asesor.user:id,name', 'ventaDirecta:id,name'])
             ->when($q !== '', fn ($w) => $w->where(fn ($x) => $x->where('nombre', 'like', "%$q%")->orWhere('email', 'like', "%$q%")->orWhere('ciudad', 'like', "%$q%")->orWhere('codigo', 'like', "%$q%")
+                ->orWhere('telefono', 'like', "%$q%")->orWhere('nit', 'like', "%$q%")
+                ->orWhereIn('id', User::whereNotNull('tienda_id')->where(fn ($u) => $u->where('name', 'like', "%$q%")->orWhere('email', 'like', "%$q%"))->select('tienda_id'))
                 ->orWhereHas('asesor', fn ($a) => $a->where('codigo', 'like', "%$q%"))))
             ->when($request->get('estado'), fn ($w, $e) => $w->where('estado', $e))
             ->when($request->get('ciudad') === 'sin', fn ($w) => $w->where(fn ($x) => $x->whereNull('ciudad')->orWhere('ciudad', '')))
@@ -168,6 +170,33 @@ class adminTiendaController extends Controller
         ]);
         $tienda->forceFill(['plan_id' => $datos['plan_id'], 'plan_vence' => $datos['plan_vence'] ?? null, 'redes_max' => $datos['redes_max'] ?? $tienda->redes_max ?? 1])->save();
         return back()->with('success', 'Plan actualizado.');
+    }
+
+    // Tiempo de prueba gratis: 15 días, 1, 2, 3 o 6 meses, contados desde que se registró o desde hoy.
+    // La tienda queda con el plan gratis hasta esa fecha y el dueño ve el aviso en su panel.
+    public const PRUEBAS = ['15d' => '15 días', '1' => '1 mes', '2' => '2 meses', '3' => '3 meses', '6' => '6 meses'];
+
+    public function prueba(Request $request, Tienda $tienda)
+    {
+        $datos = $request->validate([
+            'tiempo' => ['required', \Illuminate\Validation\Rule::in(array_keys(self::PRUEBAS))],
+            'desde' => 'required|in:registro,hoy',
+        ]);
+        $inicio = $datos['desde'] === 'hoy' ? today() : $tienda->created_at->copy()->startOfDay();
+        $hasta = $datos['tiempo'] === '15d' ? $inicio->copy()->addDays(14) : $inicio->copy()->addMonthsNoOverflow((int) $datos['tiempo'])->subDay();
+        if ($hasta->lt(today())) {
+            return back()->with('error', 'Contando desde el registro (' . $inicio->format('d/m/Y') . '), ' . self::PRUEBAS[$datos['tiempo']] . ' ya se cumplieron el ' . $hasta->format('d/m/Y') . '. Elija "desde hoy" o más tiempo.');
+        }
+        $gratis = \App\Models\Plan::gratis();
+        $tienda->forceFill([
+            'plan_id' => $gratis?->id ?? $tienda->plan_id,
+            'plan_vence' => $hasta,
+            'estado' => 'activa',
+            'aviso_prueba' => self::PRUEBAS[$datos['tiempo']],
+        ])->save();
+        $dias = (int) round(today()->diffInDays($hasta)) + 1;
+        return back()->with('success', 'Listo: ' . $tienda->nombre . ' tiene prueba gratis de ' . self::PRUEBAS[$datos['tiempo']] . ', hasta el ' . $hasta->format('d/m/Y') . ' (' . $dias . ' ' . ($dias === 1 ? 'día' : 'días') . '). Al entrar a su panel le sale el aviso.')
+            ->with('aviso_prueba_wa', 'Hola 👋 Le cuento que su prueba gratis de LocalProo quedó de ' . self::PRUEBAS[$datos['tiempo']] . ': puede usar todo hasta el ' . $hasta->locale('es')->isoFormat('D [de] MMMM [de] YYYY') . ' (' . $dias . ' días). Cualquier duda me escribe.');
     }
 
     // Productos extra comprados a LocalPro (paquetes de, por defecto, 100 productos por $20.000)
