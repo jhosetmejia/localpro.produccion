@@ -23,6 +23,14 @@ html.lp-cargando::after{content:"";position:fixed;left:50%;top:50%;width:64px;he
             guardar(); document.addEventListener('visibilitychange', function () { if (document.hidden) guardar(); });
         }
     } catch (x) {}
+    // Enlaces con data-app-href: en el navegador abren en el navegador (dirección www, fuera de la app);
+    // en la app instalada se quedan dentro de la app, en la misma ventana
+    if (app) document.addEventListener('click', function (e) {
+        var a = e.target.closest && e.target.closest('a[data-app-href]');
+        if (!a) return;
+        e.preventDefault();
+        location.href = a.getAttribute('data-app-href');
+    }, true);
     // En la app instalada: logo animado hasta que la página termine de cargar
     if (app) h.classList.add('lp-cargando');
     var listo = function () { h.classList.remove('lp-cargando', 'lp-navegando'); };

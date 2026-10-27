@@ -19,7 +19,8 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-crown"></i></div>
                     Empresas inscritas
                 </a>
-                <a class="nav-link" href="{{ route('marketplace') }}" target="_blank" rel="noopener">
+                @php $dom = config('app.dominio'); $mkt = route('marketplace'); $mktNav = app()->environment('production') && $dom ? 'https://www.' . $dom . parse_url($mkt, PHP_URL_PATH) : $mkt; @endphp
+                <a class="nav-link" href="{{ $mktNav }}" data-app-href="{{ $mkt }}" target="_blank" rel="noopener">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-store"></i></div>
                     Ver todas las tiendas
                 </a>
@@ -387,7 +388,7 @@
                 @endif
                 @endcanany
                 @if ($tiendaMenu && $tiendaMenu->catalogo_activo && $tiendaMenu->slug)
-                @if ($ver('catalogo'))<a class="nav-link" href="{{ $tiendaMenu->url_catalogo_navegador }}" target="_blank" rel="noopener">
+                @if ($ver('catalogo'))<a class="nav-link" href="{{ $tiendaMenu->url_catalogo_navegador }}" data-app-href="{{ $tiendaMenu->url_catalogo }}" target="_blank" rel="noopener">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-globe"></i></div>
                     Mi catálogo en línea
                 </a>@endif
