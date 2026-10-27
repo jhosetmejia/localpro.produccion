@@ -7,8 +7,8 @@
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
     'novedades-obituarios-proyector-frase-eslogan' => [
-        'titulo' => 'Novedades en Obituarios: proyectores, lugar de velación, frase y eslogan a su gusto',
-        'resumen' => 'Las funerarias pidieron y lo hicimos: la foto ya no corta la cabeza, las fechas y la frase salen solo si usted quiere, el lugar de velación se escribe aparte y el pie de la tarjeta lleva su frase, su eslogan o los dos. Aquí le explicamos cómo usarlo paso a paso.',
+        'titulo' => 'Novedades en Obituarios: foto completa, logo sin fondo, lugar de velación, frase y eslogan',
+        'resumen' => 'Las funerarias pidieron y lo hicimos: la foto ya no corta la cabeza, el logo sale sin fondo en todas las plantillas, las fechas y la frase salen solo si usted quiere, el lugar de velación va debajo de la foto con el título que elija y el pie lleva su frase, su eslogan o los dos. Aquí le explicamos cómo usarlo paso a paso.',
         'fecha' => '26 de octubre de 2026',
         'publicado' => '2026-10-26',
         'minutos' => 5,
@@ -22,7 +22,9 @@ return [
             ['¿Dónde quito la frase "Descansó en la paz del Señor"?', 'Ya no sale sola. En el obituario, "Agregar frase" viene en No; si elige Sí, escribe la frase que la familia quiera.'],
             ['¿Cómo pongo el eslogan de mi funeraria?', 'En Plantillas → Editar → Textos y colores → Pie de la tarjeta: elija "Solo el eslogan" o "Frase y eslogan" y escríbalo. Se guarda en la plantilla y sale en todos los obituarios que la usen.'],
             ['La foto salía con la cabeza cortada, ¿qué hago?', 'Ya se corrigió: en fotos altas se recorta por abajo. Si aún quiere ajustarla, en el obituario puede moverla, acercarla o girarla.'],
-            ['¿Qué es el proyector?', 'Es la pantalla o televisor donde se muestra el obituario (Proyector 1, Proyector 2…). El lugar de velación es otro campo y es lo que lee la gente.'],
+            ['¿Qué es el proyector?', 'Es la pantalla o televisor donde se muestra el obituario (Proyector 1, Proyector 2…). El lugar de velación es otro campo y sale debajo de la foto.'],
+            ['¿Puedo cambiar el título "Lugar de velación"?', 'Sí. En el obituario, en "Nombre del campo", escriba el que quiera (por ejemplo "Salón") o bórrelo para que salga solo el dato.'],
+            ['El logo salía con un fondo blanco, ¿cómo lo quito?', 'Ya sale sin fondo por defecto. En la plantilla, "Fondo del logo" le deja elegir sin fondo o con recuadro blanco, y con la casilla "Usar el mismo logo, título y pie en todas mis plantillas" queda igual en todas.'],
         ],
     ],
     'como-crear-mi-negocio-de-alquiler-en-localproo' => [
