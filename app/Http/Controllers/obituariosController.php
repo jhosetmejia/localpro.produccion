@@ -136,7 +136,9 @@ class obituariosController extends Controller
             'foto' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:8192',
             'nacimiento' => 'nullable|date',
             'fallecimiento' => 'nullable|date|after_or_equal:nacimiento',
-            'frase' => 'nullable|string|max:150',
+            'mostrar_fechas' => 'nullable|boolean',
+            'mostrar_frase' => 'nullable|boolean',
+            'frase' => 'nullable|required_if:mostrar_frase,1|string|max:150',
             'fecha_exequias' => 'nullable|date',
             'hora_exequias' => 'nullable|date_format:H:i',
             'lugar_exequias' => 'nullable|string|max:150',
@@ -154,8 +156,11 @@ class obituariosController extends Controller
             'nombre.required' => 'Escriba el nombre del fallecido.',
             'foto.max' => 'La foto pesa mucho (máximo 8 MB).',
             'fallecimiento.after_or_equal' => 'La fecha de fallecimiento no puede ser antes del nacimiento.',
+            'frase.required_if' => 'Escriba la frase o elija "No" en Agregar frase.',
         ]);
         unset($datos['foto']);
+        $datos['mostrar_fechas'] = $request->boolean('mostrar_fechas');
+        $datos['mostrar_frase'] = $request->boolean('mostrar_frase');
         $datos['foto_fondo'] = $datos['foto_fondo'] ?? 'suave';
         $datos['foto_forma'] = $datos['foto_forma'] ?? 'circulo';
         foreach (['foto_rot' => 0, 'foto_x' => 0, 'foto_y' => 0, 'foto_zoom' => 100] as $k => $v) $datos[$k] = (int) ($datos[$k] ?? $v);
@@ -345,6 +350,7 @@ class obituariosController extends Controller
             'titulo' => 'nullable|string|max:60',
             'frase' => 'nullable|string|max:120',
             'pie' => 'nullable|string|max:150',
+            'pie_nombre' => 'nullable|string|max:80',
             'cita' => 'nullable|string|max:160',
             'flor_pos' => ['nullable', Rule::in(array_keys(ObituarioPlantilla::FLOR_POS))],
             'flor_x' => 'nullable|integer|min:-400|max:400',
@@ -366,6 +372,7 @@ class obituariosController extends Controller
         // Colores en blanco = los del diseño
         if (!$request->boolean('colores_propios')) { $datos['color_acento'] = null; $datos['color_texto'] = null; }
         $datos['mostrar_logo'] = $request->boolean('mostrar_logo');
+        $datos['pie_mostrar'] = $request->boolean('pie_mostrar');
         $datos['oscurecer'] = (int) ($datos['oscurecer'] ?? 0);
         $datos['titulo'] = $datos['titulo'] ?? '';
         $datos['adornos'] = $datos['adornos'] ?? 'muchos';

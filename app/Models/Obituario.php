@@ -14,9 +14,9 @@ class Obituario extends Model
 
     protected $table = 'obituarios';
 
-    protected $fillable = ['plantilla_id', 'sala_id', 'lugar_velacion', 'nombre', 'nacimiento', 'fallecimiento', 'frase', 'fecha_exequias', 'hora_exequias', 'lugar_exequias', 'destino_final', 'invitan', 'mostrar_hasta', 'estado', 'foto_fondo', 'foto_color', 'foto_forma', 'foto_rot', 'foto_x', 'foto_y', 'foto_zoom'];
+    protected $fillable = ['plantilla_id', 'sala_id', 'lugar_velacion', 'nombre', 'nacimiento', 'fallecimiento', 'frase', 'mostrar_frase', 'mostrar_fechas', 'fecha_exequias', 'hora_exequias', 'lugar_exequias', 'destino_final', 'invitan', 'mostrar_hasta', 'estado', 'foto_fondo', 'foto_color', 'foto_forma', 'foto_rot', 'foto_x', 'foto_y', 'foto_zoom'];
 
-    protected $casts = ['nacimiento' => 'date', 'fallecimiento' => 'date', 'fecha_exequias' => 'date', 'mostrar_hasta' => 'datetime'];
+    protected $casts = ['mostrar_frase' => 'boolean', 'mostrar_fechas' => 'boolean', 'nacimiento' => 'date', 'fallecimiento' => 'date', 'fecha_exequias' => 'date', 'mostrar_hasta' => 'datetime'];
 
     public function plantilla()
     {
@@ -73,6 +73,17 @@ class Obituario extends Model
     {
         if (!$this->nacimiento && !$this->fallecimiento) return null;
         return trim(($this->nacimiento?->format('d-m-Y') ?? '') . ' / ' . ($this->fallecimiento?->format('d-m-Y') ?? ''), ' /');
+    }
+
+    // Lo que sale en el obituario: solo si eligieron "Sí"
+    public function getAniosVisiblesAttribute(): ?string
+    {
+        return $this->mostrar_fechas ? $this->anios : null;
+    }
+
+    public function getFraseVisibleAttribute(): ?string
+    {
+        return $this->mostrar_frase && trim((string) $this->frase) !== '' ? $this->frase : null;
     }
 
     // "Su madre: Rosa Rodríguez" → [['Su madre', 'Rosa Rodríguez'], …]

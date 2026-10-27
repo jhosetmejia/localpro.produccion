@@ -60,10 +60,10 @@
                 <div class="ot-it ot-inv" data-fila="invitan" @if (!$d['grupos']) hidden @endif><svg viewBox='0 0 24 24' class='ot-ic'><path d='M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z'/></svg><div><b>Invitan:</b><div class="ot-grupos" data-o="grupos">@foreach ($d['grupos'] as [$gt, $gn])<div class="obi-grupo"><b>{{ $gt }}</b>@if ($gn)<span>{{ $gn }}</span>@endif</div>@endforeach</div></div></div>
             </div>
         </div>
-        <footer class="ot-pie">
+        <footer class="ot-pie" data-fila="pie_bloque" @if (!$pieD) hidden @endif>
             <div class="ot-pie-linea"><i></i><svg viewBox='0 0 60 24' class='ot-hojita'><path d='M30 20 C24 10 14 6 4 8 C12 14 22 18 30 20Z M30 20 C36 10 46 6 56 8 C48 14 38 18 30 20Z'/></svg><i></i></div>
-            <div class="ot-pie-empresa">{{ $tienda->nombre }}</div>
-            <div class="ot-pie-slogan" data-o="pie" data-fila="pie" @if (!$p->pie) hidden @endif>{{ $p->pie }}</div>
+            <div class="ot-pie-empresa" data-o="pie_nombre" data-fila="pie_nombre" data-defecto="{{ $tienda->nombre }}" @if (!($pieD['nombre'] ?? null)) hidden @endif>{{ $pieD['nombre'] ?? '' }}</div>
+            <div class="ot-pie-slogan" data-o="pie" data-fila="pie" @if (!$pieD || !$pieD['eslogan']) hidden @endif>{{ $pieD['eslogan'] ?? '' }}</div>
         </footer>
     </main>
 </div>

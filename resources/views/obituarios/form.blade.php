@@ -144,13 +144,24 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
                         <input type="hidden" name="foto_x" id="aj-in-x" value="{{ old('foto_x', $aj['x']) }}">
                         <input type="hidden" name="foto_y" id="aj-in-y" value="{{ old('foto_y', $aj['y']) }}">
                     </div>
-                    <div class="row g-2">
-                        <div class="col-6"><label class="form-label small fw-bold">Nació <span class="text-muted fw-normal">(opcional)</span></label><input type="date" class="form-control" name="nacimiento" data-c="anios" value="{{ old('nacimiento', $obituario->nacimiento?->format('Y-m-d')) }}"></div>
-                        <div class="col-6"><label class="form-label small fw-bold">Falleció <span class="text-muted fw-normal">(opcional)</span></label><input type="date" class="form-control" name="fallecimiento" data-c="anios" value="{{ old('fallecimiento', $obituario->fallecimiento?->format('Y-m-d')) }}"></div>
+                    @php $mFechas = (bool) old('mostrar_fechas', $obituario->mostrar_fechas ? 1 : 0); $mFrase = (bool) old('mostrar_frase', $obituario->mostrar_frase ? 1 : 0); @endphp
+                    <label class="form-label small fw-bold">Fechas de nacimiento y fallecimiento</label>
+                    <select class="form-select mb-2" name="mostrar_fechas" id="of-mfechas">
+                        <option value="0" @selected(!$mFechas)>No mostrar</option>
+                        <option value="1" @selected($mFechas)>Sí, mostrar</option>
+                    </select>
+                    <div class="row g-2 mb-1" id="of-fechas" @unless ($mFechas) hidden @endunless>
+                        <div class="col-6"><label class="form-label small fw-bold">Nació</label><input type="date" class="form-control" name="nacimiento" data-c="anios" value="{{ old('nacimiento', $obituario->nacimiento?->format('Y-m-d')) }}"></div>
+                        <div class="col-6"><label class="form-label small fw-bold">Falleció</label><input type="date" class="form-control" name="fallecimiento" data-c="anios" value="{{ old('fallecimiento', $obituario->fallecimiento?->format('Y-m-d')) }}"></div>
                     </div>
-                    <label class="form-label small fw-bold mt-3">Frase</label>
-                    <input class="form-control" name="frase" data-c="frase" maxlength="150" value="{{ old('frase', $obituario->frase) }}" placeholder="{{ $plantilla->frase ?: 'Descansó en la paz del Señor' }}">
-                    <div class="of-ayuda mt-1">Vacía = la de la plantilla.</div>
+                    <label class="form-label small fw-bold mt-3">Agregar frase</label>
+                    <select class="form-select mb-2" name="mostrar_frase" id="of-mfrase">
+                        <option value="0" @selected(!$mFrase)>No</option>
+                        <option value="1" @selected($mFrase)>Sí</option>
+                    </select>
+                    <div id="of-frase-box" @unless ($mFrase) hidden @endunless>
+                        <input class="form-control" name="frase" id="of-frase" data-c="frase" maxlength="150" value="{{ old('frase', $obituario->frase) }}" placeholder="Escriba la frase">
+                    </div>
                 </div>
 
                 <div class="lp-box mb-3">
@@ -197,7 +208,6 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
 (function () {
     var form = document.getElementById('of-form'), el = document.querySelector('[data-obi]');
     var CLAVE = 'obi-form-{{ $obituario->id ?: 'nuevo' }}';
-    var fraseDefecto = @json($plantilla->frase ?: '');
 
     // Al cambiar de plantilla se recarga la página: se guarda TODO lo hecho (textos, opciones, ajustes y la foto
     // que subió) para que no tenga que volver a hacerlo. La foto se guarda en el navegador (IndexedDB).
@@ -253,8 +263,8 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
         var a1 = anio(f.nacimiento.value), a2 = anio(f.fallecimiento.value);
         Obi.datos(el, {
             nombre: f.nombre.value || 'Nombre del fallecido',
-            anios: (a1 || a2) ? (a1 + ' / ' + a2).replace(/^ \/ | \/ $/g, '') : '',
-            frase: f.frase.value || fraseDefecto,
+            anios: f.mostrar_fechas.value === '1' && (a1 || a2) ? (a1 + ' / ' + a2).replace(/^ \/ | \/ $/g, '') : '',
+            frase: f.mostrar_frase.value === '1' ? f.frase.value.trim() : '',
             sala: f.lugar_velacion.value, // en el lienzo la fila "sala" es el lugar de velación
             fecha: Obi.fecha(f.fecha_exequias.value),
             hora: Obi.hora(f.hora_exequias.value),
@@ -267,6 +277,17 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
         });
         document.getElementById('of-fcolor').style.display = (form.querySelector('[name=foto_fondo]:checked') || {}).value === 'color' ? '' : 'none';
     }
+    // Fechas y frase: solo se piden si eligen "Sí"
+    function opciones() {
+        var f = form.elements;
+        document.getElementById('of-fechas').hidden = f.mostrar_fechas.value !== '1';
+        var conFrase = f.mostrar_frase.value === '1', inp = document.getElementById('of-frase');
+        document.getElementById('of-frase-box').hidden = !conFrase;
+        inp.required = conFrase;
+    }
+    document.getElementById('of-mfechas').addEventListener('change', opciones);
+    document.getElementById('of-mfrase').addEventListener('change', function () { opciones(); if (this.value === '1') document.getElementById('of-frase').focus(); });
+    opciones();
     form.addEventListener('input', vivo);
     form.addEventListener('change', function (e) { if (e.target.id !== 'of-foto') vivo(); });
     // ===== Foto: mostrar, girar de a 1°, mover y acercar (se guarda como ajuste, la foto original no se toca) =====

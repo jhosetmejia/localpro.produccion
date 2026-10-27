@@ -14,9 +14,9 @@ class ObituarioPlantilla extends Model
 
     protected $table = 'obituario_plantillas';
 
-    protected $fillable = ['nombre', 'diseno', 'medida', 'fondo_tipo', 'fondo_color', 'fondo_color2', 'oscurecer', 'animacion', 'color_acento', 'color_texto', 'mostrar_logo', 'titulo', 'frase', 'pie', 'adornos', 'cita', 'base', 'flores', 'anim_op'];
+    protected $fillable = ['nombre', 'diseno', 'medida', 'fondo_tipo', 'fondo_color', 'fondo_color2', 'oscurecer', 'animacion', 'color_acento', 'color_texto', 'mostrar_logo', 'titulo', 'frase', 'pie', 'pie_mostrar', 'pie_nombre', 'adornos', 'cita', 'base', 'flores', 'anim_op'];
 
-    protected $casts = ['mostrar_logo' => 'boolean', 'oscurecer' => 'integer', 'flores' => 'array', 'anim_op' => 'array'];
+    protected $casts = ['mostrar_logo' => 'boolean', 'pie_mostrar' => 'boolean', 'oscurecer' => 'integer', 'flores' => 'array', 'anim_op' => 'array'];
 
     // Diseños: [nombre, descripción, acento, texto, fondo para la miniatura]
     public const DISENOS = [
@@ -100,6 +100,14 @@ class ObituarioPlantilla extends Model
         $a = (array) ($this->anim_op ?? []);
         $n = fn ($k) => max(10, min(500, (int) ($a[$k] ?? 100) ?: 100));
         return ['cant' => $n('cant'), 'tam' => $n('tam'), 'vel' => $n('vel')];
+    }
+
+    // Pie de la tarjeta: nombre (o el del negocio) + eslogan; null si lo quitaron
+    public function pieDatos($tienda): ?array
+    {
+        if ($this->pie_mostrar === false) return null;
+        $nombre = trim((string) $this->pie_nombre) !== '' ? $this->pie_nombre : $tienda?->nombre;
+        return ['nombre' => $nombre, 'eslogan' => $this->pie];
     }
 
     public function getEsTarjetaAttribute(): bool

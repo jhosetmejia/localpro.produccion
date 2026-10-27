@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600;1,700&family=Great+Vibes&family=Montserrat:ital,wght@0,500;0,700;0,800;1,500&display=swap">
-<link rel="stylesheet" href="{{ asset('css/obituarios.css') }}?v=8">
+<link rel="stylesheet" href="{{ asset('css/obituarios.css') }}?v=9">
 @endonce
 @php
     $m = $p->medida_datos;
@@ -14,8 +14,8 @@
     $d = $o ? [
         'nombre' => $o->nombre,
         'foto' => $o->foto_url,
-        'anios' => $o->anios,
-        'frase' => $o->frase ?: $p->frase,
+        'anios' => $o->anios_visibles,
+        'frase' => $o->frase_visible,
         'sala' => $o->lugar_velacion, // lugar de velación (la sala es solo el proyector)
         'fecha' => $o->fecha_texto,
         'hora' => $o->hora_texto,
@@ -25,8 +25,8 @@
     ] : [
         'nombre' => 'Nombre del fallecido',
         'foto' => null,
-        'anios' => '07-12-1950 / ' . now()->format('d-m-Y'),
-        'frase' => $p->frase,
+        'anios' => null,
+        'frase' => null,
         'sala' => 'Sala San José',
         'fecha' => \App\Models\Obituario::fechaLarga(now()->addDay()),
         'hora' => '3 p. m.',
@@ -47,6 +47,7 @@
     $conLogo = $p->mostrar_logo;
     $fe = \App\Models\Obituario::fotoEstilo($o);
     $tarjeta = $p->es_tarjeta;
+    $pieD = $p->pieDatos($tienda);
     $fl = $p->flores_datos;
     $an = $p->anim_datos;
     // Colores propios también en las tarjetas prediseñadas
@@ -109,9 +110,9 @@
             <img class="obi-logo" src="{{ $logo }}" alt="" @if ($logo) data-logo @unless ($conLogo) hidden @endunless @else data-logo-vacio hidden @endif>
             <div class="obi-empresa" data-empresa @if ($logo) data-sin-logo @if ($conLogo) hidden @endif @endif>{{ $tienda->nombre }}</div>
             <div class="obi-ramo r-d">@include('obituarios._ramo')</div>
-            <div class="obi-pie" data-o="pie" data-fila="pie" @if (!$p->pie) hidden @endif>{{ $p->pie }}</div>
+            <div class="obi-pie" data-o="pie" data-fila="pie" @if (!$pieD || !$pieD['eslogan']) hidden @endif>{{ $pieD['eslogan'] ?? '' }}</div>
         </section>
-        <div class="obi-pie-v" data-o="pie" data-fila="pie" @if (!$p->pie) hidden @endif>{{ $p->pie }}</div>
+        <div class="obi-pie-v" data-o="pie" data-fila="pie" @if (!$pieD || !$pieD['eslogan']) hidden @endif>{{ $pieD['eslogan'] ?? '' }}</div>
     </div>
     @include('obituarios._tarjeta')
 </div>
