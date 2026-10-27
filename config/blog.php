@@ -6,6 +6,25 @@
 // palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
+    'novedades-obituarios-proyector-frase-eslogan' => [
+        'titulo' => 'Novedades en Obituarios: proyectores, lugar de velación, frase y eslogan a su gusto',
+        'resumen' => 'Las funerarias pidieron y lo hicimos: la foto ya no corta la cabeza, las fechas y la frase salen solo si usted quiere, el lugar de velación se escribe aparte y el pie de la tarjeta lleva su frase, su eslogan o los dos. Aquí le explicamos cómo usarlo paso a paso.',
+        'fecha' => '26 de octubre de 2026',
+        'publicado' => '2026-10-26',
+        'minutos' => 5,
+        'icono' => 'fa-dove',
+        'rol' => 'funerarias',
+        'seo_titulo' => 'Novedades en obituarios digitales para funerarias | LocalProo',
+        'descripcion' => 'Obituarios para TV con foto sin recortes, fechas y frase opcionales, lugar de velación y pie con el eslogan de su funeraria. Guía paso a paso.',
+        'keywords' => ['obituarios digitales', 'software para funerarias', 'obituario con eslogan de la funeraria', 'plantillas de obituarios', 'obituario para televisor', 'pantalla de obituarios'],
+        'faq' => [
+            ['¿Por qué ya no salen las fechas de nacimiento y fallecimiento?', 'Ahora son opcionales. En el obituario, en "Fechas de nacimiento y fallecimiento", elija "Sí, mostrar" y escriba las fechas.'],
+            ['¿Dónde quito la frase "Descansó en la paz del Señor"?', 'Ya no sale sola. En el obituario, "Agregar frase" viene en No; si elige Sí, escribe la frase que la familia quiera.'],
+            ['¿Cómo pongo el eslogan de mi funeraria?', 'En Plantillas → Editar → Textos y colores → Pie de la tarjeta: elija "Solo el eslogan" o "Frase y eslogan" y escríbalo. Se guarda en la plantilla y sale en todos los obituarios que la usen.'],
+            ['La foto salía con la cabeza cortada, ¿qué hago?', 'Ya se corrigió: en fotos altas se recorta por abajo. Si aún quiere ajustarla, en el obituario puede moverla, acercarla o girarla.'],
+            ['¿Qué es el proyector?', 'Es la pantalla o televisor donde se muestra el obituario (Proyector 1, Proyector 2…). El lugar de velación es otro campo y es lo que lee la gente.'],
+        ],
+    ],
     'como-crear-mi-negocio-de-alquiler-en-localproo' => [
         'titulo' => 'Cómo crear mi negocio en LocalProo si solo manejo alquiler',
         'resumen' => 'Si alquila sonido, trajes, salones, carpas o equipos, su negocio puede quedar como "Solo alquila": entra directo a Alquileres, hace cotizaciones en PDF con su logo, ve qué tiene libre para cada fecha y lleva abonos, entrega y devolución. Y si mañana vende algo, lo cambia en un clic.',
@@ -449,7 +468,7 @@ return [
             ['¿Necesito un televisor especial?', 'No. Cualquier televisor o pantalla con navegador sirve: cada sala tiene su propia dirección que se abre en la pantalla.'],
             ['¿Puedo enviar el obituario por WhatsApp?', 'Sí. El botón "Enviar por WhatsApp" manda la imagen del obituario junto con los datos de las exequias; también lo puede descargar en imagen (PNG o JPG) o en video para Facebook e Instagram.'],
             ['¿Cuánto dura el video del obituario?', 'Usted lo elige: 10, 15, 20, 30 o 45 segundos, 1 minuto, 1 minuto y medio o 2 minutos.'],
-            ['¿Salen las fechas de nacimiento y fallecimiento?', 'Sí, completas: por ejemplo 07-12-1980 / 27-03-2026. Si solo pone una, sale esa.'],
+            ['¿Salen las fechas de nacimiento y fallecimiento?', 'Si usted quiere: en el obituario elija "Sí, mostrar" y salen completas, por ejemplo 07-12-1980 / 27-03-2026. Por defecto no salen.'],
             ['¿Trae plantillas listas?', 'Sí, plantillas prediseñadas con flores, palomas y fondos; solo cambia el nombre, la foto y la sala.'],
         ],
     ],
