@@ -19,8 +19,22 @@
         <div class="lp-count"><div class="ci"><i class="fa-solid fa-receipt"></i></div><b>{{ $resumen['ventas_hoy'] }}</b><small>Ventas hoy (todas)</small></div>
     </div>
 
+    <div class="lp-box mb-3">
+        <h3 class="mb-2"><i class="fa-solid fa-location-dot me-1"></i>¿De qué ciudad son?</h3>
+        <div class="d-flex flex-wrap gap-2">
+            @foreach ($ciudades as $c)
+            @php $sel = request('ciudad') === $c->ciudad; @endphp
+            <a href="{{ request()->fullUrlWithQuery(['ciudad' => $sel ? null : $c->ciudad]) }}" class="btn btn-sm {{ $sel ? 'btn-success' : 'btn-light' }}" title="{{ $c->departamento }}">
+                {{ $c->ciudad === 'sin' ? 'Sin ciudad' : $c->ciudad }} <span class="badge {{ $sel ? 'bg-light text-dark' : 'bg-success' }} ms-1">{{ $c->n }}</span>
+            </a>
+            @endforeach
+        </div>
+    </div>
+
     <div class="lp-box">
+        @if (request('ciudad'))<div class="alert alert-success py-2 d-flex align-items-center">Viendo tiendas de <b class="ms-1">{{ request('ciudad') === 'sin' ? 'sin ciudad' : request('ciudad') }}</b><a class="ms-auto small" href="{{ request()->fullUrlWithQuery(['ciudad' => null]) }}">Ver todas</a></div>@endif
         <form class="row g-2 mb-3" method="get">
+            @if (request('ciudad'))<input type="hidden" name="ciudad" value="{{ request('ciudad') }}">@endif
             <div class="col-md-5"><input name="q" value="{{ $q }}" class="form-control" placeholder="Buscar por nombre, código (LCT-00001), correo, ciudad o código de asesor"></div>
             <div class="col-6 col-md-2">
                 <select name="asesor" class="form-select" onchange="this.form.submit()">
@@ -46,7 +60,8 @@
                 <div class="t" style="min-width:0">
                     <b><a href="{{ route('admin.tiendas.show', $t) }}" class="text-decoration-none" style="color:inherit">{{ $t->nombre }}</a></b>
                     <small class="lp-cod">{{ $t->codigo }}</small>
-                    <small>{{ $d?->name ?? 'Sin dueño' }}{{ $t->ciudad ? ' · ' . $t->ciudad : '' }} · {{ $t->plan->nombre ?? 'Sin plan' }}@if($t->plan_vence) · <span class="{{ $t->plan_vencido ? 'text-danger fw-bold' : '' }}">{{ $t->plan_vencido ? 'venció' : 'vence' }} {{ $t->plan_vence->format('d/m/y') }}</span>@endif · {{ $v->n ?? 0 }} ventas</small>
+                    <small class="d-block"><i class="fa-solid fa-location-dot me-1 text-success"></i><b>{{ $t->ciudad ?: 'Sin ciudad' }}</b>{{ $t->departamento ? ', ' . $t->departamento : '' }}</small>
+                    <small>{{ $d?->name ?? 'Sin dueño' }} · {{ $t->plan->nombre ?? 'Sin plan' }}@if($t->plan_vence) · <span class="{{ $t->plan_vencido ? 'text-danger fw-bold' : '' }}">{{ $t->plan_vencido ? 'venció' : 'vence' }} {{ $t->plan_vence->format('d/m/y') }}</span>@endif · {{ $v->n ?? 0 }} ventas</small>
                 </div>
                 <div class="w-100 d-flex align-items-center gap-2 mt-1 ps-5">
                     @if ($t->asesor)<small class="text-muted"><i class="fa-solid fa-user-tie me-1"></i>{{ $t->asesor->nombre }} · {{ $t->asesor->codigo }}</small>@elseif ($t->venta_directa_id)<small class="text-muted"><i class="fa-solid fa-crown me-1" style="color:#16b34a"></i>{{ $t->ventaDirecta->name ?? 'LocalPro' }} · <span class="lp-cod">LocalPro</span></small>@else<small class="text-warning fw-bold"><i class="fa-solid fa-user-slash me-1"></i>Sin asesor</small>@endif
@@ -64,7 +79,7 @@
         </ul>
         <div class="table-responsive d-none d-md-block">
             <table class="table align-middle">
-                <thead><tr><th>Tienda</th><th>Dueño</th><th>Plan</th><th>Asesor</th><th>País</th><th>Productos</th><th>Ventas</th><th>Última venta</th><th>Estado</th><th></th></tr></thead>
+                <thead><tr><th>Tienda</th><th>Dueño</th><th>Plan</th><th>Asesor</th><th>Ciudad</th><th>Productos</th><th>Ventas</th><th>Última venta</th><th>Estado</th><th></th></tr></thead>
                 <tbody>
                 @forelse ($tiendas as $t)
                     @php $v = $ventas[$t->id] ?? null; $m = \App\Support\Paises::datos($t->pais); $d = $duenos[$t->id][0] ?? null; @endphp
@@ -72,7 +87,7 @@
                         <td>
                             <div class="d-flex align-items-center gap-2">
                                 <span class="lp-avatar" style="border-radius:12px;width:40px;height:40px;flex:none">@if($t->logo_url)<img src="{{ $t->logo_url }}" style="width:100%;height:100%;object-fit:cover;border-radius:12px">@else<i class="fa-solid {{ $t->tipo_icono }}"></i>@endif</span>
-                                <div><a href="{{ route('admin.tiendas.show', $t) }}" class="fw-bold text-decoration-none" style="color:inherit">{{ $t->nombre }}</a><br><small class="lp-cod">{{ $t->codigo }}</small> <small class="text-muted">{{ $t->tipo_nombre }}{{ $t->ciudad ? ' · ' . $t->ciudad : '' }}</small></div>
+                                <div><a href="{{ route('admin.tiendas.show', $t) }}" class="fw-bold text-decoration-none" style="color:inherit">{{ $t->nombre }}</a><br><small class="lp-cod">{{ $t->codigo }}</small> <small class="text-muted">{{ $t->tipo_nombre }}</small></div>
                             </div>
                         </td>
                         <td>{{ $d?->name ?? '—' }}<br><small class="text-muted">{{ $d?->email }}</small></td>
@@ -81,7 +96,7 @@
                             @if ($t->asesor)<span class="fw-semibold">{{ \Illuminate\Support\Str::limit($t->asesor->nombre, 18) }}</span><br><small class="lp-cod">{{ $t->asesor->codigo }}</small>@elseif ($t->venta_directa_id)<span class="fw-semibold"><i class="fa-solid fa-crown me-1" style="color:#16b34a"></i>{{ \Illuminate\Support\Str::limit($t->ventaDirecta->name ?? 'LocalPro', 18) }}</span><br><small class="lp-cod">LocalPro</small>@else<small class="text-warning fw-bold">Sin asesor</small>@endif
                             <br><button type="button" class="btn btn-sm btn-asg mt-1" data-asignar="{{ route('admin.tiendas.asesor', $t) }}" data-tienda="{{ $t->nombre }}" data-actual="{{ $t->asesor_id ?: ($t->venta_directa_id ? 'localpro' : '') }}"><i class="fa-solid fa-user-plus me-1"></i>{{ ($t->asesor || $t->venta_directa_id) ? 'Cambiar' : 'Asignar' }}</button>
                         </td>
-                        <td>{{ $m['nombre'] }}<br><small class="text-muted">{{ $m['moneda'] }}</small></td>
+                        <td><b>{{ $t->ciudad ?: 'Sin ciudad' }}</b><br><small class="text-muted">{{ $t->departamento ? $t->departamento . ' · ' : '' }}{{ $m['nombre'] }}</small></td>
                         <td>{{ $productos[$t->id] ?? 0 }}</td>
                         <td>{{ $v->n ?? 0 }}<br><small class="text-muted">{{ $m['simbolo'] }}{{ number_format((float) ($v->total ?? 0), $m['decimales'], $m['decimal'], $m['miles']) }}</small></td>
                         <td class="text-nowrap"><small>{{ $v?->ultima ? \Carbon\Carbon::parse($v->ultima)->diffForHumans() : '—' }}</small></td>

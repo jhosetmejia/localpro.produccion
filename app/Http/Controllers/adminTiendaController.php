@@ -20,6 +20,8 @@ class adminTiendaController extends Controller
             ->when($q !== '', fn ($w) => $w->where(fn ($x) => $x->where('nombre', 'like', "%$q%")->orWhere('email', 'like', "%$q%")->orWhere('ciudad', 'like', "%$q%")->orWhere('codigo', 'like', "%$q%")
                 ->orWhereHas('asesor', fn ($a) => $a->where('codigo', 'like', "%$q%"))))
             ->when($request->get('estado'), fn ($w, $e) => $w->where('estado', $e))
+            ->when($request->get('ciudad') === 'sin', fn ($w) => $w->where(fn ($x) => $x->whereNull('ciudad')->orWhere('ciudad', '')))
+            ->when($request->get('ciudad') && $request->get('ciudad') !== 'sin', fn ($w) => $w->where('ciudad', $request->get('ciudad')))
             ->when($request->get('asesor') === 'sin', fn ($w) => $w->sinAsignar())
             ->latest()
             ->get();
@@ -42,9 +44,12 @@ class adminTiendaController extends Controller
         ];
 
         $resumen['sin_asesor'] = Tienda::sinAsignar()->count();
+        // De qué ciudad se están creando las tiendas (de más a menos)
+        $ciudades = Tienda::query()->selectRaw("COALESCE(NULLIF(ciudad, ''), 'sin') as ciudad, MAX(departamento) as departamento, COUNT(*) as n")
+            ->groupByRaw("COALESCE(NULLIF(ciudad, ''), 'sin')")->orderByDesc('n')->get();
         $asesores = \App\Models\Asesor::with('user:id,name,email')->where('activo', true)
             ->orderByRaw("FIELD(cargo, 'asesor', 'lider_zona', 'lider_ciudad', 'lider_departamento', 'lider_pais')")->get();
-        return view('admin.tiendas.index', compact('tiendas', 'ventas', 'productos', 'usuarios', 'duenos', 'resumen', 'q', 'asesores'));
+        return view('admin.tiendas.index', compact('tiendas', 'ventas', 'productos', 'usuarios', 'duenos', 'resumen', 'q', 'asesores', 'ciudades'));
     }
 
     public function create()
