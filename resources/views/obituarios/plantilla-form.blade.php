@@ -161,11 +161,12 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
                         <div class="col-12"><label class="form-label small fw-bold">Título</label><input class="form-control" name="titulo" maxlength="60" value="{{ old('titulo', $plantilla->titulo) }}" placeholder="Obituario"></div>
 
                         <div class="col-12"><label class="form-label small fw-bold">Frase destacada <span class="text-muted fw-normal">(arriba a la derecha, en las tarjetas prediseñadas)</span></label><input class="form-control" name="cita" maxlength="160" value="{{ old('cita', $plantilla->cita) }}" placeholder="Ej: Tu recuerdo vivirá por siempre en nuestros corazones"></div>
-                        @php $pieMostrar = (bool) old('pie_mostrar', $plantilla->pie_mostrar === false ? 0 : 1); @endphp
-                        <div class="col-sm-4"><label class="form-label small fw-bold">Pie de la tarjeta</label>
-                            <select class="form-select" name="pie_mostrar" id="pf-pie-m"><option value="1" @selected($pieMostrar)>Mostrar</option><option value="0" @selected(!$pieMostrar)>Quitar</option></select></div>
-                        <div class="col-sm-8" data-pie-campo @unless ($pieMostrar) hidden @endunless><label class="form-label small fw-bold">Nombre en el pie <span class="text-muted fw-normal">(vacío = el del negocio)</span></label><input class="form-control" name="pie_nombre" maxlength="80" value="{{ old('pie_nombre', $plantilla->pie_nombre) }}" placeholder="{{ $tienda->nombre }}"></div>
-                        <div class="col-12" data-pie-campo @unless ($pieMostrar) hidden @endunless><label class="form-label small fw-bold">Eslogan del pie <span class="text-muted fw-normal">(opcional)</span></label><input class="form-control" name="pie" maxlength="150" value="{{ old('pie', $plantilla->pie) }}" placeholder="Ej: Excelencia en servicios... Más humana"></div>
+                        @php $pieModo = old('pie_modo', $plantilla->pie_modo ?: 'frase'); @endphp
+                        <div class="col-sm-5"><label class="form-label small fw-bold">Pie de la tarjeta</label>
+                            <select class="form-select" name="pie_modo" id="pf-pie-m">@foreach ($P::PIE_MODOS as $k => $t)<option value="{{ $k }}" @selected($pieModo === $k)>{{ $t }}</option>@endforeach</select></div>
+                        <div class="col-sm-7" data-pie-campo="nombre"><label class="form-label small fw-bold">Nombre en el pie <span class="text-muted fw-normal">(vacío = el del negocio)</span></label><input class="form-control" name="pie_nombre" maxlength="80" value="{{ old('pie_nombre', $plantilla->pie_nombre) }}" placeholder="{{ $tienda->nombre }}"></div>
+                        <div class="col-12" data-pie-campo="frase"><label class="form-label small fw-bold">Frase del pie</label><input class="form-control" name="pie" maxlength="150" value="{{ old('pie', $plantilla->pie) }}" placeholder="Ej: Un homenaje de amor"></div>
+                        <div class="col-12" data-pie-campo="eslogan"><label class="form-label small fw-bold">Eslogan</label><input class="form-control" name="pie_eslogan" maxlength="150" value="{{ old('pie_eslogan', $plantilla->pie_eslogan) }}" placeholder="Ej: Excelencia en servicios... Más humana"></div>
                     </div>
                     <div class="form-check form-switch mt-3">
                         <input class="form-check-input" type="checkbox" name="mostrar_logo" value="1" id="pf-logo" @checked(old('mostrar_logo', $plantilla->mostrar_logo))>
@@ -243,12 +244,15 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
             anim_cant: +f.anim_cant.value, anim_tam: +f.anim_tam.value, anim_vel: +f.anim_vel.value, propios: propios,
             flores: { pos: val('flor_pos'), esq: val('flor_esq'), x: +f.flor_x.value, y: +f.flor_y.value, tam: +f.flor_tam.value },
             acento: propios ? f.color_acento.value : dis[2], texto: propios ? f.color_texto.value : dis[3],
-            logo: f.mostrar_logo.checked, titulo: f.titulo.value, frase: '', pie: f.pie_mostrar.value === '1' ? f.pie.value : '', cita: f.cita.value, tarjeta: TARJETAS.indexOf(val('diseno')) !== -1
+            logo: f.mostrar_logo.checked, titulo: f.titulo.value, frase: '', pie: '', cita: f.cita.value, tarjeta: TARJETAS.indexOf(val('diseno')) !== -1
         });
-        var conPie = f.pie_mostrar.value === '1';
-        document.querySelectorAll('[data-pie-campo]').forEach(function (c) { c.hidden = !conPie; });
+        var modo = f.pie_modo.value, conPie = modo !== 'ninguno';
+        var conFrase = modo === 'frase' || modo === 'ambos', conEsl = modo === 'eslogan' || modo === 'ambos';
+        document.querySelectorAll('[data-pie-campo]').forEach(function (c) { var k = c.dataset.pieCampo; c.hidden = k === 'nombre' ? !conPie : k === 'frase' ? !conFrase : !conEsl; });
         el.querySelectorAll('[data-fila="pie_bloque"]').forEach(function (n) { n.hidden = !conPie; });
         el.querySelectorAll('[data-o="pie_nombre"]').forEach(function (n) { var t = f.pie_nombre.value.trim() || n.dataset.defecto || ''; n.textContent = t; n.hidden = !conPie || !t; });
+        el.querySelectorAll('[data-o="pie"]').forEach(function (n) { var t = conFrase ? f.pie.value.trim() : ''; n.textContent = t; n.hidden = !t; });
+        el.querySelectorAll('[data-o="pie_eslogan"]').forEach(function (n) { var t = conEsl ? f.pie_eslogan.value.trim() : ''; n.textContent = t; n.hidden = !t; });
     }
     // El degradado apagado no se envía (el campo queda deshabilitado)
     document.getElementById('pf-imagen').addEventListener('change', function () { if (this.files[0]) { imagen = URL.createObjectURL(this.files[0]); aplicar(); } });

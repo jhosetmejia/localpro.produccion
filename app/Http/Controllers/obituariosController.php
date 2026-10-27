@@ -351,6 +351,8 @@ class obituariosController extends Controller
             'frase' => 'nullable|string|max:120',
             'pie' => 'nullable|string|max:150',
             'pie_nombre' => 'nullable|string|max:80',
+            'pie_eslogan' => 'nullable|string|max:150',
+            'pie_modo' => ['nullable', Rule::in(array_keys(ObituarioPlantilla::PIE_MODOS))],
             'cita' => 'nullable|string|max:160',
             'flor_pos' => ['nullable', Rule::in(array_keys(ObituarioPlantilla::FLOR_POS))],
             'flor_x' => 'nullable|integer|min:-400|max:400',
@@ -372,7 +374,8 @@ class obituariosController extends Controller
         // Colores en blanco = los del diseño
         if (!$request->boolean('colores_propios')) { $datos['color_acento'] = null; $datos['color_texto'] = null; }
         $datos['mostrar_logo'] = $request->boolean('mostrar_logo');
-        $datos['pie_mostrar'] = $request->boolean('pie_mostrar');
+        $datos['pie_modo'] = $datos['pie_modo'] ?? 'frase';
+        $datos['pie_mostrar'] = $datos['pie_modo'] !== 'ninguno';
         $datos['oscurecer'] = (int) ($datos['oscurecer'] ?? 0);
         $datos['titulo'] = $datos['titulo'] ?? '';
         $datos['adornos'] = $datos['adornos'] ?? 'muchos';

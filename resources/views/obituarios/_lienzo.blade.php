@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600;1,700&family=Great+Vibes&family=Montserrat:ital,wght@0,500;0,700;0,800;1,500&display=swap">
-<link rel="stylesheet" href="{{ asset('css/obituarios.css') }}?v=9">
+<link rel="stylesheet" href="{{ asset('css/obituarios.css') }}?v=10">
 @endonce
 @php
     $m = $p->medida_datos;
@@ -110,9 +110,9 @@
             <img class="obi-logo" src="{{ $logo }}" alt="" @if ($logo) data-logo @unless ($conLogo) hidden @endunless @else data-logo-vacio hidden @endif>
             <div class="obi-empresa" data-empresa @if ($logo) data-sin-logo @if ($conLogo) hidden @endif @endif>{{ $tienda->nombre }}</div>
             <div class="obi-ramo r-d">@include('obituarios._ramo')</div>
-            <div class="obi-pie" data-o="pie" data-fila="pie" @if (!$pieD || !$pieD['eslogan']) hidden @endif>{{ $pieD['eslogan'] ?? '' }}</div>
+            <div class="obi-pie" data-o="pie" data-fila="pie" @if (!($pieD['frase'] ?? null)) hidden @endif>{{ $pieD['frase'] ?? '' }}</div><div class="obi-pie" data-o="pie_eslogan" data-fila="pie_eslogan" @if (!($pieD['eslogan'] ?? null)) hidden @endif>{{ $pieD['eslogan'] ?? '' }}</div>
         </section>
-        <div class="obi-pie-v" data-o="pie" data-fila="pie" @if (!$pieD || !$pieD['eslogan']) hidden @endif>{{ $pieD['eslogan'] ?? '' }}</div>
+        <div class="obi-pie-v" data-o="pie" data-fila="pie" @if (!($pieD['frase'] ?? null)) hidden @endif>{{ $pieD['frase'] ?? '' }}</div><div class="obi-pie-v" data-o="pie_eslogan" data-fila="pie_eslogan" @if (!($pieD['eslogan'] ?? null)) hidden @endif>{{ $pieD['eslogan'] ?? '' }}</div>
     </div>
     @include('obituarios._tarjeta')
 </div>

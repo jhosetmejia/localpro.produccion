@@ -323,6 +323,7 @@ body.sin-cursor,body.sin-cursor *{cursor:none!important}
 .ot-pie{margin-top:auto;padding-top:calc(10px*var(--k));width:100%;display:flex;flex-direction:column;align-items:center}
 .ot-pie .ot-pie-linea{margin:0 0 6px}
 .ot-pie-empresa{font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;font-size:calc(40px*var(--k));color:var(--t-titulo);line-height:1}
+.ot-pie-eslogan{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-weight:600;font-size:calc(30px*var(--k));color:var(--t-titulo);line-height:1.15;text-align:center}
 .ot-pie-slogan{font-family:'Great Vibes',cursive;font-size:calc(38px*var(--k));color:var(--t-acento);line-height:1.1}
 .o-c .ot-titulo{font-size:calc(76px*var(--k))}.o-c .ot-nombre{font-size:calc(46px*var(--k))}
 .o-c .ot-info{grid-template-columns:1fr;gap:10px}.o-c .ot-col + .ot-col{border:0;padding:0}

@@ -63,7 +63,8 @@
         <footer class="ot-pie" data-fila="pie_bloque" @if (!$pieD) hidden @endif>
             <div class="ot-pie-linea"><i></i><svg viewBox='0 0 60 24' class='ot-hojita'><path d='M30 20 C24 10 14 6 4 8 C12 14 22 18 30 20Z M30 20 C36 10 46 6 56 8 C48 14 38 18 30 20Z'/></svg><i></i></div>
             <div class="ot-pie-empresa" data-o="pie_nombre" data-fila="pie_nombre" data-defecto="{{ $tienda->nombre }}" @if (!($pieD['nombre'] ?? null)) hidden @endif>{{ $pieD['nombre'] ?? '' }}</div>
-            <div class="ot-pie-slogan" data-o="pie" data-fila="pie" @if (!$pieD || !$pieD['eslogan']) hidden @endif>{{ $pieD['eslogan'] ?? '' }}</div>
+            <div class="ot-pie-slogan" data-o="pie" data-fila="pie" @if (!($pieD['frase'] ?? null)) hidden @endif>{{ $pieD['frase'] ?? '' }}</div>
+            <div class="ot-pie-eslogan" data-o="pie_eslogan" data-fila="pie_eslogan" @if (!($pieD['eslogan'] ?? null)) hidden @endif>{{ $pieD['eslogan'] ?? '' }}</div>
         </footer>
     </main>
 </div>

@@ -14,7 +14,7 @@ class ObituarioPlantilla extends Model
 
     protected $table = 'obituario_plantillas';
 
-    protected $fillable = ['nombre', 'diseno', 'medida', 'fondo_tipo', 'fondo_color', 'fondo_color2', 'oscurecer', 'animacion', 'color_acento', 'color_texto', 'mostrar_logo', 'titulo', 'frase', 'pie', 'pie_mostrar', 'pie_nombre', 'adornos', 'cita', 'base', 'flores', 'anim_op'];
+    protected $fillable = ['nombre', 'diseno', 'medida', 'fondo_tipo', 'fondo_color', 'fondo_color2', 'oscurecer', 'animacion', 'color_acento', 'color_texto', 'mostrar_logo', 'titulo', 'frase', 'pie', 'pie_mostrar', 'pie_nombre', 'pie_modo', 'pie_eslogan', 'adornos', 'cita', 'base', 'flores', 'anim_op'];
 
     protected $casts = ['mostrar_logo' => 'boolean', 'pie_mostrar' => 'boolean', 'oscurecer' => 'integer', 'flores' => 'array', 'anim_op' => 'array'];
 
@@ -102,12 +102,20 @@ class ObituarioPlantilla extends Model
         return ['cant' => $n('cant'), 'tam' => $n('tam'), 'vel' => $n('vel')];
     }
 
-    // Pie de la tarjeta: nombre (o el del negocio) + eslogan; null si lo quitaron
+    // Pie de la tarjeta: qué se muestra debajo del nombre
+    public const PIE_MODOS = ['frase' => 'Solo la frase', 'eslogan' => 'Solo el eslogan', 'ambos' => 'Frase y eslogan', 'ninguno' => 'Quitar el pie'];
+
+    // Pie de la tarjeta: nombre (o el del negocio), frase y/o eslogan; null si lo quitaron
     public function pieDatos($tienda): ?array
     {
-        if ($this->pie_mostrar === false) return null;
+        $modo = isset(self::PIE_MODOS[$this->pie_modo]) ? $this->pie_modo : 'frase';
+        if ($modo === 'ninguno') return null;
         $nombre = trim((string) $this->pie_nombre) !== '' ? $this->pie_nombre : $tienda?->nombre;
-        return ['nombre' => $nombre, 'eslogan' => $this->pie];
+        return [
+            'nombre' => $nombre,
+            'frase' => in_array($modo, ['frase', 'ambos'], true) ? ($this->pie ?: null) : null,
+            'eslogan' => in_array($modo, ['eslogan', 'ambos'], true) ? ($this->pie_eslogan ?: null) : null,
+        ];
     }
 
     public function getEsTarjetaAttribute(): bool
