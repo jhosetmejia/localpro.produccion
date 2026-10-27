@@ -23,11 +23,12 @@ html.lp-cargando::after{content:"";position:fixed;left:50%;top:50%;width:64px;he
             guardar(); document.addEventListener('visibilitychange', function () { if (document.hidden) guardar(); });
         }
     } catch (x) {}
-    // Enlaces con data-app-href: en el navegador abren en el navegador (dirección www, fuera de la app);
-    // en la app instalada se quedan dentro de la app, en la misma ventana
-    if (app) document.addEventListener('click', function (e) {
+    // Enlaces con data-app-href ("Ver todas las tiendas", "Ver mi tienda"): se abren en la misma ventana.
+    // Así, si está en el navegador se queda en el navegador (Chrome manda las pestañas nuevas a la app instalada)
+    // y si está en la app se queda en la app. Con Ctrl/clic central sí se abre en otra pestaña.
+    document.addEventListener('click', function (e) {
         var a = e.target.closest && e.target.closest('a[data-app-href]');
-        if (!a) return;
+        if (!a || e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
         e.preventDefault();
         location.href = a.getAttribute('data-app-href');
     }, true);
