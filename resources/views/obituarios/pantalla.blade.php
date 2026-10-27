@@ -33,7 +33,7 @@
     </div>
 @endforelse
 <div class="aviso">Toque la pantalla para verla completa</div>
-<script src="{{ asset('js/obituarios.js') }}?v=12"></script>
+<script src="{{ asset('js/obituarios.js') }}?v=13"></script>
 <script>Obi.pantalla({ rotar: {{ (int) $rotar }}, version: @json($version), actual: @json($huella) });</script>
 </body>
 </html>

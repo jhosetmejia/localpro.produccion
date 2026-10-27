@@ -131,6 +131,7 @@ class obituariosController extends Controller
         $datos = $request->validate([
             'plantilla_id' => ['required', Rule::exists('obituario_plantillas', 'id')->where('tienda_id', TiendaActual::id())],
             'sala_id' => ['nullable', Rule::exists('obituario_salas', 'id')->where('tienda_id', TiendaActual::id())],
+            'velacion_titulo' => 'nullable|string|max:60',
             'lugar_velacion' => 'nullable|string|max:150',
             'nombre' => 'required|string|max:120',
             'foto' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:8192',

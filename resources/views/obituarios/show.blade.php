@@ -14,7 +14,7 @@
     $medidas = collect(\App\Models\ObituarioPlantilla::MEDIDAS)->filter(fn ($x) => $x[3] === $m['orientacion']);
     $texto = "En memoria de *{$obituario->nombre}*"
         . "\n{$tienda->nombre}"
-        . ($obituario->lugar_velacion ? "\nVelación: {$obituario->lugar_velacion}" : '')
+        . ($obituario->lugar_velacion ? "\n" . ($obituario->velacion_titulo ?: 'Velación') . ": {$obituario->lugar_velacion}" : '')
         . ($obituario->fecha_texto ? "\nExequias: {$obituario->fecha_texto}" . ($obituario->hora_texto ? ", {$obituario->hora_texto}" : '') : '')
         . ($obituario->lugar_exequias ? "\nLugar: {$obituario->lugar_exequias}" : '')
         . ($obituario->destino_final ? "\nDestino final: {$obituario->destino_final}" : '');
@@ -84,7 +84,7 @@
 @endsection
 
 @push('js')
-<script src="{{ asset('js/obituarios.js') }}?v=12"></script>
+<script src="{{ asset('js/obituarios.js') }}?v=13"></script>
 <script>
 (function () {
     var sel = document.getElementById('os-medida'), el = document.querySelector('[data-obi]');

@@ -176,7 +176,7 @@
             el.querySelectorAll('[data-o="' + clave + '"]').forEach(function (n) { n.textContent = valor || ''; });
             el.querySelectorAll('[data-fila="' + clave + '"]').forEach(function (n) { n.hidden = !valor; });
         }
-        ['nombre', 'anios', 'frase', 'sala', 'fecha', 'hora', 'lugar', 'destino', 'titulo', 'pie', 'cita'].forEach(function (k) {
+        ['nombre', 'anios', 'frase', 'velacion_titulo', 'sala', 'fecha', 'hora', 'lugar', 'destino', 'titulo', 'pie', 'cita'].forEach(function (k) {
             if (k in d) poner(k, d[k]);
         });
         if ('invitan' in d) {

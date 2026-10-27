@@ -167,7 +167,8 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
                 <div class="lp-box mb-3">
                     <h3>3. Velación y exequias</h3>
                     <div class="row g-2">
-                        <div class="col-12"><label class="form-label small fw-bold">Lugar de velación</label><input class="form-control" name="lugar_velacion" data-c="sala" maxlength="150" value="{{ old('lugar_velacion', $obituario->lugar_velacion) }}" placeholder="Ej: Sala San José · Funerales La Esperanza"><div class="of-ayuda mt-1">Sale en el obituario para que la gente sepa dónde acompañar a la familia.</div></div>
+                        <div class="col-sm-5"><label class="form-label small fw-bold">Nombre del campo</label><input class="form-control" name="velacion_titulo" maxlength="60" value="{{ old('velacion_titulo', $obituario->exists ? $obituario->velacion_titulo : 'Lugar de velación') }}" placeholder="Vacío = sin título"></div>
+                        <div class="col-sm-7"><label class="form-label small fw-bold">Qué dice</label><input class="form-control" name="lugar_velacion" data-c="sala" maxlength="150" value="{{ old('lugar_velacion', $obituario->lugar_velacion) }}" placeholder="Ej: Sala San José · Funerales La Esperanza"><div class="of-ayuda mt-1">Sale debajo de la foto, por ejemplo "Lugar de velación: Sala 1 · Monte de los Olivos". Si lo deja vacío, no sale.</div></div>
                         <div class="col-7"><label class="form-label small fw-bold">Fecha</label><input type="date" class="form-control" name="fecha_exequias" data-c="fecha" value="{{ old('fecha_exequias', $obituario->fecha_exequias?->format('Y-m-d')) }}"></div>
                         <div class="col-5"><label class="form-label small fw-bold">Hora</label><input type="time" class="form-control" name="hora_exequias" data-c="hora" value="{{ old('hora_exequias', $obituario->hora_exequias ? substr($obituario->hora_exequias, 0, 5) : '') }}"></div>
                         <div class="col-12"><label class="form-label small fw-bold">Lugar de las exequias</label><input class="form-control" name="lugar_exequias" data-c="lugar" maxlength="150" value="{{ old('lugar_exequias', $obituario->lugar_exequias) }}" placeholder="Ej: Parroquia Nuestra Señora del Carmen"></div>
@@ -203,7 +204,7 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
 @endsection
 
 @push('js')
-<script src="{{ asset('js/obituarios.js') }}?v=12"></script>
+<script src="{{ asset('js/obituarios.js') }}?v=13"></script>
 <script>
 (function () {
     var form = document.getElementById('of-form'), el = document.querySelector('[data-obi]');
@@ -265,6 +266,7 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
             nombre: f.nombre.value || 'Nombre del fallecido',
             anios: f.mostrar_fechas.value === '1' && (a1 || a2) ? (a1 + ' / ' + a2).replace(/^ \/ | \/ $/g, '') : '',
             frase: f.mostrar_frase.value === '1' ? f.frase.value.trim() : '',
+            velacion_titulo: f.velacion_titulo.value.trim(),
             sala: f.lugar_velacion.value, // en el lienzo la fila "sala" es el lugar de velación
             fecha: Obi.fecha(f.fecha_exequias.value),
             hora: Obi.hora(f.hora_exequias.value),

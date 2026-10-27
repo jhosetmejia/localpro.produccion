@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600;1,700&family=Great+Vibes&family=Montserrat:ital,wght@0,500;0,700;0,800;1,500&display=swap">
-<link rel="stylesheet" href="{{ asset('css/obituarios.css') }}?v=11">
+<link rel="stylesheet" href="{{ asset('css/obituarios.css') }}?v=12">
 @endonce
 @php
     $m = $p->medida_datos;
@@ -16,6 +16,7 @@
         'foto' => $o->foto_url,
         'anios' => $o->anios_visibles,
         'frase' => $o->frase_visible,
+        'velacion_titulo' => $o->velacion_titulo,
         'sala' => $o->lugar_velacion, // lugar de velación (la sala es solo el proyector)
         'fecha' => $o->fecha_texto,
         'hora' => $o->hora_texto,
@@ -27,6 +28,7 @@
         'foto' => null,
         'anios' => null,
         'frase' => null,
+        'velacion_titulo' => 'Lugar de velación',
         'sala' => 'Sala San José',
         'fecha' => \App\Models\Obituario::fechaLarga(now()->addDay()),
         'hora' => '3 p. m.',
@@ -76,6 +78,7 @@
                 <div class="obi-ramo r-f2">@include('obituarios._ramo')</div>
             </div>
             <div class="obi-memoria"><span class="obi-script">En memoria de</span><b data-o="nombre">{{ $d['nombre'] }}</b></div>
+            <div class="obi-velacion" data-fila="sala" @if (!$d['sala']) hidden @endif><b data-o="velacion_titulo" data-fila="velacion_titulo" @if (!$d['velacion_titulo']) hidden @endif>{{ $d['velacion_titulo'] }}</b><span data-o="sala">{{ $d['sala'] }}</span></div>
         </section>
         <section class="obi-centro">
             <div class="obi-esq e1"></div><div class="obi-esq e2"></div><div class="obi-esq e3"></div><div class="obi-esq e4"></div>
@@ -85,7 +88,6 @@
             </header>
             <div class="obi-titulo" data-o="titulo" data-fila="titulo" @if (!$p->titulo) hidden @endif>{{ $p->titulo }}</div>
             <div class="obi-sub">
-                <span class="obi-sala" data-fila="sala" @if (!$d['sala']) hidden @endif>Velación: <span data-o="sala">{{ $d['sala'] }}</span></span>
                 <span class="obi-frase" data-o="frase" data-fila="frase" @if (!$d['frase']) hidden @endif>{{ $d['frase'] }}</span>
             </div>
             <div class="obi-linea"></div>
