@@ -355,6 +355,9 @@ class obituariosController extends Controller
             'pie_eslogan' => 'nullable|string|max:150',
             'pie_modo' => ['nullable', Rule::in(array_keys(ObituarioPlantilla::PIE_MODOS))],
             'logo_fondo' => ['nullable', Rule::in(array_keys(ObituarioPlantilla::LOGO_FONDOS))],
+            'velacion_pos' => ['nullable', Rule::in(array_keys(ObituarioPlantilla::VELACION_POS))],
+            'velacion_x' => 'nullable|integer|min:-400|max:400',
+            'velacion_y' => 'nullable|integer|min:-400|max:400',
             'cita' => 'nullable|string|max:160',
             'flor_pos' => ['nullable', Rule::in(array_keys(ObituarioPlantilla::FLOR_POS))],
             'flor_x' => 'nullable|integer|min:-400|max:400',
@@ -377,6 +380,9 @@ class obituariosController extends Controller
         if (!$request->boolean('colores_propios')) { $datos['color_acento'] = null; $datos['color_texto'] = null; }
         $datos['mostrar_logo'] = $request->boolean('mostrar_logo');
         $datos['logo_fondo'] = $datos['logo_fondo'] ?? 'sin';
+        $datos['velacion_pos'] = $datos['velacion_pos'] ?? 'foto';
+        $datos['velacion_x'] = (int) ($datos['velacion_x'] ?? 0);
+        $datos['velacion_y'] = (int) ($datos['velacion_y'] ?? 0);
         $datos['pie_modo'] = $datos['pie_modo'] ?? 'frase';
         $datos['pie_mostrar'] = $datos['pie_modo'] !== 'ninguno';
         $datos['oscurecer'] = (int) ($datos['oscurecer'] ?? 0);

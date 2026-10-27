@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600;1,700&family=Great+Vibes&family=Montserrat:ital,wght@0,500;0,700;0,800;1,500&display=swap">
-<link rel="stylesheet" href="{{ asset('css/obituarios.css') }}?v=12">
+<link rel="stylesheet" href="{{ asset('css/obituarios.css') }}?v=13">
 @endonce
 @php
     $m = $p->medida_datos;
@@ -55,9 +55,9 @@
     // Colores propios también en las tarjetas prediseñadas
     $colTarjeta = ($p->color_acento ? ';--t-acento:' . $p->color_acento : '') . ($p->color_texto ? ';--t-texto:' . $p->color_texto . ';--t-titulo:' . $p->color_texto : '');
 @endphp
-<div class="obi d-{{ $p->diseno }} o-{{ $m['orientacion'] }} adornos-{{ $p->adornos ?: 'muchos' }} {{ $tarjeta ? 'lay-tarjeta' : '' }} flor-{{ $fl['pos'] }} esq-{{ $fl['esq'] }} {{ $p->fondo_tipo !== 'diseno' ? 'fondo-propio' : '' }} {{ $p->logo_fondo === 'blanco' ? 'logo-caja' : '' }}" data-obi
+<div class="obi d-{{ $p->diseno }} o-{{ $m['orientacion'] }} adornos-{{ $p->adornos ?: 'muchos' }} {{ $tarjeta ? 'lay-tarjeta' : '' }} flor-{{ $fl['pos'] }} esq-{{ $fl['esq'] }} {{ $p->fondo_tipo !== 'diseno' ? 'fondo-propio' : '' }} {{ $p->logo_fondo === 'blanco' ? 'logo-caja' : '' }} vel-{{ $p->velacion_pos ?: 'foto' }}" data-obi
      data-w="{{ $m['base_ancho'] }}" data-h="{{ $m['base_alto'] }}" data-escala="{{ $m['escala'] }}" data-anim="{{ $p->animacion }}" data-anim-cant="{{ $an['cant'] }}" data-anim-tam="{{ $an['tam'] }}" data-anim-vel="{{ $an['vel'] }}"
-     style="width:{{ $m['base_ancho'] }}px;height:{{ $m['base_alto'] }}px;--acento:{{ $p->acento }};--texto:{{ $p->texto_color }};--fx:{{ $fl['x'] }}px;--fy:{{ $fl['y'] }}px;--ft:{{ $fl['tam'] / 100 }}{{ $colTarjeta }}">
+     style="width:{{ $m['base_ancho'] }}px;height:{{ $m['base_alto'] }}px;--acento:{{ $p->acento }};--texto:{{ $p->texto_color }};--fx:{{ $fl['x'] }}px;--fy:{{ $fl['y'] }}px;--ft:{{ $fl['tam'] / 100 }};--vx:{{ (int) $p->velacion_x }}px;--vy:{{ (int) $p->velacion_y }}px{{ $colTarjeta }}">
     <div class="obi-fondo" style="{{ $fondoCss }}">@if ($video)<video src="{{ $video }}" autoplay muted loop playsinline></video>@endif</div>
     <div class="obi-velo" style="opacity:{{ $velo }}"></div>
     <div class="obi-marco-deco"></div>
@@ -76,9 +76,10 @@
                     @if ($d['foto'])<img src="{{ $d['foto'] }}" alt="">@endif
                 </div>
                 <div class="obi-ramo r-f2">@include('obituarios._ramo')</div>
+                <div class="obi-velacion-etq vp-foto" data-fila="sala" @if (!$d['sala']) hidden @endif><b data-o="velacion_titulo" data-fila="velacion_titulo" @if (!$d['velacion_titulo']) hidden @endif>{{ $d['velacion_titulo'] }}</b><span data-o="sala">{{ $d['sala'] }}</span></div>
             </div>
             <div class="obi-memoria"><span class="obi-script">En memoria de</span><b data-o="nombre">{{ $d['nombre'] }}</b></div>
-            <div class="obi-velacion" data-fila="sala" @if (!$d['sala']) hidden @endif><b data-o="velacion_titulo" data-fila="velacion_titulo" @if (!$d['velacion_titulo']) hidden @endif>{{ $d['velacion_titulo'] }}</b><span data-o="sala">{{ $d['sala'] }}</span></div>
+            <div class="obi-velacion vp-debajo" data-fila="sala" @if (!$d['sala']) hidden @endif><b data-o="velacion_titulo" data-fila="velacion_titulo" @if (!$d['velacion_titulo']) hidden @endif>{{ $d['velacion_titulo'] }}</b><span data-o="sala">{{ $d['sala'] }}</span></div>
         </section>
         <section class="obi-centro">
             <div class="obi-esq e1"></div><div class="obi-esq e2"></div><div class="obi-esq e3"></div><div class="obi-esq e4"></div>
@@ -94,6 +95,7 @@
             <h1 class="obi-nombre" data-o="nombre">{{ $d['nombre'] }}</h1>
             <div class="obi-anios" data-o="anios" data-fila="anios" @if (!$d['anios']) hidden @endif>{{ $d['anios'] }}</div>
             <div class="obi-datos">
+                <div class="obi-dato vp-datos" data-fila="sala" @if (!$d['sala']) hidden @endif><span class="obi-et" data-o="velacion_titulo">{{ $d['velacion_titulo'] ?: 'Velación' }}</span><span class="obi-val" data-o="sala">{{ $d['sala'] }}</span></div>
                 <div class="obi-dato" data-fila="fecha" @if (!$d['fecha']) hidden @endif><span class="obi-et">Fecha</span><span class="obi-val" data-o="fecha">{{ $d['fecha'] }}</span></div>
                 <div class="obi-dato" data-fila="lugar" @if (!$d['lugar']) hidden @endif><span class="obi-et">Exequias</span><span class="obi-val" data-o="lugar">{{ $d['lugar'] }}</span></div>
                 <div class="obi-dato" data-fila="hora" @if (!$d['hora']) hidden @endif><span class="obi-et">Hora</span><span class="obi-val" data-o="hora">{{ $d['hora'] }}</span></div>

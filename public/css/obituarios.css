@@ -274,7 +274,18 @@ body.sin-cursor,body.sin-cursor *{cursor:none!important}
 
 /* Foto */
 .ot-foto-col{grid-area:foto;display:flex;flex-direction:column;align-items:center;justify-content:center}
-/* Lugar de velación debajo de la foto */
+/* Lugar de velación: sobre la foto (etiqueta), debajo de la foto o con los datos; se mueve con --vx / --vy */
+.obi:not(.vel-foto) .vp-foto,.obi:not(.vel-debajo) .vp-debajo,.obi:not(.vel-datos) .vp-datos{display:none!important}
+.obi-foto-wrap{position:relative}
+.vel-foto .ot-foto-marco{z-index:auto} /* así la etiqueta queda encima de las flores */
+.obi-velacion-etq{position:absolute;z-index:6;left:50%;bottom:-26px;transform:translate(calc(-50% + var(--vx,0px)),var(--vy,0px));background:#fff;color:#1d2422;border-radius:16px;padding:10px 30px;box-shadow:0 10px 26px -8px rgba(0,0,0,.45);white-space:nowrap;text-align:center;line-height:1.1;font-family:'Montserrat',sans-serif}
+.obi-velacion-etq b{display:none}
+.obi-velacion-etq span{font-size:34px;font-weight:800;text-transform:uppercase;letter-spacing:.03em}
+.o-c .obi-velacion-etq span{font-size:26px}
+.obi-velacion.vp-debajo{transform:translate(var(--vx,0px),var(--vy,0px))}
+.ot-foto-marco .ot-velacion{position:absolute;left:50%;top:calc(100% + 20px);transform:translate(calc(-50% + var(--vx,0px)),var(--vy,0px));width:max-content;max-width:620px;margin:0}
+.ot-it.vp-datos,.obi-dato.vp-datos{transform:translate(var(--vx,0px),var(--vy,0px))}
+/* Lugar de velación debajo de la foto (estilo del texto) */
 .ot-velacion,.obi-velacion{position:relative;z-index:4;text-align:center;line-height:1.2;max-width:620px}
 .ot-velacion{margin-top:calc(34px*var(--k));color:var(--t-titulo);font-size:calc(30px*var(--k))}
 .ot-velacion b,.obi-velacion b{display:block;font-family:'Montserrat',sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.06em;font-size:.72em;color:var(--t-acento,var(--acento));margin-bottom:4px}

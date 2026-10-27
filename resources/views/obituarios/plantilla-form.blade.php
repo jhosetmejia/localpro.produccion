@@ -175,6 +175,12 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
                     <div class="mt-2" style="max-width:340px"><label class="form-label small fw-bold">Fondo del logo</label>
                         <select class="form-select" name="logo_fondo">@foreach ($P::LOGO_FONDOS as $k => $t)<option value="{{ $k }}" @selected(old('logo_fondo', $plantilla->logo_fondo ?: 'sin') === $k)>{{ $t }}</option>@endforeach</select>
                         <div class="pf-ayuda mt-1">Si sube el logo en PNG sin fondo, elija "Sin fondo": se ve tal cual sobre la tarjeta.</div></div>
+                    <div class="mt-3"><label class="form-label small fw-bold">Dónde sale el lugar de velación <span class="text-muted fw-normal">(ej: "Sala 2")</span></label>
+                        <select class="form-select" name="velacion_pos" style="max-width:340px">@foreach ($P::VELACION_POS as $k => $t)<option value="{{ $k }}" @selected(old('velacion_pos', $plantilla->velacion_pos ?: 'foto') === $k)>{{ $t }}</option>@endforeach</select>
+                        <div class="pf-rango"><label for="pf-vx">Mover ← →</label><input type="range" class="form-range" id="pf-vx" name="velacion_x" min="-400" max="400" step="5" value="{{ old('velacion_x', (int) $plantilla->velacion_x) }}"><output data-de="pf-vx"></output></div>
+                        <div class="pf-rango"><label for="pf-vy">Mover ↑ ↓</label><input type="range" class="form-range" id="pf-vy" name="velacion_y" min="-400" max="400" step="5" value="{{ old('velacion_y', (int) $plantilla->velacion_y) }}"><output data-de="pf-vy"></output></div>
+                        <button type="button" class="btn btn-sm btn-link px-0" id="pf-v0">Volver al lugar de siempre</button>
+                    </div>
                     @php $logoObi = $tienda->obituarios_logo_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($tienda->obituarios_logo_path) : null; @endphp
                     <div class="pf-logo-box">
                         <div class="pf-logo-prev" id="pf-logo-prev">@if ($logoObi ?: $tienda->logo_url)<img src="{{ $logoObi ?: $tienda->logo_url }}" alt="">@else<small class="text-muted">Sin logo</small>@endif</div>
@@ -253,6 +259,10 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
             acento: propios ? f.color_acento.value : dis[2], texto: propios ? f.color_texto.value : dis[3],
             logo: f.mostrar_logo.checked, logo_fondo: f.logo_fondo.value, titulo: f.titulo.value, frase: '', pie: '', cita: f.cita.value, tarjeta: TARJETAS.indexOf(val('diseno')) !== -1
         });
+        // Lugar de velación: dónde sale y cuánto se movió
+        ['vel-foto', 'vel-debajo', 'vel-datos'].forEach(function (c) { el.classList.remove(c); });
+        el.classList.add('vel-' + (f.velacion_pos.value || 'foto'));
+        el.style.setProperty('--vx', (+f.velacion_x.value || 0) + 'px'); el.style.setProperty('--vy', (+f.velacion_y.value || 0) + 'px');
         var modo = f.pie_modo.value, conPie = modo !== 'ninguno';
         var conFrase = modo === 'frase' || modo === 'ambos', conEsl = modo === 'eslogan' || modo === 'ambos';
         document.querySelectorAll('[data-pie-campo]').forEach(function (c) { var k = c.dataset.pieCampo; c.hidden = k === 'nombre' ? !conPie : k === 'frase' ? !conFrase : !conEsl; });
@@ -317,6 +327,7 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
     if (actual) Obi.tieneTransparencia(actual.src).then(function (t) { aviso.hidden = t; });
     form.addEventListener('input', numeros);
     numeros();
+    document.getElementById('pf-v0').addEventListener('click', function () { form.elements.velacion_x.value = 0; form.elements.velacion_y.value = 0; form.elements.velacion_x.dispatchEvent(new Event('input', { bubbles: true })); form.elements.velacion_y.dispatchEvent(new Event('input', { bubbles: true })); });
     form.addEventListener('input', aplicar);
     form.addEventListener('change', aplicar);
     aplicar();
