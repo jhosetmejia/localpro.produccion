@@ -12,6 +12,7 @@ use App\Support\TiendaActual;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 // Cotizaciones: se arman con los productos creados (precio del producto o cambiado a mano) o con líneas libres,
@@ -62,11 +63,13 @@ class cotizacionController extends Controller
         ]);
         // Duplicar: arranca con los datos y productos de otra cotización
         $items = [];
+        $copiaLogo = null;
         if ($request->filled('copiar') && ($o = Cotizacion::with('items')->find($request->integer('copiar')))) {
-            $c->fill($o->only(['cliente_id', 'cliente_nombre', 'cliente_documento', 'cliente_telefono', 'cliente_email', 'cliente_direccion', 'asunto', 'evento_lugar', 'descuento', 'condiciones']));
+            $c->fill($o->only(['cliente_id', 'cliente_nombre', 'cliente_documento', 'cliente_telefono', 'cliente_email', 'cliente_direccion', 'asunto', 'evento_lugar', 'evento_hora', 'evento_hora_fin', 'descuento', 'condiciones']));
+            $copiaLogo = $o->logo_path ? $o : null;
             $items = $o->items->map->only(['producto_id', 'descripcion', 'cantidad', 'precio', 'precio_lista'])->all();
         }
-        return view('cotizacion.form', ['c' => $c, 'items' => $items]);
+        return view('cotizacion.form', ['c' => $c, 'items' => $items, 'copiaLogo' => $copiaLogo]);
     }
 
     public function store(Request $request)
@@ -78,6 +81,7 @@ class cotizacionController extends Controller
             $this->guardarItems($c, $items);
             return $c;
         });
+        $this->guardarLogo($request, $c);
         return redirect()->route('cotizaciones.show', $c)->with('success', 'Cotización ' . $c->numero . ' creada. Descárguela en PDF o envíela por WhatsApp.');
     }
 
@@ -107,6 +111,7 @@ class cotizacionController extends Controller
             $cotizacion->items()->delete();
             $this->guardarItems($cotizacion, $items);
         });
+        $this->guardarLogo($request, $cotizacion);
         return redirect()->route('cotizaciones.show', $cotizacion)->with('success', 'Cotización ' . $cotizacion->numero . ' guardada.');
     }
 
@@ -132,7 +137,9 @@ class cotizacionController extends Controller
     public function destroy(Cotizacion $cotizacion)
     {
         $n = $cotizacion->numero;
+        $logo = $cotizacion->logo_path;
         $cotizacion->delete();
+        if ($logo) Storage::disk('public')->delete($logo);
         return redirect()->route('cotizaciones.index')->with('success', 'Cotización ' . $n . ' eliminada.');
     }
 
@@ -230,7 +237,12 @@ class cotizacionController extends Controller
             'asunto' => 'nullable|string|max:150',
             'evento_fecha' => 'nullable|date',
             'evento_hasta' => 'nullable|date|after_or_equal:evento_fecha',
+            'evento_hora' => 'nullable|date_format:H:i',
+            'evento_hora_fin' => 'nullable|date_format:H:i',
             'evento_lugar' => 'nullable|string|max:150',
+            'logo' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:2048',
+            'logo_modo' => 'nullable|in:negocio,otro',
+            'logo_copiar' => 'nullable|integer',
             'fecha' => 'required|date',
             'vence' => 'nullable|date|after_or_equal:fecha',
             'descuento' => 'nullable|numeric|min:0',
@@ -249,7 +261,13 @@ class cotizacionController extends Controller
             'items.*.cantidad.min' => 'La cantidad debe ser mayor que cero.',
             'evento_hasta.after_or_equal' => 'La fecha final del alquiler no puede ser antes de la inicial.',
             'vence.after_or_equal' => 'La validez no puede ser antes de la fecha de la cotización.',
+            'evento_hora.date_format' => 'Escriba la hora completa (hora y minutos).',
+            'evento_hora_fin.date_format' => 'Escriba la hora final completa (hora y minutos).',
+            'logo.image' => 'El logo debe ser una imagen (PNG, JPG o WEBP).',
+            'logo.mimes' => 'El logo debe ser PNG, JPG o WEBP.',
+            'logo.max' => 'El logo no puede pesar más de 2 MB.',
         ]);
+        unset($d['logo'], $d['logo_modo'], $d['logo_copiar']);
         $items = array_values($d['items']);
         unset($d['items']);
         if (!empty($d['cliente_id']) && !Cliente::whereKey($d['cliente_id'])->exists()) $d['cliente_id'] = null;
@@ -265,7 +283,30 @@ class cotizacionController extends Controller
         $d['subtotal'] = round($subtotal, 2);
         $d['total'] = round($subtotal - $d['descuento'], 2);
         if (empty($d['evento_fecha'])) $d['evento_hasta'] = null;
+        foreach (['evento_hora', 'evento_hora_fin'] as $h) $d[$h] = $d[$h] ?? null;
         return [$d, $items];
+    }
+
+    // Logo propio de la cotización: subir uno, quitarlo (vuelve el del negocio) o, al duplicar, copiar el de la original
+    private function guardarLogo(Request $request, Cotizacion $c): void
+    {
+        $disco = Storage::disk('public');
+        $carpeta = 'cotizaciones/' . $c->tienda_id;
+        if ($request->input('logo_modo') === 'negocio') {
+            if ($c->logo_path) { $disco->delete($c->logo_path); $c->forceFill(['logo_path' => null])->save(); }
+            return;
+        }
+        if ($request->hasFile('logo')) {
+            $ruta = $request->file('logo')->store($carpeta, 'public');
+            if ($c->logo_path) $disco->delete($c->logo_path);
+            $c->forceFill(['logo_path' => $ruta])->save();
+            return;
+        }
+        // Duplicada: copia del archivo para que borrar una no le quite el logo a la otra
+        if (!$c->logo_path && $request->filled('logo_copiar') && ($o = Cotizacion::find($request->integer('logo_copiar'))) && $o->logo_path && $disco->exists($o->logo_path)) {
+            $nueva = $carpeta . '/' . \Illuminate\Support\Str::random(40) . '.' . pathinfo($o->logo_path, PATHINFO_EXTENSION);
+            if ($disco->copy($o->logo_path, $nueva)) $c->forceFill(['logo_path' => $nueva])->save();
+        }
     }
 
     private function guardarItems(Cotizacion $c, array $items): void

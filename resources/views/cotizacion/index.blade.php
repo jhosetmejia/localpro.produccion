@@ -61,7 +61,7 @@
             <div class="t">
                 <b><span class="num">{{ $c->numero }}</span>{{ $c->cliente_nombre }}</b>
                 @if ($c->asunto)<small><i class="fa-solid fa-tag me-1"></i>{{ $c->asunto }}</small>@endif
-                <small><i class="fa-regular fa-calendar me-1"></i>{{ $c->fecha->format('d/m/Y') }}@if ($c->evento_texto) · <i class="fa-solid fa-calendar-days ms-1 me-1"></i>Alquiler: {{ $c->evento_texto }}@endif @if ($c->vence) · válida hasta {{ $c->vence->format('d/m/Y') }}@endif</small>
+                <small><i class="fa-regular fa-calendar me-1"></i>{{ $c->fecha->format('d/m/Y') }}@if ($c->evento_texto) · <i class="fa-solid fa-calendar-days ms-1 me-1"></i>Alquiler: {{ $c->evento_texto }}@if ($c->horario_texto), {{ $c->horario_texto }}@endif @endif @if ($c->vence) · válida hasta {{ $c->vence->format('d/m/Y') }}@endif</small>
             </div>
             <div class="m"><b>{{ dinero($c->total) }}</b><span class="ct-est" style="color:{{ $col }};background:{{ $fondo }}">{{ $etq }}</span></div>
         </a>

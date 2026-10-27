@@ -85,6 +85,8 @@ class alquilerController extends Controller
             $a->fill([
                 'que_alquila' => mb_substr($que, 0, 120),
                 'fecha' => $cot->evento_fecha ?? today(),
+                'hora' => $cot->evento_hora ? substr($cot->evento_hora, 0, 5) : '08:00',
+                'hora_fin' => $cot->evento_hora_fin ? substr($cot->evento_hora_fin, 0, 5) : null,
                 'lugar' => $cot->evento_lugar ?? $cot->cliente_direccion,
                 'responsable_telefono' => $cot->cliente_telefono,
                 'valor' => $cot->total,

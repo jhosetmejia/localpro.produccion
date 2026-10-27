@@ -2,6 +2,8 @@
 @php
     $negocioLinea = trim(implode(' · ', array_filter([$tienda->direccion, trim(($tienda->ciudad ?? '') . ($tienda->departamento ? ', ' . $tienda->departamento : ''), ', '), $tienda->telefono ? 'Tel. ' . $tienda->telefono : null, $tienda->email])));
     $bs = $tienda->usa_bolivares ? precio_bs($c->total) : null;
+    $logo = $c->logo_url ?? $tienda->logo_url; // logo propio de la cotización o el del negocio
+    $conEvento = $c->evento_fecha || $c->horario_texto;
 @endphp
 <style>
 .ct-hoja{--ac:#16b34a;--ink:#0b0d0c;background:#fff;max-width:820px;margin:0 auto;padding:40px 44px;color:#151a17;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.45;box-shadow:0 20px 50px -30px rgba(0,0,0,.45);border-radius:6px;position:relative;overflow:hidden}
@@ -51,7 +53,7 @@
     @if ($c->estado === 'aceptada')<div class="sello" style="color:#16b34a">Aceptada</div>@elseif ($c->vencida)<div class="sello" style="color:#9aa5a0">Vencida</div>@endif
     <div class="cab">
         <div class="neg">
-            @if ($tienda->logo_url)<img src="{{ $tienda->logo_url }}" alt="{{ $tienda->nombre }}">@endif
+            @if ($logo)<img src="{{ $logo }}" alt="{{ $tienda->nombre }}">@endif
             <div><b>{{ $tienda->nombre }}</b>
                 @if ($tienda->nit)<span>NIT {{ $tienda->nit }}</span>@endif
                 @if ($negocioLinea)<span>{{ $negocioLinea }}</span>@endif</div>
@@ -69,12 +71,13 @@
             @if ($c->cliente_telefono)<span>Tel.: {{ $c->cliente_telefono }}</span>@endif
             @if ($c->cliente_email)<span>{{ $c->cliente_email }}</span>@endif
             @if ($c->cliente_direccion)<span>{{ $c->cliente_direccion }}</span>@endif</div>
-        <div class="caja"><h4>{{ $c->evento_fecha ? 'Alquiler / evento' : 'Atendido por' }}</h4>
-            @if ($c->evento_fecha)
-                <b>{{ $c->evento_texto }}</b>
+        <div class="caja"><h4>{{ $conEvento ? 'Alquiler / evento' : 'Atendido por' }}</h4>
+            @if ($conEvento)
+                @if ($c->evento_fecha)<b>{{ $c->evento_texto }}</b>@endif
+                @if ($c->horario_texto)<span>Hora: {{ $c->horario_texto }}</span>@endif
                 @if ($c->evento_lugar)<span>Lugar: {{ $c->evento_lugar }}</span>@endif
             @endif
-            <span>{{ $c->evento_fecha ? 'Atendido por: ' : '' }}{{ $c->user?->name ?? $tienda->nombre }}</span>
+            <span>{{ $conEvento ? 'Atendido por: ' : '' }}{{ $c->user?->name ?? $tienda->nombre }}</span>
             @if ($tienda->telefono)<span>WhatsApp: {{ $tienda->telefono }}</span>@endif
         </div>
     </div>

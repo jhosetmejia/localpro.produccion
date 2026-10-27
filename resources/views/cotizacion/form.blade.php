@@ -4,6 +4,10 @@
     $nuevo = !$c->exists;
     $filas = old('items', $items);
     $m = moneda();
+    $tiendaLogo = \App\Support\TiendaActual::tienda()?->logo_url;
+    $copiaLogo = $copiaLogo ?? null;
+    $logoActual = $c->logo_url ?? $copiaLogo?->logo_url;
+    $logoModo = old('logo_modo', $logoActual ? 'otro' : 'negocio');
 @endphp
 @section('title', $nuevo ? 'Nueva cotización' : 'Editar ' . $c->numero)
 
@@ -28,6 +32,11 @@
 .ct-tot{max-width:340px;margin-left:auto}
 .ct-tot div{display:flex;justify-content:space-between;padding:.25rem 0;font-weight:700}
 .ct-tot .gran{font-size:1.35rem;font-weight:900;border-top:2px solid #0b0d0c;margin-top:.3rem;padding-top:.5rem}
+.ct-logo{display:flex;gap:.8rem;flex-wrap:wrap}
+.ct-logo label.op{flex:1;min-width:220px;border:1.5px solid #e3ebe6;border-radius:16px;padding:.7rem .9rem;cursor:pointer;display:flex;gap:.7rem;align-items:center;background:#fff}
+.ct-logo label.op:has(input:checked){border-color:#16b34a;background:#f4fcf6}
+.ct-logo .prev{width:110px;height:60px;border-radius:10px;background:#f1f5f2;display:grid;place-items:center;flex:none;overflow:hidden;color:#9aa5a0;font-size:.75rem;text-align:center}
+.ct-logo .prev img{max-width:100%;max-height:100%;object-fit:contain}
 .ct-dispbox{border:1.5px dashed #c9efd2;background:#f4fcf6;border-radius:16px;padding:.7rem .9rem;font-size:.88rem;display:none}
 @media(max-width:700px){
   .ct-items thead{display:none}
@@ -48,7 +57,7 @@
     </div>
     @include('layouts.partials.lp-flash')
 
-    <form method="post" action="{{ $nuevo ? route('cotizaciones.store') : route('cotizaciones.update', $c) }}" class="lp-box lp-form-wide" id="ctForm" novalidate>
+    <form method="post" action="{{ $nuevo ? route('cotizaciones.store') : route('cotizaciones.update', $c) }}" class="lp-box lp-form-wide" id="ctForm" enctype="multipart/form-data" novalidate>
         @csrf
         @unless ($nuevo) @method('PUT') @endunless
 
@@ -73,6 +82,8 @@
             <div class="col-6 col-md-3"><label class="form-label fw-bold">Válida hasta</label><input type="date" name="vence" class="form-control" value="{{ old('vence', optional($c->vence)->format('Y-m-d')) }}"></div>
             <div class="col-6 col-md-3"><label class="form-label fw-bold">Fecha del alquiler / evento</label><input type="date" name="evento_fecha" id="evDesde" class="form-control" value="{{ old('evento_fecha', optional($c->evento_fecha)->format('Y-m-d')) }}"></div>
             <div class="col-6 col-md-3"><label class="form-label fw-bold">Hasta <span class="text-muted fw-normal">(si es de varios días)</span></label><input type="date" name="evento_hasta" id="evHasta" class="form-control" value="{{ old('evento_hasta', optional($c->evento_hasta)->format('Y-m-d')) }}"></div>
+            <div class="col-6 col-md-3"><label class="form-label fw-bold">Hora <span class="text-muted fw-normal">(opcional)</span></label><input type="time" name="evento_hora" class="form-control" value="{{ old('evento_hora', $c->evento_hora ? substr($c->evento_hora, 0, 5) : '') }}"></div>
+            <div class="col-6 col-md-3"><label class="form-label fw-bold">Hasta la hora <span class="text-muted fw-normal">(opcional)</span></label><input type="time" name="evento_hora_fin" class="form-control" value="{{ old('evento_hora_fin', $c->evento_hora_fin ? substr($c->evento_hora_fin, 0, 5) : '') }}"></div>
             <div class="col-md-6"><label class="form-label fw-bold">Lugar <span class="text-muted fw-normal">(opcional)</span></label><input name="evento_lugar" class="form-control" maxlength="150" placeholder="Dónde se entrega o se presta el servicio" value="{{ old('evento_lugar', $c->evento_lugar) }}"></div>
         </div>
         <small class="text-muted d-block mt-1"><i class="fa-solid fa-circle-info me-1"></i>Con la fecha del alquiler le mostramos cuántas unidades tiene libres de cada producto (lo de cotizaciones aceptadas para esas fechas cuenta como ocupado).</small>
@@ -96,6 +107,22 @@
             <div><span>Subtotal</span><span id="tSub">0</span></div>
             <div class="align-items-center"><span>Descuento</span><input type="number" name="descuento" id="desc" min="0" step="any" class="form-control form-control-sm text-end" style="max-width:150px" value="{{ old('descuento', $c->descuento ?: '') }}" placeholder="0"></div>
             <div class="gran"><span>Total</span><span id="tTot">0</span></div>
+        </div>
+
+        <div class="ct-sec"><i class="fa-solid fa-image me-1"></i>Logo de la cotización</div>
+        @if ($copiaLogo && !$c->logo_path)<input type="hidden" name="logo_copiar" value="{{ $copiaLogo->id }}">@endif
+        <div class="ct-logo">
+            <label class="op">
+                <input type="radio" name="logo_modo" value="negocio" class="form-check-input" @checked($logoModo === 'negocio')>
+                <span class="prev">@if ($tiendaLogo)<img src="{{ $tiendaLogo }}" alt="">@else Sin logo @endif</span>
+                <span><b class="d-block">El de mi negocio</b><small class="text-muted">@if ($tiendaLogo) El que tiene en Mi negocio. @else Aún no tiene logo: súbalo en Mi negocio. @endif</small></span>
+            </label>
+            <label class="op">
+                <input type="radio" name="logo_modo" value="otro" class="form-check-input" id="logoOtro" @checked($logoModo === 'otro')>
+                <span class="prev" id="logoPrev">@if ($logoActual)<img src="{{ $logoActual }}" alt="">@else Otro logo @endif</span>
+                <span class="flex-grow-1"><b class="d-block">Otro logo solo para esta cotización</b><small class="text-muted d-block mb-1">Por ejemplo, si le hace la cotización a otro negocio. PNG, JPG o WEBP, hasta 2 MB.</small>
+                    <input type="file" name="logo" id="logoFile" accept="image/png,image/jpeg,image/webp" class="form-control form-control-sm"></span>
+            </label>
         </div>
 
         <div class="ct-sec"><i class="fa-solid fa-file-lines me-1"></i>Condiciones y notas</div>
@@ -236,6 +263,16 @@
             });
         }, 300);
     }
+    // Logo: al escoger un archivo se marca "Otro logo" y se ve antes de guardar
+    var lf = document.getElementById('logoFile');
+    lf.addEventListener('change', function () {
+        if (!lf.files[0]) return;
+        if (lf.files[0].size > 2 * 1024 * 1024) { alert('El logo no puede pesar más de 2 MB.'); lf.value = ''; return; }
+        document.getElementById('logoOtro').checked = true;
+        var r = new FileReader();
+        r.onload = function (e) { var pv = document.getElementById('logoPrev'); pv.innerHTML = ''; var im = new Image(); im.src = e.target.result; pv.appendChild(im); };
+        r.readAsDataURL(lf.files[0]);
+    });
     ['evDesde', 'evHasta'].forEach(function (id) { document.getElementById(id).addEventListener('change', revisar); });
     revisar();
 })();

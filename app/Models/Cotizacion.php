@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\PerteneceATienda;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 
 // Cotización: productos o líneas libres con su precio (se puede cambiar), PDF con el logo y enlace para el cliente
@@ -14,7 +15,7 @@ class Cotizacion extends Model
     protected $table = 'cotizaciones';
 
     protected $fillable = ['numero', 'cliente_id', 'cliente_nombre', 'cliente_documento', 'cliente_telefono', 'cliente_email', 'cliente_direccion',
-        'asunto', 'evento_fecha', 'evento_hasta', 'evento_lugar', 'alquiler_id', 'fecha', 'vence', 'subtotal', 'descuento', 'total', 'condiciones', 'estado', 'user_id'];
+        'asunto', 'evento_fecha', 'evento_hasta', 'evento_hora', 'evento_hora_fin', 'evento_lugar', 'alquiler_id', 'fecha', 'vence', 'subtotal', 'descuento', 'total', 'condiciones', 'logo_path', 'estado', 'user_id'];
 
     protected $casts = ['fecha' => 'date', 'vence' => 'date', 'evento_fecha' => 'date', 'evento_hasta' => 'date', 'subtotal' => 'float', 'descuento' => 'float', 'total' => 'float'];
 
@@ -37,6 +38,22 @@ class Cotizacion extends Model
     {
         if (!$this->evento_fecha) return null;
         return $this->evento_fecha->format('d/m/Y') . ($this->evento_hasta && $this->evento_hasta->gt($this->evento_fecha) ? ' al ' . $this->evento_hasta->format('d/m/Y') : '');
+    }
+
+    // "7:00 p. m." o "7:00 p. m. a 1:00 a. m." (la hora es opcional)
+    public function getHorarioTextoAttribute(): ?string
+    {
+        $f = fn ($h) => $h ? str_replace(['AM', 'PM'], ['a. m.', 'p. m.'], \Carbon\Carbon::parse($h)->format('g:i A')) : null;
+        $ini = $f($this->evento_hora);
+        $fin = $f($this->evento_hora_fin);
+        if (!$ini && !$fin) return null;
+        return $ini && $fin ? $ini . ' a ' . $fin : ($ini ?? 'hasta las ' . $fin);
+    }
+
+    // Logo propio de la cotización (si no tiene, se usa el del negocio)
+    public function getLogoUrlAttribute(): ?string
+    {
+        return $this->logo_path ? Storage::disk('public')->url($this->logo_path) : null;
     }
 
     // Vencida: pasó la fecha de validez y sigue pendiente
