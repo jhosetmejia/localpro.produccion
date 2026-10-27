@@ -53,11 +53,11 @@ class negocioController extends Controller
             'resolucion_hasta' => 'nullable|integer|min:1|gte:resolucion_desde',
             'direccion' => 'nullable|string|max:120',
 
-            'telefono' => ['nullable', 'string', 'max:30', \App\Support\Validar::celular($request->input('pais'))],
+            'telefono' => ['required', 'string', 'max:30', \App\Support\Validar::celular($request->input('pais'))],
             'email' => 'nullable|email|max:120',
             'mensaje_tiquete' => 'nullable|string|max:255',
             'logo' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:2048',
-        ] + \App\Support\Ubicaciones::reglas($request->input('pais'), $request->input('departamento')), \App\Support\Ubicaciones::mensajes());
+        ] + \App\Support\Ubicaciones::reglas($request->input('pais'), $request->input('departamento')), \App\Support\Ubicaciones::mensajes() + ['telefono.required' => 'Escriba el celular o WhatsApp del negocio.']);
 
         if (array_key_exists('telefono', $datos)) {
             $datos['telefono'] = \App\Support\Validar::limpiarTel($datos['telefono'], $request->input('pais') ?: null) ?: null;

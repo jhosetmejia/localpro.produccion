@@ -18,14 +18,14 @@
                     </select>
                 </div>
                 @include('layouts.partials.ubicacion', ['pais' => 'CO'])
-                <div class="col-md-6"><label class="form-label">Teléfono de la tienda</label><input name="telefono" class="form-control" value="{{ old('telefono') }}" maxlength="30"></div>
+                <div class="col-md-6"><label class="form-label">Teléfono de la tienda</label><input name="telefono" class="form-control" value="{{ old('telefono') }}" required maxlength="30"></div>
             </div>
         </div>
         <div class="lp-box">
             <h3>Dueño (usuario de acceso)</h3>
             <div class="row g-3">
                 <div class="col-md-6"><label class="form-label">Nombre completo</label><input name="dueno_nombre" class="form-control" value="{{ old('dueno_nombre') }}" required maxlength="80"></div>
-                <div class="col-md-6"><label class="form-label">Celular / WhatsApp</label><input name="dueno_telefono" class="form-control" value="{{ old('dueno_telefono') }}" maxlength="20"></div>
+                <div class="col-md-6"><label class="form-label">Celular / WhatsApp</label><input name="dueno_telefono" class="form-control" value="{{ old('dueno_telefono') }}" required maxlength="20"></div>
                 <div class="col-md-6"><label class="form-label">Correo (usuario)</label><input type="email" name="dueno_email" class="form-control" value="{{ old('dueno_email') }}" required maxlength="120"></div>
                 <div class="col-md-6"><label class="form-label">Contraseña inicial</label><input type="text" name="dueno_password" class="form-control" required minlength="8" autocomplete="new-password"><small class="text-muted">Mínimo 8 caracteres. Pídale que la cambie en "Mi perfil".</small></div>
             </div>

@@ -157,7 +157,7 @@
                 @include('layouts.partials.ubicacion', ['pais' => $tienda->pais, 'departamento' => $tienda->departamento, 'ciudad' => $tienda->ciudad, 'clase' => 'in', 'envoltura' => 'field', 'etiqueta' => ''])
             </div>
             <div class="grid2">
-                <div class="field"><label>Teléfono / WhatsApp de la tienda</label><input class="in" name="telefono" value="{{ old('telefono', $tienda->telefono) }}" maxlength="30"></div>
+                <div class="field"><label>Teléfono / WhatsApp de la tienda</label><input class="in" name="telefono" value="{{ old('telefono', $tienda->telefono) }}" required maxlength="30"></div>
                 <div class="field"><label>NIT / RUT <span style="color:var(--muted);font-weight:600">(opcional)</span></label><input class="in" name="nit" value="{{ old('nit', $tienda->nit) }}" maxlength="30"></div>
                 <div class="field">
                     <label>Logo <span style="color:var(--muted);font-weight:600">(opcional)</span></label>

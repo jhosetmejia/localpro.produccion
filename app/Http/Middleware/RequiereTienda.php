@@ -45,6 +45,14 @@ class RequiereTienda
             return redirect()->route('bienvenida.index');
         }
 
+        // Tiendas creadas sin ciudad o sin teléfono: el dueño debe completar los datos del negocio antes de seguir
+        if ($modo === 'completa' && !$user->es_superadmin && $request->isMethod('GET') && !$request->expectsJson()
+            && !$request->routeIs('negocio.*', 'plan.*', 'logout') && $user->can('editar-negocio')
+            && (blank($tienda->departamento) || blank($tienda->ciudad) || blank($tienda->telefono))) {
+            return redirect()->route('negocio.edit')
+                ->with('error', 'Complete los datos de su negocio (departamento, ciudad y teléfono) para seguir usando LocalProo.');
+        }
+
         return $next($request);
     }
 }

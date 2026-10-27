@@ -18,7 +18,7 @@
     <small class="text-muted">Asesor → líder de zona (máx. 10 asesores) → líder de ciudad → líder de departamento → líder de país.</small>
 </div>
 <div class="col-md-6"><label class="form-label">Celular / WhatsApp</label><input name="telefono" class="form-control" maxlength="20" inputmode="tel" value="{{ old('telefono', $a?->user?->telefono) }}"></div>
-@include('layouts.partials.ubicacion', ['pais' => $a->pais ?? 'CO', 'departamento' => $a->departamento ?? '', 'ciudad' => $a->ciudad ?? ''])
+@include('layouts.partials.ubicacion', ['pais' => $a->pais ?? 'CO', 'departamento' => $a->departamento ?? '', 'ciudad' => $a->ciudad ?? '', 'obligatorio' => false])
 <div class="col-md-6"><label class="form-label">Zona / comuna <span class="text-muted fw-normal">(líder de zona y asesores)</span></label><input name="zona" class="form-control" maxlength="60" value="{{ old('zona', $a?->zona) }}" placeholder="Ej: Comuna 10"></div>
 <div class="col-md-6"><label class="form-label">Cédula</label><input name="documento" class="form-control" maxlength="20" value="{{ old('documento', $a?->documento) }}"></div>
 @include('layouts.partials.pago', ['banco' => $a?->banco, 'pais' => $a->pais ?? 'CO', 'titulo' => 'Dónde se le paga'])

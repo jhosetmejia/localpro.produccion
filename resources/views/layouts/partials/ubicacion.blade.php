@@ -2,6 +2,8 @@
     País → Departamento/Provincia → Ciudad.
     Uso: @include('layouts.partials.ubicacion', ['pais' => .., 'departamento' => .., 'ciudad' => .., 'clase' => 'in', 'envoltura' => 'field', 'etiqueta' => ''])
     Colombia, Costa Rica y El Salvador tienen listas; en otros países se escribe a mano.
+    Opcionales: 'paisSelect' => id de un <select name="pais"> que ya está en el formulario (no se dibuja otro),
+    'obligatorio' => false para no exigir departamento y ciudad, 'estilo' => estilo en línea de los campos.
 --}}
 @php
     $uid = 'ub' . substr(md5(uniqid('', true)), 0, 6);
@@ -12,7 +14,11 @@
     $paisSel = old('pais', $pais ?? 'CO') ?: 'CO';
     $depSel = old('departamento', $departamento ?? '');
     $ciuSel = old('ciudad', $ciudad ?? '');
+    $obligatorio = $obligatorio ?? true;
+    $paisSelect = $paisSelect ?? null;
+    $estilo = $estilo ?? '';
 @endphp
+@unless ($paisSelect)
 <div class="{{ $envoltura }}">
     <label class="{{ $etiqueta }}" for="{{ $uid }}p">País</label>
     <select class="{{ $claseSel }}" id="{{ $uid }}p" name="pais" required autocomplete="off">
@@ -21,22 +27,24 @@
         @endforeach
     </select>
 </div>
+@endunless
 <div class="{{ $envoltura }}">
     <label class="{{ $etiqueta }}" for="{{ $uid }}d" id="{{ $uid }}dl">Departamento</label>
-    <select class="{{ $claseSel }}" id="{{ $uid }}d"></select>
-    <input class="{{ $clase }}" id="{{ $uid }}dt" maxlength="60" style="display:none">
+    <select class="{{ $claseSel }}" id="{{ $uid }}d" style="{{ $estilo }}"></select>
+    <input class="{{ $clase }}" id="{{ $uid }}dt" maxlength="60" style="{{ $estilo }};display:none">
 </div>
 <div class="{{ $envoltura }}">
     <label class="{{ $etiqueta }}" for="{{ $uid }}c" id="{{ $uid }}cl">Ciudad</label>
-    <select class="{{ $claseSel }}" id="{{ $uid }}c"></select>
-    <input class="{{ $clase }}" id="{{ $uid }}ct" maxlength="60" style="display:none">
+    <select class="{{ $claseSel }}" id="{{ $uid }}c" style="{{ $estilo }}"></select>
+    <input class="{{ $clase }}" id="{{ $uid }}ct" maxlength="60" style="{{ $estilo }};display:none">
 </div>
 <script>
 (function () {
     var G = @json(\App\Support\Ubicaciones::todas());
     var id = @json($uid), ini = { d: @json($depSel), c: @json($ciuSel) };
     var $ = function (s) { return document.getElementById(id + s); };
-    var pais = $('p'), dS = $('d'), dT = $('dt'), cS = $('c'), cT = $('ct');
+    var obligatorio = @json((bool) $obligatorio);
+    var pais = @json($paisSelect) ? document.getElementById(@json($paisSelect)) : $('p'), dS = $('d'), dT = $('dt'), cS = $('c'), cT = $('ct');
     var opt = function (v, t, sel) { var o = document.createElement('option'); o.value = v; o.textContent = t; if (sel) o.selected = true; return o; };
 
     // Solo el campo visible se envía con el formulario
@@ -45,7 +53,8 @@
         dT.name = lista ? '' : 'departamento'; cT.name = lista ? '' : 'ciudad';
         dS.style.display = cS.style.display = lista ? '' : 'none';
         dT.style.display = cT.style.display = lista ? 'none' : '';
-        dS.required = cS.required = !!lista;
+        dS.required = cS.required = obligatorio && !!lista;
+        dT.required = cT.required = obligatorio && !lista;
     }
     function ciudades(dep, elegida) {
         cS.innerHTML = '';

@@ -85,7 +85,7 @@ class bienvenidaController extends Controller
             'tipo_negocio' => ['required', Rule::in(array_keys(Tienda::TIPOS))],
             'descripcion' => 'nullable|string|max:120',
             'pais' => ['required', Rule::in(array_keys(\App\Support\Paises::LISTA))],
-            'telefono' => ['nullable', 'string', 'max:30', \App\Support\Validar::celular($request->input('pais'))],
+            'telefono' => ['required', 'string', 'max:30', \App\Support\Validar::celular($request->input('pais'))],
             'nit' => 'nullable|string|max:30',
             'logo' => 'nullable|image|mimes:png,jpg,jpeg,webp|max:2048',
             'mod_medida' => 'nullable|boolean',
@@ -100,7 +100,7 @@ class bienvenidaController extends Controller
             'mod_servicios' => 'nullable|boolean',
             'actividad' => ['nullable', Rule::in(array_keys(Tienda::ACTIVIDADES))],
         ] + \App\Support\Ubicaciones::reglas($request->input('pais'), $request->input('departamento')),
-        ['nombre.required' => 'Escriba el nombre de su negocio.', 'tipo_negocio.required' => 'Elija el tipo de negocio.'] + \App\Support\Ubicaciones::mensajes());
+        ['nombre.required' => 'Escriba el nombre de su negocio.', 'tipo_negocio.required' => 'Elija el tipo de negocio.', 'telefono.required' => 'Escriba el celular o WhatsApp del negocio.'] + \App\Support\Ubicaciones::mensajes());
 
         // El teléfono se guarda sin indicativo: el +57 (o el del país) lo pone el sistema
         $datos['telefono'] = \App\Support\Validar::limpiarTel($datos['telefono'] ?? null, $datos['pais']) ?: null;

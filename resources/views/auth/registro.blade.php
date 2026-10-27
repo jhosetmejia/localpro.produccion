@@ -68,6 +68,9 @@
                     </div>
                     <small style="color:var(--muted);font-size:.8rem">Los precios y las facturas saldrán en la moneda de su país.</small>
                 </div>
+                {{-- Departamento y ciudad del negocio (obligatorios: así toda tienda queda ubicada) --}}
+                @include('layouts.partials.ubicacion', ['paisSelect' => 'pais', 'pais' => old('pais', 'CO'), 'clase' => '', 'claseSel' => '', 'envoltura' => 'field', 'etiqueta' => '',
+                    'estilo' => 'width:100%;padding:.95rem 1rem;border-radius:16px;border:2px solid var(--line);background:#fafdfb;font:inherit;font-weight:600;color:var(--ink);appearance:auto'])
                 <div class="field">
                     <label for="telefono">Celular / WhatsApp</label>
                     <div class="input">

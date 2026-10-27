@@ -20,7 +20,7 @@
                 </div>
                 @include('layouts.partials.ubicacion', ['pais' => $negocio->pais, 'departamento' => $negocio->departamento, 'ciudad' => $negocio->ciudad])
                 <div class="col-12"><label class="form-label">Dirección</label><input name="direccion" class="form-control" value="{{ old('direccion', $negocio->direccion) }}" maxlength="120"></div>
-                <div class="col-md-6"><label class="form-label">Teléfono / WhatsApp</label><input name="telefono" class="form-control" value="{{ old('telefono', $negocio->telefono) }}" maxlength="30"></div>
+                <div class="col-md-6"><label class="form-label">Teléfono / WhatsApp</label><input name="telefono" class="form-control" value="{{ old('telefono', $negocio->telefono) }}" required maxlength="30"></div>
                 <div class="col-md-6"><label class="form-label">Correo</label><input name="email" type="email" class="form-control" value="{{ old('email', $negocio->email) }}" maxlength="120"></div>
                 <div class="col-12">
                     <label class="form-label">Dirección de su catálogo en línea</label>

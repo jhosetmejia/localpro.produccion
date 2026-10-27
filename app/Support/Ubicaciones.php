@@ -29,7 +29,7 @@ class Ubicaciones
     {
         $req = $obligatorio ? 'required' : 'nullable';
         if (!$pais || !self::tiene($pais)) {
-            return ['departamento' => 'nullable|string|max:60', 'ciudad' => 'nullable|string|max:60'];
+            return ['departamento' => $req . '|string|max:60', 'ciudad' => $req . '|string|max:60'];
         }
         $deps = self::todas()[$pais]['datos'];
         $ciudades = $deps[$departamento] ?? [];

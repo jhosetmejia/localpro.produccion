@@ -68,7 +68,7 @@ class registroController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'codigo_asesor' => 'nullable|string|max:20',
             'acepto' => 'accepted',
-        ], [
+        ] + \App\Support\Ubicaciones::reglas($request->input('pais'), $request->input('departamento')), \App\Support\Ubicaciones::mensajes() + [
             'acepto.accepted' => 'Para crear la cuenta debe aceptar las condiciones de uso.',
             'name.required' => 'Escriba su nombre.',
             'email.required' => 'Escriba su correo electrónico.',
@@ -87,7 +87,7 @@ class registroController extends Controller
         $tipo = $tipo && $tipo !== 'contable' && isset(\App\Models\Tienda::TIPOS[$tipo]) ? $tipo : null;
         if ($request->boolean('como_contador')) $tipo = 'contable';
         [, $user] = CrearTienda::crear(
-            ['nombre' => ($tipo === 'contable' ? 'Oficina contable de ' : 'Tienda de ') . $primerNombre, 'pais' => $datos['pais'], 'telefono' => $datos['telefono']] + ($tipo ? ['tipo_negocio' => $tipo] : []),
+            ['nombre' => ($tipo === 'contable' ? 'Oficina contable de ' : 'Tienda de ') . $primerNombre, 'pais' => $datos['pais'], 'departamento' => $datos['departamento'], 'ciudad' => $datos['ciudad'], 'telefono' => $datos['telefono']] + ($tipo ? ['tipo_negocio' => $tipo] : []),
             $datos
         );
         if ($origen = session('origen_registro')) {
