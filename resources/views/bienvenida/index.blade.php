@@ -105,15 +105,15 @@
                 <input class="in" name="nombre" value="{{ old('nombre', str_starts_with($tienda->nombre, 'Tienda de ') ? '' : $tienda->nombre) }}" placeholder="Ej: Moda Urbana Pasto" maxlength="80" required autofocus>
             </div>
 
-            <div class="field"><label>¿Qué tipo de negocio es?</label></div>
-            <div class="tipos">
-                @foreach ($tipos as $clave => [$nombre, $icono, $tallas, $desc])
-                <div class="tipo">
-                    <input type="radio" name="tipo_negocio" id="t_{{ $clave }}" value="{{ $clave }}" @checked(old('tipo_negocio', $tienda->tipo_negocio) === $clave) required>
-                    <label for="t_{{ $clave }}"><i class="fa-solid {{ $icono }}"></i><b>{{ $nombre }}</b><small>{{ $desc }}</small></label>
-                </div>
-                @endforeach
+            <div class="field" style="margin-bottom:1.2rem"><label for="tipo_negocio">¿Qué tipo de negocio es?</label>
+                <select name="tipo_negocio" id="tipo_negocio" required data-buscador data-buscador-vacio="Busque o elija su tipo de negocio" data-buscador-texto="Ej: tienda, restaurante, ferretería, peluquería…">
+                    <option value="">Elija su tipo de negocio</option>
+                    @foreach ($tipos as $clave => [$nombre, $icono, $tallas, $desc])
+                    <option value="{{ $clave }}" data-icono="{{ $icono }}" data-desc="{{ $desc }}" @selected(old('tipo_negocio', $tienda->tipo_negocio) === $clave)>{{ $nombre }}</option>
+                    @endforeach
+                </select>
             </div>
+            <script src="{{ asset('js/select-buscador.js') }}?v=1"></script>
 
             <div id="actividad">
                 <div class="field"><label>¿Qué hace su negocio? <span style="color:var(--muted);font-weight:600">(lo puede cambiar cuando quiera en Datos del negocio)</span></label></div>
@@ -179,15 +179,16 @@
             function verTip() { var a = document.querySelector('input[name=actividad]:checked'); tipAlq.style.display = a && a.value === 'alquila' ? '' : 'none'; }
             document.querySelectorAll('input[name=actividad]').forEach(function (r) { r.addEventListener('change', verTip); });
             verTip();
-            document.querySelectorAll('input[name=tipo_negocio]').forEach(function (r) { r.addEventListener('change', function () { verActividad(r.value); }); });
-            var tipoIni = document.querySelector('input[name=tipo_negocio]:checked'); if (tipoIni) verActividad(tipoIni.value);
+            var selTipo = document.querySelector('select[name=tipo_negocio]');
+            selTipo.addEventListener('change', function () { verActividad(selTipo.value); });
+            if (selTipo.value) verActividad(selTipo.value);
             function aplicar(tipo) {
                 mods.style.display = (tipo === 'conjunto' || tipo === 'instituto') ? 'none' : '';
                 var on = MAP[tipo] || [];
                 mods.querySelectorAll('[data-mod]').forEach(function (c) { if (!tocados[c.dataset.mod]) c.checked = on.indexOf(c.dataset.mod) !== -1; });
             }
-            document.querySelectorAll('input[name=tipo_negocio]').forEach(function (r) { r.addEventListener('change', function () { aplicar(r.value); }); });
-            var marcado = document.querySelector('input[name=tipo_negocio]:checked');
+            selTipo.addEventListener('change', function () { aplicar(selTipo.value); });
+            var marcado = selTipo.value ? selTipo : null;
             if (marcado && {{ ($tienda->mod_servicios || $tienda->mod_medida || $tienda->mod_vencimiento || $tienda->mod_recetas || $tienda->mod_obituarios || $tienda->mod_pantallas || $tienda->mod_eventos || $tienda->mod_contable || $tienda->mod_consultorio || old('mod_medida') !== null) ? 'false' : 'true' }}) aplicar(marcado.value);
             else if (marcado) mods.style.display = (marcado.value === 'conjunto' || marcado.value === 'instituto') ? 'none' : '';
         })();

@@ -14,8 +14,8 @@
                 <div class="col-md-8"><label class="form-label">Nombre del negocio</label><input name="nombre" class="form-control" value="{{ old('nombre', $negocio->nombre) }}" required maxlength="80"></div>
                 <div class="col-md-4"><label class="form-label">NIT</label><input name="nit" class="form-control" value="{{ old('nit', $negocio->nit) }}" maxlength="30"></div>
                 <div class="col-md-12"><label class="form-label">Tipo de negocio</label>
-                    <select name="tipo_negocio" class="form-select">
-                        @foreach ($tipos as $k => $t)<option value="{{ $k }}" @selected(old('tipo_negocio', $negocio->tipo_negocio) === $k)>{{ $t[0] }}{{ $t[2] ? ' (tallas y colores)' : '' }}</option>@endforeach
+                    <select name="tipo_negocio" class="form-select" data-buscador data-buscador-texto="Escriba para buscar el tipo de negocio…">
+                        @foreach ($tipos as $k => $t)<option value="{{ $k }}" data-icono="{{ $t[1] }}" data-desc="{{ $t[3] ?? '' }}" @selected(old('tipo_negocio', $negocio->tipo_negocio) === $k)>{{ $t[0] }}{{ $t[2] ? ' (tallas y colores)' : '' }}</option>@endforeach
                     </select>
                 </div>
                 @include('layouts.partials.ubicacion', ['pais' => $negocio->pais, 'departamento' => $negocio->departamento, 'ciudad' => $negocio->ciudad])
@@ -149,6 +149,7 @@
 @endsection
 
 @push('js')
+<script src="{{ asset('js/select-buscador.js') }}?v=1"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
     if (window.QRCode) new QRCode(document.getElementById('qr'), { text: @json($negocio->url_catalogo), width: 150, height: 150, colorDark: '#0b0d0c', colorLight: '#ffffff' });

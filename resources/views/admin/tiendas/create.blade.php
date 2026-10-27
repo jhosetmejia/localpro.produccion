@@ -13,8 +13,8 @@
             <div class="row g-3">
                 <div class="col-md-6"><label class="form-label">Nombre del negocio</label><input name="nombre" class="form-control" value="{{ old('nombre') }}" required maxlength="80"></div>
                 <div class="col-md-6"><label class="form-label">Tipo de negocio</label>
-                    <select name="tipo_negocio" class="form-select" required>
-                        @foreach ($tipos as $k => $t)<option value="{{ $k }}" @selected(old('tipo_negocio', 'moda') === $k)>{{ $t[0] }}</option>@endforeach
+                    <select name="tipo_negocio" class="form-select" required data-buscador data-buscador-texto="Escriba para buscar el tipo de negocio…">
+                        @foreach ($tipos as $k => $t)<option value="{{ $k }}" data-icono="{{ $t[1] }}" data-desc="{{ $t[3] ?? '' }}" @selected(old('tipo_negocio', 'moda') === $k)>{{ $t[0] }}</option>@endforeach
                     </select>
                 </div>
                 @include('layouts.partials.ubicacion', ['pais' => 'CO'])
@@ -34,3 +34,7 @@
     </form>
 </div>
 @endsection
+
+@push('js')
+<script src="{{ asset('js/select-buscador.js') }}?v=1"></script>
+@endpush
