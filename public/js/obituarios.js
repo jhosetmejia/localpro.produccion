@@ -292,7 +292,7 @@
 
     // ===== Vista previa en vivo: cambia el diseño de la plantilla =====
     Obi.estilo = function (el, c) {
-        el.className = 'obi d-' + c.diseno + ' o-' + c.o + ' adornos-' + (c.adornos || 'muchos') + (c.tarjeta ? ' lay-tarjeta' : '') + ' flor-' + ((c.flores && c.flores.pos) || 'abajo') + ' esq-' + ((c.flores && c.flores.esq) || 'dos') + (c.fondo_tipo !== 'diseno' ? ' fondo-propio' : '') + (c.logo_fondo === 'blanco' ? ' logo-caja' : '');
+        el.className = 'obi d-' + c.diseno + ' o-' + c.o + ' adornos-' + (c.adornos || 'muchos') + (c.tarjeta ? ' lay-tarjeta' : '') + ' flor-' + ((c.flores && c.flores.pos) || 'abajo') + ' esq-' + ((c.flores && c.flores.esq) || 'dos') + (c.fondo_tipo !== 'diseno' ? ' fondo-propio' : '') + (c.logo_fondo === 'blanco' ? ' logo-caja' : '') + (c.diseno === 'ninguno' ? ' libre' : '');
         el.dataset.w = c.w; el.dataset.h = c.h; el.dataset.escala = c.escala;
         el.style.width = c.w + 'px'; el.style.height = c.h + 'px';
         el.style.setProperty('--acento', c.acento);

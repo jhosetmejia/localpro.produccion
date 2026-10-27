@@ -14,9 +14,9 @@ class ObituarioPlantilla extends Model
 
     protected $table = 'obituario_plantillas';
 
-    protected $fillable = ['nombre', 'diseno', 'medida', 'fondo_tipo', 'fondo_color', 'fondo_color2', 'oscurecer', 'animacion', 'color_acento', 'color_texto', 'mostrar_logo', 'logo_fondo', 'velacion_pos', 'velacion_x', 'velacion_y', 'titulo', 'frase', 'pie', 'pie_mostrar', 'pie_nombre', 'pie_modo', 'pie_eslogan', 'adornos', 'cita', 'base', 'flores', 'anim_op'];
+    protected $fillable = ['nombre', 'diseno', 'medida', 'fondo_tipo', 'fondo_color', 'fondo_color2', 'oscurecer', 'animacion', 'color_acento', 'color_texto', 'mostrar_logo', 'logo_fondo', 'velacion_pos', 'velacion_x', 'velacion_y', 'libre', 'titulo', 'frase', 'pie', 'pie_mostrar', 'pie_nombre', 'pie_modo', 'pie_eslogan', 'adornos', 'cita', 'base', 'flores', 'anim_op'];
 
-    protected $casts = ['mostrar_logo' => 'boolean', 'pie_mostrar' => 'boolean', 'oscurecer' => 'integer', 'flores' => 'array', 'anim_op' => 'array'];
+    protected $casts = ['libre' => 'array', 'mostrar_logo' => 'boolean', 'pie_mostrar' => 'boolean', 'oscurecer' => 'integer', 'flores' => 'array', 'anim_op' => 'array'];
 
     // Diseños: [nombre, descripción, acento, texto, fondo para la miniatura]
     public const DISENOS = [
@@ -106,6 +106,74 @@ class ObituarioPlantilla extends Model
 
     // Logo: sin fondo (como lo subieron) o sobre un recuadro blanco
     public const LOGO_FONDOS = ['sin' => 'Sin fondo (como lo subió)', 'blanco' => 'Sobre un recuadro blanco'];
+
+    // Diseño "Ninguna": bloques que se ubican a mano sobre la imagen. [nombre, por orientación: [x %, y %, ancho %, tamaño %, se ve]]
+    // x / y es el centro del bloque, en % del ancho y alto de la pantalla.
+    public const LIBRE_BLOQUES = [
+        'foto' => ['Foto', 'h' => [16, 42, 28, 100, 1], 'v' => [50, 18, 60, 100, 1], 'c' => [22, 45, 38, 80, 1]],
+        'velacion' => ['Lugar de velación (debajo de la foto)', 'h' => [16, 78, 28, 100, 1], 'v' => [50, 33, 80, 100, 1], 'c' => [22, 82, 38, 90, 1]],
+        'memoria' => ['"En memoria de"', 'h' => [16, 86, 28, 100, 0], 'v' => [50, 36, 80, 100, 0], 'c' => [22, 90, 38, 90, 0]],
+        'cab' => ['Logo', 'h' => [50, 10, 40, 100, 1], 'v' => [50, 4, 60, 100, 1], 'c' => [66, 8, 50, 80, 1]],
+        'titulo' => ['Título ("Obituario")', 'h' => [50, 22, 44, 100, 1], 'v' => [50, 37, 86, 100, 1], 'c' => [66, 18, 60, 90, 1]],
+        'frase' => ['Frase', 'h' => [50, 29, 44, 100, 1], 'v' => [50, 41, 86, 100, 1], 'c' => [66, 24, 60, 90, 1]],
+        'nombre' => ['Nombre', 'h' => [50, 38, 46, 100, 1], 'v' => [50, 46, 90, 100, 1], 'c' => [66, 33, 62, 90, 1]],
+        'anios' => ['Fechas (nació / falleció)', 'h' => [50, 45, 44, 100, 1], 'v' => [50, 50, 86, 100, 1], 'c' => [66, 40, 60, 90, 1]],
+        'datos' => ['Datos (fecha, hora, lugar…)', 'h' => [50, 60, 46, 100, 1], 'v' => [50, 62, 88, 100, 1], 'c' => [66, 57, 62, 90, 1]],
+        'invitan' => ['Invitan', 'h' => [50, 84, 46, 100, 1], 'v' => [50, 81, 88, 100, 1], 'c' => [66, 83, 62, 85, 1]],
+        'logo2' => ['Logo a la derecha', 'h' => [88, 30, 20, 100, 0], 'v' => [80, 95, 30, 100, 0], 'c' => [88, 8, 20, 80, 0]],
+        'pie' => ['Pie (frase / eslogan)', 'h' => [88, 78, 20, 100, 1], 'v' => [50, 95, 80, 100, 1], 'c' => [66, 95, 60, 80, 0]],
+    ];
+
+    // Posiciones de los bloques para una orientación (h · v · c): lo guardado o, si no hay, lo de fábrica
+    public function libreDatos(string $o): array
+    {
+        $guardado = (array) (($this->libre ?? [])[$o] ?? []);
+        $out = [];
+        foreach (self::LIBRE_BLOQUES as $k => $b) {
+            [$x, $y, $w, $s, $v] = $b[$o] ?? $b['h'];
+            $g = (array) ($guardado[$k] ?? []);
+            $out[$k] = [
+                'x' => max(-20, min(120, (float) ($g['x'] ?? $x))), 'y' => max(-20, min(120, (float) ($g['y'] ?? $y))),
+                'w' => max(5, min(100, (float) ($g['w'] ?? $w))), 's' => max(20, min(400, (int) ($g['s'] ?? $s))),
+                'v' => (bool) ($g['v'] ?? $v),
+            ];
+        }
+        return $out;
+    }
+
+    // Lo de fábrica de todas las orientaciones (para el botón "Acomodar como al principio")
+    public static function libreFabrica(): array
+    {
+        $out = [];
+        foreach (['h', 'v', 'c'] as $o) {
+            foreach (self::LIBRE_BLOQUES as $k => $b) {
+                [$x, $y, $w, $s, $v] = $b[$o];
+                $out[$o][$k] = ['x' => $x, 'y' => $y, 'w' => $w, 's' => $s, 'v' => (bool) $v];
+            }
+        }
+        return $out;
+    }
+
+    // Limpia lo que llega del formulario: solo bloques y orientaciones conocidas, con números dentro del rango
+    public static function libreLimpio($json): ?array
+    {
+        $d = is_array($json) ? $json : json_decode((string) $json, true);
+        if (!is_array($d)) return null;
+        $out = [];
+        foreach (['h', 'v', 'c'] as $o) {
+            if (!isset($d[$o]) || !is_array($d[$o])) continue;
+            foreach (self::LIBRE_BLOQUES as $k => $b) {
+                $g = $d[$o][$k] ?? null;
+                if (!is_array($g)) continue;
+                $out[$o][$k] = [
+                    'x' => round(max(-20, min(120, (float) ($g['x'] ?? 50))), 2), 'y' => round(max(-20, min(120, (float) ($g['y'] ?? 50))), 2),
+                    'w' => round(max(5, min(100, (float) ($g['w'] ?? 40))), 2), 's' => max(20, min(400, (int) ($g['s'] ?? 100))),
+                    'v' => !empty($g['v']),
+                ];
+            }
+        }
+        return $out ?: null;
+    }
 
     // Dónde sale el lugar de velación en la tarjeta
     public const VELACION_POS = ['foto' => 'Sobre la foto (etiqueta)', 'debajo' => 'Debajo de la foto', 'datos' => 'Con los datos (fecha, hora…)'];

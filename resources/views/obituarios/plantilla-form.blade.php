@@ -5,6 +5,7 @@
 @push('css')
 <style>
 .pf-prev{position:sticky;top:90px}
+.pf-libre{border:1.5px dashed #9fd3ae;background:#f6fbf7;border-radius:14px;padding:.8rem}
 .pf-prev [data-obi-marco]{border-radius:14px;box-shadow:0 20px 50px -30px rgba(0,0,0,.6);background:#111}
 .pf-op{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem}
 .pf-op input{display:none}
@@ -224,6 +225,25 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
             <div class="pf-prev">
                 <div class="d-flex align-items-center mb-2"><b>Vista previa</b><small class="text-muted ms-2" id="pf-med">{{ $plantilla->medida_datos['nombre'] }}</small></div>
                 <div data-obi-marco>@include('obituarios._lienzo', ['p' => $plantilla, 'o' => $ejemplo, 'tienda' => $tienda])</div>
+                <input type="hidden" name="libre" id="pf-libre-in" form="pf-form">
+                <div class="pf-libre mt-3" id="pf-libre" hidden>
+                    <b><i class="fa-solid fa-up-down-left-right me-1"></i>Acomode los textos sobre su imagen</b>
+                    <div class="pf-ayuda mb-2">Toque un bloque en la vista previa (la foto, el nombre, los datos…) y <b>arrástrelo</b> a su lugar. Con las barras lo agranda o lo hace más ancho. Se guarda con la plantilla.</div>
+                    <div class="d-flex gap-2 align-items-center flex-wrap mb-1">
+                        <label class="small fw-bold" for="pl-bloque">Bloque</label>
+                        <select class="form-select form-select-sm" id="pl-bloque" style="max-width:280px">@foreach ($P::LIBRE_BLOQUES as $k => $b)<option value="{{ $k }}">{{ $b[0] }}</option>@endforeach</select>
+                        <div class="form-check form-switch small mb-0"><input class="form-check-input" type="checkbox" id="pl-ver"><label class="form-check-label" for="pl-ver">Mostrar</label></div>
+                    </div>
+                    <div class="pf-rango"><label for="pl-s">Tamaño</label><input type="range" class="form-range" id="pl-s" min="20" max="300" step="5"><output id="pl-s-v"></output></div>
+                    <div class="pf-rango"><label for="pl-w">Ancho</label><input type="range" class="form-range" id="pl-w" min="5" max="100" step="1"><output id="pl-w-v"></output></div>
+                    <div class="d-flex gap-1 flex-wrap mt-1">
+                        <button type="button" class="btn btn-sm btn-light" data-pl-mover="0,-1" title="Subir"><i class="fa-solid fa-arrow-up"></i></button>
+                        <button type="button" class="btn btn-sm btn-light" data-pl-mover="0,1" title="Bajar"><i class="fa-solid fa-arrow-down"></i></button>
+                        <button type="button" class="btn btn-sm btn-light" data-pl-mover="-1,0" title="Izquierda"><i class="fa-solid fa-arrow-left"></i></button>
+                        <button type="button" class="btn btn-sm btn-light" data-pl-mover="1,0" title="Derecha"><i class="fa-solid fa-arrow-right"></i></button>
+                        <button type="button" class="btn btn-sm btn-link ms-auto" id="pl-reset">Acomodar como al principio</button>
+                    </div>
+                </div>
                 <div class="pf-ayuda mt-2">@if ($ejemplo)Con los datos del último obituario.@else Con datos de ejemplo.@endif La letra se acomoda sola según cuántos familiares tenga cada obituario.</div>
             </div>
         </div>
@@ -232,7 +252,7 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
 @endsection
 
 @push('js')
-<script src="{{ asset('js/obituarios.js') }}?v=13"></script>
+<script src="{{ asset('js/obituarios.js') }}?v=14"></script>
 <script>
 (function () {
     var form = document.getElementById('pf-form'), el = document.querySelector('[data-obi]');
@@ -270,6 +290,7 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
         el.querySelectorAll('[data-o="pie_nombre"]').forEach(function (n) { var t = f.pie_nombre.value.trim() || n.dataset.defecto || ''; n.textContent = t; n.hidden = !conPie || !t; });
         el.querySelectorAll('[data-o="pie"]').forEach(function (n) { var t = conFrase ? f.pie.value.trim() : ''; n.textContent = t; n.hidden = !t; });
         el.querySelectorAll('[data-o="pie_eslogan"]').forEach(function (n) { var t = conEsl ? f.pie_eslogan.value.trim() : ''; n.textContent = t; n.hidden = !t; });
+        if (window.pintarLibre) pintarLibre();
     }
     // El degradado apagado no se envía (el campo queda deshabilitado)
     document.getElementById('pf-imagen').addEventListener('change', function () { if (this.files[0]) { imagen = URL.createObjectURL(this.files[0]); aplicar(); } });
@@ -339,6 +360,58 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
             aplicar();
         });
     });
+    // ===== "Ninguna": acomodar a mano cada bloque sobre la imagen =====
+    var LIB = @json(['h' => $plantilla->libreDatos('h'), 'v' => $plantilla->libreDatos('v'), 'c' => $plantilla->libreDatos('c')]);
+    var FAB = @json($P::libreFabrica());
+    var plSel = document.getElementById('pl-bloque'), plVer = document.getElementById('pl-ver'), plS = document.getElementById('pl-s'), plW = document.getElementById('pl-w');
+    function orient() { return (MEDIDAS[val('medida')] || MEDIDAS.fhd)[3]; }
+    function esLibre() { return val('diseno') === 'ninguno'; }
+    window.pintarLibre = function () {
+        var on = esLibre(), o = orient();
+        document.getElementById('pf-libre').hidden = !on;
+        el.classList.toggle('editando', on);
+        el.style.touchAction = on ? 'none' : '';
+        Object.keys(LIB[o]).forEach(function (k) {
+            var b = LIB[o][k];
+            el.querySelectorAll('[data-bloque="' + k + '"]').forEach(function (n) {
+                n.style.setProperty('--l', b.x + '%'); n.style.setProperty('--t', b.y + '%');
+                n.style.setProperty('--w', b.w + '%'); n.style.setProperty('--s', (b.s / 100).toString());
+                if (b.v) n.removeAttribute('data-oculto'); else n.setAttribute('data-oculto', '');
+                n.classList.toggle('elegido', on && k === plSel.value);
+            });
+        });
+        var b = LIB[o][plSel.value];
+        plVer.checked = !!b.v; plS.value = b.s; plW.value = b.w;
+        document.getElementById('pl-s-v').textContent = b.s + '%'; document.getElementById('pl-w-v').textContent = Math.round(b.w) + '%';
+        document.getElementById('pf-libre-in').value = JSON.stringify(LIB);
+    };
+    plSel.addEventListener('change', pintarLibre);
+    plVer.addEventListener('change', function () { LIB[orient()][plSel.value].v = plVer.checked; pintarLibre(); });
+    plS.addEventListener('input', function () { LIB[orient()][plSel.value].s = +plS.value; pintarLibre(); });
+    plW.addEventListener('input', function () { LIB[orient()][plSel.value].w = +plW.value; pintarLibre(); });
+    document.querySelectorAll('[data-pl-mover]').forEach(function (bt) {
+        bt.addEventListener('click', function () {
+            var d = bt.dataset.plMover.split(','), b = LIB[orient()][plSel.value];
+            b.x = Math.max(-20, Math.min(120, b.x + (+d[0]) * 0.5)); b.y = Math.max(-20, Math.min(120, b.y + (+d[1]) * 0.5)); pintarLibre();
+        });
+    });
+    document.getElementById('pl-reset').addEventListener('click', function () { LIB[orient()] = JSON.parse(JSON.stringify(FAB[orient()])); pintarLibre(); });
+    // Arrastrar en la vista previa (con el dedo o el mouse)
+    el.addEventListener('pointerdown', function (e) {
+        if (!esLibre()) return;
+        var n = e.target.closest('[data-bloque]'); if (!n || !el.contains(n)) return;
+        e.preventDefault();
+        plSel.value = n.dataset.bloque; pintarLibre();
+        var o = orient(), b = LIB[o][plSel.value], r = el.getBoundingClientRect(), x0 = e.clientX, y0 = e.clientY, bx = b.x, by = b.y;
+        function mover(ev) {
+            b.x = Math.max(-20, Math.min(120, Math.round((bx + (ev.clientX - x0) / r.width * 100) * 10) / 10));
+            b.y = Math.max(-20, Math.min(120, Math.round((by + (ev.clientY - y0) / r.height * 100) * 10) / 10));
+            pintarLibre();
+        }
+        function soltar() { window.removeEventListener('pointermove', mover); window.removeEventListener('pointerup', soltar); window.removeEventListener('pointercancel', soltar); }
+        window.addEventListener('pointermove', mover); window.addEventListener('pointerup', soltar); window.addEventListener('pointercancel', soltar);
+    });
+
     form.addEventListener('input', aplicar);
     form.addEventListener('change', aplicar);
     aplicar();

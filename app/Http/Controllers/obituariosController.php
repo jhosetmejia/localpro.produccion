@@ -358,6 +358,7 @@ class obituariosController extends Controller
             'velacion_pos' => ['nullable', Rule::in(array_keys(ObituarioPlantilla::VELACION_POS))],
             'velacion_x' => 'nullable|integer|min:-400|max:400',
             'velacion_y' => 'nullable|integer|min:-400|max:400',
+            'libre' => 'nullable|string|max:20000',
             'cita' => 'nullable|string|max:160',
             'flor_pos' => ['nullable', Rule::in(array_keys(ObituarioPlantilla::FLOR_POS))],
             'flor_x' => 'nullable|integer|min:-400|max:400',
@@ -383,6 +384,11 @@ class obituariosController extends Controller
         $datos['velacion_pos'] = $datos['velacion_pos'] ?? 'foto';
         $datos['velacion_x'] = (int) ($datos['velacion_x'] ?? 0);
         $datos['velacion_y'] = (int) ($datos['velacion_y'] ?? 0);
+        // Posiciones a mano (diseño "Ninguna"): si no llegan, se dejan como estaban
+        if (array_key_exists('libre', $datos)) {
+            $l = ObituarioPlantilla::libreLimpio($datos['libre']);
+            if ($l === null) unset($datos['libre']); else $datos['libre'] = $l;
+        }
         $datos['pie_modo'] = $datos['pie_modo'] ?? 'frase';
         $datos['pie_mostrar'] = $datos['pie_modo'] !== 'ninguno';
         $datos['oscurecer'] = (int) ($datos['oscurecer'] ?? 0);
