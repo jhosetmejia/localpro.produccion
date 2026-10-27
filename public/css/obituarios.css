@@ -279,7 +279,9 @@ body.sin-cursor,body.sin-cursor *{cursor:none!important}
 .obi-foto-wrap{position:relative}
 .vel-foto .ot-foto-marco{z-index:auto} /* así la etiqueta queda encima de las flores */
 .obi-velacion-etq{position:absolute;z-index:6;left:50%;bottom:-26px;transform:translate(calc(-50% + var(--vx,0px)),var(--vy,0px));background:#fff;color:#1d2422;border-radius:16px;padding:10px 30px;box-shadow:0 10px 26px -8px rgba(0,0,0,.45);white-space:nowrap;text-align:center;line-height:1.1;font-family:'Montserrat',sans-serif}
-.obi-velacion-etq b{display:none}
+.obi-velacion-etq b{display:block;font-size:17px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--t-acento,var(--acento));margin-bottom:3px}
+.obi-velacion-etq b:not([hidden])::after{content:":"}
+.o-c .obi-velacion-etq b{font-size:14px}
 .obi-velacion-etq span{font-size:34px;font-weight:800;text-transform:uppercase;letter-spacing:.03em}
 .o-c .obi-velacion-etq span{font-size:26px}
 .obi-velacion.vp-debajo{transform:translate(var(--vx,0px),var(--vy,0px))}

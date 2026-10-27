@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600;1,700&family=Great+Vibes&family=Montserrat:ital,wght@0,500;0,700;0,800;1,500&display=swap">
-<link rel="stylesheet" href="{{ asset('css/obituarios.css') }}?v=15">
+<link rel="stylesheet" href="{{ asset('css/obituarios.css') }}?v=16">
 @endonce
 @php
     $m = $p->medida_datos;
