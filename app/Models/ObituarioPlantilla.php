@@ -14,9 +14,9 @@ class ObituarioPlantilla extends Model
 
     protected $table = 'obituario_plantillas';
 
-    protected $fillable = ['nombre', 'diseno', 'medida', 'fondo_tipo', 'fondo_color', 'fondo_color2', 'oscurecer', 'animacion', 'color_acento', 'color_texto', 'mostrar_logo', 'logo_fondo', 'velacion_pos', 'velacion_x', 'velacion_y', 'libre', 'titulo', 'frase', 'pie', 'pie_mostrar', 'pie_nombre', 'pie_modo', 'pie_eslogan', 'adornos', 'cita', 'base', 'flores', 'anim_op'];
+    protected $fillable = ['nombre', 'diseno', 'medida', 'fondo_tipo', 'fondo_color', 'fondo_color2', 'oscurecer', 'animacion', 'color_acento', 'color_texto', 'mostrar_logo', 'logo_fondo', 'velacion_pos', 'velacion_x', 'velacion_y', 'libre', 'titulo', 'frase', 'pie', 'pie_mostrar', 'pie_nombre', 'pie_modo', 'pie_eslogan', 'adornos', 'cita', 'base', 'flores', 'anim_op', 'mover'];
 
-    protected $casts = ['libre' => 'array', 'mostrar_logo' => 'boolean', 'pie_mostrar' => 'boolean', 'oscurecer' => 'integer', 'flores' => 'array', 'anim_op' => 'array'];
+    protected $casts = ['libre' => 'array', 'mostrar_logo' => 'boolean', 'pie_mostrar' => 'boolean', 'oscurecer' => 'integer', 'flores' => 'array', 'anim_op' => 'array', 'mover' => 'array'];
 
     // Diseños: [nombre, descripción, acento, texto, fondo para la miniatura]
     public const DISENOS = [
@@ -170,6 +170,50 @@ class ObituarioPlantilla extends Model
                     'w' => round(max(5, min(100, (float) ($g['w'] ?? 40))), 2), 's' => max(20, min(400, (int) ($g['s'] ?? 100))),
                     'v' => !empty($g['v']),
                 ];
+            }
+        }
+        return $out ?: null;
+    }
+
+    // ===== Todos los diseños (menos "Ninguna"): mover y agrandar a mano cada elemento =====
+    // x, y: cuánto se corre en px del lienzo; s: tamaño en % (100 = normal). Por orientación (h, v, c).
+    public const MOVER_BLOQUES = [
+        'cab' => 'Logo',
+        'cita' => 'Frase de arriba a la derecha',
+        'foto' => 'Foto (con sus flores)',
+        'memoria' => '"En memoria de"',
+        'titulo' => 'Título ("Obituario")',
+        'frase' => 'Frase',
+        'nombre' => 'Nombre',
+        'anios' => 'Fechas (nació / falleció)',
+        'datos' => 'Datos (fecha, hora, lugar…)',
+        'datos2' => 'Destino final e Invitan',
+        'invitan' => 'Invitan',
+        'logo2' => 'Logo a la derecha',
+        'pie' => 'Pie (nombre / eslogan)',
+    ];
+
+    public function moverDatos(string $o): array
+    {
+        $out = [];
+        foreach ((array) (($this->mover ?? [])[$o] ?? []) as $k => $g) {
+            if (!isset(self::MOVER_BLOQUES[$k]) || !is_array($g)) continue;
+            $out[$k] = ['x' => max(-1500, min(1500, (int) ($g['x'] ?? 0))), 'y' => max(-1500, min(1500, (int) ($g['y'] ?? 0))), 's' => max(30, min(300, (int) ($g['s'] ?? 100)))];
+        }
+        return $out;
+    }
+
+    // Lo que llega del formulario: solo bloques y orientaciones conocidas; lo que quedó en su lugar no se guarda
+    public static function moverLimpio($json): ?array
+    {
+        $d = is_array($json) ? $json : json_decode((string) $json, true);
+        if (!is_array($d)) return null;
+        $out = [];
+        foreach (['h', 'v', 'c'] as $o) {
+            foreach ((array) ($d[$o] ?? []) as $k => $g) {
+                if (!isset(self::MOVER_BLOQUES[$k]) || !is_array($g)) continue;
+                $b = ['x' => max(-1500, min(1500, (int) round((float) ($g['x'] ?? 0)))), 'y' => max(-1500, min(1500, (int) round((float) ($g['y'] ?? 0)))), 's' => max(30, min(300, (int) ($g['s'] ?? 100)))];
+                if ($b['x'] || $b['y'] || $b['s'] !== 100) $out[$o][$k] = $b;
             }
         }
         return $out ?: null;

@@ -38,6 +38,16 @@
             k -= 0.035;
             el.style.setProperty('--k', k.toFixed(3));
         }
+        // El nombre va en una sola línea: si es muy largo, se achica la letra hasta que quepa en su espacio
+        if (!el.classList.contains('libre')) el.querySelectorAll('.obi-nombre, .ot-nombre').forEach(function (n) {
+            n.style.fontSize = '';
+            if (!n.clientWidth) return;
+            var fs = parseFloat(getComputedStyle(n).fontSize), min = fs * 0.35;
+            for (var j = 0; j < 40 && n.scrollWidth > n.clientWidth + 1 && fs > min; j++) {
+                fs *= 0.96;
+                n.style.fontSize = fs.toFixed(1) + 'px';
+            }
+        });
     };
 
     // ===== Animaciones de fondo =====

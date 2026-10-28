@@ -227,6 +227,24 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
                 <div class="d-flex align-items-center mb-2"><b>Vista previa</b><small class="text-muted ms-2" id="pf-med">{{ $plantilla->medida_datos['nombre'] }}</small></div>
                 <div data-obi-marco>@include('obituarios._lienzo', ['p' => $plantilla, 'o' => $ejemplo, 'tienda' => $tienda])</div>
                 <input type="hidden" name="libre" id="pf-libre-in" form="pf-form">
+                <input type="hidden" name="mover" id="pf-mover-in" form="pf-form">
+                <div class="pf-libre mt-3" id="pf-mover" hidden>
+                    <b><i class="fa-solid fa-up-down-left-right me-1"></i>Mover y agrandar los elementos</b>
+                    <div class="pf-ayuda mb-2">Toque en la vista previa el logo, la foto, el nombre, los datos… y <b>arrástrelo</b> a su lugar (queda con un recuadro azul). Con la barra lo agranda o lo achica. Se guarda con la plantilla. El lugar de velación se mueve aparte (recuadro verde).</div>
+                    <div class="d-flex gap-2 align-items-center flex-wrap mb-1">
+                        <label class="small fw-bold" for="mv-bloque">Elemento</label>
+                        <select class="form-select form-select-sm" id="mv-bloque" style="max-width:280px">@foreach ($P::MOVER_BLOQUES as $k => $t)<option value="{{ $k }}">{{ $t }}</option>@endforeach</select>
+                    </div>
+                    <div class="pf-rango"><label for="mv-s">Tamaño</label><input type="range" class="form-range" id="mv-s" min="30" max="300" step="5" value="100"><output id="mv-s-v">100%</output></div>
+                    <div class="d-flex gap-1 flex-wrap mt-1">
+                        <button type="button" class="btn btn-sm btn-light" data-mv-mover="0,-1" title="Subir"><i class="fa-solid fa-arrow-up"></i></button>
+                        <button type="button" class="btn btn-sm btn-light" data-mv-mover="0,1" title="Bajar"><i class="fa-solid fa-arrow-down"></i></button>
+                        <button type="button" class="btn btn-sm btn-light" data-mv-mover="-1,0" title="Izquierda"><i class="fa-solid fa-arrow-left"></i></button>
+                        <button type="button" class="btn btn-sm btn-light" data-mv-mover="1,0" title="Derecha"><i class="fa-solid fa-arrow-right"></i></button>
+                        <button type="button" class="btn btn-sm btn-link" id="mv-uno">Este a su lugar</button>
+                        <button type="button" class="btn btn-sm btn-link ms-auto" id="mv-todo">Todo como al principio</button>
+                    </div>
+                </div>
                 <div class="pf-libre mt-3" id="pf-libre" hidden>
                     <b><i class="fa-solid fa-up-down-left-right me-1"></i>Acomode los textos sobre su imagen</b>
                     <div class="pf-ayuda mb-2">Toque un bloque en la vista previa (la foto, el nombre, los datos…) y <b>arrástrelo</b> a su lugar. Con las barras lo agranda o lo hace más ancho. Se guarda con la plantilla.</div>
@@ -253,7 +271,7 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
 @endsection
 
 @push('js')
-<script src="{{ asset('js/obituarios.js') }}?v=14"></script>
+<script src="{{ asset('js/obituarios.js') }}?v=15"></script>
 <script>
 (function () {
     var form = document.getElementById('pf-form'), el = document.querySelector('[data-obi]');
@@ -294,6 +312,7 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
         el.querySelectorAll('[data-o="pie"]').forEach(function (n) { var t = conFrase ? f.pie.value.trim() : ''; n.textContent = t; n.hidden = !t; });
         el.querySelectorAll('[data-o="pie_eslogan"]').forEach(function (n) { var t = conEsl ? f.pie_eslogan.value.trim() : ''; n.textContent = t; n.hidden = !t; });
         if (window.pintarLibre) pintarLibre();
+        if (window.pintarMover) pintarMover();
     }
     // El degradado apagado no se envía (el campo queda deshabilitado)
     document.getElementById('pf-imagen').addEventListener('change', function () { if (this.files[0]) { imagen = URL.createObjectURL(this.files[0]); aplicar(); } });
@@ -410,6 +429,46 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
         function poner(campo, v) { campo.value = Math.max(-400, Math.min(400, Math.round(v / 5) * 5)); campo.dispatchEvent(new Event('input', { bubbles: true })); }
         function mover(ev) { poner(f.velacion_x, vx + (ev.clientX - x0) / esc); poner(f.velacion_y, vy + (ev.clientY - y0) / esc); }
         function soltar() { el.classList.remove('vel-arrastrando'); window.removeEventListener('pointermove', mover); window.removeEventListener('pointerup', soltar); window.removeEventListener('pointercancel', soltar); }
+        window.addEventListener('pointermove', mover); window.addEventListener('pointerup', soltar); window.addEventListener('pointercancel', soltar);
+        e.stopImmediatePropagation();
+    });
+    // ===== Todos los diseños (menos "Ninguna"): mover y agrandar el logo, la foto, el nombre, los datos… =====
+    var MOV = @json(collect(['h', 'v', 'c'])->mapWithKeys(fn ($o) => [$o => (object) $plantilla->moverDatos($o)]));
+    var mvSel = document.getElementById('mv-bloque'), mvS = document.getElementById('mv-s');
+    function mvBloque(k) { var o = orient(); if (!MOV[o] || Array.isArray(MOV[o])) MOV[o] = {}; return MOV[o][k] || (MOV[o][k] = { x: 0, y: 0, s: 100 }); }
+    window.pintarMover = function () {
+        var on = !esLibre(), o = orient(), m = MOV[o] || {};
+        document.getElementById('pf-mover').hidden = !on;
+        el.classList.toggle('mueve-todo', on);
+        // Solo los elementos que tiene este diseño
+        var hay = {};
+        el.querySelectorAll('[data-mover]').forEach(function (n) {
+            var b = m[n.dataset.mover];
+            n.style.setProperty('--mx', (b ? b.x : 0) + 'px'); n.style.setProperty('--my', (b ? b.y : 0) + 'px'); n.style.setProperty('--ms', ((b ? b.s : 100) / 100).toString());
+            n.classList.toggle('mv-elegido', on && n.dataset.mover === mvSel.value);
+            if (n.getClientRects().length) hay[n.dataset.mover] = true;
+        });
+        [].forEach.call(mvSel.options, function (op) { op.hidden = !hay[op.value]; });
+        if (!hay[mvSel.value]) { var p = [].find.call(mvSel.options, function (op) { return hay[op.value]; }); if (p) { mvSel.value = p.value; return pintarMover(); } }
+        var s = (m[mvSel.value] || {}).s || 100;
+        mvS.value = s; document.getElementById('mv-s-v').textContent = s + '%';
+        document.getElementById('pf-mover-in').value = JSON.stringify(MOV);
+    };
+    mvSel.addEventListener('change', pintarMover);
+    mvS.addEventListener('input', function () { mvBloque(mvSel.value).s = +mvS.value; pintarMover(); });
+    document.querySelectorAll('[data-mv-mover]').forEach(function (bt) {
+        bt.addEventListener('click', function () { var d = bt.dataset.mvMover.split(','), b = mvBloque(mvSel.value); b.x = Math.max(-1500, Math.min(1500, b.x + (+d[0]) * 10)); b.y = Math.max(-1500, Math.min(1500, b.y + (+d[1]) * 10)); pintarMover(); });
+    });
+    document.getElementById('mv-uno').addEventListener('click', function () { var o = orient(); if (MOV[o]) delete MOV[o][mvSel.value]; pintarMover(); });
+    document.getElementById('mv-todo').addEventListener('click', function () { MOV[orient()] = {}; pintarMover(); });
+    el.addEventListener('pointerdown', function (e) {
+        if (esLibre()) return;
+        var n = e.target.closest('[data-mover]'); if (!n || !el.contains(n)) return;
+        e.preventDefault();
+        mvSel.value = n.dataset.mover; pintarMover();
+        var b = mvBloque(n.dataset.mover), esc = el.getBoundingClientRect().width / el.offsetWidth || 1, x0 = e.clientX, y0 = e.clientY, bx = b.x, by = b.y;
+        function mover(ev) { b.x = Math.max(-1500, Math.min(1500, Math.round(bx + (ev.clientX - x0) / esc))); b.y = Math.max(-1500, Math.min(1500, Math.round(by + (ev.clientY - y0) / esc))); pintarMover(); }
+        function soltar() { window.removeEventListener('pointermove', mover); window.removeEventListener('pointerup', soltar); window.removeEventListener('pointercancel', soltar); }
         window.addEventListener('pointermove', mover); window.addEventListener('pointerup', soltar); window.addEventListener('pointercancel', soltar);
     });
     // Arrastrar en la vista previa (con el dedo o el mouse)

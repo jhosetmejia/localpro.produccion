@@ -22,7 +22,7 @@
         <div class="ot-euca e3"><svg viewBox='0 0 420 420' class='ot-rama'><path class='rs' d='M10 399 C126 294 231 168 399 10'/><ellipse class='rh' cx='13.0' cy='341.5' rx='32.7' ry='26.8' transform='rotate(-55 13.0 341.5)'/><path class='rv' d='M42.4 357.9 L3.1 335.0'/><ellipse class='rh' cx='103.1' cy='333.1' rx='31.5' ry='25.8' transform='rotate(-25 103.1 333.1)'/><path class='rv' d='M74.8 317.4 L112.6 339.4'/><ellipse class='rh' cx='80.1' cy='262.9' rx='30.2' ry='24.7' transform='rotate(-55 80.1 262.9)'/><path class='rv' d='M107.2 278.0 L71.0 256.9'/><ellipse class='rh' cx='165.7' cy='254.7' rx='28.9' ry='23.7' transform='rotate(-25 165.7 254.7)'/><path class='rv' d='M139.7 240.2 L174.3 260.5'/><ellipse class='rh' cx='147.2' cy='190.6' rx='27.6' ry='22.7' transform='rotate(-55 147.2 190.6)'/><path class='rv' d='M172.1 204.5 L138.9 185.1'/><ellipse class='rh' cx='228.2' cy='184.1' rx='26.4' ry='21.6' transform='rotate(-25 228.2 184.1)'/><path class='rv' d='M204.5 170.9 L236.1 189.3'/><ellipse class='rh' cx='214.3' cy='127.1' rx='25.1' ry='20.6' transform='rotate(-55 214.3 127.1)'/><path class='rv' d='M236.9 139.6 L206.8 122.1'/><ellipse class='rh' cx='290.8' cy='122.5' rx='23.8' ry='19.5' transform='rotate(-25 290.8 122.5)'/><path class='rv' d='M269.3 110.6 L297.9 127.2'/><ellipse class='rh' cx='281.5' cy='72.2' rx='22.5' ry='18.5' transform='rotate(-55 281.5 72.2)'/><path class='rv' d='M301.8 83.5 L274.7 67.7'/><ellipse class='rh' cx='353.3' cy='68.7' rx='21.2' ry='17.4' transform='rotate(-25 353.3 68.7)'/><path class='rv' d='M334.2 58.0 L359.7 72.9'/><ellipse class='rh' cx='348.6' cy='23.7' rx='20.0' ry='16.4' transform='rotate(-55 348.6 23.7)'/><path class='rv' d='M366.6 33.7 L342.6 19.7'/></svg></div>
         <svg class="ot-trazo-oro" viewBox="0 0 1000 1000" preserveAspectRatio="none"><path d="M-20 980 C300 900 650 650 1020 80"/><path d="M60 1020 C380 920 720 700 1020 200"/></svg>
     </div>
-    <div class="ot-foto-col">
+    <div class="ot-foto-col" data-mover="foto" style="{{ $mv('foto') }}">
         <div class="ot-foto-fondo"></div>
         <div class="ot-foto-marco {{ str_contains($fe['clase'], 'forma-libre') ? 'marco-libre' : '' }}">
             <div class="obi-foto {{ $fe['clase'] }}" style="{{ $fe['estilo'] }}">
@@ -36,33 +36,33 @@
         <div class="ot-vela"><div class="ot-halo"></div><div class="ot-llama"></div><div class="ot-mecha"></div><div class="ot-cirio"></div></div>
         <div class="ot-rama-foto"><svg viewBox='0 0 420 420' class='ot-rama'><path class='rs' d='M10 399 C126 294 231 168 399 10'/><path class='rh' transform='translate(45.4 354.2) rotate(-131)' d='M0 0 C27.3 -20.0 68.3 -20.0 91.1 0 C68.3 20.0 27.3 20.0 0 0Z'/><path class='rh' transform='translate(80.7 310.1) rotate(-13)' d='M0 0 C26.2 -19.2 65.4 -19.2 87.2 0 C65.4 19.2 26.2 19.2 0 0Z'/><path class='rh' transform='translate(116.1 267.5) rotate(-134)' d='M0 0 C25.0 -18.3 62.5 -18.3 83.3 0 C62.5 18.3 25.0 18.3 0 0Z'/><path class='rh' transform='translate(151.5 227.0) rotate(-15)' d='M0 0 C23.8 -17.5 59.6 -17.5 79.5 0 C59.6 17.5 23.8 17.5 0 0Z'/><path class='rh' transform='translate(186.8 188.9) rotate(-137)' d='M0 0 C22.7 -16.6 56.7 -16.6 75.6 0 C56.7 16.6 22.7 16.6 0 0Z'/><path class='rh' transform='translate(222.2 153.6) rotate(-18)' d='M0 0 C21.5 -15.8 53.8 -15.8 71.7 0 C53.8 15.8 21.5 15.8 0 0Z'/><path class='rh' transform='translate(257.5 120.9) rotate(-140)' d='M0 0 C20.3 -14.9 50.8 -14.9 67.8 0 C50.8 14.9 20.3 14.9 0 0Z'/><path class='rh' transform='translate(292.9 90.7) rotate(-21)' d='M0 0 C19.2 -14.1 47.9 -14.1 63.9 0 C47.9 14.1 19.2 14.1 0 0Z'/><path class='rh' transform='translate(328.3 62.6) rotate(-142)' d='M0 0 C18.0 -13.2 45.0 -13.2 60.0 0 C45.0 13.2 18.0 13.2 0 0Z'/><path class='rh' transform='translate(363.6 35.9) rotate(-24)' d='M0 0 C16.8 -12.4 42.1 -12.4 56.1 0 C42.1 12.4 16.8 12.4 0 0Z'/></svg></div>
     </div>
-    <header class="ot-cab">
+    <header class="ot-cab" data-mover="cab" style="{{ $mv('cab') }}">
         <img class="ot-logo" src="{{ $logo }}" alt="" @if ($logo) data-logo @unless ($conLogo) hidden @endunless @else data-logo-vacio hidden @endif>
         <div class="ot-empresa" data-empresa @if ($logo) data-sin-logo @if ($conLogo) hidden @endif @else data-logo @unless ($conLogo) hidden @endunless @endif>{{ $tienda->nombre }}</div>
     </header>
-    <aside class="ot-cita" data-fila="cita" @if (!$p->cita) hidden @endif>
+    <aside class="ot-cita" data-mover="cita" style="{{ $mv('cita') }}" data-fila="cita" @if (!$p->cita) hidden @endif>
         <span data-o="cita">{{ $p->cita ? '“' . trim($p->cita, '“”"') . '”' : '' }}</span>
         <div class="ot-cor-linea"><i></i><svg viewBox='0 0 24 24' class='ot-cor'><path d='M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z'/></svg><i></i></div>
     </aside>
     <main class="ot-main">
-        <div class="ot-titulo" data-o="titulo" data-fila="titulo" @if (!$p->titulo) hidden @endif>{{ $p->titulo }}</div>
-        <div class="ot-frase" data-o="frase" data-fila="frase" @if (!$d['frase']) hidden @endif>{{ $d['frase'] }}</div>
-        <h1 class="ot-nombre" data-o="nombre">{{ $d['nombre'] }}</h1>
-        <div class="ot-anios" data-o="anios" data-fila="anios" @if (!$d['anios']) hidden @endif>{{ $d['anios'] }}</div>
+        <div class="ot-titulo" data-mover="titulo" style="{{ $mv('titulo') }}" data-o="titulo" data-fila="titulo" @if (!$p->titulo) hidden @endif>{{ $p->titulo }}</div>
+        <div class="ot-frase" data-mover="frase" style="{{ $mv('frase') }}" data-o="frase" data-fila="frase" @if (!$d['frase']) hidden @endif>{{ $d['frase'] }}</div>
+        <h1 class="ot-nombre" data-mover="nombre" style="{{ $mv('nombre') }}" data-o="nombre">{{ $d['nombre'] }}</h1>
+        <div class="ot-anios" data-mover="anios" style="{{ $mv('anios') }}" data-o="anios" data-fila="anios" @if (!$d['anios']) hidden @endif>{{ $d['anios'] }}</div>
         <div class="ot-sep"><i></i><svg viewBox='0 0 60 24' class='ot-hojita'><path d='M30 20 C24 10 14 6 4 8 C12 14 22 18 30 20Z M30 20 C36 10 46 6 56 8 C48 14 38 18 30 20Z'/></svg><i></i></div>
         <div class="ot-info">
-            <div class="ot-col">
+            <div class="ot-col" data-mover="datos" style="{{ $mv('datos') }}">
                 <div class="ot-it" data-fila="fecha" @if (!$d['fecha']) hidden @endif><svg viewBox='0 0 24 24' class='ot-ic'><rect x='3' y='5' width='18' height='16' rx='2'/><path d='M3 10h18M8 3v4M16 3v4'/><path d='M7 14h2M11 14h2M15 14h2M7 17h2M11 17h2'/></svg><div><b>Fecha:</b><span data-o="fecha">{{ $d['fecha'] }}</span></div></div>
                 <div class="ot-it" data-fila="hora" @if (!$d['hora']) hidden @endif><svg viewBox='0 0 24 24' class='ot-ic'><circle cx='12' cy='12' r='9'/><path d='M12 7v5l3 2'/></svg><div><b>Hora:</b><span data-o="hora">{{ $d['hora'] }}</span></div></div>
                 <div class="ot-it" data-fila="lugar" @if (!$d['lugar']) hidden @endif><svg viewBox='0 0 24 24' class='ot-ic'><path d='M12 22s7-7.2 7-12.5A7 7 0 0 0 5 9.5C5 14.8 12 22 12 22z'/><circle cx='12' cy='9.5' r='2.5'/></svg><div><b>Lugar:</b><span data-o="lugar">{{ $d['lugar'] }}</span></div></div>
             </div>
-            <div class="ot-col">
+            <div class="ot-col" data-mover="datos2" style="{{ $mv('datos2') }}">
                 <div class="ot-it vp-datos" data-fila="sala" @if (!$d['sala']) hidden @endif><svg viewBox='0 0 24 24' class='ot-ic'><path d='M12 3v18M7 8h10'/></svg><div><b><span data-o="velacion_titulo">{{ $d['velacion_titulo'] ?: 'Velación' }}</span>:</b><span data-o="sala">{{ $d['sala'] }}</span></div></div>
                 <div class="ot-it" data-fila="destino" @if (!$d['destino']) hidden @endif><svg viewBox='0 0 24 24' class='ot-ic'><path d='M12 21c-4-3-7-6-7-10a7 7 0 0 1 14 0c0 4-3 7-7 10z'/><path d='M12 7v6M9.5 9.5h5'/></svg><div><b>Destino final:</b><span data-o="destino">{{ $d['destino'] }}</span></div></div>
                 <div class="ot-it ot-inv" data-fila="invitan" @if (!$d['grupos']) hidden @endif><svg viewBox='0 0 24 24' class='ot-ic'><path d='M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z'/></svg><div><b>Invitan:</b><div class="ot-grupos" data-o="grupos">@foreach ($d['grupos'] as [$gt, $gn])<div class="obi-grupo"><b>{{ $gt }}</b>@if ($gn)<span>{{ $gn }}</span>@endif</div>@endforeach</div></div></div>
             </div>
         </div>
-        <footer class="ot-pie" data-fila="pie_bloque" @if (!$pieD) hidden @endif>
+        <footer class="ot-pie" data-mover="pie" style="{{ $mv('pie') }}" data-fila="pie_bloque" @if (!$pieD) hidden @endif>
             <div class="ot-pie-linea"><i></i><svg viewBox='0 0 60 24' class='ot-hojita'><path d='M30 20 C24 10 14 6 4 8 C12 14 22 18 30 20Z M30 20 C36 10 46 6 56 8 C48 14 38 18 30 20Z'/></svg><i></i></div>
             <div class="ot-pie-empresa" data-o="pie_nombre" data-fila="pie_nombre" data-defecto="{{ $tienda->nombre }}" @if (!($pieD['nombre'] ?? null)) hidden @endif>{{ $pieD['nombre'] ?? '' }}</div>
             <div class="ot-pie-slogan" data-o="pie" data-fila="pie" @if (!($pieD['frase'] ?? null)) hidden @endif>{{ $pieD['frase'] ?? '' }}</div>

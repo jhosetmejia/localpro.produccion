@@ -289,6 +289,12 @@ body.sin-cursor,body.sin-cursor *{cursor:none!important}
 .ot-it.vp-datos,.obi-dato.vp-datos{transform:translate(var(--vx,0px),var(--vy,0px))}
 /* Si se movió el lugar de velación que va con los datos, que no lo corte la columna */
 .vel-movido.vel-datos .ot-main,.vel-movido.vel-datos .obi-centro{overflow:visible}
+/* Todos los diseños (menos "Ninguna"): cada elemento movido y agrandado a mano */
+.obi:not(.libre) [data-mover]{translate:var(--mx,0px) var(--my,0px);scale:var(--ms,1)}
+.obi.mueve-todo:not(.libre) [data-mover]{cursor:grab;touch-action:none}
+.obi.mueve-todo:not(.libre) [data-mover].mv-elegido{outline:4px dashed rgba(59,130,246,.9);outline-offset:8px}
+/* El nombre va en una sola línea: si es largo, la letra se achica sola (Obi.ajustar) */
+.obi:not(.libre) .obi-nombre,.ot-nombre{white-space:nowrap;max-width:100%}
 /* Editor de la plantilla: el lugar de velación se arrastra en la vista previa (en todos los diseños) */
 .mueve-vel .vp-foto,.mueve-vel .vp-debajo,.mueve-vel .vp-datos{cursor:grab;outline:3px dashed rgba(34,197,94,.9);outline-offset:8px;touch-action:none}
 .mueve-vel.vel-arrastrando .vp-foto,.mueve-vel.vel-arrastrando .vp-debajo,.mueve-vel.vel-arrastrando .vp-datos{cursor:grabbing}
