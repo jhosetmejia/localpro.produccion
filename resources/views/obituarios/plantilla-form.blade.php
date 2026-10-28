@@ -180,6 +180,7 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
                         <select class="form-select" name="velacion_pos" style="max-width:340px">@foreach ($P::VELACION_POS as $k => $t)<option value="{{ $k }}" @selected(old('velacion_pos', $plantilla->velacion_pos ?: 'foto') === $k)>{{ $t }}</option>@endforeach</select>
                         <div class="pf-rango"><label for="pf-vx">Mover ← →</label><input type="range" class="form-range" id="pf-vx" name="velacion_x" min="-400" max="400" step="5" value="{{ old('velacion_x', (int) $plantilla->velacion_x) }}"><output data-de="pf-vx"></output></div>
                         <div class="pf-rango"><label for="pf-vy">Mover ↑ ↓</label><input type="range" class="form-range" id="pf-vy" name="velacion_y" min="-400" max="400" step="5" value="{{ old('velacion_y', (int) $plantilla->velacion_y) }}"><output data-de="pf-vy"></output></div>
+                        <div class="pf-ayuda mt-1"><i class="fa-solid fa-hand-pointer"></i> También puede <b>arrastrarlo</b> con el dedo o el mouse en la vista previa (el recuadro verde punteado).</div>
                         <button type="button" class="btn btn-sm btn-link px-0" id="pf-v0">Volver al lugar de siempre</button>
                     </div>
                     @php $logoObi = $tienda->obituarios_logo_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($tienda->obituarios_logo_path) : null; @endphp
@@ -283,6 +284,8 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
         ['vel-foto', 'vel-debajo', 'vel-datos'].forEach(function (c) { el.classList.remove(c); });
         el.classList.add('vel-' + (f.velacion_pos.value || 'foto'));
         el.style.setProperty('--vx', (+f.velacion_x.value || 0) + 'px'); el.style.setProperty('--vy', (+f.velacion_y.value || 0) + 'px');
+        el.classList.toggle('vel-movido', !!(+f.velacion_x.value || +f.velacion_y.value));
+        el.classList.toggle('mueve-vel', val('diseno') !== 'ninguno');
         var modo = f.pie_modo.value, conPie = modo !== 'ninguno';
         var conFrase = modo === 'frase' || modo === 'ambos', conEsl = modo === 'eslogan' || modo === 'ambos';
         document.querySelectorAll('[data-pie-campo]').forEach(function (c) { var k = c.dataset.pieCampo; c.hidden = k === 'nombre' ? !conPie : k === 'frase' ? !conFrase : !conEsl; });
@@ -396,6 +399,19 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
         });
     });
     document.getElementById('pl-reset').addEventListener('click', function () { LIB[orient()] = JSON.parse(JSON.stringify(FAB[orient()])); pintarLibre(); });
+    // Lugar de velación: arrastrarlo en la vista previa en cualquier diseño (mueve las barras ← → y ↑ ↓)
+    el.addEventListener('pointerdown', function (e) {
+        if (esLibre()) return;
+        var n = e.target.closest('.vp-foto, .vp-debajo, .vp-datos'); if (!n || !el.contains(n)) return;
+        e.preventDefault();
+        var f = form.elements, esc = el.getBoundingClientRect().width / el.offsetWidth || 1;
+        var x0 = e.clientX, y0 = e.clientY, vx = +f.velacion_x.value || 0, vy = +f.velacion_y.value || 0;
+        el.classList.add('vel-arrastrando');
+        function poner(campo, v) { campo.value = Math.max(-400, Math.min(400, Math.round(v / 5) * 5)); campo.dispatchEvent(new Event('input', { bubbles: true })); }
+        function mover(ev) { poner(f.velacion_x, vx + (ev.clientX - x0) / esc); poner(f.velacion_y, vy + (ev.clientY - y0) / esc); }
+        function soltar() { el.classList.remove('vel-arrastrando'); window.removeEventListener('pointermove', mover); window.removeEventListener('pointerup', soltar); window.removeEventListener('pointercancel', soltar); }
+        window.addEventListener('pointermove', mover); window.addEventListener('pointerup', soltar); window.addEventListener('pointercancel', soltar);
+    });
     // Arrastrar en la vista previa (con el dedo o el mouse)
     el.addEventListener('pointerdown', function (e) {
         if (!esLibre()) return;
