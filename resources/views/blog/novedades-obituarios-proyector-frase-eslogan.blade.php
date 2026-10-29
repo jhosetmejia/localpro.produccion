@@ -20,7 +20,7 @@
 <tr><td><b>Fechas opcionales</b></td><td>"Nació" y "Falleció" salen solo si elige <b>Sí, mostrar</b>.</td></tr>
 <tr><td><b>Frase opcional</b></td><td>Ya no sale una frase sola. Usted decide si lleva frase y cuál.</td></tr>
 <tr><td><b>Pie con su eslogan</b></td><td>Debajo del nombre de la funeraria pone una frase, su eslogan o los dos.</td></tr>
-<tr><td><b>Lugar de velación debajo de la foto</b></td><td>Sale debajo de la foto con el título que usted elija (por ejemplo "Lugar de velación" o "Salón") y el dato.</td></tr>
+<tr><td><b>Lugar de velación</b></td><td>Sale debajo de las exequias (fecha, lugar, hora) con el título que usted elija (por ejemplo "Lugar de velación" o "Salón") y el dato.</td></tr>
 <tr><td><b>Proyector</b></td><td>Es la pantalla o televisor donde sale el obituario (Proyector 1, Proyector 2…).</td></tr>
 </table></div>
 
@@ -50,7 +50,7 @@
     <li><b>El fallecido:</b> escriba el nombre completo y suba la foto. Si quiere, muévala, acérquela o gírela en la vista previa.</li>
     <li><b>Fechas de nacimiento y fallecimiento:</b> viene en <b>No mostrar</b>. Si la familia las quiere, elija <b>Sí, mostrar</b> y escriba las dos fechas.</li>
     <li><b>Agregar frase:</b> viene en <b>No</b>. Si la familia quiere una frase, elija <b>Sí</b> y escríbala (por ejemplo "Siempre vivirás en nuestros corazones"). Si elige Sí, la frase es obligatoria.</li>
-    <li><b>Velación y exequias:</b> en <b>Nombre del campo</b> viene "Lugar de velación"; cámbielo si quiere (por ejemplo "Salón") o bórrelo para que salga sin título. En <b>Qué dice</b> escriba el dato, por ejemplo "Sala 1 · Monte de los Olivos": sale debajo de la foto. Luego la fecha, la hora, el lugar de las exequias y el destino final.</li>
+    <li><b>Velación y exequias:</b> en <b>Nombre del campo</b> viene "Lugar de velación"; cámbielo si quiere (por ejemplo "Salón") o bórrelo para que salga sin título. En <b>Qué dice</b> escriba el dato, por ejemplo "Sala 1 · Monte de los Olivos": sale debajo de las exequias (vea <a href="{{ url('/blog/obituario-lugar-de-velacion-debajo-de-las-exequias') }}">cómo cambiarlo u ocultarlo</a>). Luego la fecha, la hora, el lugar de las exequias y el destino final.</li>
     <li><b>Invitan:</b> escriba un grupo por renglón, por ejemplo "Sus hijos: Ana y Pedro".</li>
     <li>Toque <b>Guardar</b>. En menos de un minuto aparece en el proyector elegido.</li>
 </ol>

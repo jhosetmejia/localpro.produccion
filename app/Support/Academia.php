@@ -567,7 +567,9 @@ class Academia
                     ['titulo' => 'Plantillas', 'rutas' => [['obituarios', 'Plantillas', 'Nueva plantilla']], 'min' => 2, 'accion' => ['obituarios.plantillas', 'Ver plantillas'], 'contenido' => [
                         'Elija un diseño (mármol, negro y dorado, cielo, floral, vela, sencillo), la medida de la pantalla y el fondo: color, imagen o video.',
                         'Agregue animaciones suaves, su frase y su logo. Las plantillas se reutilizan y se pueden copiar.',
-                    ], 'tip' => null],
+                        'En <b>Dónde sale el lugar de velación</b> elija <b>Debajo de las exequias</b> (recomendado: fecha, lugar, hora y luego velación), sobre la foto, debajo de la foto o <b>No mostrarlo</b>.',
+                        '<b>"En memoria de"</b> debajo de la foto viene apagado porque el nombre ya sale arriba; actívelo con su interruptor si lo quiere.',
+                    ], 'tip' => 'Con "Usar el mismo logo, título y pie en todas mis plantillas" estos ajustes se copian a todas.'],
                     ['titulo' => 'Crear y mostrar un obituario', 'rutas' => [['obituarios', 'Nuevo obituario', 'Guardar', 'Ver ya en la pantalla']], 'min' => 3, 'accion' => ['obituarios.create', 'Nuevo obituario'], 'contenido' => [
                         'Llene nombre, foto, fechas, exequias y quiénes invitan (una línea por grupo). La vista previa se ve en vivo.',
                         '<b>Guarde</b>: la pantalla solo muestra lo guardado. Con <b>Ver ya en la pantalla</b> sale de inmediato en la sala.',

@@ -6,9 +6,28 @@
 // palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
+    'obituario-lugar-de-velacion-debajo-de-las-exequias' => [
+        'titulo' => 'Obituario con lugar de velación debajo de las exequias (y sin repetir el nombre)',
+        'resumen' => 'Las funerarias nos pidieron un obituario más limpio: ahora el lugar de velación sale como un dato más, debajo de la fecha, la hora y el lugar de las exequias, y el "En memoria de" que repetía el nombre debajo de la foto ya no sale. Usted decide en la plantilla si lo muestra, dónde o si lo oculta.',
+        'fecha' => '29 de octubre de 2026',
+        'publicado' => '2026-10-29',
+        'minutos' => 3,
+        'icono' => 'fa-dove',
+        'rol' => 'funerarias',
+        'seo_titulo' => 'Obituario con lugar de velación y exequias | LocalProo',
+        'descripcion' => 'Plantillas de obituarios para funerarias: lugar de velación debajo de las exequias, opción de ocultarlo y sin repetir el nombre. Paso a paso.',
+        'keywords' => ['obituario con lugar de velación', 'plantilla de obituario para funeraria', 'obituario exequias fecha hora lugar', 'obituario digital para televisor', 'software para funerarias', 'formato de obituario'],
+        'faq' => [
+            ['¿Dónde sale ahora el lugar de velación?', 'Debajo de las exequias: primero la fecha, el lugar y la hora de las exequias y luego "Lugar de velación" con el dato que escriba (por ejemplo "Sala 1 · Monte de los Olivos").'],
+            ['¿Puedo ocultar el lugar de velación?', 'Sí. En Plantillas → Editar, en "Dónde sale el lugar de velación" elija "No mostrarlo". También puede dejarlo vacío en el obituario.'],
+            ['¿Puedo volver a ponerlo sobre la foto?', 'Sí. En la misma opción elija "Sobre la foto (etiqueta)" o "Debajo de la foto".'],
+            ['¿Por qué ya no sale "En memoria de" debajo de la foto?', 'Porque el nombre ya sale grande arriba y se repetía. Si lo quiere, en la plantilla active "Mostrar En memoria de".'],
+            ['¿Mis obituarios de antes cambiaron?', 'Sí, quedaron con el lugar de velación debajo de las exequias y sin "En memoria de". Puede cambiarlo en la plantilla cuando quiera.'],
+        ],
+    ],
     'novedades-obituarios-proyector-frase-eslogan' => [
         'titulo' => 'Novedades en Obituarios: foto completa, logo sin fondo, lugar de velación, frase y eslogan',
-        'resumen' => 'Las funerarias pidieron y lo hicimos: la foto ya no corta la cabeza, el logo sale sin fondo en todas las plantillas, las fechas y la frase salen solo si usted quiere, el lugar de velación va debajo de la foto con el título que elija y el pie lleva su frase, su eslogan o los dos. Aquí le explicamos cómo usarlo paso a paso.',
+        'resumen' => 'Las funerarias pidieron y lo hicimos: la foto ya no corta la cabeza, el logo sale sin fondo en todas las plantillas, las fechas y la frase salen solo si usted quiere, el lugar de velación sale con el título que elija y el pie lleva su frase, su eslogan o los dos. Aquí le explicamos cómo usarlo paso a paso.',
         'fecha' => '26 de octubre de 2026',
         'publicado' => '2026-10-26',
         'minutos' => 5,
@@ -22,7 +41,7 @@ return [
             ['¿Dónde quito la frase "Descansó en la paz del Señor"?', 'Ya no sale sola. En el obituario, "Agregar frase" viene en No; si elige Sí, escribe la frase que la familia quiera.'],
             ['¿Cómo pongo el eslogan de mi funeraria?', 'En Plantillas → Editar → Textos y colores → Pie de la tarjeta: elija "Solo el eslogan" o "Frase y eslogan" y escríbalo. Se guarda en la plantilla y sale en todos los obituarios que la usen.'],
             ['La foto salía con la cabeza cortada, ¿qué hago?', 'Ya se corrigió: en fotos altas se recorta por abajo. Si aún quiere ajustarla, en el obituario puede moverla, acercarla o girarla.'],
-            ['¿Qué es el proyector?', 'Es la pantalla o televisor donde se muestra el obituario (Proyector 1, Proyector 2…). El lugar de velación es otro campo y sale debajo de la foto.'],
+            ['¿Qué es el proyector?', 'Es la pantalla o televisor donde se muestra el obituario (Proyector 1, Proyector 2…). El lugar de velación es otro campo y sale debajo de las exequias.'],
             ['¿Puedo cambiar el título "Lugar de velación"?', 'Sí. En el obituario, en "Nombre del campo", escriba el que quiera (por ejemplo "Salón") o bórrelo para que salga solo el dato.'],
             ['El logo salía con un fondo blanco, ¿cómo lo quito?', 'Ya sale sin fondo por defecto. En la plantilla, "Fondo del logo" le deja elegir sin fondo o con recuadro blanco, y con la casilla "Usar el mismo logo, título y pie en todas mis plantillas" queda igual en todas.'],
         ],
