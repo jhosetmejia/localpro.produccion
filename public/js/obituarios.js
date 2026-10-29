@@ -48,6 +48,30 @@
                 n.style.fontSize = fs.toFixed(1) + 'px';
             }
         });
+        Obi.encajar(el);
+    };
+
+    // ===== Lugar de velación (cajón): por más que lo muevan, nunca se sale del borde de la pantalla =====
+    Obi.encajar = function (el) {
+        if (el.classList.contains('libre')) return;
+        var cajas = el.querySelectorAll('.obi-velacion-etq, .ot-velacion, .obi-velacion.vp-debajo');
+        if (!cajas.length) return;
+        var c = el.getBoundingClientRect(), s = c.width / (+el.dataset.w || c.width || 1);
+        if (!c.width || !s) return;
+        var cs = getComputedStyle(el), vx = parseFloat(cs.getPropertyValue('--vx')) || 0, vy = parseFloat(cs.getPropertyValue('--vy')) || 0;
+        var m = 16 * s;
+        cajas.forEach(function (n) {
+            n.style.removeProperty('--vx'); n.style.removeProperty('--vy');
+            var r = n.getBoundingClientRect();
+            if (!r.width || !r.height) return;
+            var dx = 0, dy = 0;
+            if (r.width > c.width - 2 * m) dx = (c.left + c.width / 2) - (r.left + r.width / 2);
+            else if (r.left < c.left + m) dx = c.left + m - r.left;
+            else if (r.right > c.right - m) dx = c.right - m - r.right;
+            if (r.top < c.top + m) dy = c.top + m - r.top;
+            else if (r.bottom > c.bottom - m) dy = c.bottom - m - r.bottom;
+            if (dx || dy) { n.style.setProperty('--vx', Math.round(vx + dx / s) + 'px'); n.style.setProperty('--vy', Math.round(vy + dy / s) + 'px'); }
+        });
     };
 
     // ===== Animaciones de fondo =====

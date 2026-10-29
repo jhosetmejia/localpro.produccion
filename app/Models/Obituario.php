@@ -23,6 +23,33 @@ class Obituario extends Model
         return $this->belongsTo(ObituarioPlantilla::class, 'plantilla_id');
     }
 
+    // Plantilla con la que se hizo (copia guardada): editar la plantilla después no cambia este obituario
+    public function getPlantillaFijaModeloAttribute(): ?ObituarioPlantilla
+    {
+        $raw = $this->attributes['plantilla_fija'] ?? null;
+        $a = is_string($raw) ? json_decode($raw, true) : null;
+        if (!is_array($a) || !$a) return $this->plantilla;
+        $p = new ObituarioPlantilla();
+        $p->setRawAttributes($a, true);
+        $p->exists = true;
+        return $p;
+    }
+
+    // Guarda la copia de la plantilla actual
+    public function fijarPlantilla(?ObituarioPlantilla $p): void
+    {
+        $this->attributes['plantilla_fija'] = $p ? json_encode($p->getAttributes()) : null;
+    }
+
+    // ¿Algún obituario usa este archivo (fondo o video) en su copia de plantilla?
+    public static function usaArchivo(?string $ruta): bool
+    {
+        if (!$ruta) return false;
+        // El nombre del archivo es aleatorio y único: basta buscarlo dentro de la copia (JSON)
+        $nombre = str_replace(['%', '_'], ['\\%', '\\_'], basename($ruta));
+        return static::withoutGlobalScopes()->where('plantilla_fija', 'like', '%' . $nombre . '%')->exists();
+    }
+
     public function sala()
     {
         return $this->belongsTo(ObituarioSala::class, 'sala_id');

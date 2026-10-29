@@ -178,8 +178,8 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
                         <div class="pf-ayuda mt-1">Si sube el logo en PNG sin fondo, elija "Sin fondo": se ve tal cual sobre la tarjeta.</div></div>
                     <div class="mt-3"><label class="form-label small fw-bold">Dónde sale el lugar de velación <span class="text-muted fw-normal">(ej: "Sala 2")</span></label>
                         <select class="form-select" name="velacion_pos" style="max-width:340px">@foreach ($P::VELACION_POS as $k => $t)<option value="{{ $k }}" @selected(old('velacion_pos', $plantilla->velacion_pos ?: 'foto') === $k)>{{ $t }}</option>@endforeach</select>
-                        <div class="pf-rango"><label for="pf-vx">Mover ← →</label><input type="range" class="form-range" id="pf-vx" name="velacion_x" min="-400" max="400" step="5" value="{{ old('velacion_x', (int) $plantilla->velacion_x) }}"><output data-de="pf-vx"></output></div>
-                        <div class="pf-rango"><label for="pf-vy">Mover ↑ ↓</label><input type="range" class="form-range" id="pf-vy" name="velacion_y" min="-400" max="400" step="5" value="{{ old('velacion_y', (int) $plantilla->velacion_y) }}"><output data-de="pf-vy"></output></div>
+                        <div class="pf-rango"><label for="pf-vx">Mover ← →</label><input type="range" class="form-range" id="pf-vx" name="velacion_x" min="-400" max="400" step="1" value="{{ old('velacion_x', (int) $plantilla->velacion_x) }}"><output data-de="pf-vx"></output></div>
+                        <div class="pf-rango"><label for="pf-vy">Mover ↑ ↓</label><input type="range" class="form-range" id="pf-vy" name="velacion_y" min="-400" max="400" step="1" value="{{ old('velacion_y', (int) $plantilla->velacion_y) }}"><output data-de="pf-vy"></output></div>
                         <div class="pf-ayuda mt-1"><i class="fa-solid fa-hand-pointer"></i> También puede <b>arrastrarlo</b> con el dedo o el mouse en la vista previa (el recuadro verde punteado).</div>
                         <button type="button" class="btn btn-sm btn-link px-0" id="pf-v0">Volver al lugar de siempre</button>
                     </div>
@@ -271,7 +271,7 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
 @endsection
 
 @push('js')
-<script src="{{ asset('js/obituarios.js') }}?v=15"></script>
+<script src="{{ asset('js/obituarios.js') }}?v=16"></script>
 <script>
 (function () {
     var form = document.getElementById('pf-form'), el = document.querySelector('[data-obi]');
@@ -301,7 +301,7 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
         // Lugar de velación: dónde sale y cuánto se movió
         ['vel-foto', 'vel-debajo', 'vel-datos'].forEach(function (c) { el.classList.remove(c); });
         el.classList.add('vel-' + (f.velacion_pos.value || 'foto'));
-        el.style.setProperty('--vx', (+f.velacion_x.value || 0) + 'px'); el.style.setProperty('--vy', (+f.velacion_y.value || 0) + 'px');
+        el.style.setProperty('--vx', (+f.velacion_x.value || 0) + 'px'); el.style.setProperty('--vy', (+f.velacion_y.value || 0) + 'px'); Obi.encajar(el);
         el.classList.toggle('vel-movido', !!(+f.velacion_x.value || +f.velacion_y.value));
         el.classList.toggle('mueve-vel', val('diseno') !== 'ninguno');
         var modo = f.pie_modo.value, conPie = modo !== 'ninguno';

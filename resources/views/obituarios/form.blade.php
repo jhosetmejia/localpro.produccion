@@ -44,6 +44,7 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
             <form method="post" enctype="multipart/form-data" id="of-form" action="{{ $obituario->exists ? route('obituarios.update', $obituario) : route('obituarios.store') }}">
                 @csrf
                 @if ($obituario->exists) @method('put') @endif
+                @if (request()->filled('plantilla'))<input type="hidden" name="plantilla_nueva" value="1">@endif
 
                 <div class="lp-box mb-3">
                     <h3>1. Plantilla y proyector</h3>
@@ -56,6 +57,9 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
                                 @endforeach
                             </select>
                             <div class="of-ayuda mt-1"><a href="{{ route('obituarios.plantillas.edit', $plantilla) }}">Editar esta plantilla</a> · <a href="{{ route('obituarios.plantillas.create') }}">Crear otra</a></div>
+                            @if ($obituario->exists && !request()->filled('plantilla'))
+                            <div class="of-ayuda mt-1 text-muted"><i class="fa-solid fa-lock me-1"></i>Este obituario conserva su diseño aunque alguien edite las plantillas. <a href="{{ request()->fullUrlWithQuery(['plantilla' => $plantilla->id]) }}">Usar la versión actual de la plantilla</a></div>
+                            @endif
                         </div>
                         <div class="col-sm-5">
                             <label class="form-label small fw-bold">Proyector</label>
@@ -204,7 +208,7 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
 @endsection
 
 @push('js')
-<script src="{{ asset('js/obituarios.js') }}?v=15"></script>
+<script src="{{ asset('js/obituarios.js') }}?v=16"></script>
 <script>
 (function () {
     var form = document.getElementById('of-form'), el = document.querySelector('[data-obi]');

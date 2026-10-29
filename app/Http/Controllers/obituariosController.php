@@ -111,7 +111,7 @@ class obituariosController extends Controller
         $this->mio($obituario);
         $plantilla = $request->query('plantilla')
             ? $this->mio(ObituarioPlantilla::find($request->query('plantilla')))
-            : ($obituario->plantilla ?? ObituarioPlantilla::porDefecto());
+            : ($obituario->plantilla_fija_modelo ?? ObituarioPlantilla::porDefecto());
         return $this->formulario($obituario, $plantilla);
     }
 
@@ -200,6 +200,7 @@ class obituariosController extends Controller
     public function store(Request $request)
     {
         $o = new Obituario($this->datos($request) + ['estado' => 'activo']);
+        $o->fijarPlantilla(ObituarioPlantilla::find($o->plantilla_id));
         $this->guardarFoto($request, $o);
         $o->save();
         return redirect()->route('obituarios.show', $o)->with('success', 'Obituario creado.' . ($o->sala_id ? ' Ya se ve en la pantalla de ' . $o->sala->nombre . '.' : ''));
@@ -207,7 +208,12 @@ class obituariosController extends Controller
 
     public function update(Request $request, Obituario $obituario)
     {
-        $this->mio($obituario)->fill($this->datos($request));
+        $this->mio($obituario);
+        $antes = $obituario->plantilla_id;
+        $obituario->fill($this->datos($request));
+        if ($antes != $obituario->plantilla_id || $request->boolean('plantilla_nueva') || !$obituario->getAttribute('plantilla_fija')) {
+            $obituario->fijarPlantilla(ObituarioPlantilla::find($obituario->plantilla_id));
+        }
         $this->guardarFoto($request, $obituario);
         $obituario->save();
         return redirect()->route('obituarios.show', $obituario)->with('success', 'Obituario actualizado. Las pantallas se actualizan solas en menos de un minuto.');
@@ -219,7 +225,7 @@ class obituariosController extends Controller
         return view('obituarios.show', [
             'tienda' => $this->tienda(),
             'obituario' => $obituario->load('sala', 'plantilla'),
-            'plantilla' => $obituario->plantilla ?? ObituarioPlantilla::porDefecto(),
+            'plantilla' => $obituario->plantilla_fija_modelo ?? ObituarioPlantilla::porDefecto(),
         ]);
     }
 
@@ -404,7 +410,7 @@ class obituariosController extends Controller
         $plantilla->fill($datos);
 
         if ($request->hasFile('imagen')) {
-            if ($plantilla->fondo_path) Storage::disk('public')->delete($plantilla->fondo_path);
+            if ($plantilla->fondo_path && !Obituario::usaArchivo($plantilla->fondo_path)) Storage::disk('public')->delete($plantilla->fondo_path);
             $plantilla->fondo_path = $request->file('imagen')->store($this->carpeta('fondos'), 'public');
         }
         // Logo de los obituarios (sirve para todas las plantillas del negocio)
@@ -417,7 +423,7 @@ class obituariosController extends Controller
             $tienda->forceFill(['obituarios_logo_path' => null])->save();
         }
         if ($request->hasFile('video')) {
-            if ($plantilla->video_path) Storage::disk('public')->delete($plantilla->video_path);
+            if ($plantilla->video_path && !Obituario::usaArchivo($plantilla->video_path)) Storage::disk('public')->delete($plantilla->video_path);
             $plantilla->video_path = $request->file('video')->store($this->carpeta('videos'), 'public');
         }
         if ($plantilla->fondo_tipo === 'imagen' && !$plantilla->fondo_path) {
@@ -462,10 +468,10 @@ class obituariosController extends Controller
             return back()->with('error', 'Debe quedar al menos una plantilla.');
         }
         foreach (['fondo_path', 'video_path'] as $c) {
-            if ($plantilla->$c) Storage::disk('public')->delete($plantilla->$c);
+            if ($plantilla->$c && !Obituario::usaArchivo($plantilla->$c)) Storage::disk('public')->delete($plantilla->$c);
         }
         $plantilla->delete();
-        return redirect()->route('obituarios.plantillas')->with('success', 'Plantilla eliminada. Los obituarios que la usaban salen con la plantilla Clásica.');
+        return redirect()->route('obituarios.plantillas')->with('success', 'Plantilla eliminada. Los obituarios ya hechos con ella no cambian.');
     }
 
     // ===================== Pantallas (televisores) =====================
@@ -512,7 +518,7 @@ class obituariosController extends Controller
     {
         $partes = [$extra];
         foreach ($obituarios as $o) {
-            $partes[] = $o->id . ':' . $o->updated_at?->timestamp . ':' . $o->plantilla?->updated_at?->timestamp . ':' . $o->sala?->updated_at?->timestamp;
+            $partes[] = $o->id . ':' . $o->updated_at?->timestamp . ':' . $o->sala?->updated_at?->timestamp;
         }
         return substr(md5(implode('|', $partes)), 0, 16);
     }

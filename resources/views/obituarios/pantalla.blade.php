@@ -22,7 +22,7 @@
 <body>
 @forelse ($obituarios as $o)
     <div class="slide" data-obi-slide>
-        <div data-obi-marco="pantalla">@include('obituarios._lienzo', ['p' => $o->plantilla ?? $plantillaDefecto, 'o' => $o, 'tienda' => $tienda])</div>
+        <div data-obi-marco="pantalla">@include('obituarios._lienzo', ['p' => $o->plantilla_fija_modelo ?? $plantillaDefecto, 'o' => $o, 'tienda' => $tienda])</div>
     </div>
 @empty
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&display=swap">
@@ -33,7 +33,7 @@
     </div>
 @endforelse
 <div class="aviso">Toque la pantalla para verla completa</div>
-<script src="{{ asset('js/obituarios.js') }}?v=15"></script>
+<script src="{{ asset('js/obituarios.js') }}?v=16"></script>
 <script>Obi.pantalla({ rotar: {{ (int) $rotar }}, version: @json($version), actual: @json($huella) });</script>
 </body>
 </html>
