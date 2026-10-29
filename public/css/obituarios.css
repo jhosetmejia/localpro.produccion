@@ -523,3 +523,6 @@ body.sin-cursor,body.sin-cursor *{cursor:none!important}
 .obi.libre.editando [data-bloque]{cursor:move;outline:6px dashed rgba(34,160,80,0);outline-offset:10px}
 .obi.libre.editando [data-bloque]:hover{outline-color:rgba(34,160,80,.55)}
 .obi.libre.editando [data-bloque].elegido{outline:8px solid #22a050}
+
+/* "En memoria de" debajo de la foto: solo si la plantilla lo pide */
+.obi.sin-memoria .obi-memoria{display:none!important}

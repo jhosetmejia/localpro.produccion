@@ -14,9 +14,9 @@ class ObituarioPlantilla extends Model
 
     protected $table = 'obituario_plantillas';
 
-    protected $fillable = ['nombre', 'diseno', 'medida', 'fondo_tipo', 'fondo_color', 'fondo_color2', 'oscurecer', 'animacion', 'color_acento', 'color_texto', 'mostrar_logo', 'logo_fondo', 'velacion_pos', 'velacion_x', 'velacion_y', 'libre', 'titulo', 'frase', 'pie', 'pie_mostrar', 'pie_nombre', 'pie_modo', 'pie_eslogan', 'adornos', 'cita', 'base', 'flores', 'anim_op', 'mover'];
+    protected $fillable = ['nombre', 'diseno', 'medida', 'fondo_tipo', 'fondo_color', 'fondo_color2', 'oscurecer', 'animacion', 'color_acento', 'color_texto', 'mostrar_logo', 'logo_fondo', 'velacion_pos', 'velacion_x', 'velacion_y', 'mostrar_memoria', 'libre', 'titulo', 'frase', 'pie', 'pie_mostrar', 'pie_nombre', 'pie_modo', 'pie_eslogan', 'adornos', 'cita', 'base', 'flores', 'anim_op', 'mover'];
 
-    protected $casts = ['libre' => 'array', 'mostrar_logo' => 'boolean', 'pie_mostrar' => 'boolean', 'oscurecer' => 'integer', 'flores' => 'array', 'anim_op' => 'array', 'mover' => 'array'];
+    protected $casts = ['libre' => 'array', 'mostrar_logo' => 'boolean', 'mostrar_memoria' => 'boolean', 'pie_mostrar' => 'boolean', 'oscurecer' => 'integer', 'flores' => 'array', 'anim_op' => 'array', 'mover' => 'array'];
 
     // Diseños: [nombre, descripción, acento, texto, fondo para la miniatura]
     public const DISENOS = [
@@ -220,10 +220,10 @@ class ObituarioPlantilla extends Model
     }
 
     // Dónde sale el lugar de velación en la tarjeta
-    public const VELACION_POS = ['foto' => 'Sobre la foto (etiqueta)', 'debajo' => 'Debajo de la foto', 'datos' => 'Con los datos (fecha, hora…)'];
+    public const VELACION_POS = ['datos' => 'Debajo de las exequias (fecha, hora, lugar)', 'foto' => 'Sobre la foto (etiqueta)', 'debajo' => 'Debajo de la foto', 'oculto' => 'No mostrarlo'];
 
     // Lo que se copia a las demás plantillas al marcar "usar en todas": logo y textos, no el diseño
-    public const COMPARTIDOS = ['mostrar_logo', 'logo_fondo', 'velacion_pos', 'velacion_x', 'velacion_y', 'titulo', 'pie_modo', 'pie_mostrar', 'pie', 'pie_nombre', 'pie_eslogan'];
+    public const COMPARTIDOS = ['mostrar_logo', 'mostrar_memoria', 'logo_fondo', 'velacion_pos', 'velacion_x', 'velacion_y', 'titulo', 'pie_modo', 'pie_mostrar', 'pie', 'pie_nombre', 'pie_eslogan'];
 
     // Pie de la tarjeta: qué se muestra debajo del nombre
     public const PIE_MODOS = ['frase' => 'Solo la frase', 'eslogan' => 'Solo el eslogan', 'ambos' => 'Frase y eslogan', 'ninguno' => 'Quitar el pie'];

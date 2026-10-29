@@ -388,7 +388,8 @@ class obituariosController extends Controller
         if (!$request->boolean('colores_propios')) { $datos['color_acento'] = null; $datos['color_texto'] = null; }
         $datos['mostrar_logo'] = $request->boolean('mostrar_logo');
         $datos['logo_fondo'] = $datos['logo_fondo'] ?? 'sin';
-        $datos['velacion_pos'] = $datos['velacion_pos'] ?? 'foto';
+        $datos['velacion_pos'] = $datos['velacion_pos'] ?? 'datos';
+        $datos['mostrar_memoria'] = $request->boolean('mostrar_memoria');
         $datos['velacion_x'] = (int) ($datos['velacion_x'] ?? 0);
         $datos['velacion_y'] = (int) ($datos['velacion_y'] ?? 0);
         // Posiciones a mano (diseño "Ninguna"): si no llegan, se dejan como estaban

@@ -173,11 +173,15 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
                         <input class="form-check-input" type="checkbox" name="mostrar_logo" value="1" id="pf-logo" @checked(old('mostrar_logo', $plantilla->mostrar_logo))>
                         <label class="form-check-label" for="pf-logo">Mostrar logo y nombre de la funeraria</label>
                     </div>
+                    <div class="form-check form-switch mt-2">
+                        <input class="form-check-input" type="checkbox" name="mostrar_memoria" value="1" id="pf-memoria" @checked(old('mostrar_memoria', $plantilla->mostrar_memoria))>
+                        <label class="form-check-label" for="pf-memoria">Mostrar "En memoria de" + nombre debajo de la foto <span class="text-muted">(el nombre ya sale arriba)</span></label>
+                    </div>
                     <div class="mt-2" style="max-width:340px"><label class="form-label small fw-bold">Fondo del logo</label>
                         <select class="form-select" name="logo_fondo">@foreach ($P::LOGO_FONDOS as $k => $t)<option value="{{ $k }}" @selected(old('logo_fondo', $plantilla->logo_fondo ?: 'sin') === $k)>{{ $t }}</option>@endforeach</select>
                         <div class="pf-ayuda mt-1">Si sube el logo en PNG sin fondo, elija "Sin fondo": se ve tal cual sobre la tarjeta.</div></div>
                     <div class="mt-3"><label class="form-label small fw-bold">Dónde sale el lugar de velación <span class="text-muted fw-normal">(ej: "Sala 2")</span></label>
-                        <select class="form-select" name="velacion_pos" style="max-width:340px">@foreach ($P::VELACION_POS as $k => $t)<option value="{{ $k }}" @selected(old('velacion_pos', $plantilla->velacion_pos ?: 'foto') === $k)>{{ $t }}</option>@endforeach</select>
+                        <select class="form-select" name="velacion_pos" style="max-width:340px">@foreach ($P::VELACION_POS as $k => $t)<option value="{{ $k }}" @selected(old('velacion_pos', $plantilla->velacion_pos ?: 'datos') === $k)>{{ $t }}</option>@endforeach</select>
                         <div class="pf-rango"><label for="pf-vx">Mover ← →</label><input type="range" class="form-range" id="pf-vx" name="velacion_x" min="-400" max="400" step="1" value="{{ old('velacion_x', (int) $plantilla->velacion_x) }}"><output data-de="pf-vx"></output></div>
                         <div class="pf-rango"><label for="pf-vy">Mover ↑ ↓</label><input type="range" class="form-range" id="pf-vy" name="velacion_y" min="-400" max="400" step="1" value="{{ old('velacion_y', (int) $plantilla->velacion_y) }}"><output data-de="pf-vy"></output></div>
                         <div class="pf-ayuda mt-1"><i class="fa-solid fa-hand-pointer"></i> También puede <b>arrastrarlo</b> con el dedo o el mouse en la vista previa (el recuadro verde punteado).</div>
@@ -299,8 +303,9 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
             logo: f.mostrar_logo.checked, logo_fondo: f.logo_fondo.value, titulo: f.titulo.value, frase: '', pie: '', cita: f.cita.value, tarjeta: TARJETAS.indexOf(val('diseno')) !== -1
         });
         // Lugar de velación: dónde sale y cuánto se movió
-        ['vel-foto', 'vel-debajo', 'vel-datos'].forEach(function (c) { el.classList.remove(c); });
-        el.classList.add('vel-' + (f.velacion_pos.value || 'foto'));
+        ['vel-foto', 'vel-debajo', 'vel-datos', 'vel-oculto'].forEach(function (c) { el.classList.remove(c); });
+        el.classList.add('vel-' + (f.velacion_pos.value || 'datos'));
+        el.classList.toggle('sin-memoria', !f.mostrar_memoria.checked);
         el.style.setProperty('--vx', (+f.velacion_x.value || 0) + 'px'); el.style.setProperty('--vy', (+f.velacion_y.value || 0) + 'px'); Obi.encajar(el);
         el.classList.toggle('vel-movido', !!(+f.velacion_x.value || +f.velacion_y.value));
         el.classList.toggle('mueve-vel', val('diseno') !== 'ninguno');
