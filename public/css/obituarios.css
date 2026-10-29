@@ -526,3 +526,5 @@ body.sin-cursor,body.sin-cursor *{cursor:none!important}
 
 /* "En memoria de" debajo de la foto: solo si la plantilla lo pide */
 .obi.sin-memoria .obi-memoria{display:none!important}
+/* El título del lugar de velación va en negrilla y en la misma línea que los demás títulos (Fecha:, Lugar:…) */
+.ot-it b span{display:inline;font:inherit;color:inherit}

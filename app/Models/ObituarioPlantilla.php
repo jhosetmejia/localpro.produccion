@@ -234,11 +234,12 @@ class ObituarioPlantilla extends Model
         $modo = isset(self::PIE_MODOS[$this->pie_modo]) ? $this->pie_modo : 'frase';
         if ($modo === 'ninguno') return null;
         $nombre = trim((string) $this->pie_nombre) !== '' ? $this->pie_nombre : $tienda?->nombre;
-        return [
-            'nombre' => $nombre,
-            'frase' => in_array($modo, ['frase', 'ambos'], true) ? ($this->pie ?: null) : null,
-            'eslogan' => in_array($modo, ['eslogan', 'ambos'], true) ? ($this->pie_eslogan ?: null) : null,
-        ];
+        $frase = in_array($modo, ['frase', 'ambos'], true) ? (trim((string) $this->pie) ?: null) : null;
+        $eslogan = in_array($modo, ['eslogan', 'ambos'], true) ? (trim((string) $this->pie_eslogan) ?: null) : null;
+        // Si la frase y el eslogan dicen lo mismo, sale una sola vez
+        $igual = fn ($t) => mb_strtolower(preg_replace('/\W+/u', '', (string) $t));
+        if ($frase && $eslogan && $igual($frase) === $igual($eslogan)) $frase = null;
+        return ['nombre' => $nombre, 'frase' => $frase, 'eslogan' => $eslogan];
     }
 
     public function getEsTarjetaAttribute(): bool

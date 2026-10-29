@@ -314,7 +314,9 @@ input[type=color]{width:48px;height:38px;padding:2px;border-radius:10px}
         document.querySelectorAll('[data-pie-campo]').forEach(function (c) { var k = c.dataset.pieCampo; c.hidden = k === 'nombre' ? !conPie : k === 'frase' ? !conFrase : !conEsl; });
         el.querySelectorAll('[data-fila="pie_bloque"]').forEach(function (n) { n.hidden = !conPie; });
         el.querySelectorAll('[data-o="pie_nombre"]').forEach(function (n) { var t = f.pie_nombre.value.trim() || n.dataset.defecto || ''; n.textContent = t; n.hidden = !conPie || !t; });
-        el.querySelectorAll('[data-o="pie"]').forEach(function (n) { var t = conFrase ? f.pie.value.trim() : ''; n.textContent = t; n.hidden = !t; });
+        var limpio = function (t) { return t.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ''); };
+        var repetida = conFrase && conEsl && f.pie.value.trim() && limpio(f.pie.value) === limpio(f.pie_eslogan.value); // misma frase y eslogan: sale una vez
+        el.querySelectorAll('[data-o="pie"]').forEach(function (n) { var t = conFrase && !repetida ? f.pie.value.trim() : ''; n.textContent = t; n.hidden = !t; });
         el.querySelectorAll('[data-o="pie_eslogan"]').forEach(function (n) { var t = conEsl ? f.pie_eslogan.value.trim() : ''; n.textContent = t; n.hidden = !t; });
         if (window.pintarLibre) pintarLibre();
         if (window.pintarMover) pintarMover();
