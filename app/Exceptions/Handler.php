@@ -49,7 +49,12 @@ class Handler extends ExceptionHandler
 
         // 419 "La página expiró": pasa cuando el formulario se abrió antes de cerrar sesión, de una actualización
         // o hace mucho rato. En vez de la pantalla de error, se vuelve al formulario con un token nuevo para reintentar.
-        $this->renderable(function (\Illuminate\Session\TokenMismatchException $e, $request) {
+        // Ojo: Laravel convierte TokenMismatchException en HttpException(419) ANTES de llamar a estos callbacks,
+        // por eso se atrapa la HttpException con código 419 (si se pide el tipo TokenMismatchException nunca entra).
+        $this->renderable(function (\Symfony\Component\HttpKernel\Exception\HttpException $e, $request) {
+            if ($e->getStatusCode() !== 419) {
+                return null;
+            }
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'La página expiró. Recargue e intente de nuevo.'], 419);
             }
