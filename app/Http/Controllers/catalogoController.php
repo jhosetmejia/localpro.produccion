@@ -193,6 +193,17 @@ class catalogoController extends Controller
     {
         $tienda = $this->tienda($slug);
         $this->contarVisita($tienda);
+        [$secciones, $total] = $this->seccionesCarta($tienda);
+
+        // ?tema=fresca deja ver otro diseño (para que el dueño compare antes de elegir)
+        $tema = isset(Tienda::CARTA_TEMAS[$request->query('tema')]) ? $request->query('tema') : $tienda->carta_tema_actual;
+
+        return view('catalogo.carta', compact('tienda', 'secciones', 'tema') + ['total' => $total]);
+    }
+
+    // Productos de la carta agrupados por categoría (los desactivados salen como "agotado por hoy")
+    private function seccionesCarta(Tienda $tienda): array
+    {
         $productos = Producto::with(['variantes' => fn ($q) => $q->where('estado', 1)->orderBy('talla')->orderBy('color'), 'categorias.caracteristica', 'fotos'])
             ->where('productos.estado', 1)->get()
             ->map(fn ($p) => $this->datos($tienda, $p))
@@ -206,11 +217,37 @@ class catalogoController extends Controller
         $secciones = [];
         foreach ($productos as $p) $secciones[($p['categorias'] ?: ['Otros'])[0]][] = $p;
         uksort($secciones, fn ($a, $b) => ($a === 'Otros') <=> ($b === 'Otros') ?: count($secciones[$b]) <=> count($secciones[$a]));
+        return [$secciones, $productos->count()];
+    }
 
-        // ?tema=fresca deja ver otro diseño (para que el dueño compare antes de elegir)
-        $tema = isset(Tienda::CARTA_TEMAS[$request->query('tema')]) ? $request->query('tema') : $tienda->carta_tema_actual;
+    // Carta para imprimir y compartir: 3 plantillas tamaño hoja, descarga en PDF y JPG, con QR a la carta en línea
+    public const PLANTILLAS_CARTA = [
+        'clasica' => ['Clásica', 'Papel crema, letra elegante y puntos hasta el precio'],
+        'pizarra' => ['Pizarra', 'Tablero de tiza con marco de madera'],
+        'moderna' => ['Moderna con fotos', 'Fotos de cada plato y precios destacados'],
+    ];
 
-        return view('catalogo.carta', compact('tienda', 'secciones', 'tema') + ['total' => $productos->count()]);
+    public function cartaImprimir(Request $request, string $slug)
+    {
+        $tienda = $this->tienda($slug);
+        [$secciones] = $this->seccionesCarta($tienda);
+        $plantilla = isset(self::PLANTILLAS_CARTA[$request->query('plantilla')]) ? $request->query('plantilla') : 'clasica';
+        // Rutas de las fotos dentro del mismo dominio (para poder dibujarlas en el PDF/JPG)
+        $ruta = fn ($u) => $u ? ((parse_url($u, PHP_URL_PATH) ?: '') . (($q = parse_url($u, PHP_URL_QUERY)) ? '?' . $q : '')) : null;
+        $datos = [];
+        foreach ($secciones as $nombre => $items) {
+            $datos[] = ['nombre' => $nombre, 'items' => array_map(fn ($p) => [
+                'nombre' => $p['nombre'],
+                'desc' => $p['descripcion'] ? \Illuminate\Support\Str::limit(strip_tags($p['descripcion']), 110) : null,
+                'precio' => ($p['desde'] ? 'Desde ' : '') . dinero($p['desde'] ?? $p['precio']) . ($p['unidad'] ? ' / ' . $p['unidad'] : ''),
+                'img' => $ruta($p['img']),
+            ], $items)];
+        }
+        return view('catalogo.carta-imprimir', [
+            'tienda' => $tienda, 'secciones' => $datos, 'plantilla' => $plantilla,
+            'logo' => $ruta($tienda->logo_url),
+            'accion' => in_array($request->query('accion'), ['pdf', 'jpg'], true) ? $request->query('accion') : null,
+        ]);
     }
 
     public function producto(string $slug, string $producto)

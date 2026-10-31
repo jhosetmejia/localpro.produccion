@@ -391,6 +391,14 @@
                 </a>@endif
                 @endif
                 @endcanany
+                @can('editar-negocio')
+                @if ($tiendaMenu && $tiendaMenu->usa_carta && \Illuminate\Support\Facades\Route::has('carta.index'))
+                <a class="nav-link {{ $on('carta.*') }}" href="{{ route('carta.index') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-utensils"></i></div>
+                    Mi carta <span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c;font-size:.6rem">NUEVO</span>
+                </a>
+                @endif
+                @endcan
                 @if ($tiendaMenu && $tiendaMenu->catalogo_activo && $tiendaMenu->slug)
                 @if ($ver('catalogo'))<a class="nav-link" href="{{ $tiendaMenu->url_catalogo_navegador }}" data-app-href="{{ $tiendaMenu->url_catalogo }}" target="_blank" rel="noopener">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-globe"></i></div>

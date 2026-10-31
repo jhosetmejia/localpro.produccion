@@ -77,6 +77,7 @@
                     @endforeach
                 </div>
                 <a class="btn btn-dark w-100 mt-2" target="_blank" rel="noopener" href="{{ $negocio->url_carta_navegador }}"><i class="fa-solid fa-utensils me-1"></i>Ver mi carta virtual</a>
+                <a class="btn btn-light w-100 mt-2" href="{{ route('carta.index') }}"><i class="fa-solid fa-print me-1"></i>Carta para imprimir (PDF y JPG)</a>
                 <input class="form-control mt-2 text-center small" value="{{ $negocio->url_carta }}" readonly onclick="this.select()">
             </div>
             @endif
