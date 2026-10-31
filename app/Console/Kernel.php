@@ -17,6 +17,8 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
         $schedule->command('wompi:conciliar')->everyTenMinutes()->withoutOverlapping();
+        // Vigilante de errores: si alguien recibe un error, le llega un correo al súper administrador
+        $schedule->command('localpro:vigilar-errores')->everyFiveMinutes()->withoutOverlapping();
         $schedule->command('redes:publicar-programadas')->everyMinute()->withoutOverlapping();
         // Plan B de mensajes: revisa chats nuevos aunque los avisos en tiempo real de Meta no lleguen
         $schedule->command('redes:sincronizar --limite=10')->everyTwoMinutes()->withoutOverlapping(10)->runInBackground();

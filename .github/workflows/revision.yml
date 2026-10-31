@@ -1,0 +1,53 @@
+# Revisión automática en cada envío a staging o master: código PHP válido y todas las plantillas Blade compilan a PHP válido.
+# Si falla, GitHub avisa por correo y se ve en rojo en el repositorio.
+name: Revisión antes de publicar
+
+on:
+  push:
+    branches: [master, staging]
+  pull_request:
+
+jobs:
+  revisar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, gd, intl, zip, pdo_sqlite, bcmath
+          coverage: none
+
+      - name: Código PHP válido
+        run: |
+          fallas=0
+          for f in $(git ls-files '*.php' | grep -v '^vendor/'); do
+            php -l "$f" > /dev/null || { echo "Error en $f"; fallas=1; }
+          done
+          exit $fallas
+
+      - name: Dependencias
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
+      - name: Entorno de prueba
+        run: |
+          printf "APP_NAME=LocalProo\nAPP_ENV=testing\nAPP_KEY=\nAPP_DEBUG=true\nAPP_URL=https://localproo.com\nDB_CONNECTION=sqlite\nDB_DATABASE=$(pwd)/database/ci.sqlite\nCACHE_DRIVER=array\nCACHE_STORE=array\nSESSION_DRIVER=array\nQUEUE_CONNECTION=sync\nMAIL_MAILER=array\n" > .env
+          touch database/ci.sqlite
+          php artisan key:generate --force
+          composer dump-autoload -o --no-scripts
+          php artisan package:discover
+
+      - name: Plantillas Blade compilan a PHP válido
+        run: |
+          php artisan view:clear
+          php artisan view:cache
+          fallas=0
+          for f in storage/framework/views/*.php; do
+            php -l "$f" > /dev/null || { echo "Plantilla compilada con error: $f"; head -c 300 "$f"; echo; fallas=1; }
+          done
+          exit $fallas
+
+      - name: Rutas cargan
+        run: php artisan route:list > /dev/null

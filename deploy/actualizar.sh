@@ -113,6 +113,12 @@ fi
 run $PHP artisan optimize:clear
 run $PHP artisan config:cache || restaurar
 run $PHP artisan view:cache || restaurar
+# Prueba de humo: plantillas compiladas válidas y páginas principales (públicas, panel y administración) sin error 500.
+# Si algo falla, se devuelve sola a la versión anterior antes de que lo vea un usuario.
+if run $PHP artisan list --raw 2>/dev/null | grep -q '^localpro:prueba-humo'; then
+  echo "    Probando las páginas principales..."
+  run $PHP artisan localpro:prueba-humo || { echo "!! La prueba de humo encontró errores."; restaurar; }
+fi
 
 # Respaldo diario automático (3:15 a. m.) y correo sin servidor configurado
 if [ "$PRUEBAS" = 0 ]; then
