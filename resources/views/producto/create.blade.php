@@ -68,6 +68,12 @@
                 <button type="button" data-t="1" class="{{ $esServ ? 'on' : '' }}"><i class="fa-solid fa-hand-holding-heart"></i><b>Servicio</b><small>No se acaba: siempre disponible, sin stock</small></button>
             </div>
             @endif
+            @if (\App\Support\TiendaActual::tienda()?->mod_alquiler)
+            <div class="form-check mb-3 p-2 ps-5" style="background:#eefbf2;border-radius:12px">
+                <input class="form-check-input" type="checkbox" name="se_alquila" value="1" id="seAlquila" @checked(old('se_alquila', false))>
+                <label class="form-check-label fw-semibold" for="seAlquila"><i class="fa-solid fa-calendar-check me-1" style="color:#16a34a"></i>Este producto es para alquilar <small class="d-block text-muted fw-normal">Sale en Cotizaciones → ¿Qué tengo libre?. Lo que solo vende, déjelo sin marcar.</small></label>
+            </div>
+            @endif
             <div class="row g-3">
                 <div class="col-12">
                     <label for="nombre" class="form-label">Nombre del <span data-tn>{{ $esServ ? 'servicio' : 'producto' }}</span></label>

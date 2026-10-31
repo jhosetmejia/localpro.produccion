@@ -195,7 +195,9 @@ class cotizacionController extends Controller
         $hasta = $request->date('hasta') ?? $desde;
         if ($hasta->lt($desde)) $hasta = $desde->copy();
         $q = trim((string) $request->get('q'));
+        // Solo lo que se alquila (lo que solo se vende no sale aquí)
         $ids = Producto::where('estado', 1)->where('controla_inventario', 1)
+            ->when((bool) TiendaActual::tienda()?->mod_alquiler, fn ($w) => $w->where('se_alquila', true))
             ->when($q !== '', fn ($w) => $w->where('nombre', 'like', "%$q%"))
             ->orderBy('nombre')->limit(300)->pluck('id')->all();
         $disp = collect(Disponibilidad::productos($ids, $desde, $hasta));

@@ -61,8 +61,8 @@
         </div>
         @empty
         <div class="text-center text-muted py-4">
-            <p class="fw-semibold mb-1">No hay productos con cantidad para mostrar.</p>
-            <small>La disponibilidad sale de los productos que llevan cantidad (lo que tiene para alquilar). Cree sus productos con la cantidad que tiene de cada uno.</small>
+            <p class="fw-semibold mb-1">Todavía no tiene productos para alquilar.</p>
+            <small>Aquí solo salen los productos marcados como <b>"Este producto es para alquilar"</b> (lo que solo vende no sale). Créelos o edítelos en <a href="{{ route('productos.index') }}">Productos</a> con la cantidad que tiene de cada uno.</small>
         </div>
         @endforelse
     </div>

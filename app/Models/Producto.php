@@ -23,6 +23,7 @@ class Producto extends Model
         'precio_costo',
         'controla_inventario',
         'es_servicio',
+        'se_alquila',
         'descripcion',
         'fecha_vencimiento',
         'marca_id',
