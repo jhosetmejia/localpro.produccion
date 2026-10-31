@@ -68,6 +68,7 @@ button{font:inherit;border:0;background:none;cursor:pointer;color:inherit}
 .moda .card .ph{aspect-ratio:3/4}
 .card .tag{position:absolute;left:10px;top:10px;background:#fff;border-radius:999px;padding:.2rem .6rem;font-size:.7rem;font-weight:800;box-shadow:0 4px 10px -6px rgba(0,0,0,.4)}
 .card .tag.agot{background:#b0206a;color:#fff}
+.card .tag-alq{position:absolute;left:10px;bottom:10px;background:#14753a;color:#fff;border-radius:999px;padding:.22rem .6rem;font-size:.72rem;font-weight:800;box-shadow:0 4px 10px -6px rgba(0,0,0,.5)}
 .card .tag-promo{position:absolute;right:10px;top:10px;background:#e11d48;color:#fff;border-radius:999px;padding:.22rem .6rem;font-size:.75rem;font-weight:900;box-shadow:0 4px 10px -6px rgba(0,0,0,.5)}
 /* Lápiz para editar (solo lo ve el dueño de la tienda con sesión iniciada) */
 .card .b.con-edit{position:relative}
@@ -393,7 +394,7 @@ window.LPC = (function () {
         comprar: function (p, v, cant) {
             if (!WA) { toast('Esta tienda aún no tiene WhatsApp'); return; }
             cant = cant || 1;
-            var msg = '¡Hola ' + TIENDA + '! Quiero este producto:\n\n' +
+            var msg = '¡Hola ' + TIENDA + '! ' + (p.alquiler ? 'Quiero alquilar este producto (¿lo tienen libre para mi fecha?):' : 'Quiero este producto:') + '\n\n' +
                 '*' + p.nombre + '*\n' +
                 (p.codigo ? 'Código: ' + p.codigo + '\n' : '') +
                 (v && p.variantes.length > 1 ? 'Opción: ' + v.etiqueta + '\n' : '') +

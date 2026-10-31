@@ -155,6 +155,9 @@ class ProductoController extends Controller
 
         $msg = ($producto->es_servicio ? 'Servicio "' : 'Producto "') . $producto->nombre . '" guardado y listo para vender'
             . ($controla ? ' (' . ($producto->es_fraccion ? cantidad($total, $producto->unidad) : $total . ' ' . ($total == 1 ? 'unidad' : 'unidades')) . ')' : '') . '.';
+        if ($request->input('volver') === 'disponibilidad' && \Illuminate\Support\Facades\Route::has('cotizaciones.calendario')) {
+            return redirect()->route('cotizaciones.calendario')->with('success', $msg);
+        }
         return redirect()->route('productos.index')->with('success', $msg);
     }
 

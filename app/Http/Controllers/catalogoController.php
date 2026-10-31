@@ -78,6 +78,8 @@ class catalogoController extends Controller
             'unidad' => $p->es_fraccion ? $p->unidad_corta : null,
             'descripcion' => $p->descripcion,
             'precio' => (float) $p->precio_venta,
+            // Producto de alquiler: en la tienda sale como "Alquiler" y el botón dice Alquilar
+            'alquiler' => (bool) $p->se_alquila,
             // Promoción: precio antes tachado y % de descuento
             'antes' => $p->descuento ? (float) $p->precio_antes : null,
             'descuento' => $p->descuento,

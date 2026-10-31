@@ -51,7 +51,7 @@
 @endphp
 <div class="lp-dash" style="max-width:760px;margin:0 auto">
     <div class="lp-hello">
-        <div><small><a href="{{ route('productos.index') }}" class="text-decoration-none" style="color:inherit"><i class="fa-solid fa-arrow-left me-1"></i>Productos</a></small><h1>Nuevo <span id="tTit">{{ $esServ ? 'servicio' : 'producto' }}</span></h1></div>
+        <div><small><a href="{{ route('productos.index') }}" class="text-decoration-none" style="color:inherit"><i class="fa-solid fa-arrow-left me-1"></i>Productos</a></small><h1>Nuevo <span id="tTit">{{ $esServ ? 'servicio' : 'producto' }}</span>@if (request('alquiler') == '1') para alquilar@endif</h1></div>
     </div>
     @include('layouts.partials.lp-flash')
 
@@ -70,7 +70,8 @@
             @endif
             @if (\App\Support\TiendaActual::tienda()?->mod_alquiler)
             <div class="form-check mb-3 p-2 ps-5" style="background:#eefbf2;border-radius:12px">
-                <input class="form-check-input" type="checkbox" name="se_alquila" value="1" id="seAlquila" @checked(old('se_alquila', false))>
+                <input class="form-check-input" type="checkbox" name="se_alquila" value="1" id="seAlquila" @checked(old('se_alquila', request('alquiler') == '1'))>
+                @if (request('alquiler') == '1')<input type="hidden" name="volver" value="disponibilidad">@endif
                 <label class="form-check-label fw-semibold" for="seAlquila"><i class="fa-solid fa-calendar-check me-1" style="color:#16a34a"></i>Este producto es para alquilar <small class="d-block text-muted fw-normal">Sale en Cotizaciones → ¿Qué tengo libre?. Lo que solo vende, déjelo sin marcar.</small></label>
             </div>
             @endif

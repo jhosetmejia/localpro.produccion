@@ -21,7 +21,7 @@
     <div class="lp-hello">
         <div><small><i class="fa-solid fa-calendar-check me-1"></i>Cotizaciones</small><h1>¿Qué tengo <span>libre?</span></h1>
             <span class="text-muted fw-semibold">Del {{ $desde->format('d/m/Y') }}@if ($hasta->gt($desde)) al {{ $hasta->format('d/m/Y') }}@endif: lo que tiene, lo ocupado por cotizaciones aceptadas y lo que queda libre.</span></div>
-        <div class="lp-quick"><a href="{{ route('cotizaciones.create') }}" class="btn btn-primary btn-lg"><i class="fa-solid fa-plus me-1"></i>Nueva cotización</a></div>
+        <div class="lp-quick d-flex flex-wrap gap-2"><a href="{{ route('productos.create', ['alquiler' => 1]) }}" class="btn btn-outline-success btn-lg"><i class="fa-solid fa-calendar-plus me-1"></i>Nuevo producto para alquilar</a><a href="{{ route('cotizaciones.create') }}" class="btn btn-primary btn-lg"><i class="fa-solid fa-plus me-1"></i>Nueva cotización</a></div>
     </div>
     @include('layouts.partials.lp-flash')
 
@@ -62,7 +62,7 @@
         @empty
         <div class="text-center text-muted py-4">
             <p class="fw-semibold mb-1">Todavía no tiene productos para alquilar.</p>
-            <small>Aquí solo salen los productos marcados como <b>"Este producto es para alquilar"</b> (lo que solo vende no sale). Créelos o edítelos en <a href="{{ route('productos.index') }}">Productos</a> con la cantidad que tiene de cada uno.</small>
+            <small>Aquí solo salen los productos marcados como <b>"Este producto es para alquilar"</b> (lo que solo vende no sale). Cree el primero con <a href="{{ route('productos.create', ['alquiler' => 1]) }}">Nuevo producto para alquilar</a> o marque los que ya tiene en <a href="{{ route('productos.index') }}">Productos</a>.</small>
         </div>
         @endforelse
     </div>
