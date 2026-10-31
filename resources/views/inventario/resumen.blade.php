@@ -30,6 +30,21 @@ a.inv-row:hover .inv-nom{color:var(--lp-green-2)}
 .inv-talla .u{font-size:1.5rem;font-weight:900;color:var(--lp-green-2);line-height:1.1}
 .inv-talla small{display:block;color:var(--lp-muted);font-weight:700;font-size:.7rem}
 .inv-talla.cero{opacity:.55}.inv-talla.cero .u{color:#b0173f}
+a.inv-talla{display:block;color:inherit;text-decoration:none;cursor:pointer;transition:.15s}
+a.inv-talla:hover{border-color:#bfeccb;background:#fff;transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.06)}
+a.inv-talla .ver{display:block;margin-top:.25rem;font-size:.68rem;font-weight:800;color:var(--lp-green-2)}
+a.inv-talla.on{background:var(--lp-black);border-color:var(--lp-black);color:#fff;opacity:1}
+a.inv-talla.on .u{color:var(--lp-lime)}a.inv-talla.on small{color:#a8b3ab}a.inv-talla.on .ver{color:var(--lp-lime)}
+.inv-det{margin-top:1rem;border-top:1.5px solid var(--lp-line);padding-top:1rem}
+.inv-det-head{display:flex;justify-content:space-between;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.4rem}
+.inv-det-head b{font-size:1rem;font-weight:900}
+.inv-prod{display:grid;grid-template-columns:1fr auto;gap:.8rem;align-items:center;padding:.6rem 0;border-bottom:1px dashed #edf2ee}
+.inv-prod:last-child{border-bottom:0}
+.inv-prod a{color:inherit;text-decoration:none;font-weight:800;font-size:.92rem}
+.inv-prod a:hover{color:var(--lp-green-2)}
+.inv-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:.3rem}
+.inv-chips span{background:#f1f6f2;border-radius:999px;padding:.12rem .55rem;font-size:.72rem;font-weight:700;color:var(--lp-ink)}
+.inv-chips span.neg{background:#fde8ec;color:#b0173f}
 .inv-cta{display:flex;align-items:center;gap:1rem;justify-content:space-between;flex-wrap:wrap;background:linear-gradient(135deg,#0b0d0c,#1d2a21);color:#fff;border-radius:24px;padding:1.1rem 1.3rem;margin-bottom:1rem}
 .inv-cta b{font-size:1.05rem}.inv-cta p{margin:.15rem 0 0;color:#b8c4bc;font-size:.88rem}
 @media (max-width:991px){.inv-top{grid-template-columns:repeat(2,1fr)}.inv-top .inv-kpi.dark{grid-column:1/-1}.inv-grid{grid-template-columns:1fr}}
@@ -89,17 +104,41 @@ a.inv-row:hover .inv-nom{color:var(--lp-green-2)}
 
     <div class="inv-grid">
         <div class="lp-box full">
-            <h3>Por talla <small class="text-muted fw-bold" style="font-size:.78rem">{{ $catNombre ?: 'todas las categorías' }}</small></h3>
+            <h3 id="tallas">Por talla <small class="text-muted fw-bold" style="font-size:.78rem">{{ $catNombre ?: 'todas las categorías' }} · toque una para ver cuáles son</small></h3>
             @if (count($porTalla))
             <div class="inv-tallas">
                 @foreach ($porTalla as $t => $x)
-                <div class="inv-talla {{ $x['unidades'] <= 0 ? 'cero' : '' }}">
+                @php $on = $talla === $t; @endphp
+                <a href="{{ $on ? route('inventario.resumen', array_filter(['categoria' => $catId])) : route('inventario.resumen', array_filter(['categoria' => $catId, 'talla' => $t])) }}#tallas" class="inv-talla {{ $x['unidades'] <= 0 ? 'cero' : '' }} {{ $on ? 'on' : '' }}">
                     <div class="t">{{ $t === 'SIN TALLA' ? 'Sin talla' : $t }}</div>
                     <div class="u">{{ $u($x['unidades']) }}</div>
                     <small>{{ $x['productos'] }} producto{{ $x['productos'] == 1 ? '' : 's' }}</small>
+                    <span class="ver">{{ $on ? 'Ocultar ▲' : 'Ver cuáles ▼' }}</span>
+                </a>
+                @endforeach
+            </div>
+
+            @if ($talla)
+            <div class="inv-det">
+                <div class="inv-det-head">
+                    <b>Talla {{ $talla === 'SIN TALLA' ? 'sin talla' : $talla }} · {{ $u($porTalla[$talla]['unidades']) }} prenda{{ $porTalla[$talla]['unidades'] == 1 ? '' : 's' }} en {{ $detalleTalla->count() }} producto{{ $detalleTalla->count() == 1 ? '' : 's' }}</b>
+                    <a href="{{ route('inventario.resumen', array_filter(['categoria' => $catId])) }}#tallas" class="text-danger fw-bold text-decoration-none small">✕ Cerrar</a>
+                </div>
+                @foreach ($detalleTalla as $p)
+                <div class="inv-prod">
+                    <div>
+                        <a href="{{ route('productos.edit', ['producto' => $p['id']]) }}">{{ $p['nombre'] }}</a>
+                        <div class="inv-chips">
+                            @foreach ($p['colores'] as $c)
+                            <span class="{{ $c['stock'] < 0 ? 'neg' : '' }}">{{ $c['color'] }}: {{ $u($c['stock']) }}</span>
+                            @endforeach
+                        </div>
+                    </div>
+                    <div class="inv-num">{{ $u($p['unidades']) }}<small>{{ dinero($p['venta']) }}</small></div>
                 </div>
                 @endforeach
             </div>
+            @endif
             @else<div class="lp-empty">No hay prendas con inventario.</div>@endif
         </div>
 

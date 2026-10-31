@@ -106,9 +106,28 @@ class inventarioConteoController extends Controller
             'negativos' => $filas->filter(fn ($f) => (float) $f->stock < 0)->count(),
         ];
 
+        // Al tocar una talla: lista de productos (con color y cantidad) que tienen esa talla
+        $talla = mb_strtoupper(trim((string) $request->get('talla')));
+        if ($talla === '' || !isset($porTalla[$talla])) $talla = null;
+        $detalleTalla = collect();
+        if ($talla) {
+            $deTalla = $filas->filter(fn ($f) => (trim((string) $f->talla) !== '' ? mb_strtoupper(trim($f->talla)) : 'SIN TALLA') === $talla);
+            $nombres = DB::table('productos')->whereIn('id', $deTalla->pluck('pid')->unique())->pluck('nombre', 'id');
+            $detalleTalla = $deTalla->groupBy('pid')->map(fn ($g, $pid) => [
+                'id' => $pid,
+                'nombre' => $nombres[$pid] ?? 'Producto',
+                'unidades' => $g->sum(fn ($f) => max(0, (float) $f->stock)),
+                'venta' => $g->sum(fn ($f) => max(0, (float) $f->stock) * (float) $f->pv),
+                'colores' => $g->map(fn ($f) => [
+                    'color' => trim((string) $f->color) !== '' ? mb_convert_case(trim($f->color), MB_CASE_TITLE) : 'Sin color',
+                    'stock' => (float) $f->stock,
+                ])->sortByDesc('stock')->values()->all(),
+            ])->sortBy([['unidades', 'desc'], ['nombre', 'asc']])->values();
+        }
+
         $abierto = InventarioConteo::where('estado', 'abierto')->latest()->first();
 
-        return view('inventario.resumen', compact('categorias', 'catId', 'porTalla', 'porColor', 'porCategoria', 'total', 'abierto'));
+        return view('inventario.resumen', compact('categorias', 'catId', 'porTalla', 'porColor', 'porCategoria', 'total', 'abierto', 'talla', 'detalleTalla'));
     }
 
     public function index()
