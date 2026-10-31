@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -42,10 +42,17 @@ jobs:
       - name: Plantillas Blade compilan a PHP válido
         run: |
           php artisan view:clear
-          php artisan view:cache
+          if ! php artisan view:cache > vc.txt 2>&1; then
+            echo "::error title=view:cache falló::$(tail -c 900 vc.txt | tr '\n' ' ')"
+            exit 1
+          fi
           fallas=0
           for f in storage/framework/views/*.php; do
-            php -l "$f" > /dev/null || { echo "Plantilla compilada con error: $f"; head -c 300 "$f"; echo; fallas=1; }
+            if ! salida=$(php -l "$f" 2>&1); then
+              origen=$(grep -o 'PATH [^*]*' "$f" | head -1)
+              echo "::error title=Plantilla con error::${origen} -> $(echo "$salida" | tr '\n' ' ' | head -c 400)"
+              fallas=1
+            fi
           done
           exit $fallas
 
