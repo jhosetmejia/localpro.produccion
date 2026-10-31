@@ -11,7 +11,8 @@ img{max-width:100%}
   --display:'Unbounded',system-ui,sans-serif; --body:'Figtree',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   color-scheme:dark;
 }
-html,body{background:var(--bg);color:var(--fg)}
+html,body{background:var(--bg);color:var(--fg);overflow-x:hidden;max-width:100%}
+.app>*,.card>*{min-width:0}
 body{font-family:var(--body);font-size:16px;line-height:1.45;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 40px}
 .app{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
 header{display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -42,6 +43,9 @@ a.btn{text-decoration:none}
 .pick .tx{flex:1;min-width:0;font-size:.9rem}
 .pick .tx div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pick .tx small{color:var(--muted)}
+.pick{flex-wrap:wrap}
+.pick .tx{flex:1 1 150px}
+.pick .acc{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
 .pick button{flex:none}
 .mini{appearance:none;border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:10px;padding:7px 10px;font:600 .8rem var(--body);cursor:pointer}
 .stage{position:relative;border-radius:22px;overflow:hidden;background:#000;display:grid;place-items:center;max-height:62vh}

@@ -41,8 +41,10 @@
       <div class="pick">
         <div class="th" id="logo-th">◎</div>
         <div class="tx"><div id="logo-nom">Sin logo</div><small>PNG con fondo transparente queda mejor</small></div>
-        <button class="mini" id="logo-btn" type="button">Subir</button>
-        <button class="mini" id="logo-quitar" type="button" hidden>Quitar</button>
+        <div class="acc">
+          <button class="mini" id="logo-btn" type="button">Subir</button>
+          <button class="mini" id="logo-quitar" type="button" hidden>Quitar</button>
+        </div>
         <input type="file" id="in-logo" accept="image/*" class="sr" tabindex="-1">
       </div>
       <div class="listas">
@@ -52,9 +54,11 @@
       <div class="pick">
         <div class="th">♫</div>
         <div class="tx"><div id="musica-nom">Sin canción</div><small id="musica-sub">El video sale con la canción de fondo</small></div>
-        <button class="mini" id="musica-oir" type="button" hidden>▶ Oír</button>
-        <button class="mini" id="musica-btn" type="button">Subir</button>
-        <button class="mini" id="musica-quitar" type="button" hidden>Quitar</button>
+        <div class="acc">
+          <button class="mini" id="musica-oir" type="button" hidden>▶ Oír</button>
+          <button class="mini" id="musica-btn" type="button">Subir</button>
+          <button class="mini" id="musica-quitar" type="button" hidden>Quitar</button>
+        </div>
         <input type="file" id="in-musica" accept="audio/*" class="sr" tabindex="-1">
       </div>
       <div class="listas">
