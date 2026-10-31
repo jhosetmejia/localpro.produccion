@@ -103,8 +103,9 @@ class roleController extends Controller
 
             DB::commit();
         } catch (Exception $e) {
-            dd($e);
             DB::rollBack();
+            report($e);
+            return back()->withErrors('No se pudo guardar el rol. Intente de nuevo.');
         }
 
         return redirect()->route('roles.index')->with('success', 'rol editado');

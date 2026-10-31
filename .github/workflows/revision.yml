@@ -58,3 +58,20 @@ jobs:
 
       - name: Rutas cargan
         run: php artisan route:list > /dev/null
+
+      - name: Seguridad - paquetes con fallas conocidas (aviso)
+        continue-on-error: true
+        run: |
+          if ! composer audit --no-dev --format=plain > audit.txt 2>&1; then
+            echo "::warning title=Paquetes con fallas de seguridad::$(head -c 900 audit.txt | tr '\n' ' ')"
+          fi
+          cat audit.txt
+
+      - name: Seguridad - nada de claves ni archivos peligrosos en el repositorio
+        run: |
+          fallas=0
+          if git ls-files | grep -E '(^|/)\.env$|\.sql(\.gz)?$|id_rsa|\.pem$|\.key$' ; then echo "::error title=Archivo sensible en el repo::Hay .env, .sql o llaves en el repositorio"; fallas=1; fi
+          if git ls-files 'public/*' | grep -iE '\.(php[0-9]?|phtml|phar)$' | grep -vE '^public/index\.php$' ; then echo "::error title=PHP en public::Solo public/index.php puede ser PHP"; fallas=1; fi
+          if git grep -nE "(sk_live_[A-Za-z0-9]{10,}|pub_prod_[A-Za-z0-9]{10,}|prv_prod_[A-Za-z0-9]{10,}|AKIA[0-9A-Z]{16}|-----BEGIN (RSA |OPENSSH )?PRIVATE KEY)" -- ':!*.md' ':!.github/*' ; then echo "::error title=Clave en el código::Hay una clave escrita en el código"; fallas=1; fi
+          if git grep -nE "\b(dd|dump|var_dump|phpinfo)\(" -- 'app/*.php' 'routes/*.php' | grep -v '//' ; then echo "::error title=Depuración olvidada::Hay dd()/dump()/phpinfo() en el código"; fallas=1; fi
+          exit $fallas

@@ -17,6 +17,21 @@
     </div>
     @include('layouts.partials.lp-flash')
 
+    @unless ($negocio)
+    <div class="lp-box mb-3">
+        <h3><i class="fa-solid fa-key me-1"></i>Código del operador (videos pagados)</h3>
+        <p class="text-muted fw-semibold mb-2">Del tercer video en adelante, cada celular pide este código (uno por video). Cámbielo seguido: si alguien lo ve y lo comparte, el anterior deja de servir apenas lo cambie.</p>
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            <span class="badge text-bg-dark fs-5 px-3 py-2" style="letter-spacing:.05em">{{ \App\Http\Controllers\giro360Controller::codigoActual() }}</span>
+            <form method="post" action="{{ route('admin.giro360.codigo') }}" class="d-flex gap-2">@csrf
+                <input name="codigo" class="form-control" placeholder="Nuevo código" minlength="5" maxlength="30" required style="max-width:180px">
+                <button class="btn btn-dark">Cambiar</button>
+            </form>
+            <form method="post" action="{{ route('admin.giro360.codigo') }}">@csrf<input type="hidden" name="generar" value="1"><button class="btn btn-success"><i class="fa-solid fa-shuffle me-1"></i>Generar uno nuevo</button></form>
+        </div>
+    </div>
+    @endunless
+
     @if ($negocio)
     @php $misLogos = count(\App\Http\Controllers\giro360Controller::logosLista(true)); $misCanciones = count(\App\Http\Controllers\giro360Controller::cancionesLista(true)); @endphp
     <div class="lp-box mb-3">

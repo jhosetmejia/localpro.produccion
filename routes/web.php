@@ -64,9 +64,9 @@ Route::get('/alquiler', fn () => redirect()->route('registro', ['actividad' => '
 Route::get('/alquiler-360', fn () => redirect()->route('registro', ['actividad' => 'alquila', 'plataforma' => '360', 'desde' => request('desde', 'alquiler-360')]))->name('registro.360');
 Route::get('/contadores', fn () => redirect()->route('registro', ['tipo' => 'contable'] + request()->only('desde')))->name('registro.contadores');
 Route::get('/contadores/{codigo}', [registroController::class, 'referidoContador'])->where('codigo', '[A-Za-z0-9\-]+')->name('registro.contadores.asesor');
-Route::post('/registro', [registroController::class, 'store'])->middleware('throttle:5,1');
+Route::post('/registro', [registroController::class, 'store'])->middleware(['throttle:5,1', 'antibot']);
 Route::get('/recuperar', [recuperarController::class, 'formulario'])->name('password.request');
-Route::post('/recuperar', [recuperarController::class, 'enviar'])->middleware('throttle:5,1')->name('password.email');
+Route::post('/recuperar', [recuperarController::class, 'enviar'])->middleware(['throttle:5,1', 'antibot'])->name('password.email');
 Route::get('/recuperar/codigo', [recuperarController::class, 'formularioCodigo'])->name('password.codigo');
 Route::post('/recuperar/codigo', [recuperarController::class, 'guardarNueva'])->middleware('throttle:10,1')->name('password.update');
 Route::get('/restablecer/{token}', [recuperarController::class, 'enlaceViejo'])->name('password.reset');
@@ -546,6 +546,7 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::get('/eventos', [\App\Http\Controllers\adminEventosController::class, 'index'])->name('eventos');
     Route::get('/donaciones', [\App\Http\Controllers\adminDonacionesController::class, 'index'])->name('donaciones');
     Route::get('/360', [\App\Http\Controllers\giro360Controller::class, 'admin'])->name('giro360');
+    Route::post('/360/codigo', [\App\Http\Controllers\giro360Controller::class, 'cambiarCodigo'])->name('giro360.codigo');
     Route::get('/360/exportar', [\App\Http\Controllers\giro360Controller::class, 'exportar'])->name('giro360.exportar');
     Route::post('/donaciones', [\App\Http\Controllers\adminDonacionesController::class, 'guardar'])->name('donaciones.guardar');
     Route::get('/donaciones/exportar', [\App\Http\Controllers\adminDonacionesController::class, 'exportar'])->name('donaciones.exportar');

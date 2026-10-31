@@ -42,6 +42,7 @@
 
             <form action="{{ route('registro') }}" method="post" novalidate>
                 @csrf
+                @include('partials.anti-bot')
                 <div class="field">
                     <label for="name">Nombre completo</label>
                     <div class="input">

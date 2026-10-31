@@ -72,6 +72,7 @@ class Kernel extends HttpKernel
         'tienda' => \App\Http\Middleware\RequiereTienda::class,
         'contable' => \App\Http\Middleware\RequiereEspacioContable::class,
         'superadmin' => \App\Http\Middleware\SoloSuperadmin::class,
+        'antibot' => \App\Http\Middleware\AntiBot::class,
         'asesor' => \App\Http\Middleware\SoloAsesor::class,
         'conjunto' => \App\Http\Middleware\SoloConjunto::class,
         'instituto' => \App\Http\Middleware\SoloInstituto::class,

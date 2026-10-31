@@ -23,6 +23,7 @@
             @if ($errors->any())<div class="alert">{{ $errors->first() }}</div>@endif
             <form method="post" action="{{ route('password.email') }}" novalidate>
                 @csrf
+                @include('partials.anti-bot')
                 <div class="field">
                     <label for="email">Correo electrónico</label>
                     <div class="input"><i class="fa-regular fa-envelope"></i><input id="email" name="email" type="email" value="{{ old('email') }}" placeholder="usted@negocio.com" autocomplete="email" required autofocus></div>

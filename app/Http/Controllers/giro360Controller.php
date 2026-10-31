@@ -59,10 +59,29 @@ class giro360Controller extends Controller
     }
 
     // Código del operador (después de cobrar el video): del tercer video en adelante
+    // Código vigente: el que puso el administrador en Admin → Clientes 360 (o el del .env si nunca lo cambió)
+    public static function codigoActual(): string
+    {
+        return (string) (\App\Models\Ajuste::valor('giro360_codigo') ?: config('services.giro360.codigo', '360pasto'));
+    }
+
+    // Admin: cambiar el código (escrito a mano o uno nuevo al azar fácil de dictar)
+    public function cambiarCodigo(Request $request)
+    {
+        abort_unless(auth()->user()?->es_superadmin, 403);
+        if ($request->boolean('generar')) {
+            $nuevo = collect(['giro', 'gira', 'fiesta', 'video', 'pasto', 'baile'])->random() . random_int(100, 999);
+        } else {
+            $nuevo = mb_strtolower(preg_replace('/\s+/', '', (string) $request->validate(['codigo' => 'required|string|min:5|max:30'], ['codigo.min' => 'El código debe tener mínimo 5 letras o números.'])['codigo']));
+        }
+        \App\Models\Ajuste::guardar('giro360_codigo', $nuevo);
+        return back()->with('success', 'Nuevo código del 360: ' . $nuevo . '. El anterior ya no sirve.');
+    }
+
     public function codigo(Request $request)
     {
         $c = mb_strtolower(preg_replace('/\s+/', '', (string) $request->input('codigo')));
-        $bueno = mb_strtolower((string) config('services.giro360.codigo', '360pasto'));
+        $bueno = mb_strtolower(self::codigoActual());
         if ($c === '' || !hash_equals($bueno, $c)) {
             return response()->json(['message' => 'Código incorrecto. Pídalo al operador de la máquina.'], 422);
         }
@@ -113,6 +132,26 @@ class giro360Controller extends Controller
         return array_values(array_filter(is_array($l) ? $l : [], fn ($x) => !empty($x['archivo']) && $d->exists($x['archivo'])));
     }
 
+    // Límite por negocio (para que nadie llene el disco del servidor y tumbe el sitio)
+    public const MAX_LOGOS = 40;
+    public const MAX_CANCIONES = 20;
+    public const MAX_MB_CUENTA = 300;
+
+    public static function mbUsados(string $base): float
+    {
+        $disco = \Illuminate\Support\Facades\Storage::disk('public');
+        return array_sum(array_map(fn ($f) => $disco->size($f), $disco->allFiles($base))) / 1048576;
+    }
+
+    private static function cuentaLlena(string $base, int $hay, int $max, string $que): ?string
+    {
+        if (!self::tienda360()) return null; // LocalProo (súper administrador) no tiene límite
+        if ($hay >= $max) return "Ya tiene {$max} {$que} en su cuenta. Quite alguno para subir otro.";
+        $mb = self::mbUsados($base);
+        if ($mb >= self::MAX_MB_CUENTA) return 'Su cuenta ya usa ' . round($mb) . ' MB de ' . self::MAX_MB_CUENTA . ' MB. Quite logos o canciones viejos para subir más.';
+        return null;
+    }
+
     // ===== Logos del 360 =====
     /** Logos para elegir: los del negocio (si es un negocio 360) y los de LocalProo. $soloPropios = solo los que esta cuenta puede quitar */
     public static function logosLista(bool $soloPropios = false): array
@@ -141,9 +180,12 @@ class giro360Controller extends Controller
             'logo.mimes' => 'El logo debe ser PNG, JPG o WEBP.',
             'logo.max' => 'El logo pesa demasiado (máximo 5 MB).',
         ]);
+        $base = self::carpeta(self::tienda360());
+        if ($lleno = self::cuentaLlena($base, count(self::logosLista(true)), self::MAX_LOGOS, 'logos')) {
+            return $request->expectsJson() ? response()->json(['message' => $lleno], 422) : back()->withErrors($lleno);
+        }
         $id = \Illuminate\Support\Str::lower(\Illuminate\Support\Str::random(10));
         $ext = \App\Support\ArchivoSeguro::ext($request->file('logo'), \App\Support\ArchivoSeguro::IMAGEN, 'png');
-        $base = self::carpeta(self::tienda360());
         $archivo = $request->file('logo')->storeAs($base . '/logos', \Illuminate\Support\Str::slug($d['nombre']) . '-' . $id . '.' . $ext, 'public');
         $lista = self::logosLista(true);
         array_unshift($lista, ['id' => $id, 'nombre' => strip_tags($d['nombre']), 'archivo' => $archivo, 'creado' => now()->toDateTimeString()]);
@@ -189,9 +231,12 @@ class giro360Controller extends Controller
             'cancion.mimes' => 'El audio debe ser MP3, M4A, WAV u OGG.',
             'cancion.max' => 'El audio pesa demasiado (máximo 20 MB).',
         ]);
+        $base = self::carpeta(self::tienda360());
+        if ($lleno = self::cuentaLlena($base, count(self::cancionesLista(true)), self::MAX_CANCIONES, 'canciones')) {
+            return response()->json(['message' => $lleno], 422);
+        }
         $id = \Illuminate\Support\Str::lower(\Illuminate\Support\Str::random(10));
         $ext = \App\Support\ArchivoSeguro::ext($request->file('cancion'), \App\Support\ArchivoSeguro::AUDIO, 'mp3');
-        $base = self::carpeta(self::tienda360());
         $archivo = $request->file('cancion')->storeAs($base . '/canciones', \Illuminate\Support\Str::slug($d['nombre']) . '-' . $id . '.' . $ext, 'public');
         $lista = self::cancionesLista(true);
         array_unshift($lista, ['id' => $id, 'nombre' => strip_tags($d['nombre']), 'archivo' => $archivo, 'creado' => now()->toDateTimeString()]);

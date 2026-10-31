@@ -162,6 +162,9 @@ if grep -q "^MAIL_HOST=mailhog" .env; then
   run $PHP artisan config:cache >/dev/null
 fi
 
+# Blindaje del servidor (nginx sin PHP en /storage, sin archivos ocultos, APP_DEBUG apagado). Nunca tumba el despliegue.
+[ -f "$RAIZ/deploy/blindar-servidor.sh" ] && bash "$RAIZ/deploy/blindar-servidor.sh" "$RAIZ" "$DOMINIO" "$PRUEBAS" || true
+
 echo "==> 5/5 Comprobación"
 HOSTAPP=$(grep '^APP_URL=' .env | sed 's#.*://##; s#/.*##; s#"##g'); HOSTAPP=${HOSTAPP:-$DOMINIO}
 CODE=$(curl -s -o /dev/null -w '%{http_code}' --resolve "$HOSTAPP:443:127.0.0.1" "https://$HOSTAPP/login" -k)

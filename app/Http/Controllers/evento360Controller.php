@@ -69,6 +69,10 @@ class evento360Controller extends Controller
         $cfg = $alquiler->e360 ?: [];
         $disco = Storage::disk('public');
         $carpeta = 'giro360/t' . $alquiler->tienda_id . '/eventos/' . $alquiler->id;
+        // Tope de espacio por negocio: que nadie llene el disco y tumbe el sitio
+        if (($request->hasFile('logos') || $request->hasFile('cancion')) && giro360Controller::mbUsados('giro360/t' . $alquiler->tienda_id) >= giro360Controller::MAX_MB_CUENTA) {
+            return back()->withInput()->withErrors('Su cuenta ya usa el máximo de ' . giro360Controller::MAX_MB_CUENTA . ' MB en logos y canciones. Quite los de eventos viejos para subir más.');
+        }
 
         // Logos: quitar los marcados y agregar los nuevos
         $logos = array_values($cfg['logos'] ?? []);
