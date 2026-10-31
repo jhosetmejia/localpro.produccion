@@ -73,7 +73,8 @@ footer{text-align:center;font-size:.8rem;color:var(--muted)}
 footer a{color:var(--muted)}
 .listas{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .listas .lbl{margin-right:4px}
-.listas .mini{border-color:var(--accent2);color:var(--accent2)}
+.listas .mini{border-color:var(--line);color:var(--fg)}
+.listas .mini.on{border-color:var(--accent2);color:var(--accent2);background:#1f3a27}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}}
 </style>
@@ -124,6 +125,7 @@ footer a{color:var(--muted)}
       <div class="listas">
         <span class="lbl">Canciones listas</span>
         <button class="mini" type="button" data-cancion="/audio/giro360/halloween.mp3" data-nombre="Halloween · LocalProo">Halloween</button>
+        <button class="mini" type="button" data-cancion="/audio/giro360/tocata-bach.mp3" data-nombre="Tocata de terror (Bach)">Tocata de terror</button>
       </div>
       <div class="field" id="desde-wrap" hidden>
         <label class="lbl" for="musica-desde">La canción arranca en el segundo</label>
@@ -222,17 +224,23 @@ footer a{color:var(--muted)}
     $('fx-dur').textContent = 'Un giro de 10 s queda de ' + Math.round(10 * f) + ' s editado.';
   }
 
+  // Marca cuál logo y cuál canción lista están puestos
+  function marcarListos() {
+    document.querySelectorAll('[data-cancion]').forEach(function (b) { b.classList.toggle('on', !!musicaBlob && b.dataset.nombre === musicaNom); });
+    document.querySelectorAll('[data-logo]').forEach(function (b) { b.classList.toggle('on', !!logoBlob && b.dataset.nombre === $('logo-nom').textContent); });
+  }
   function ponerLogo(blob, nombre) {
     logoBlob = blob; logoImg = null;
-    if (!blob) { $('logo-th').style.backgroundImage = ''; $('logo-th').textContent = '◎'; $('logo-nom').textContent = 'Sin logo'; $('logo-quitar').hidden = true; return; }
+    if (!blob) { $('logo-th').style.backgroundImage = ''; $('logo-th').textContent = '◎'; $('logo-nom').textContent = 'Sin logo'; $('logo-quitar').hidden = true; marcarListos(); return; }
     var u = URL.createObjectURL(blob), im = new Image();
     im.onload = function () { logoImg = im; }; im.src = u;
-    $('logo-th').style.backgroundImage = 'url(' + u + ')'; $('logo-th').textContent = ''; $('logo-nom').textContent = nombre || 'Logo'; $('logo-quitar').hidden = false;
+    $('logo-th').style.backgroundImage = 'url(' + u + ')'; $('logo-th').textContent = ''; $('logo-nom').textContent = nombre || 'Logo'; $('logo-quitar').hidden = false; marcarListos();
   }
   function ponerMusica(blob, nombre) {
     musicaBlob = blob; musicaNom = nombre || '';
     $('musica-nom').textContent = blob ? (nombre || 'Canción') : 'Sin canción';
     $('musica-quitar').hidden = !blob; $('desde-wrap').hidden = !blob; $('musica-oir').hidden = !blob;
+    marcarListos();
     parar();
   }
   // Escuchar la canción elegida
