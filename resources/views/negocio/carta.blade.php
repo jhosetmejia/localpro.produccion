@@ -4,8 +4,10 @@
 
 @push('css')
 <style>
-.mc-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
-@media (max-width:900px){.mc-grid{grid-template-columns:minmax(0,1fr)}}
+@font-face{font-family:'Bebas Neue';font-weight:400;font-display:swap;src:url('/fonts/carta/bebas-neue-400.woff2') format('woff2')}
+.mc-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem}
+@media (max-width:1100px){.mc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.mc-grid{grid-template-columns:minmax(0,1fr)}}
 .mc-pl{background:#fff;border:1.5px solid #e3ebe6;border-radius:22px;overflow:hidden;display:flex;flex-direction:column}
 .mc-mock{height:210px;padding:18px;display:flex;flex-direction:column;gap:8px;position:relative;overflow:hidden}
 .mc-mock .t{font-size:1.25rem;font-weight:900;text-align:center;line-height:1.1}
@@ -16,6 +18,11 @@
 .mc-pizarra{background:radial-gradient(120% 90% at 50% 40%,#3a4441,#1d2321);color:#f3f1e7;border:12px solid #6b4a2b;font-family:'Caveat',cursive}
 .mc-pizarra .r span:last-child{color:#f6d365}
 .mc-moderna{background:#fff;color:#141414}
+.mc-pro{background:#121212;color:#f4f1ea;font-family:'Bebas Neue','Arial Narrow',sans-serif;letter-spacing:.02em}
+.mc-pro .t{font-size:2.2rem;line-height:.9}
+.mc-pro .s{display:inline-block;align-self:center;background:#f7c51e;color:#121212;font-weight:700;padding:1px 10px;opacity:1}
+.mc-pro .r{font-size:.95rem}
+.mc-pro .r span:last-child{color:#f7c51e}
 .mc-moderna .t{background:#ff5a1f;color:#fff;margin:-18px -18px 6px;padding:18px;text-align:left}
 .mc-moderna .card{display:flex;gap:8px;align-items:center;background:#f6f3ef;border-radius:12px;padding:6px;font-size:.78rem;font-weight:700}
 .mc-moderna .card b{width:34px;height:34px;border-radius:9px;background:#ffe2d4;flex:none}
@@ -63,7 +70,7 @@
 
     <div class="lp-box">
         <h3><span><i class="fa-solid fa-print me-1"></i>Carta para imprimir y para redes</span></h3>
-        <p class="text-muted fw-semibold mb-3">Elija una plantilla. Cada hoja trae un QR que lleva a su carta en línea. Si tiene muchos platos, sale en varias hojas.</p>
+        <p class="text-muted fw-semibold mb-3">Elija una de las 4 plantillas. Cada hoja trae un QR que lleva a su carta en línea. Si tiene muchos platos, sale en varias hojas.</p>
         <div class="mc-grid">
             @foreach ($planes as $k => [$nom, $txt])
             <div class="mc-pl">
@@ -74,11 +81,11 @@
                         <div class="card"><b></b>Especial de la casa<em>$ 25.000</em></div>
                         <div class="card"><b></b>Bebida natural<em>$ 6.000</em></div>
                     @else
-                        <div class="t">{{ $k === 'clasica' ? mb_strtoupper(\Illuminate\Support\Str::limit($tienda->nombre, 22)) : \Illuminate\Support\Str::limit($tienda->nombre, 22) }}</div>
-                        <div class="s">{{ $k === 'clasica' ? '✦ ✦ ✦' : '~ Nuestra carta ~' }}</div>
-                        <div class="r"><span>Plato del día</span>@if ($k === 'clasica')<i></i>@endif<span>$ 18.000</span></div>
-                        <div class="r"><span>Especial de la casa</span>@if ($k === 'clasica')<i></i>@endif<span>$ 25.000</span></div>
-                        <div class="r"><span>Bebida natural</span>@if ($k === 'clasica')<i></i>@endif<span>$ 6.000</span></div>
+                        <div class="t">{{ $k === 'pro' ? 'MENÚ' : ($k === 'clasica' ? mb_strtoupper(\Illuminate\Support\Str::limit($tienda->nombre, 22)) : \Illuminate\Support\Str::limit($tienda->nombre, 22)) }}</div>
+                        <div class="s">{{ $k === 'clasica' ? '✦ ✦ ✦' : ($k === 'pro' ? 'ENTRADAS' : '~ Nuestra carta ~') }}</div>
+                        <div class="r"><span>{{ $k === 'pro' ? 'PLATO DEL DÍA' : 'Plato del día' }}</span>@if ($k !== 'pizarra')<i></i>@endif<span>$ 18.000</span></div>
+                        <div class="r"><span>{{ $k === 'pro' ? 'ESPECIAL DE LA CASA' : 'Especial de la casa' }}</span>@if ($k !== 'pizarra')<i></i>@endif<span>$ 25.000</span></div>
+                        <div class="r"><span>{{ $k === 'pro' ? 'BEBIDA NATURAL' : 'Bebida natural' }}</span>@if ($k !== 'pizarra')<i></i>@endif<span>$ 6.000</span></div>
                     @endif
                 </div>
                 <div class="mc-b">

@@ -222,6 +222,7 @@ class catalogoController extends Controller
 
     // Carta para imprimir y compartir: 3 plantillas tamaño hoja, descarga en PDF y JPG, con QR a la carta en línea
     public const PLANTILLAS_CARTA = [
+        'pro' => ['Pro negro y amarillo', 'Estilo restaurante profesional: brochazos, fotos y 3 columnas'],
         'clasica' => ['Clásica', 'Papel crema, letra elegante y puntos hasta el precio'],
         'pizarra' => ['Pizarra', 'Tablero de tiza con marco de madera'],
         'moderna' => ['Moderna con fotos', 'Fotos de cada plato y precios destacados'],
@@ -231,7 +232,7 @@ class catalogoController extends Controller
     {
         $tienda = $this->tienda($slug);
         [$secciones] = $this->seccionesCarta($tienda);
-        $plantilla = isset(self::PLANTILLAS_CARTA[$request->query('plantilla')]) ? $request->query('plantilla') : 'clasica';
+        $plantilla = isset(self::PLANTILLAS_CARTA[$request->query('plantilla')]) ? $request->query('plantilla') : 'pro';
         // Rutas de las fotos dentro del mismo dominio (para poder dibujarlas en el PDF/JPG)
         $ruta = fn ($u) => $u ? ((parse_url($u, PHP_URL_PATH) ?: '') . (($q = parse_url($u, PHP_URL_QUERY)) ? '?' . $q : '')) : null;
         $datos = [];
@@ -241,6 +242,8 @@ class catalogoController extends Controller
                 'desc' => $p['descripcion'] ? \Illuminate\Support\Str::limit(strip_tags($p['descripcion']), 110) : null,
                 'precio' => ($p['desde'] ? 'Desde ' : '') . dinero($p['desde'] ?? $p['precio']) . ($p['unidad'] ? ' / ' . $p['unidad'] : ''),
                 'img' => $ruta($p['img']),
+                'tag' => $p['descuento'] ? 'PROMO -' . $p['descuento'] . '%' : null,
+                'valor' => (float) ($p['desde'] ?? $p['precio']),
             ], $items)];
         }
         return view('catalogo.carta-imprimir', [
