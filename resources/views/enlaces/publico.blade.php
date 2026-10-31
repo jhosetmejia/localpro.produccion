@@ -117,5 +117,6 @@ document.getElementById('compartir').addEventListener('click', async function ()
     } catch (e) {}
 });
 </script>
+@include('catalogo._pausada', ['tienda' => $tienda])
 </body>
 </html>

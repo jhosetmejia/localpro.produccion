@@ -112,7 +112,7 @@
                 </div>
                 <label class="terminos" style="display:flex;gap:.6rem;align-items:flex-start;margin:.4rem 0 .2rem;font-size:.9rem;line-height:1.45;cursor:pointer">
                     <input type="checkbox" name="acepto" value="1" {{ old('acepto') ? 'checked' : '' }} required style="width:20px;height:20px;flex:none;margin-top:2px;accent-color:#16b34a" />
-                    <span>Acepto las <a href="{{ route('legal.terminos') }}" target="_blank" rel="noopener" style="font-weight:800">condiciones de uso</a> y la <a href="{{ route('legal.privacidad') }}" target="_blank" rel="noopener" style="font-weight:800">política de privacidad</a>. Entiendo que si al terminar la prueba gratis no paso a un plan, se eliminan los productos, imágenes y demás información del negocio, y se conservan solo los datos de contacto.</span>
+                    <span>Acepto las <a href="{{ route('legal.terminos') }}" target="_blank" rel="noopener" style="font-weight:800">condiciones de uso</a> y la <a href="{{ route('legal.privacidad') }}" target="_blank" rel="noopener" style="font-weight:800">política de privacidad</a>. Acepto participar en la dinámica de LocalProo: tengo una prueba gratis; al terminar, para seguir usando el panel pago el plan (mensual o anual) o invito empresarios para ganar meses gratis. Mi tienda se muestra en el Marketplace y en Google, y si mi plan vence, su WhatsApp queda "en mantenimiento" hasta que lo active.</span>
                 </label>
                 <button class="btn btn-amber btn-block" type="submit" style="margin-top:.6rem"><span id="txt-continuar">{{ $comoContador ? 'Continuar como contador' : 'Continuar · Datos del negocio' }}</span> <i class="fa-solid fa-arrow-right"></i></button>
             </form>

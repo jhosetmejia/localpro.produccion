@@ -321,5 +321,6 @@ document.addEventListener('error', function (e) {
     barra();
 })();
 </script>
+@include('catalogo._pausada', ['tienda' => $tienda])
 </body>
 </html>

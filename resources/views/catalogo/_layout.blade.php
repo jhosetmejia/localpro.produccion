@@ -443,5 +443,6 @@ window.LPC = (function () {
     }
 })();
 </script>
+@include('catalogo._pausada', ['tienda' => $tienda])
 </body>
 </html>
