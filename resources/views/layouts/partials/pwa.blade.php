@@ -27,10 +27,18 @@ html.lp-cargando::after{content:"";position:fixed;left:50%;top:50%;width:64px;he
     // Así, si está en el navegador se queda en el navegador (Chrome manda las pestañas nuevas a la app instalada)
     // y si está en la app se queda en la app. Con Ctrl/clic central sí se abre en otra pestaña.
     document.addEventListener('click', function (e) {
-        var a = e.target.closest && e.target.closest('a[data-app-href]');
+        var a = e.target.closest && e.target.closest('a[href]');
         if (!a || e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
+        var destino = a.getAttribute('data-app-href');
+        // Lo mismo para cualquier enlace a la tienda en línea o carta (/t/...) que abre en pestaña nueva
+        // (botón "Mi tienda en línea", productos, carta virtual...), aunque no tenga data-app-href
+        if (!destino && a.target === '_blank' && /^\/t\/[a-z0-9-]+/.test(a.pathname || '')
+            && (a.host || '').replace(/^www\./, '') === location.host.replace(/^www\./, '')) {
+            destino = a.pathname + a.search + a.hash;
+        }
+        if (!destino) return;
         e.preventDefault();
-        location.href = a.getAttribute('data-app-href');
+        location.href = destino;
     }, true);
     // En la app instalada: logo animado hasta que la página termine de cargar
     if (app) h.classList.add('lp-cargando');
