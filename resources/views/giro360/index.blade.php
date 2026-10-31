@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#14112b">
+<meta name="theme-color" content="#0b0f0c">
 <title>Giro 360 · LocalProo</title>
 <meta name="description" content="Grabe su video 360 y llévelo editado con velocidad curva, logo y música del evento.">
 <meta property="og:title" content="Giro 360 · LocalProo">
@@ -19,8 +19,8 @@ html,body{margin:0}
 img{max-width:100%}
 /* Una sola columna tipo app de cámara, look de pista de evento (oscuro a propósito) */
 :root{
-  --bg:#14112b; --surface:#1f1a40; --surface2:#2a2454; --line:#3b3470;
-  --fg:#f4f1ff; --muted:#a9a2d6; --accent:#ff4fa3; --accent2:#ffc94d; --ok:#4fe3a1; --err:#ff7a7a;
+  --bg:#0b0f0c; --surface:#131c16; --surface2:#1b2920; --line:#29402f;
+  --fg:#f2fbf4; --muted:#9fbaa8; --accent:#2fd15a; --accent2:#a6f34a; --ok:#a6f34a; --err:#ff8a7a;
   --display:'Unbounded',system-ui,sans-serif; --body:'Figtree',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   color-scheme:dark;
 }
@@ -37,13 +37,13 @@ h2{font-family:var(--display);font-weight:600;font-size:1rem;margin:0;letter-spa
 .card{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:14px}
 .btn{appearance:none;border:0;border-radius:16px;padding:14px 16px;font:600 1rem var(--body);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;text-align:center;color:var(--fg);background:var(--surface2)}
 .btn:disabled{opacity:.5;cursor:default}
-.btn.big{font-family:var(--display);font-size:1.15rem;padding:22px 16px;border-radius:22px;color:#1a0b14;background:linear-gradient(120deg,var(--accent),var(--accent2))}
-.btn.pri{background:var(--accent);color:#1a0b14}
+.btn.big{font-family:var(--display);font-size:1.15rem;padding:22px 16px;border-radius:22px;color:#0b0d0c;background:linear-gradient(120deg,var(--accent2),var(--accent) 55%,#16b34a)}
+.btn.pri{background:var(--accent);color:#0b0d0c}
 .btn.ghost{background:transparent;border:1px solid var(--line)}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .fxs{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
 .fx{background:var(--surface2);border:1.5px solid transparent;border-radius:16px;padding:10px 10px 8px;cursor:pointer;text-align:left;color:var(--fg);font:inherit;display:flex;flex-direction:column;gap:4px}
-.fx[aria-pressed="true"]{border-color:var(--accent);background:#3a1f4d}
+.fx[aria-pressed="true"]{border-color:var(--accent);background:#1f3a27}
 .fx b{font-size:.92rem}
 .fx small{color:var(--muted);font-size:.75rem}
 .fx svg{width:100%;height:38px;display:block}
@@ -71,6 +71,9 @@ h2{font-family:var(--display);font-weight:600;font-size:1rem;margin:0;letter-spa
 .acepta a{color:var(--accent2)}
 footer{text-align:center;font-size:.8rem;color:var(--muted)}
 footer a{color:var(--muted)}
+.listas{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.listas .lbl{margin-right:4px}
+.listas .mini{border-color:var(--accent2);color:var(--accent2)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}}
 </style>
@@ -106,12 +109,21 @@ footer a{color:var(--muted)}
         <button class="mini" id="logo-quitar" type="button" hidden>Quitar</button>
         <input type="file" id="in-logo" accept="image/*" class="sr" tabindex="-1">
       </div>
+      <div class="listas">
+        <span class="lbl">Logos listos</span>
+        <button class="mini" type="button" data-logo="/img/giro360/halloween-2026.png" data-nombre="Halloween 2026">Halloween 2026</button>
+      </div>
       <div class="pick">
         <div class="th">♫</div>
         <div class="tx"><div id="musica-nom">Sin canción</div><small id="musica-sub">El video sale con la canción de fondo</small></div>
+        <button class="mini" id="musica-oir" type="button" hidden>▶ Oír</button>
         <button class="mini" id="musica-btn" type="button">Subir</button>
         <button class="mini" id="musica-quitar" type="button" hidden>Quitar</button>
         <input type="file" id="in-musica" accept="audio/*" class="sr" tabindex="-1">
+      </div>
+      <div class="listas">
+        <span class="lbl">Canciones listas</span>
+        <button class="mini" type="button" data-cancion="/audio/giro360/halloween.mp3" data-nombre="Halloween · LocalProo">Halloween</button>
       </div>
       <div class="field" id="desde-wrap" hidden>
         <label class="lbl" for="musica-desde">La canción arranca en el segundo</label>
@@ -201,7 +213,7 @@ footer a{color:var(--muted)}
     EFECTOS.forEach(function (ef) {
       var b = document.createElement('button'); b.type = 'button'; b.className = 'fx'; b.setAttribute('aria-pressed', ef.id === cfg.efecto);
       var pts = []; for (var i = 0; i <= 40; i++) { var x = i / 40; pts.push((x * 100).toFixed(1) + ',' + (34 - velocidad(ef, x) / max * 30).toFixed(1)); }
-      b.innerHTML = '<svg viewBox="0 0 100 38" preserveAspectRatio="none" aria-hidden="true"><line x1="0" x2="100" y1="' + (34 - 1 / max * 30) + '" y2="' + (34 - 1 / max * 30) + '" stroke="#3b3470" stroke-dasharray="3 3" fill="none"/><polyline points="' + pts.join(' ') + '" fill="none" stroke="' + (ef.id === cfg.efecto ? '#ff4fa3' : '#a9a2d6') + '" stroke-width="2.2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg><b></b><small></small>';
+      b.innerHTML = '<svg viewBox="0 0 100 38" preserveAspectRatio="none" aria-hidden="true"><line x1="0" x2="100" y1="' + (34 - 1 / max * 30) + '" y2="' + (34 - 1 / max * 30) + '" stroke="#29402f" stroke-dasharray="3 3" fill="none"/><polyline points="' + pts.join(' ') + '" fill="none" stroke="' + (ef.id === cfg.efecto ? '#a6f34a' : '#9fbaa8') + '" stroke-width="2.2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg><b></b><small></small>';
       b.querySelector('b').textContent = ef.nombre; b.querySelector('small').textContent = ef.desc;
       b.onclick = function () { cfg.efecto = ef.id; guardar('cfg', cfg); pintarEfectos(); };
       $('fxs').appendChild(b);
@@ -220,8 +232,38 @@ footer a{color:var(--muted)}
   function ponerMusica(blob, nombre) {
     musicaBlob = blob; musicaNom = nombre || '';
     $('musica-nom').textContent = blob ? (nombre || 'Canción') : 'Sin canción';
-    $('musica-quitar').hidden = !blob; $('desde-wrap').hidden = !blob;
+    $('musica-quitar').hidden = !blob; $('desde-wrap').hidden = !blob; $('musica-oir').hidden = !blob;
+    parar();
   }
+  // Escuchar la canción elegida
+  var oido = null;
+  function parar() { if (oido) { oido.pause(); URL.revokeObjectURL(oido.src); oido = null; } $('musica-oir').textContent = '▶ Oír'; }
+  $('musica-oir').onclick = function () {
+    if (oido) return parar();
+    if (!musicaBlob) return;
+    oido = new Audio(URL.createObjectURL(musicaBlob)); oido.currentTime = cfg.desde || 0;
+    oido.onended = parar; oido.play().catch(parar); this.textContent = '■ Parar';
+  };
+  // Logos listos
+  document.querySelectorAll('[data-logo]').forEach(function (b) {
+    b.onclick = function () {
+      var t = b.textContent; b.disabled = true; b.textContent = 'Cargando…';
+      fetch(b.dataset.logo).then(function (r) { if (!r.ok) throw 0; return r.blob(); })
+        .then(function (bl) { ponerLogo(bl, b.dataset.nombre); guardar('logo', { blob: bl, nombre: b.dataset.nombre }); aviso('Logo listo: ' + b.dataset.nombre + '.', true); })
+        .catch(function () { aviso('No se pudo cargar el logo. Revise la señal e intente otra vez.'); })
+        .then(function () { b.disabled = false; b.textContent = t; });
+    };
+  });
+  // Canciones listas (originales de LocalProo, sin derechos de autor)
+  document.querySelectorAll('[data-cancion]').forEach(function (b) {
+    b.onclick = function () {
+      var t = b.textContent; b.disabled = true; b.textContent = 'Cargando…';
+      fetch(b.dataset.cancion).then(function (r) { if (!r.ok) throw 0; return r.blob(); })
+        .then(function (bl) { ponerMusica(bl, b.dataset.nombre); guardar('musica', { blob: bl, nombre: b.dataset.nombre }); aviso('Canción lista: ' + b.dataset.nombre + '.', true); })
+        .catch(function () { aviso('No se pudo cargar la canción. Revise la señal e intente otra vez.'); })
+        .then(function () { b.disabled = false; b.textContent = t; });
+    };
+  });
 
   $('logo-btn').onclick = function () { $('in-logo').click(); };
   $('musica-btn').onclick = function () { $('in-musica').click(); };
@@ -293,8 +335,8 @@ footer a{color:var(--muted)}
           ctx.drawImage(v, 0, 0, W, H);
           var lw = 0, lh = 0;
           if (logoImg) {
-            lw = W * (W > H ? 0.16 : 0.3); lh = lw * logoImg.naturalHeight / logoImg.naturalWidth;
-            if (lh > H * 0.18) { lh = H * 0.18; lw = lh * logoImg.naturalWidth / logoImg.naturalHeight; }
+            lw = W * (W > H ? 0.22 : 0.42); lh = lw * logoImg.naturalHeight / logoImg.naturalWidth;
+            if (lh > H * 0.24) { lh = H * 0.24; lw = lh * logoImg.naturalWidth / logoImg.naturalHeight; }
           }
           var fs = Math.round(Math.min(W, H) * 0.055), base = H - H * 0.05;
           if (cfg.texto) {
