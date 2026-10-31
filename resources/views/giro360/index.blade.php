@@ -244,33 +244,29 @@ footer a{color:var(--muted)}
     oido = new Audio(URL.createObjectURL(musicaBlob)); oido.currentTime = cfg.desde || 0;
     oido.onended = parar; oido.play().catch(parar); this.textContent = '■ Parar';
   };
-  // Logos listos
-  document.querySelectorAll('[data-logo]').forEach(function (b) {
-    b.onclick = function () {
-      var t = b.textContent; b.disabled = true; b.textContent = 'Cargando…';
-      fetch(b.dataset.logo).then(function (r) { if (!r.ok) throw 0; return r.blob(); })
-        .then(function (bl) { ponerLogo(bl, b.dataset.nombre); guardar('logo', { blob: bl, nombre: b.dataset.nombre }); aviso('Logo listo: ' + b.dataset.nombre + '.', true); })
-        .catch(function () { aviso('No se pudo cargar el logo. Revise la señal e intente otra vez.'); })
-        .then(function () { b.disabled = false; b.textContent = t; });
-    };
-  });
-  // Canciones listas (originales de LocalProo, sin derechos de autor)
-  document.querySelectorAll('[data-cancion]').forEach(function (b) {
-    b.onclick = function () {
-      var t = b.textContent; b.disabled = true; b.textContent = 'Cargando…';
-      fetch(b.dataset.cancion).then(function (r) { if (!r.ok) throw 0; return r.blob(); })
-        .then(function (bl) { ponerMusica(bl, b.dataset.nombre); guardar('musica', { blob: bl, nombre: b.dataset.nombre }); aviso('Canción lista: ' + b.dataset.nombre + '.', true); })
-        .catch(function () { aviso('No se pudo cargar la canción. Revise la señal e intente otra vez.'); })
-        .then(function () { b.disabled = false; b.textContent = t; });
-    };
-  });
+  // Logos y canciones listas (originales de LocalProo, sin derechos de autor)
+  function cargarListo(b, silencioso) {
+    if (!b) return;
+    var esLogo = !!b.dataset.logo, url = b.dataset.logo || b.dataset.cancion, nom = b.dataset.nombre, t = b.textContent;
+    b.disabled = true; b.textContent = 'Cargando…';
+    fetch(url).then(function (r) { if (!r.ok) throw 0; return r.blob(); })
+      .then(function (bl) {
+        if (esLogo) { ponerLogo(bl, nom); guardar('logo', { blob: bl, nombre: nom }); cfg.sinLogo = false; }
+        else { ponerMusica(bl, nom); guardar('musica', { blob: bl, nombre: nom }); cfg.sinMusica = false; }
+        guardar('cfg', cfg);
+        if (!silencioso) aviso((esLogo ? 'Logo listo: ' : 'Canción lista: ') + nom + '.', true);
+      })
+      .catch(function () { if (!silencioso) aviso('No se pudo cargar. Revise la señal e intente otra vez.'); })
+      .then(function () { b.disabled = false; b.textContent = t; });
+  }
+  document.querySelectorAll('[data-logo],[data-cancion]').forEach(function (b) { b.onclick = function () { cargarListo(b); }; });
 
   $('logo-btn').onclick = function () { $('in-logo').click(); };
   $('musica-btn').onclick = function () { $('in-musica').click(); };
   $('in-logo').onchange = function () { var f = this.files[0]; if (!f) return; ponerLogo(f, f.name); guardar('logo', { blob: f, nombre: f.name }); this.value = ''; };
   $('in-musica').onchange = function () { var f = this.files[0]; if (!f) return; ponerMusica(f, f.name); guardar('musica', { blob: f, nombre: f.name }); this.value = ''; };
-  $('logo-quitar').onclick = function () { ponerLogo(null); guardar('logo', null); };
-  $('musica-quitar').onclick = function () { ponerMusica(null); guardar('musica', null); };
+  $('logo-quitar').onclick = function () { ponerLogo(null); guardar('logo', null); cfg.sinLogo = true; guardar('cfg', cfg); };
+  $('musica-quitar').onclick = function () { ponerMusica(null); guardar('musica', null); cfg.sinMusica = true; guardar('cfg', cfg); };
   $('texto').oninput = function () { cfg.texto = this.value; guardar('cfg', cfg); };
   $('musica-desde').oninput = function () { cfg.desde = Math.max(0, parseFloat(this.value.replace(',', '.')) || 0); guardar('cfg', cfg); };
 
@@ -279,6 +275,11 @@ footer a{color:var(--muted)}
     if (r[1]) ponerLogo(r[1].blob, r[1].nombre);
     if (r[2]) ponerMusica(r[2].blob, r[2].nombre);
     pintarEfectos();
+    // Temporada de Halloween: si este celular no tiene logo o canción, se ponen los de Halloween solos
+    if (new Date() < new Date(2026, 10, 3)) {
+      if (!r[1] && !cfg.sinLogo) cargarListo(document.querySelector('[data-logo]'), true);
+      if (!r[2] && !cfg.sinMusica) cargarListo(document.querySelector('[data-cancion]'), true);
+    }
   });
   pintarEfectos();
 
@@ -313,7 +314,7 @@ footer a{color:var(--muted)}
       var durFinal = dur * factorDuracion(ef);
       var stream = cv.captureStream(30);
       var fuente = null, ganancia = null;
-      prepMusica().then(function (buf) {
+      listoParaEditar().then(prepMusica).then(function (buf) {
         if (buf && actx) {
           var dest = actx.createMediaStreamDestination();
           ganancia = actx.createGain(); ganancia.connect(dest);
@@ -375,6 +376,23 @@ footer a{color:var(--muted)}
       });
     };
   }
+
+  function listoParaEditar() {
+    var esperas = [];
+    if (logoBlob && !logoImg) esperas.push(new Promise(function (ok) {
+      var im = new Image(); im.onload = function () { logoImg = im; ok(); }; im.onerror = ok; im.src = URL.createObjectURL(logoBlob); setTimeout(ok, 3000);
+    }));
+    if (musicaBlob) esperas.push(new Promise(function (ok) {
+      try { if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return ok(); }
+      var n = 0; (function intento() {
+        if (actx.state === 'running' || n++ > 15) return ok();
+        actx.resume().catch(function () {}); setTimeout(intento, 100);
+      })();
+    }));
+    return Promise.all(esperas);
+  }
+  // Si el audio quedó dormido, se despierta con cualquier toque
+  ['touchend', 'click'].forEach(function (ev) { document.addEventListener(ev, function () { try { if (actx && actx.state !== 'running') actx.resume(); } catch (e) {} }, { passive: true }); });
 
   var musicaCache = { blob: null, buf: null };
   function prepMusica() {
