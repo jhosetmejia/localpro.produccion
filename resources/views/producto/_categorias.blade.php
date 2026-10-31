@@ -18,8 +18,17 @@
             <button type="button" class="btn btn-primary" id="lpNuevaCatGuardar">Crear</button>
             <button type="button" class="btn btn-dark" id="lpNuevaCatCancelar" aria-label="Cancelar">&times;</button>
         </div>
+        <div id="lpNuevaCatAyuda" class="lp-cat-ayuda" style="display:none"></div>
         <small class="text-danger d-block mt-1" id="lpNuevaCatError"></small>
     </div>
+    <style>
+    .lp-cat-ayuda{margin-top:.5rem;border-radius:14px;padding:.6rem .8rem;font-size:.84rem;font-weight:600;background:#f2fbf3;border:1.5px solid #cdeed5;color:#1d2a21}
+    .lp-cat-ayuda.ya{background:#fff8e6;border-color:#ffd77a}
+    .lp-cat-ayuda b{font-weight:900}
+    .lp-cat-ayuda .sug{display:flex;flex-wrap:wrap;gap:6px;margin-top:.4rem}
+    .lp-cat-ayuda .sug button{border:1.5px solid #16b34a;background:#fff;color:#11702f;border-radius:999px;padding:.25rem .75rem;font-weight:800;font-size:.8rem}
+    .lp-cat-ayuda .sug button:hover{background:#16b34a;color:#fff}
+    </style>
     <small class="mt-1 fw-bold" id="lpNuevaCatAviso" style="display:none;color:#11702f"></small>
     <small class="text-muted">Si no elige ninguna, el producto queda en "General".</small>
     @if (\App\Support\TiendaActual::tienda()?->usa_tallas)
@@ -64,14 +73,101 @@
     if (!btn) return;
     var token = document.querySelector('input[name=_token]').value;
 
+    var ayuda = document.getElementById('lpNuevaCatAyuda'), igual = null;
+
+    // ---- Ayuda para no repetir categorías y dejarlas parejas ----
+    // Igual que el servidor (Textos::titulo y Textos::clave): "GORRAS" → "Gorras"; "Gorra" = "gorras"
+    var MENORES = ['de','del','la','las','el','los','y','e','o','u','a','al','en','para','por','con','sin','su','sus','tu','un','una','x'];
+    function titulo(t) {
+        t = (t || '').replace(/\s+/g, ' ').trim();
+        return t.split(' ').map(function (p, i) {
+            var min = p.toLowerCase(), letras = p.replace(/[^\p{L}]/gu, '');
+            if (i > 0 && MENORES.indexOf(min) !== -1) return min;
+            if (letras && letras.length <= 3 && letras === letras.toUpperCase() && MENORES.indexOf(min) === -1) return p;
+            if (/\p{Ll}\p{Lu}/u.test(p) && p !== p.toUpperCase()) return p;
+            return min.replace(/(^|[-\/(])(\p{L})/gu, function (m, a, b) { return a + b.toUpperCase(); });
+        }).join(' ');
+    }
+    function clave(t) {
+        t = (t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]+/g, ' ');
+        return t.split(' ').filter(Boolean).map(function (p) {
+            if (p.length > 4 && /[^aeiou]es$/.test(p)) return p.slice(0, -2);
+            if (p.length > 3 && /s$/.test(p)) return p.slice(0, -1);
+            return p;
+        }).join(' ');
+    }
+    function distancia(a, b) {
+        if (Math.abs(a.length - b.length) > 2) return 9;
+        var d = [], i, j;
+        for (i = 0; i <= a.length; i++) d[i] = [i];
+        for (j = 0; j <= b.length; j++) d[0][j] = j;
+        for (i = 1; i <= a.length; i++) for (j = 1; j <= b.length; j++)
+            d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+        return d[a.length][b.length];
+    }
+    function existentes() {
+        return Array.prototype.map.call(chips.querySelectorAll('input.btn-check'), function (c) {
+            var l = chips.querySelector('label[for="' + c.id + '"]');
+            var n = l ? l.textContent.trim() : '';
+            return { input: c, nombre: n, clave: clave(n) };
+        });
+    }
+    function esc(t) { var d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+    function cerrar() { box.style.display = 'none'; btn.style.display = ''; inp.value = ''; err.textContent = ''; revisar(); }
+    function usar(c, ya) {
+        c.input.checked = true;
+        cerrar();
+        var aviso = document.getElementById('lpNuevaCatAviso');
+        aviso.textContent = (ya ? 'Ya tenía la categoría "' : 'Listo, quedó elegida "') + c.nombre + (ya ? '": se reutilizó y quedó elegida.' : '".');
+        aviso.style.display = 'block'; setTimeout(function () { aviso.style.display = 'none'; }, 5000);
+    }
+    function revisar() {
+        var bruto = inp.value.trim(), k = clave(bruto);
+        igual = null; ayuda.innerHTML = ''; ayuda.className = 'lp-cat-ayuda'; guardar.textContent = 'Crear';
+        if (!k) { ayuda.style.display = 'none'; return; }
+        var lista = existentes(), bonito = titulo(bruto);
+        igual = lista.find(function (c) { return c.clave === k; }) || null;
+        if (igual) {
+            ayuda.className = 'lp-cat-ayuda ya';
+            ayuda.innerHTML = '⚠️ Ya tiene la categoría <b>' + esc(igual.nombre) + '</b>. Reutilícela para no tener dos iguales.'
+                + '<div class="sug"><button type="button" data-usar="' + igual.input.id + '">✓ Usar "' + esc(igual.nombre) + '"</button></div>';
+            guardar.textContent = 'Usar esa';
+            ayuda.style.display = '';
+            return;
+        }
+        // Parecidas: una contiene a la otra ("Gorra" y "Gorra Plana") o casi se escriben igual ("Chaketa")
+        var parecidas = lista.filter(function (c) {
+            var a = ' ' + c.clave + ' ', b = ' ' + k + ' ';
+            return (k.length >= 3 && (a.indexOf(b) !== -1 || b.indexOf(a) !== -1)) || (k.length >= 4 && distancia(c.clave, k) <= 2);
+        }).slice(0, 6);
+        var html = '';
+        if (bonito !== bruto) html += 'Así quedará escrita: <b>' + esc(bonito) + '</b>';
+        if (parecidas.length) {
+            html += (html ? '<br>' : '') + '¿Es alguna de estas? Tóquela para usarla; si es otra distinta, toque <b>Crear</b>.'
+                + '<div class="sug">' + parecidas.map(function (c) { return '<button type="button" data-usar="' + c.input.id + '">' + esc(c.nombre) + '</button>'; }).join('') + '</div>';
+            guardar.textContent = 'Crear de todas formas';
+        }
+        ayuda.innerHTML = html;
+        ayuda.style.display = html ? '' : 'none';
+    }
+    ayuda.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-usar]'); if (!b) return;
+        var c = existentes().find(function (x) { return x.input.id === b.dataset.usar; });
+        if (c) usar(c, c === igual);
+    });
+    inp.addEventListener('input', revisar);
+
     btn.addEventListener('click', function () { box.style.display = ''; btn.style.display = 'none'; inp.focus(); });
-    document.getElementById('lpNuevaCatCancelar').addEventListener('click', function () { box.style.display = 'none'; btn.style.display = ''; inp.value = ''; err.textContent = ''; });
+    document.getElementById('lpNuevaCatCancelar').addEventListener('click', cerrar);
     inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); crear(); } });
     guardar.addEventListener('click', crear);
 
     function crear() {
-        var nombre = inp.value.trim();
+        var nombre = titulo(inp.value.trim());
         if (!nombre) { inp.focus(); return; }
+        // Ya existe una igual: se reutiliza sin crearla otra vez
+        revisar();
+        if (igual) { usar(igual, true); return; }
         guardar.disabled = true; err.textContent = '';
         fetch(@json(route('categorias.store')), {
             method: 'POST',
@@ -103,7 +199,7 @@
             l.className = 'lp-chip'; l.htmlFor = c.id; l.innerHTML = '<i class="fa-solid fa-check"></i> ';
             l.appendChild(document.createTextNode(res.d.nombre));
             chips.insertBefore(c, btn); chips.insertBefore(l, btn);
-            inp.value = ''; box.style.display = 'none'; btn.style.display = '';
+            cerrar();
         }).catch(function () { err.textContent = 'Sin conexión. Intente de nuevo.'; })
           .finally(function () { guardar.disabled = false; });
     }
