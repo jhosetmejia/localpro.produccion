@@ -38,8 +38,20 @@ body.cam{padding:0;overflow:hidden;background:#000}
 .prev{position:relative;border-radius:22px;overflow:hidden;background:#000;display:grid;place-items:center}
 .prev video{width:100%;max-height:56vh;object-fit:contain;display:block}
 .prev img{position:absolute;left:50%;bottom:5%;transform:translateX(-50%);width:42%;max-height:24%;object-fit:contain;pointer-events:none}
-.prev .chip{position:absolute;top:10px;right:10px;cursor:pointer;background:rgba(0,0,0,.55);color:#fff;border-color:rgba(255,255,255,.25)}
-.prev .chip[aria-pressed="true"]{background:var(--accent);color:#0b0d0c;border-color:var(--accent)}
+.ajustes{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:8px;align-items:flex-end;max-width:calc(100% - 20px)}
+.aj{appearance:none;cursor:pointer;background:rgba(0,0,0,.62);color:#fff;border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:8px 13px;font:600 .82rem var(--body);display:flex;gap:6px;align-items:center;max-width:100%;backdrop-filter:blur(4px)}
+.aj b{color:var(--accent2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:42vw}
+.aj:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+.hoja{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
+.hoja-c{background:var(--surface);border-radius:24px 24px 0 0;width:min(520px,100%);max-height:78vh;overflow:auto;padding:18px 16px calc(env(safe-area-inset-bottom,0px) + 10px);display:flex;flex-direction:column;gap:8px}
+.hoja-t{font:800 1.05rem var(--display);margin:0 0 4px}
+.hoja-l{display:flex;flex-direction:column;gap:8px}
+.hoja-g{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:8px 2px 0}
+.op{appearance:none;cursor:pointer;text-align:left;background:var(--surface2);color:var(--fg);border:1.5px solid transparent;border-radius:16px;padding:12px 14px;font:600 1rem var(--body);display:flex;gap:12px;align-items:center}
+.op small{display:block;color:var(--muted);font-weight:500;font-size:.82rem;margin-top:2px}
+.op.on{border-color:var(--accent);background:#1f3a27}
+.op img{width:48px;height:48px;object-fit:contain;border-radius:10px;background:#0b0f0c;flex:none}
+.op .ic{width:48px;height:48px;border-radius:10px;background:#0b0f0c;display:grid;place-items:center;font-size:1.4rem;flex:none}
 .otro{appearance:none;background:none;border:0;color:var(--muted);font:600 .95rem var(--body);text-decoration:underline;cursor:pointer;padding:8px;align-self:center}
 </style>
 </head>
@@ -74,22 +86,26 @@ body.cam{padding:0;overflow:hidden;background:#000}
     <div class="prev">
       <video id="crudo" playsinline muted loop autoplay></video>
       <img id="logo-prev" alt="">
-      <button class="chip" id="sin-logo" type="button" aria-pressed="false" hidden>Sin logo</button>
-    </div>
-    <button class="btn big" id="producir" type="button">Producir video</button>
-    <div class="musica">
-      <div class="lbl">Música</div>
-      <div class="combo" id="combo">
-        <button type="button" class="combo-btn" id="combo-btn" aria-haspopup="listbox" aria-expanded="false"><span id="combo-txt">Cargando…</span><small id="combo-tema"></small></button>
-        <div class="combo-pop" id="combo-pop" hidden>
-          <input type="search" id="combo-q" placeholder="Buscar canción…" autocomplete="off" aria-label="Buscar canción">
-          <div class="combo-lista" id="combo-lista" role="listbox"></div>
-        </div>
+      <div class="ajustes">
+        <button class="aj" id="b-logo" type="button"><span aria-hidden="true">🖼️</span>Logo: <b id="t-logo">…</b></button>
+        <button class="aj" id="b-musica" type="button"><span aria-hidden="true">🎵</span>Música: <b id="t-musica">…</b></button>
+        <button class="aj" id="b-edicion" type="button"><span aria-hidden="true">✨</span>Edición: <b id="t-edicion">Sí</b></button>
       </div>
     </div>
+    <button class="btn big" id="producir" type="button">Producir video</button>
     <button class="otro" id="repetir" type="button">Grabar de nuevo</button>
   </div>
 </section>
+
+<!-- Opciones de logo, música y edición -->
+<div class="hoja" id="hoja" hidden>
+  <div class="hoja-c" role="dialog" aria-modal="true" aria-labelledby="hoja-t">
+    <div class="hoja-t" id="hoja-t"></div>
+    <div class="hoja-l" id="hoja-l"></div>
+    <button class="otro" id="hoja-x" type="button">Cerrar</button>
+  </div>
+</div>
+<input type="file" id="in-logo" accept="image/*" class="sr" tabindex="-1">
 
 <!-- 3. Produciendo -->
 <section id="s-proceso" class="pant" hidden>
@@ -136,7 +152,6 @@ body.cam{padding:0;overflow:hidden;background:#000}
   var TEMAS = [['halloween', 'Halloween'], ['fiesta', 'Fiesta'], ['mis', 'Mis audios']];
   var temporadaHalloween = new Date() < new Date(2026, 10, 3);
   var DEF_MUSICA = temporadaHalloween ? { tema: 'halloween', id: 'hw-lp' } : { tema: 'fiesta', id: 'electro' };
-  var LOGO_URL = temporadaHalloween ? '/img/giro360/halloween-2026.png' : null;
   var misAudios = [], sel = null, musicaBlob = null, musicaNom = '', musicaBuf = null, ritmo = null;
 
   function idb() { return new Promise(function (ok, mal) { try { var r = indexedDB.open('giro360', 1); r.onupgradeneeded = function () { r.result.createObjectStore('k'); }; r.onsuccess = function () { ok(r.result); }; r.onerror = mal; } catch (e) { mal(e); } }); }
@@ -195,43 +210,65 @@ body.cam{padding:0;overflow:hidden;background:#000}
   function sinTilde(t) { return (t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
   function etiqueta() {
     var t = TEMAS.filter(function (x) { return sel && x[0] === sel.tema; })[0];
-    $('combo-txt').textContent = sel && sel.tema === 'ninguna' ? 'Sin música' : (musicaNom || 'Elegir canción');
-    $('combo-tema').textContent = t ? t[1] : '';
+    $('t-musica').textContent = sel && sel.tema === 'ninguna' ? 'Sin música' : (musicaNom ? musicaNom.replace(/ · LocalProo$/, '') : '…');
   }
-  function pintarCombo() {
-    var q = sinTilde($('combo-q').value.trim()), l = $('combo-lista'), hay = 0;
-    l.innerHTML = '';
-    TEMAS.forEach(function (t) {
-      var items = listaDe(t[0]).filter(function (c) { return !q || sinTilde(c.nombre + ' ' + t[1]).indexOf(q) > -1; });
-      if (!items.length) return;
-      var h = document.createElement('div'); h.className = 'combo-grupo'; h.textContent = t[1]; l.appendChild(h);
-      items.forEach(function (c) {
-        var b = document.createElement('button'); b.type = 'button'; b.className = 'combo-op'; b.setAttribute('role', 'option');
-        b.setAttribute('aria-selected', !!(sel && sel.tema === t[0] && sel.id === c.id)); b.textContent = c.nombre;
-        b.onclick = function () { cerrar(); elegir(t[0], c.id); };
-        l.appendChild(b); hay++;
-      });
-    });
-    if (!q || 'sin musica'.indexOf(q) > -1) {
-      var n = document.createElement('button'); n.type = 'button'; n.className = 'combo-op combo-sin'; n.textContent = 'Sin música';
-      n.setAttribute('aria-selected', !!(sel && sel.tema === 'ninguna')); n.onclick = function () { cerrar(); elegir('ninguna'); }; l.appendChild(n); hay++;
-    }
-    if (!hay) { var z = document.createElement('div'); z.className = 'combo-vacio'; z.textContent = 'No hay canciones con "' + $('combo-q').value.trim() + '".'; l.appendChild(z); }
-  }
-  function abrir() { $('combo-pop').hidden = false; $('combo-btn').setAttribute('aria-expanded', 'true'); $('combo-q').value = ''; pintarCombo(); setTimeout(function () { $('combo-q').focus(); }, 30); }
-  function cerrar() { $('combo-pop').hidden = true; $('combo-btn').setAttribute('aria-expanded', 'false'); }
-  $('combo-btn').onclick = function () { $('combo-pop').hidden ? abrir() : cerrar(); };
-  $('combo-q').oninput = pintarCombo;
-  $('combo-q').onkeydown = function (e) { if (e.key === 'Escape') cerrar(); if (e.key === 'Enter') { e.preventDefault(); var b = $('combo-lista').querySelector('.combo-op'); if (b) b.click(); } };
-  document.addEventListener('click', function (e) { if (!$('combo').contains(e.target)) cerrar(); });
 
-  // ===== Logo por defecto (con "Sin logo") =====
-  var logoImg = null, sinLogo = false;
-  if (LOGO_URL) {
-    var li = new Image(); li.onload = function () { logoImg = li; }; li.src = LOGO_URL;
-    $('logo-prev').src = LOGO_URL; $('sin-logo').hidden = false;
-  } else $('logo-prev').hidden = true;
-  $('sin-logo').onclick = function () { sinLogo = !sinLogo; this.setAttribute('aria-pressed', sinLogo); $('logo-prev').hidden = sinLogo; };
+  // ===== Hoja de opciones (logo, música y edición) =====
+  function hoja(titulo, opciones) {
+    $('hoja-t').textContent = titulo; var l = $('hoja-l'); l.innerHTML = '';
+    opciones.forEach(function (o) {
+      if (o.grupo) { var g = document.createElement('div'); g.className = 'hoja-g'; g.textContent = o.grupo; l.appendChild(g); return; }
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'op' + (o.on ? ' on' : '');
+      if (o.img) { var im = document.createElement('img'); im.src = o.img; im.alt = ''; b.appendChild(im); }
+      else { var ic = document.createElement('span'); ic.className = 'ic'; ic.textContent = o.ic || '•'; b.appendChild(ic); }
+      var tx = document.createElement('span'); tx.textContent = o.txt;
+      if (o.sub) { var sm = document.createElement('small'); sm.textContent = o.sub; tx.appendChild(sm); }
+      b.appendChild(tx);
+      b.onclick = function () { cerrarHoja(); o.accion(); };
+      l.appendChild(b);
+    });
+    $('hoja').hidden = false;
+  }
+  function cerrarHoja() { $('hoja').hidden = true; }
+  $('hoja-x').onclick = cerrarHoja;
+  $('hoja').addEventListener('click', function (e) { if (e.target === $('hoja')) cerrarHoja(); });
+
+  $('b-musica').onclick = function () {
+    var ops = [{ txt: 'Sin música', sub: 'El video sale sin sonido', ic: '🔇', on: !!(sel && sel.tema === 'ninguna'), accion: function () { elegir('ninguna'); } }];
+    TEMAS.forEach(function (t) {
+      var l = listaDe(t[0]); if (!l.length) return;
+      ops.push({ grupo: t[1] });
+      l.forEach(function (c) { ops.push({ txt: c.nombre.replace(/ · LocalProo$/, ''), ic: '🎵', on: !!(sel && sel.tema === t[0] && sel.id === c.id), accion: function () { elegir(t[0], c.id); } }); });
+    });
+    hoja('Cambiar música', ops);
+  };
+
+  var conEdicion = true;
+  $('b-edicion').onclick = function () {
+    hoja('Edición del video', [
+      { txt: 'Con edición', sub: 'Velocidad curva: rápido y lento siguiendo la música', ic: '✨', on: conEdicion, accion: function () { conEdicion = true; $('t-edicion').textContent = 'Sí'; } },
+      { txt: 'Sin edición', sub: 'El video tal cual, a velocidad normal', ic: '🎬', on: !conEdicion, accion: function () { conEdicion = false; $('t-edicion').textContent = 'No'; } }
+    ]);
+  };
+
+  // ===== Logo: sin logo, uno de los logos de LocalProo o uno propio =====
+  var LOGOS = [{ id: 'hw2026', nombre: 'Halloween 2026', url: '/img/giro360/halloween-2026.png' }];
+  var logoImg = null, logoNom = '', logoId = null;
+  function ponerLogo(src, nombre, id) {
+    logoId = id || null; logoNom = nombre || '';
+    if (!src) { logoImg = null; $('logo-prev').hidden = true; $('t-logo').textContent = 'Sin logo'; return; }
+    var im = new Image(); im.onload = function () { logoImg = im; }; im.src = src;
+    $('logo-prev').src = src; $('logo-prev').hidden = false; $('t-logo').textContent = nombre || 'Mi logo';
+  }
+  ponerLogo(temporadaHalloween ? LOGOS[0].url : null, temporadaHalloween ? LOGOS[0].nombre : '', temporadaHalloween ? LOGOS[0].id : null);
+  $('b-logo').onclick = function () {
+    var ops = [{ txt: 'Sin logo', sub: 'El video sale limpio', ic: '🚫', on: !logoImg && !logoId, accion: function () { ponerLogo(null); } }, { grupo: 'Logos de LocalProo' }];
+    LOGOS.forEach(function (L) { ops.push({ txt: L.nombre, img: L.url, on: logoId === L.id, accion: function () { ponerLogo(L.url, L.nombre, L.id); } }); });
+    ops.push({ grupo: 'Su logo' });
+    ops.push({ txt: logoId === 'propio' ? 'Cambiar mi logo' : 'Cargar un logo', sub: 'Una imagen del celular (PNG sin fondo queda mejor)', ic: '📤', on: logoId === 'propio', accion: function () { $('in-logo').click(); } });
+    hoja('Logo del video', ops);
+  };
+  $('in-logo').onchange = function () { var f = this.files[0]; this.value = ''; if (f) ponerLogo(URL.createObjectURL(f), 'Mi logo', 'propio'); };
 
   // Arranque: Mis audios del celular (si los hay) y la canción por defecto
   leer('misAudios').then(function (l) { misAudios = Array.isArray(l) ? l : []; });
@@ -335,8 +372,8 @@ body.cam{padding:0;overflow:hidden;background:#000}
         var W = v.videoWidth, H = v.videoHeight, k = Math.min(1, 1920 / Math.max(W, H));
         W = Math.round(W * k / 2) * 2; H = Math.round(H * k / 2) * 2; cv.width = W; cv.height = H;
         var ctx = cv.getContext('2d'), out = cv.captureStream(30);
-        var plan = (ritmo && musicaBuf) ? planRitmo(dur) : null;
-        var durFinal = plan ? plan.T : dur * factorClasico();
+        var plan = (conEdicion && ritmo && musicaBuf) ? planRitmo(dur) : null;
+        var durFinal = plan ? plan.T : (conEdicion ? dur * factorClasico() : dur);
         var fuente = null, gan = null, a = audioCtx();
         if (musicaBuf && a) {
           var dest = a.createMediaStreamDestination(); gan = a.createGain(); gan.connect(dest);
@@ -348,7 +385,7 @@ body.cam{padding:0;overflow:hidden;background:#000}
         extEditado = mime.indexOf('mp4') > -1 ? 'mp4' : 'webm';
         rec.ondataavailable = function (e) { if (e.data && e.data.size) partes.push(e.data); };
         rec.onstop = function () { try { fuente && fuente.stop(); } catch (e) {} editado = new Blob(partes, { type: mime.split(';')[0] }); mostrarFinal(); };
-        var fin = false, rateAnt = 0, tIni = 0, logo = sinLogo ? null : logoImg;
+        var fin = false, rateAnt = 0, tIni = 0, logo = logoImg;
         function dibujar() {
           ctx.drawImage(v, 0, 0, W, H);
           if (logo) {
@@ -364,7 +401,7 @@ body.cam{padding:0;overflow:hidden;background:#000}
             var tau = (performance.now() - tIni) / 1000, i = Math.min(plan.r.length - 1, Math.floor(tau / PASO));
             var esperado = Math.min(dur, plan.cum[i] * plan.esc), corr = Math.max(0.6, Math.min(1.6, 1 + (esperado - v.currentTime) * 1.2));
             r = plan.r[i] * plan.esc * corr;
-          } else r = velClasico(x);
+          } else r = conEdicion ? velClasico(x) : 1;
           r = Math.max(0.25, Math.min(4, r));
           if (Math.abs(r - rateAnt) > 0.02) { try { v.playbackRate = r; rateAnt = r; } catch (e) {} }
           dibujar(); $('prog').style.width = Math.min(100, x * 100).toFixed(1) + '%';
@@ -372,7 +409,7 @@ body.cam{padding:0;overflow:hidden;background:#000}
         }
         v.onended = function () { if (fin) return; fin = true; dibujar(); $('prog').style.width = '100%'; setTimeout(function () { try { rec.stop(); } catch (e) {} }, 250); };
         v.currentTime = 0; dibujar(); rec.start(250);
-        v.playbackRate = Math.max(0.25, Math.min(4, plan ? plan.r[0] * plan.esc : velClasico(0)));
+        v.playbackRate = Math.max(0.25, Math.min(4, plan ? plan.r[0] * plan.esc : (conEdicion ? velClasico(0) : 1)));
         v.play().then(function () {
           tIni = performance.now();
           if (fuente) {
