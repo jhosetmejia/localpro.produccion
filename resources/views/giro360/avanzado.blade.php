@@ -171,7 +171,7 @@
   <footer>Hecho con <a href="https://localproo.com" target="_blank" rel="noopener">LocalProo</a> · el video no sale de su celular</footer>
 </div>
 @if (\App\Http\Controllers\giro360Controller::puedeSubir())
-<script>window.ADMIN_360 = { url: @json(route('giro360.logos.subir')), musica: @json(route('giro360.canciones.subir')), token: @json(csrf_token()) };</script>
+<script>window.ADMIN_360 = {!! json_encode(['url' => route('giro360.logos.subir'), 'musica' => route('giro360.canciones.subir'), 'token' => csrf_token()]) !!};</script>
 @endif
 <script>window.CANCIONES_360 = {!! json_encode(\App\Http\Controllers\giro360Controller::cancionesJs(), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!};</script>
 @verbatim

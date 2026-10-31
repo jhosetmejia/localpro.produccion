@@ -371,8 +371,9 @@ window.EVENTO_360 = {!! json_encode($evento360 ?? null, JSON_UNESCAPED_UNICODE |
     despertar();
     if (grabando) return parar();
     if (tCuenta) { clearInterval(tCuenta); tCuenta = null; $('cuenta').hidden = true; return; }
-    if (!stream) return;
-    if (bloqueado()) return puedeGrabar(function () { $('rec').click(); });
+    // Primero el registro/código (antes ni siquiera abría la cámara y el botón no hacía nada)
+    if (bloqueado()) return puedeGrabar(function () { if (stream) $('rec').click(); else abrirCamara(); });
+    if (!stream) return abrirCamara();
     var n = CUENTA; $('cuenta').textContent = n; $('cuenta').hidden = false; $('cam-ayuda').textContent = 'Prepárese…';
     tCuenta = setInterval(function () { n--; if (n > 0) $('cuenta').textContent = n; else { clearInterval(tCuenta); tCuenta = null; $('cuenta').hidden = true; empezar(); } }, 1000);
   };
@@ -552,7 +553,7 @@ window.EVENTO_360 = {!! json_encode($evento360 ?? null, JSON_UNESCAPED_UNICODE |
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
     });
   }
-  $('reg-x').onclick = function () { $('registro').hidden = true; luegoRegistro = null; };
+  $('reg-x').onclick = function () { $('registro').hidden = true; luegoRegistro = null; $('cam-ayuda').textContent = 'Para grabar otro video toque el botón y deje sus datos.'; };
   $('reg-form').onsubmit = function (e) {
     e.preventDefault();
     var n = $('reg-nombre').value.trim(), c = $('reg-cel').value.trim(), m = $('reg-msg');

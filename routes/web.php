@@ -90,8 +90,8 @@ foreach (['privacidad' => 'privacidad', 'terminos' => 'terminos', 'eliminar-dato
 Route::get('/360', [\App\Http\Controllers\giro360Controller::class, 'index'])->name('giro360');
 Route::view('/360/audio', 'giro360.audio')->name('giro360.audio');
 Route::view('/360/avanzado', 'giro360.avanzado')->name('giro360.avanzado');
-Route::post('/360/cliente', [\App\Http\Controllers\giro360Controller::class, 'guardar'])->middleware('throttle:30,1')->name('giro360.cliente');
-Route::post('/360/codigo', [\App\Http\Controllers\giro360Controller::class, 'codigo'])->middleware('throttle:10,1')->name('giro360.codigo');
+Route::post('/360/cliente', [\App\Http\Controllers\giro360Controller::class, 'guardar'])->middleware('throttle:120,1')->name('giro360.cliente');
+Route::post('/360/codigo', [\App\Http\Controllers\giro360Controller::class, 'codigo'])->middleware('throttle:40,1')->name('giro360.codigo');
 Route::middleware('auth')->group(function () {
     Route::get('/mi-360', [\App\Http\Controllers\giro360Controller::class, 'mis'])->name('giro360.mis');
     Route::get('/mi-360/exportar', [\App\Http\Controllers\giro360Controller::class, 'misExportar'])->name('giro360.mis.exportar');
