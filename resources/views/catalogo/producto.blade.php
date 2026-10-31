@@ -336,41 +336,38 @@
         preparando = Promise.all([cargar($('ppImg') ? $('ppImg').getAttribute('src') : fotoBase), cargar(sh.logo), document.fonts ? document.fonts.ready : null]).then(function (r) {
             var foto = r[0], logo = r[1], W = 1080, H = 1920, c = document.createElement('canvas'); c.width = W; c.height = H;
             var x = c.getContext('2d');
-            // Fondo
-            var g = x.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#eafbe9'); g.addColorStop(1, '#f4f8f5'); x.fillStyle = g; x.fillRect(0, 0, W, H);
-            var g2 = x.createLinearGradient(0, 0, W, 0); g2.addColorStop(0, '#a6f34a'); g2.addColorStop(.45, '#2fd15a'); g2.addColorStop(1, '#16b34a');
-            x.fillStyle = g2; x.fillRect(0, 0, W, 16);
-            // Tienda
-            var ty = 110;
-            if (logo) { x.save(); redondo(x, 80, ty - 52, 104, 104, 30); x.fillStyle = '#fff'; x.fill(); x.clip(); var k = Math.min(104 / logo.naturalWidth, 104 / logo.naturalHeight); x.drawImage(logo, 80 + (104 - logo.naturalWidth * k) / 2, ty - 52 + (104 - logo.naturalHeight * k) / 2, logo.naturalWidth * k, logo.naturalHeight * k); x.restore(); }
-            var tx = logo ? 206 : 80;
-            x.fillStyle = '#0b0d0c'; x.font = '800 46px ' + fuente; x.textBaseline = 'alphabetic';
-            x.fillText(lineas(x, sh.tienda, W - tx - 80, 1)[0], tx, ty + 4);
-            if (sh.ciudad) { x.fillStyle = '#5b665e'; x.font = '600 32px ' + fuente; x.fillText(sh.ciudad, tx, ty + 48); }
-            // Foto
-            var fx = 70, fy = 230, fw = W - 140, fh = 940;
-            x.save(); x.shadowColor = 'rgba(0,0,0,.12)'; x.shadowBlur = 50; x.shadowOffsetY = 18; redondo(x, fx, fy, fw, fh, 48); x.fillStyle = '#fff'; x.fill(); x.restore();
+            // Fondo oscuro con brillo verde LocalProo
+            x.fillStyle = '#0b0f0c'; x.fillRect(0, 0, W, H);
+            var r1 = x.createRadialGradient(W * .15, H * .1, 0, W * .15, H * .1, W * .9); r1.addColorStop(0, 'rgba(47,209,90,.35)'); r1.addColorStop(1, 'rgba(47,209,90,0)'); x.fillStyle = r1; x.fillRect(0, 0, W, H);
+            var r2 = x.createRadialGradient(W * .9, H * .75, 0, W * .9, H * .75, W * .8); r2.addColorStop(0, 'rgba(166,243,74,.22)'); r2.addColorStop(1, 'rgba(166,243,74,0)'); x.fillStyle = r2; x.fillRect(0, 0, W, H);
+            // Tienda arriba (debajo de la barra de WhatsApp)
+            var ty = 180;
+            if (logo) { x.save(); redondo(x, 70, ty, 84, 84, 24); x.fillStyle = '#fff'; x.fill(); x.clip(); var k = Math.min(70 / logo.naturalWidth, 70 / logo.naturalHeight); x.drawImage(logo, 70 + (84 - logo.naturalWidth * k) / 2, ty + (84 - logo.naturalHeight * k) / 2, logo.naturalWidth * k, logo.naturalHeight * k); x.restore(); }
+            var tx = logo ? 176 : 70;
+            x.textAlign = 'left'; x.fillStyle = '#fff'; x.font = '800 40px ' + fuente; x.fillText(lineas(x, sh.tienda, W - tx - 70, 1)[0], tx, ty + 38);
+            x.fillStyle = 'rgba(255,255,255,.65)'; x.font = '600 30px ' + fuente; x.fillText(sh.ciudad ? sh.ciudad + ' · localproo.com' : 'localproo.com', tx, ty + 78);
+            // Foto a sangre (sin fondo), esquinas redondas
+            var fx = 70, fy = 300, fw = W - 140, fh = 930;
             x.save(); redondo(x, fx, fy, fw, fh, 48); x.clip();
-            if (foto) { var k2 = Math.min((fw - 60) / foto.naturalWidth, (fh - 60) / foto.naturalHeight); var dw = foto.naturalWidth * k2, dh = foto.naturalHeight * k2; x.drawImage(foto, fx + (fw - dw) / 2, fy + (fh - dh) / 2, dw, dh); }
-            else { x.fillStyle = '#16b34a'; x.font = '800 300px ' + fuente; x.textAlign = 'center'; x.fillText(p.nombre.charAt(0).toUpperCase(), W / 2, fy + fh / 2 + 100); x.textAlign = 'left'; }
+            if (foto) { var k2 = Math.max(fw / foto.naturalWidth, fh / foto.naturalHeight), dw = foto.naturalWidth * k2, dh = foto.naturalHeight * k2; x.drawImage(foto, fx + (fw - dw) / 2, fy + (fh - dh) / 2, dw, dh); }
+            else { var gl = x.createLinearGradient(fx, fy, fx + fw, fy + fh); gl.addColorStop(0, '#a6f34a'); gl.addColorStop(1, '#16b34a'); x.fillStyle = gl; x.fillRect(fx, fy, fw, fh); x.fillStyle = '#0b0d0c'; x.font = '800 340px ' + fuente; x.textAlign = 'center'; x.fillText(p.nombre.charAt(0).toUpperCase(), W / 2, fy + fh / 2 + 120); x.textAlign = 'left'; }
+            // Degradado abajo de la foto para que el precio se lea encima
+            var gd = x.createLinearGradient(0, fy + fh - 420, 0, fy + fh); gd.addColorStop(0, 'rgba(11,15,12,0)'); gd.addColorStop(1, 'rgba(11,15,12,.92)'); x.fillStyle = gd; x.fillRect(fx, fy + fh - 420, fw, 420);
             x.restore();
-            if (p.descuento) { x.fillStyle = '#e11d48'; redondo(x, fx + 30, fy + 30, 190, 84, 42); x.fill(); x.fillStyle = '#fff'; x.font = '800 44px ' + fuente; x.textAlign = 'center'; x.fillText('-' + p.descuento + '%', fx + 125, fy + 87); x.textAlign = 'left'; }
-            // Nombre y precio
+            if (p.descuento) { x.fillStyle = '#ff2d55'; redondo(x, fx + 30, fy + 30, 200, 88, 44); x.fill(); x.fillStyle = '#fff'; x.font = '800 48px ' + fuente; x.textAlign = 'center'; x.fillText('-' + p.descuento + '%', fx + 130, fy + 90); x.textAlign = 'left'; }
+            // Precio sobre la foto
+            var pre = (p.desde ? 'Desde ' : '') + sh.precio, py = fy + fh - 60;
+            x.font = '800 104px ' + fuente; var pw = x.measureText(pre).width;
+            var gp = x.createLinearGradient(fx + 50, 0, fx + 50 + pw, 0); gp.addColorStop(0, '#a6f34a'); gp.addColorStop(1, '#2fd15a'); x.fillStyle = gp; x.fillText(pre, fx + 50, py);
+            if (sh.antes) { x.fillStyle = 'rgba(255,255,255,.7)'; x.font = '600 46px ' + fuente; var ax = fx + 50 + pw + 28, aw = x.measureText(sh.antes).width; if (ax + aw < fx + fw - 30) { x.fillText(sh.antes, ax, py - 8); x.fillRect(ax, py - 24, aw, 4); } }
+            // Nombre y llamado
             var y = fy + fh + 100;
-            x.fillStyle = '#151a17'; x.font = '800 60px ' + fuente;
-            lineas(x, p.nombre, W - 160, 2).forEach(function (l) { x.fillText(l, 80, y); y += 74; });
-            y += 26;
-            x.fillStyle = '#16b34a'; x.font = '800 92px ' + fuente;
-            var pre = (p.desde ? 'Desde ' : '') + sh.precio; x.fillText(pre, 80, y);
-            if (sh.antes) { var pw = x.measureText(pre).width; x.fillStyle = '#5b665e'; x.font = '600 46px ' + fuente; var ax = 80 + pw + 30, aw = x.measureText(sh.antes).width; x.fillText(sh.antes, ax, y); x.fillRect(ax, y - 16, aw, 4); }
-            // Llamado a la acción
-            var by = H - 250;
-            x.fillStyle = '#25d366'; redondo(x, 80, by, W - 160, 120, 60); x.fill();
-            x.fillStyle = '#fff'; x.font = '800 46px ' + fuente; x.textAlign = 'center';
-            x.fillText('Pídalo por WhatsApp', W / 2, by + 77);
-            x.fillStyle = '#5b665e'; x.font = '600 32px ' + fuente;
-            x.fillText(lineas(x, p.url.replace(/^https?:\/\//, ''), W - 160, 1)[0], W / 2, by + 180);
-            x.textAlign = 'left';
+            x.fillStyle = '#fff'; x.font = '800 62px ' + fuente;
+            lineas(x, p.nombre, W - 140, 2).forEach(function (l) { x.fillText(l, 70, y); y += 76; });
+            var chip = 'Pídalo por WhatsApp';
+            x.font = '800 38px ' + fuente; var cw = x.measureText(chip).width + 80;
+            x.fillStyle = '#25d366'; redondo(x, 70, y - 10, cw, 80, 40); x.fill();
+            x.fillStyle = '#fff'; x.fillText(chip, 110, y + 43);
             return new Promise(function (ok) { c.toBlob(function (b) { ok(b); }, 'image/jpeg', 0.9); });
         }).then(function (b) {
             if (!b) throw 0;

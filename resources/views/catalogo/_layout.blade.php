@@ -238,52 +238,57 @@ document.addEventListener('error', function (e) {
     }
     function redondo(x, a, b, w, h, r) { x.beginPath(); x.moveTo(a + r, b); x.arcTo(a + w, b, a + w, b + h, r); x.arcTo(a + w, b + h, a, b + h, r); x.arcTo(a, b + h, a, b, r); x.arcTo(a, b, a + w, b, r); x.closePath(); }
     function encajar(x, img, a, b, w, h, pad) { var k = Math.min((w - pad * 2) / img.naturalWidth, (h - pad * 2) / img.naturalHeight), dw = img.naturalWidth * k, dh = img.naturalHeight * k; x.drawImage(img, a + (w - dw) / 2, b + (h - dh) / 2, dw, dh); }
+    var F = "'Plus Jakarta Sans', system-ui, sans-serif";
+    // Fondo oscuro con brillo verde LocalProo
+    function fondo(x, W, H) {
+        x.fillStyle = '#0b0f0c'; x.fillRect(0, 0, W, H);
+        var r1 = x.createRadialGradient(W * .15, H * .1, 0, W * .15, H * .1, W * .9); r1.addColorStop(0, 'rgba(47,209,90,.35)'); r1.addColorStop(1, 'rgba(47,209,90,0)'); x.fillStyle = r1; x.fillRect(0, 0, W, H);
+        var r2 = x.createRadialGradient(W * .9, H * .75, 0, W * .9, H * .75, W * .8); r2.addColorStop(0, 'rgba(166,243,74,.22)'); r2.addColorStop(1, 'rgba(166,243,74,0)'); x.fillStyle = r2; x.fillRect(0, 0, W, H);
+    }
+    // Foto que llena su espacio (recorta lo que sobra), con esquinas redondas
+    function cubrir(x, im, a, b, w, h, r) {
+        var k = Math.max(w / im.naturalWidth, h / im.naturalHeight), dw = im.naturalWidth * k, dh = im.naturalHeight * k;
+        x.save(); redondo(x, a, b, w, h, r); x.clip(); x.drawImage(im, a + (w - dw) / 2, b + (h - dh) / 2, dw, dh); x.restore();
+    }
     function linea(x, t, ancho) { if (x.measureText(t).width <= ancho) return t; while (t.length > 1 && x.measureText(t + '…').width > ancho) t = t.slice(0, -1); return t + '…'; }
     function preparar() {
         if (archivo) return Promise.resolve(archivo);
         if (preparando) return preparando;
-        var F = "'Plus Jakarta Sans', system-ui, sans-serif";
         preparando = Promise.all([cargar(T.logo)].concat(T.fotos.map(cargar)).concat([document.fonts ? document.fonts.ready : null])).then(function (r) {
             var logo = r[0], fotos = r.slice(1, 1 + T.fotos.length).filter(Boolean), W = 1080, H = 1920, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
-            var x = cv.getContext('2d'), g = x.createLinearGradient(0, 0, W, 0); g.addColorStop(0, '#a6f34a'); g.addColorStop(.45, '#2fd15a'); g.addColorStop(1, '#16b34a');
-            var f = x.createLinearGradient(0, 0, 0, H); f.addColorStop(0, '#eafbe9'); f.addColorStop(1, '#f4f8f5'); x.fillStyle = f; x.fillRect(0, 0, W, H);
-            x.fillStyle = g; x.fillRect(0, 0, W, 16);
-            // Logo y nombre
-            x.save(); x.shadowColor = 'rgba(0,0,0,.12)'; x.shadowBlur = 40; x.shadowOffsetY = 14; redondo(x, W / 2 - 110, 110, 220, 220, 60); x.fillStyle = '#fff'; x.fill(); x.restore();
-            if (logo) { x.save(); redondo(x, W / 2 - 110, 110, 220, 220, 60); x.clip(); encajar(x, logo, W / 2 - 110, 110, 220, 220, 18); x.restore(); }
-            else { x.fillStyle = '#16b34a'; x.font = '800 130px ' + F; x.textAlign = 'center'; x.fillText(T.nombre.charAt(0).toUpperCase(), W / 2, 268); }
-            // Nombre: una línea grande o dos más pequeñas si es largo
-            x.textAlign = 'center'; x.fillStyle = '#0b0d0c'; x.font = '800 66px ' + F;
-            var yN = 420;
-            if (x.measureText(T.nombre).width <= W - 140) x.fillText(T.nombre, W / 2, yN);
-            else {
-                x.font = '800 56px ' + F;
-                var pal = T.nombre.split(/\s+/), l1 = '', i2 = 0;
-                for (; i2 < pal.length; i2++) { var n1 = l1 ? l1 + ' ' + pal[i2] : pal[i2]; if (x.measureText(n1).width > W - 140 && l1) break; l1 = n1; }
-                if (i2 >= pal.length) x.fillText(l1, W / 2, yN);
-                else { x.fillText(l1, W / 2, yN - 30); x.fillText(linea(x, pal.slice(i2).join(' '), W - 140), W / 2, yN + 36); yN += 36; }
-            }
-            if (T.lugar) { x.fillStyle = '#5b665e'; x.font = '600 36px ' + F; x.fillText(linea(x, T.lugar, W - 160), W / 2, yN + 54); }
-            // Fotos de productos
-            // Fotos: 1 grande · 2 lado a lado · 3 = una arriba y dos abajo · 4 en cuadrícula
-            var y0 = 560, gap = 24, n = Math.min(4, fotos.length), AW = W - 140, AH = 880, half = (AW - gap) / 2, hh = (AH - gap) / 2;
-            var cajas = n === 1 ? [[0, 0, AW, AH]] : n === 2 ? [[0, 0, half, AH], [half + gap, 0, half, AH]]
-                : n === 3 ? [[0, 0, AW, hh], [0, hh + gap, half, hh], [half + gap, hh + gap, half, hh]]
-                : [[0, 0, half, hh], [half + gap, 0, half, hh], [0, hh + gap, half, hh], [half + gap, hh + gap, half, hh]];
-            if (n) {
-                fotos.slice(0, 4).forEach(function (im, i) {
-                    var cj = cajas[i], a = 70 + cj[0], b = y0 + cj[1], cw = cj[2], ch = cj[3];
-                    x.save(); x.shadowColor = 'rgba(0,0,0,.10)'; x.shadowBlur = 30; x.shadowOffsetY = 10; redondo(x, a, b, cw, ch, 36); x.fillStyle = '#fff'; x.fill(); x.restore();
-                    x.save(); redondo(x, a, b, cw, ch, 36); x.clip(); encajar(x, im, a, b, cw, ch, 20); x.restore();
-                });
-            }
-            // Texto y llamado
-            x.fillStyle = '#151a17'; x.font = '800 52px ' + F;
-            x.fillText(T.cuantos > 1 ? T.cuantos + ' productos en la tienda' : 'Vea la tienda en línea', W / 2, 1530);
-            x.fillStyle = '#5b665e'; x.font = '600 38px ' + F; x.fillText('Compre fácil por WhatsApp', W / 2, 1590);
-            x.fillStyle = '#25d366'; redondo(x, 80, H - 260, W - 160, 120, 60); x.fill();
-            x.fillStyle = '#fff'; x.font = '800 48px ' + F; x.fillText('Visite la tienda', W / 2, H - 182);
-            x.fillStyle = '#5b665e'; x.font = '600 32px ' + F; x.fillText(linea(x, url.replace(/^https?:\/\//, ''), W - 160), W / 2, H - 80);
+            var x = cv.getContext('2d');
+            fondo(x, W, H);
+            // Marca arriba (debajo de la barra de WhatsApp)
+            x.textAlign = 'right'; x.fillStyle = 'rgba(255,255,255,.55)'; x.font = '700 30px ' + F; x.fillText('localproo.com', W - 70, 205);
+            x.textAlign = 'left'; x.fillStyle = '#a6f34a'; x.font = '800 30px ' + F; x.fillText('TIENDA EN LÍNEA', 70, 205);
+            // Collage de productos a sangre (sin fondo)
+            var n = Math.min(4, fotos.length), X0 = 70, Y0 = 250, AW = W - 140, AH = 920, g = 18, half = (AW - g) / 2, hh = (AH - g) / 2;
+            var cajas = n === 1 ? [[0, 0, AW, AH]] : n === 2 ? [[0, 0, half, AH], [half + g, 0, half, AH]]
+                : n === 3 ? [[0, 0, half, AH], [half + g, 0, half, hh], [half + g, hh + g, half, hh]]
+                : [[0, 0, half, hh], [half + g, 0, half, hh], [0, hh + g, half, hh], [half + g, hh + g, half, hh]];
+            if (n) fotos.slice(0, 4).forEach(function (im, i) { var c = cajas[i]; cubrir(x, im, X0 + c[0], Y0 + c[1], c[2], c[3], 44); });
+            else { x.fillStyle = 'rgba(166,243,74,.12)'; redondo(x, X0, Y0, AW, AH, 44); x.fill(); }
+            // Logo sobre el collage
+            var lg = 190, lx = W / 2 - lg / 2, ly = Y0 + AH - lg / 2;
+            x.save(); x.shadowColor = 'rgba(0,0,0,.45)'; x.shadowBlur = 40; x.shadowOffsetY = 12; redondo(x, lx, ly, lg, lg, 56); x.fillStyle = '#fff'; x.fill(); x.restore();
+            x.save(); redondo(x, lx, ly, lg, lg, 56); x.clip();
+            if (logo) encajar(x, logo, lx, ly, lg, lg, 14);
+            else { var gl = x.createLinearGradient(lx, ly, lx + lg, ly + lg); gl.addColorStop(0, '#a6f34a'); gl.addColorStop(1, '#16b34a'); x.fillStyle = gl; x.fillRect(lx, ly, lg, lg); x.fillStyle = '#0b0d0c'; x.font = '800 110px ' + F; x.textAlign = 'center'; x.fillText(T.nombre.charAt(0).toUpperCase(), W / 2, ly + 132); }
+            x.restore();
+            // Nombre grande, ciudad y chip
+            x.textAlign = 'center'; x.fillStyle = '#ffffff';
+            var yN = ly + lg + 92, tam = 74;
+            x.font = '800 ' + tam + 'px ' + F;
+            while (x.measureText(T.nombre).width > W - 120 && tam > 56) { tam -= 4; x.font = '800 ' + tam + 'px ' + F; }
+            if (x.measureText(T.nombre).width <= W - 120) x.fillText(T.nombre, W / 2, yN);
+            else { var pal = T.nombre.split(/\s+/), l1 = '', k = 0; for (; k < pal.length; k++) { var t1 = l1 ? l1 + ' ' + pal[k] : pal[k]; if (x.measureText(t1).width > W - 120 && l1) break; l1 = t1; } x.fillText(l1, W / 2, yN); yN += tam + 6; x.fillText(linea(x, pal.slice(k).join(' '), W - 120), W / 2, yN); }
+            if (T.lugar) { x.fillStyle = 'rgba(255,255,255,.7)'; x.font = '600 38px ' + F; x.fillText(linea(x, T.lugar, W - 160), W / 2, yN + 58); yN += 58; }
+            var chip = (T.cuantos > 1 ? T.cuantos + ' productos · ' : '') + 'Compre por WhatsApp';
+            x.font = '800 36px ' + F; var cw2 = x.measureText(chip).width + 80;
+            var gc = x.createLinearGradient(W / 2 - cw2 / 2, 0, W / 2 + cw2 / 2, 0); gc.addColorStop(0, '#a6f34a'); gc.addColorStop(1, '#2fd15a');
+            x.fillStyle = gc; redondo(x, W / 2 - cw2 / 2, yN + 34, cw2, 76, 38); x.fill();
+            x.fillStyle = '#0b0d0c'; x.fillText(chip, W / 2, yN + 85);
+            x.textAlign = 'left';
             return new Promise(function (ok) { cv.toBlob(ok, 'image/jpeg', 0.9); });
         }).then(function (b) {
             if (!b) throw 0;
