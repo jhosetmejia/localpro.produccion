@@ -51,21 +51,29 @@
         <span class="lbl">Logos listos</span>
         <button class="mini" type="button" data-logo="/img/giro360/halloween-2026.png" data-nombre="Halloween 2026">Halloween 2026</button>
       </div>
-      <div class="pick">
-        <div class="th">♫</div>
-        <div class="tx"><div id="musica-nom">Sin canción</div><small id="musica-sub">El video sale con la canción de fondo</small></div>
-        <div class="acc">
-          <button class="mini" id="musica-oir" type="button" hidden>▶ Oír</button>
-          <button class="mini" id="musica-btn" type="button">Subir</button>
-          <button class="mini" id="musica-quitar" type="button" hidden>Quitar</button>
+      <div class="musica">
+        <div class="lbl">Música</div>
+        <div class="row">
+          <div class="field"><label class="sr" for="tema">Tema</label>
+            <select id="tema">
+              <option value="halloween">Halloween</option>
+              <option value="fiesta">Fiesta</option>
+              <option value="mis">Mis audios</option>
+              <option value="ninguna">Sin música</option>
+            </select></div>
+          <div class="field"><label class="sr" for="cancion">Canción</label><select id="cancion"></select></div>
         </div>
-        <input type="file" id="in-musica" accept="audio/*" class="sr" tabindex="-1">
-      </div>
-      <div class="listas">
-        <span class="lbl">Canciones listas</span>
-        <button class="mini" type="button" data-cancion="/audio/giro360/halloween.mp3" data-nombre="Halloween · LocalProo">Halloween</button>
-        <button class="mini" type="button" data-cancion="/audio/giro360/tocata-bach.mp3" data-nombre="Tocata de terror (Bach)">Tocata de terror</button>
-        <button class="mini" type="button" data-cancion="/audio/giro360/electronica.mp3" data-nombre="Electrónica · LocalProo">Electrónica</button>
+        <div class="pick">
+          <div class="th">♫</div>
+          <div class="tx"><div id="musica-nom">Sin canción</div><small id="musica-sub">El video sale con esta canción de fondo</small></div>
+          <div class="acc">
+            <button class="mini" id="musica-oir" type="button" hidden>▶ Oír</button>
+            <button class="mini" id="musica-btn" type="button">Subir audio</button>
+            <button class="mini" id="mis-borrar" type="button" hidden>Borrar</button>
+          </div>
+          <input type="file" id="in-musica" accept="audio/*" class="sr" tabindex="-1">
+        </div>
+        <a class="mini" href="/360/audio" style="text-decoration:none;text-align:center">♫ Sacar el audio de un video (va a Mis audios)</a>
       </div>
       <div class="field" id="desde-wrap" hidden>
         <label class="lbl" for="musica-desde">La canción arranca en el segundo</label>
@@ -214,7 +222,6 @@
 
   // Marca cuál logo y cuál canción lista están puestos
   function marcarListos() {
-    document.querySelectorAll('[data-cancion]').forEach(function (b) { b.classList.toggle('on', !!musicaBlob && b.dataset.nombre === musicaNom); });
     document.querySelectorAll('[data-logo]').forEach(function (b) { b.classList.toggle('on', !!logoBlob && b.dataset.nombre === $('logo-nom').textContent); });
   }
   function ponerLogo(blob, nombre) {
@@ -227,7 +234,7 @@
   function ponerMusica(blob, nombre) {
     musicaBlob = blob; musicaNom = nombre || '';
     $('musica-nom').textContent = blob ? (nombre || 'Canción') : 'Sin canción';
-    $('musica-quitar').hidden = !blob; $('desde-wrap').hidden = !blob; $('musica-oir').hidden = !blob;
+    $('desde-wrap').hidden = !blob; $('musica-oir').hidden = !blob;
     marcarListos();
     parar();
     actualizarRitmo();
@@ -241,7 +248,59 @@
     oido = new Audio(URL.createObjectURL(musicaBlob)); oido.currentTime = cfg.desde || 0;
     oido.onended = parar; oido.play().catch(parar); this.textContent = '■ Parar';
   };
-  // Logos y canciones listas (originales de LocalProo, sin derechos de autor)
+  // ===== Música: tema → canción. Las de LocalProo son originales (sin derechos); Mis audios son las que se suben o se mandan desde /360/audio
+  var CATALOGO = {
+    halloween: [
+      { id: 'hw-lp', nombre: 'Halloween · LocalProo', url: '/audio/giro360/halloween.mp3' },
+      { id: 'hw-bach', nombre: 'Tocata de terror (Bach)', url: '/audio/giro360/tocata-bach.mp3' }
+    ],
+    fiesta: [
+      { id: 'electro', nombre: 'Electrónica · LocalProo', url: '/audio/giro360/electronica.mp3' }
+    ]
+  };
+  var misAudios = [];
+  function listaDe(tema) { return tema === 'mis' ? misAudios : (CATALOGO[tema] || []); }
+  function pintarCanciones() {
+    var tema = $('tema').value, sel = $('cancion'), l = listaDe(tema);
+    $('tema').querySelector('[value=mis]').textContent = 'Mis audios (' + misAudios.length + ')';
+    sel.innerHTML = '';
+    if (tema === 'ninguna') { sel.disabled = true; sel.innerHTML = '<option>—</option>'; }
+    else if (!l.length) { sel.disabled = true; var o = document.createElement('option'); o.textContent = 'Todavía no hay audios'; sel.appendChild(o); }
+    else {
+      sel.disabled = false;
+      l.forEach(function (c) { var o = document.createElement('option'); o.value = c.id; o.textContent = c.nombre; sel.appendChild(o); });
+      if (cfg.musicaSel && cfg.musicaSel.tema === tema) sel.value = cfg.musicaSel.id;
+    }
+    $('mis-borrar').hidden = !(tema === 'mis' && l.length);
+  }
+  // Pone la canción elegida (descarga la de LocalProo una vez y queda guardada en el celular)
+  function elegir(tema, id, silencioso) {
+    $('tema').value = tema;
+    if (tema === 'ninguna') { cfg.musicaSel = { tema: 'ninguna' }; cfg.sinMusica = true; guardar('cfg', cfg); ponerMusica(null); guardar('musica', null); pintarCanciones(); return Promise.resolve(); }
+    var l = listaDe(tema), c = l.filter(function (x) { return x.id === id; })[0] || l[0];
+    cfg.musicaSel = c ? { tema: tema, id: c.id } : { tema: tema }; cfg.sinMusica = false; guardar('cfg', cfg);
+    pintarCanciones();
+    if (!c) { ponerMusica(null); return Promise.resolve(); }
+    var p = c.blob ? Promise.resolve(c.blob) : fetch(c.url).then(function (r) { if (!r.ok) throw 0; return r.blob(); });
+    $('musica-nom').textContent = 'Cargando…';
+    return p.then(function (bl) {
+      if (!cfg.musicaSel || cfg.musicaSel.id !== c.id) return;
+      ponerMusica(bl, c.nombre); guardar('musica', { blob: bl, nombre: c.nombre });
+      if (!silencioso) aviso('Canción lista: ' + c.nombre + '.', true);
+    }).catch(function () { $('musica-nom').textContent = musicaNom || 'Sin canción'; if (!silencioso) aviso('No se pudo cargar la canción. Revise la señal e intente otra vez.'); });
+  }
+  $('tema').onchange = function () {
+    var l = listaDe(this.value);
+    if (this.value === 'mis' && !l.length) { pintarCanciones(); aviso('Todavía no hay audios. Toque "Subir audio" o saque el audio de un video.', true); return; }
+    elegir(this.value, l[0] && l[0].id);
+  };
+  $('cancion').onchange = function () { elegir($('tema').value, this.value); };
+  $('mis-borrar').onclick = function () {
+    var id = $('cancion').value; misAudios = misAudios.filter(function (a) { return a.id !== id; }); guardar('misAudios', misAudios);
+    if (misAudios.length) elegir('mis', misAudios[0].id); else elegir('halloween', 'hw-lp');
+  };
+
+  // Logos listos (originales de LocalProo, sin derechos de autor)
   function cargarListo(b, silencioso) {
     if (!b) return;
     var esLogo = !!b.dataset.logo, url = b.dataset.logo || b.dataset.cancion, nom = b.dataset.nombre, t = b.textContent;
@@ -249,35 +308,45 @@
     fetch(url).then(function (r) { if (!r.ok) throw 0; return r.blob(); })
       .then(function (bl) {
         if (esLogo) { ponerLogo(bl, nom); guardar('logo', { blob: bl, nombre: nom }); cfg.sinLogo = false; }
-        else { ponerMusica(bl, nom); guardar('musica', { blob: bl, nombre: nom }); cfg.sinMusica = false; }
         guardar('cfg', cfg);
         if (!silencioso) aviso((esLogo ? 'Logo listo: ' : 'Canción lista: ') + nom + '.', true);
       })
       .catch(function () { if (!silencioso) aviso('No se pudo cargar. Revise la señal e intente otra vez.'); })
       .then(function () { b.disabled = false; b.textContent = t; });
   }
-  document.querySelectorAll('[data-logo],[data-cancion]').forEach(function (b) { b.onclick = function () { cargarListo(b); }; });
+  document.querySelectorAll('[data-logo]').forEach(function (b) { b.onclick = function () { cargarListo(b); }; });
 
   $('logo-btn').onclick = function () { $('in-logo').click(); };
   $('musica-btn').onclick = function () { $('in-musica').click(); };
   $('in-logo').onchange = function () { var f = this.files[0]; if (!f) return; ponerLogo(f, f.name); guardar('logo', { blob: f, nombre: f.name }); this.value = ''; };
-  $('in-musica').onchange = function () { var f = this.files[0]; if (!f) return; ponerMusica(f, f.name); guardar('musica', { blob: f, nombre: f.name }); this.value = ''; };
+  $('in-musica').onchange = function () {
+    var f = this.files[0]; this.value = ''; if (!f) return;
+    var a = { id: 'm' + Date.now(), nombre: f.name.replace(/\.[^.]+$/, '').slice(0, 40) || 'Audio', blob: f };
+    misAudios.unshift(a); misAudios = misAudios.slice(0, 20); guardar('misAudios', misAudios);
+    elegir('mis', a.id); aviso('Audio agregado a Mis audios.', true);
+  };
   $('logo-quitar').onclick = function () { ponerLogo(null); guardar('logo', null); cfg.sinLogo = true; guardar('cfg', cfg); };
-  $('musica-quitar').onclick = function () { ponerMusica(null); guardar('musica', null); cfg.sinMusica = true; guardar('cfg', cfg); };
   $('texto').oninput = function () { cfg.texto = this.value; guardar('cfg', cfg); };
   var desdeT = 0;
   $('musica-desde').oninput = function () { cfg.desde = Math.max(0, parseFloat(this.value.replace(',', '.')) || 0); guardar('cfg', cfg); clearTimeout(desdeT); desdeT = setTimeout(actualizarRitmo, 500); };
 
-  Promise.all([leer('cfg'), leer('logo'), leer('musica')]).then(function (r) {
+  Promise.all([leer('cfg'), leer('logo'), leer('musica'), leer('misAudios')]).then(function (r) {
+    misAudios = Array.isArray(r[3]) ? r[3] : [];
+    // Audio que se mandó antes de existir Mis audios: se agrega a la lista
+    if (r[2] && r[2].blob && !misAudios.length && !/LocalProo|Bach/.test(r[2].nombre || '')) {
+      misAudios.push({ id: 'm' + Date.now(), nombre: (r[2].nombre || 'Audio').replace(/\.mp3$/i, ''), blob: r[2].blob }); guardar('misAudios', misAudios);
+    }
     if (r[0]) { cfg = Object.assign(cfg, r[0]); $('texto').value = cfg.texto || ''; $('musica-desde').value = cfg.desde || 0; }
     if (r[1]) ponerLogo(r[1].blob, r[1].nombre);
     if (r[2]) ponerMusica(r[2].blob, r[2].nombre);
     pintarEfectos();
-    // Temporada de Halloween: si este celular no tiene logo o canción, se ponen los de Halloween solos
-    if (new Date() < new Date(2026, 10, 3)) {
-      if (!r[1] && !cfg.sinLogo) cargarListo(document.querySelector('[data-logo]'), true);
-      if (!r[2] && !cfg.sinMusica) cargarListo(document.querySelector('[data-cancion]'), true);
-    }
+    var ms = cfg.musicaSel;
+    if (ms && ms.tema) { $('tema').value = ms.tema; pintarCanciones(); if (ms.tema === 'mis' && ms.id && r[2] && !misAudios.some(function (a) { return a.id === ms.id; })) elegir('mis'); }
+    else if (r[2]) { var enMis = misAudios.filter(function (a) { return r[2].nombre && a.nombre === r[2].nombre.replace(/\.mp3$/i, ''); })[0]; if (enMis) { cfg.musicaSel = { tema: 'mis', id: enMis.id }; $('tema').value = 'mis'; } pintarCanciones(); }
+    else if (!cfg.sinMusica) elegir('halloween', 'hw-lp', true);
+    else { $('tema').value = 'ninguna'; pintarCanciones(); }
+    // Temporada de Halloween: si este celular no tiene logo, se pone el de Halloween solo
+    if (new Date() < new Date(2026, 10, 3) && !r[1] && !cfg.sinLogo) cargarListo(document.querySelector('[data-logo]'), true);
   });
   pintarEfectos();
 

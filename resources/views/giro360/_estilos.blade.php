@@ -37,6 +37,11 @@ a.btn{text-decoration:none}
 .fx small{color:var(--muted);font-size:.75rem}
 .fx svg{width:100%;height:38px;display:block}
 .field{display:flex;flex-direction:column;gap:6px}
+.musica{display:flex;flex-direction:column;gap:10px}
+.musica .row{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr)}
+@media (max-width:440px){.musica .row{grid-template-columns:1fr}}
+.field select{appearance:none;-webkit-appearance:none;background:var(--bg) url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%278%27%3E%3Cpath d=%27M1 1l5 5 5-5%27 stroke=%27%239fbaa8%27 stroke-width=%272%27 fill=%27none%27/%3E%3C/svg%3E") no-repeat right 12px center;color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:12px 32px 12px 12px;font:600 .95rem var(--body);width:100%;min-width:0}
+.field select:focus-visible{outline:2px solid var(--accent2);outline-offset:1px}
 .field input[type=text],.field input[type=tel]{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;width:100%;box-sizing:border-box}
 .pick{display:flex;align-items:center;gap:12px;background:var(--surface2);border-radius:14px;padding:10px 12px;min-width:0}
 .pick .th{width:44px;height:44px;border-radius:10px;background:var(--bg) center/contain no-repeat;flex:none;display:grid;place-items:center;color:var(--muted);font-size:1.2rem}

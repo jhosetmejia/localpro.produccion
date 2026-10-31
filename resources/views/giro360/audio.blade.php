@@ -28,7 +28,7 @@
     <div id="listo" hidden style="display:flex;flex-direction:column;gap:12px">
       <div class="pick"><div class="th">♫</div><div class="tx"><div id="nombre">audio.mp3</div><small id="dur"></small></div></div>
       <audio id="audio" controls style="width:100%"></audio>
-      <button class="btn pri" id="mandar" type="button">Mandar audio a opciones del 360</button>
+      <button class="btn pri" id="mandar" type="button">Mandar a Mis audios del 360</button>
       <button class="btn" id="bajar" type="button">Descargar MP3</button>
     </div>
     <div class="msg" id="msg" hidden></div>
@@ -101,16 +101,19 @@
     if (!blob) return;
     var b = this; b.disabled = true;
     idb().then(function (d) {
-      return leer(d, 'cfg').then(function (cfg) {
-        cfg = cfg || { efecto: 'clasico', texto: '', desde: 0 }; cfg.sinMusica = false; cfg.desde = 0;
+      return Promise.all([leer(d, 'cfg'), leer(d, 'misAudios')]).then(function (r) {
+        var cfg = r[0] || { efecto: 'clasico', texto: '', desde: 0 }, mis = Array.isArray(r[1]) ? r[1] : [];
+        var a = { id: 'm' + Date.now(), nombre: nom, blob: blob };
+        mis.unshift(a); mis = mis.slice(0, 20);
+        cfg.sinMusica = false; cfg.desde = 0; cfg.musicaSel = { tema: 'mis', id: a.id };
         return new Promise(function (ok, mal) {
           var t = d.transaction('k', 'readwrite'), st = t.objectStore('k');
-          st.put({ blob: blob, nombre: nom + '.mp3' }, 'musica'); st.put(cfg, 'cfg');
+          st.put(mis, 'misAudios'); st.put({ blob: blob, nombre: nom }, 'musica'); st.put(cfg, 'cfg');
           t.oncomplete = ok; t.onerror = mal; t.onabort = mal;
         });
       });
     }).then(function () {
-      aviso('Listo. Abriendo el 360 con esta canción…', true);
+      aviso('Listo. Quedó en Mis audios. Abriendo el 360…', true);
       location.href = '/360';
     }).catch(function () {
       b.disabled = false; aviso('Este navegador no dejó guardar el audio. Descárguelo y súbalo en el 360 con el botón Subir.');
