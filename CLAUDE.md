@@ -11,6 +11,9 @@ Sitio en vivo: https://localproo.com
 - No hacer cosas que le pidan aprobar a cada rato: preferir un solo comando/script.
 - NUNCA dar comandos con placeholders; siempre valores reales completos.
 - No tocar lo que no pidió. Al terminar: commit + push y avisar en 2-3 líneas.
+- **Calidad antes de avisar "listo"**: cada push a `staging`/`master` corre la revisión de GitHub (`.github/workflows/revision.yml`: PHP válido + todas las plantillas Blade compiladas a PHP válido + rutas). Revisarla con `gh run list -R jhosetmejia/localpro.produccion -b <rama> -L 1` y, si falla, leer el error con `gh api repos/jhosetmejia/localpro.produccion/check-runs/<job>/annotations`. No pasar a `master` con la revisión en rojo.
+- Blade: nunca pegar una directiva a una letra (`acceso@if` no compila y deja un `@endif` suelto → error 500 en todo el panel) ni usar `@json(...)` con paréntesis adentro (`(float)`, `parse(...)`): usar `{{ json_encode(...) }}`.
+- En el servidor, `actualizar.sh` corre `php artisan localpro:prueba-humo` (plantillas compiladas + páginas públicas, del panel y de administración); si alguna da 500, se devuelve sola a la versión anterior. `localpro:vigilar-errores` (cada 5 min) manda correo al súper administrador cuando aparece un error nuevo en el log.
 - LocalPro es referencia: a veces pide replicar sus herramientas (p. ej. "Mis enlaces" tipo Linktree) en NES o PFN.
 
 ## Stack y despliegue
