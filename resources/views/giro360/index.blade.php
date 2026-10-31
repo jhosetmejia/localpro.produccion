@@ -126,6 +126,7 @@ footer a{color:var(--muted)}
         <span class="lbl">Canciones listas</span>
         <button class="mini" type="button" data-cancion="/audio/giro360/halloween.mp3" data-nombre="Halloween · LocalProo">Halloween</button>
         <button class="mini" type="button" data-cancion="/audio/giro360/tocata-bach.mp3" data-nombre="Tocata de terror (Bach)">Tocata de terror</button>
+        <button class="mini" type="button" data-cancion="/audio/giro360/electronica.mp3" data-nombre="Electrónica · LocalProo">Electrónica</button>
       </div>
       <div class="field" id="desde-wrap" hidden>
         <label class="lbl" for="musica-desde">La canción arranca en el segundo</label>
