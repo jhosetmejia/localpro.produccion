@@ -196,8 +196,10 @@ class cotizacionController extends Controller
         if ($hasta->lt($desde)) $hasta = $desde->copy();
         $q = trim((string) $request->get('q'));
         // Solo lo que se alquila (lo que solo se vende no sale aquí)
-        $ids = Producto::where('estado', 1)->where('controla_inventario', 1)
-            ->when((bool) TiendaActual::tienda()?->mod_alquiler, fn ($w) => $w->where('se_alquila', true))
+        // Con Alquiler: todo lo marcado "para alquilar", lleve o no cantidad (una plataforma 360 creada como servicio también sale)
+        $conAlquiler = (bool) TiendaActual::tienda()?->mod_alquiler;
+        $ids = Producto::where('estado', 1)
+            ->when($conAlquiler, fn ($w) => $w->where('se_alquila', true), fn ($w) => $w->where('controla_inventario', 1))
             ->when($q !== '', fn ($w) => $w->where('nombre', 'like', "%$q%"))
             ->orderBy('nombre')->limit(300)->pluck('id')->all();
         $disp = collect(Disponibilidad::productos($ids, $desde, $hasta));

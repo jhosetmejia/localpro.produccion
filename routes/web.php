@@ -96,6 +96,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/mi-360', [\App\Http\Controllers\giro360Controller::class, 'mis'])->name('giro360.mis');
     Route::get('/mi-360/exportar', [\App\Http\Controllers\giro360Controller::class, 'misExportar'])->name('giro360.mis.exportar');
 });
+Route::get('/360/e/{token}', [\App\Http\Controllers\evento360Controller::class, 'publico'])->where('token', '[a-z0-9]{8,16}')->name('giro360.evento');
 Route::get('/360/logos', [\App\Http\Controllers\giro360Controller::class, 'logos'])->middleware('throttle:120,1')->name('giro360.logos');
 Route::middleware(['auth', \App\Http\Middleware\Puede360::class])->group(function () {
     Route::post('/360/logos', [\App\Http\Controllers\giro360Controller::class, 'subirLogo'])->name('giro360.logos.subir');
@@ -365,6 +366,8 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::get('/alquileres/nuevo', [alquilerController::class, 'create'])->name('alquileres.create');
     Route::post('/alquileres', [alquilerController::class, 'store'])->name('alquileres.store');
     Route::get('/alquileres/{alquiler}/editar', [alquilerController::class, 'edit'])->whereNumber('alquiler')->name('alquileres.edit');
+    Route::get('/alquileres/{alquiler}/360', [\App\Http\Controllers\evento360Controller::class, 'form'])->whereNumber('alquiler')->name('alquileres.e360');
+    Route::post('/alquileres/{alquiler}/360', [\App\Http\Controllers\evento360Controller::class, 'guardar'])->whereNumber('alquiler')->name('alquileres.e360.guardar');
     Route::put('/alquileres/{alquiler}', [alquilerController::class, 'update'])->whereNumber('alquiler')->name('alquileres.update');
     Route::post('/alquileres/{alquiler}/cobrar', [alquilerController::class, 'cobrar'])->whereNumber('alquiler')->name('alquileres.cobrar');
     Route::post('/alquileres/{alquiler}/abonar', [alquilerController::class, 'abonar'])->whereNumber('alquiler')->name('alquileres.abonar');

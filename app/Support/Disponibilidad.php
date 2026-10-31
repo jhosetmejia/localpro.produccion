@@ -72,6 +72,6 @@ class Disponibilidad
             ->where(fn ($q) => $q->whereBetween('fecha', [$desde, $hasta < $desde ? $desde : $hasta])
                 ->orWhere(fn ($x) => $x->where('entrega', 'alquilado')->whereDate('fecha', '<=', $desde)))
             ->orderBy('fecha')->orderBy('hora')->limit(50)
-            ->get(['id', 'numero', 'que_alquila', 'fecha', 'hora', 'lugar', 'entrega', 'estado']);
+            ->get(['id', 'numero', 'que_alquila', 'fecha', 'hora', 'lugar', 'entrega', 'estado', 'e360_token']);
     }
 }

@@ -28,6 +28,7 @@ class giro360Controller extends Controller
             'latitud' => 'nullable|numeric|between:-90,90',
             'longitud' => 'nullable|numeric|between:-180,180',
             'precision' => 'nullable|numeric|min:0',
+            'evento_token' => 'nullable|string|max:16',
         ], [
             'nombre.required' => 'Escriba el nombre.',
             'nombre.min' => 'Escriba el nombre.',
@@ -38,11 +39,13 @@ class giro360Controller extends Controller
         if (!$wa) {
             return response()->json(['message' => 'Escriba un celular válido: 10 números que empiecen por 3 (ej: 300 123 4567).'], 422);
         }
+        // Invitado de un evento (entró por el QR del evento): queda en ese negocio, con el nombre del evento
+        $ev = evento360Controller::porToken($d['evento_token'] ?? null);
         DB::table('giro360_clientes')->insert([
-            'tienda_id' => self::tienda360()?->id,
+            'tienda_id' => $ev?->tienda_id ?? self::tienda360()?->id,
             'nombre' => strip_tags($d['nombre']),
             'whatsapp' => $wa,
-            'evento' => isset($d['evento']) ? strip_tags($d['evento']) : null,
+            'evento' => $ev ? strip_tags($ev->e360['nombre'] ?? $ev->que_alquila) : (isset($d['evento']) ? strip_tags($d['evento']) : null),
             'efecto' => $d['efecto'] ?? null,
             'acepta' => true,
             'ip' => $request->ip(),

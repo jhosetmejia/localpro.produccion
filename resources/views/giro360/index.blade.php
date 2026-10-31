@@ -71,7 +71,7 @@ body.cam{padding:0;overflow:hidden;background:#000}
 <section id="s-cam">
   <video id="cam" playsinline muted autoplay></video>
   <div class="cam-top">
-    <div class="brand"><i>360</i>Giro 360</div>
+    <div class="brand"><i>360</i>{{ !empty($evento360) ? \Illuminate\Support\Str::limit($evento360['nombre'], 28) : 'Giro 360' }}</div>
     <button class="redondo" id="voltear" type="button" aria-label="Cambiar de cámara"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-3l-2-3H9L7 7H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1z"/><path d="M9 13.5a3 3 0 0 1 5.2-2M15 12.5a3 3 0 0 1-5.2 2"/><path d="M14 9.8l.3 1.8-1.8.2M10 16.2l-.3-1.8 1.8-.2"/></svg></button>
   </div>
   <div class="cuenta" id="cuenta" hidden></div>
@@ -163,7 +163,8 @@ body.cam{padding:0;overflow:hidden;background:#000}
 </section>
 
 <script>window.LOGOS_360 = {!! json_encode(array_map(fn ($x) => ['id' => $x['id'], 'nombre' => $x['nombre'], 'url' => '/storage/' . $x['archivo']], \App\Http\Controllers\giro360Controller::logosLista()), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!};
-window.CANCIONES_360 = {!! json_encode(\App\Http\Controllers\giro360Controller::cancionesJs(), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!};</script>
+window.CANCIONES_360 = {!! json_encode(\App\Http\Controllers\giro360Controller::cancionesJs(), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!};
+window.EVENTO_360 = {!! json_encode($evento360 ?? null, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!};</script>
 @verbatim
 <script>
 (function () {
@@ -189,6 +190,9 @@ window.CANCIONES_360 = {!! json_encode(\App\Http\Controllers\giro360Controller::
   var TEMAS = [['sistema', 'LocalProo'], ['halloween', 'Halloween'], ['fiesta', 'Fiesta'], ['mis', 'Mis audios']];
   var temporadaHalloween = new Date() < new Date(2026, 10, 3);
   var DEF_MUSICA = temporadaHalloween ? { tema: 'halloween', id: 'hw-lp' } : { tema: 'fiesta', id: 'electro' };
+  // Entró por el QR de un evento: la canción del evento va de primera y queda puesta
+  var EV = window.EVENTO_360 || null;
+  if (EV && EV.cancion) { CATALOGO.evento = [EV.cancion]; TEMAS.unshift(['evento', 'Del evento']); DEF_MUSICA = { tema: 'evento', id: EV.cancion.id }; }
   var misAudios = [], sel = null, musicaBlob = null, musicaNom = '', musicaBuf = null, ritmo = null;
 
   function idb() { return new Promise(function (ok, mal) { try { var r = indexedDB.open('giro360', 1); r.onupgradeneeded = function () { r.result.createObjectStore('k'); }; r.onsuccess = function () { ok(r.result); }; r.onerror = mal; } catch (e) { mal(e); } }); }
@@ -308,7 +312,7 @@ window.CANCIONES_360 = {!! json_encode(\App\Http\Controllers\giro360Controller::
   };
 
   // ===== Logo: sin logo, uno de los logos de LocalProo o uno propio =====
-  var LOGOS = [{ id: 'hw2026', nombre: 'Halloween 2026', url: '/img/giro360/halloween-2026.png' }].concat(window.LOGOS_360 || []);
+  var LOGOS = (EV && EV.logos ? EV.logos : []).concat([{ id: 'hw2026', nombre: 'Halloween 2026', url: '/img/giro360/halloween-2026.png' }]).concat(window.LOGOS_360 || []);
   var logoImg = null, logoNom = '', logoId = null;
   function ponerLogo(src, nombre, id) {
     logoId = id || null; logoNom = nombre || '';
@@ -318,7 +322,7 @@ window.CANCIONES_360 = {!! json_encode(\App\Http\Controllers\giro360Controller::
   }
   ponerLogo(temporadaHalloween ? LOGOS[0].url : null, temporadaHalloween ? LOGOS[0].nombre : '', temporadaHalloween ? LOGOS[0].id : null);
   $('b-logo').onclick = function () {
-    var ops = [{ txt: 'Sin logo', sub: 'El video sale limpio', ic: '🚫', on: !logoImg && !logoId, accion: function () { ponerLogo(null); } }, { grupo: 'Logos de LocalProo' }];
+    var ops = [{ txt: 'Sin logo', sub: 'El video sale limpio', ic: '🚫', on: !logoImg && !logoId, accion: function () { ponerLogo(null); } }, { grupo: EV && EV.logos.length ? 'Logos del evento y de LocalProo' : 'Logos de LocalProo' }];
     LOGOS.forEach(function (L) { ops.push({ txt: L.nombre, img: L.url, on: logoId === L.id, accion: function () { ponerLogo(L.url, L.nombre, L.id); } }); });
     ops.push({ grupo: 'Su logo' });
     ops.push({ txt: logoId === 'propio' ? 'Cambiar mi logo' : 'Cargar un logo', sub: 'Una imagen del celular (PNG sin fondo queda mejor)', ic: '📤', on: logoId === 'propio', accion: function () { $('in-logo').click(); } });
@@ -340,6 +344,8 @@ window.CANCIONES_360 = {!! json_encode(\App\Http\Controllers\giro360Controller::
     } else misAudios = Array.isArray(r[1]) ? r[1] : [];
   });
   elegir(DEF_MUSICA.tema, DEF_MUSICA.id);
+  // Logo del evento puesto desde el principio
+  if (EV && EV.logos && EV.logos[0]) ponerLogo(EV.logos[0].url, EV.logos[0].nombre, EV.logos[0].id);
 
   // ===== 1. Cámara directa =====
   var stream = null, facing = 'environment', grabadora = null, trozos = [], grabando = false, crudo = null, durCrudo = 0, wake = null;
@@ -499,7 +505,8 @@ window.CANCIONES_360 = {!! json_encode(\App\Http\Controllers\giro360Controller::
   function registrado() { return lsLeer('giro360-registro') === '1'; }
   function conPase() { return lsLeer('giro360-pase') === '1'; }
   // Video 1 gratis · video 2 pide datos · video 3 en adelante pide el código del operador (uno por video)
-  function bloqueado() { var n = videosHechos(); return (n >= 1 && !registrado()) || (n >= 2 && !conPase()); }
+  // En un evento (QR del evento) el alquiler ya está pago: no se pide el código del operador, solo los datos del invitado
+  function bloqueado() { var n = videosHechos(); return (n >= 1 && !registrado()) || (n >= 2 && !conPase() && !EV); }
   var luegoRegistro = null;
   function pedirCodigo(seguir) {
     luegoRegistro = seguir;
@@ -556,7 +563,7 @@ window.CANCIONES_360 = {!! json_encode(\App\Http\Controllers\giro360Controller::
     $('reg-ok').disabled = true; m.className = 'msg'; m.textContent = '📍 Buscando su ubicación… (toque Permitir)'; m.hidden = false;
     ubicacion().then(function (u) {
       m.textContent = 'Guardando…';
-      var fd = new FormData(); fd.append('nombre', n.slice(0, 80)); fd.append('whatsapp', c.slice(0, 25)); fd.append('efecto', 'invitado'); fd.append('acepta', '1');
+      var fd = new FormData(); fd.append('nombre', n.slice(0, 80)); fd.append('whatsapp', c.slice(0, 25)); fd.append('efecto', 'invitado'); fd.append('acepta', '1'); if (EV) fd.append('evento_token', EV.token);
       if (u) { fd.append('latitud', u.latitud); fd.append('longitud', u.longitud); fd.append('precision', u.precision); }
       return fetch(URL_CLIENTE, { method: 'POST', body: fd, credentials: 'same-origin', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
         .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { if (r.status === 422) { var er = new Error(j.message || 'Revise los datos.'); er.v = 1; throw er; } if (!r.ok) throw new Error('red'); return j; }); });

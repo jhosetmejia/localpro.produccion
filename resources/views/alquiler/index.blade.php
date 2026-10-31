@@ -113,6 +113,9 @@
                 <small><i class="fa-solid fa-clock"></i> {{ $a->fecha->format('d/m/Y') }} · {{ $a->horario_texto }}</small>
                 <small><i class="fa-solid fa-location-dot"></i> {{ $a->lugar }}</small>
                 <small><i class="fa-solid fa-user"></i> Contrata: {{ $a->responsable_telefono }}</small>
+                @if (($negocio->mod_360 || stripos($a->que_alquila, '360') !== false) && $a->estado !== 'cancelado')
+                <a href="{{ route('alquileres.e360', $a) }}" class="btn btn-sm mt-1 align-self-start fw-bold" style="width:fit-content;background:{{ $a->e360_token ? '#0b0d0c' : '#a6f34a' }};color:{{ $a->e360_token ? '#a6f34a' : '#0b0d0c' }}"><i class="fa-solid {{ $a->e360_token ? 'fa-qrcode' : 'fa-camera-rotate' }} me-1"></i>{{ $a->e360_token ? 'Evento 360 listo · ver QR' : 'Configurar evento para 360' }}</a>
+                @endif
                 @if ($a->encargado_nombre)<small><i class="fa-solid fa-user-gear"></i> Encargado: {{ $a->encargado_nombre }}@if ($a->encargado_telefono) · {{ $a->encargado_telefono }}@endif @if ($a->encargado_valor > 0)· turno {{ $f($a->encargado_valor) }}@endif</small>
                 @if ($a->encargado_wa && $a->estado !== 'cancelado')<a href="https://wa.me/{{ $a->encargado_wa }}?text={{ rawurlencode($a->mensajeEncargado($negocio->nombre)) }}" target="_blank" rel="noopener" class="btn btn-sm btn-light mt-1 align-self-start" style="width:fit-content"><i class="fa-brands fa-whatsapp me-1" style="color:#16b34a"></i>Enviar detalles del evento al encargado</a>@endif
                 @endif

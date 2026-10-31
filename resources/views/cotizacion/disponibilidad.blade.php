@@ -8,7 +8,7 @@
 .dp-row .t{flex:1 1 220px;min-width:0}.dp-row .t b{display:block}
 .dp-row .t small{color:#6b7570;font-weight:600}
 .dp-num{display:flex;gap:.4rem;flex-wrap:wrap}
-.dp-num span{border-radius:12px;padding:.3rem .7rem;font-weight:800;font-size:.85rem;text-align:center;min-width:86px}
+.dp-num span,.dp-num a{border-radius:12px;padding:.3rem .7rem;font-weight:800;font-size:.85rem;text-align:center;min-width:86px}
 .dp-num small{display:block;font-size:.66rem;text-transform:uppercase;font-weight:800;opacity:.75}
 .dp-bar{height:8px;border-radius:99px;background:#e3f9e8;overflow:hidden;width:100%}
 .dp-bar i{display:block;height:100%;background:#f59e0b}
@@ -39,7 +39,10 @@
         <b><i class="fa-solid fa-calendar-days me-1"></i>Alquileres registrados para esas fechas</b>
         <ul class="mb-0 mt-1">
             @foreach ($alquileres as $a)
-            <li><a href="{{ route('alquileres.edit', $a->id) }}">{{ $a->numero }}</a> · {{ $a->fecha->format('d/m') }} · {{ $a->que_alquila }}@if ($a->lugar) ({{ $a->lugar }})@endif @if ($a->entrega === 'alquilado')<span class="badge rounded-pill bg-light text-dark">en manos del cliente</span>@endif</li>
+            <li><a href="{{ route('alquileres.edit', $a->id) }}">{{ $a->numero }}</a> · {{ $a->fecha->format('d/m') }} · {{ $a->que_alquila }}@if ($a->lugar) ({{ $a->lugar }})@endif @if ($a->entrega === 'alquilado')<span class="badge rounded-pill bg-light text-dark">en manos del cliente</span>@endif
+                @if (\App\Support\TiendaActual::tienda()?->mod_360 || stripos($a->que_alquila, '360') !== false)
+                · <a href="{{ route('alquileres.e360', $a->id) }}" class="fw-bold" style="color:#11702f"><i class="fa-solid {{ $a->e360_token ? 'fa-qrcode' : 'fa-camera-rotate' }} me-1"></i>{{ $a->e360_token ? 'Evento 360 · ver QR' : 'Configurar evento para 360' }}</a>
+                @endif</li>
             @endforeach
         </ul>
     </div>
@@ -47,16 +50,21 @@
 
     <div class="lp-box">
         @forelse ($disp as $id => $d)
-        @php $pct = $d['tiene'] > 0 ? min(100, $d['ocupado'] / $d['tiene'] * 100) : ($d['ocupado'] > 0 ? 100 : 0); $agotado = $d['libre'] <= 0; @endphp
+        @php $sinCant = $d['tiene'] === null; $pct = $sinCant ? ($d['ocupado'] > 0 ? 100 : 0) : ($d['tiene'] > 0 ? min(100, $d['ocupado'] / $d['tiene'] * 100) : ($d['ocupado'] > 0 ? 100 : 0)); $agotado = !$sinCant && $d['libre'] <= 0; @endphp
         <div class="dp-row">
             <div class="t"><b>{{ $d['nombre'] }}</b>
                 @if ($d['cotizaciones'])<small>Ocupado por: @foreach ($d['cotizaciones'] as $x)<span class="me-2">{{ $x['numero'] }} {{ $x['cliente'] }} ({{ $n($x['cantidad']) }}, {{ $x['fechas'] }})</span>@endforeach</small>@else<small>Nada ocupado en esas fechas</small>@endif
                 <div class="dp-bar mt-1"><i style="width:{{ $pct }}%"></i></div>
             </div>
             <div class="dp-num">
+                @if ($sinCant)
+                <a href="{{ route('productos.edit', ['producto' => $id]) }}" style="background:#f1f5f2;color:inherit;text-decoration:none" title="Póngale cuántas tiene para saber cuántas le quedan libres"><small>Tiene</small>¿Cuántas? ✏️</a>
+                <span style="background:#fff5d6;color:#8a6400"><small>Ocupado</small>{{ $n($d['ocupado']) }}</span>
+                @else
                 <span style="background:#f1f5f2"><small>Tiene</small>{{ $n($d['tiene']) }}</span>
                 <span style="background:#fff5d6;color:#8a6400"><small>Ocupado</small>{{ $n($d['ocupado']) }}</span>
                 <span style="background:{{ $agotado ? '#fde8e8' : '#e3f9e8' }};color:{{ $agotado ? '#9b1c1c' : '#11702f' }}"><small>Libre</small>{{ $n($d['libre']) }}</span>
+                @endif
             </div>
         </div>
         @empty
