@@ -50,6 +50,7 @@
         <button id="logo-quitar" type="button" hidden>Quitar</button>
       </div>
       <p class="note" style="margin-top:-4px">Desde el celular o la galería del computador. PNG con fondo transparente queda mejor.</p>
+      <div class="msg" id="logo-estado" role="status" aria-live="polite" hidden></div>
       {{-- Lista de logos disponibles (la usa el selector) --}}
       <div class="listas" hidden>
         <button class="mini" type="button" data-logo="/img/giro360/halloween-2026.png" data-nombre="Halloween 2026">Halloween 2026</button>
@@ -405,6 +406,7 @@
       var t = document.createElement('span'); t.className = 'th';
       if (src) t.style.backgroundImage = 'url("' + src + '")'; else t.textContent = '🚫';
       var n = document.createElement('span'); n.textContent = nombre;
+      if (src && src.indexOf('/storage/') === 0) { var g = document.createElement('small'); g.className = 'nube'; g.textContent = '☁️ Guardado para todos'; n.appendChild(g); }
       b.appendChild(t); b.appendChild(n);
       b.onclick = function () { cerrarLogos(); accion(); };
       l.appendChild(b);
@@ -425,7 +427,10 @@
     var nom = (f.name || 'Logo').replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').slice(0, 40) || 'Logo';
     ponerLogo(f, nom); guardar('logo', { blob: f, nombre: nom }); cfg.sinLogo = false; guardar('cfg', cfg);
     var A = window.ADMIN_360;
-    if (!A) { aviso('Logo puesto en este celular. Para que salga en Logos listos y en todos los celulares, entre con la cuenta de administrador.', true); return; }
+    var est = $('logo-estado');
+    function estado(t, cls) { est.className = 'msg ' + cls; est.textContent = t; est.hidden = false; }
+    if (!A) { estado('📱 "' + nom + '" quedó solo en este celular. Para que salga en todos los celulares, entre con la cuenta de administrador y vuelva a subirlo.', 'err'); return; }
+    estado('⏳ Subiendo "' + nom + '" para todos los celulares…', '');
     var fd = new FormData(); fd.append('nombre', nom); fd.append('logo', f); fd.append('_token', A.token);
     fetch(A.url, { method: 'POST', body: fd, credentials: 'same-origin', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { if (!r.ok) throw new Error(j.message || 'error'); return j; }); })
@@ -433,9 +438,9 @@
         var b = document.createElement('button'); b.type = 'button'; b.className = 'mini on'; b.dataset.logo = j.url; b.dataset.nombre = j.nombre; b.textContent = j.nombre;
         b.onclick = function () { cargarListo(b); };
         var fila = document.querySelector('.listas'); if (fila) fila.appendChild(b);
-        aviso('Logo "' + j.nombre + '" guardado: ya sale en Logos listos y en todos los celulares.', true);
+        estado('✅ "' + j.nombre + '" subido y guardado. Ya sale en las opciones de Logo de todos los celulares (lo ve en la lista con ☁️).', 'ok');
       })
-      .catch(function (e) { aviso('El logo quedó en este celular, pero no se pudo guardar para todos: ' + (e.message || 'intente de nuevo') + '.'); });
+      .catch(function (e) { estado('❌ No se subió: ' + (e.message || 'revise la señal') + '. Quedó solo en este celular; toque ＋ Nuevo logo para intentar otra vez.', 'err'); });
   };
   $('in-musica').onchange = function () {
     var f = this.files[0]; this.value = ''; if (!f) return;
@@ -645,14 +650,21 @@
   }
   setInterval(reintentar, 30000); window.addEventListener('online', reintentar); setTimeout(reintentar, 3000);
 
+  function celularOk(t) {
+    t = String(t || '').trim(); var intl = /^(\+|00)/.test(t), n = t.replace(/\D/g, '').replace(/^00/, '');
+    if (!intl && n.length === 10 && n[0] === '3') return true;
+    if (n.length === 12 && n.indexOf('573') === 0) return true;
+    if (n.indexOf('57') === 0) return false;
+    return intl && n.length >= 8 && n.length <= 15;
+  }
   $('form-cliente').onsubmit = function (e) {
     e.preventDefault();
     var n = $('c-nombre').value.trim(), w = soloNum($('c-wa').value), m = $('c-msg');
     function error(t, el) { m.className = 'msg err'; m.textContent = t; m.hidden = false; if (el) el.focus(); }
     if (n.length < 2) return error('Escriba el nombre.', $('c-nombre'));
-    if (w.length < 7) return error('Escriba un WhatsApp válido (mínimo 7 números).', $('c-wa'));
+    if (!celularOk($('c-wa').value)) return error('Escriba un celular válido: 10 números que empiecen por 3 (ej: 300 123 4567). Otro país: con + y el indicativo.', $('c-wa'));
     if (!$('c-acepta').checked) return error('Para guardar debe aceptar el tratamiento de datos.', $('c-acepta'));
-    var fila = { nombre: n.slice(0, 80), whatsapp: w.slice(0, 15), evento: (cfg.texto || '').slice(0, 60), efecto: cfg.efecto, acepta: 1 };
+    var fila = { nombre: n.slice(0, 80), whatsapp: $('c-wa').value.trim().slice(0, 25), evento: (cfg.texto || '').slice(0, 60), efecto: cfg.efecto, acepta: 1 };
     $('c-guardar').disabled = true;
     enviar(fila).then(function () { ver('inicio'); aviso('Datos de ' + n + ' guardados.', true); })
       .catch(function (er) {

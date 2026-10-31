@@ -25,15 +25,18 @@ class giro360Controller extends Controller
             'evento' => 'nullable|string|max:60',
             'efecto' => 'nullable|string|max:20',
             'acepta' => 'accepted',
+            'latitud' => 'nullable|numeric|between:-90,90',
+            'longitud' => 'nullable|numeric|between:-180,180',
+            'precision' => 'nullable|numeric|min:0',
         ], [
             'nombre.required' => 'Escriba el nombre.',
             'nombre.min' => 'Escriba el nombre.',
             'whatsapp.required' => 'Escriba el WhatsApp.',
             'acepta.accepted' => 'Debe aceptar el tratamiento de datos para guardar.',
         ]);
-        $wa = preg_replace('/\D/', '', $d['whatsapp']);
-        if (strlen($wa) < 7 || strlen($wa) > 15) {
-            return response()->json(['message' => 'Escriba un WhatsApp válido.'], 422);
+        $wa = self::celular($d['whatsapp']);
+        if (!$wa) {
+            return response()->json(['message' => 'Escriba un celular válido: 10 números que empiecen por 3 (ej: 300 123 4567).'], 422);
         }
         DB::table('giro360_clientes')->insert([
             'nombre' => strip_tags($d['nombre']),
@@ -42,10 +45,29 @@ class giro360Controller extends Controller
             'efecto' => $d['efecto'] ?? null,
             'acepta' => true,
             'ip' => $request->ip(),
+            'latitud' => isset($d['latitud'], $d['longitud']) ? round((float) $d['latitud'], 7) : null,
+            'longitud' => isset($d['latitud'], $d['longitud']) ? round((float) $d['longitud'], 7) : null,
+            'precision_m' => isset($d['latitud'], $d['precision']) ? (int) min(4000000000, round((float) $d['precision'])) : null,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
         return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Celular válido: Colombia = 10 dígitos que empiezan por 3 (se guarda como 57XXXXXXXXXX);
+     * otro país = con indicativo (+), 8 a 15 dígitos. Devuelve null si no sirve.
+     */
+    public static function celular(string $t): ?string
+    {
+        $intl = str_starts_with(trim($t), '+') || str_starts_with(trim($t), '00');
+        $n = preg_replace('/\D/', '', $t);
+        if (str_starts_with($n, '00')) $n = substr($n, 2);
+        if (strlen($n) === 10 && $n[0] === '3' && !$intl) return '57' . $n;
+        if (strlen($n) === 12 && str_starts_with($n, '573')) return $n;
+        if (str_starts_with($n, '57')) return null;
+        if ($intl && strlen($n) >= 8 && strlen($n) <= 15) return $n;
+        return null;
     }
 
     // ===== Logos del 360 (los sube el súper administrador; salen en las opciones de todos los celulares) =====
@@ -127,9 +149,10 @@ class giro360Controller extends Controller
         return response()->streamDownload(function () use ($filas) {
             $o = fopen('php://output', 'w');
             fwrite($o, "\xEF\xBB\xBF");
-            fputcsv($o, ['Nombre', 'WhatsApp', 'Evento', 'Efecto', 'Fecha'], ';');
+            fputcsv($o, ['Nombre', 'WhatsApp', 'Evento', 'Efecto', 'Fecha', 'Latitud', 'Longitud', 'Mapa'], ';');
             foreach ($filas as $c) {
-                fputcsv($o, [$c->nombre, $c->whatsapp, $c->evento, $c->efecto, \Illuminate\Support\Carbon::parse($c->created_at)->format('d/m/Y H:i')], ';');
+                $lat = $c->latitud ?? null; $lng = $c->longitud ?? null;
+                fputcsv($o, [$c->nombre, $c->whatsapp, $c->evento, $c->efecto, \Illuminate\Support\Carbon::parse($c->created_at)->format('d/m/Y H:i'), $lat, $lng, $lat !== null ? 'https://www.google.com/maps?q=' . $lat . ',' . $lng : ''], ';');
             }
             fclose($o);
         }, 'clientes-360-' . now()->format('Y-m-d') . '.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);

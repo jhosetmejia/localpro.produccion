@@ -84,6 +84,7 @@ a.btn{text-decoration:none}
 .note{font-size:.85rem;color:var(--muted);margin:0}
 .msg{font-size:.9rem;border-radius:12px;padding:10px 12px;background:var(--surface2)}
 .msg.err{color:var(--err)} .msg.ok{color:var(--ok)}
+.lop small.nube{display:block;font-size:.72rem;color:var(--muted);font-weight:500}
 .list{display:flex;flex-direction:column;gap:6px;max-height:320px;overflow:auto}
 .list div{display:flex;justify-content:space-between;gap:10px;background:var(--surface2);border-radius:10px;padding:8px 10px;font-size:.9rem}
 .list span{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}

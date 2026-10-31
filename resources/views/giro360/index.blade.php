@@ -57,6 +57,11 @@ body.cam{padding:0;overflow:hidden;background:#000}
 .oir:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
 .op img{width:48px;height:48px;object-fit:contain;border-radius:10px;background:#0b0f0c;flex:none}
 .op .ic{width:48px;height:48px;border-radius:10px;background:#0b0f0c;display:grid;place-items:center;font-size:1.4rem;flex:none}
+.reg-c{gap:12px}
+.reg-c .field{display:flex;flex-direction:column;gap:6px}
+.reg-c .lbl{font-weight:700;font-size:.9rem}
+.reg-c .note{margin:0;color:var(--muted);font-size:.88rem}
+.ubic{font-size:.82rem;color:var(--muted)}
 .otro{appearance:none;background:none;border:0;color:var(--muted);font:600 .95rem var(--body);text-decoration:underline;cursor:pointer;padding:8px;align-self:center}
 </style>
 </head>
@@ -109,6 +114,20 @@ body.cam{padding:0;overflow:hidden;background:#000}
     <div class="hoja-l" id="hoja-l"></div>
     <button class="otro" id="hoja-x" type="button">Cerrar</button>
   </div>
+</div>
+<!-- Registro para el segundo video (el primero es gratis) -->
+<div class="hoja" id="registro" hidden>
+  <form class="hoja-c reg-c" id="reg-form" role="dialog" aria-modal="true" aria-labelledby="reg-t" novalidate>
+    <div class="hoja-t" id="reg-t">¿Grabamos otro? 🎬</div>
+    <p class="note">El primer video fue gratis. Para seguir grabando, déjenos su nombre y celular.</p>
+    <div class="field"><label class="lbl" for="reg-nombre">Nombre</label><input type="text" id="reg-nombre" autocomplete="name" placeholder="Nombre y apellido" maxlength="80"></div>
+    <div class="field"><label class="lbl" for="reg-cel">Celular (WhatsApp)</label><input type="tel" id="reg-cel" inputmode="tel" autocomplete="tel" placeholder="300 123 4567" maxlength="20"></div>
+    <label class="acepta"><input type="checkbox" id="reg-acepta"> <span>Autorizo el tratamiento de mis datos y de la ubicación desde donde me registro, para recibir mi video y ofertas por WhatsApp (Ley 1581 de 2012). <a href="/privacidad" target="_blank" rel="noopener">Política de datos</a></span></label>
+    <div class="ubic" id="reg-ubic">📍 Al continuar, el celular le pedirá permiso de ubicación.</div>
+    <div class="msg" id="reg-msg" hidden></div>
+    <button class="btn big" type="submit" id="reg-ok">Continuar y grabar</button>
+    <button class="otro" id="reg-x" type="button">Ahora no</button>
+  </form>
 </div>
 <input type="file" id="in-logo" accept="image/*" class="sr" tabindex="-1">
 
@@ -324,6 +343,7 @@ body.cam{padding:0;overflow:hidden;background:#000}
     if (grabando) return parar();
     if (tCuenta) { clearInterval(tCuenta); tCuenta = null; $('cuenta').hidden = true; return; }
     if (!stream) return;
+    if (!registrado() && videosHechos() >= 1) return puedeGrabar(function () { $('rec').click(); });
     var n = CUENTA; $('cuenta').textContent = n; $('cuenta').hidden = false; $('cam-ayuda').textContent = 'Prepárese…';
     tCuenta = setInterval(function () { n--; if (n > 0) $('cuenta').textContent = n; else { clearInterval(tCuenta); tCuenta = null; $('cuenta').hidden = true; empezar(); } }, 1000);
   };
@@ -353,8 +373,8 @@ body.cam{padding:0;overflow:hidden;background:#000}
     try { grabadora.stop(); } catch (e) {}
   }
   // Respaldo: cámara del celular o video de la galería
-  $('abrir-nativa').onclick = function () { despertar(); $('in-cam').click(); };
-  $('elegir-video').onclick = function () { despertar(); $('in-gal').click(); };
+  $('abrir-nativa').onclick = function () { despertar(); puedeGrabar(function () { $('in-cam').click(); }); };
+  $('elegir-video').onclick = function () { despertar(); puedeGrabar(function () { $('in-gal').click(); }); };
   $('in-cam').onchange = $('in-gal').onchange = function () { var f = this.files[0]; this.value = ''; if (f) { crudo = f; durCrudo = 0; mostrarListo(); } };
 
   // ===== 2. Una sola pantalla =====
@@ -448,9 +468,64 @@ body.cam{padding:0;overflow:hidden;background:#000}
     };
   }
 
+  // ===== Registro: el primer video es gratis; para el segundo pide nombre, celular y ubicación =====
+  var URL_CLIENTE = '/360/cliente';
+  function lsLeer(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsPoner(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function videosHechos() { return parseInt(lsLeer('giro360-videos') || '0', 10) || 0; }
+  function registrado() { return lsLeer('giro360-registro') === '1'; }
+  var luegoRegistro = null;
+  function puedeGrabar(seguir) {
+    if (registrado() || videosHechos() < 1) return seguir();
+    luegoRegistro = seguir;
+    $('reg-msg').hidden = true; $('reg-ok').disabled = false; $('registro').hidden = false;
+    setTimeout(function () { $('reg-nombre').focus(); }, 50);
+  }
+  function celularOk(t) {
+    t = String(t || '').trim(); var intl = /^(\+|00)/.test(t), n = t.replace(/\D/g, '').replace(/^00/, '');
+    if (!intl && n.length === 10 && n[0] === '3') return true;
+    if (n.length === 12 && n.indexOf('573') === 0) return true;
+    if (n.indexOf('57') === 0) return false;
+    return intl && n.length >= 8 && n.length <= 15;
+  }
+  function ubicacion() {
+    return new Promise(function (ok) {
+      if (!navigator.geolocation) return ok(null);
+      var listo = false, t = setTimeout(function () { if (!listo) { listo = true; ok(null); } }, 12000);
+      navigator.geolocation.getCurrentPosition(
+        function (p) { if (listo) return; listo = true; clearTimeout(t); ok({ latitud: p.coords.latitude, longitud: p.coords.longitude, precision: Math.round(p.coords.accuracy || 0) }); },
+        function () { if (listo) return; listo = true; clearTimeout(t); ok(null); },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+    });
+  }
+  $('reg-x').onclick = function () { $('registro').hidden = true; luegoRegistro = null; };
+  $('reg-form').onsubmit = function (e) {
+    e.preventDefault();
+    var n = $('reg-nombre').value.trim(), c = $('reg-cel').value.trim(), m = $('reg-msg');
+    function error(t, el) { m.className = 'msg err'; m.textContent = t; m.hidden = false; if (el) el.focus(); }
+    if (n.length < 2) return error('Escriba su nombre.', $('reg-nombre'));
+    if (!celularOk(c)) return error('Revise el celular: 10 números que empiecen por 3 (ej: 300 123 4567). Si es de otro país, póngalo con + y el indicativo.', $('reg-cel'));
+    if (!$('reg-acepta').checked) return error('Para seguir debe aceptar el tratamiento de datos.', $('reg-acepta'));
+    $('reg-ok').disabled = true; m.className = 'msg'; m.textContent = '📍 Buscando su ubicación… (toque Permitir)'; m.hidden = false;
+    ubicacion().then(function (u) {
+      m.textContent = 'Guardando…';
+      var fd = new FormData(); fd.append('nombre', n.slice(0, 80)); fd.append('whatsapp', c.slice(0, 25)); fd.append('efecto', 'invitado'); fd.append('acepta', '1');
+      if (u) { fd.append('latitud', u.latitud); fd.append('longitud', u.longitud); fd.append('precision', u.precision); }
+      return fetch(URL_CLIENTE, { method: 'POST', body: fd, credentials: 'same-origin', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { if (r.status === 422) { var er = new Error(j.message || 'Revise los datos.'); er.v = 1; throw er; } if (!r.ok) throw new Error('red'); return j; }); });
+    }).then(function () {
+      lsPoner('giro360-registro', '1'); $('registro').hidden = true;
+      var s = luegoRegistro; luegoRegistro = null; if (s) s();
+    }).catch(function (er) {
+      $('reg-ok').disabled = false;
+      if (er && er.v) return error(er.message);
+      error('No hay señal para guardar. Revise el internet e intente otra vez.');
+    });
+  };
+
   // ===== 4. Descargar =====
   var esIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  function mostrarFinal() { var f = $('vid-final'); f.src = URL.createObjectURL(editado); f.play().catch(function () {}); $('dl-msg').hidden = true; ver('final'); }
+  function mostrarFinal() { lsPoner('giro360-videos', String(videosHechos() + 1)); var f = $('vid-final'); f.src = URL.createObjectURL(editado); f.play().catch(function () {}); $('dl-msg').hidden = true; ver('final'); }
   $('descargar').onclick = function () {
     if (!editado) return;
     var d = new Date(), nombre = 'giro360-' + d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0') + '-' + String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0') + String(d.getSeconds()).padStart(2, '0') + '.' + extEditado;
@@ -460,7 +535,7 @@ body.cam{padding:0;overflow:hidden;background:#000}
     if (esIOS && f && navigator.canShare && navigator.canShare({ files: [f] })) navigator.share({ files: [f] }).then(function () { m.className = 'msg ok'; m.textContent = 'Listo.'; m.hidden = false; }).catch(function (e) { if (!e || e.name !== 'AbortError') directo(); });
     else directo();
   };
-  $('otro').onclick = function () { $('vid-final').pause(); editado = null; crudo = null; ver('cam'); abrirCamara(); };
+  $('otro').onclick = function () { puedeGrabar(function () { $('vid-final').pause(); editado = null; crudo = null; ver('cam'); abrirCamara(); }); };
 
   abrirCamara();
 })();

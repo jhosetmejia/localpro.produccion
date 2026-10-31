@@ -36,6 +36,7 @@
                 @php $wa = numero_whatsapp($c->whatsapp); @endphp
                 <div class="d-flex align-items-center gap-2 py-2 border-bottom flex-wrap">
                     <div class="flex-grow-1"><b>{{ $c->nombre }}</b> <small class="text-muted">{{ $c->whatsapp }}{{ $c->evento ? ' · ' . $c->evento : '' }} · {{ \Illuminate\Support\Carbon::parse($c->created_at)->format('d/m/Y H:i') }}</small></div>
+                    @if (!empty($c->latitud))<a class="btn btn-sm btn-outline-secondary me-1" target="_blank" rel="noopener" href="https://www.google.com/maps?q={{ $c->latitud }},{{ $c->longitud }}" title="Desde dónde se registró"><i class="fa-solid fa-location-dot me-1"></i>Mapa</a>@endif
                     @if ($wa)<a class="btn btn-sm btn-success" target="_blank" rel="noopener" href="https://wa.me/{{ $wa }}"><i class="fa-brands fa-whatsapp me-1"></i>Escribir</a>@endif
                 </div>
                 @empty
