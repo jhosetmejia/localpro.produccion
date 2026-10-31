@@ -10,7 +10,7 @@
     @php $ok = $pago->estado === 'aprobado'; $mal = $pago->estado === 'rechazado'; @endphp
     <div class="hero">
         <small>{{ $tienda->nombre }}</small>
-        <h1>@if ($ok)¡Pago <em>aprobado</em>! 🎉@elseif ($mal)Pago no aprobado@else Pago en proceso…@endif</h1>
+        <h1>@if ($ok)¡Pago <em>aprobado</em>! 🎉@elseif ($mal)Pago no aprobado @else Pago en proceso… @endif</h1>
         <p>
             @if ($ok)
                 El plan <b style="color:#fff">{{ $pago->plan->nombre ?? '' }}</b> quedó activo{{ $pago->periodo_hasta ? ' hasta el ' . $pago->periodo_hasta->format('d/m/Y') : '' }}.
