@@ -83,6 +83,9 @@ class giro360Controller extends Controller
         $lista = self::logosLista();
         array_unshift($lista, ['id' => $id, 'nombre' => strip_tags($d['nombre']), 'archivo' => $archivo, 'creado' => now()->toDateTimeString()]);
         \Illuminate\Support\Facades\Storage::disk('public')->put(self::LOGOS_INDICE, json_encode($lista, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        if ($request->expectsJson()) {
+            return response()->json(['id' => $id, 'nombre' => strip_tags($d['nombre']), 'url' => '/storage/' . $archivo]);
+        }
         return redirect()->route('giro360.avanzado')->with('ok', 'Logo "' . $d['nombre'] . '" subido. Ya sale en las opciones de Logo de todos los celulares.');
     }
 

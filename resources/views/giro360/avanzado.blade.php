@@ -98,17 +98,11 @@
     </div>
 
     <div class="card" id="logos-360">
-      <div class="lbl">Logos para todos los celulares</div>
-      <p class="note">Los logos que suba aquí salen en el botón <b>Logo</b> de localproo.com/360 para todas las personas que graben.</p>
+      <div class="lbl">Logos guardados para todos los celulares</div>
+      <p class="note">Con el botón <b>Subir</b> de "Del evento" el logo queda guardado aquí y sale en <b>Logos listos</b> y en el botón <b>Logo</b> de localproo.com/360 para todas las personas que graben.</p>
       @if (session('ok'))<div class="msg ok">{{ session('ok') }}</div>@endif
       @if ($errors->any())<div class="msg err">{{ $errors->first() }}</div>@endif
       @if (auth()->user()?->es_superadmin)
-        <form method="post" action="{{ route('giro360.logos.subir') }}" enctype="multipart/form-data" class="musica">
-          @csrf
-          <div class="field"><label class="lbl" for="lg-nombre">Nombre del logo</label><input type="text" id="lg-nombre" name="nombre" maxlength="40" required placeholder="Ej: Boda Ana y Luis" value="{{ old('nombre') }}"></div>
-          <div class="field"><label class="lbl" for="lg-archivo">Imagen (PNG sin fondo queda mejor)</label><input type="file" id="lg-archivo" name="logo" accept="image/png,image/jpeg,image/webp" required style="color:var(--fg)"></div>
-          <button class="btn pri" type="submit">Subir logo</button>
-        </form>
         @php $lgs = \App\Http\Controllers\giro360Controller::logosLista(); @endphp
         @if ($lgs)
         <div class="list">
@@ -156,6 +150,9 @@
   <a class="btn ghost" id="v-mp3" href="/360/audio">♫ Sacar el audio de un video (MP3)</a>
   <footer>Hecho con <a href="https://localproo.com" target="_blank" rel="noopener">LocalProo</a> · el video no sale de su celular</footer>
 </div>
+@if (auth()->user()?->es_superadmin)
+<script>window.ADMIN_360 = { url: @json(route('giro360.logos.subir')), token: @json(csrf_token()) };</script>
+@endif
 @verbatim
 <script>
 (function () {
@@ -399,7 +396,23 @@
 
   $('logo-btn').onclick = function () { $('in-logo').click(); };
   $('musica-btn').onclick = function () { $('in-musica').click(); };
-  $('in-logo').onchange = function () { var f = this.files[0]; if (!f) return; ponerLogo(f, f.name); guardar('logo', { blob: f, nombre: f.name }); this.value = ''; };
+  $('in-logo').onchange = function () {
+    var f = this.files[0]; this.value = ''; if (!f) return;
+    var nom = (f.name || 'Logo').replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').slice(0, 40) || 'Logo';
+    ponerLogo(f, nom); guardar('logo', { blob: f, nombre: nom }); cfg.sinLogo = false; guardar('cfg', cfg);
+    var A = window.ADMIN_360;
+    if (!A) { aviso('Logo puesto en este celular. Para que salga en Logos listos y en todos los celulares, entre con la cuenta de administrador.', true); return; }
+    var fd = new FormData(); fd.append('nombre', nom); fd.append('logo', f); fd.append('_token', A.token);
+    fetch(A.url, { method: 'POST', body: fd, credentials: 'same-origin', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { if (!r.ok) throw new Error(j.message || 'error'); return j; }); })
+      .then(function (j) {
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'mini on'; b.dataset.logo = j.url; b.dataset.nombre = j.nombre; b.textContent = j.nombre;
+        b.onclick = function () { cargarListo(b); };
+        var fila = document.querySelector('.listas'); if (fila) fila.appendChild(b);
+        aviso('Logo "' + j.nombre + '" guardado: ya sale en Logos listos y en todos los celulares.', true);
+      })
+      .catch(function (e) { aviso('El logo quedó en este celular, pero no se pudo guardar para todos: ' + (e.message || 'intente de nuevo') + '.'); });
+  };
   $('in-musica').onchange = function () {
     var f = this.files[0]; this.value = ''; if (!f) return;
     var a = { id: 'm' + Date.now(), nombre: f.name.replace(/\.[^.]+$/, '').slice(0, 40) || 'Audio', blob: f };
