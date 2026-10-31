@@ -86,6 +86,7 @@ foreach (['privacidad' => 'privacidad', 'terminos' => 'terminos', 'eliminar-dato
 // Giro 360: página pública para las máquinas de video 360 (graba, edita con velocidad curva y guarda el cliente)
 Route::get('/360', [\App\Http\Controllers\giro360Controller::class, 'index'])->name('giro360');
 Route::view('/360/audio', 'giro360.audio')->name('giro360.audio');
+Route::view('/360/avanzado', 'giro360.avanzado')->name('giro360.avanzado');
 Route::post('/360/cliente', [\App\Http\Controllers\giro360Controller::class, 'guardar'])->middleware('throttle:30,1')->name('giro360.cliente');
 // Mis enlaces: página tipo Linktree de cada negocio (localproo.com/@negocio)
 Route::get('/@{slug}', [\App\Http\Controllers\enlacesController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('enlaces.publico');
