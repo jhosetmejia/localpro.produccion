@@ -32,6 +32,10 @@
             @if (session('recuperar_email'))
                 <p class="alt">¿Ya tiene el código? <a href="{{ route('password.codigo') }}">Escribirlo aquí</a></p>
             @endif
+            @php $soporteR = preg_replace('/\D/', '', (string) \App\Models\Ajuste::valor('soporte_whatsapp')); @endphp
+            <p class="alt" style="margin-top:1rem">¿Ya no tiene acceso a ese correo?
+                @if ($soporteR)<a href="https://wa.me/{{ $soporteR }}?text={{ rawurlencode('Hola LocalProo, perdí el acceso al correo de mi cuenta. Mi negocio se llama: ') }}" target="_blank" rel="noopener">Escríbanos por WhatsApp</a>@else Responda cualquier correo de LocalProo @endif
+                con el nombre de su negocio: verificamos que es usted y le ayudamos a recuperar la cuenta.</p>
         </div>
     </main>
 </div>

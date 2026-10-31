@@ -90,6 +90,27 @@ class adminInicioController extends Controller
         return back()->with('success', 'Clave nueva guardada para ' . $user->name . '.');
     }
 
+    // Cuando alguien perdió el acceso a su correo: el administrador (después de verificar quién es) le pone uno nuevo.
+    // Se avisa al correo nuevo y queda en el log con el correo anterior.
+    public function correo(Request $request, User $user)
+    {
+        $d = $request->validate(['email' => ['required', 'email', 'max:120', \Illuminate\Validation\Rule::unique('users', 'email')->ignore($user->id)]],
+            ['email.required' => 'Escriba el correo nuevo.', 'email.email' => 'El correo no es válido.', 'email.unique' => 'Ese correo ya lo tiene otra cuenta.']);
+        $antes = $user->email;
+        $nuevo = \Illuminate\Support\Str::lower(trim($d['email']));
+        $user->forceFill(['email' => $nuevo, 'remember_token' => \Illuminate\Support\Str::random(60)])->save();
+        \Illuminate\Support\Facades\Log::info('Correo de usuario cambiado por el administrador', ['user' => $user->id, 'antes' => $antes, 'nuevo' => $nuevo, 'admin' => $request->user()?->id]);
+        try {
+            \Illuminate\Support\Facades\Mail::html(
+                '<p>Hola ' . e($user->name) . ',</p><p>El correo de su cuenta de LocalProo se cambió a <b>' . e($nuevo) . '</b>. Desde ahora entra con este correo. Si olvidó la contraseña, en la pantalla de ingreso toque "¿Olvidó su contraseña?" y le llega un código.</p><p>Si usted no pidió este cambio, responda este correo de inmediato.</p><p>El equipo de LocalProo</p>',
+                fn ($m) => $m->to($nuevo)->subject('Se cambió el correo de su cuenta de LocalProo')
+            );
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('No se pudo avisar el cambio de correo', ['user' => $user->id, 'error' => $e->getMessage()]);
+        }
+        return back()->with('success', 'Correo de ' . $user->name . ' cambiado a ' . $nuevo . '. Ya puede pedir el código de "¿Olvidó su contraseña?" con ese correo.');
+    }
+
     // Auditoría del sistema: muestra el último informe y permite correr una revisión de datos
     public function auditoria()
     {

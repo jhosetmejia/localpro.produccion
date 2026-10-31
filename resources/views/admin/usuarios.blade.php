@@ -38,6 +38,14 @@
                         <button class="btn btn-sm btn-dark">Guardar</button>
                     </form>
                 </details>
+                <details style="flex-basis:100%;margin-left:52px">
+                    <summary class="small fw-bold" style="cursor:pointer;color:#11702f">Cambiarle el correo (perdió el acceso a su correo)</summary>
+                    <form method="post" action="{{ route('admin.usuarios.correo', $u) }}" class="d-flex gap-2 mt-2 flex-wrap" data-confirm="¿Cambiar el correo de {{ $u->name }}?" data-confirm-texto="Hágalo solo después de verificar que es la persona (por ejemplo, por su WhatsApp registrado). Desde ahora entra con el correo nuevo y le llega un aviso." data-confirm-ok="Sí, cambiar">
+                        @csrf
+                        <input type="email" name="email" class="form-control form-control-sm" required placeholder="Correo nuevo" style="max-width:260px" autocomplete="off">
+                        <button class="btn btn-sm btn-dark">Guardar</button>
+                    </form>
+                </details>
             </li>
             @empty
             <li class="lp-empty">No se encontraron usuarios.</li>

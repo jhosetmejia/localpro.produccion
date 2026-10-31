@@ -518,6 +518,7 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::get('/', [adminInicioController::class, 'index'])->name('inicio');
     Route::get('/usuarios', [adminInicioController::class, 'usuarios'])->name('usuarios');
     Route::post('/usuarios/{user}/clave', [adminInicioController::class, 'clave'])->name('usuarios.clave');
+    Route::post('/usuarios/{user}/correo', [adminInicioController::class, 'correo'])->name('usuarios.correo');
     Route::get('/pagos', [adminInicioController::class, 'pagos'])->name('pagos');
     Route::post('/pagos/verificar', [adminInicioController::class, 'verificarPagos'])->name('pagos.verificar');
     Route::get('/tiendas', [adminTiendaController::class, 'index'])->name('tiendas.index');

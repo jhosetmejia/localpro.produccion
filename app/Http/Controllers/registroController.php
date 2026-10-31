@@ -132,6 +132,18 @@ class registroController extends Controller
 
         $user->forceFill(['terminos_aceptados_at' => now()])->save();
 
+        // Correo de bienvenida: se envía después de responder, así el registro no se demora (si falla, solo queda en el log)
+        $idNuevo = $user->id;
+        dispatch(function () use ($idNuevo) {
+            $u = \App\Models\User::with('tienda')->find($idNuevo);
+            if (!$u) return;
+            try {
+                \Illuminate\Support\Facades\Mail::to($u->email)->send(new \App\Mail\BienvenidaMail($u));
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('No se pudo enviar el correo de bienvenida', ['user' => $idNuevo, 'error' => $e->getMessage()]);
+            }
+        })->afterResponse();
+
         Auth::login($user);
         $request->session()->regenerate();
 
