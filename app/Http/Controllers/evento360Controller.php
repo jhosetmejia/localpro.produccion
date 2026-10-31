@@ -79,7 +79,7 @@ class evento360Controller extends Controller
         foreach ($request->file('logos', []) as $f) {
             if (count($logos) >= self::MAX_LOGOS) break;
             $nom = Str::limit(trim(preg_replace('/[-_]+/', ' ', pathinfo($f->getClientOriginalName(), PATHINFO_FILENAME))) ?: 'Logo', 40, '');
-            $logos[] = ['nombre' => strip_tags($nom), 'archivo' => $f->storeAs($carpeta, 'logo-' . Str::lower(Str::random(8)) . '.' . strtolower($f->getClientOriginalExtension() ?: 'png'), 'public')];
+            $logos[] = ['nombre' => strip_tags($nom), 'archivo' => $f->storeAs($carpeta, 'logo-' . Str::lower(Str::random(8)) . '.' . \App\Support\ArchivoSeguro::ext($f, \App\Support\ArchivoSeguro::IMAGEN, 'png'), 'public')];
         }
 
         // Canción: una subida para el evento, una de la lista o ninguna
@@ -87,7 +87,7 @@ class evento360Controller extends Controller
         if ($request->hasFile('cancion')) {
             if (!empty($cancion['archivo'])) $disco->delete($cancion['archivo']);
             $f = $request->file('cancion');
-            $cancion = ['nombre' => strip_tags(Str::limit(pathinfo($f->getClientOriginalName(), PATHINFO_FILENAME), 40, '')), 'archivo' => $f->storeAs($carpeta, 'cancion-' . Str::lower(Str::random(8)) . '.' . strtolower($f->getClientOriginalExtension() ?: 'mp3'), 'public')];
+            $cancion = ['nombre' => strip_tags(Str::limit(pathinfo($f->getClientOriginalName(), PATHINFO_FILENAME), 40, '')), 'archivo' => $f->storeAs($carpeta, 'cancion-' . Str::lower(Str::random(8)) . '.' . \App\Support\ArchivoSeguro::ext($f, \App\Support\ArchivoSeguro::AUDIO, 'mp3'), 'public')];
         } elseif (($sel = $d['cancion_sel'] ?? null) !== null && $sel !== 'propia') {
             if (!empty($cancion['archivo'])) $disco->delete($cancion['archivo']);
             $op = self::opcionesCancion()[$sel] ?? null;

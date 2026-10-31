@@ -149,7 +149,7 @@ class Producto extends Model
     // Si el disco no la deja guardar, avisa (antes quedaba el nombre en la base sin archivo y la foto salía rota).
     public function handleUploadImage($image)
     {
-        $ext = strtolower($image->getClientOriginalExtension() ?: $image->extension() ?: 'jpg');
+        $ext = \App\Support\ArchivoSeguro::ext($image, \App\Support\ArchivoSeguro::IMAGEN, 'jpg');
         $base = \Illuminate\Support\Str::slug(pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME)) ?: 'foto';
         $name = time() . '-' . \Illuminate\Support\Str::lower(\Illuminate\Support\Str::random(6)) . '-' . mb_substr($base, 0, 60) . '.' . $ext;
         $ok = Storage::disk('public')->putFileAs('productos', $image, $name, 'public');

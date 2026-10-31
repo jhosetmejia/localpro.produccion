@@ -142,7 +142,7 @@ class giro360Controller extends Controller
             'logo.max' => 'El logo pesa demasiado (máximo 5 MB).',
         ]);
         $id = \Illuminate\Support\Str::lower(\Illuminate\Support\Str::random(10));
-        $ext = strtolower($request->file('logo')->getClientOriginalExtension() ?: 'png');
+        $ext = \App\Support\ArchivoSeguro::ext($request->file('logo'), \App\Support\ArchivoSeguro::IMAGEN, 'png');
         $base = self::carpeta(self::tienda360());
         $archivo = $request->file('logo')->storeAs($base . '/logos', \Illuminate\Support\Str::slug($d['nombre']) . '-' . $id . '.' . $ext, 'public');
         $lista = self::logosLista(true);
@@ -190,7 +190,7 @@ class giro360Controller extends Controller
             'cancion.max' => 'El audio pesa demasiado (máximo 20 MB).',
         ]);
         $id = \Illuminate\Support\Str::lower(\Illuminate\Support\Str::random(10));
-        $ext = strtolower($request->file('cancion')->getClientOriginalExtension() ?: 'mp3');
+        $ext = \App\Support\ArchivoSeguro::ext($request->file('cancion'), \App\Support\ArchivoSeguro::AUDIO, 'mp3');
         $base = self::carpeta(self::tienda360());
         $archivo = $request->file('cancion')->storeAs($base . '/canciones', \Illuminate\Support\Str::slug($d['nombre']) . '-' . $id . '.' . $ext, 'public');
         $lista = self::cancionesLista(true);
