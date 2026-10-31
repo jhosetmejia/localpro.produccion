@@ -51,6 +51,9 @@
       <div class="listas">
         <span class="lbl">Logos listos</span>
         <button class="mini" type="button" data-logo="/img/giro360/halloween-2026.png" data-nombre="Halloween 2026">Halloween 2026</button>
+        @foreach (\App\Http\Controllers\giro360Controller::logosLista() as $lg)
+        <button class="mini" type="button" data-logo="/storage/{{ $lg['archivo'] }}" data-nombre="{{ $lg['nombre'] }}">{{ $lg['nombre'] }}</button>
+        @endforeach
       </div>
       <div class="musica">
         <div class="lbl">Música</div>
@@ -92,6 +95,34 @@
         <input type="text" id="texto" maxlength="40" placeholder="Ej: Los XV de Valentina">
       </div>
       <p class="note">Esto queda guardado en este celular para todo el evento.</p>
+    </div>
+
+    <div class="card" id="logos-360">
+      <div class="lbl">Logos para todos los celulares</div>
+      <p class="note">Los logos que suba aquí salen en el botón <b>Logo</b> de localproo.com/360 para todas las personas que graben.</p>
+      @if (session('ok'))<div class="msg ok">{{ session('ok') }}</div>@endif
+      @if ($errors->any())<div class="msg err">{{ $errors->first() }}</div>@endif
+      @if (auth()->user()?->es_superadmin)
+        <form method="post" action="{{ route('giro360.logos.subir') }}" enctype="multipart/form-data" class="musica">
+          @csrf
+          <div class="field"><label class="lbl" for="lg-nombre">Nombre del logo</label><input type="text" id="lg-nombre" name="nombre" maxlength="40" required placeholder="Ej: Boda Ana y Luis" value="{{ old('nombre') }}"></div>
+          <div class="field"><label class="lbl" for="lg-archivo">Imagen (PNG sin fondo queda mejor)</label><input type="file" id="lg-archivo" name="logo" accept="image/png,image/jpeg,image/webp" required style="color:var(--fg)"></div>
+          <button class="btn pri" type="submit">Subir logo</button>
+        </form>
+        @php $lgs = \App\Http\Controllers\giro360Controller::logosLista(); @endphp
+        @if ($lgs)
+        <div class="list">
+          @foreach ($lgs as $lg)
+          <div style="align-items:center">
+            <span style="display:flex;gap:10px;align-items:center;min-width:0"><img src="/storage/{{ $lg['archivo'] }}" alt="" style="width:40px;height:40px;object-fit:contain;border-radius:8px;background:#0b0f0c;flex:none"><b style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ $lg['nombre'] }}</b></span>
+            <form method="post" action="{{ route('giro360.logos.borrar', $lg['id']) }}">@csrf<button class="mini" type="submit">Quitar</button></form>
+          </div>
+          @endforeach
+        </div>
+        @endif
+      @else
+        <p class="note">Para subir logos, <a href="{{ route('login') }}" style="color:var(--accent2)">entre con la cuenta de administrador de LocalProo</a> y vuelva a esta página.</p>
+      @endif
     </div>
   </section>
 

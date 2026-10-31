@@ -133,6 +133,7 @@ body.cam{padding:0;overflow:hidden;background:#000}
   </div>
 </section>
 
+<script>window.LOGOS_360 = {!! json_encode(array_map(fn ($x) => ['id' => $x['id'], 'nombre' => $x['nombre'], 'url' => '/storage/' . $x['archivo']], \App\Http\Controllers\giro360Controller::logosLista()), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!};</script>
 @verbatim
 <script>
 (function () {
@@ -276,7 +277,7 @@ body.cam{padding:0;overflow:hidden;background:#000}
   };
 
   // ===== Logo: sin logo, uno de los logos de LocalProo o uno propio =====
-  var LOGOS = [{ id: 'hw2026', nombre: 'Halloween 2026', url: '/img/giro360/halloween-2026.png' }];
+  var LOGOS = [{ id: 'hw2026', nombre: 'Halloween 2026', url: '/img/giro360/halloween-2026.png' }].concat(window.LOGOS_360 || []);
   var logoImg = null, logoNom = '', logoId = null;
   function ponerLogo(src, nombre, id) {
     logoId = id || null; logoNom = nombre || '';

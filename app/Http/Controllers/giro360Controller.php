@@ -48,6 +48,55 @@ class giro360Controller extends Controller
         return response()->json(['ok' => true]);
     }
 
+    // ===== Logos del 360 (los sube el súper administrador; salen en las opciones de todos los celulares) =====
+    private const LOGOS_INDICE = 'giro360/logos.json';
+
+    public static function logosLista(): array
+    {
+        $d = \Illuminate\Support\Facades\Storage::disk('public');
+        $l = $d->exists(self::LOGOS_INDICE) ? json_decode($d->get(self::LOGOS_INDICE), true) : [];
+        return array_values(array_filter(is_array($l) ? $l : [], fn ($x) => !empty($x['archivo']) && $d->exists($x['archivo'])));
+    }
+
+    public function logos()
+    {
+        $d = \Illuminate\Support\Facades\Storage::disk('public');
+        $out = array_map(fn ($x) => ['id' => $x['id'], 'nombre' => $x['nombre'], 'url' => '/storage/' . $x['archivo']], self::logosLista());
+        return response()->json($out)->header('Cache-Control', 'public, max-age=60');
+    }
+
+    public function subirLogo(Request $request)
+    {
+        $d = $request->validate([
+            'nombre' => 'required|string|max:40',
+            'logo' => 'required|image|mimes:png,jpg,jpeg,webp|max:5120',
+        ], [
+            'nombre.required' => 'Escriba el nombre del logo (ej: Boda Ana y Luis).',
+            'logo.required' => 'Elija la imagen del logo.',
+            'logo.image' => 'El archivo debe ser una imagen.',
+            'logo.mimes' => 'El logo debe ser PNG, JPG o WEBP.',
+            'logo.max' => 'El logo pesa demasiado (máximo 5 MB).',
+        ]);
+        $id = \Illuminate\Support\Str::lower(\Illuminate\Support\Str::random(10));
+        $ext = strtolower($request->file('logo')->getClientOriginalExtension() ?: 'png');
+        $archivo = $request->file('logo')->storeAs('giro360/logos', \Illuminate\Support\Str::slug($d['nombre']) . '-' . $id . '.' . $ext, 'public');
+        $lista = self::logosLista();
+        array_unshift($lista, ['id' => $id, 'nombre' => strip_tags($d['nombre']), 'archivo' => $archivo, 'creado' => now()->toDateTimeString()]);
+        \Illuminate\Support\Facades\Storage::disk('public')->put(self::LOGOS_INDICE, json_encode($lista, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        return redirect()->route('giro360.avanzado')->with('ok', 'Logo "' . $d['nombre'] . '" subido. Ya sale en las opciones de Logo de todos los celulares.');
+    }
+
+    public function borrarLogo(string $id)
+    {
+        $lista = self::logosLista();
+        $disco = \Illuminate\Support\Facades\Storage::disk('public');
+        foreach ($lista as $i => $x) {
+            if ($x['id'] === $id) { $disco->delete($x['archivo']); unset($lista[$i]); }
+        }
+        $disco->put(self::LOGOS_INDICE, json_encode(array_values($lista), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        return redirect()->route('giro360.avanzado')->with('ok', 'Logo quitado de las opciones.');
+    }
+
     // ===== Superadministrador =====
     public function admin(Request $request)
     {
