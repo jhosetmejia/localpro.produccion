@@ -167,6 +167,21 @@ footer a{color:var(--muted)}
     </form>
   </section>
 
+  <section class="card" id="v-mp3">
+    <div class="lbl">Sacar el audio de un video</div>
+    <p class="note">Elija un video guardado en el celular (por ejemplo, uno que guardó con "Guardar video" en TikTok). Se convierte a MP3 aquí mismo, sin subirlo a internet.</p>
+    <button class="btn" id="mp3-elegir" type="button">Elegir video</button>
+    <input type="file" id="in-mp3" accept="video/*,audio/*" class="sr" tabindex="-1">
+    <div id="mp3-prog-wrap" hidden><div class="bar"><i id="mp3-prog"></i></div><p class="note" id="mp3-estado">Convirtiendo…</p></div>
+    <div id="mp3-listo" hidden style="display:flex;flex-direction:column;gap:10px">
+      <audio id="mp3-audio" controls style="width:100%"></audio>
+      <div class="row">
+        <button class="btn pri" id="mp3-usar" type="button">Usar en el video 360</button>
+        <button class="btn" id="mp3-bajar" type="button">Descargar MP3</button>
+      </div>
+    </div>
+    <div class="msg" id="mp3-msg" hidden></div>
+  </section>
   <footer>Hecho con <a href="https://localproo.com" target="_blank" rel="noopener">LocalProo</a> · el video no sale de su celular</footer>
 </div>
 @verbatim
@@ -174,7 +189,7 @@ footer a{color:var(--muted)}
 (function () {
   var $ = function (id) { return document.getElementById(id); };
   var vistas = ['inicio', 'proceso', 'resultado'];
-  function ver(n) { vistas.forEach(function (v) { $('v-' + v).hidden = v !== n; }); window.scrollTo(0, 0); }
+  function ver(n) { vistas.forEach(function (v) { $('v-' + v).hidden = v !== n; }); $('v-mp3').hidden = n !== 'inicio'; window.scrollTo(0, 0); }
 
   // ===== Curvas de velocidad (como las de CapCut): [momento del video 0..1, velocidad] =====
   var EFECTOS = [
@@ -477,6 +492,57 @@ footer a{color:var(--muted)}
       .then(function () { $('c-guardar').disabled = false; });
   };
   $('btn-otro').onclick = function () { ver('inicio'); };
+
+  // ===== Sacar el audio de un video y pasarlo a MP3 (en el celular, con lamejs) =====
+  var mp3Blob = null, mp3Nom = '';
+  function cargarLame() {
+    if (window.lamejs) return Promise.resolve();
+    return new Promise(function (ok, mal) { var sc = document.createElement('script'); sc.src = '/js/lame.min.js'; sc.onload = ok; sc.onerror = mal; document.head.appendChild(sc); });
+  }
+  function aMp3(buf, progreso) {
+    return new Promise(function (ok) {
+      var canales = Math.min(2, buf.numberOfChannels), sr = buf.sampleRate;
+      var enc = new lamejs.Mp3Encoder(canales, sr, 160);
+      function pcm(ch) { var d = buf.getChannelData(ch), o = new Int16Array(d.length); for (var i = 0; i < d.length; i++) { var v = Math.max(-1, Math.min(1, d[i])); o[i] = v < 0 ? v * 32768 : v * 32767; } return o; }
+      var izq = pcm(0), der = canales > 1 ? pcm(1) : null, partes = [], paso = 1152 * 60, i = 0;
+      (function tanda() {
+        var fin = Math.min(izq.length, i + paso);
+        for (; i < fin; i += 1152) {
+          var a = izq.subarray(i, i + 1152), b = der ? der.subarray(i, i + 1152) : null;
+          var m = der ? enc.encodeBuffer(a, b) : enc.encodeBuffer(a); if (m.length) partes.push(new Uint8Array(m));
+        }
+        progreso(i / izq.length);
+        if (i < izq.length) return setTimeout(tanda, 0);
+        var u = enc.flush(); if (u.length) partes.push(new Uint8Array(u));
+        ok(new Blob(partes, { type: 'audio/mpeg' }));
+      })();
+    });
+  }
+  $('mp3-elegir').onclick = function () { prepararAudio(); $('in-mp3').click(); };
+  $('in-mp3').onchange = function () {
+    var file = this.files[0]; this.value = ''; if (!file) return;
+    var m = $('mp3-msg'); m.hidden = true; $('mp3-listo').hidden = true; $('mp3-prog-wrap').hidden = false; $('mp3-prog').style.width = '0'; $('mp3-estado').textContent = 'Leyendo el video…';
+    $('mp3-elegir').disabled = true;
+    mp3Nom = (file.name || 'audio').replace(/\.[^.]+$/, '').slice(0, 40) || 'audio';
+    try { if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+    Promise.all([cargarLame(), file.arrayBuffer()]).then(function (r) {
+      return new Promise(function (ok, mal) { actx.decodeAudioData(r[1], ok, mal); });
+    }).then(function (buf) {
+      $('mp3-estado').textContent = 'Convirtiendo a MP3…';
+      return aMp3(buf, function (p) { $('mp3-prog').style.width = Math.round(p * 100) + '%'; });
+    }).then(function (b) {
+      mp3Blob = b; $('mp3-audio').src = URL.createObjectURL(b);
+      $('mp3-prog-wrap').hidden = true; $('mp3-listo').hidden = false;
+    }).catch(function () {
+      $('mp3-prog-wrap').hidden = true; m.className = 'msg err'; m.textContent = 'No se pudo sacar el audio de ese archivo. Pruebe con otro video (MP4) o use Chrome.'; m.hidden = false;
+    }).then(function () { $('mp3-elegir').disabled = false; });
+  };
+  $('mp3-usar').onclick = function () {
+    if (!mp3Blob) return;
+    ponerMusica(mp3Blob, mp3Nom + '.mp3'); guardar('musica', { blob: mp3Blob, nombre: mp3Nom + '.mp3' }); cfg.sinMusica = false; guardar('cfg', cfg);
+    aviso('Canción lista: ' + mp3Nom + '. Los videos salen con este audio.', true);
+  };
+  $('mp3-bajar').onclick = function () { if (mp3Blob) bajar(mp3Blob, mp3Nom + '.mp3', $('mp3-msg')); };
 
   // Aviso en la pantalla de inicio
   function aviso(t, ok) {
