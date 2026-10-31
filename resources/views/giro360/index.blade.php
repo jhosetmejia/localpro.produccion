@@ -118,6 +118,7 @@
 
   // ===== Curvas de velocidad (como las de CapCut): [momento del video 0..1, velocidad] =====
   var EFECTOS = [
+    { id: 'ritmo', ritmo: true, nombre: 'Al ritmo de la canción', desc: 'Rápido donde la música sube', p: [[0, 1.5], [0.2, 3], [0.4, 0.6], [0.6, 2.5], [0.8, 0.5], [1, 1]] },
     { id: 'clasico', nombre: '360 clásico', desc: 'Rápido y luego lento', p: [[0, 1.2], [0.12, 3], [0.48, 3], [0.62, 0.35], [0.94, 0.35], [1, 0.6]] },
     { id: 'heroe', nombre: 'Héroe', desc: 'Rápido, lento, rápido', p: [[0, 1], [0.25, 3], [0.42, 0.3], [0.58, 0.3], [0.75, 3], [1, 1]] },
     { id: 'bala', nombre: 'Bala', desc: 'Frena de golpe en el medio', p: [[0, 1.4], [0.4, 2], [0.5, 0.25], [0.6, 2], [1, 1.4]] },
@@ -139,6 +140,47 @@
   // Cuánto dura el video editado por cada segundo grabado
   function factorDuracion(ef) { var s = 0, n = 400; for (var i = 0; i < n; i++) s += 1 / velocidad(ef, (i + .5) / n); return s / n; }
 
+  // ===== Al ritmo de la canción: la velocidad sigue la fuerza de la música =====
+  // Se mide la energía de la canción cada 50 ms (desde el segundo elegido): fuerte = rápido (x3), suave = lento (x0.35)
+  var PASO = 0.05, ritmo = null;
+  function analizarRitmo(buf, desde) {
+    var sr = buf.sampleRate, ini = Math.floor(Math.min(desde || 0, Math.max(0, buf.duration - 2)) * sr);
+    var fin = Math.min(buf.length, ini + Math.floor(90 * sr)), hop = Math.floor(PASO * sr);
+    var chs = []; for (var c = 0; c < Math.min(2, buf.numberOfChannels); c++) chs.push(buf.getChannelData(c));
+    var e = [];
+    for (var i = ini; i + hop <= fin; i += hop) {
+      var s2 = 0;
+      for (var j = i; j < i + hop; j += 4) { var v = 0; for (var c2 = 0; c2 < chs.length; c2++) v += chs[c2][j]; s2 += v * v; }
+      e.push(Math.sqrt(s2 / (hop / 4)));
+    }
+    if (e.length < 20) return null;
+    function suavizar(a, k) { var o = new Array(a.length); for (var i = 0; i < a.length; i++) { var s = 0, n = 0; for (var j = Math.max(0, i - k); j <= Math.min(a.length - 1, i + k); j++) { s += a[j]; n++; } o[i] = s / n; } return o; }
+    e = suavizar(suavizar(e, 5), 5);
+    var ord = e.slice().sort(function (a, b) { return a - b; }), lo = ord[Math.floor(ord.length * 0.15)], hi = ord[Math.floor(ord.length * 0.92)];
+    var r = new Float32Array(e.length);
+    for (var k = 0; k < e.length; k++) { var x = Math.max(0, Math.min(1, (e[k] - lo) / ((hi - lo) || 1))); r[k] = 0.35 * Math.pow(3 / 0.35, Math.pow(x, 1.2)); }
+    return r;
+  }
+  // Plan para un video de D segundos: cuánto dura editado y en qué punto del video va cada instante
+  function planRitmo(D) {
+    var r = ritmo, cum = new Float32Array(r.length + 1), total = 0;
+    for (var i = 0; i < r.length; i++) { cum[i] = total; total += r[i] * PASO; }
+    cum[r.length] = total;
+    var esc = total < D ? D / total : 1, n = r.length;
+    for (var k = 0; k <= r.length; k++) if (cum[k] * esc >= D) { n = k; break; }
+    return { r: r, cum: cum, esc: esc, n: n, T: n * PASO };
+  }
+  var ritmoPend = 0;
+  function actualizarRitmo() {
+    var mio = ++ritmoPend;
+    if (!musicaBlob) { ritmo = null; pintarEfectos(); return; }
+    try { if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
+    prepMusica().then(function (buf) {
+      if (mio !== ritmoPend) return;
+      ritmo = buf ? analizarRitmo(buf, cfg.desde) : null; pintarEfectos();
+    });
+  }
+
   // ===== Ajustes guardados en este celular (IndexedDB) =====
   var cfg = { efecto: 'clasico', texto: '', desde: 0 }, logoImg = null, logoBlob = null, musicaBlob = null, musicaNom = '';
   function idb() {
@@ -155,14 +197,19 @@
     $('fxs').innerHTML = '';
     EFECTOS.forEach(function (ef) {
       var b = document.createElement('button'); b.type = 'button'; b.className = 'fx'; b.setAttribute('aria-pressed', ef.id === cfg.efecto);
-      var pts = []; for (var i = 0; i <= 40; i++) { var x = i / 40; pts.push((x * 100).toFixed(1) + ',' + (34 - velocidad(ef, x) / max * 30).toFixed(1)); }
+      var pts = [];
+      if (ef.ritmo && ritmo) {
+        var pl = planRitmo(10);
+        for (var i = 0; i <= 40; i++) { var k = Math.min(pl.r.length - 1, Math.floor(i / 40 * pl.n)); pts.push((i / 40 * 100).toFixed(1) + ',' + (34 - Math.min(max, pl.r[k] * pl.esc) / max * 30).toFixed(1)); }
+      } else for (var i = 0; i <= 40; i++) { var x = i / 40; pts.push((x * 100).toFixed(1) + ',' + (34 - velocidad(ef, x) / max * 30).toFixed(1)); }
       b.innerHTML = '<svg viewBox="0 0 100 38" preserveAspectRatio="none" aria-hidden="true"><line x1="0" x2="100" y1="' + (34 - 1 / max * 30) + '" y2="' + (34 - 1 / max * 30) + '" stroke="#29402f" stroke-dasharray="3 3" fill="none"/><polyline points="' + pts.join(' ') + '" fill="none" stroke="' + (ef.id === cfg.efecto ? '#a6f34a' : '#9fbaa8') + '" stroke-width="2.2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg><b></b><small></small>';
       b.querySelector('b').textContent = ef.nombre; b.querySelector('small').textContent = ef.desc;
       b.onclick = function () { cfg.efecto = ef.id; guardar('cfg', cfg); pintarEfectos(); };
       $('fxs').appendChild(b);
     });
-    var f = factorDuracion(efectoActual());
-    $('fx-dur').textContent = 'Un giro de 10 s queda de ' + Math.round(10 * f) + ' s editado.';
+    var ea = efectoActual();
+    if (ea.ritmo) $('fx-dur').textContent = ritmo ? 'Con esta canción, un giro de 10 s queda de ' + Math.round(planRitmo(10).T) + ' s y la velocidad sigue la música.' : 'Elija una canción para usar este efecto (sin canción se usa 360 clásico).';
+    else $('fx-dur').textContent = 'Un giro de 10 s queda de ' + Math.round(10 * factorDuracion(ea)) + ' s editado.';
   }
 
   // Marca cuál logo y cuál canción lista están puestos
@@ -183,6 +230,7 @@
     $('musica-quitar').hidden = !blob; $('desde-wrap').hidden = !blob; $('musica-oir').hidden = !blob;
     marcarListos();
     parar();
+    actualizarRitmo();
   }
   // Escuchar la canción elegida
   var oido = null;
@@ -217,7 +265,8 @@
   $('logo-quitar').onclick = function () { ponerLogo(null); guardar('logo', null); cfg.sinLogo = true; guardar('cfg', cfg); };
   $('musica-quitar').onclick = function () { ponerMusica(null); guardar('musica', null); cfg.sinMusica = true; guardar('cfg', cfg); };
   $('texto').oninput = function () { cfg.texto = this.value; guardar('cfg', cfg); };
-  $('musica-desde').oninput = function () { cfg.desde = Math.max(0, parseFloat(this.value.replace(',', '.')) || 0); guardar('cfg', cfg); };
+  var desdeT = 0;
+  $('musica-desde').oninput = function () { cfg.desde = Math.max(0, parseFloat(this.value.replace(',', '.')) || 0); guardar('cfg', cfg); clearTimeout(desdeT); desdeT = setTimeout(actualizarRitmo, 500); };
 
   Promise.all([leer('cfg'), leer('logo'), leer('musica')]).then(function (r) {
     if (r[0]) { cfg = Object.assign(cfg, r[0]); $('texto').value = cfg.texto || ''; $('musica-desde').value = cfg.desde || 0; }
@@ -260,7 +309,9 @@
       W = Math.round(W * k / 2) * 2; H = Math.round(H * k / 2) * 2;
       cv.width = W; cv.height = H;
       var ctx = cv.getContext('2d'), dur = v.duration;
-      var durFinal = dur * factorDuracion(ef);
+      if (ef.ritmo && !(ritmo && musicaBlob)) ef = EFECTOS.filter(function (e) { return e.id === 'clasico'; })[0];
+      var plan = ef.ritmo ? planRitmo(dur) : null;
+      var durFinal = plan ? plan.T : dur * factorDuracion(ef);
       var stream = cv.captureStream(30);
       var fuente = null, ganancia = null;
       listoParaEditar().then(prepMusica).then(function (buf) {
@@ -280,7 +331,7 @@
           editado = new Blob(trozos, { type: mime.split(';')[0] });
           mostrarResultado();
         };
-        var fin = false, rateAnt = 0;
+        var fin = false, rateAnt = 0, tIni = 0;
         function dibujar() {
           ctx.drawImage(v, 0, 0, W, H);
           var lw = 0, lh = 0;
@@ -299,8 +350,13 @@
         }
         function cuadro() {
           if (fin) return;
-          var x = dur ? v.currentTime / dur : 0;
-          var r = Math.max(0.25, Math.min(4, velocidad(ef, x)));
+          var x = dur ? v.currentTime / dur : 0, r;
+          if (plan) {
+            // Velocidad según la música en este instante, con corrección para no desfasarse
+            var tau = (performance.now() - tIni) / 1000, k = Math.min(plan.r.length - 1, Math.floor(tau / PASO));
+            var esperado = Math.min(dur, plan.cum[k] * plan.esc), corr = Math.max(0.6, Math.min(1.6, 1 + (esperado - v.currentTime) * 1.2));
+            r = Math.max(0.25, Math.min(4, plan.r[k] * plan.esc * corr));
+          } else r = Math.max(0.25, Math.min(4, velocidad(ef, x)));
           if (Math.abs(r - rateAnt) > 0.02) { try { v.playbackRate = r; rateAnt = r; } catch (e) {} }
           dibujar();
           $('prog').style.width = Math.min(100, x * 100).toFixed(1) + '%';
@@ -313,15 +369,19 @@
         v.currentTime = 0;
         dibujar();
         rec.start(250);
-        if (fuente) {
-          var t0 = actx.currentTime;
-          ganancia.gain.setValueAtTime(1, t0);
-          ganancia.gain.setValueAtTime(1, t0 + Math.max(0, durFinal - 1.2));
-          ganancia.gain.linearRampToValueAtTime(0, t0 + durFinal);
-          fuente.start(t0, Math.min(cfg.desde || 0, Math.max(0, fuente.buffer.duration - 1)));
-        }
-        v.playbackRate = Math.max(0.25, velocidad(ef, 0));
-        v.play().then(function () { requestAnimationFrame(cuadro); }).catch(function () { fin = true; try { rec.stop(); } catch (e) {} ver('inicio'); aviso('El celular no dejó reproducir el video. Intente de nuevo.'); });
+        v.playbackRate = Math.max(0.25, Math.min(4, plan ? plan.r[0] * plan.esc : velocidad(ef, 0)));
+        v.play().then(function () {
+          // La canción arranca justo con el video para que queden sincronizados
+          tIni = performance.now();
+          if (fuente) {
+            var t0 = actx.currentTime;
+            ganancia.gain.setValueAtTime(1, t0);
+            ganancia.gain.setValueAtTime(1, t0 + Math.max(0, durFinal - 1.2));
+            ganancia.gain.linearRampToValueAtTime(0, t0 + durFinal);
+            fuente.start(t0, Math.min(cfg.desde || 0, Math.max(0, fuente.buffer.duration - 1)));
+          }
+          requestAnimationFrame(cuadro);
+        }).catch(function () { fin = true; try { rec.stop(); } catch (e) {} ver('inicio'); aviso('El celular no dejó reproducir el video. Intente de nuevo.'); });
       });
     };
   }
