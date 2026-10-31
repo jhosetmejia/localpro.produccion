@@ -50,6 +50,11 @@ body.cam{padding:0;overflow:hidden;background:#000}
 .op{appearance:none;cursor:pointer;text-align:left;background:var(--surface2);color:var(--fg);border:1.5px solid transparent;border-radius:16px;padding:12px 14px;font:600 1rem var(--body);display:flex;gap:12px;align-items:center}
 .op small{display:block;color:var(--muted);font-weight:500;font-size:.82rem;margin-top:2px}
 .op.on{border-color:var(--accent);background:#1f3a27}
+.op-fila{display:flex;gap:8px;align-items:stretch}
+.op-fila .op{flex:1;min-width:0}
+.oir{appearance:none;cursor:pointer;flex:none;width:58px;border-radius:16px;border:1.5px solid var(--line);background:var(--bg);color:var(--accent2);font:800 1.2rem var(--body)}
+.oir.on{background:var(--accent);color:#0b0d0c;border-color:var(--accent)}
+.oir:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
 .op img{width:48px;height:48px;object-fit:contain;border-radius:10px;background:#0b0f0c;flex:none}
 .op .ic{width:48px;height:48px;border-radius:10px;background:#0b0f0c;display:grid;place-items:center;font-size:1.4rem;flex:none}
 .otro{appearance:none;background:none;border:0;color:var(--muted);font:600 .95rem var(--body);text-decoration:underline;cursor:pointer;padding:8px;align-self:center}
@@ -225,11 +230,30 @@ body.cam{padding:0;overflow:hidden;background:#000}
       if (o.sub) { var sm = document.createElement('small'); sm.textContent = o.sub; tx.appendChild(sm); }
       b.appendChild(tx);
       b.onclick = function () { cerrarHoja(); o.accion(); };
-      l.appendChild(b);
+      if (o.oir) {
+        // Fila con botón para escuchar la canción antes de elegirla
+        var fila = document.createElement('div'); fila.className = 'op-fila';
+        var p = document.createElement('button'); p.type = 'button'; p.className = 'oir'; p.setAttribute('aria-label', 'Escuchar ' + o.txt); p.textContent = '▶';
+        p.onclick = function () { escuchar(o.oir, p); };
+        fila.appendChild(b); fila.appendChild(p); l.appendChild(fila);
+      } else l.appendChild(b);
     });
     $('hoja').hidden = false;
   }
-  function cerrarHoja() { $('hoja').hidden = true; }
+  // Escuchar una canción (una a la vez); se para al cerrar o elegir
+  var sonando = null, botonSonando = null;
+  function pararCancion() {
+    if (sonando) { try { sonando.pause(); } catch (e) {} sonando = null; }
+    if (botonSonando) { botonSonando.textContent = '▶'; botonSonando.classList.remove('on'); botonSonando = null; }
+  }
+  function escuchar(fuente, boton) {
+    var mismo = botonSonando === boton; pararCancion(); if (mismo) return;
+    var src = typeof fuente === 'string' ? fuente : URL.createObjectURL(fuente);
+    sonando = new Audio(src); botonSonando = boton; boton.textContent = '■'; boton.classList.add('on');
+    sonando.onended = pararCancion;
+    sonando.play().catch(function () { pararCancion(); });
+  }
+  function cerrarHoja() { pararCancion(); $('hoja').hidden = true; }
   $('hoja-x').onclick = cerrarHoja;
   $('hoja').addEventListener('click', function (e) { if (e.target === $('hoja')) cerrarHoja(); });
 
@@ -238,7 +262,7 @@ body.cam{padding:0;overflow:hidden;background:#000}
     TEMAS.forEach(function (t) {
       var l = listaDe(t[0]); if (!l.length) return;
       ops.push({ grupo: t[1] });
-      l.forEach(function (c) { ops.push({ txt: c.nombre.replace(/ · LocalProo$/, ''), ic: '🎵', on: !!(sel && sel.tema === t[0] && sel.id === c.id), accion: function () { elegir(t[0], c.id); } }); });
+      l.forEach(function (c) { ops.push({ txt: c.nombre.replace(/ · LocalProo$/, ''), ic: '🎵', oir: c.blob || c.url, on: !!(sel && sel.tema === t[0] && sel.id === c.id), accion: function () { elegir(t[0], c.id); } }); });
     });
     hoja('Cambiar música', ops);
   };
