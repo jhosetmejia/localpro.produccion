@@ -70,6 +70,7 @@ Route::get('/recuperar/codigo', [recuperarController::class, 'formularioCodigo']
 Route::post('/recuperar/codigo', [recuperarController::class, 'guardarNueva'])->middleware('throttle:10,1')->name('password.update');
 Route::get('/restablecer/{token}', [recuperarController::class, 'enlaceViejo'])->name('password.reset');
 Route::get('/t/{slug}', [catalogoController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('catalogo.show');
+Route::get('/t/{slug}/compartir.jpg', [catalogoController::class, 'imagenCompartir'])->where('slug', '[a-z0-9-]+')->middleware('throttle:60,1')->name('catalogo.compartir');
 Route::get('/t/{slug}/yo', [catalogoController::class, 'yo'])->where('slug', '[a-z0-9-]+')->middleware('throttle:60,1')->name('catalogo.yo');
 Route::get('/t/{slug}/carta', [catalogoController::class, 'carta'])->where('slug', '[a-z0-9-]+')->name('catalogo.carta');
 Route::get('/t/{slug}/p/{producto}', [catalogoController::class, 'producto'])->where(['slug' => '[a-z0-9-]+', 'producto' => '[0-9]+(-[a-z0-9-]*)?'])->name('catalogo.producto');

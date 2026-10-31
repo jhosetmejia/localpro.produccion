@@ -11,6 +11,8 @@
     $antes = $verPromo ? '🔥 Promociones · ' : ($catSel ? $catSel . ' · ' : '');
 @endphp
 
+@php $imgT = \App\Http\Controllers\catalogoController::datosImagen($tienda, $productos); @endphp
+@section('imagen', route('catalogo.compartir', $tienda->slug) . '?v=' . $imgT['v'])
 @section('titulo', $antes . $tienda->nombre . ($lugarT ? ' · ' . $lugarT : '') . ' · Tienda en línea')
 @section('descripcion', $desc)
 @section('canonical', $tienda->url_catalogo)

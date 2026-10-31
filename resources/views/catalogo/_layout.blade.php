@@ -19,6 +19,7 @@
 <meta property="og:description" content="@yield('descripcion')">
 <meta property="og:url" content="{{ $canonico }}">
 @hasSection('imagen')<meta property="og:image" content="@yield('imagen')">@elseif ($tienda->logo_url)<meta property="og:image" content="{{ $tienda->logo_url }}">@endif
+@if (str_contains($__env->yieldContent('imagen'), '/compartir.jpg'))<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:type" content="image/jpeg">@endif
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0b0d0c">
 @if ($tienda->logo_url)<link rel="icon" href="{{ $tienda->logo_url }}">@endif

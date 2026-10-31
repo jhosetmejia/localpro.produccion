@@ -157,6 +157,35 @@ class catalogoController extends Controller
         return view('catalogo.show', compact('tienda', 'productos', 'categorias', 'secciones', 'catPara', 'publicos', 'enPromo'));
     }
 
+    // Imagen de la vista previa del link de la tienda (WhatsApp, Facebook, X, Telegram): 1200x630 con fotos de productos
+    public static function datosImagen(Tienda $tienda, $productos): array
+    {
+        $fotos = collect($productos)->filter(fn ($p) => $p['disponible'] && $p['img'])->pluck('img')->unique()->take(4)->values()->all();
+        return [
+            'tienda' => [
+                'id' => $tienda->id,
+                'nombre' => $tienda->nombre,
+                'lugar' => trim(implode(', ', array_filter([$tienda->ciudad, $tienda->departamento !== $tienda->ciudad ? $tienda->departamento : null]))),
+                'cuantos' => collect($productos)->count(),
+                'logo' => $tienda->logo_path ? \Illuminate\Support\Facades\Storage::disk('public')->path($tienda->logo_path) : null,
+            ],
+            'fotos' => $fotos,
+            'v' => substr(md5(json_encode([$fotos, $tienda->logo_path, $tienda->nombre, $tienda->ciudad])), 0, 10),
+        ];
+    }
+
+    public function imagenCompartir(string $slug)
+    {
+        $tienda = $this->tienda($slug);
+        $d = self::datosImagen($tienda, $this->productos($tienda));
+        $archivo = \App\Support\ImagenCompartir::tienda($d['tienda'], array_filter(array_map([\App\Support\ImagenCompartir::class, 'rutaLocal'], $d['fotos'])));
+        if (!$archivo) {
+            $logo = $tienda->logo_url;
+            return $logo ? redirect($logo) : abort(404);
+        }
+        return response()->file($archivo, ['Content-Type' => 'image/jpeg', 'Cache-Control' => 'public, max-age=86400']);
+    }
+
     // Carta virtual (restaurantes y cafeterías): menú por categorías con diseño propio y pedido por WhatsApp.
     // Aquí salen también los platos sin foto (en una carta es normal). Los desactivados salen al final
     // de su categoría como "Agotado hoy" y no se pueden pedir.
