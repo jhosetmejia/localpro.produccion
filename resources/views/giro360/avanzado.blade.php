@@ -243,6 +243,9 @@
 
   // ===== Ajustes guardados en este celular (IndexedDB) =====
   var cfg = { efecto: 'clasico', texto: '', desde: 0 }, logoImg = null, logoBlob = null, musicaBlob = null, musicaNom = '';
+  // Logos que la persona subió en este celular (cada uno dura 24 horas desde que lo subió)
+  var misLogos = [];
+  function usarMiLogo(lg) { ponerLogo(lg.blob, lg.nombre); guardar('logo', { blob: lg.blob, nombre: lg.nombre, propio: true, id: lg.id }); cfg.sinLogo = false; guardar('cfg', cfg); }
   function idb() {
     return new Promise(function (ok, mal) {
       try { var r = indexedDB.open('giro360', 1); r.onupgradeneeded = function () { r.result.createObjectStore('k'); }; r.onsuccess = function () { ok(r.result); }; r.onerror = mal; } catch (e) { mal(e); }
@@ -315,7 +318,7 @@
   var misAudios = [];
   // Lo que sube la gente queda solo en su celular por 24 horas; lo del administrador queda para todos
   var VIDA_PROPIO = 864e5;
-  function marcarPropio() { if (!window.ADMIN_360 && !cfg.propioT) { cfg.propioT = Date.now(); guardar('cfg', cfg); } }
+  function marcarPropio() { if (!window.ADMIN_360) { cfg.propioT = Date.now(); guardar('cfg', cfg); } }
   function listaDe(tema) { return tema === 'mis' ? misAudios : (CATALOGO[tema] || []); }
   function pintarCanciones() {
     var tema = $('tema').value, sel = $('cancion'), l = listaDe(tema);
@@ -424,6 +427,7 @@
       if (src) t.style.backgroundImage = 'url("' + src + '")'; else t.textContent = '🚫';
       var n = document.createElement('span'); n.textContent = nombre;
       if (src && src.indexOf('/storage/') === 0) { var g = document.createElement('small'); g.className = 'nube'; g.textContent = '☁️ Guardado para todos'; n.appendChild(g); }
+      if (src && src.indexOf('blob:') === 0) { var m = document.createElement('small'); m.className = 'nube'; m.textContent = '📱 Solo en este celular (24 h)'; n.appendChild(m); }
       b.appendChild(t); b.appendChild(n);
       b.onclick = function () { cerrarLogos(); accion(); };
       l.appendChild(b);
@@ -431,6 +435,10 @@
     fila('Sin logo', null, !logoBlob, function () { $('logo-quitar').click(); });
     document.querySelectorAll('.listas [data-logo]').forEach(function (b) {
       fila(b.dataset.nombre, b.dataset.logo, !!logoBlob && b.dataset.nombre === $('logo-nom').textContent, function () { cargarListo(b); });
+    });
+    misLogos.forEach(function (lg) {
+      if (!lg.url) lg.url = URL.createObjectURL(lg.blob);
+      fila(lg.nombre, lg.url, !!logoBlob && lg.nombre === $('logo-nom').textContent, function () { usarMiLogo(lg); });
     });
   }
   function abrirLogos() { pintarLogos(); $('lcombo-pop').hidden = false; $('lcombo-btn').setAttribute('aria-expanded', 'true'); }
@@ -442,11 +450,18 @@
   $('in-logo').onchange = function () {
     var f = this.files[0]; this.value = ''; if (!f) return;
     var nom = (f.name || 'Logo').replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').slice(0, 40) || 'Logo';
-    ponerLogo(f, nom); guardar('logo', { blob: f, nombre: nom, propio: !window.ADMIN_360 }); cfg.sinLogo = false; guardar('cfg', cfg);
     var A = window.ADMIN_360;
+    function aMisLogos() {
+      var lg = { id: 'l' + Date.now(), nombre: nom, blob: f, t: Date.now() };
+      misLogos = [lg].concat(misLogos.filter(function (x) { return x.nombre !== nom; })).slice(0, 10);
+      guardar('misLogos', misLogos.map(function (x) { return { id: x.id, nombre: x.nombre, blob: x.blob, t: x.t }; }));
+      return lg;
+    }
+    if (!A) usarMiLogo(aMisLogos());
+    else { ponerLogo(f, nom); guardar('logo', { blob: f, nombre: nom }); cfg.sinLogo = false; guardar('cfg', cfg); }
     var est = $('logo-estado');
     function estado(t, cls) { est.className = 'msg ' + cls; est.textContent = t; est.hidden = false; }
-    if (!A) { marcarPropio(); estado('📱 "' + nom + '" quedó solo en este celular (se borra a las 24 horas). Para que salga en todos los celulares, entre con la cuenta de administrador y vuelva a subirlo.', 'err'); return; }
+    if (!A) { estado('📱 "' + nom + '" quedó en la lista de Logo de este celular por 24 horas. Para que salga en todos los celulares, entre con la cuenta de administrador y vuelva a subirlo.', 'err'); return; }
     estado('⏳ Subiendo "' + nom + '" para todos los celulares…', '');
     var fd = new FormData(); fd.append('nombre', nom); fd.append('logo', f); fd.append('_token', A.token);
     fetch(A.url, { method: 'POST', body: fd, credentials: 'same-origin', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
@@ -457,7 +472,7 @@
         var fila = document.querySelector('.listas'); if (fila) fila.appendChild(b);
         estado('✅ "' + j.nombre + '" subido y guardado. Ya sale en las opciones de Logo de todos los celulares (lo ve en la lista con ☁️).', 'ok');
       })
-      .catch(function (e) { estado('❌ No se subió: ' + (e.message || 'revise la señal') + '. Quedó solo en este celular; toque ＋ Nuevo logo para intentar otra vez.', 'err'); });
+      .catch(function (e) { aMisLogos(); estado('❌ No se subió: ' + (e.message || 'revise la señal') + '. Quedó solo en este celular; toque ＋ Nuevo logo para intentar otra vez.', 'err'); });
   };
   $('in-musica').onchange = function () {
     var f = this.files[0]; this.value = ''; if (!f) return;
@@ -484,12 +499,17 @@
   var desdeT = 0;
   $('musica-desde').oninput = function () { cfg.desde = Math.max(0, parseFloat(this.value.replace(',', '.')) || 0); guardar('cfg', cfg); clearTimeout(desdeT); desdeT = setTimeout(actualizarRitmo, 500); };
 
-  Promise.all([leer('cfg'), leer('logo'), leer('musica'), leer('misAudios')]).then(function (r) {
+  Promise.all([leer('cfg'), leer('logo'), leer('musica'), leer('misAudios'), leer('misLogos')]).then(function (r) {
+    // Mis logos: cada uno se borra a las 24 horas de subido
+    misLogos = (Array.isArray(r[4]) ? r[4] : []).filter(function (x) { return x && x.blob && Date.now() - (x.t || 0) < VIDA_PROPIO; });
+    // Logo propio que se subió antes de existir la lista: se agrega
+    if (r[1] && r[1].propio && !misLogos.some(function (x) { return x.nombre === r[1].nombre; })) misLogos.push({ id: 'l' + Date.now(), nombre: r[1].nombre, blob: r[1].blob, t: Date.now() });
+    guardar('misLogos', misLogos);
+    if (r[1] && r[1].propio && r[1].id && !misLogos.some(function (x) { return x.id === r[1].id; })) { r[1] = null; guardar('logo', null); }
     // Pasadas 24 horas, se borra lo que subió la persona (logo propio, audios y texto)
     if (r[0] && r[0].propioT && Date.now() - r[0].propioT > VIDA_PROPIO) {
       delete r[0].propioT; r[0].texto = '';
       if (r[0].musicaSel && r[0].musicaSel.tema === 'mis') { delete r[0].musicaSel; r[2] = null; guardar('musica', null); }
-      if (r[1] && r[1].propio) { r[1] = null; guardar('logo', null); }
       r[3] = []; guardar('misAudios', []); guardar('cfg', r[0]);
     }
     misAudios = Array.isArray(r[3]) ? r[3] : [];
