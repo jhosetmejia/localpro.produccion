@@ -150,7 +150,7 @@
 
 @section('contenido')
 <main class="wrap">
-    <nav class="migas" aria-label="Ruta"><a href="{{ $tienda->url_catalogo }}">{{ $tienda->nombre }}</a>@if ($cat)<span>›</span><a href="{{ $tienda->url_catalogo }}#cat-{{ \Illuminate\Support\Str::slug($cat) }}">{{ $cat }}</a>@endif<span>›</span><span>{{ \Illuminate\Support\Str::limit($p['nombre'], 40) }}</span></nav>
+    <nav class="migas" aria-label="Ruta"><a href="{{ $tienda->url_catalogo }}">{{ $tienda->nombre }}</a>@if ($cat)<span>›</span><a href="{{ $tienda->url_catalogo }}?categoria={{ \Illuminate\Support\Str::slug($cat) }}" title="Ver todo en {{ $cat }}">{{ $cat }}</a>@endif<span>›</span><span>{{ \Illuminate\Support\Str::limit($p['nombre'], 40) }}</span></nav>
 
     <div class="pp">
         <div class="foto-col {{ count($p['fotos']) + ($p['img'] ? 1 : 0) > 1 ? 'con-thumbs' : '' }}">
