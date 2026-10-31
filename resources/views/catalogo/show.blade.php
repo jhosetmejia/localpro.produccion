@@ -279,6 +279,7 @@ body:not(.filtrando) .filtro-solo,body.filtrando .inicio-solo{display:none!impor
             if (cat === '__promo') s.set('ver', 'promos'); else if (cat && SLUG[cat]) s.set('categoria', SLUG[cat]);
             if (talla) s.set('talla', talla.toLowerCase());
             if (color) s.set('color', color.toLowerCase());
+            u.hash = ''; // enlaces viejos (#cat-…) no deben quedar pegados a otro filtro
             history.replaceState(null, '', u);
         } catch (e) {}
     }
@@ -389,6 +390,8 @@ body:not(.filtrando) .filtro-solo,body.filtrando .inicio-solo{display:none!impor
     if (qs.get('para') && fPara && fPara.querySelector('option[value="' + qs.get('para') + '"]')) { elegirPara(qs.get('para')); vino = true; }
     if (hayPromo && qs.get('ver') === 'promos') { elegirCat('__promo'); vino = true; }
     else if (qs.get('categoria') && CATS[qs.get('categoria')]) { elegirCat(CATS[qs.get('categoria')]); vino = true; }
+    // Enlaces viejos con #cat-chaquetas: abren con esa categoría filtrada (y la dirección queda con ?categoria=)
+    else if (/^#cat-/.test(location.hash) && CATS[location.hash.slice(5)]) { elegirCat(CATS[location.hash.slice(5)]); vino = true; }
     if (qs.get('talla') || qs.get('color')) { talla = up(qs.get('talla')); color = up(qs.get('color')); opciones(); filtrar(); urlPara(); vino = true; }
     if (vino) setTimeout(subir, 150);
 

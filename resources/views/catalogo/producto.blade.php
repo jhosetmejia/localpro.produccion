@@ -64,7 +64,7 @@
     '@type' => 'BreadcrumbList',
     'itemListElement' => array_values(array_filter([
         ['@type' => 'ListItem', 'position' => 1, 'name' => $tienda->nombre, 'item' => $tienda->url_catalogo],
-        $cat ? ['@type' => 'ListItem', 'position' => 2, 'name' => $cat, 'item' => $tienda->url_catalogo . '#cat-' . \Illuminate\Support\Str::slug($cat)] : null,
+        $cat ? ['@type' => 'ListItem', 'position' => 2, 'name' => $cat, 'item' => $tienda->url_catalogo . '?categoria=' . \Illuminate\Support\Str::slug($cat)] : null,
         ['@type' => 'ListItem', 'position' => $cat ? 3 : 2, 'name' => $p['nombre'], 'item' => $p['url']],
     ])),
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}</script>
