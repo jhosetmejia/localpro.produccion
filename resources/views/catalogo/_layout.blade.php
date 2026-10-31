@@ -180,6 +180,15 @@ document.addEventListener('error', function (e) {
         @php
             $urlT = $tienda->url_catalogo;
             $txtT = '¡Mira la tienda de ' . $tienda->nombre . '! Vea los productos y compre por WhatsApp:';
+            // Datos para la imagen tipo estado de la tienda: hasta 4 fotos de productos disponibles
+            $listaT = collect($productos ?? $relacionados ?? []);
+            $compartirTienda = [
+                'nombre' => $tienda->nombre,
+                'lugar' => trim(implode(', ', array_filter([$tienda->ciudad, $tienda->departamento !== $tienda->ciudad ? $tienda->departamento : null]))),
+                'logo' => $tienda->logo_url,
+                'fotos' => $listaT->filter(fn ($x) => ($x['disponible'] ?? true) && !empty($x['img']))->pluck('img')->unique()->take(4)->values()->all(),
+                'cuantos' => isset($productos) ? $productos->count() : 0,
+            ];
         @endphp
         <div class="comp">
             <div class="t"><b>📣 Comparte esta tienda</b><span>Ayúdanos a llegar a más personas: envíala a tus amigos y grupos.</span></div>
@@ -218,10 +227,90 @@ document.addEventListener('error', function (e) {
     }
     var s = document.getElementById('cShare'), c = document.getElementById('cCopy');
     if (c) c.addEventListener('click', copiar);
-    if (s) s.addEventListener('click', function () {
+    // ===== Compartir la tienda con imagen tipo estado (1080x1920): logo, nombre, fotos de productos + link en el texto =====
+    var T = @json($compartirTienda), texto = txt + ':\n👉 ' + url, archivo = null, preparando = null;
+    function cargar(src) {
+        if (!src) return Promise.resolve(null);
+        var u; try { u = new URL(src, location.href); } catch (e) { return Promise.resolve(null); }
+        return fetch(u.pathname + u.search).then(function (r) { if (!r.ok) throw 0; return r.blob(); })
+            .then(function (b) { return new Promise(function (ok) { var i = new Image(); i.onload = function () { ok(i); }; i.onerror = function () { ok(null); }; i.src = URL.createObjectURL(b); }); })
+            .catch(function () { return null; });
+    }
+    function redondo(x, a, b, w, h, r) { x.beginPath(); x.moveTo(a + r, b); x.arcTo(a + w, b, a + w, b + h, r); x.arcTo(a + w, b + h, a, b + h, r); x.arcTo(a, b + h, a, b, r); x.arcTo(a, b, a + w, b, r); x.closePath(); }
+    function encajar(x, img, a, b, w, h, pad) { var k = Math.min((w - pad * 2) / img.naturalWidth, (h - pad * 2) / img.naturalHeight), dw = img.naturalWidth * k, dh = img.naturalHeight * k; x.drawImage(img, a + (w - dw) / 2, b + (h - dh) / 2, dw, dh); }
+    function linea(x, t, ancho) { if (x.measureText(t).width <= ancho) return t; while (t.length > 1 && x.measureText(t + '…').width > ancho) t = t.slice(0, -1); return t + '…'; }
+    function preparar() {
+        if (archivo) return Promise.resolve(archivo);
+        if (preparando) return preparando;
+        var F = "'Plus Jakarta Sans', system-ui, sans-serif";
+        preparando = Promise.all([cargar(T.logo)].concat(T.fotos.map(cargar)).concat([document.fonts ? document.fonts.ready : null])).then(function (r) {
+            var logo = r[0], fotos = r.slice(1, 1 + T.fotos.length).filter(Boolean), W = 1080, H = 1920, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+            var x = cv.getContext('2d'), g = x.createLinearGradient(0, 0, W, 0); g.addColorStop(0, '#a6f34a'); g.addColorStop(.45, '#2fd15a'); g.addColorStop(1, '#16b34a');
+            var f = x.createLinearGradient(0, 0, 0, H); f.addColorStop(0, '#eafbe9'); f.addColorStop(1, '#f4f8f5'); x.fillStyle = f; x.fillRect(0, 0, W, H);
+            x.fillStyle = g; x.fillRect(0, 0, W, 16);
+            // Logo y nombre
+            x.save(); x.shadowColor = 'rgba(0,0,0,.12)'; x.shadowBlur = 40; x.shadowOffsetY = 14; redondo(x, W / 2 - 110, 110, 220, 220, 60); x.fillStyle = '#fff'; x.fill(); x.restore();
+            if (logo) { x.save(); redondo(x, W / 2 - 110, 110, 220, 220, 60); x.clip(); encajar(x, logo, W / 2 - 110, 110, 220, 220, 18); x.restore(); }
+            else { x.fillStyle = '#16b34a'; x.font = '800 130px ' + F; x.textAlign = 'center'; x.fillText(T.nombre.charAt(0).toUpperCase(), W / 2, 268); }
+            // Nombre: una línea grande o dos más pequeñas si es largo
+            x.textAlign = 'center'; x.fillStyle = '#0b0d0c'; x.font = '800 66px ' + F;
+            var yN = 420;
+            if (x.measureText(T.nombre).width <= W - 140) x.fillText(T.nombre, W / 2, yN);
+            else {
+                x.font = '800 56px ' + F;
+                var pal = T.nombre.split(/\s+/), l1 = '', i2 = 0;
+                for (; i2 < pal.length; i2++) { var n1 = l1 ? l1 + ' ' + pal[i2] : pal[i2]; if (x.measureText(n1).width > W - 140 && l1) break; l1 = n1; }
+                if (i2 >= pal.length) x.fillText(l1, W / 2, yN);
+                else { x.fillText(l1, W / 2, yN - 30); x.fillText(linea(x, pal.slice(i2).join(' '), W - 140), W / 2, yN + 36); yN += 36; }
+            }
+            if (T.lugar) { x.fillStyle = '#5b665e'; x.font = '600 36px ' + F; x.fillText(linea(x, T.lugar, W - 160), W / 2, yN + 54); }
+            // Fotos de productos
+            // Fotos: 1 grande · 2 lado a lado · 3 = una arriba y dos abajo · 4 en cuadrícula
+            var y0 = 560, gap = 24, n = Math.min(4, fotos.length), AW = W - 140, AH = 880, half = (AW - gap) / 2, hh = (AH - gap) / 2;
+            var cajas = n === 1 ? [[0, 0, AW, AH]] : n === 2 ? [[0, 0, half, AH], [half + gap, 0, half, AH]]
+                : n === 3 ? [[0, 0, AW, hh], [0, hh + gap, half, hh], [half + gap, hh + gap, half, hh]]
+                : [[0, 0, half, hh], [half + gap, 0, half, hh], [0, hh + gap, half, hh], [half + gap, hh + gap, half, hh]];
+            if (n) {
+                fotos.slice(0, 4).forEach(function (im, i) {
+                    var cj = cajas[i], a = 70 + cj[0], b = y0 + cj[1], cw = cj[2], ch = cj[3];
+                    x.save(); x.shadowColor = 'rgba(0,0,0,.10)'; x.shadowBlur = 30; x.shadowOffsetY = 10; redondo(x, a, b, cw, ch, 36); x.fillStyle = '#fff'; x.fill(); x.restore();
+                    x.save(); redondo(x, a, b, cw, ch, 36); x.clip(); encajar(x, im, a, b, cw, ch, 20); x.restore();
+                });
+            }
+            // Texto y llamado
+            x.fillStyle = '#151a17'; x.font = '800 52px ' + F;
+            x.fillText(T.cuantos > 1 ? T.cuantos + ' productos en la tienda' : 'Vea la tienda en línea', W / 2, 1530);
+            x.fillStyle = '#5b665e'; x.font = '600 38px ' + F; x.fillText('Compre fácil por WhatsApp', W / 2, 1590);
+            x.fillStyle = '#25d366'; redondo(x, 80, H - 260, W - 160, 120, 60); x.fill();
+            x.fillStyle = '#fff'; x.font = '800 48px ' + F; x.fillText('Visite la tienda', W / 2, H - 182);
+            x.fillStyle = '#5b665e'; x.font = '600 32px ' + F; x.fillText(linea(x, url.replace(/^https?:\/\//, ''), W - 160), W / 2, H - 80);
+            return new Promise(function (ok) { cv.toBlob(ok, 'image/jpeg', 0.9); });
+        }).then(function (b) {
+            if (!b) throw 0;
+            archivo = new File([b], 'tienda-' + (T.nombre || 'tienda').toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) + '.jpg', { type: 'image/jpeg' });
+            return archivo;
+        }).finally(function () { preparando = null; });
+        return preparando;
+    }
+    function puede(f) { try { return !!(navigator.canShare && navigator.share && navigator.canShare({ files: [f] })); } catch (e) { return false; } }
+    function soloTexto() {
         if (navigator.share) navigator.share({ title: document.title, text: txt, url: url }).catch(function () {});
         else window.open('https://wa.me/?text=' + encodeURIComponent(txt + ': ' + url), '_blank');
-    });
+    }
+    if (s) {
+        var html0 = s.innerHTML;
+        s.addEventListener('click', function () {
+            function ir(f) {
+                if (!puede(f)) return soloTexto();
+                navigator.share({ files: [f], text: texto }).catch(function (e) { if (e && e.name !== 'AbortError') s.innerHTML = html0.replace('Comparte tu tienda', 'Listo: toque de nuevo'); });
+            }
+            if (archivo) { s.innerHTML = html0; ir(archivo); return; }
+            s.disabled = true; s.innerHTML = html0.replace('Comparte tu tienda', 'Preparando imagen…');
+            preparar().then(function (f) { s.disabled = false; s.innerHTML = html0; ir(f); }).catch(function () { s.disabled = false; s.innerHTML = html0; soloTexto(); });
+        });
+        // Lista apenas carga (el iPhone exige compartir enseguida del toque)
+        setTimeout(function () { preparar().catch(function () {}); }, 2500);
+    }
 })();
 </script>
 
