@@ -53,7 +53,21 @@ button,select,input{font:inherit;color:inherit}
 .top .crear:hover{background:#a6f34a;color:var(--k)}
 .paisf select{height:42px;border-radius:12px;border:0;background:rgba(255,255,255,.1);color:#fff;font-weight:800;font-size:.85rem;padding:0 .6rem;max-width:170px}
 .paisf select option{color:#151a17}
-@media(max-width:760px){.top .wrap{flex-wrap:wrap;height:auto;padding:10px 0;gap:10px}.busca{order:3;flex-basis:100%}.top .crear{margin-left:auto}}
+/* Celular: marca, país y "Venda aquí" en una fila alineada; el buscador debajo a todo el ancho */
+.paisf select{appearance:none;-webkit-appearance:none;outline:0;cursor:pointer;padding:0 1.9rem 0 .8rem;background:rgba(255,255,255,.1) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23a6f34a' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right .7rem center}
+.paisf select:focus-visible,.top .crear:focus-visible{outline:2px solid #a6f34a;outline-offset:2px}
+.top .crear{display:inline-flex;align-items:center;gap:.35rem;height:42px}
+@media(max-width:760px){
+  .top .wrap{display:grid;grid-template-columns:auto minmax(0,1fr) auto;height:auto;padding:10px 0 12px;gap:10px 8px}
+  .marca{grid-column:1;grid-row:1;font-size:1rem;gap:7px}
+  .marca small{font-size:.6rem}
+  .marca i{width:34px;height:34px;border-radius:11px}
+  .paisf{grid-column:2;grid-row:1;justify-self:end;min-width:0;max-width:100%}
+  .paisf select{max-width:100%;height:38px;font-size:.78rem;border-radius:11px;padding:0 1.45rem 0 .6rem;background-position:right .5rem center}
+  .top .crear{grid-column:3;grid-row:1;justify-self:end;height:38px;padding:0 .65rem;font-size:.78rem;border-radius:11px;background:#a6f34a;color:var(--k)}
+  .busca{grid-column:1/-1;grid-row:2;order:0}
+}
+@media(max-width:400px){.top .crear .ico{display:none}}
 /* Portada */
 .hero{background:linear-gradient(180deg,var(--k),#121a15);color:#fff;padding:26px 0 30px}
 .hero h1{font-size:clamp(1.5rem,3.4vw,2.3rem);font-weight:800;line-height:1.15}
@@ -136,7 +150,7 @@ document.addEventListener('error', function (e) {
         <form class="busca" action="{{ route('marketplace') }}" method="get" role="search">
             @if ($tipo)<input type="hidden" name="tipo" value="{{ $tipo }}">@endif
             @if ($ciudad)<input type="hidden" name="ciudad" value="{{ $ciudad }}">@endif
-            <input type="search" name="q" value="{{ $q }}" placeholder="Buscar productos, marcas y tiendas…" aria-label="Buscar" maxlength="80">
+            <input type="search" name="q" value="{{ $q }}" placeholder="Buscar productos o tiendas…" aria-label="Buscar" maxlength="80">
             <button type="submit" aria-label="Buscar">🔍</button>
         </form>
         @if (count($paisesConTiendas) > 1)
@@ -146,7 +160,7 @@ document.addEventListener('error', function (e) {
             </select>
         </form>
         @endif
-        <a class="crear" href="{{ route('registro', ['desde' => 'marketplace']) }}">🏪 Venda aquí</a>
+        <a class="crear" href="{{ route('registro', ['desde' => 'marketplace']) }}"><span class="ico" aria-hidden="true">🏪</span>Venda aquí</a>
     </div>
 </header>
 
