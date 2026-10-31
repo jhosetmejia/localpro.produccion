@@ -50,4 +50,9 @@ return [
         'events_secret' => env('WOMPI_EVENTS_SECRET'),
     ],
 
+    // Giro 360: código que da el operador después de cobrar (del tercer video en adelante)
+    'giro360' => [
+        'codigo' => env('GIRO360_CODIGO', '360pasto'),
+    ],
+
 ];

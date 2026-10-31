@@ -90,6 +90,7 @@ Route::get('/360', [\App\Http\Controllers\giro360Controller::class, 'index'])->n
 Route::view('/360/audio', 'giro360.audio')->name('giro360.audio');
 Route::view('/360/avanzado', 'giro360.avanzado')->name('giro360.avanzado');
 Route::post('/360/cliente', [\App\Http\Controllers\giro360Controller::class, 'guardar'])->middleware('throttle:30,1')->name('giro360.cliente');
+Route::post('/360/codigo', [\App\Http\Controllers\giro360Controller::class, 'codigo'])->middleware('throttle:10,1')->name('giro360.codigo');
 Route::get('/360/logos', [\App\Http\Controllers\giro360Controller::class, 'logos'])->middleware('throttle:120,1')->name('giro360.logos');
 Route::middleware(['auth', 'superadmin'])->group(function () {
     Route::post('/360/logos', [\App\Http\Controllers\giro360Controller::class, 'subirLogo'])->name('giro360.logos.subir');

@@ -129,6 +129,16 @@ body.cam{padding:0;overflow:hidden;background:#000}
     <button class="otro" id="reg-x" type="button">Ahora no</button>
   </form>
 </div>
+<!-- Código del operador: del tercer video en adelante (cada video se paga) -->
+<div class="hoja" id="codigo" hidden>
+  <form class="hoja-c reg-c" id="cod-form" role="dialog" aria-modal="true" aria-labelledby="cod-t" novalidate>
+    <div class="hoja-t" id="cod-t">🔒 Video <span id="cod-n">3</span></div>
+    <p class="note">Ya usó su video gratis. Pague el video al operador de la máquina y escriba aquí el código que le da.</p>
+    <div class="field"><label class="lbl" for="cod-in">Código</label><input type="text" id="cod-in" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Código del operador" maxlength="40"></div>
+    <div class="msg" id="cod-msg" hidden></div>
+    <button class="btn big" type="submit" id="cod-ok">Desbloquear video</button>
+  </form>
+</div>
 <input type="file" id="in-logo" accept="image/*" class="sr" tabindex="-1">
 
 <!-- 3. Produciendo -->
@@ -343,7 +353,7 @@ body.cam{padding:0;overflow:hidden;background:#000}
     if (grabando) return parar();
     if (tCuenta) { clearInterval(tCuenta); tCuenta = null; $('cuenta').hidden = true; return; }
     if (!stream) return;
-    if (!registrado() && videosHechos() >= 1) return puedeGrabar(function () { $('rec').click(); });
+    if (bloqueado()) return puedeGrabar(function () { $('rec').click(); });
     var n = CUENTA; $('cuenta').textContent = n; $('cuenta').hidden = false; $('cam-ayuda').textContent = 'Prepárese…';
     tCuenta = setInterval(function () { n--; if (n > 0) $('cuenta').textContent = n; else { clearInterval(tCuenta); tCuenta = null; $('cuenta').hidden = true; empezar(); } }, 1000);
   };
@@ -474,10 +484,34 @@ body.cam{padding:0;overflow:hidden;background:#000}
   function lsPoner(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   function videosHechos() { return parseInt(lsLeer('giro360-videos') || '0', 10) || 0; }
   function registrado() { return lsLeer('giro360-registro') === '1'; }
+  function conPase() { return lsLeer('giro360-pase') === '1'; }
+  // Video 1 gratis · video 2 pide datos · video 3 en adelante pide el código del operador (uno por video)
+  function bloqueado() { var n = videosHechos(); return (n >= 1 && !registrado()) || (n >= 2 && !conPase()); }
   var luegoRegistro = null;
-  function puedeGrabar(seguir) {
-    if (registrado() || videosHechos() < 1) return seguir();
+  function pedirCodigo(seguir) {
     luegoRegistro = seguir;
+    $('cod-n').textContent = videosHechos() + 1; $('cod-msg').hidden = true; $('cod-ok').disabled = false; $('cod-in').value = '';
+    $('codigo').hidden = false; setTimeout(function () { $('cod-in').focus(); }, 50);
+  }
+  $('cod-form').onsubmit = function (e) {
+    e.preventDefault();
+    var c = $('cod-in').value.trim(), m = $('cod-msg');
+    function error(t) { m.className = 'msg err'; m.textContent = t; m.hidden = false; $('cod-in').focus(); }
+    if (!c) return error('Escriba el código.');
+    $('cod-ok').disabled = true;
+    var fd = new FormData(); fd.append('codigo', c);
+    fetch('/360/codigo', { method: 'POST', body: fd, credentials: 'same-origin', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) {
+        if (r.ok) { lsPoner('giro360-pase', '1'); $('codigo').hidden = true; var s = luegoRegistro; luegoRegistro = null; if (s) s(); return; }
+        error(r.status === 429 ? 'Muchos intentos. Espere un minuto.' : (j.message || 'Código incorrecto.'));
+      }); })
+      .catch(function () { error('No hay señal. Revise el internet e intente otra vez.'); })
+      .then(function () { $('cod-ok').disabled = false; });
+  };
+  function puedeGrabar(seguir) {
+    if (!bloqueado()) return seguir();
+    if (registrado()) return pedirCodigo(seguir);
+    luegoRegistro = function () { if (bloqueado()) pedirCodigo(seguir); else seguir(); };
     $('reg-msg').hidden = true; $('reg-ok').disabled = false; $('registro').hidden = false;
     setTimeout(function () { $('reg-nombre').focus(); }, 50);
   }
@@ -525,7 +559,7 @@ body.cam{padding:0;overflow:hidden;background:#000}
 
   // ===== 4. Descargar =====
   var esIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  function mostrarFinal() { lsPoner('giro360-videos', String(videosHechos() + 1)); var f = $('vid-final'); f.src = URL.createObjectURL(editado); f.play().catch(function () {}); $('dl-msg').hidden = true; ver('final'); }
+  function mostrarFinal() { lsPoner('giro360-videos', String(videosHechos() + 1)); lsPoner('giro360-pase', '0'); var f = $('vid-final'); f.src = URL.createObjectURL(editado); f.play().catch(function () {}); $('dl-msg').hidden = true; ver('final'); }
   $('descargar').onclick = function () {
     if (!editado) return;
     var d = new Date(), nombre = 'giro360-' + d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0') + '-' + String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0') + String(d.getSeconds()).padStart(2, '0') + '.' + extEditado;
@@ -537,7 +571,8 @@ body.cam{padding:0;overflow:hidden;background:#000}
   };
   $('otro').onclick = function () { puedeGrabar(function () { $('vid-final').pause(); editado = null; crudo = null; ver('cam'); abrirCamara(); }); };
 
-  abrirCamara();
+  // Si este celular ya gastó el gratis, no abre nada hasta poner datos / código
+  puedeGrabar(abrirCamara);
 })();
 </script>
 @endverbatim

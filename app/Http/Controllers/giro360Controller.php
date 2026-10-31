@@ -54,6 +54,17 @@ class giro360Controller extends Controller
         return response()->json(['ok' => true]);
     }
 
+    // Código del operador (después de cobrar el video): del tercer video en adelante
+    public function codigo(Request $request)
+    {
+        $c = mb_strtolower(preg_replace('/\s+/', '', (string) $request->input('codigo')));
+        $bueno = mb_strtolower((string) config('services.giro360.codigo', '360pasto'));
+        if ($c === '' || !hash_equals($bueno, $c)) {
+            return response()->json(['message' => 'Código incorrecto. Pídalo al operador de la máquina.'], 422);
+        }
+        return response()->json(['ok' => true]);
+    }
+
     /**
      * Celular válido: Colombia = 10 dígitos que empiezan por 3 (se guarda como 57XXXXXXXXXX);
      * otro país = con indicativo (+), 8 a 15 dígitos. Devuelve null si no sirve.
