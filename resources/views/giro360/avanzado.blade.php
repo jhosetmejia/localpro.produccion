@@ -70,6 +70,7 @@
         <div class="row" hidden>
           <div class="field"><label class="sr" for="tema">Tema</label>
             <select id="tema">
+              <option value="sistema">LocalProo</option>
               <option value="halloween">Halloween</option>
               <option value="fiesta">Fiesta</option>
               <option value="mis">Mis audios</option>
@@ -101,8 +102,8 @@
     </div>
 
     <div class="card" id="logos-360">
-      <div class="lbl">Logos guardados para todos los celulares</div>
-      <p class="note">Con el botón <b>Subir</b> de "Del evento" el logo queda guardado aquí y sale en <b>Logos listos</b> y en el botón <b>Logo</b> de localproo.com/360 para todas las personas que graben.</p>
+      <div class="lbl">Logos y canciones guardados para todos los celulares</div>
+      <p class="note">Solo lo que sube el administrador queda aquí y sale para todas las personas que graben. Lo que sube cualquier otra persona queda solo en su celular y se borra a las 24 horas.</p>
       @if (session('ok'))<div class="msg ok">{{ session('ok') }}</div>@endif
       @if ($errors->any())<div class="msg err">{{ $errors->first() }}</div>@endif
       @if (auth()->user()?->es_superadmin)
@@ -113,6 +114,17 @@
           <div style="align-items:center">
             <span style="display:flex;gap:10px;align-items:center;min-width:0"><img src="/storage/{{ $lg['archivo'] }}" alt="" style="width:40px;height:40px;object-fit:contain;border-radius:8px;background:#0b0f0c;flex:none"><b style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ $lg['nombre'] }}</b></span>
             <form method="post" action="{{ route('giro360.logos.borrar', $lg['id']) }}">@csrf<button class="mini" type="submit">Quitar</button></form>
+          </div>
+          @endforeach
+        </div>
+        @endif
+        @php $cns = \App\Http\Controllers\giro360Controller::cancionesLista(); @endphp
+        @if ($cns)
+        <div class="list">
+          @foreach ($cns as $cn)
+          <div style="align-items:center">
+            <span style="display:flex;gap:10px;align-items:center;min-width:0"><span style="width:40px;height:40px;border-radius:8px;background:#0b0f0c;flex:none;display:grid;place-items:center">🎵</span><b style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ $cn['nombre'] }}</b></span>
+            <form method="post" action="{{ route('giro360.canciones.borrar', $cn['id']) }}">@csrf<button class="mini" type="submit">Quitar</button></form>
           </div>
           @endforeach
         </div>
@@ -154,8 +166,9 @@
   <footer>Hecho con <a href="https://localproo.com" target="_blank" rel="noopener">LocalProo</a> · el video no sale de su celular</footer>
 </div>
 @if (auth()->user()?->es_superadmin)
-<script>window.ADMIN_360 = { url: @json(route('giro360.logos.subir')), token: @json(csrf_token()) };</script>
+<script>window.ADMIN_360 = { url: @json(route('giro360.logos.subir')), musica: @json(route('giro360.canciones.subir')), token: @json(csrf_token()) };</script>
 @endif
+<script>window.CANCIONES_360 = {!! json_encode(\App\Http\Controllers\giro360Controller::cancionesJs(), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!};</script>
 @verbatim
 <script>
 (function () {
@@ -296,9 +309,13 @@
     ],
     fiesta: [
       { id: 'electro', nombre: 'Electrónica · LocalProo', url: '/audio/giro360/electronica.mp3' }
-    ]
+    ],
+    sistema: window.CANCIONES_360 || []
   };
   var misAudios = [];
+  // Lo que sube la gente queda solo en su celular por 24 horas; lo del administrador queda para todos
+  var VIDA_PROPIO = 864e5;
+  function marcarPropio() { if (!window.ADMIN_360 && !cfg.propioT) { cfg.propioT = Date.now(); guardar('cfg', cfg); } }
   function listaDe(tema) { return tema === 'mis' ? misAudios : (CATALOGO[tema] || []); }
   function pintarCanciones() {
     var tema = $('tema').value, sel = $('cancion'), l = listaDe(tema);
@@ -331,7 +348,7 @@
     }).catch(function () { $('musica-nom').textContent = musicaNom || 'Sin canción'; if (!silencioso) aviso('No se pudo cargar la canción. Revise la señal e intente otra vez.'); });
   }
   // ===== Buscador de canciones (todas, agrupadas por tema) =====
-  var TEMAS = [['halloween', 'Halloween'], ['fiesta', 'Fiesta'], ['mis', 'Mis audios']];
+  var TEMAS = [['sistema', 'LocalProo'], ['halloween', 'Halloween'], ['fiesta', 'Fiesta'], ['mis', 'Mis audios']];
   function sinTilde(t) { return (t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
   function pintarCombo() {
     var q = sinTilde($('combo-q').value.trim()), l = $('combo-lista'), hay = 0, ms = cfg.musicaSel || {};
@@ -425,11 +442,11 @@
   $('in-logo').onchange = function () {
     var f = this.files[0]; this.value = ''; if (!f) return;
     var nom = (f.name || 'Logo').replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').slice(0, 40) || 'Logo';
-    ponerLogo(f, nom); guardar('logo', { blob: f, nombre: nom }); cfg.sinLogo = false; guardar('cfg', cfg);
+    ponerLogo(f, nom); guardar('logo', { blob: f, nombre: nom, propio: !window.ADMIN_360 }); cfg.sinLogo = false; guardar('cfg', cfg);
     var A = window.ADMIN_360;
     var est = $('logo-estado');
     function estado(t, cls) { est.className = 'msg ' + cls; est.textContent = t; est.hidden = false; }
-    if (!A) { estado('📱 "' + nom + '" quedó solo en este celular. Para que salga en todos los celulares, entre con la cuenta de administrador y vuelva a subirlo.', 'err'); return; }
+    if (!A) { marcarPropio(); estado('📱 "' + nom + '" quedó solo en este celular (se borra a las 24 horas). Para que salga en todos los celulares, entre con la cuenta de administrador y vuelva a subirlo.', 'err'); return; }
     estado('⏳ Subiendo "' + nom + '" para todos los celulares…', '');
     var fd = new FormData(); fd.append('nombre', nom); fd.append('logo', f); fd.append('_token', A.token);
     fetch(A.url, { method: 'POST', body: fd, credentials: 'same-origin', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
@@ -445,15 +462,36 @@
   $('in-musica').onchange = function () {
     var f = this.files[0]; this.value = ''; if (!f) return;
     var a = { id: 'm' + Date.now(), nombre: f.name.replace(/\.[^.]+$/, '').slice(0, 40) || 'Audio', blob: f };
-    misAudios.unshift(a); misAudios = misAudios.slice(0, 20); guardar('misAudios', misAudios);
-    elegir('mis', a.id); aviso('Audio agregado a Mis audios.', true);
+    var A = window.ADMIN_360;
+    if (!A || !A.musica) {
+      misAudios.unshift(a); misAudios = misAudios.slice(0, 20); guardar('misAudios', misAudios); marcarPropio();
+      elegir('mis', a.id); aviso('Audio agregado a Mis audios: queda solo en este celular y se borra a las 24 horas.', true);
+      return;
+    }
+    // Administrador: se guarda en el sistema y sale para todos
+    aviso('⏳ Subiendo "' + a.nombre + '" para todos los celulares…', true);
+    var fd = new FormData(); fd.append('nombre', a.nombre); fd.append('cancion', f); fd.append('_token', A.token);
+    fetch(A.musica, { method: 'POST', body: fd, credentials: 'same-origin', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { if (!r.ok) throw new Error(r.status === 413 ? 'el audio pesa demasiado para el servidor' : (j.message || 'error')); return j; }); })
+      .then(function (j) {
+        CATALOGO.sistema.unshift({ id: j.id, nombre: j.nombre, url: j.url, blob: f });
+        elegir('sistema', j.id); aviso('✅ "' + j.nombre + '" guardada: ya sale en Música → LocalProo en todos los celulares.', true);
+      })
+      .catch(function (e) { aviso('❌ No se subió la canción: ' + (e.message || 'revise la señal') + '.'); });
   };
   $('logo-quitar').onclick = function () { ponerLogo(null); guardar('logo', null); cfg.sinLogo = true; guardar('cfg', cfg); };
-  $('texto').oninput = function () { cfg.texto = this.value; guardar('cfg', cfg); };
+  $('texto').oninput = function () { cfg.texto = this.value; guardar('cfg', cfg); if (this.value.trim()) marcarPropio(); };
   var desdeT = 0;
   $('musica-desde').oninput = function () { cfg.desde = Math.max(0, parseFloat(this.value.replace(',', '.')) || 0); guardar('cfg', cfg); clearTimeout(desdeT); desdeT = setTimeout(actualizarRitmo, 500); };
 
   Promise.all([leer('cfg'), leer('logo'), leer('musica'), leer('misAudios')]).then(function (r) {
+    // Pasadas 24 horas, se borra lo que subió la persona (logo propio, audios y texto)
+    if (r[0] && r[0].propioT && Date.now() - r[0].propioT > VIDA_PROPIO) {
+      delete r[0].propioT; r[0].texto = '';
+      if (r[0].musicaSel && r[0].musicaSel.tema === 'mis') { delete r[0].musicaSel; r[2] = null; guardar('musica', null); }
+      if (r[1] && r[1].propio) { r[1] = null; guardar('logo', null); }
+      r[3] = []; guardar('misAudios', []); guardar('cfg', r[0]);
+    }
     misAudios = Array.isArray(r[3]) ? r[3] : [];
     // Audio que se mandó antes de existir Mis audios: se agrega a la lista
     if (r[2] && r[2].blob && !misAudios.length && !/LocalProo|Bach/.test(r[2].nombre || '')) {

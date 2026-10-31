@@ -95,6 +95,8 @@ Route::get('/360/logos', [\App\Http\Controllers\giro360Controller::class, 'logos
 Route::middleware(['auth', 'superadmin'])->group(function () {
     Route::post('/360/logos', [\App\Http\Controllers\giro360Controller::class, 'subirLogo'])->name('giro360.logos.subir');
     Route::post('/360/logos/{id}/borrar', [\App\Http\Controllers\giro360Controller::class, 'borrarLogo'])->where('id', '[a-z0-9]{10}')->name('giro360.logos.borrar');
+    Route::post('/360/canciones', [\App\Http\Controllers\giro360Controller::class, 'subirCancion'])->name('giro360.canciones.subir');
+    Route::post('/360/canciones/{id}/borrar', [\App\Http\Controllers\giro360Controller::class, 'borrarCancion'])->where('id', '[a-z0-9]{10}')->name('giro360.canciones.borrar');
 });
 // Mis enlaces: página tipo Linktree de cada negocio (localproo.com/@negocio)
 Route::get('/@{slug}', [\App\Http\Controllers\enlacesController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('enlaces.publico');

@@ -162,7 +162,8 @@ body.cam{padding:0;overflow:hidden;background:#000}
   </div>
 </section>
 
-<script>window.LOGOS_360 = {!! json_encode(array_map(fn ($x) => ['id' => $x['id'], 'nombre' => $x['nombre'], 'url' => '/storage/' . $x['archivo']], \App\Http\Controllers\giro360Controller::logosLista()), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!};</script>
+<script>window.LOGOS_360 = {!! json_encode(array_map(fn ($x) => ['id' => $x['id'], 'nombre' => $x['nombre'], 'url' => '/storage/' . $x['archivo']], \App\Http\Controllers\giro360Controller::logosLista()), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!};
+window.CANCIONES_360 = {!! json_encode(\App\Http\Controllers\giro360Controller::cancionesJs(), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!};</script>
 @verbatim
 <script>
 (function () {
@@ -182,9 +183,10 @@ body.cam{padding:0;overflow:hidden;background:#000}
     ],
     fiesta: [
       { id: 'electro', nombre: 'Electrónica · LocalProo', url: '/audio/giro360/electronica.mp3' }
-    ]
+    ],
+    sistema: window.CANCIONES_360 || []
   };
-  var TEMAS = [['halloween', 'Halloween'], ['fiesta', 'Fiesta'], ['mis', 'Mis audios']];
+  var TEMAS = [['sistema', 'LocalProo'], ['halloween', 'Halloween'], ['fiesta', 'Fiesta'], ['mis', 'Mis audios']];
   var temporadaHalloween = new Date() < new Date(2026, 10, 3);
   var DEF_MUSICA = temporadaHalloween ? { tema: 'halloween', id: 'hw-lp' } : { tema: 'fiesta', id: 'electro' };
   var misAudios = [], sel = null, musicaBlob = null, musicaNom = '', musicaBuf = null, ritmo = null;
@@ -325,7 +327,18 @@ body.cam{padding:0;overflow:hidden;background:#000}
   $('in-logo').onchange = function () { var f = this.files[0]; this.value = ''; if (f) ponerLogo(URL.createObjectURL(f), 'Mi logo', 'propio'); };
 
   // Arranque: Mis audios del celular (si los hay) y la canción por defecto
-  leer('misAudios').then(function (l) { misAudios = Array.isArray(l) ? l : []; });
+  // Lo que subió una persona (audios, logo, texto) queda solo en su celular y se borra a las 24 horas
+  Promise.all([leer('cfg'), leer('misAudios')]).then(function (r) {
+    var c = r[0] || {};
+    if (c.propioT && Date.now() - c.propioT > 864e5) {
+      idb().then(function (d) {
+        var t = d.transaction('k', 'readwrite'), st = t.objectStore('k');
+        st.delete('misAudios'); st.delete('musica'); st.delete('logo');
+        delete c.propioT; c.texto = ''; if (c.musicaSel && c.musicaSel.tema === 'mis') delete c.musicaSel; st.put(c, 'cfg');
+      }).catch(function () {});
+      misAudios = [];
+    } else misAudios = Array.isArray(r[1]) ? r[1] : [];
+  });
   elegir(DEF_MUSICA.tema, DEF_MUSICA.id);
 
   // ===== 1. Cámara directa =====

@@ -133,6 +133,52 @@ class giro360Controller extends Controller
         return redirect()->route('giro360.avanzado')->with('ok', 'Logo quitado de las opciones.');
     }
 
+    // ===== Canciones del 360 (las sube el súper administrador; salen para todos). Lo que sube la gente queda solo en su celular =====
+    private const CANCIONES_INDICE = 'giro360/canciones.json';
+
+    public static function cancionesLista(): array
+    {
+        $d = \Illuminate\Support\Facades\Storage::disk('public');
+        $l = $d->exists(self::CANCIONES_INDICE) ? json_decode($d->get(self::CANCIONES_INDICE), true) : [];
+        return array_values(array_filter(is_array($l) ? $l : [], fn ($x) => !empty($x['archivo']) && $d->exists($x['archivo'])));
+    }
+
+    public static function cancionesJs(): array
+    {
+        return array_map(fn ($x) => ['id' => 's' . $x['id'], 'nombre' => $x['nombre'], 'url' => '/storage/' . $x['archivo']], self::cancionesLista());
+    }
+
+    public function subirCancion(Request $request)
+    {
+        $d = $request->validate([
+            'nombre' => 'required|string|max:40',
+            'cancion' => 'required|file|mimes:mp3,mpga,m4a,aac,wav,ogg,oga,webm|max:20480',
+        ], [
+            'nombre.required' => 'Escriba el nombre de la canción.',
+            'cancion.required' => 'Elija el audio.',
+            'cancion.mimes' => 'El audio debe ser MP3, M4A, WAV u OGG.',
+            'cancion.max' => 'El audio pesa demasiado (máximo 20 MB).',
+        ]);
+        $id = \Illuminate\Support\Str::lower(\Illuminate\Support\Str::random(10));
+        $ext = strtolower($request->file('cancion')->getClientOriginalExtension() ?: 'mp3');
+        $archivo = $request->file('cancion')->storeAs('giro360/canciones', \Illuminate\Support\Str::slug($d['nombre']) . '-' . $id . '.' . $ext, 'public');
+        $lista = self::cancionesLista();
+        array_unshift($lista, ['id' => $id, 'nombre' => strip_tags($d['nombre']), 'archivo' => $archivo, 'creado' => now()->toDateTimeString()]);
+        \Illuminate\Support\Facades\Storage::disk('public')->put(self::CANCIONES_INDICE, json_encode($lista, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        return response()->json(['id' => 's' . $id, 'nombre' => strip_tags($d['nombre']), 'url' => '/storage/' . $archivo]);
+    }
+
+    public function borrarCancion(string $id)
+    {
+        $lista = self::cancionesLista();
+        $disco = \Illuminate\Support\Facades\Storage::disk('public');
+        foreach ($lista as $i => $x) {
+            if ($x['id'] === $id) { $disco->delete($x['archivo']); unset($lista[$i]); }
+        }
+        $disco->put(self::CANCIONES_INDICE, json_encode(array_values($lista), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        return redirect()->route('giro360.avanzado')->with('ok', 'Canción quitada de las opciones.');
+    }
+
     // ===== Superadministrador =====
     public function admin(Request $request)
     {
