@@ -54,6 +54,14 @@
     <li>Los valores son fijos: si cambia el precio del plan, las comisiones no cambian, salvo que LocalProo las actualice y lo avise. Si un pago se devuelve o se anula, la comisión de ese pago también se anula.</li>
     <li>Los negocios y asesores de Venezuela reciben sus comisiones en dólares, según los valores vigentes en dólares.</li>
 </ul>
+<h3 id="localpro-gratis">LocalPro gratis (1 mes por cada emprendedor invitado)</h3>
+<ul>
+    <li>Por cada negocio que se registre con el link o el código (LCT-…) de otro negocio y cumpla las reglas, el negocio que lo invitó gana <strong>1 mes (30 días)</strong> del plan que tenga, con todas sus funciones. Si su plan ya venció, el mes cuenta desde el día en que se entrega.</li>
+    <li>Reglas: el invitado (1) completa los primeros pasos de LocalProo (logo y WhatsApp, 3 productos con foto, tienda en línea activa, 10 clientes, 5 clientes contactados y su primera venta); (2) usa un WhatsApp propio, distinto al del negocio que invita y que no tenga otro negocio en LocalProo; (3) lleva al menos {{ \App\Support\ReferidosMes::DIAS_MINIMOS }} días registrado y ha usado LocalProo en {{ \App\Support\ReferidosMes::DIAS_DE_USO }} días distintos; y (4) su cuenta no está suspendida.</li>
+    <li>Se entrega un solo mes por cada invitado y máximo {{ \App\Support\ReferidosMes::maximoAnual() }} meses por año a cada negocio. Los meses no se cambian por dinero ni se transfieren.</li>
+    <li>Las cuentas falsas, repetidas o creadas solo para ganar meses no cuentan. LocalProo puede revisarlas y anular los meses obtenidos con ellas, y suspender a quien abuse del beneficio.</li>
+    <li>Mientras los invitados de un negocio completan los pasos (30 días desde que se registran), la información de ese negocio no se elimina aunque su prueba haya terminado.</li>
+</ul>
 <h3>Comparta y gane (negocios que recomiendan LocalProo)</h3>
 <ul>
     <li>Cada negocio tiene un código (LCT-…). El negocio que se registra con ese código recibe la prueba gratis de 2 meses.</li>

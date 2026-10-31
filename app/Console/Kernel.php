@@ -22,6 +22,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('redes:sincronizar --limite=10')->everyTwoMinutes()->withoutOverlapping(10)->runInBackground();
         $schedule->command('dian:enviar')->everyMinute()->withoutOverlapping();
         // Correos de fin de prueba (por vencer, vencida, último aviso) con constancia de envío
+        // LocalPro gratis: 1 mes por cada emprendedor invitado que cumplió los pasos (antes de los avisos de plan)
+        $schedule->command('localpro:referidos-meses')->dailyAt('07:50')->withoutOverlapping();
         $schedule->command('localpro:avisos-plan')->dailyAt('08:10')->withoutOverlapping();
         // Recordatorio a los contadores: declaraciones de sus clientes que vencen hoy o en 3 días
         $schedule->command('contabilidad:recordatorios')->dailyAt('07:20')->withoutOverlapping();

@@ -50,7 +50,10 @@ class DepurarPruebas extends Command
             // Sigue en un plan gratis (prueba) o sin plan
             ->where(fn ($w) => $w->whereNull('plan_id')->orWhereHas('plan', fn ($p) => $p->where('precio', '<=', 0)))
             // Negocios del súper administrador nunca se depuran
-            ->whereDoesntHave('usuarios', fn ($u) => $u->where('es_superadmin', true));
+            ->whereDoesntHave('usuarios', fn ($u) => $u->where('es_superadmin', true))
+            // LocalPro gratis: si tiene emprendedores invitados en los últimos 30 días, se espera a que cumplan los pasos
+            ->whereNotExists(fn ($w) => $w->selectRaw('1')->from('tiendas as inv')->whereColumn('inv.referida_por_tienda_id', 'tiendas.id')
+                ->whereColumn('inv.id', '!=', 'tiendas.id')->where('inv.created_at', '>=', now()->subDays(30)));
 
         if ($this->option('tienda')) {
             $q->whereKey((int) $this->option('tienda'));

@@ -39,6 +39,8 @@
     </div>
     @include('layouts.partials.lp-flash')
 
+    @include('negocio._gratis', ['tienda' => $tienda, 'rm' => ['invitados' => $estados->values()->all()]])
+
     <div class="bf-hero">
         <div>
             <h2>Gane <span>{{ $valor }}</span> cada vez que un colega pague su plan anual. ¡De por vida!</h2>
@@ -75,7 +77,7 @@
         @forelse ($invitados as $i)
         <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
             <div><b>{{ $i['nombre'] }}</b><small class="d-block text-muted">Desde el {{ $i['desde']->format('d/m/Y') }}</small></div>
-            <div class="text-end">@if ($i['pago'])<span class="badge bg-success">Pagó su plan anual</span>@else<span class="badge bg-secondary">En prueba gratis</span>@endif
+            <div class="text-end">@if (!empty($estados[$i['id']]['ganado']))<span class="badge" style="background:#a6f34a;color:#0b0d0c">🎁 +1 mes gratis</span> @endif @if ($i['pago'])<span class="badge bg-success">Pagó su plan anual</span>@else<span class="badge bg-secondary">En prueba gratis</span>@endif
                 @if ($i['ganado'] > 0)<small class="d-block fw-bold text-success">+{{ \App\Support\Moneda::formato($i['ganado'], $moneda) }}</small>@endif</div>
         </div>
         @empty

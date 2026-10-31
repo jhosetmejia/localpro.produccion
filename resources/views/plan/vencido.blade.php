@@ -65,6 +65,11 @@ body{margin:0;min-height:100vh;font-family:'Plus Jakarta Sans',system-ui,sans-se
         @endif
     </div>
 
+    @if ($tienda->codigo)
+        <p style="text-align:center;font-weight:800;margin:18px 0 0;color:#11702f">Recuerde pagar su plan de LocalPro… o úselo gratis invitando emprendedores 👇</p>
+        @include('negocio._gratis', ['tienda' => $tienda, 'rm' => $rm])
+    @endif
+
     @if ($tienda->datos_depurados)
         <div class="pv-aviso"><p>Como la prueba terminó sin activar un plan en el plazo avisado, se eliminaron los productos, imágenes y ventas del negocio. Sus datos de contacto siguen guardados: active un plan y vuelva a empezar cuando quiera.</p></div>
     @elseif ($esPrueba && $fechaBorrado)

@@ -39,6 +39,12 @@
             <p style="line-height:1.55;margin:0 0 14px">Como su prueba gratis terminó y no se activó un plan en el plazo avisado, eliminamos los productos, imágenes, ventas, clientes y demás registros de {{ $t->nombre }}, tal como lo indican las condiciones de uso.</p>
             <p style="line-height:1.55;margin:0 0 14px">Su cuenta y sus datos de contacto siguen activos: si activa un plan, puede volver a usar LocalProo empezando con el negocio vacío.</p>
         @endif
+        @if (in_array($tipo, ['por_vencer', 'vencida', 'aviso_final']) && $t->codigo)
+            <div style="background:#0b0d0c;color:#ffffff;border-radius:14px;padding:16px 18px;margin:0 0 16px;line-height:1.55">
+                <b style="color:#a6f34a">¿Quiere LocalPro gratis?</b> Comparta su link con 10 emprendedores: por cada uno que se una y complete sus primeros pasos, gana <b>1 mes gratis</b> con todas las funciones.<br>
+                <a href="{{ \App\Support\Referidos::enlace($t) }}" style="color:#a6f34a;font-weight:bold">{{ \App\Support\Referidos::enlace($t) }}</a>
+            </div>
+        @endif
 
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:6px 0 18px">
             <tr>

@@ -33,8 +33,8 @@
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div style="min-width:0;flex:1">
                 <div class="fw-bold" style="color:#a6f34a;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em"><i class="fa-solid fa-gift me-1"></i>Comparta y gane</div>
-                <div class="fw-bold fs-5">Comparta su código <span style="color:#a6f34a">{{ $tienda->codigo }}</span> con otro empresario</div>
-                <small style="color:#c9d3cc">Gane {{ \App\Support\Moneda::formato(\App\Support\Referidos::valor($mRef), $mRef) }} de por vida cada vez que pague su plan anual: se descuenta de su plan. Su colega recibe 2 meses gratis.@if ($saldoRef > 0) <b style="color:#fff">Su saldo: {{ \App\Support\Moneda::formato($saldoRef, $mRef) }}</b> (se descuenta solo al pagar el plan anual).@endif</small>
+                <div class="fw-bold fs-5">Use LocalPro <span style="color:#a6f34a">gratis</span>: comparta su link con 10 emprendedores</div>
+                <small style="color:#c9d3cc"><b style="color:#fff">1 mes gratis</b> por cada emprendedor que se una con su código {{ $tienda->codigo }} y complete sus primeros pasos. Además, gane {{ \App\Support\Moneda::formato(\App\Support\Referidos::valor($mRef), $mRef) }} de por vida cada vez que pague su plan anual: se descuenta de su plan. Su colega recibe 2 meses gratis.@if ($saldoRef > 0) <b style="color:#fff">Su saldo: {{ \App\Support\Moneda::formato($saldoRef, $mRef) }}</b> (se descuenta solo al pagar el plan anual).@endif</small>
             </div>
             <a href="{{ route('beneficios.index') }}" class="btn rounded-pill fw-bold" style="background:#a6f34a;color:#0b0d0c"><i class="fa-solid fa-gift me-1"></i>Ver mis beneficios</a>
         </div>

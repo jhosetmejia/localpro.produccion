@@ -34,6 +34,14 @@ class planController extends Controller
     public function vencido(Request $request)
     {
         $tienda = TiendaActual::tienda()->load('plan');
+        // LocalPro gratis: si un emprendedor invitado ya cumplió los pasos, se suma el mes y se desbloquea
+        $rm = \App\Support\ReferidosMes::revisar($tienda);
+        if ($rm['nuevos']) {
+            $tienda->refresh()->load('plan');
+            if (!$tienda->plan_vencido) {
+                return redirect()->route('panel')->with('success', '🎉 ¡Ganó ' . $rm['nuevos'] . ' ' . ($rm['nuevos'] === 1 ? 'mes gratis' : 'meses gratis') . ' de LocalPro por invitar emprendedores! Su cuenta ya está activa hasta el ' . $tienda->plan_vence->format('d/m/Y') . '.');
+            }
+        }
         if (!$tienda->plan_vencido) {
             return redirect()->route('panel');
         }
@@ -51,6 +59,7 @@ class planController extends Controller
             'puedePagar' => $puedePagar,
             'wompi' => self::wompiActivo(),
             'soporte' => preg_replace('/\D/', '', (string) Ajuste::valor('soporte_whatsapp')),
+            'rm' => $rm,
         ]);
     }
 
