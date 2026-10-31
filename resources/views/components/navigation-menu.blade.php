@@ -53,6 +53,10 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-gift"></i></div>
                     Donaciones
                 </a>
+                <a class="nav-link {{ $on('admin.giro360*') }}" href="{{ route('admin.giro360') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-video"></i></div>
+                    Clientes 360
+                </a>
                 <a class="nav-link {{ $on('admin.eventos*') }}" href="{{ route('admin.eventos') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-ticket"></i></div>
                     Eventos

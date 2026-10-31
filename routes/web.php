@@ -83,6 +83,9 @@ Route::get('/webhooks/meta', [metaWebhookController::class, 'verificar']);
 foreach (['privacidad' => 'privacidad', 'terminos' => 'terminos', 'eliminar-datos' => 'eliminar'] as $ruta => $vista) {
     Route::get('/' . $ruta, fn () => view('legal.' . $vista, ['correo' => \App\Models\Ajuste::valor('correo_legal') ?: config('mail.from.address')]))->name('legal.' . $vista);
 }
+// Giro 360: página pública para las máquinas de video 360 (graba, edita con velocidad curva y guarda el cliente)
+Route::get('/360', [\App\Http\Controllers\giro360Controller::class, 'index'])->name('giro360');
+Route::post('/360/cliente', [\App\Http\Controllers\giro360Controller::class, 'guardar'])->middleware('throttle:30,1')->name('giro360.cliente');
 // Mis enlaces: página tipo Linktree de cada negocio (localproo.com/@negocio)
 Route::get('/@{slug}', [\App\Http\Controllers\enlacesController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('enlaces.publico');
 Route::get('/@{slug}/ir/{enlace}', [\App\Http\Controllers\enlacesController::class, 'ir'])->where(['slug' => '[a-z0-9-]+', 'enlace' => '[0-9]+'])->middleware('throttle:120,1')->name('enlaces.ir');
@@ -520,6 +523,8 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::post('/tiendas/{tienda}/entrar', [adminTiendaController::class, 'entrar'])->name('tiendas.entrar');
     Route::get('/eventos', [\App\Http\Controllers\adminEventosController::class, 'index'])->name('eventos');
     Route::get('/donaciones', [\App\Http\Controllers\adminDonacionesController::class, 'index'])->name('donaciones');
+    Route::get('/360', [\App\Http\Controllers\giro360Controller::class, 'admin'])->name('giro360');
+    Route::get('/360/exportar', [\App\Http\Controllers\giro360Controller::class, 'exportar'])->name('giro360.exportar');
     Route::post('/donaciones', [\App\Http\Controllers\adminDonacionesController::class, 'guardar'])->name('donaciones.guardar');
     Route::get('/donaciones/exportar', [\App\Http\Controllers\adminDonacionesController::class, 'exportar'])->name('donaciones.exportar');
     Route::post('/eventos/{evento}/abrir', [\App\Http\Controllers\adminEventosController::class, 'abrir'])->whereNumber('evento')->name('eventos.abrir');

@@ -15,6 +15,7 @@ class VerifyCsrfToken extends Middleware
         'webhooks/wompi',
         'webhooks/meta',
         'baja/*',
+        '360/cliente', // formulario público de la máquina 360: queda abierto toda la noche, sin sesión que proteger
         //
     ];
 }
