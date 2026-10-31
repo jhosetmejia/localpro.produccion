@@ -12,72 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box}
-html,body{margin:0}
-[hidden]{display:none!important}
-img{max-width:100%}
-/* Una sola columna tipo app de cámara, look de pista de evento (oscuro a propósito) */
-:root{
-  --bg:#0b0f0c; --surface:#131c16; --surface2:#1b2920; --line:#29402f;
-  --fg:#f2fbf4; --muted:#9fbaa8; --accent:#2fd15a; --accent2:#a6f34a; --ok:#a6f34a; --err:#ff8a7a;
-  --display:'Unbounded',system-ui,sans-serif; --body:'Figtree',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
-  color-scheme:dark;
-}
-html,body{background:var(--bg);color:var(--fg)}
-body{font-family:var(--body);font-size:16px;line-height:1.45;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 40px}
-.app{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.brand{font-family:var(--display);font-weight:800;font-size:1.35rem;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
-.brand i{width:34px;height:34px;border-radius:50%;background:conic-gradient(from 0deg,var(--accent),var(--accent2),var(--accent));display:grid;place-items:center;font-style:normal;font-size:.75rem;color:var(--bg)}
-.chip{font-size:.8rem;font-weight:600;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 12px}
-.chip:focus-visible,.btn:focus-visible,.fx:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
-h2{font-family:var(--display);font-weight:600;font-size:1rem;margin:0;letter-spacing:.01em}
-.lbl{font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:14px}
-.btn{appearance:none;border:0;border-radius:16px;padding:14px 16px;font:600 1rem var(--body);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;text-align:center;color:var(--fg);background:var(--surface2)}
-.btn:disabled{opacity:.5;cursor:default}
-.btn.big{font-family:var(--display);font-size:1.15rem;padding:22px 16px;border-radius:22px;color:#0b0d0c;background:linear-gradient(120deg,var(--accent2),var(--accent) 55%,#16b34a)}
-.btn.pri{background:var(--accent);color:#0b0d0c}
-.btn.ghost{background:transparent;border:1px solid var(--line)}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.fxs{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
-.fx{background:var(--surface2);border:1.5px solid transparent;border-radius:16px;padding:10px 10px 8px;cursor:pointer;text-align:left;color:var(--fg);font:inherit;display:flex;flex-direction:column;gap:4px}
-.fx[aria-pressed="true"]{border-color:var(--accent);background:#1f3a27}
-.fx b{font-size:.92rem}
-.fx small{color:var(--muted);font-size:.75rem}
-.fx svg{width:100%;height:38px;display:block}
-.field{display:flex;flex-direction:column;gap:6px}
-.field input[type=text],.field input[type=tel]{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;width:100%;box-sizing:border-box}
-.pick{display:flex;align-items:center;gap:12px;background:var(--surface2);border-radius:14px;padding:10px 12px;min-width:0}
-.pick .th{width:44px;height:44px;border-radius:10px;background:var(--bg) center/contain no-repeat;flex:none;display:grid;place-items:center;color:var(--muted);font-size:1.2rem}
-.pick .tx{flex:1;min-width:0;font-size:.9rem}
-.pick .tx div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pick .tx small{color:var(--muted)}
-.pick button{flex:none}
-.mini{appearance:none;border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:10px;padding:7px 10px;font:600 .8rem var(--body);cursor:pointer}
-.stage{position:relative;border-radius:22px;overflow:hidden;background:#000;display:grid;place-items:center;max-height:62vh}
-.stage canvas,.stage video{max-width:100%;max-height:62vh;display:block}
-.bar{height:8px;border-radius:99px;background:var(--surface2);overflow:hidden}
-.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .2s}
-.note{font-size:.85rem;color:var(--muted);margin:0}
-.msg{font-size:.9rem;border-radius:12px;padding:10px 12px;background:var(--surface2)}
-.msg.err{color:var(--err)} .msg.ok{color:var(--ok)}
-.list{display:flex;flex-direction:column;gap:6px;max-height:320px;overflow:auto}
-.list div{display:flex;justify-content:space-between;gap:10px;background:var(--surface2);border-radius:10px;padding:8px 10px;font-size:.9rem}
-.list span{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
-.acepta{display:flex;gap:10px;align-items:flex-start;font-size:.82rem;color:var(--muted)}
-.acepta input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--accent)}
-.acepta a{color:var(--accent2)}
-footer{text-align:center;font-size:.8rem;color:var(--muted)}
-footer a{color:var(--muted)}
-.listas{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.listas .lbl{margin-right:4px}
-.listas .mini{border-color:var(--line);color:var(--fg)}
-.listas .mini.on{border-color:var(--accent2);color:var(--accent2);background:#1f3a27}
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
-</style>
+@include('giro360._estilos')
 </head>
 <body data-cliente="{{ route('giro360.cliente') }}">
 
@@ -167,21 +102,7 @@ footer a{color:var(--muted)}
     </form>
   </section>
 
-  <section class="card" id="v-mp3">
-    <div class="lbl">Sacar el audio de un video</div>
-    <p class="note">Elija un video guardado en el celular (por ejemplo, uno que guardó con "Guardar video" en TikTok). Se convierte a MP3 aquí mismo, sin subirlo a internet.</p>
-    <button class="btn" id="mp3-elegir" type="button">Elegir video</button>
-    <input type="file" id="in-mp3" accept="video/*,audio/*" class="sr" tabindex="-1">
-    <div id="mp3-prog-wrap" hidden><div class="bar"><i id="mp3-prog"></i></div><p class="note" id="mp3-estado">Convirtiendo…</p></div>
-    <div id="mp3-listo" hidden style="display:flex;flex-direction:column;gap:10px">
-      <audio id="mp3-audio" controls style="width:100%"></audio>
-      <div class="row">
-        <button class="btn pri" id="mp3-usar" type="button">Usar en el video 360</button>
-        <button class="btn" id="mp3-bajar" type="button">Descargar MP3</button>
-      </div>
-    </div>
-    <div class="msg" id="mp3-msg" hidden></div>
-  </section>
+  <a class="btn ghost" id="v-mp3" href="/360/audio">♫ Sacar el audio de un video (MP3)</a>
   <footer>Hecho con <a href="https://localproo.com" target="_blank" rel="noopener">LocalProo</a> · el video no sale de su celular</footer>
 </div>
 @verbatim
@@ -492,57 +413,6 @@ footer a{color:var(--muted)}
       .then(function () { $('c-guardar').disabled = false; });
   };
   $('btn-otro').onclick = function () { ver('inicio'); };
-
-  // ===== Sacar el audio de un video y pasarlo a MP3 (en el celular, con lamejs) =====
-  var mp3Blob = null, mp3Nom = '';
-  function cargarLame() {
-    if (window.lamejs) return Promise.resolve();
-    return new Promise(function (ok, mal) { var sc = document.createElement('script'); sc.src = '/js/lame.min.js'; sc.onload = ok; sc.onerror = mal; document.head.appendChild(sc); });
-  }
-  function aMp3(buf, progreso) {
-    return new Promise(function (ok) {
-      var canales = Math.min(2, buf.numberOfChannels), sr = buf.sampleRate;
-      var enc = new lamejs.Mp3Encoder(canales, sr, 160);
-      function pcm(ch) { var d = buf.getChannelData(ch), o = new Int16Array(d.length); for (var i = 0; i < d.length; i++) { var v = Math.max(-1, Math.min(1, d[i])); o[i] = v < 0 ? v * 32768 : v * 32767; } return o; }
-      var izq = pcm(0), der = canales > 1 ? pcm(1) : null, partes = [], paso = 1152 * 60, i = 0;
-      (function tanda() {
-        var fin = Math.min(izq.length, i + paso);
-        for (; i < fin; i += 1152) {
-          var a = izq.subarray(i, i + 1152), b = der ? der.subarray(i, i + 1152) : null;
-          var m = der ? enc.encodeBuffer(a, b) : enc.encodeBuffer(a); if (m.length) partes.push(new Uint8Array(m));
-        }
-        progreso(i / izq.length);
-        if (i < izq.length) return setTimeout(tanda, 0);
-        var u = enc.flush(); if (u.length) partes.push(new Uint8Array(u));
-        ok(new Blob(partes, { type: 'audio/mpeg' }));
-      })();
-    });
-  }
-  $('mp3-elegir').onclick = function () { prepararAudio(); $('in-mp3').click(); };
-  $('in-mp3').onchange = function () {
-    var file = this.files[0]; this.value = ''; if (!file) return;
-    var m = $('mp3-msg'); m.hidden = true; $('mp3-listo').hidden = true; $('mp3-prog-wrap').hidden = false; $('mp3-prog').style.width = '0'; $('mp3-estado').textContent = 'Leyendo el video…';
-    $('mp3-elegir').disabled = true;
-    mp3Nom = (file.name || 'audio').replace(/\.[^.]+$/, '').slice(0, 40) || 'audio';
-    try { if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
-    Promise.all([cargarLame(), file.arrayBuffer()]).then(function (r) {
-      return new Promise(function (ok, mal) { actx.decodeAudioData(r[1], ok, mal); });
-    }).then(function (buf) {
-      $('mp3-estado').textContent = 'Convirtiendo a MP3…';
-      return aMp3(buf, function (p) { $('mp3-prog').style.width = Math.round(p * 100) + '%'; });
-    }).then(function (b) {
-      mp3Blob = b; $('mp3-audio').src = URL.createObjectURL(b);
-      $('mp3-prog-wrap').hidden = true; $('mp3-listo').hidden = false;
-    }).catch(function () {
-      $('mp3-prog-wrap').hidden = true; m.className = 'msg err'; m.textContent = 'No se pudo sacar el audio de ese archivo. Pruebe con otro video (MP4) o use Chrome.'; m.hidden = false;
-    }).then(function () { $('mp3-elegir').disabled = false; });
-  };
-  $('mp3-usar').onclick = function () {
-    if (!mp3Blob) return;
-    ponerMusica(mp3Blob, mp3Nom + '.mp3'); guardar('musica', { blob: mp3Blob, nombre: mp3Nom + '.mp3' }); cfg.sinMusica = false; guardar('cfg', cfg);
-    aviso('Canción lista: ' + mp3Nom + '. Los videos salen con este audio.', true);
-  };
-  $('mp3-bajar').onclick = function () { if (mp3Blob) bajar(mp3Blob, mp3Nom + '.mp3', $('mp3-msg')); };
 
   // Aviso en la pantalla de inicio
   function aviso(t, ok) {
