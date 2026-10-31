@@ -40,6 +40,14 @@ a.btn{text-decoration:none}
 .musica{display:flex;flex-direction:column;gap:10px}
 .musica .row{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr)}
 .combo{position:relative}
+.logo-fila{display:flex;gap:8px;align-items:stretch;position:relative}
+.logo-fila .combo{flex:1;min-width:0;position:static}
+.logo-fila .combo-pop{left:0;right:0}
+.lcombo-btn{padding:8px 36px 8px 8px;gap:10px}
+.lcombo-btn .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lcombo-btn .th,.lop .th{width:40px;height:40px;border-radius:10px;background:#000 center/contain no-repeat;flex:none;display:grid;place-items:center;font-size:1.1rem}
+.lop{display:flex;align-items:center;gap:10px}
+.logo-fila .nuevo{flex:none;padding:0 12px;font-size:.84rem;border-radius:12px;background:var(--accent);color:#0b0d0c}
 .combo-btn{width:100%;display:flex;align-items:center;gap:10px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:12px 36px 12px 12px;font:600 .95rem var(--body);text-align:left;cursor:pointer;position:relative}
 .combo-btn::after{content:"";position:absolute;right:14px;top:50%;width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:translateY(-70%) rotate(45deg)}
 .combo-btn span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

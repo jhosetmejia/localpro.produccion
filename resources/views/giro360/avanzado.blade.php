@@ -39,17 +39,19 @@
 
     <div class="card">
       <div class="lbl">Del evento (opcional)</div>
-      <div class="pick">
-        <div class="th" id="logo-th">◎</div>
-        <div class="tx"><div id="logo-nom">Sin logo</div><small>PNG con fondo transparente queda mejor</small></div>
-        <div class="acc">
-          <button class="mini" id="logo-btn" type="button">Subir</button>
-          <button class="mini" id="logo-quitar" type="button" hidden>Quitar</button>
+      <div class="lbl">Logo</div>
+      <div class="logo-fila">
+        <div class="combo" id="lcombo">
+          <button type="button" class="combo-btn lcombo-btn" id="lcombo-btn" aria-haspopup="listbox" aria-expanded="false"><span class="th" id="logo-th">◎</span><span class="nm" id="logo-nom">Sin logo</span></button>
+          <div class="combo-pop" id="lcombo-pop" hidden><div class="combo-lista" id="lcombo-lista" role="listbox"></div></div>
         </div>
+        <button class="btn nuevo" id="logo-btn" type="button">＋ Nuevo logo</button>
         <input type="file" id="in-logo" accept="image/*" class="sr" tabindex="-1">
+        <button id="logo-quitar" type="button" hidden>Quitar</button>
       </div>
-      <div class="listas">
-        <span class="lbl">Logos listos</span>
+      <p class="note" style="margin-top:-4px">Desde el celular o la galería del computador. PNG con fondo transparente queda mejor.</p>
+      {{-- Lista de logos disponibles (la usa el selector) --}}
+      <div class="listas" hidden>
         <button class="mini" type="button" data-logo="/img/giro360/halloween-2026.png" data-nombre="Halloween 2026">Halloween 2026</button>
         @foreach (\App\Http\Controllers\giro360Controller::logosLista() as $lg)
         <button class="mini" type="button" data-logo="/storage/{{ $lg['archivo'] }}" data-nombre="{{ $lg['nombre'] }}">{{ $lg['nombre'] }}</button>
@@ -265,7 +267,7 @@
     if (!blob) { $('logo-th').style.backgroundImage = ''; $('logo-th').textContent = '◎'; $('logo-nom').textContent = 'Sin logo'; $('logo-quitar').hidden = true; marcarListos(); return; }
     var u = URL.createObjectURL(blob), im = new Image();
     im.onload = function () { logoImg = im; }; im.src = u;
-    $('logo-th').style.backgroundImage = 'url(' + u + ')'; $('logo-th').textContent = ''; $('logo-nom').textContent = nombre || 'Logo'; $('logo-quitar').hidden = false; marcarListos();
+    $('logo-th').style.backgroundImage = 'url(' + u + ')'; $('logo-th').textContent = ''; $('logo-nom').textContent = nombre || 'Logo'; marcarListos();
   }
   function ponerMusica(blob, nombre) {
     musicaBlob = blob; musicaNom = nombre || '';
@@ -395,6 +397,28 @@
   document.querySelectorAll('[data-logo]').forEach(function (b) { b.onclick = function () { cargarListo(b); }; });
 
   $('logo-btn').onclick = function () { $('in-logo').click(); };
+  // Selector de logos con miniatura: Sin logo, los de LocalProo y los guardados
+  function pintarLogos() {
+    var l = $('lcombo-lista'); l.innerHTML = '';
+    function fila(nombre, src, on, accion) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'combo-op lop'; b.setAttribute('role', 'option'); b.setAttribute('aria-selected', on);
+      var t = document.createElement('span'); t.className = 'th';
+      if (src) t.style.backgroundImage = 'url("' + src + '")'; else t.textContent = '🚫';
+      var n = document.createElement('span'); n.textContent = nombre;
+      b.appendChild(t); b.appendChild(n);
+      b.onclick = function () { cerrarLogos(); accion(); };
+      l.appendChild(b);
+    }
+    fila('Sin logo', null, !logoBlob, function () { $('logo-quitar').click(); });
+    document.querySelectorAll('.listas [data-logo]').forEach(function (b) {
+      fila(b.dataset.nombre, b.dataset.logo, !!logoBlob && b.dataset.nombre === $('logo-nom').textContent, function () { cargarListo(b); });
+    });
+  }
+  function abrirLogos() { pintarLogos(); $('lcombo-pop').hidden = false; $('lcombo-btn').setAttribute('aria-expanded', 'true'); }
+  function cerrarLogos() { $('lcombo-pop').hidden = true; $('lcombo-btn').setAttribute('aria-expanded', 'false'); }
+  $('lcombo-btn').onclick = function () { $('lcombo-pop').hidden ? abrirLogos() : cerrarLogos(); };
+  document.addEventListener('click', function (e) { if (!$('lcombo').contains(e.target)) cerrarLogos(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') cerrarLogos(); });
   $('musica-btn').onclick = function () { $('in-musica').click(); };
   $('in-logo').onchange = function () {
     var f = this.files[0]; this.value = ''; if (!f) return;
