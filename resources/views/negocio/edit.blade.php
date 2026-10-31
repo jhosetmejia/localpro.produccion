@@ -40,11 +40,7 @@
             <h3>Tienda en línea</h3>
             <p class="text-muted small">Su página web con sus productos por categorías y botón <b>Comprar</b> por WhatsApp. Compártala en Instagram, WhatsApp o Facebook.</p>
             @php $tG = \App\Support\TiendaActual::tienda(); @endphp
-            @if ($tG?->en_google)
-            <div class="small fw-bold mb-2" style="color:#11702f"><i class="fa-brands fa-google me-1"></i>Aparece en los resultados de Google</div>
-            @else
-            <div class="small mb-2 p-2" style="background:#f2fbf3;border-radius:12px;color:#11702f"><i class="fa-brands fa-google me-1"></i>Con un plan pago su tienda también <b>aparece en Google</b>. <a href="{{ route('plan.index') }}" class="fw-bold" style="color:#11702f">Pásate a Pro</a></div>
-            @endif
+            <div class="small fw-bold mb-2" style="color:#11702f"><i class="fa-brands fa-google me-1"></i>Su tienda aparece en Google y en el Marketplace de LocalProo</div>
             <div id="qr" class="d-flex justify-content-center mb-2"></div>
             <input class="form-control mb-2 text-center" id="urlCat" value="{{ $negocio->url_catalogo }}" readonly onclick="this.select()">
             <div class="d-flex gap-2">

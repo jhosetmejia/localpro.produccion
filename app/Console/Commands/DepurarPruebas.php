@@ -36,6 +36,12 @@ class DepurarPruebas extends Command
     // Días para pagar, contados desde que se le notificó que la prueba terminó (se puede cambiar en ajustes: dias_gracia_depuracion)
     public const DIAS_GRACIA = 15;
 
+    // Por ahora LocalProo no borra la información de nadie (estamos creciendo): se enciende con el ajuste depurar_activo = 1
+    public static function activo(): bool
+    {
+        return (bool) (int) Ajuste::valor('depurar_activo', 0);
+    }
+
     public static function diasGracia(): int
     {
         return max(0, (int) Ajuste::valor('dias_gracia_depuracion', self::DIAS_GRACIA));
@@ -43,6 +49,10 @@ class DepurarPruebas extends Command
 
     public function handle(): int
     {
+        if (!self::activo()) {
+            $this->info('La depuración está apagada (ajuste depurar_activo = 0): no se borra nada.');
+            return self::SUCCESS;
+        }
         $q = Tienda::query()
             ->whereNull('datos_depurados_at')
             ->whereNotNull('plan_vence')

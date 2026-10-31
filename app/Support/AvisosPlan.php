@@ -42,7 +42,7 @@ class AvisosPlan
     // Día en que se borra la información (si aún no se le ha notificado, se calcula como si fuera hoy)
     public static function fechaBorrado(Tienda $t): ?Carbon
     {
-        if (!$t->plan_vence || !self::esPrueba($t)) {
+        if (!$t->plan_vence || !self::esPrueba($t) || !DepurarPruebas::activo()) {
             return null;
         }
         $dias = DepurarPruebas::diasGracia();

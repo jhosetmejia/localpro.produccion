@@ -219,7 +219,14 @@ class Tienda extends Model
 
     // El plan pagado ya pasó su fecha de vencimiento
     // La tienda en línea aparece en Google (sitemap e indexación) solo con un plan pago al día
+    // Todas las tiendas visibles aparecen en Google (prueba gratis, vencidas y de pago): LocalProo está creciendo
     public function getEnGoogleAttribute(): bool
+    {
+        return true;
+    }
+
+    // Tiene un plan pago vigente (salen primero en el Marketplace)
+    public function getPlanPagoAttribute(): bool
     {
         return $this->plan && (float) $this->plan->precio > 0 && !$this->plan_vencido;
     }

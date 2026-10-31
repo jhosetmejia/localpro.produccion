@@ -21,13 +21,21 @@
         @if ($tipo === 'por_vencer')
             <h1 style="margin:0 0 12px;font-size:22px">Su prueba gratis termina el {{ $fecha($t->plan_vence) }}</h1>
             <p style="line-height:1.55;margin:0 0 14px">Esperamos que LocalProo le esté ayudando a ordenar su negocio. Para seguir vendiendo sin interrupciones, active su plan antes de esa fecha.</p>
+            @if (\App\Console\Commands\DepurarPruebas::activo())
             <p style="line-height:1.55;margin:0 0 14px">Si la prueba termina sin pago, el sistema se bloquea y tendrá <b>{{ \App\Console\Commands\DepurarPruebas::diasGracia() }} días</b> para pagar; después se elimina la información del negocio (productos, imágenes, ventas, clientes).</p>
+            @else
+            <p style="line-height:1.55;margin:0 0 14px">Si la prueba termina sin pago, el panel se bloquea hasta que active su plan. Su información queda guardada y su tienda en línea sigue visible para sus clientes.</p>
+            @endif
         @elseif ($tipo === 'vencida')
             <h1 style="margin:0 0 12px;font-size:22px">Su prueba gratis terminó</h1>
+            @if ($fechaBorrado)
             <p style="line-height:1.55;margin:0 0 14px">Su cuenta está bloqueada hasta que active un plan. Toda su información sigue guardada <b>hasta el {{ $fecha($ultimoDia) }}</b>.</p>
             <div style="background:#ffe9f3;border-radius:14px;padding:14px 16px;margin:0 0 16px;color:#9b1c5a;line-height:1.5">
                 <b>Importante:</b> si no activa un plan, el <b>{{ $fecha($fechaBorrado) }}</b> se eliminarán de forma definitiva los productos, imágenes, videos, inventario, ventas, clientes y demás registros de su negocio. No se podrán recuperar.
             </div>
+            @else
+            <p style="line-height:1.55;margin:0 0 14px">El panel de su negocio (caja, inventario, ventas) está bloqueado hasta que active un plan. Su información sigue guardada y su tienda en línea sigue visible para sus clientes: active su plan y siga trabajando de inmediato, tal como lo dejó.</p>
+            @endif
         @elseif ($tipo === 'aviso_final')
             <h1 style="margin:0 0 12px;font-size:22px">Último aviso: su información se elimina el {{ $fecha($fechaBorrado) }}</h1>
             <p style="line-height:1.55;margin:0 0 14px">Le escribimos porque su prueba gratis terminó el {{ $fecha($t->plan_vence) }} y aún no ha activado un plan.</p>
@@ -68,7 +76,7 @@
         <p style="color:#8a948d;font-size:11.5px;line-height:1.5;margin:0">
             Este es un aviso de notificación enviado a los correos registrados del negocio {{ $t->nombre }}@if($t->nit) (NIT {{ $t->nit }})@endif, conforme a las
             <a href="{{ route('legal.terminos') }}" style="color:#8a948d">Condiciones de uso de LocalProo</a>@if($aceptoEl) aceptadas al crear la cuenta el {{ $aceptoEl->format('d/m/Y') }}@endif.
-            Al finalizar la prueba gratis sin activar un plan, la información del negocio se elimina para no ocupar el servidor; se conservan los datos de contacto (negocio y usuarios).
+            @if (\App\Console\Commands\DepurarPruebas::activo())Al finalizar la prueba gratis sin activar un plan, la información del negocio se elimina para no ocupar el servidor; se conservan los datos de contacto (negocio y usuarios).@endif
             Queda constancia de este envío ({{ now()->format('d/m/Y H:i') }}). Si cree que se trata de un error, responda este correo o escríbanos.
         </p>
     </td></tr>

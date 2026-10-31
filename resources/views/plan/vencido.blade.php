@@ -58,7 +58,7 @@ body{margin:0;min-height:100vh;font-family:'Plus Jakarta Sans',system-ui,sans-se
         <small>{{ $tienda->nombre }}</small>
         @if ($esPrueba)
             <h1>Su prueba gratis terminó.<br>Active su plan para seguir vendiendo.</h1>
-            <p>Su caja, inventario, ventas y tienda en línea están en pausa desde el {{ $tienda->plan_vence->copy()->addDay()->locale('es')->isoFormat('D [de] MMMM') }}. Pague su mensualidad o el plan anual y todo vuelve a funcionar al instante, tal como lo dejó.</p>
+            <p>Su caja, inventario y ventas están en pausa desde el {{ $tienda->plan_vence->copy()->addDay()->locale('es')->isoFormat('D [de] MMMM') }}. Su tienda en línea sigue visible para sus clientes. Pague su mensualidad o el plan anual y todo vuelve a funcionar al instante, tal como lo dejó.</p>
         @else
             <h1>Su plan venció.<br>Renuévelo para seguir vendiendo.</h1>
             <p>Su plan venció el {{ $tienda->plan_vence->locale('es')->isoFormat('D [de] MMMM') }}. Su información está guardada: renueve y siga trabajando de inmediato.</p>
@@ -117,7 +117,7 @@ body{margin:0;min-height:100vh;font-family:'Plus Jakarta Sans',system-ui,sans-se
         <a href="{{ route('plan.index') }}"><i class="fa-solid fa-receipt"></i> Ver mi plan e historial de pagos</a>
         @if ($soporte)<a href="https://wa.me/{{ $soporte }}?text={{ rawurlencode('Hola LocalProo, quiero activar el plan de ' . $tienda->nombre . ' (' . ($tienda->codigo ?: '#' . $tienda->id) . ')') }}" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> Hablar con soporte</a>@endif
     </div>
-    @if ($esPrueba)
+    @if ($esPrueba && \App\Console\Commands\DepurarPruebas::activo())
         <p class="pv-legal">Según las <a href="{{ route('legal.terminos') }}" target="_blank" style="color:inherit">condiciones de uso</a> aceptadas al crear la cuenta, al terminar la prueba sin activar un plan se elimina la información del negocio y se conservan los datos de contacto.</p>
     @endif
 </div>

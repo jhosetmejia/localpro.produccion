@@ -127,7 +127,7 @@ class marketplaceController extends Controller
             ->get()
             ->each(fn ($t) => $t->n_productos = (int) ($conteo[$t->id] ?? 0))
             // Primero las que tienen plan pago al día, luego las de más productos
-            ->sortBy([fn ($a, $b) => (int) $b->en_google <=> (int) $a->en_google, fn ($a, $b) => $b->n_productos <=> $a->n_productos])
+            ->sortBy([fn ($a, $b) => (int) $b->plan_pago <=> (int) $a->plan_pago, fn ($a, $b) => $b->n_productos <=> $a->n_productos])
             ->values();
 
         // Filtros: solo tipos y ciudades que tienen tiendas
