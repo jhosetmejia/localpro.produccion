@@ -51,7 +51,7 @@
 @endphp
 <div class="lp-dash" style="max-width:760px;margin:0 auto">
     <div class="lp-hello">
-        <div><small><a href="{{ route('productos.index') }}" class="text-decoration-none" style="color:inherit"><i class="fa-solid fa-arrow-left me-1"></i>Productos</a></small><h1>Nuevo <span id="tTit">{{ $esServ ? 'servicio' : 'producto' }}</span>@if (request('alquiler') == '1') para alquilar@endif</h1></div>
+        <div><small><a href="{{ route('productos.index') }}" class="text-decoration-none" style="color:inherit"><i class="fa-solid fa-arrow-left me-1"></i>Productos</a></small><h1>Nuevo <span id="tTit">{{ $esServ ? 'servicio' : 'producto' }}</span>@if (request('alquiler') == '1') para alquilar @endif</h1></div>
     </div>
     @include('layouts.partials.lp-flash')
 
