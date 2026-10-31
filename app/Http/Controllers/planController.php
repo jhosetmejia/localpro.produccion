@@ -60,6 +60,9 @@ class planController extends Controller
             'wompi' => self::wompiActivo(),
             'soporte' => preg_replace('/\D/', '', (string) Ajuste::valor('soporte_whatsapp')),
             'rm' => $rm,
+            // El plan que venció era el mes gratis ganado por invitar
+            'mesGanado' => \Illuminate\Support\Facades\Schema::hasTable('referido_meses')
+                && \Illuminate\Support\Facades\DB::table('referido_meses')->where('tienda_id', $tienda->id)->whereDate('vence_nuevo', $tienda->plan_vence)->exists(),
         ]);
     }
 
