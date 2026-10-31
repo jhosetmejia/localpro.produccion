@@ -53,7 +53,14 @@
       </div>
       <div class="musica">
         <div class="lbl">Música</div>
-        <div class="row">
+        <div class="combo" id="combo">
+          <button type="button" class="combo-btn" id="combo-btn" aria-haspopup="listbox" aria-expanded="false"><span id="combo-txt">Elegir canción</span><small id="combo-tema"></small></button>
+          <div class="combo-pop" id="combo-pop" hidden>
+            <input type="search" id="combo-q" placeholder="Buscar canción…" autocomplete="off" aria-label="Buscar canción">
+            <div class="combo-lista" id="combo-lista" role="listbox"></div>
+          </div>
+        </div>
+        <div class="row" hidden>
           <div class="field"><label class="sr" for="tema">Tema</label>
             <select id="tema">
               <option value="halloween">Halloween</option>
@@ -235,6 +242,7 @@
     musicaBlob = blob; musicaNom = nombre || '';
     $('musica-nom').textContent = blob ? (nombre || 'Canción') : 'Sin canción';
     $('desde-wrap').hidden = !blob; $('musica-oir').hidden = !blob;
+    if (window.etiquetaCombo) etiquetaCombo();
     marcarListos();
     parar();
     actualizarRitmo();
@@ -272,6 +280,7 @@
       if (cfg.musicaSel && cfg.musicaSel.tema === tema) sel.value = cfg.musicaSel.id;
     }
     $('mis-borrar').hidden = !(tema === 'mis' && l.length);
+    etiquetaCombo();
   }
   // Pone la canción elegida (descarga la de LocalProo una vez y queda guardada en el celular)
   function elegir(tema, id, silencioso) {
@@ -289,6 +298,46 @@
       if (!silencioso) aviso('Canción lista: ' + c.nombre + '.', true);
     }).catch(function () { $('musica-nom').textContent = musicaNom || 'Sin canción'; if (!silencioso) aviso('No se pudo cargar la canción. Revise la señal e intente otra vez.'); });
   }
+  // ===== Buscador de canciones (todas, agrupadas por tema) =====
+  var TEMAS = [['halloween', 'Halloween'], ['fiesta', 'Fiesta'], ['mis', 'Mis audios']];
+  function sinTilde(t) { return (t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+  function pintarCombo() {
+    var q = sinTilde($('combo-q').value.trim()), l = $('combo-lista'), hay = 0, ms = cfg.musicaSel || {};
+    l.innerHTML = '';
+    TEMAS.forEach(function (t) {
+      var items = listaDe(t[0]).filter(function (c) { return !q || sinTilde(c.nombre + ' ' + t[1]).indexOf(q) > -1; });
+      if (!items.length && !(t[0] === 'mis' && !q)) return;
+      var h = document.createElement('div'); h.className = 'combo-grupo'; h.textContent = t[1] + (t[0] === 'mis' ? ' (' + misAudios.length + ')' : ''); l.appendChild(h);
+      if (!items.length) { var v = document.createElement('div'); v.className = 'combo-vacio'; v.textContent = 'Suba un audio o sáquelo de un video.'; l.appendChild(v); }
+      items.forEach(function (c) {
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'combo-op'; b.setAttribute('role', 'option');
+        var on = ms.tema === t[0] && ms.id === c.id; b.setAttribute('aria-selected', on); b.textContent = c.nombre;
+        b.onclick = function () { cerrarCombo(); elegir(t[0], c.id); };
+        l.appendChild(b); hay++;
+      });
+    });
+    if (!q || 'sin musica'.indexOf(q) > -1) {
+      var n = document.createElement('button'); n.type = 'button'; n.className = 'combo-op combo-sin'; n.textContent = 'Sin música';
+      n.setAttribute('aria-selected', ms.tema === 'ninguna'); n.onclick = function () { cerrarCombo(); elegir('ninguna'); }; l.appendChild(n); hay++;
+    }
+    if (!hay) { var z = document.createElement('div'); z.className = 'combo-vacio'; z.textContent = 'No hay canciones con "' + $('combo-q').value.trim() + '".'; l.appendChild(z); }
+  }
+  window.etiquetaCombo = etiquetaCombo;
+  function etiquetaCombo() {
+    var ms = cfg.musicaSel || {}, t = TEMAS.filter(function (x) { return x[0] === ms.tema; })[0];
+    $('combo-txt').textContent = ms.tema === 'ninguna' ? 'Sin música' : (musicaNom || 'Elegir canción');
+    $('combo-tema').textContent = t ? t[1] : '';
+  }
+  function abrirCombo() { $('combo-pop').hidden = false; $('combo-btn').setAttribute('aria-expanded', 'true'); $('combo-q').value = ''; pintarCombo(); setTimeout(function () { $('combo-q').focus(); }, 30); }
+  function cerrarCombo() { $('combo-pop').hidden = true; $('combo-btn').setAttribute('aria-expanded', 'false'); }
+  $('combo-btn').onclick = function () { $('combo-pop').hidden ? abrirCombo() : cerrarCombo(); };
+  $('combo-q').oninput = pintarCombo;
+  $('combo-q').onkeydown = function (e) {
+    if (e.key === 'Escape') { cerrarCombo(); $('combo-btn').focus(); }
+    if (e.key === 'Enter') { e.preventDefault(); var b = $('combo-lista').querySelector('.combo-op'); if (b) b.click(); }
+  };
+  document.addEventListener('click', function (e) { if (!$('combo').contains(e.target)) cerrarCombo(); });
+
   $('tema').onchange = function () {
     var l = listaDe(this.value);
     if (this.value === 'mis' && !l.length) { pintarCanciones(); aviso('Todavía no hay audios. Toque "Subir audio" o saque el audio de un video.', true); return; }

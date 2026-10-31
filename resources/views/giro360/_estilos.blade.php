@@ -39,6 +39,22 @@ a.btn{text-decoration:none}
 .field{display:flex;flex-direction:column;gap:6px}
 .musica{display:flex;flex-direction:column;gap:10px}
 .musica .row{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr)}
+.combo{position:relative}
+.combo-btn{width:100%;display:flex;align-items:center;gap:10px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:12px 36px 12px 12px;font:600 .95rem var(--body);text-align:left;cursor:pointer;position:relative}
+.combo-btn::after{content:"";position:absolute;right:14px;top:50%;width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:translateY(-70%) rotate(45deg)}
+.combo-btn span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.combo-btn small{flex:none;color:var(--accent2);font-weight:600;font-size:.75rem}
+.combo-btn:focus-visible{outline:2px solid var(--accent2);outline-offset:1px}
+.combo-pop{position:absolute;z-index:5;left:0;right:0;top:calc(100% + 6px);background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 40px -12px rgba(0,0,0,.7);padding:8px;display:flex;flex-direction:column;gap:6px}
+.combo-pop input{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font:inherit;width:100%}
+.combo-pop input:focus-visible{outline:2px solid var(--accent2);outline-offset:0}
+.combo-lista{max-height:280px;overflow:auto;display:flex;flex-direction:column}
+.combo-grupo{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:10px 10px 4px}
+.combo-op{appearance:none;background:transparent;border:0;color:var(--fg);text-align:left;font:500 .95rem var(--body);padding:10px 12px;border-radius:10px;cursor:pointer}
+.combo-op:hover,.combo-op:focus-visible{background:var(--surface2);outline:none}
+.combo-op[aria-selected="true"]{color:var(--accent2);background:#1f3a27}
+.combo-sin{border-top:1px solid var(--line);border-radius:0 0 10px 10px;margin-top:4px;color:var(--muted)}
+.combo-vacio{font-size:.85rem;color:var(--muted);padding:6px 12px 10px}
 @media (max-width:440px){.musica .row{grid-template-columns:1fr}}
 .field select{appearance:none;-webkit-appearance:none;background:var(--bg) url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%278%27%3E%3Cpath d=%27M1 1l5 5 5-5%27 stroke=%27%239fbaa8%27 stroke-width=%272%27 fill=%27none%27/%3E%3C/svg%3E") no-repeat right 12px center;color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:12px 32px 12px 12px;font:600 .95rem var(--body);width:100%;min-width:0}
 .field select:focus-visible{outline:2px solid var(--accent2);outline-offset:1px}
