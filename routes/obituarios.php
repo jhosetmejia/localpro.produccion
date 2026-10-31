@@ -29,6 +29,8 @@ Route::middleware(['auth', 'tienda'])->prefix('obituarios')->name('obituarios.')
     Route::put('/{obituario}', 'update')->whereNumber('obituario')->name('update');
     Route::post('/{obituario}/estado', 'estado')->whereNumber('obituario')->name('estado');
     Route::post('/{obituario}/ver-ya', 'verYa')->whereNumber('obituario')->name('ver-ya');
+    // Si alguien recarga la pestaña de "Ver ya" (o el celular la reabre), no sale error: vuelve al obituario
+    Route::get('/{obituario}/ver-ya', fn ($obituario) => redirect()->route('obituarios.show', $obituario))->whereNumber('obituario');
     Route::delete('/{obituario}', 'destroy')->whereNumber('obituario')->name('destroy');
 
     // Salas de velación

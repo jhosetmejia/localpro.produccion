@@ -62,7 +62,7 @@
             </div>
             <div class="lp-box mb-3">
                 <h3><i class="fa-solid fa-tv me-1"></i>{{ $obituario->sala?->nombre ?? 'Pantalla general' }}</h3>
-                <form method="post" action="{{ route('obituarios.ver-ya', $obituario) }}" target="_blank" class="mb-2">@csrf<button class="btn btn-success w-100"><i class="fa-solid fa-display me-1"></i>Ver ya en la pantalla</button></form>
+                <form method="post" action="{{ route('obituarios.ver-ya', $obituario) }}" target="_blank" class="mb-2" id="os-veryaf">@csrf<button class="btn btn-success w-100" id="os-verya"><i class="fa-solid fa-display me-1"></i>Ver ya en la pantalla</button></form>
                 @if ($obituario->sala?->codigo)
                 <p class="mb-2 text-center">En el TV escriba:<br><b style="font-size:1.3rem;color:#0b5a25">{{ $obituario->sala->url_corta }}</b></p>
                 @endif
@@ -104,6 +104,30 @@
     });
 
     Obi.whatsapp(el, document.getElementById('os-wa'), { texto: @json($texto), nombre: base });
+
+    // "Ver ya en la pantalla": lo activa sin salir de esta página y abre la pantalla en otra pestaña.
+    // Si la página llevaba mucho rato abierta (sesión vencida), se recarga sola y pide tocar otra vez.
+    var fv = document.getElementById('os-veryaf'), bv = document.getElementById('os-verya');
+    if (fv) fv.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var txt = bv.innerHTML, w = window.open('about:blank', '_blank');
+        bv.disabled = true; bv.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Poniéndolo en pantalla…';
+        fetch(fv.action, { method: 'POST', credentials: 'same-origin', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, body: new FormData(fv) })
+            .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { r: r, j: j }; }); })
+            .then(function (x) {
+                if (x.r.status === 419) {
+                    if (w) w.close();
+                    sessionStorage.setItem('os_aviso', 'La página llevaba mucho rato abierta. Ya se actualizó: toque otra vez "Ver ya en la pantalla".');
+                    location.reload(); return;
+                }
+                if (!x.r.ok || !x.j.url) throw 0;
+                if (w) w.location.href = x.j.url; else location.href = x.j.url;
+                if (window.LP && LP.toast) LP.toast(x.j.mensaje || 'Listo, ya está en la pantalla.', 'ok');
+            })
+            .catch(function () { if (w) w.close(); if (window.LP && LP.toast) LP.toast('No se pudo poner en pantalla. Revise la conexión e intente de nuevo.', 'error'); })
+            .finally(function () { bv.disabled = false; bv.innerHTML = txt; });
+    });
+    try { var av = sessionStorage.getItem('os_aviso'); if (av) { sessionStorage.removeItem('os_aviso'); setTimeout(function () { if (window.LP && LP.toast) LP.toast(av, 'info'); }, 400); } } catch (x) {}
 
     var vf = document.getElementById('os-vformato'), vb = document.getElementById('os-video'), prog = document.getElementById('os-vprog');
     var formatos = Obi.formatosVideo();

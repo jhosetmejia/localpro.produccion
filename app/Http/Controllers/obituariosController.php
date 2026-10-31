@@ -239,7 +239,7 @@ class obituariosController extends Controller
     }
 
     // "Ver ya en la pantalla": lo deja visible (activo, sin fecha vencida, sala encendida) y abre la pantalla
-    public function verYa(Obituario $obituario)
+    public function verYa(Request $request, Obituario $obituario)
     {
         $this->mio($obituario);
         $obituario->estado = 'activo';
@@ -250,11 +250,17 @@ class obituariosController extends Controller
         $sala = $obituario->sala;
         if ($sala) {
             if (!$sala->activa) $sala->forceFill(['activa' => true])->save();
-            return redirect()->away($sala->url_pantalla);
+            $url = $sala->url_pantalla;
+        } else {
+            $tienda = $this->tienda();
+            if (!$tienda->obituarios_token) $tienda->forceFill(['obituarios_token' => ObituarioSala::nuevoToken()])->save();
+            $url = route('obituarios.general', $tienda->obituarios_token);
         }
-        $tienda = $this->tienda();
-        if (!$tienda->obituarios_token) $tienda->forceFill(['obituarios_token' => ObituarioSala::nuevoToken()])->save();
-        return redirect()->route('obituarios.general', $tienda->obituarios_token);
+        // Desde el botón (sin salir de la página): responde con la dirección de la pantalla para abrirla
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'url' => $url, 'mensaje' => 'Listo: ' . $obituario->nombre . ' ya está en ' . ($sala?->nombre ?: 'la pantalla general') . '. El televisor se actualiza solo en menos de un minuto.']);
+        }
+        return redirect()->away($url);
     }
 
     public function destroy(Obituario $obituario)
