@@ -25,6 +25,8 @@ class registroController extends Controller
         // Enlace para negocios que solo alquilan (/alquiler → ?actividad=alquila)
         if (request()->query('actividad') === 'alquila') {
             session(['actividad_registro' => 'alquila']);
+            // /alquiler-360: además nace con "Alquilo plataforma 360"
+            if (request()->query('plataforma') === '360') session(['registro_360' => true]);
         }
         $desde = (string) request()->query('desde', '');
         if (preg_match('/^[a-z0-9:\-]{2,80}$/', $desde)) {
@@ -108,8 +110,9 @@ class registroController extends Controller
         // Llegó por el enlace de alquiler: el negocio nace como "Solo alquila" (lo puede cambiar en el paso siguiente)
         if (session('actividad_registro') === 'alquila' && $tipo !== 'contable') {
             $t = $user->tienda;
-            $t->forceFill(\App\Models\Tienda::ajustesActividad($t->menu_oculto, $t->tipo_negocio, 'alquila', $t->actividad_actual))->save();
-            $request->session()->forget('actividad_registro');
+            $t->forceFill(\App\Models\Tienda::ajustesActividad($t->menu_oculto, $t->tipo_negocio, 'alquila', $t->actividad_actual)
+                + (session('registro_360') ? ['mod_360' => true] : []))->save();
+            $request->session()->forget(['actividad_registro', 'registro_360']);
         }
 
         // Si llegó por un asesor (enlace o código), el negocio queda en su red

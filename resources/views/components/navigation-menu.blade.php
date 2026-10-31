@@ -260,6 +260,12 @@
                     Alquiler @if ($alqHoy)<span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c" title="Alquileres para hoy">{{ $alqHoy }}</span>@endif
                 </a>@endif
                 @endif
+                @if ($tiendaMenu?->mod_360 && $ver('plataforma360'))
+                <a class="nav-link {{ $on('giro360.mis*') }}" href="{{ route('giro360.mis') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-camera-rotate"></i></div>
+                    Plataforma 360
+                </a>
+                @endif
                 @if ($ver('cotizaciones') && \Illuminate\Support\Facades\Route::has('cotizaciones.index') && \Illuminate\Support\Facades\Schema::hasTable('cotizaciones'))<a class="nav-link {{ $on('cotizaciones.*') }}" href="{{ route('cotizaciones.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-file-signature"></i></div>
                     Cotizaciones

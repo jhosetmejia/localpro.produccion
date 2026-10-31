@@ -39,6 +39,7 @@ class giro360Controller extends Controller
             return response()->json(['message' => 'Escriba un celular válido: 10 números que empiecen por 3 (ej: 300 123 4567).'], 422);
         }
         DB::table('giro360_clientes')->insert([
+            'tienda_id' => self::tienda360()?->id,
             'nombre' => strip_tags($d['nombre']),
             'whatsapp' => $wa,
             'evento' => isset($d['evento']) ? strip_tags($d['evento']) : null,
@@ -81,14 +82,41 @@ class giro360Controller extends Controller
         return null;
     }
 
-    // ===== Logos del 360 (los sube el súper administrador; salen en las opciones de todos los celulares) =====
-    private const LOGOS_INDICE = 'giro360/logos.json';
+    // ===== Quién guarda logos y canciones =====
+    // Súper administrador: los de LocalProo, que salen para todos.
+    // Negocio que alquila plataforma 360 (con sesión iniciada): los suyos, en su cuenta, en todos sus celulares.
+    public static function tienda360(): ?\App\Models\Tienda
+    {
+        if (!auth()->check() || auth()->user()->es_superadmin) return null;
+        $t = \App\Support\TiendaActual::tienda();
+        return $t && $t->mod_360 ? $t : null;
+    }
 
-    public static function logosLista(): array
+    public static function puedeSubir(): bool
+    {
+        return (bool) (auth()->user()?->es_superadmin || self::tienda360());
+    }
+
+    // Carpeta de la cuenta: la general de LocalProo o la del negocio
+    private static function carpeta(?\App\Models\Tienda $t = null): string
+    {
+        return $t ? 'giro360/t' . $t->id : 'giro360';
+    }
+
+    private static function leerIndice(string $archivo): array
     {
         $d = \Illuminate\Support\Facades\Storage::disk('public');
-        $l = $d->exists(self::LOGOS_INDICE) ? json_decode($d->get(self::LOGOS_INDICE), true) : [];
+        $l = $d->exists($archivo) ? json_decode($d->get($archivo), true) : [];
         return array_values(array_filter(is_array($l) ? $l : [], fn ($x) => !empty($x['archivo']) && $d->exists($x['archivo'])));
+    }
+
+    // ===== Logos del 360 =====
+    /** Logos para elegir: los del negocio (si es un negocio 360) y los de LocalProo. $soloPropios = solo los que esta cuenta puede quitar */
+    public static function logosLista(bool $soloPropios = false): array
+    {
+        $t = self::tienda360();
+        $propios = self::leerIndice(self::carpeta($t) . '/logos.json');
+        return $soloPropios || !$t ? $propios : array_merge($propios, self::leerIndice('giro360/logos.json'));
     }
 
     public function logos()
@@ -112,35 +140,34 @@ class giro360Controller extends Controller
         ]);
         $id = \Illuminate\Support\Str::lower(\Illuminate\Support\Str::random(10));
         $ext = strtolower($request->file('logo')->getClientOriginalExtension() ?: 'png');
-        $archivo = $request->file('logo')->storeAs('giro360/logos', \Illuminate\Support\Str::slug($d['nombre']) . '-' . $id . '.' . $ext, 'public');
-        $lista = self::logosLista();
+        $base = self::carpeta(self::tienda360());
+        $archivo = $request->file('logo')->storeAs($base . '/logos', \Illuminate\Support\Str::slug($d['nombre']) . '-' . $id . '.' . $ext, 'public');
+        $lista = self::logosLista(true);
         array_unshift($lista, ['id' => $id, 'nombre' => strip_tags($d['nombre']), 'archivo' => $archivo, 'creado' => now()->toDateTimeString()]);
-        \Illuminate\Support\Facades\Storage::disk('public')->put(self::LOGOS_INDICE, json_encode($lista, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        \Illuminate\Support\Facades\Storage::disk('public')->put($base . '/logos.json', json_encode($lista, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
         if ($request->expectsJson()) {
             return response()->json(['id' => $id, 'nombre' => strip_tags($d['nombre']), 'url' => '/storage/' . $archivo]);
         }
-        return redirect()->route('giro360.avanzado')->with('ok', 'Logo "' . $d['nombre'] . '" subido. Ya sale en las opciones de Logo de todos los celulares.');
+        return redirect()->route('giro360.avanzado')->with('ok', 'Logo "' . $d['nombre'] . '" subido. Ya sale en las opciones de Logo.');
     }
 
     public function borrarLogo(string $id)
     {
-        $lista = self::logosLista();
+        $lista = self::logosLista(true);
         $disco = \Illuminate\Support\Facades\Storage::disk('public');
         foreach ($lista as $i => $x) {
             if ($x['id'] === $id) { $disco->delete($x['archivo']); unset($lista[$i]); }
         }
-        $disco->put(self::LOGOS_INDICE, json_encode(array_values($lista), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        $disco->put(self::carpeta(self::tienda360()) . '/logos.json', json_encode(array_values($lista), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
         return redirect()->route('giro360.avanzado')->with('ok', 'Logo quitado de las opciones.');
     }
 
     // ===== Canciones del 360 (las sube el súper administrador; salen para todos). Lo que sube la gente queda solo en su celular =====
-    private const CANCIONES_INDICE = 'giro360/canciones.json';
-
-    public static function cancionesLista(): array
+    public static function cancionesLista(bool $soloPropios = false): array
     {
-        $d = \Illuminate\Support\Facades\Storage::disk('public');
-        $l = $d->exists(self::CANCIONES_INDICE) ? json_decode($d->get(self::CANCIONES_INDICE), true) : [];
-        return array_values(array_filter(is_array($l) ? $l : [], fn ($x) => !empty($x['archivo']) && $d->exists($x['archivo'])));
+        $t = self::tienda360();
+        $propias = self::leerIndice(self::carpeta($t) . '/canciones.json');
+        return $soloPropios || !$t ? $propias : array_merge($propias, self::leerIndice('giro360/canciones.json'));
     }
 
     public static function cancionesJs(): array
@@ -161,44 +188,74 @@ class giro360Controller extends Controller
         ]);
         $id = \Illuminate\Support\Str::lower(\Illuminate\Support\Str::random(10));
         $ext = strtolower($request->file('cancion')->getClientOriginalExtension() ?: 'mp3');
-        $archivo = $request->file('cancion')->storeAs('giro360/canciones', \Illuminate\Support\Str::slug($d['nombre']) . '-' . $id . '.' . $ext, 'public');
-        $lista = self::cancionesLista();
+        $base = self::carpeta(self::tienda360());
+        $archivo = $request->file('cancion')->storeAs($base . '/canciones', \Illuminate\Support\Str::slug($d['nombre']) . '-' . $id . '.' . $ext, 'public');
+        $lista = self::cancionesLista(true);
         array_unshift($lista, ['id' => $id, 'nombre' => strip_tags($d['nombre']), 'archivo' => $archivo, 'creado' => now()->toDateTimeString()]);
-        \Illuminate\Support\Facades\Storage::disk('public')->put(self::CANCIONES_INDICE, json_encode($lista, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        \Illuminate\Support\Facades\Storage::disk('public')->put($base . '/canciones.json', json_encode($lista, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
         return response()->json(['id' => 's' . $id, 'nombre' => strip_tags($d['nombre']), 'url' => '/storage/' . $archivo]);
     }
 
     public function borrarCancion(string $id)
     {
-        $lista = self::cancionesLista();
+        $lista = self::cancionesLista(true);
         $disco = \Illuminate\Support\Facades\Storage::disk('public');
         foreach ($lista as $i => $x) {
             if ($x['id'] === $id) { $disco->delete($x['archivo']); unset($lista[$i]); }
         }
-        $disco->put(self::CANCIONES_INDICE, json_encode(array_values($lista), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        $disco->put(self::carpeta(self::tienda360()) . '/canciones.json', json_encode(array_values($lista), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
         return redirect()->route('giro360.avanzado')->with('ok', 'Canción quitada de las opciones.');
     }
 
     // ===== Superadministrador =====
     public function admin(Request $request)
     {
-        $q = DB::table('giro360_clientes')->orderByDesc('id');
+        return $this->listado($request, null);
+    }
+
+    // Plataforma 360 del negocio (menú del panel): sus invitados, sus logos y el acceso a la app
+    public function mis(Request $request)
+    {
+        $t = self::tienda360();
+        abort_unless($t, 403, 'Active "Alquilo plataforma 360" en Datos del negocio.');
+        return $this->listado($request, $t);
+    }
+
+    public function misExportar(Request $request)
+    {
+        $t = self::tienda360();
+        abort_unless($t, 403);
+        return $this->exportarDe($request, $t);
+    }
+
+    private function listado(Request $request, ?\App\Models\Tienda $t)
+    {
+        $base = fn () => DB::table('giro360_clientes')->when($t, fn ($q) => $q->where('tienda_id', $t->id));
+        $q = $base()->orderByDesc('id');
         if ($ev = trim((string) $request->query('evento'))) {
             $q->where('evento', $ev);
         }
         return view('admin.giro360', [
+            'negocio' => $t,
+            'rutaLista' => $t ? 'giro360.mis' : 'admin.giro360',
+            'rutaExcel' => $t ? 'giro360.mis.exportar' : 'admin.giro360.exportar',
             'clientes' => $q->paginate(100)->withQueryString(),
-            'eventos' => DB::table('giro360_clientes')->whereNotNull('evento')->where('evento', '!=', '')
+            'eventos' => $base()->whereNotNull('evento')->where('evento', '!=', '')
                 ->select('evento', DB::raw('count(*) as n'))->groupBy('evento')->orderByDesc(DB::raw('max(id)'))->limit(50)->get(),
-            'total' => DB::table('giro360_clientes')->count(),
-            'hoy' => DB::table('giro360_clientes')->where('created_at', '>=', today())->count(),
+            'total' => $base()->count(),
+            'hoy' => $base()->where('created_at', '>=', today())->count(),
             'evento' => $ev,
         ]);
     }
 
     public function exportar(Request $request)
     {
-        $q = DB::table('giro360_clientes')->orderBy('id');
+        return $this->exportarDe($request, null);
+    }
+
+    private function exportarDe(Request $request, ?\App\Models\Tienda $t)
+    {
+        $q = DB::table('giro360_clientes')->when($t, fn ($w) => $w->where('tienda_id', $t->id))->orderBy('id');
         if ($ev = trim((string) $request->query('evento'))) {
             $q->where('evento', $ev);
         }

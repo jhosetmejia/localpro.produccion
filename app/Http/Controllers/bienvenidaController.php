@@ -99,6 +99,7 @@ class bienvenidaController extends Controller
             'mod_consultorio' => 'nullable|boolean',
             'mod_servicios' => 'nullable|boolean',
             'actividad' => ['nullable', Rule::in(array_keys(Tienda::ACTIVIDADES))],
+            'mod_360' => 'nullable|boolean',
         ] + \App\Support\Ubicaciones::reglas($request->input('pais'), $request->input('departamento')),
         ['nombre.required' => 'Escriba el nombre de su negocio.', 'tipo_negocio.required' => 'Elija el tipo de negocio.', 'telefono.required' => 'Escriba el celular o WhatsApp del negocio.'] + \App\Support\Ubicaciones::mensajes());
 
@@ -131,6 +132,8 @@ class bienvenidaController extends Controller
         // Vende / solo alquila / vende y alquila: enciende Alquiler y, si solo alquila, esconde la caja de venta y el inventario
         $actividad = $datos['actividad'] ?? null;
         unset($datos['actividad']);
+        // Plataforma 360: solo para quien alquila
+        $datos['mod_360'] = in_array($actividad, ['alquila', 'ambos'], true) && $request->boolean('mod_360');
         if ($actividad && !in_array($datos['tipo_negocio'], ['contable', 'instituto', 'conjunto', 'eventos'], true)) {
             $datos = array_merge($datos, Tienda::ajustesActividad($datos['menu_oculto'] ?? $tienda->menu_oculto, $datos['tipo_negocio'], $actividad, $tienda->actividad_actual));
         }

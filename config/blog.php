@@ -6,6 +6,26 @@
 // palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
+    'alquiler-de-plataforma-360-app-para-videos-360' => [
+        'titulo' => 'Alquiler de plataforma 360: la app gratis para editar los videos 360 en el celular y llenar su agenda',
+        'resumen' => 'Si alquila una plataforma 360 (cabina o "photo booth 360") para bodas, quinces y eventos, LocalProo le da la app que graba y edita el video al instante con cámara lenta, logo del evento y música, guarda el WhatsApp de cada invitado y además lleva sus alquileres, cotizaciones y abonos.',
+        'fecha' => '31 de octubre de 2026',
+        'publicado' => '2026-10-31',
+        'minutos' => 6,
+        'icono' => 'fa-camera-rotate',
+        'rol' => 'negocios',
+        'seo_titulo' => 'Alquiler de plataforma 360 y app para videos 360 | LocalProo',
+        'descripcion' => 'App para plataforma 360: edita el video en el celular con cámara lenta, logo y música, y guarda el WhatsApp de los invitados. Lleve sus alquileres gratis.',
+        'keywords' => ['alquiler de plataforma 360', 'app para plataforma 360', 'aplicación para cabina 360', 'photo booth 360 app', 'video 360 para eventos', 'alquiler de cabina 360 para bodas', 'app para editar videos 360 en cámara lenta', 'plataforma 360 para quinces', 'negocio de plataforma 360', 'cuánto cobrar por alquiler de plataforma 360'],
+        'faq' => [
+            ['¿Qué es una plataforma 360?', 'Es una base giratoria donde se paran los invitados mientras un brazo con el celular gira a su alrededor. El resultado es un video corto en cámara lenta, ideal para bodas, quinces, grados, fiestas de empresa y lanzamientos.'],
+            ['¿La app de LocalProo cuesta?', 'Crear la cuenta es gratis. La app 360 viene incluida cuando marca "Alquilo plataforma 360"; no paga por video ni por evento.'],
+            ['¿El video se sube a internet?', 'No. El video se graba y se edita en el mismo celular y el invitado se lo lleva. Al servidor solo llegan el nombre y el WhatsApp que el invitado acepta dejar, para que usted le escriba después.'],
+            ['¿Puedo poner el logo de cada evento?', 'Sí. Suba el logo (PNG con fondo transparente queda mejor) y elija la música. Quedan guardados en su cuenta y salen en todos los celulares donde entre con su usuario.'],
+            ['¿Qué efectos de velocidad tiene?', '360 clásico (rápido y luego lento), Héroe, Bala, Montaje, Todo lento, Sin efecto y "Al ritmo de la canción", que acelera donde la música sube.'],
+            ['¿Cómo creo mi cuenta?', 'Entre a localproo.com/alquiler-360. Su negocio queda como "Solo alquila" con "Alquilo plataforma 360" ya marcado. Si ya tiene LocalProo, actívelo en Datos del negocio → ¿Qué hace su negocio?'],
+        ],
+    ],
     'obituario-lugar-de-velacion-debajo-de-las-exequias' => [
         'titulo' => 'Obituario con lugar de velación debajo de las exequias (y sin repetir el nombre)',
         'resumen' => 'Las funerarias nos pidieron un obituario más limpio: ahora el lugar de velación sale como un dato más, debajo de la fecha, la hora y el lugar de las exequias, y el "En memoria de" que repetía el nombre debajo de la foto ya no sale. Usted decide en la plantilla si lo muestra, dónde o si lo oculta.',

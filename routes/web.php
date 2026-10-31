@@ -61,6 +61,7 @@ Route::get('/registro', [registroController::class, 'index'])->name('registro');
 Route::get('/institutos', fn () => redirect()->route('registro', ['tipo' => 'instituto'] + request()->only('desde')))->name('registro.institutos');
 // Enlace corto para negocios que solo alquilan (sonido, trajes, salones, carpas, equipos…): el registro nace como "Solo alquila"
 Route::get('/alquiler', fn () => redirect()->route('registro', ['actividad' => 'alquila'] + request()->only('desde', 'tipo')))->name('registro.alquiler');
+Route::get('/alquiler-360', fn () => redirect()->route('registro', ['actividad' => 'alquila', 'plataforma' => '360', 'desde' => request('desde', 'alquiler-360')]))->name('registro.360');
 Route::get('/contadores', fn () => redirect()->route('registro', ['tipo' => 'contable'] + request()->only('desde')))->name('registro.contadores');
 Route::get('/contadores/{codigo}', [registroController::class, 'referidoContador'])->where('codigo', '[A-Za-z0-9\-]+')->name('registro.contadores.asesor');
 Route::post('/registro', [registroController::class, 'store'])->middleware('throttle:5,1');
@@ -91,8 +92,12 @@ Route::view('/360/audio', 'giro360.audio')->name('giro360.audio');
 Route::view('/360/avanzado', 'giro360.avanzado')->name('giro360.avanzado');
 Route::post('/360/cliente', [\App\Http\Controllers\giro360Controller::class, 'guardar'])->middleware('throttle:30,1')->name('giro360.cliente');
 Route::post('/360/codigo', [\App\Http\Controllers\giro360Controller::class, 'codigo'])->middleware('throttle:10,1')->name('giro360.codigo');
+Route::middleware('auth')->group(function () {
+    Route::get('/mi-360', [\App\Http\Controllers\giro360Controller::class, 'mis'])->name('giro360.mis');
+    Route::get('/mi-360/exportar', [\App\Http\Controllers\giro360Controller::class, 'misExportar'])->name('giro360.mis.exportar');
+});
 Route::get('/360/logos', [\App\Http\Controllers\giro360Controller::class, 'logos'])->middleware('throttle:120,1')->name('giro360.logos');
-Route::middleware(['auth', 'superadmin'])->group(function () {
+Route::middleware(['auth', \App\Http\Middleware\Puede360::class])->group(function () {
     Route::post('/360/logos', [\App\Http\Controllers\giro360Controller::class, 'subirLogo'])->name('giro360.logos.subir');
     Route::post('/360/logos/{id}/borrar', [\App\Http\Controllers\giro360Controller::class, 'borrarLogo'])->where('id', '[a-z0-9]{10}')->name('giro360.logos.borrar');
     Route::post('/360/canciones', [\App\Http\Controllers\giro360Controller::class, 'subirCancion'])->name('giro360.canciones.subir');

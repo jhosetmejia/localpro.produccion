@@ -125,6 +125,13 @@
                     </div>
                     @endforeach
                 </div>
+                <div class="mods" id="mod360-caja" style="display:none;margin-top:.6rem">
+                    <label class="mod">
+                        <input type="hidden" name="mod_360" value="0">
+                        <input type="checkbox" name="mod_360" value="1" @checked(old('mod_360', $tienda->mod_360))>
+                        <span class="mod-c"><i class="fa-solid fa-camera-rotate"></i><span><b>Alquilo plataforma 360</b><small>Videos 360 para fiestas y eventos: la app graba, edita con cámara lenta, logo del evento y música, y guarda el WhatsApp de cada invitado. Sus logos y canciones quedan en su cuenta, en todos sus celulares.</small></span><em class="mod-sw"></em></span>
+                    </label>
+                </div>
                 <div class="tip" id="tip-alquila" style="display:none"><i class="fa-solid fa-lightbulb me-1"></i> Su sistema entra directo a <b>Alquileres</b>: cotizaciones en PDF, disponibilidad por fecha, abonos, entrega y devolución. La caja de venta y los separados quedan escondidos (no se borra nada). Si más adelante vende algo, cambie a <b>Vende y alquila</b> en Datos del negocio y vuelven a aparecer.</div>
             </div>
 
@@ -176,7 +183,8 @@
             mods.addEventListener('change', function (e) { if (e.target.dataset.mod) tocados[e.target.dataset.mod] = true; });
             var act = document.getElementById('actividad'), tipAlq = document.getElementById('tip-alquila');
             function verActividad(tipo) { act.style.display = ['conjunto', 'instituto', 'contable', 'eventos'].indexOf(tipo) !== -1 ? 'none' : ''; }
-            function verTip() { var a = document.querySelector('input[name=actividad]:checked'); tipAlq.style.display = a && a.value === 'alquila' ? '' : 'none'; }
+            function verTip() { var a = document.querySelector('input[name=actividad]:checked'); tipAlq.style.display = a && a.value === 'alquila' ? '' : 'none';
+                var c360 = document.getElementById('mod360-caja'); if (c360) c360.style.display = a && (a.value === 'alquila' || a.value === 'ambos') ? '' : 'none'; }
             document.querySelectorAll('input[name=actividad]').forEach(function (r) { r.addEventListener('change', verTip); });
             verTip();
             var selTipo = document.querySelector('select[name=tipo_negocio]');

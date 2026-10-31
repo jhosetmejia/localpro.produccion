@@ -41,6 +41,7 @@ class negocioController extends Controller
             'mod_pedidos' => 'nullable|boolean',
             'mod_servicios' => 'nullable|boolean',
             'actividad' => ['nullable', \Illuminate\Validation\Rule::in(array_keys(\App\Models\Tienda::ACTIVIDADES))],
+            'mod_360' => 'nullable|boolean',
             'pais' => ['required', \Illuminate\Validation\Rule::in(array_keys(\App\Support\Paises::LISTA))],
             'tipo_negocio' => ['required', \Illuminate\Validation\Rule::in(array_keys(\App\Models\Tienda::TIPOS))],
             'nit' => 'nullable|string|max:30',
@@ -104,6 +105,10 @@ class negocioController extends Controller
         $actividad = $datos['actividad'] ?? null;
         unset($datos['actividad']);
         $antes = $negocio->actividad_actual;
+        // Plataforma 360: solo para quien alquila
+        if ($request->has('mod_360') || $actividad) {
+            $datos['mod_360'] = in_array($actividad ?: $antes, ['alquila', 'ambos'], true) && $request->boolean('mod_360');
+        }
         if ($actividad) {
             $datos = array_merge($datos, \App\Models\Tienda::ajustesActividad($datos['menu_oculto'] ?? $negocio->menu_oculto, $datos['tipo_negocio'], $actividad, $antes));
         } else {

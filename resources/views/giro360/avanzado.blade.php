@@ -102,12 +102,17 @@
     </div>
 
     <div class="card" id="logos-360">
-      <div class="lbl">Logos y canciones guardados para todos los celulares</div>
+      @php $neg360 = \App\Http\Controllers\giro360Controller::tienda360(); @endphp
+      <div class="lbl">{{ $neg360 ? 'Logos y canciones de ' . $neg360->nombre : 'Logos y canciones guardados para todos los celulares' }}</div>
+      @if ($neg360)
+      <p class="note">Lo que suba aquí queda en su cuenta de LocalProo y sale en todos los celulares donde entre con su usuario.</p>
+      @else
       <p class="note">Solo lo que sube el administrador queda aquí y sale para todas las personas que graben. Lo que sube cualquier otra persona queda solo en su celular y se borra a las 24 horas.</p>
+      @endif
       @if (session('ok'))<div class="msg ok">{{ session('ok') }}</div>@endif
       @if ($errors->any())<div class="msg err">{{ $errors->first() }}</div>@endif
-      @if (auth()->user()?->es_superadmin)
-        @php $lgs = \App\Http\Controllers\giro360Controller::logosLista(); @endphp
+      @if (\App\Http\Controllers\giro360Controller::puedeSubir())
+        @php $lgs = \App\Http\Controllers\giro360Controller::logosLista(true); @endphp
         @if ($lgs)
         <div class="list">
           @foreach ($lgs as $lg)
@@ -118,7 +123,7 @@
           @endforeach
         </div>
         @endif
-        @php $cns = \App\Http\Controllers\giro360Controller::cancionesLista(); @endphp
+        @php $cns = \App\Http\Controllers\giro360Controller::cancionesLista(true); @endphp
         @if ($cns)
         <div class="list">
           @foreach ($cns as $cn)
@@ -130,7 +135,7 @@
         </div>
         @endif
       @else
-        <p class="note">Para subir logos, <a href="{{ route('login') }}" style="color:var(--accent2)">entre con la cuenta de administrador de LocalProo</a> y vuelva a esta página.</p>
+        <p class="note">¿Alquila plataformas 360? <a href="{{ route('login') }}" style="color:var(--accent2)">Entre con su cuenta de LocalProo</a> (o <a href="{{ route('registro.alquiler') }}" style="color:var(--accent2)">créela gratis</a> marcando "Alquilo plataforma 360") y sus logos y canciones quedan guardados en todos sus celulares.</p>
       @endif
     </div>
   </section>
@@ -165,7 +170,7 @@
   <a class="btn ghost" id="v-mp3" href="/360/audio">♫ Sacar el audio de un video (MP3)</a>
   <footer>Hecho con <a href="https://localproo.com" target="_blank" rel="noopener">LocalProo</a> · el video no sale de su celular</footer>
 </div>
-@if (auth()->user()?->es_superadmin)
+@if (\App\Http\Controllers\giro360Controller::puedeSubir())
 <script>window.ADMIN_360 = { url: @json(route('giro360.logos.subir')), musica: @json(route('giro360.canciones.subir')), token: @json(csrf_token()) };</script>
 @endif
 <script>window.CANCIONES_360 = {!! json_encode(\App\Http\Controllers\giro360Controller::cancionesJs(), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!};</script>
@@ -426,7 +431,7 @@
       var t = document.createElement('span'); t.className = 'th';
       if (src) t.style.backgroundImage = 'url("' + src + '")'; else t.textContent = '🚫';
       var n = document.createElement('span'); n.textContent = nombre;
-      if (src && src.indexOf('/storage/') === 0) { var g = document.createElement('small'); g.className = 'nube'; g.textContent = '☁️ Guardado para todos'; n.appendChild(g); }
+      if (src && src.indexOf('/storage/') === 0) { var g = document.createElement('small'); g.className = 'nube'; g.textContent = '☁️ Guardado en la cuenta'; n.appendChild(g); }
       if (src && src.indexOf('blob:') === 0) { var m = document.createElement('small'); m.className = 'nube'; m.textContent = '📱 Solo en este celular (24 h)'; n.appendChild(m); }
       b.appendChild(t); b.appendChild(n);
       b.onclick = function () { cerrarLogos(); accion(); };
@@ -461,7 +466,7 @@
     else { ponerLogo(f, nom); guardar('logo', { blob: f, nombre: nom }); cfg.sinLogo = false; guardar('cfg', cfg); }
     var est = $('logo-estado');
     function estado(t, cls) { est.className = 'msg ' + cls; est.textContent = t; est.hidden = false; }
-    if (!A) { estado('📱 "' + nom + '" quedó en la lista de Logo de este celular por 24 horas. Para que salga en todos los celulares, entre con la cuenta de administrador y vuelva a subirlo.', 'err'); return; }
+    if (!A) { estado('📱 "' + nom + '" quedó en la lista de Logo de este celular por 24 horas. Para guardarlo en todos sus celulares, entre con su cuenta de LocalProo (marcada como "Alquilo plataforma 360") y vuelva a subirlo.', 'err'); return; }
     estado('⏳ Subiendo "' + nom + '" para todos los celulares…', '');
     var fd = new FormData(); fd.append('nombre', nom); fd.append('logo', f); fd.append('_token', A.token);
     fetch(A.url, { method: 'POST', body: fd, credentials: 'same-origin', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
@@ -470,7 +475,7 @@
         var b = document.createElement('button'); b.type = 'button'; b.className = 'mini on'; b.dataset.logo = j.url; b.dataset.nombre = j.nombre; b.textContent = j.nombre;
         b.onclick = function () { cargarListo(b); };
         var fila = document.querySelector('.listas'); if (fila) fila.appendChild(b);
-        estado('✅ "' + j.nombre + '" subido y guardado. Ya sale en las opciones de Logo de todos los celulares (lo ve en la lista con ☁️).', 'ok');
+        estado('✅ "' + j.nombre + '" subido y guardado. Ya sale en las opciones de Logo de todos sus celulares (lo ve en la lista con ☁️).', 'ok');
       })
       .catch(function (e) { aMisLogos(); estado('❌ No se subió: ' + (e.message || 'revise la señal') + '. Quedó solo en este celular; toque ＋ Nuevo logo para intentar otra vez.', 'err'); });
   };

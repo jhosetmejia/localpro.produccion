@@ -96,6 +96,19 @@
                 <small class="text-muted d-block">{{ $desc }}@if ($clave === 'alquila'). Entra directo a Alquileres; la caja de venta y los separados quedan escondidos.@elseif ($clave === 'ambos'). Alquiler sale en el menú junto a la caja de venta.@endif</small>
             </div>
             @endforeach
+            <div class="form-check form-switch mt-2 pt-2 border-top" id="act360">
+                <input type="hidden" name="mod_360" value="0">
+                <input class="form-check-input" type="checkbox" name="mod_360" value="1" id="mod_360" @checked(old('mod_360', $negocio->mod_360))>
+                <label class="form-check-label fw-bold" for="mod_360"><i class="fa-solid fa-camera-rotate me-1" style="color:var(--lp-green-2,#16b34a)"></i>Alquilo plataforma 360</label>
+                <small class="text-muted d-block">Sale "Plataforma 360" en el menú: la app de videos 360 con sus logos y canciones guardados en su cuenta (en todos sus celulares) y la lista de WhatsApp de los invitados. Solo para quien alquila.</small>
+            </div>
+            <script>
+            (function () {
+                var c = document.getElementById('act360');
+                function ver() { var a = document.querySelector('input[name=actividad]:checked'); c.style.display = a && (a.value === 'alquila' || a.value === 'ambos') ? '' : 'none'; }
+                document.querySelectorAll('input[name=actividad]').forEach(function (r) { r.addEventListener('change', ver); }); ver();
+            })();
+            </script>
         </div>
         @endif
         <div class="lp-box mt-3">

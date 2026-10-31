@@ -109,6 +109,7 @@ return [
                 ['fa-ticket-simple', 'Tiquetera de almuerzos', 'Venda almuerzos por adelantado y descuéntelos con un toque cada día.', [], 'tiquetera-de-almuerzos-para-restaurantes'],
                 ['fa-scissors', 'Negocios de servicios', 'Peluquerías, barberías, talleres y reparaciones: venda servicios sin llevar inventario.', [], 'software-para-negocios-de-servicios-sin-inventario'],
                 ['fa-calendar-days', 'Alquileres', 'Sonido, trajes, mobiliario, carpas y equipos: cotice, vea la disponibilidad por fecha y controle lo que sale y vuelve.', [], 'como-crear-mi-negocio-de-alquiler-en-localproo'],
+                ['fa-camera-rotate', 'Plataforma 360', 'App para su plataforma 360: graba y edita el video en el celular con cámara lenta, logo del evento y música, y guarda el WhatsApp de cada invitado.', [], 'alquiler-de-plataforma-360-app-para-videos-360'],
                 ['fa-user-doctor', 'Consultorios: historia clínica', 'Agenda de citas con recordatorio por WhatsApp, historia clínica, fórmulas y firma desde el celular.', [], 'historia-clinica-para-consultorios-particulares'],
                 ['fa-graduation-cap', 'Institutos y academias', 'Inscripciones, matrículas de contado o financiadas, cuotas y cartera de estudiantes.', [], 'software-para-institutos-tecnicos-matriculas-y-cuotas'],
                 ['fa-dove', 'Funerarias: obituarios digitales', 'Obituarios con foto, lugar de velación y el eslogan de la funeraria, para compartir y para el televisor de cada sala.', [], 'obituarios-digitales-para-funerarias'],
