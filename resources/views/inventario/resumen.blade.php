@@ -38,13 +38,22 @@ a.inv-talla.on .u{color:var(--lp-lime)}a.inv-talla.on small{color:#a8b3ab}a.inv-
 .inv-det{margin-top:1rem;border-top:1.5px solid var(--lp-line);padding-top:1rem}
 .inv-det-head{display:flex;justify-content:space-between;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.4rem}
 .inv-det-head b{font-size:1rem;font-weight:900}
-.inv-prod{display:grid;grid-template-columns:1fr auto;gap:.8rem;align-items:center;padding:.6rem 0;border-bottom:1px dashed #edf2ee}
+.inv-prod{display:grid;grid-template-columns:64px 1fr auto;gap:.8rem;align-items:center;padding:.6rem 0;border-bottom:1px dashed #edf2ee}
 .inv-prod:last-child{border-bottom:0}
 .inv-prod a{color:inherit;text-decoration:none;font-weight:800;font-size:.92rem}
 .inv-prod a:hover{color:var(--lp-green-2)}
 .inv-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:.3rem}
 .inv-chips span{background:#f1f6f2;border-radius:999px;padding:.12rem .55rem;font-size:.72rem;font-weight:700;color:var(--lp-ink)}
 .inv-chips span.neg{background:#fde8ec;color:#b0173f}
+.inv-foto{width:64px;height:64px;border-radius:14px;overflow:hidden;background:#eef3ef;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.3rem;color:var(--lp-muted);border:0;padding:0}
+.inv-foto img{width:100%;height:100%;object-fit:cover}
+button.inv-foto{cursor:zoom-in}
+.inv-prod .nota{display:block;font-size:.7rem;color:var(--lp-muted);font-weight:600}
+.inv-zoom{position:fixed;inset:0;background:rgba(5,8,6,.88);z-index:2000;display:none;align-items:center;justify-content:center;padding:16px;cursor:zoom-out}
+.inv-zoom.on{display:flex}
+.inv-zoom img{max-width:100%;max-height:85vh;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.inv-zoom b{position:absolute;bottom:18px;left:0;right:0;text-align:center;color:#fff;font-weight:800}
+.inv-zoom .x{position:absolute;top:14px;right:16px;width:42px;height:42px;border-radius:50%;border:0;background:#fff;color:#111;font-size:1.2rem;font-weight:900}
 .inv-cta{display:flex;align-items:center;gap:1rem;justify-content:space-between;flex-wrap:wrap;background:linear-gradient(135deg,#0b0d0c,#1d2a21);color:#fff;border-radius:24px;padding:1.1rem 1.3rem;margin-bottom:1rem}
 .inv-cta b{font-size:1.05rem}.inv-cta p{margin:.15rem 0 0;color:#b8c4bc;font-size:.88rem}
 @media (max-width:991px){.inv-top{grid-template-columns:repeat(2,1fr)}.inv-top .inv-kpi.dark{grid-column:1/-1}.inv-grid{grid-template-columns:1fr}}
@@ -126,8 +135,17 @@ a.inv-talla.on .u{color:var(--lp-lime)}a.inv-talla.on small{color:#a8b3ab}a.inv-
                 </div>
                 @foreach ($detalleTalla as $p)
                 <div class="inv-prod">
+                    @if ($p['foto'])
+                    <button type="button" class="inv-foto" data-zoom="{{ $p['foto'] }}" data-nombre="{{ $p['nombre'] }}" title="Ver foto grande"><img src="{{ $p['foto'] }}" alt="{{ $p['nombre'] }}" loading="lazy"></button>
+                    @else
+                    <a href="{{ route('productos.edit', ['producto' => $p['id']]) }}" class="inv-foto" title="Súbale una foto"><i class="fa-solid fa-camera" style="font-size:1rem"></i></a>
+                    @endif
                     <div>
-                        <a href="{{ route('productos.edit', ['producto' => $p['id']]) }}">{{ $p['nombre'] }}</a>
+                        @if ($p['publica'])
+                        <a href="{{ $p['publica'] }}" target="_blank" rel="noopener">{{ $p['nombre'] }} <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:.7rem"></i></a>
+                        @else
+                        <a href="{{ route('productos.edit', ['producto' => $p['id']]) }}">{{ $p['nombre'] }}</a><span class="nota">No sale en la tienda en línea (toque para editarlo)</span>
+                        @endif
                         <div class="inv-chips">
                             @foreach ($p['colores'] as $c)
                             <span class="{{ $c['stock'] < 0 ? 'neg' : '' }}">{{ $c['color'] }}: {{ $u($c['stock']) }}</span>
@@ -138,6 +156,17 @@ a.inv-talla.on .u{color:var(--lp-lime)}a.inv-talla.on small{color:#a8b3ab}a.inv-
                 </div>
                 @endforeach
             </div>
+            <div class="inv-zoom" id="invZoom"><button type="button" class="x" aria-label="Cerrar">✕</button><img src="" alt=""><b></b></div>
+            <script>
+            (function () {
+                var z = document.getElementById('invZoom'), img = z.querySelector('img'), tit = z.querySelector('b');
+                document.querySelectorAll('[data-zoom]').forEach(function (b) {
+                    b.addEventListener('click', function () { img.src = b.dataset.zoom; tit.textContent = b.dataset.nombre || ''; z.classList.add('on'); });
+                });
+                z.addEventListener('click', function () { z.classList.remove('on'); });
+                document.addEventListener('keydown', function (e) { if (e.key === 'Escape') z.classList.remove('on'); });
+            })();
+            </script>
             @endif
             @else<div class="lp-empty">No hay prendas con inventario.</div>@endif
         </div>

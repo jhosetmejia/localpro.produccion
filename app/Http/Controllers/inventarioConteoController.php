@@ -112,10 +112,15 @@ class inventarioConteoController extends Controller
         $detalleTalla = collect();
         if ($talla) {
             $deTalla = $filas->filter(fn ($f) => (trim((string) $f->talla) !== '' ? mb_strtoupper(trim($f->talla)) : 'SIN TALLA') === $talla);
-            $nombres = DB::table('productos')->whereIn('id', $deTalla->pluck('pid')->unique())->pluck('nombre', 'id');
+            $prods = \App\Models\Producto::with('fotos')->whereIn('id', $deTalla->pluck('pid')->unique())->get()->keyBy('id');
+            $tienda = \App\Support\TiendaActual::tienda();
             $detalleTalla = $deTalla->groupBy('pid')->map(fn ($g, $pid) => [
                 'id' => $pid,
-                'nombre' => $nombres[$pid] ?? 'Producto',
+                'nombre' => $prods[$pid]->nombre ?? 'Producto',
+                // Foto principal o, si no tiene, la primera foto por color
+                'foto' => ($pr = $prods[$pid] ?? null) ? ($pr->foto_url ?: optional($pr->fotos->first(fn ($f) => \App\Models\Producto::fotoExiste($f->path)))->url) : null,
+                // Página pública del producto (solo si sale en la tienda en línea)
+                'publica' => ($pr && $tienda?->slug && $pr->en_catalogo) ? catalogoController::urlProducto($tienda, $pr) : null,
                 'unidades' => $g->sum(fn ($f) => max(0, (float) $f->stock)),
                 'venta' => $g->sum(fn ($f) => max(0, (float) $f->stock) * (float) $f->pv),
                 'colores' => $g->map(fn ($f) => [
