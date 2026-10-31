@@ -169,7 +169,7 @@ window.EVENTO_360 = {!! json_encode($evento360 ?? null, JSON_UNESCAPED_UNICODE |
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
-  var SEG_MAX = 15, CUENTA = 3;
+  var SEG_MAX = 20, CUENTA = 3;
   function ver(n) {
     ['cam', 'listo', 'proceso', 'final'].forEach(function (v) { $('s-' + v).hidden = v !== n; });
     document.body.classList.toggle('cam', n === 'cam'); window.scrollTo(0, 0);
