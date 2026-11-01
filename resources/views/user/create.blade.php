@@ -55,6 +55,24 @@
                     </div>
                 </div>
 
+                <!---WhatsApp---->
+                <div class="row mb-4">
+                    <label for="telefono" class="col-lg-2 col-form-label">WhatsApp:</label>
+                    <div class="col-lg-4">
+                        <input autocomplete="off" type="tel" inputmode="tel" name="telefono" id="telefono" class="form-control" value="{{old('telefono')}}" placeholder="Ej: 300 123 4567">
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="form-text">
+                            Para enviarle sus accesos y el link de la app por WhatsApp
+                        </div>
+                    </div>
+                    <div class="col-lg-2">
+                        @error('telefono')
+                        <small class="text-danger">{{'*'.$message}}</small>
+                        @enderror
+                    </div>
+                </div>
+
                 <!---Password---->
                 <div class="row mb-4">
                     <label for="password" class="col-lg-2 col-form-label">Contraseña:</label>

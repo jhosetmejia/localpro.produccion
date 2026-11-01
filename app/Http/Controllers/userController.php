@@ -49,6 +49,7 @@ class userController extends Controller
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
+                'telefono' => self::whatsapp($request->telefono),
                 'password' => Hash::make($request->password),
                 'tienda_id' => TiendaActual::id(),
             ]);
@@ -78,7 +79,7 @@ class userController extends Controller
         $this->deMiTienda($user);
 
         DB::transaction(function () use ($request, $user) {
-            $datos = ['name' => $request->name, 'email' => $request->email];
+            $datos = ['name' => $request->name, 'email' => $request->email, 'telefono' => self::whatsapp($request->telefono)];
             if (!empty($request->password)) {
                 $datos['password'] = Hash::make($request->password);
             }
@@ -156,14 +157,12 @@ class userController extends Controller
         ], [], ['clave' => 'clave', 'telefono' => 'WhatsApp']);
 
         $clave = trim((string) ($datos['clave'] ?? '')) ?: self::claveLegible();
-        $tel = preg_replace('/\D+/', '', (string) ($datos['telefono'] ?? ''));
-        if (strlen($tel) === 10 && $tel[0] === '3') {
-            $tel = '57' . $tel; // celular de Colombia sin indicativo
-        }
+        // Si escriben un número nuevo se usa (y se guarda); si no, el que ya tiene el usuario
+        $tel = self::whatsapp($datos['telefono'] ?? null) ?? self::whatsapp($user->telefono) ?? '';
 
         $user->password = Hash::make($clave);
         if ($tel !== '') {
-            $user->telefono = substr($tel, 0, 20);
+            $user->telefono = $tel;
         }
         $user->save();
 
@@ -177,11 +176,26 @@ class userController extends Controller
             . "Clave: {$clave}\n\n"
             . "No comparta esta clave con nadie.";
 
-        return redirect()->route('users.index')->with('compartir', [
+        $resultado = [
             'nombre' => $user->name,
             'mensaje' => $mensaje,
             'url' => 'https://wa.me/' . $tel . '?text=' . rawurlencode($mensaje),
-        ]);
+        ];
+        // Desde la tabla se pide por JS para abrir WhatsApp de una vez
+        if ($request->expectsJson()) {
+            return response()->json($resultado);
+        }
+        return redirect()->route('users.index')->with('compartir', $resultado);
+    }
+
+    // Número de WhatsApp solo con dígitos; celular colombiano de 10 dígitos → con indicativo 57
+    private static function whatsapp(?string $numero): ?string
+    {
+        $tel = preg_replace('/\D+/', '', (string) $numero);
+        if (strlen($tel) === 10 && $tel[0] === '3') {
+            $tel = '57' . $tel;
+        }
+        return $tel !== '' ? substr($tel, 0, 20) : null;
     }
 
     // Clave fácil de dictar: sin letras que se confunden (l, I, O, 0) y con números

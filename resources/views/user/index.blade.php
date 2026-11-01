@@ -6,6 +6,22 @@
 <link href="https://cdn.jsdelivr.net/npm/simple-datatables@10.3.0/dist/style.css" rel="stylesheet" type="text/css">
 @endpush
 
+@push('css')
+<style>
+.lp-wa-form,.lp-wa-wrap{display:inline-flex;margin:0}
+.lp-wa-btn{display:inline-flex;align-items:center;gap:.45rem;height:36px;padding:0 .9rem 0 .35rem;border:0;border-radius:999px;background:linear-gradient(135deg,#2fe07a,#25d366 55%,#1aa952);color:#fff;font-weight:800;font-size:.82rem;white-space:nowrap;text-decoration:none;cursor:pointer;box-shadow:0 8px 18px -10px rgba(37,211,102,.9);transition:transform .15s,box-shadow .15s,filter .15s}
+.lp-wa-btn .ic{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.22);display:inline-grid;place-items:center;font-size:1.05rem}
+.lp-wa-btn:hover{color:#fff;filter:brightness(1.05);transform:translateY(-1px);box-shadow:0 12px 22px -10px rgba(37,211,102,1)}
+.lp-wa-btn:active{transform:none}
+.lp-wa-btn[disabled]{opacity:.7;cursor:wait}
+.lp-wa-card{background:#fff;border:1.5px solid #c8f0d6;border-radius:18px;padding:16px;box-shadow:0 14px 30px -24px rgba(22,179,74,.8)}
+.lp-wa-card-top{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.lp-wa-ico{flex:none;width:44px;height:44px;border-radius:14px;background:#e9fbef;color:#1aa952;display:grid;place-items:center;font-size:1.5rem}
+#lpAccesosTexto{font-size:.9rem;background:#f7faf8}
+@media (max-width:576px){.lp-acc .lp-wa-btn .tx{display:none}.lp-acc .lp-wa-btn{padding:0 .35rem}}
+</style>
+@endpush
+
 @section('content')
 
 @include('layouts.partials.alert')
@@ -18,19 +34,21 @@
         <li class="breadcrumb-item active">Usuarios</li>
     </ol>
 
-    @if ($comp = session('compartir'))
-    <div class="card border-success mb-4" id="lpAccesos">
-        <div class="card-body">
-            <h5 class="fw-bold mb-1"><i class="fa-brands fa-whatsapp text-success me-1"></i> Accesos de {{ $comp['nombre'] }} listos</h5>
-            <p class="small text-muted mb-2">Toque el botón para enviárselos por WhatsApp. La clave nueva solo se muestra esta vez.</p>
-            <textarea class="form-control mb-2" rows="9" readonly id="lpAccesosTexto">{{ $comp['mensaje'] }}</textarea>
-            <div class="d-flex flex-wrap gap-2">
-                <a href="{{ $comp['url'] }}" target="_blank" rel="noopener" class="btn btn-success fw-bold"><i class="fa-brands fa-whatsapp me-1"></i> Enviar por WhatsApp</a>
-                <button type="button" class="btn btn-outline-secondary" onclick="var t=document.getElementById('lpAccesosTexto');(navigator.clipboard?navigator.clipboard.writeText(t.value):Promise.reject()).catch(function(){t.select();document.execCommand('copy')});this.textContent='Copiado ✓'"><i class="fa-regular fa-copy me-1"></i> Copiar mensaje</button>
+    @php $comp = session('compartir'); @endphp
+    <div id="lpAccesos" class="lp-wa-card mb-4" @if (!$comp) hidden @endif>
+        <div class="lp-wa-card-top">
+            <span class="lp-wa-ico"><i class="fa-brands fa-whatsapp"></i></span>
+            <div>
+                <div class="fw-bold">Accesos de <span id="lpAccesosNombre">{{ $comp['nombre'] ?? '' }}</span> listos</div>
+                <div class="small text-muted">Si WhatsApp no se abrió, toque <b>Enviar</b>. La clave nueva solo se muestra esta vez.</div>
             </div>
         </div>
+        <textarea class="form-control" rows="8" readonly id="lpAccesosTexto">{{ $comp['mensaje'] ?? '' }}</textarea>
+        <div class="d-flex flex-wrap gap-2 mt-2">
+            <a href="{{ $comp['url'] ?? '#' }}" id="lpAccesosEnviar" target="_blank" rel="noopener" class="lp-wa-btn"><span class="ic"><i class="fa-brands fa-whatsapp"></i></span> Enviar</a>
+            <button type="button" class="btn btn-light border fw-bold" id="lpAccesosCopiar"><i class="fa-regular fa-copy me-1"></i> Copiar mensaje</button>
+        </div>
     </div>
-    @endif
 
     @can('crear-user')
     <div class="mb-4">
@@ -77,7 +95,14 @@
                                 <a href="{{ route('users.permisos', ['user' => $item]) }}" title="Permisos del vendedor"><i class="fa-solid fa-key"></i></a>
                                 @endif
                                 @if ((int) $item->id !== (int) auth()->id() && !$item->es_superadmin)
-                                <button type="button" class="btn btn-sm btn-success fw-bold text-nowrap" style="width:auto;padding:0 .7rem;background:#25d366;border-color:#25d366;color:#fff;font-size:.85rem" title="Compartir accesos por WhatsApp" data-bs-toggle="modal" data-bs-target="#compartirModal-{{$item->id}}"><i class="fa-brands fa-whatsapp me-1"></i>Compartir accesos por WhatsApp</button>
+                                @if ($item->telefono)
+                                <form method="post" action="{{ route('users.compartir', ['user' => $item]) }}" class="lp-wa-form">
+                                    @csrf
+                                    <button type="submit" class="lp-wa-btn" title="Le pone una clave nueva y le envía los accesos al {{ $item->telefono }}"><span class="ic"><i class="fa-brands fa-whatsapp"></i></span><span class="tx">Compartir accesos por WhatsApp</span></button>
+                                </form>
+                                @else
+                                <div class="lp-wa-wrap"><button type="button" class="lp-wa-btn" title="Compartir accesos por WhatsApp" data-bs-toggle="modal" data-bs-target="#compartirModal-{{$item->id}}"><span class="ic"><i class="fa-brands fa-whatsapp"></i></span><span class="tx">Compartir accesos por WhatsApp</span></button></div>
+                                @endif
                                 @endif
                                 @endcan
                                 @can('eliminar-user')
@@ -90,10 +115,10 @@
                     </tr>
 
                     @can('editar-user')
-                    @if ((int) $item->id !== (int) auth()->id() && !$item->es_superadmin)
+                    @if ((int) $item->id !== (int) auth()->id() && !$item->es_superadmin && !$item->telefono)
                     <div class="modal fade" id="compartirModal-{{$item->id}}" tabindex="-1" aria-hidden="true">
                         <div class="modal-dialog">
-                            <form class="modal-content" action="{{ route('users.compartir', ['user' => $item]) }}" method="post">
+                            <form class="modal-content lp-wa-form" action="{{ route('users.compartir', ['user' => $item]) }}" method="post">
                                 @csrf
                                 <div class="modal-header">
                                     <h1 class="modal-title fs-5"><i class="fa-brands fa-whatsapp text-success me-1"></i> Compartir accesos a {{ $item->name }}</h1>
@@ -102,15 +127,16 @@
                                 <div class="modal-body">
                                     <p class="small text-muted">Se le pone una <b>clave nueva</b> y se arma el mensaje con su correo, la clave y el link para descargar la app.</p>
                                     <label class="form-label fw-bold">WhatsApp del trabajador</label>
-                                    <input type="tel" name="telefono" class="form-control mb-1" value="{{ $item->telefono }}" placeholder="Ej: 3001234567" inputmode="tel" autocomplete="off">
-                                    <div class="form-text mb-3">Si lo deja vacío, WhatsApp le deja escoger el contacto.</div>
+                                    <input type="tel" name="telefono" class="form-control mb-1" placeholder="Ej: 300 123 4567" inputmode="tel" autocomplete="off">
+                                    <div class="form-text mb-3">Se le queda guardado para la próxima vez. Si lo deja vacío, WhatsApp le deja escoger el contacto.</div>
                                     <label class="form-label fw-bold">Clave nueva <span class="fw-normal text-muted">(opcional)</span></label>
                                     <input type="text" name="clave" class="form-control mb-1" minlength="8" maxlength="60" placeholder="Déjela vacía y se crea una sola" autocomplete="off">
                                     <div class="form-text">La clave que tenía deja de funcionar.</div>
+                                    <div class="text-danger small fw-bold mt-2 lp-wa-error"></div>
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                    <button type="submit" class="btn btn-success fw-bold">Crear mensaje</button>
+                                    <button type="submit" class="lp-wa-btn"><span class="ic"><i class="fa-brands fa-whatsapp"></i></span> Enviar por WhatsApp</button>
                                 </div>
                             </form>
                         </div>
@@ -154,4 +180,47 @@
 @push('js')
 <script src="https://cdn.jsdelivr.net/npm/simple-datatables@10.3.0" type="text/javascript"></script>
 <script src="{{ asset('js/datatables-simple-demo.js') }}?v=4"></script>
+<script>
+(function () {
+    var card = document.getElementById('lpAccesos');
+    function mostrar(d) {
+        document.getElementById('lpAccesosNombre').textContent = d.nombre;
+        document.getElementById('lpAccesosTexto').value = d.mensaje;
+        document.getElementById('lpAccesosEnviar').href = d.url;
+        card.hidden = false;
+        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    document.getElementById('lpAccesosCopiar').addEventListener('click', function () {
+        var t = document.getElementById('lpAccesosTexto'), b = this;
+        var ok = function () { b.innerHTML = '<i class="fa-solid fa-check me-1"></i> Copiado'; };
+        if (navigator.clipboard) navigator.clipboard.writeText(t.value).then(ok, function () { t.select(); document.execCommand('copy'); ok(); });
+        else { t.select(); document.execCommand('copy'); ok(); }
+    });
+    // Compartir: se abre la ventana de una vez (si no, el celular la bloquea) y se manda a WhatsApp cuando llega el mensaje
+    document.addEventListener('submit', function (e) {
+        var f = e.target;
+        if (!f.classList || !f.classList.contains('lp-wa-form') || !window.fetch) return;
+        e.preventDefault();
+        var btn = f.querySelector('[type=submit]'), err = f.querySelector('.lp-wa-error');
+        if (btn.disabled) return;
+        btn.disabled = true; if (err) err.textContent = '';
+        var w = window.open('', '_blank');
+        if (w) { try { w.document.write('<p style="font-family:sans-serif;padding:24px">Abriendo WhatsApp…</p>'); } catch (x) {} }
+        fetch(f.action, { method: 'POST', body: new FormData(f), headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+            .then(function (r) { return r.json().then(function (d) { if (!r.ok) throw d; return d; }); })
+            .then(function (d) {
+                if (w) w.location.href = d.url; else location.href = d.url;
+                var m = f.closest('.modal');
+                if (m && window.bootstrap) bootstrap.Modal.getOrCreateInstance(m).hide();
+                mostrar(d);
+            })
+            .catch(function (d) {
+                if (w) w.close();
+                var msg = (d && d.errors) ? Object.values(d.errors)[0][0] : ((d && d.message) || 'No se pudo crear el mensaje. Intente de nuevo.');
+                if (err) err.textContent = msg; else { card.hidden = false; document.getElementById('lpAccesosNombre').textContent = '—'; document.getElementById('lpAccesosTexto').value = msg; }
+            })
+            .finally(function () { btn.disabled = false; });
+    });
+})();
+</script>
 @endpush
