@@ -33,6 +33,8 @@ class catalogoController extends Controller
         $ultima = (int) session($clave);
         if ($ultima && $ultima > now()->subMinutes(30)->timestamp) return;
         session([$clave => now()->timestamp]);
+        // Quien entra sin guardar la cookie (bots, scripts) no infla las visitas: una por IP cada 30 min
+        if (!Cache::add('visita_ip_' . $tienda->id . '_' . sha1((string) request()->ip()), 1, now()->addMinutes(30))) return;
         Tienda::whereKey($tienda->id)->increment('catalogo_visitas');
         $tienda->catalogo_visitas = (int) $tienda->catalogo_visitas + 1;
     }
