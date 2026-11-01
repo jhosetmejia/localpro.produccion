@@ -102,7 +102,7 @@ class enlacesController extends Controller
             'tipo' => 'required|in:enlace,titulo',
             'titulo' => 'required|string|max:80',
             'url' => 'nullable|required_if:tipo,enlace|string|max:500',
-            'icono' => ['nullable', Rule::in(array_keys(Enlace::ICONOS))],
+            'icono' => ['nullable', Rule::in(array_keys(Enlace::iconos()))],
             'desde' => 'nullable|date',
             'hasta' => 'nullable|date|after_or_equal:desde',
         ], [

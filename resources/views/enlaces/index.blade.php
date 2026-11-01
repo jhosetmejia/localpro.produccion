@@ -82,7 +82,7 @@
                     </div>
                     <div class="me-solo-enlace">
                         <div class="row g-2 mt-1 align-items-center">
-                            <div class="col-md-6"><select class="form-select" name="icono">@foreach (\App\Models\Enlace::ICONOS as $k => $txt)<option value="{{ $k }}">Ícono: {{ $txt }}</option>@endforeach</select></div>
+                            <div class="col-md-6"><select class="form-select" name="icono"><option value="">Ícono: Automático</option>@foreach (\App\Models\Enlace::ICONOS_GRUPOS as $grupo => $items)<optgroup label="{{ $grupo }}">@foreach ($items as $k => $info)<option value="{{ $k }}" data-icono="{{ $k }}" data-buscar="{{ $info[1] }}">{{ $info[0] }}</option>@endforeach</optgroup>@endforeach</select></div>
                             <div class="col-md-6"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="destacado" value="1" id="n-dest"><label class="form-check-label" for="n-dest">Destacar (se mueve para llamar la atención)</label></div></div>
                         </div>
                         <details class="mt-2"><summary class="small fw-bold" style="cursor:pointer">Programar (opcional)</summary>
@@ -125,7 +125,7 @@
                             <div class="col-md-6"><label class="small text-muted">Texto</label><input class="form-control" name="titulo" maxlength="80" required value="{{ $e->titulo }}"></div>
                             @if ($e->tipo === 'enlace')
                             <div class="col-md-6"><label class="small text-muted">Enlace</label><input class="form-control" name="url" maxlength="500" required value="{{ $e->url }}"></div>
-                            <div class="col-md-6"><label class="small text-muted">Ícono</label><select class="form-select" name="icono">@foreach (\App\Models\Enlace::ICONOS as $k => $txt)<option value="{{ $k }}" @selected((string) $e->icono === (string) $k)>{{ $txt }}</option>@endforeach</select></div>
+                            <div class="col-md-6"><label class="small text-muted">Ícono</label><select class="form-select" name="icono"><option value="" @selected(!$e->icono)>Automático</option>@foreach (\App\Models\Enlace::ICONOS_GRUPOS as $grupo => $items)<optgroup label="{{ $grupo }}">@foreach ($items as $k => $info)<option value="{{ $k }}" data-icono="{{ $k }}" data-buscar="{{ $info[1] }}" @selected((string) $e->icono === (string) $k)>{{ $info[0] }}</option>@endforeach</optgroup>@endforeach</select></div>
                             <div class="col-md-6 d-flex align-items-end"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="destacado" value="1" id="d-{{ $e->id }}" @checked($e->destacado)><label class="form-check-label" for="d-{{ $e->id }}">Destacar</label></div></div>
                             <div class="col-md-6"><label class="small text-muted">Aparece desde</label><input type="datetime-local" class="form-control" name="desde" value="{{ $e->desde?->format('Y-m-d\TH:i') }}"></div>
                             <div class="col-md-6"><label class="small text-muted">Se oculta después de</label><input type="datetime-local" class="form-control" name="hasta" value="{{ $e->hasta?->format('Y-m-d\TH:i') }}"></div>

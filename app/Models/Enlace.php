@@ -44,15 +44,96 @@ class Enlace extends Model
         'web' => ['Sitio web', 'fa-solid fa-globe', 'www.minegocio.com'],
     ];
 
-    // Íconos que el negocio puede escoger para un botón (vacío = automático según la dirección)
-    public const ICONOS = [
-        '' => 'Automático', 'fa-solid fa-link' => 'Enlace', 'fa-brands fa-whatsapp' => 'WhatsApp', 'fa-brands fa-instagram' => 'Instagram',
-        'fa-brands fa-facebook' => 'Facebook', 'fa-brands fa-tiktok' => 'TikTok', 'fa-brands fa-youtube' => 'YouTube',
-        'fa-solid fa-store' => 'Tienda', 'fa-solid fa-bag-shopping' => 'Compras', 'fa-solid fa-tag' => 'Promoción',
-        'fa-solid fa-location-dot' => 'Ubicación', 'fa-solid fa-calendar-check' => 'Reservas', 'fa-solid fa-utensils' => 'Menú',
-        'fa-solid fa-truck' => 'Domicilios', 'fa-solid fa-gift' => 'Regalo', 'fa-solid fa-star' => 'Destacado',
-        'fa-solid fa-ticket' => 'Evento', 'fa-solid fa-phone' => 'Llamar', 'fa-solid fa-envelope' => 'Correo', 'fa-solid fa-file-pdf' => 'Documento',
+    // Íconos que el negocio puede escoger para un botón, por tipo de negocio: ícono => [nombre, palabras para buscarlo]
+    public const ICONOS_GRUPOS = [
+        'Básicos' => [
+            'fa-solid fa-link' => ['Enlace', 'link pagina web'],
+            'fa-brands fa-whatsapp' => ['WhatsApp', 'chat mensaje escribenos'],
+            'fa-brands fa-instagram' => ['Instagram', 'redes'],
+            'fa-brands fa-facebook' => ['Facebook', 'redes'],
+            'fa-brands fa-tiktok' => ['TikTok', 'redes videos'],
+            'fa-brands fa-youtube' => ['YouTube', 'videos canal'],
+            'fa-solid fa-store' => ['Tienda', 'tienda en linea catalogo negocio'],
+            'fa-solid fa-bag-shopping' => ['Compras', 'comprar bolsa'],
+            'fa-solid fa-cart-shopping' => ['Pedidos', 'carrito pedir ordenar'],
+            'fa-solid fa-tag' => ['Promoción', 'oferta descuento precio'],
+            'fa-solid fa-location-dot' => ['Ubicación', 'direccion mapa como llegar'],
+            'fa-solid fa-calendar-check' => ['Reservas', 'agendar cita turno'],
+            'fa-solid fa-truck' => ['Domicilios', 'envios delivery entrega'],
+            'fa-solid fa-gift' => ['Regalo', 'sorteo premio'],
+            'fa-solid fa-star' => ['Destacado', 'opiniones resenas calificanos'],
+            'fa-solid fa-ticket' => ['Evento', 'entradas boletas tickets'],
+            'fa-solid fa-phone' => ['Llamar', 'telefono celular'],
+            'fa-solid fa-envelope' => ['Correo', 'email mail'],
+            'fa-solid fa-file-pdf' => ['Documento', 'pdf archivo'],
+            'fa-solid fa-clock' => ['Horarios', 'horario abierto atencion'],
+            'fa-solid fa-credit-card' => ['Pagos', 'pagar nequi tarjeta transferencia'],
+            'fa-solid fa-images' => ['Galería', 'fotos imagenes trabajos portafolio'],
+            'fa-solid fa-video' => ['Videos', 'video 360 reels'],
+        ],
+        'Restaurantes y comida' => [
+            'fa-solid fa-book-open' => ['Carta / menú', 'carta menu restaurante comida platos'],
+            'fa-solid fa-utensils' => ['Restaurante', 'menu carta comida almuerzos cubiertos'],
+            'fa-solid fa-bowl-food' => ['Almuerzos', 'comida corrientazo ejecutivo sopa'],
+            'fa-solid fa-burger' => ['Comidas rápidas', 'hamburguesa perros comida rapida'],
+            'fa-solid fa-pizza-slice' => ['Pizzería', 'pizza'],
+            'fa-solid fa-drumstick-bite' => ['Pollo / asados', 'pollo asadero broaster parrilla carne'],
+            'fa-solid fa-fish' => ['Pescados y mariscos', 'pescado marisqueria ceviche'],
+            'fa-solid fa-mug-hot' => ['Café', 'cafeteria cafe tinto desayunos'],
+            'fa-solid fa-bread-slice' => ['Panadería', 'pan panaderia'],
+            'fa-solid fa-cake-candles' => ['Pastelería / tortas', 'torta postres cumpleanos reposteria'],
+            'fa-solid fa-ice-cream' => ['Heladería', 'helados postres'],
+            'fa-solid fa-champagne-glasses' => ['Bar / licores', 'bar licores discoteca rumba'],
+            'fa-solid fa-martini-glass-citrus' => ['Cócteles', 'cocteles bebidas tragos'],
+        ],
+        'Belleza y salud' => [
+            'fa-solid fa-scissors' => ['Peluquería / barbería', 'barberia peluqueria corte salon'],
+            'fa-solid fa-hand-sparkles' => ['Uñas', 'manicure pedicure unas'],
+            'fa-solid fa-spray-can-sparkles' => ['Estética', 'estetica belleza maquillaje cosmeticos'],
+            'fa-solid fa-spa' => ['Spa', 'masajes relajacion'],
+            'fa-solid fa-dumbbell' => ['Gimnasio', 'gym entrenamiento fitness'],
+            'fa-solid fa-stethoscope' => ['Consultorio', 'medico doctor salud citas'],
+            'fa-solid fa-tooth' => ['Odontología', 'odontologo dentista'],
+            'fa-solid fa-pills' => ['Droguería', 'farmacia drogueria medicamentos'],
+            'fa-solid fa-paw' => ['Veterinaria / mascotas', 'mascotas perros gatos veterinaria'],
+        ],
+        'Tiendas' => [
+            'fa-solid fa-basket-shopping' => ['Supermercado / tienda', 'supermercado mercado tienda de barrio minimercado'],
+            'fa-solid fa-shirt' => ['Ropa', 'moda boutique prendas'],
+            'fa-solid fa-shoe-prints' => ['Calzado', 'zapatos zapateria tenis'],
+            'fa-solid fa-gem' => ['Joyería', 'joyas accesorios bisuteria'],
+            'fa-solid fa-glasses' => ['Óptica', 'gafas lentes optica'],
+            'fa-solid fa-mobile-screen' => ['Celulares', 'celulares accesorios'],
+            'fa-solid fa-laptop' => ['Tecnología', 'computadores tecnologia'],
+            'fa-solid fa-couch' => ['Muebles', 'muebles hogar decoracion'],
+            'fa-solid fa-seedling' => ['Plantas / vivero', 'plantas flores floristeria vivero'],
+            'fa-solid fa-book' => ['Papelería / libros', 'papeleria libreria utiles'],
+        ],
+        'Servicios' => [
+            'fa-solid fa-car' => ['Taller / carros', 'taller carros mecanica lavadero autos'],
+            'fa-solid fa-motorcycle' => ['Motos', 'motos taller repuestos'],
+            'fa-solid fa-screwdriver-wrench' => ['Reparaciones', 'reparacion mantenimiento tecnico'],
+            'fa-solid fa-house' => ['Inmobiliaria', 'arriendos casas apartamentos'],
+            'fa-solid fa-hotel' => ['Hotel / hospedaje', 'hotel hostal hospedaje'],
+            'fa-solid fa-plane' => ['Viajes / turismo', 'viajes turismo tours agencia'],
+            'fa-solid fa-graduation-cap' => ['Cursos / educación', 'cursos colegio instituto clases academia'],
+            'fa-solid fa-camera' => ['Fotografía', 'fotografo fotos estudio'],
+            'fa-solid fa-music' => ['Música', 'musica eventos dj'],
+            'fa-solid fa-dove' => ['Funeraria', 'funeraria obituarios exequias'],
+            'fa-solid fa-calculator' => ['Contador', 'contabilidad impuestos'],
+            'fa-solid fa-scale-balanced' => ['Abogado', 'abogados juridico'],
+        ],
     ];
+
+    // Íconos válidos (vacío = automático según la dirección)
+    public static function iconos(): array
+    {
+        $todos = ['' => 'Automático'];
+        foreach (self::ICONOS_GRUPOS as $items) {
+            foreach ($items as $k => $info) $todos[$k] = $info[0];
+        }
+        return $todos;
+    }
 
     // Se ve hoy en la página pública (activo y dentro de las fechas programadas)
     public function getVisibleAttribute(): bool

@@ -244,6 +244,7 @@
         '.lps-g{font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#7a8580;padding:.7rem .7rem .3rem}' +
         '.lps-i{display:flex;align-items:center;gap:.5rem;padding:.6rem .7rem;border-radius:11px;cursor:pointer;font-weight:600;font-size:.95rem;line-height:1.25}' +
         '.lps-i span{flex:1;min-width:0}' +
+        '.lps-i .lps-ic{flex:none;width:1.25em;text-align:center;color:#16b34a;font-size:1rem}' +
         '.lps-i .lps-sub{color:#7a8580;font-weight:600;font-size:.78rem}' +
         '.lps-i mark{background:#dcfce7;color:inherit;padding:0;border-radius:3px}' +
         '.lps-i.act{background:#f1f5f2}' +
@@ -367,10 +368,12 @@
             if (g !== grupoAnt) { cabeza = g ? el('div', 'lps-g', g.label) : null; if (cabeza) lista.appendChild(cabeza); grupoAnt = g; }
             var it = el('div', 'lps-i' + (o.selected ? ' sel' : '') + (o.disabled ? ' dis' : '') + (o.value === '' ? ' vac' : ''));
             it.setAttribute('role', 'option');
-            var sp = el('span'); sp.textContent = o.text; it.appendChild(sp);
+            var ico = o.getAttribute('data-icono');
+            if (ico) it.appendChild(el('i', ico + ' lps-ic'));
+            var sp = el('span'); sp.textContent = o.text; it.appendChild(sp); it.__sp = sp;
             var sub = o.getAttribute('data-sub') || '';
             if (sub) { var sm = el('small', 'lps-sub', sub); sp.appendChild(document.createElement('br')); it.__sub = sm; }
-            it.__i = i; it.__t = o.text; it.__k = plano(o.text + ' ' + sub + ' ' + (g ? g.label : '') + ' ' + o.value); it.__cab = cabeza; it.__ok = !o.disabled; it.__s = sub;
+            it.__i = i; it.__t = o.text; it.__k = plano(o.text + ' ' + sub + ' ' + (o.getAttribute('data-buscar') || '') + ' ' + (g ? g.label : '') + ' ' + o.value); it.__cab = cabeza; it.__ok = !o.disabled; it.__s = sub;
             lista.appendChild(it); items.push(it);
         });
 
@@ -408,7 +411,7 @@
                 // Con data-max solo se muestran unos pocos (la opción elegida siempre) y se busca para ver más
                 if (ok && maxVer && n >= maxVer && !it.classList.contains('sel')) ok = false;
                 it.style.display = ok ? '' : 'none';
-                it.firstChild.innerHTML = resaltar(it.__t, t) + (it.__s ? '<br><small class="lps-sub">' + resaltar(it.__s, t) + '</small>' : '');
+                (it.__sp || it.firstChild).innerHTML = resaltar(it.__t, t) + (it.__s ? '<br><small class="lps-sub">' + resaltar(it.__s, t) + '</small>' : '');
                 if (ok) { n++; if (it.__cab) cabs.push(it.__cab); }
             });
             lista.querySelectorAll('.lps-g').forEach(function (h) { h.style.display = cabs.indexOf(h) !== -1 ? '' : 'none'; });
