@@ -418,6 +418,12 @@
                 </a>@endif
                 @endcan
                 @can('editar-negocio')
+                <a class="nav-link {{ $on('impresora.*') }}" href="{{ route('impresora.edit') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-print"></i></div>
+                    Impresora
+                </a>
+                @endcan
+                @can('editar-negocio')
                 @if (\Illuminate\Support\Facades\Route::has('menu.edit'))
                 <a class="nav-link {{ $on('menu.*') }}" href="{{ route('menu.edit') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-sliders"></i></div>

@@ -12,6 +12,7 @@
     <a class="w" target="_blank" href="https://wa.me/{{ $venta->whatsapp_numero }}?text={{ rawurlencode('Hola ' . ($venta->cliente_nombre ?: '') . ', gracias por su compra en ' . $negocio->nombre . '. Aquí está su factura ' . $venta->numero . ' por ' . dinero($venta->total) . ': ' . $venta->url_factura) }}">WhatsApp</a>
     @endif
     <a class="d" href="{{ route('pos.index') }}">Volver</a>
+    @can('editar-negocio')<a class="d" style="flex-basis:100%;background:#eef3ef;color:#0b0d0c" href="{{ route('impresora.edit') }}">⚙ ¿Sale cortado? Ajustar impresora</a>@endcan
 </div>
 
 <div class="tk">

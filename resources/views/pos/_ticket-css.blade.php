@@ -13,3 +13,5 @@
   .p { background: linear-gradient(135deg,#a6f34a,#2fd15a 45%,#16b34a); color: #0b0d0c; } .d { background: #0b0d0c; color: #fff; } .w { background: #25d366; color: #fff; }
   @media print { body { background: #fff; } .tk { margin: 0; box-shadow: none; width: 80mm; } .acc { display: none !important; } }
 </style>
+{{-- Ajustes de la impresora del negocio (Mi negocio → Impresora): ancho real, margen, letra y espacio para el corte --}}
+<style>{!! \App\Support\Impresora::css($impresora ?? null) !!}</style>
