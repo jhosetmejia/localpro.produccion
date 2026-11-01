@@ -118,6 +118,10 @@ a{color:inherit}
 .ov.on{display:flex}
 .sheet{background:var(--card);color:var(--ink);width:min(560px,100%);max-height:88vh;overflow:auto;border-radius:26px 26px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom))}
 @media (min-width:600px){.ov{align-items:center}.sheet{border-radius:26px}}
+/* En el celular la barra del navegador tapaba el botón de WhatsApp: la hoja usa la altura visible (dvh) y el botón queda pegado abajo, siempre a la vista */
+.sheet{max-height:88dvh;padding-bottom:0}
+.sheet .enviar{position:sticky;bottom:0;margin:14px -18px 0;width:calc(100% + 36px);border-radius:0;box-shadow:0 -12px 18px -6px var(--card);padding-bottom:calc(1rem + env(safe-area-inset-bottom))}
+@media (min-width:600px){.sheet{padding-bottom:22px}.sheet .enviar{position:static;margin:14px 0 0;width:100%;border-radius:999px;box-shadow:none;padding-bottom:1rem}}
 .sheet .cab{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .sheet h3{font-size:1.4rem;font-weight:800}
 .sheet .x{border:0;background:transparent;color:var(--mut);font-size:1.8rem;cursor:pointer;line-height:1}
@@ -231,7 +235,7 @@ document.addEventListener('error', function (e) {
     @if ($wa)
     <button class="enviar" id="enviar">💬 Enviar pedido por WhatsApp</button>
     @else
-    <p style="color:#e11d48;font-weight:700;margin-top:12px">Este negocio aún no tiene WhatsApp configurado.</p>
+    <p style="color:#e11d48;font-weight:700;margin:12px 0 0;padding-bottom:calc(22px + env(safe-area-inset-bottom))">Este negocio aún no tiene WhatsApp configurado.</p>
     @endif
 </div></div>
 

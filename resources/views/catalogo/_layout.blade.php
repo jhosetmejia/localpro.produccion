@@ -96,6 +96,9 @@ button{font:inherit;border:0;background:none;cursor:pointer;color:inherit}
 .sheet{background:#fff;width:min(560px,100%);max-height:88vh;overflow:auto;border-radius:26px 26px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));animation:up .25s cubic-bezier(.2,.8,.2,1)}
 @keyframes up{from{transform:translateY(40px);opacity:0}}
 @media(min-width:700px){.ov{align-items:center}.sheet{border-radius:26px}}
+/* En el celular la barra del navegador tapaba el botón de WhatsApp: altura visible (dvh) y botón pegado abajo */
+.sheet{max-height:88dvh}
+@media(max-width:699px){.sheet{padding-bottom:0}.sheet #cEnviar{position:sticky;bottom:0;height:auto;min-height:56px;padding-top:1rem;margin-left:-18px;margin-right:-18px;width:calc(100% + 36px);border-radius:0;padding-bottom:calc(1rem + env(safe-area-inset-bottom));box-shadow:0 -12px 18px -6px #fff}}
 .sh{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:12px}
 .sh h3{font-size:1.25rem;font-weight:800}
 .x{width:38px;height:38px;border-radius:12px;background:var(--bg);font-size:1.2rem;flex:none}
@@ -330,7 +333,7 @@ document.addEventListener('error', function (e) {
     @if ($wa)
     <button class="btn btn-wa" id="cEnviar">💬 Hacer el pedido por WhatsApp</button>
     @else
-    <p style="color:#b0206a;font-weight:700;margin-top:12px">Esta tienda aún no tiene WhatsApp configurado.</p>
+    <p style="color:#b0206a;font-weight:700;margin:12px 0 0;padding-bottom:calc(20px + env(safe-area-inset-bottom))">Esta tienda aún no tiene WhatsApp configurado.</p>
     @endif
 </div></div>
 
