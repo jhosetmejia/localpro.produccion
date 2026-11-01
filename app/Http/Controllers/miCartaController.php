@@ -18,13 +18,16 @@ class miCartaController extends Controller
     public function index()
     {
         $t = TiendaActual::tienda();
+        $secciones = app(catalogoController::class)->seccionesCarta($t)[0];
         return view('negocio.carta', [
             'tienda' => $t,
             'listo' => (bool) ($t->catalogo_activo && $t->slug && $t->activa && $t->onboarding_completo),
             'hayProductos' => Producto::where('estado', 1)->exists(),
-            'cartaIa' => CartaIa::leer($t->id),
+            'cartaIa' => ($ia = CartaIa::leer($t->id)) !== null ? CartaIa::armar($ia, $t, $secciones) : null,
+            'cartaIaAuto' => $ia !== null && CartaIa::esPlantilla($ia),
+            'cartaIaQr' => $ia !== null && CartaIa::enQr($t->id),
             'cartaIaFecha' => CartaIa::fecha($t->id),
-            'instruccionesIa' => CartaIa::instrucciones($t, app(catalogoController::class)->seccionesCarta($t)[0]),
+            'instruccionesIa' => CartaIa::instrucciones($t, $secciones),
         ]);
     }
 
@@ -40,7 +43,9 @@ class miCartaController extends Controller
             return back()->withErrors('Eso no parece el código de una carta. Copie todo lo que le respondió su IA, desde <!DOCTYPE html> hasta </html>.')->withInput();
         }
         CartaIa::guardar(TiendaActual::id(), $html);
-        return redirect()->route('carta.index')->with('success', '¡Listo! Su carta personalizada quedó guardada.');
+        return redirect()->route('carta.index')->with('success', CartaIa::esPlantilla($html)
+            ? '¡Listo! Su carta quedó guardada y los platos y precios se actualizan solos.'
+            : '¡Listo! Su carta quedó guardada. Ojo: no trae las marcas de LocalPro, así que si cambia precios tendrá que hacerla de nuevo.');
     }
 
     public function verIa()
@@ -48,7 +53,17 @@ class miCartaController extends Controller
         $t = TiendaActual::tienda();
         $html = CartaIa::leer($t->id);
         abort_if($html === null, 404);
-        return CartaIa::respuesta($html, $t);
+        return CartaIa::respuesta(CartaIa::armar($html, $t, app(catalogoController::class)->seccionesCarta($t)[0]), $t);
+    }
+
+    // Usar (o no) la carta hecha con IA en el QR de las mesas y en el enlace de la carta
+    public function qrIa(Request $request)
+    {
+        $si = $request->boolean('en_qr');
+        CartaIa::usarEnQr(TiendaActual::id(), $si);
+        return redirect()->route('carta.index')->with('success', $si
+            ? 'Ahora el QR de las mesas abre su carta personalizada (con el botón "Pedir en línea").'
+            : 'El QR de las mesas volvió a la carta en línea normal.');
     }
 
     public function borrarIa()

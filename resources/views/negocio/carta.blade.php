@@ -78,14 +78,28 @@
     {{-- Carta personalizada hecha con la IA del negocio --}}
     <div class="mc-ia" id="carta-ia">
         <h3><i class="fa-solid fa-wand-magic-sparkles" style="color:#a6f34a"></i> Nueva carta con tu IA <span class="nuevo">NUEVO</span></h3>
-        <p>Dile a tu IA (ChatGPT, Claude o Gemini) que te cree una carta a tu gusto, que te escriba el código HTML y pégalo aquí: tendrás una carta 100 % personalizada en LocalPro, con tus platos, precios y el QR para pedir.</p>
+        <p>Tu propia IA (ChatGPT, Claude o Gemini, la de tu celular) te diseña la carta a tu gusto. La pegas aquí y LocalPro le pone tus platos y precios solos: si cambias un precio, la carta se actualiza sola.</p>
 
         @if ($cartaIa)
         <div class="mc-ia-lista mb-3">
             <iframe sandbox title="Vista de su carta personalizada" srcdoc="{{ $cartaIa }}" loading="lazy"></iframe>
             <div class="d-flex flex-column gap-2">
                 <div class="fw-bold fs-5">Su carta personalizada</div>
-                <small class="text-muted fw-semibold">Actualizada {{ optional($cartaIaFecha)->diffForHumans() }}. Si cambia precios o platos, vuelva a pedírsela a su IA y péguela de nuevo.</small>
+                @if ($cartaIaAuto)
+                <small class="fw-bold" style="color:#16b34a"><i class="fa-solid fa-rotate me-1"></i>Platos y precios automáticos: se actualizan solos.</small>
+                @else
+                <small class="fw-bold" style="color:#b7791f"><i class="fa-solid fa-triangle-exclamation me-1"></i>Esta carta tiene los precios escritos a mano: si cambia un precio, hágala de nuevo con "Hacer otra carta".</small>
+                @endif
+                <small class="text-muted fw-semibold">Guardada {{ optional($cartaIaFecha)->diffForHumans() }}.</small>
+                @if ($listo)
+                <form method="post" action="{{ route('carta.ia.qr') }}" class="form-check form-switch m-0">
+                    @csrf
+                    <input type="hidden" name="en_qr" value="{{ $cartaIaQr ? 0 : 1 }}">
+                    <input class="form-check-input" type="checkbox" role="switch" id="mcIaQr" @checked($cartaIaQr) onchange="this.form.submit()">
+                    <label class="form-check-label fw-bold" for="mcIaQr">Usar esta carta en el QR de las mesas</label>
+                    <div class="small text-muted">Trae un botón "Pedir en línea" para que le sigan pidiendo.</div>
+                </form>
+                @endif
                 @if ($listo)
                 <input class="form-control" value="{{ route('catalogo.carta.ia', $tienda->slug) }}" readonly onclick="this.select()">
                 @endif
@@ -109,28 +123,32 @@
         <div class="collapse {{ $errors->any() ? 'show' : '' }}" id="mcIaPasos">
             <div class="mc-ia-pasos">
                 <div class="mc-ia-paso">
-                    <h4><b>1</b> Copie estas instrucciones (ya llevan sus platos y precios)</h4>
-                    <small class="text-muted d-block mb-2">Cambie donde dice <b>[ESCRIBA AQUÍ EL ESTILO…]</b> por cómo quiere su carta: rústica, elegante, moderna, con los colores de su marca…</small>
-                    <textarea class="form-control mb-2" rows="7" readonly id="mcIaTexto">{{ $instruccionesIa }}</textarea>
-                    <div class="d-flex gap-2 flex-wrap align-items-center">
-                        <button type="button" class="btn btn-dark fw-bold" id="mcIaCopiar"><i class="fa-regular fa-copy me-1"></i>Copiar instrucciones</button>
-                        <div class="mc-ia-ias">
-                            <a href="https://chatgpt.com/" target="_blank" rel="noopener">ChatGPT</a>
-                            <a href="https://claude.ai/new" target="_blank" rel="noopener">Claude</a>
-                            <a href="https://gemini.google.com/" target="_blank" rel="noopener">Gemini</a>
-                        </div>
+                    <h4><b>1</b> Abra su IA: las instrucciones ya van escritas</h4>
+                    <small class="text-muted d-block mb-2">Toque su IA, cambie donde dice <b>[ESCRIBA AQUÍ EL ESTILO…]</b> por cómo quiere su carta (rústica, elegante, moderna, con sus colores…) y envíe. Si no le gusta, pídale cambios.</small>
+                    <div class="d-flex gap-2 flex-wrap mb-2">
+                        <a class="btn btn-dark fw-bold mc-ia-abrir" data-base="https://chatgpt.com/?q=" href="https://chatgpt.com/?q={{ rawurlencode($instruccionesIa) }}" target="_blank" rel="noopener"><i class="fa-solid fa-robot me-1"></i>Crear con ChatGPT</a>
+                        <a class="btn btn-dark fw-bold mc-ia-abrir" href="https://claude.ai/new?q={{ rawurlencode($instruccionesIa) }}" target="_blank" rel="noopener"><i class="fa-solid fa-wand-magic-sparkles me-1"></i>Crear con Claude</a>
+                        <a class="btn btn-light border fw-bold mc-ia-copiar-abrir" href="https://gemini.google.com/app" target="_blank" rel="noopener"><i class="fa-brands fa-google me-1"></i>Gemini (copia y pega)</a>
                     </div>
+                    <details>
+                        <summary class="small fw-bold" style="cursor:pointer">Ver o copiar las instrucciones</summary>
+                        <textarea class="form-control my-2" rows="7" readonly id="mcIaTexto">{{ $instruccionesIa }}</textarea>
+                        <button type="button" class="btn btn-sm btn-dark fw-bold" id="mcIaCopiar"><i class="fa-regular fa-copy me-1"></i>Copiar instrucciones</button>
+                    </details>
                 </div>
                 <div class="mc-ia-paso">
-                    <h4><b>2</b> Péguelas en su IA</h4>
-                    <small class="text-muted fw-semibold">Abra ChatGPT, Claude o Gemini, pegue las instrucciones y envíelas. Si no le gusta cómo quedó, pídale cambios ("más colores", "letra más grande"…). Cuando le guste, copie <b>todo</b> el código que le respondió.</small>
+                    <h4><b>2</b> Copie lo que le respondió su IA</h4>
+                    <small class="text-muted fw-semibold">Cuando le guste el diseño, toque <b>Copiar</b> en la respuesta (copia todo el código) y vuelva aquí.</small>
                 </div>
                 <form class="mc-ia-paso" method="post" action="{{ route('carta.ia.guardar') }}">
                     @csrf
-                    <h4><b>3</b> Pegue aquí el código HTML que le dio su IA</h4>
+                    <h4><b>3</b> Péguelo aquí y guarde</h4>
                     @if ($errors->any())<div class="alert alert-danger py-2 fw-semibold">{{ $errors->first() }}</div>@endif
-                    <textarea class="form-control mb-2" name="html" rows="8" placeholder="<!DOCTYPE html> ... </html>" required>{{ old('html') }}</textarea>
-                    <button class="btn btn-success fw-bold"><i class="fa-solid fa-floppy-disk me-1"></i>Guardar mi carta</button>
+                    <textarea class="form-control mb-2" name="html" id="mcIaHtml" rows="6" placeholder="<!DOCTYPE html> ... </html>" required>{{ old('html') }}</textarea>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="button" class="btn btn-dark fw-bold" id="mcIaPegar"><i class="fa-regular fa-paste me-1"></i>Pegar</button>
+                        <button class="btn btn-success fw-bold"><i class="fa-solid fa-floppy-disk me-1"></i>Guardar mi carta</button>
+                    </div>
                     <small class="text-muted d-block mt-2">Por seguridad, LocalPro le quita los programas (JavaScript) al código: la carta se ve igual, solo que no corre nada raro.</small>
                 </form>
             </div>
@@ -187,11 +205,28 @@
 
 @push('js')
 <script>
-document.getElementById('mcIaCopiar').addEventListener('click', function () {
-    var t = document.getElementById('mcIaTexto'), b = this;
-    var ok = function () { b.innerHTML = '<i class="fa-solid fa-check me-1"></i>¡Copiado! Ahora péguelo en su IA'; };
-    if (navigator.clipboard) navigator.clipboard.writeText(t.value).then(ok, function () { t.select(); document.execCommand('copy'); ok(); });
-    else { t.select(); document.execCommand('copy'); ok(); }
-});
+(function () {
+    var texto = document.getElementById('mcIaTexto');
+    function copiar(cb) {
+        var ok = function () { if (cb) cb(); };
+        if (navigator.clipboard) navigator.clipboard.writeText(texto.value).then(ok, function () { texto.select(); document.execCommand('copy'); ok(); });
+        else { texto.select(); document.execCommand('copy'); ok(); }
+    }
+    document.getElementById('mcIaCopiar').addEventListener('click', function () {
+        var b = this; copiar(function () { b.innerHTML = '<i class="fa-solid fa-check me-1"></i>¡Copiado!'; });
+    });
+    // Por si la IA no recibe el texto en el enlace, también queda copiado para pegarlo
+    document.querySelectorAll('.mc-ia-abrir, .mc-ia-copiar-abrir').forEach(function (a) {
+        a.addEventListener('click', function () { copiar(); });
+    });
+    var pegar = document.getElementById('mcIaPegar');
+    pegar.addEventListener('click', function () {
+        var area = document.getElementById('mcIaHtml');
+        if (!navigator.clipboard || !navigator.clipboard.readText) { area.focus(); pegar.textContent = 'Mantenga presionado y toque Pegar'; return; }
+        navigator.clipboard.readText().then(function (t) {
+            area.value = t; pegar.innerHTML = '<i class="fa-solid fa-check me-1"></i>Pegado';
+        }, function () { area.focus(); pegar.textContent = 'Mantenga presionado y toque Pegar'; });
+    });
+})();
 </script>
 @endpush

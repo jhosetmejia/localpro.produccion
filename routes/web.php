@@ -498,6 +498,7 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::post('/mi-carta/ia', [\App\Http\Controllers\miCartaController::class, 'guardarIa'])->middleware('throttle:20,1')->name('carta.ia.guardar');
     Route::get('/mi-carta/ia', [\App\Http\Controllers\miCartaController::class, 'verIa'])->name('carta.ia.ver');
     Route::delete('/mi-carta/ia', [\App\Http\Controllers\miCartaController::class, 'borrarIa'])->name('carta.ia.borrar');
+    Route::post('/mi-carta/ia/qr', [\App\Http\Controllers\miCartaController::class, 'qrIa'])->name('carta.ia.qr');
     Route::get('/mi-plan', [planController::class, 'index'])->name('plan.index');
     Route::get('/mi-plan/vencido', [planController::class, 'vencido'])->name('plan.vencido');
     Route::post('/mi-plan/aviso-prueba', [planController::class, 'avisoPruebaVisto'])->name('plan.avisoPrueba');

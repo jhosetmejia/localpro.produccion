@@ -195,12 +195,23 @@ class catalogoController extends Controller
     {
         $tienda = $this->tienda($slug);
         $this->contarVisita($tienda);
+        // El negocio eligió su carta hecha con IA para el QR (?pedir=1 abre la carta normal para hacer el pedido)
+        if (!$request->has('pedir') && !$request->has('tema') && \App\Support\CartaIa::enQr($tienda->id)
+            && ($html = \App\Support\CartaIa::leer($tienda->id)) !== null) {
+            return $this->servirCartaIa($tienda, $html);
+        }
         [$secciones, $total] = $this->seccionesCarta($tienda);
 
         // ?tema=fresca deja ver otro diseño (para que el dueño compare antes de elegir)
         $tema = isset(Tienda::CARTA_TEMAS[$request->query('tema')]) ? $request->query('tema') : $tienda->carta_tema_actual;
 
         return view('catalogo.carta', compact('tienda', 'secciones', 'tema') + ['total' => $total]);
+    }
+
+    private function servirCartaIa(Tienda $tienda, string $html)
+    {
+        $html = \App\Support\CartaIa::armar($html, $tienda, $this->seccionesCarta($tienda)[0]);
+        return \App\Support\CartaIa::respuesta(\App\Support\CartaIa::conBotonPedir($html, $tienda), $tienda);
     }
 
     // Productos de la carta agrupados por categoría (los desactivados salen como "agotado por hoy")
@@ -236,7 +247,7 @@ class catalogoController extends Controller
         $tienda = $this->tienda($slug);
         $html = \App\Support\CartaIa::leer($tienda->id);
         abort_if($html === null, 404);
-        return \App\Support\CartaIa::respuesta($html, $tienda);
+        return $this->servirCartaIa($tienda, $html);
     }
 
     public function cartaImprimir(Request $request, string $slug)

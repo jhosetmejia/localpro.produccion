@@ -30,6 +30,16 @@ class CartaIa
         return $f ? \Illuminate\Support\Carbon::parse($f) : null;
     }
 
+    public static function enQr(int $tiendaId): bool
+    {
+        return (bool) DB::table('cartas_ia')->where('tienda_id', $tiendaId)->value('en_qr');
+    }
+
+    public static function usarEnQr(int $tiendaId, bool $si): void
+    {
+        DB::table('cartas_ia')->where('tienda_id', $tiendaId)->update(['en_qr' => $si]);
+    }
+
     public static function guardar(int $tiendaId, string $html): void
     {
         DB::table('cartas_ia')->updateOrInsert(['tienda_id' => $tiendaId], ['html' => $html, 'updated_at' => now(), 'created_at' => now()]);
@@ -38,6 +48,79 @@ class CartaIa
     public static function borrar(int $tiendaId): void
     {
         DB::table('cartas_ia')->where('tienda_id', $tiendaId)->delete();
+    }
+
+    // ¿El diseño trae las marcas para que LocalPro ponga los platos y precios solo?
+    public static function esPlantilla(string $html): bool
+    {
+        return (bool) preg_match('#<!--\s*PLATOS\s*-->#i', $html);
+    }
+
+    /**
+     * Arma la carta: el diseño de la IA + los platos y precios de hoy. Marcas:
+     *  <!--CATEGORIAS--> … {{categoria}} … <!--/CATEGORIAS-->  (se repite por categoría)
+     *  <!--PLATOS--> … {{nombre}} {{precio}} {{descripcion}} {{foto}} … <!--/PLATOS-->  (se repite por plato)
+     *  <!--SI_FOTO-->, <!--SI_DESCRIPCION-->, <!--SI_AGOTADO-->, <!--SI_LOGO--> … <!--/SI_…-->  (solo si hay dato)
+     *  {{negocio}} {{logo}} {{qr}} {{whatsapp}} {{direccion}} {{ciudad}} {{link_pedir}}
+     * Todo dato va escapado: un nombre de plato no puede meter código.
+     */
+    public static function armar(string $html, Tienda $tienda, array $secciones): string
+    {
+        if (!self::esPlantilla($html)) return $html;
+        $bloque = fn (string $nombre) => '#<!--\s*' . $nombre . '\s*-->(.*?)<!--\s*/\s*' . $nombre . '\s*-->#is';
+        $si = function (string $txt, string $marca, bool $mostrar) use ($bloque) {
+            return preg_replace_callback($bloque($marca), fn ($m) => $mostrar ? $m[1] : '', $txt);
+        };
+        $poner = fn (string $txt, array $vals) => preg_replace_callback('#\{\{\s*([a-z_]+)\s*\}\}#i', fn ($m) => array_key_exists(strtolower($m[1]), $vals) ? e((string) $vals[strtolower($m[1])]) : $m[0], $txt);
+
+        $plato = function (string $molde, array $p) use ($si, $poner) {
+            $desc = $p['descripcion'] ? \Illuminate\Support\Str::limit(trim(strip_tags($p['descripcion'])), 140) : '';
+            $molde = $si($molde, 'SI_FOTO', (bool) $p['img']);
+            $molde = $si($molde, 'SI_DESCRIPCION', $desc !== '');
+            $molde = $si($molde, 'SI_AGOTADO', !$p['disponible']);
+            return $poner($molde, [
+                'nombre' => $p['nombre'], 'descripcion' => $desc, 'foto' => $p['img'] ?: '',
+                'precio' => ($p['desde'] ? 'Desde ' : '') . dinero($p['desde'] ?? $p['precio']) . ($p['unidad'] ? ' / ' . $p['unidad'] : ''),
+                'agotado' => $p['disponible'] ? '' : 'Agotado',
+            ]);
+        };
+        $platos = fn (string $txt, array $items) => preg_replace_callback($bloque('PLATOS'), fn ($m) => implode('', array_map(fn ($p) => $plato($m[1], $p), $items)), $txt);
+
+        if (preg_match($bloque('CATEGORIAS'), $html)) {
+            $html = preg_replace_callback($bloque('CATEGORIAS'), function ($m) use ($secciones, $platos, $poner) {
+                $out = '';
+                foreach ($secciones as $cat => $items) {
+                    $out .= $poner($platos($m[1], $items), ['categoria' => $cat]);
+                }
+                return $out;
+            }, $html);
+        } else {
+            $html = $platos($html, array_merge(...array_values($secciones ?: [[]])));
+        }
+
+        $html = $si($html, 'SI_LOGO', (bool) $tienda->logo_url);
+        return $poner($html, [
+            'negocio' => $tienda->nombre, 'logo' => $tienda->logo_url ?: '', 'qr' => self::qr($tienda) ?: '',
+            'whatsapp' => $tienda->telefono ?: '', 'direccion' => $tienda->direccion ?: '', 'ciudad' => $tienda->ciudad ?: '',
+            'link_pedir' => $tienda->slug ? $tienda->url_carta . '?pedir=1' : '',
+        ]);
+    }
+
+    // Imagen del QR que lleva a la carta en línea (la hace un servicio externo: no carga el servidor)
+    public static function qr(Tienda $tienda): ?string
+    {
+        return $tienda->slug ? 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=' . rawurlencode($tienda->url_carta) : null;
+    }
+
+    // Botón flotante para pedir en línea (solo HTML y CSS: la carta no puede correr scripts)
+    public static function conBotonPedir(string $html, Tienda $tienda): string
+    {
+        if (!$tienda->slug) return $html;
+        $btn = '<a href="' . e($tienda->url_carta . '?pedir=1') . '" style="position:fixed;right:16px;bottom:16px;z-index:2147483647;display:inline-flex;align-items:center;gap:8px;'
+            . 'padding:13px 20px;border-radius:999px;background:#25d366;color:#fff;font:800 15px/1 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;text-decoration:none;'
+            . 'box-shadow:0 10px 24px -8px rgba(0,0,0,.45)">🛒 Pedir en línea</a>'
+            . '<style>@media print{a[href$="?pedir=1"]{display:none!important}}</style>';
+        return preg_match('#</body>#i', $html) ? preg_replace('#</body>#i', $btn . '</body>', $html, 1) : $html . $btn;
     }
 
     // Quita lo peligroso y lo que la IA a veces agrega alrededor (```html … ```)
@@ -74,40 +157,28 @@ class CartaIa
         ]);
     }
 
-    // Instrucciones para pegar en la IA, con los productos y precios reales del negocio
+    // Instrucciones para la IA del cliente: solo el diseño con marcas; LocalPro pone platos y precios (y se actualizan solos)
     public static function instrucciones(Tienda $tienda, array $secciones): string
     {
-        $lineas = [];
-        foreach ($secciones as $cat => $items) {
-            $lineas[] = "\n" . mb_strtoupper($cat) . ':';
-            foreach ($items as $p) {
-                $precio = ($p['desde'] ? 'desde ' : '') . dinero($p['desde'] ?? $p['precio']);
-                $desc = $p['descripcion'] ? ' — ' . \Illuminate\Support\Str::limit(trim(strip_tags($p['descripcion'])), 90) : '';
-                $lineas[] = '- ' . $p['nombre'] . ' — ' . $precio . $desc . (!$p['disponible'] ? ' (agotado)' : '');
-            }
+        $cats = array_slice(array_keys($secciones), 0, 8);
+        $ejemplos = [];
+        foreach ($secciones as $items) {
+            foreach (array_slice($items, 0, 2) as $p) $ejemplos[] = $p['nombre'] . ' ' . dinero($p['desde'] ?? $p['precio']);
+            if (count($ejemplos) >= 4) break;
         }
-        $productos = $lineas ? implode("\n", $lineas) : "\n(Aún no tengo platos creados: invente ejemplos y yo los cambio.)";
-        $qr = $tienda->slug ? 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=' . rawurlencode($tienda->url_carta) : null;
-        $datos = array_filter([
-            'Nombre del negocio: ' . $tienda->nombre,
-            $tienda->ciudad ? 'Ciudad: ' . $tienda->ciudad : null,
-            $tienda->direccion ? 'Dirección: ' . $tienda->direccion : null,
-            $tienda->telefono ? 'WhatsApp / teléfono: ' . $tienda->telefono : null,
-            $tienda->logo_url ? 'Logo (imagen): ' . $tienda->logo_url : null,
-            $qr ? 'Código QR para pedir en línea (imagen): ' . $qr : null,
-            $qr ? 'Enlace de la carta en línea: ' . $tienda->url_carta : null,
-        ]);
+        $tipo = $tienda->tipo_negocio ? str_replace('_', ' ', $tienda->tipo_negocio) : 'restaurante';
 
-        return "Créame la carta (menú) de mi restaurante como UNA sola página HTML con el CSS adentro.\n\n"
-            . "Reglas:\n"
-            . "- Todo en un solo archivo: HTML + <style>. NO use JavaScript (no funciona) ni formularios.\n"
-            . "- Puede usar fuentes de Google Fonts e imágenes por enlace https.\n"
-            . "- Que se vea muy bien en el celular y que al imprimir quepa en hojas tamaño carta (@media print).\n"
-            . "- Use exactamente los nombres y precios que le doy, sin inventar platos.\n"
-            . ($qr ? "- Ponga el código QR abajo con el texto \"Escanea y pide en línea\".\n" : '')
-            . "- Estilo que quiero: [ESCRIBA AQUÍ EL ESTILO, ej.: rústico de madera, elegante, moderno con colores de mi marca, comida rápida…]\n\n"
-            . "Datos del negocio:\n- " . implode("\n- ", $datos) . "\n\n"
-            . "Productos por categoría:" . $productos . "\n\n"
-            . "Respóndame SOLO con el código HTML completo, desde <!DOCTYPE html> hasta </html>.";
+        return "Diseña la carta (menú) de mi negocio \"{$tienda->nombre}\" ({$tipo}) como UNA sola página HTML con el CSS dentro de <style>.\n"
+            . "Estilo que quiero: [ESCRIBA AQUÍ EL ESTILO, ej.: rústico de madera, elegante, moderno con colores verde y negro]\n\n"
+            . "MUY IMPORTANTE: mi sistema (LocalPro) pone los platos y precios solo. NO escribas platos ni precios: usa estas marcas tal cual:\n"
+            . "1. Título: {{negocio}}. Logo: <!--SI_LOGO--><img src=\"{{logo}}\" alt=\"logo\"><!--/SI_LOGO-->\n"
+            . "2. UNA categoría de muestra entre <!--CATEGORIAS--> y <!--/CATEGORIAS-->, con su nombre {{categoria}}.\n"
+            . "3. Dentro de esa categoría, UN plato de muestra entre <!--PLATOS--> y <!--/PLATOS--> con: {{nombre}}, {{precio}}, "
+            . "<!--SI_DESCRIPCION-->{{descripcion}}<!--/SI_DESCRIPCION--> y <!--SI_FOTO--><img src=\"{{foto}}\" alt=\"\"><!--/SI_FOTO-->. "
+            . "Opcional: <!--SI_AGOTADO-->{{agotado}}<!--/SI_AGOTADO-->.\n"
+            . "4. Al final: <img src=\"{{qr}}\" alt=\"QR\"> con el texto \"Escanea y pide en línea\", y {{whatsapp}} y {{direccion}}.\n"
+            . "5. Sin JavaScript ni formularios. Que se vea muy bien en el celular y al imprimir en hoja carta (@media print).\n\n"
+            . ($cats ? 'Para que te hagas una idea, mis categorías son: ' . implode(', ', $cats) . '.' . ($ejemplos ? ' Algunos platos: ' . implode('; ', $ejemplos) . '.' : '') . "\n\n" : '')
+            . "Responde SOLO con el código HTML completo, desde <!DOCTYPE html> hasta </html>.";
     }
 }
