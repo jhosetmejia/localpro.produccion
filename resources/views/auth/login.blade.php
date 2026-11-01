@@ -43,7 +43,7 @@
                     <label for="email">Correo electrónico</label>
                     <div class="input">
                         <i class="fa-regular fa-envelope"></i>
-                        <input id="email" name="email" type="email" value="{{ old('email') }}" placeholder="usted@negocio.com" autocomplete="email" autofocus required />
+                        <input id="email" name="email" type="email" value="{{ old('email', request('email')) }}" placeholder="usted@negocio.com" autocomplete="email" autofocus required />
                     </div>
                 </div>
                 <div class="field">

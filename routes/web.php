@@ -54,6 +54,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [homeController::class, 'index'])->name('panel');
 Route::get('/login', [loginController::class, 'index'])->name('login');
 Route::post('/login', [loginController::class, 'login'])->middleware('throttle:10,1');
+// Página para que el trabajador descargue la app (link que se comparte por WhatsApp)
+Route::get('/app', fn () => view('auth.app'))->name('app.descargar');
 Route::get('/logout', [logoutController::class, 'logout'])->name('logout');
 Route::get('/registro', [registroController::class, 'index'])->name('registro');
 // Enlace corto para contadores: abre el registro con el tipo "Contador / analista contable" y la herramienta activa
@@ -334,6 +336,7 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     // Permisos extra de cada vendedor (los da el dueño)
     Route::get('/users/{user}/permisos', [userController::class, 'permisos'])->whereNumber('user')->name('users.permisos');
     Route::put('/users/{user}/permisos', [userController::class, 'guardarPermisos'])->whereNumber('user')->name('users.permisos.guardar');
+    Route::post('/users/{user}/compartir-accesos', [userController::class, 'compartirAccesos'])->whereNumber('user')->middleware('throttle:20,1')->name('users.compartir');
 
     Route::post('/productos/{producto}/disponible', [ProductoController::class, 'disponible'])->whereNumber('producto')->name('productos.disponible');
     Route::delete('/productos/{producto}/eliminar', [ProductoController::class, 'eliminar'])->whereNumber('producto')->name('productos.eliminar');

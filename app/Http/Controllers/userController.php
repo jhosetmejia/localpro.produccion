@@ -22,7 +22,7 @@ class userController extends Controller
     {
         $this->middleware('permission:ver-user|crear-user|editar-user|eliminar-user', ['only' => ['index']]);
         $this->middleware('permission:crear-user', ['only' => ['create', 'store']]);
-        $this->middleware('permission:editar-user', ['only' => ['edit', 'update', 'permisos', 'guardarPermisos']]);
+        $this->middleware('permission:editar-user', ['only' => ['edit', 'update', 'permisos', 'guardarPermisos', 'compartirAccesos']]);
         $this->middleware('permission:eliminar-user', ['only' => ['destroy']]);
     }
 
@@ -141,6 +141,58 @@ class userController extends Controller
         return redirect()->route('users.index')->with('success', $n
             ? "Permisos de {$user->name} guardados ({$n} extra)"
             : "{$user->name} quedó solo con los permisos de caja");
+    }
+
+    // Compartir accesos por WhatsApp: se le pone una clave nueva al trabajador y se arma el mensaje
+    // con el link para descargar la app. La clave solo se muestra una vez (en el mensaje).
+    public function compartirAccesos(Request $request, User $user)
+    {
+        $this->deMiTienda($user);
+        abort_if((int) $user->id === (int) Auth::id() || $user->es_superadmin, 422, 'No se pueden compartir los accesos de este usuario.');
+
+        $datos = $request->validate([
+            'telefono' => ['nullable', 'string', 'max:20'],
+            'clave' => ['nullable', 'string', 'min:8', 'max:60'],
+        ], [], ['clave' => 'clave', 'telefono' => 'WhatsApp']);
+
+        $clave = trim((string) ($datos['clave'] ?? '')) ?: self::claveLegible();
+        $tel = preg_replace('/\D+/', '', (string) ($datos['telefono'] ?? ''));
+        if (strlen($tel) === 10 && $tel[0] === '3') {
+            $tel = '57' . $tel; // celular de Colombia sin indicativo
+        }
+
+        $user->password = Hash::make($clave);
+        if ($tel !== '') {
+            $user->telefono = substr($tel, 0, 20);
+        }
+        $user->save();
+
+        $tienda = TiendaActual::tienda()?->nombre ?: 'Su negocio';
+        $link = route('app.descargar', ['email' => $user->email]);
+        $mensaje = "Hola " . strtok($user->name, ' ') . " 👋\n"
+            . "{$tienda} le dio acceso a LocalPro.\n\n"
+            . "1️⃣ Descargue la app aquí:\n{$link}\n\n"
+            . "2️⃣ Entre con estos datos:\n"
+            . "Correo: {$user->email}\n"
+            . "Clave: {$clave}\n\n"
+            . "No comparta esta clave con nadie.";
+
+        return redirect()->route('users.index')->with('compartir', [
+            'nombre' => $user->name,
+            'mensaje' => $mensaje,
+            'url' => 'https://wa.me/' . $tel . '?text=' . rawurlencode($mensaje),
+        ]);
+    }
+
+    // Clave fácil de dictar: sin letras que se confunden (l, I, O, 0) y con números
+    private static function claveLegible(): string
+    {
+        $letras = 'abcdefghjkmnpqrstuvwxyz';
+        $c = 'Lp';
+        for ($i = 0; $i < 4; $i++) {
+            $c .= $letras[random_int(0, strlen($letras) - 1)];
+        }
+        return $c . random_int(1000, 9999);
     }
 
     // Solo los roles de tienda, con nombre legible
