@@ -76,6 +76,7 @@ Route::get('/t/{slug}', [catalogoController::class, 'show'])->where('slug', '[a-
 Route::get('/t/{slug}/compartir.jpg', [catalogoController::class, 'imagenCompartir'])->where('slug', '[a-z0-9-]+')->middleware('throttle:60,1')->name('catalogo.compartir');
 Route::get('/t/{slug}/yo', [catalogoController::class, 'yo'])->where('slug', '[a-z0-9-]+')->middleware('throttle:60,1')->name('catalogo.yo');
 Route::get('/t/{slug}/carta', [catalogoController::class, 'carta'])->where('slug', '[a-z0-9-]+')->name('catalogo.carta');
+Route::get('/t/{slug}/carta-ia', [catalogoController::class, 'cartaIa'])->where('slug', '[a-z0-9-]+')->middleware('throttle:120,1')->name('catalogo.carta.ia');
 Route::get('/t/{slug}/carta/imprimir', [catalogoController::class, 'cartaImprimir'])->where('slug', '[a-z0-9-]+')->middleware('throttle:60,1')->name('catalogo.carta.imprimir');
 Route::get('/t/{slug}/p/{producto}', [catalogoController::class, 'producto'])->where(['slug' => '[a-z0-9-]+', 'producto' => '[0-9]+(-[a-z0-9-]*)?'])->name('catalogo.producto');
 // LocalProo Marketplace: todas las tiendas en línea y sus productos en un solo lugar
@@ -494,6 +495,9 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     // Plan de LocalPro
     Route::get('/beneficios', [\App\Http\Controllers\beneficiosController::class, 'index'])->name('beneficios.index');
     Route::get('/mi-carta', [\App\Http\Controllers\miCartaController::class, 'index'])->name('carta.index');
+    Route::post('/mi-carta/ia', [\App\Http\Controllers\miCartaController::class, 'guardarIa'])->middleware('throttle:20,1')->name('carta.ia.guardar');
+    Route::get('/mi-carta/ia', [\App\Http\Controllers\miCartaController::class, 'verIa'])->name('carta.ia.ver');
+    Route::delete('/mi-carta/ia', [\App\Http\Controllers\miCartaController::class, 'borrarIa'])->name('carta.ia.borrar');
     Route::get('/mi-plan', [planController::class, 'index'])->name('plan.index');
     Route::get('/mi-plan/vencido', [planController::class, 'vencido'])->name('plan.vencido');
     Route::post('/mi-plan/aviso-prueba', [planController::class, 'avisoPruebaVisto'])->name('plan.avisoPrueba');

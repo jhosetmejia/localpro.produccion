@@ -31,6 +31,23 @@
 .mc-b small{color:#5b665e}
 .mc-acc{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:auto}
 .mc-acc .btn{border-radius:12px;font-weight:800;font-size:.85rem}
+.mc-ia{background:linear-gradient(135deg,#0b0d0c,#18231c);color:#f4f7f5;border-radius:24px;padding:22px;margin-bottom:1rem;position:relative;overflow:hidden}
+.mc-ia::after{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,#a6f34a55,transparent 70%)}
+.mc-ia h3{font-weight:900;font-size:1.35rem;margin:0 0 4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.mc-ia h3 .nuevo{background:#a6f34a;color:#0b0d0c;font-size:.7rem;font-weight:900;border-radius:999px;padding:3px 10px;letter-spacing:.04em}
+.mc-ia p{color:#b9c6be;font-weight:600;margin:0 0 14px;max-width:760px;position:relative;z-index:1}
+.mc-ia .btn-nueva{background:linear-gradient(135deg,#a6f34a,#2fd15a 45%,#16b34a);color:#0b0d0c;font-weight:900;border:0;border-radius:999px;padding:.7rem 1.4rem;position:relative;z-index:1}
+.mc-ia-pasos{display:grid;gap:14px;margin-top:16px;position:relative;z-index:1}
+.mc-ia-paso{background:#fff;color:#151a17;border-radius:18px;padding:16px}
+.mc-ia-paso h4{font-size:1rem;font-weight:900;margin:0 0 6px;display:flex;gap:10px;align-items:center}
+.mc-ia-paso h4 b{flex:none;width:28px;height:28px;border-radius:50%;background:#0b0d0c;color:#a6f34a;display:grid;place-items:center;font-size:.85rem}
+.mc-ia-paso textarea{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.82rem;background:#f6f8f7}
+.mc-ia-ias{display:flex;gap:6px;flex-wrap:wrap}
+.mc-ia-ias a{border:1.5px solid #e3ebe6;border-radius:999px;padding:.3rem .8rem;font-weight:800;font-size:.85rem;color:#151a17;text-decoration:none;background:#fff}
+.mc-ia-ias a:hover{border-color:#2fd15a}
+.mc-ia-lista{background:#fff;color:#151a17;border-radius:18px;padding:12px;display:grid;grid-template-columns:minmax(0,260px) 1fr;gap:16px;position:relative;z-index:1}
+@media (max-width:700px){.mc-ia-lista{grid-template-columns:1fr}}
+.mc-ia-lista iframe{width:100%;height:340px;border:1.5px solid #e3ebe6;border-radius:14px;background:#fff}
 </style>
 @endpush
 
@@ -57,6 +74,68 @@
             Su carta está vacía. Cree sus platos en <a href="{{ route('productos.create') }}" style="color:inherit;text-decoration:underline">Productos</a> con nombre, precio, categoría (Entradas, Platos fuertes, Bebidas…) y una foto.
         </div>
     @endif
+
+    {{-- Carta personalizada hecha con la IA del negocio --}}
+    <div class="mc-ia" id="carta-ia">
+        <h3><i class="fa-solid fa-wand-magic-sparkles" style="color:#a6f34a"></i> Nueva carta con tu IA <span class="nuevo">NUEVO</span></h3>
+        <p>Dile a tu IA (ChatGPT, Claude o Gemini) que te cree una carta a tu gusto, que te escriba el código HTML y pégalo aquí: tendrás una carta 100 % personalizada en LocalPro, con tus platos, precios y el QR para pedir.</p>
+
+        @if ($cartaIa)
+        <div class="mc-ia-lista mb-3">
+            <iframe sandbox title="Vista de su carta personalizada" srcdoc="{{ $cartaIa }}" loading="lazy"></iframe>
+            <div class="d-flex flex-column gap-2">
+                <div class="fw-bold fs-5">Su carta personalizada</div>
+                <small class="text-muted fw-semibold">Actualizada {{ optional($cartaIaFecha)->diffForHumans() }}. Si cambia precios o platos, vuelva a pedírsela a su IA y péguela de nuevo.</small>
+                @if ($listo)
+                <input class="form-control" value="{{ route('catalogo.carta.ia', $tienda->slug) }}" readonly onclick="this.select()">
+                @endif
+                <div class="d-flex gap-2 flex-wrap">
+                    <a class="btn btn-dark fw-bold" target="_blank" rel="noopener" href="{{ $listo ? route('catalogo.carta.ia', $tienda->slug) : route('carta.ia.ver') }}"><i class="fa-solid fa-eye me-1"></i>Ver</a>
+                    @if ($listo)
+                    <a class="btn btn-success fw-bold" target="_blank" rel="noopener" href="https://wa.me/?text={{ rawurlencode('🍽️ Mira nuestra carta: ' . route('catalogo.carta.ia', $tienda->slug)) }}"><i class="fa-brands fa-whatsapp me-1"></i>Compartir</a>
+                    @endif
+                    <form method="post" action="{{ route('carta.ia.borrar') }}" data-confirm="¿Borrar su carta personalizada?" data-confirm-ok="Sí, borrar" data-peligro>
+                        @csrf @method('DELETE')
+                        <button class="btn btn-outline-danger fw-bold"><i class="fa-regular fa-trash-can me-1"></i>Borrar</button>
+                    </form>
+                </div>
+                <small class="text-muted">Para imprimirla o guardarla en PDF: tóquela en <b>Ver</b> y use <b>Imprimir</b> del navegador (Ctrl + P).</small>
+            </div>
+        </div>
+        @endif
+
+        <button type="button" class="btn-nueva" data-bs-toggle="collapse" data-bs-target="#mcIaPasos" aria-expanded="{{ $errors->any() ? 'true' : 'false' }}"><i class="fa-solid fa-plus me-1"></i>{{ $cartaIa ? 'Hacer otra carta' : 'Nueva carta' }}</button>
+
+        <div class="collapse {{ $errors->any() ? 'show' : '' }}" id="mcIaPasos">
+            <div class="mc-ia-pasos">
+                <div class="mc-ia-paso">
+                    <h4><b>1</b> Copie estas instrucciones (ya llevan sus platos y precios)</h4>
+                    <small class="text-muted d-block mb-2">Cambie donde dice <b>[ESCRIBA AQUÍ EL ESTILO…]</b> por cómo quiere su carta: rústica, elegante, moderna, con los colores de su marca…</small>
+                    <textarea class="form-control mb-2" rows="7" readonly id="mcIaTexto">{{ $instruccionesIa }}</textarea>
+                    <div class="d-flex gap-2 flex-wrap align-items-center">
+                        <button type="button" class="btn btn-dark fw-bold" id="mcIaCopiar"><i class="fa-regular fa-copy me-1"></i>Copiar instrucciones</button>
+                        <div class="mc-ia-ias">
+                            <a href="https://chatgpt.com/" target="_blank" rel="noopener">ChatGPT</a>
+                            <a href="https://claude.ai/new" target="_blank" rel="noopener">Claude</a>
+                            <a href="https://gemini.google.com/" target="_blank" rel="noopener">Gemini</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="mc-ia-paso">
+                    <h4><b>2</b> Péguelas en su IA</h4>
+                    <small class="text-muted fw-semibold">Abra ChatGPT, Claude o Gemini, pegue las instrucciones y envíelas. Si no le gusta cómo quedó, pídale cambios ("más colores", "letra más grande"…). Cuando le guste, copie <b>todo</b> el código que le respondió.</small>
+                </div>
+                <form class="mc-ia-paso" method="post" action="{{ route('carta.ia.guardar') }}">
+                    @csrf
+                    <h4><b>3</b> Pegue aquí el código HTML que le dio su IA</h4>
+                    @if ($errors->any())<div class="alert alert-danger py-2 fw-semibold">{{ $errors->first() }}</div>@endif
+                    <textarea class="form-control mb-2" name="html" rows="8" placeholder="<!DOCTYPE html> ... </html>" required>{{ old('html') }}</textarea>
+                    <button class="btn btn-success fw-bold"><i class="fa-solid fa-floppy-disk me-1"></i>Guardar mi carta</button>
+                    <small class="text-muted d-block mt-2">Por seguridad, LocalPro le quita los programas (JavaScript) al código: la carta se ve igual, solo que no corre nada raro.</small>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <div class="lp-box mb-3">
         <h3><span><i class="fa-solid fa-qrcode me-1"></i>Carta en línea (para el QR de las mesas)</span></h3>
@@ -105,3 +184,14 @@
     </div>
 </div>
 @endsection
+
+@push('js')
+<script>
+document.getElementById('mcIaCopiar').addEventListener('click', function () {
+    var t = document.getElementById('mcIaTexto'), b = this;
+    var ok = function () { b.innerHTML = '<i class="fa-solid fa-check me-1"></i>¡Copiado! Ahora péguelo en su IA'; };
+    if (navigator.clipboard) navigator.clipboard.writeText(t.value).then(ok, function () { t.select(); document.execCommand('copy'); ok(); });
+    else { t.select(); document.execCommand('copy'); ok(); }
+});
+</script>
+@endpush

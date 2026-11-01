@@ -204,7 +204,7 @@ class catalogoController extends Controller
     }
 
     // Productos de la carta agrupados por categoría (los desactivados salen como "agotado por hoy")
-    private function seccionesCarta(Tienda $tienda): array
+    public function seccionesCarta(Tienda $tienda): array
     {
         $productos = Producto::with(['variantes' => fn ($q) => $q->where('estado', 1)->orderBy('talla')->orderBy('color'), 'categorias.caracteristica', 'fotos'])
             ->where('productos.estado', 1)->get()
@@ -229,6 +229,15 @@ class catalogoController extends Controller
         'pizarra' => ['Pizarra', 'Tablero de tiza con marco de madera'],
         'moderna' => ['Moderna con fotos', 'Fotos de cada plato y precios destacados'],
     ];
+
+    // Carta personalizada que el negocio hizo con su IA (encerrada: sin scripts)
+    public function cartaIa(string $slug)
+    {
+        $tienda = $this->tienda($slug);
+        $html = \App\Support\CartaIa::leer($tienda->id);
+        abort_if($html === null, 404);
+        return \App\Support\CartaIa::respuesta($html, $tienda);
+    }
 
     public function cartaImprimir(Request $request, string $slug)
     {
