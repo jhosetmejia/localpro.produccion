@@ -18,6 +18,15 @@
 .tp-p .pr{font-weight:900;color:#11702f;margin-top:auto}
 .tp-p .q{position:absolute;top:6px;right:6px;background:#16b34a;color:#fff;border-radius:999px;min-width:26px;height:26px;display:grid;place-items:center;font-weight:900;font-size:.8rem}
 .tp-p.ag{opacity:.45}
+.tp-p{cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+.tp-p.sel{border-color:#16b34a;background:#f1fbf3;box-shadow:0 0 0 2px #16b34a33}
+.tp-p .mn{position:absolute;bottom:6px;right:6px;width:30px;height:30px;border-radius:999px;background:#fff;border:1.5px solid #cfe3d5;color:#0b0d0c;display:grid;place-items:center;font-weight:900;font-size:1.05rem;line-height:1;z-index:1}
+.tp-p .mas{padding-right:34px;font-size:.72rem;font-weight:800;color:#16b34a}
+.tp-p.pop{animation:tpPop .25s}
+@keyframes tpPop{50%{transform:scale(.95)}}
+.tp-ayuda{font-size:.82rem;font-weight:700;color:#5b665e;margin:-.2rem 0 .5rem}
+.tp-bar{display:none}
+@media (max-width:900px){.tp-bar{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:30;display:none;justify-content:space-between;align-items:center;gap:10px;border:0;border-radius:16px;padding:.85rem 1.1rem;font-weight:900;background:#0b0d0c;color:#a6f34a;box-shadow:0 14px 30px -12px rgba(0,0,0,.55)}.tp-bar.on{display:flex}.lp-dash{padding-bottom:80px}}
 .tp-cart{position:sticky;top:80px;background:#fff;border:1.5px solid #e3ebe6;border-radius:22px;padding:1rem}
 .tp-it{border-bottom:1px solid #eef1ef;padding:.5rem 0}
 .tp-it .r{display:flex;align-items:center;gap:.5rem}
@@ -47,11 +56,12 @@
     <div class="tp">
         <div>
             <input type="search" id="tpQ" class="form-control form-control-lg mb-2" placeholder="Buscar producto…">
+            <div class="tp-ayuda"><i class="fa-solid fa-hand-pointer me-1"></i>Puede elegir varios productos. Toque un producto otra vez para sumar uno más (− para quitar).</div>
             <div class="tp-cats" id="tpCats"></div>
             <div class="tp-grid" id="tpGrid"></div>
             @if (empty($catalogo))<div class="alert alert-warning mt-2">No hay productos activos. Créelos en Productos (platos, bebidas, entradas, paseos…).</div>@endif
         </div>
-        <div class="tp-cart">
+        <div class="tp-cart" id="tpCart">
             @unless ($pedido)
             <div class="row g-2 mb-2">
                 <div class="col-7"><label class="form-label small fw-bold mb-1">Cliente</label><input id="tpCli" class="form-control" maxlength="60" placeholder="Nombre" value="{{ $cliente }}"></div>
@@ -66,6 +76,7 @@
         </div>
     </div>
 </div>
+<button type="button" class="tp-bar" id="tpBar"><span><i class="fa-solid fa-receipt me-1"></i><span id="tpBarN">0</span> en el pedido</span><span id="tpBarT"></span></button>
 @endsection
 
 @push('js')
@@ -90,18 +101,27 @@
         var q = $('tpQ').value.trim().toLowerCase();
         $('tpGrid').innerHTML = CAT.filter(function (p) { return (!cat || p.cat === cat) && (!q || (p.n + ' ' + p.et).toLowerCase().indexOf(q) >= 0); }).map(function (p) {
             var n = enCarro(p.id);
-            return '<button class="tp-p' + (p.ag ? ' ag' : '') + '" data-id="' + p.id + '">' + (n ? '<span class="q">' + Pd.cant(n) + '</span>' : '') +
+            return '<div role="button" tabindex="0" class="tp-p' + (p.ag ? ' ag' : '') + (n ? ' sel' : '') + '" data-id="' + p.id + '">' + (n ? '<span class="q">' + Pd.cant(n) + '</span><span class="mn" data-menos="1" aria-label="Quitar uno">−</span>' : '') +
                 (p.img ? '<img src="' + p.img + '" alt="" loading="lazy">' : '') + '<b>' + Pd.esc(p.n) + '</b>' + (p.et ? '<small>' + Pd.esc(p.et) + '</small>' : '') +
-                (p.ag ? '<small class="text-danger">Agotado</small>' : '') + '<span class="pr">' + p.pt + '</span></button>';
+                (p.ag ? '<small class="text-danger">Agotado</small>' : '') + '<span class="pr">' + p.pt + '</span>' + (n ? '<span class="mas">Toque para sumar otro</span>' : '') + '</div>';
         }).join('') || '<div class="text-muted fw-semibold p-3">No hay productos con ese nombre.</div>';
     }
+    $('tpGrid').addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('tp-p')) { e.preventDefault(); e.target.click(); } });
+    $('tpBar').addEventListener('click', function () { $('tpCart').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     $('tpGrid').addEventListener('click', function (e) {
         var b = e.target.closest('.tp-p'); if (!b) return;
         var p = CAT.find(function (x) { return x.id === +b.dataset.id; });
+        if (e.target.closest('[data-menos]')) {
+            // Quita uno: primero del renglón sin nota, si no del último que tenga
+            var k = -1; cart.forEach(function (i, j) { if (i.id === p.id && (k < 0 || !i.nota)) k = j; });
+            if (k >= 0) { cart[k].c--; if (cart[k].c <= 0) cart.splice(k, 1); }
+            pintar(); grilla(); return;
+        }
         if (p.ag) { if (window.LP && LP.toast) LP.toast(p.n + ' está agotado.', 'error'); return; }
         var it = cart.find(function (i) { return i.id === p.id && !i.nota; });
         if (it) it.c++; else cart.push({ id: p.id, n: p.n, et: p.et, p: p.p, c: 1, nota: '' });
         pintar(); grilla();
+        var nb = document.querySelector('.tp-p[data-id="' + p.id + '"]'); if (nb) nb.classList.add('pop');
     });
     function pintar() {
         $('tpItems').innerHTML = cart.length ? cart.map(function (i, k) {
@@ -111,6 +131,10 @@
         }).join('') : '<div class="text-muted text-center py-3 fw-semibold">Toque los productos para agregarlos.</div>';
         $('tpTotal').textContent = fmt(cart.reduce(function (a, i) { return a + i.p * i.c; }, 0));
         $('tpEnviar').disabled = !cart.length;
+        // Celular: barra abajo con cuántos lleva y el total (el pedido queda debajo de los productos)
+        var n = cart.reduce(function (a, i) { return a + i.c; }, 0);
+        $('tpBarN').textContent = Pd.cant(n); $('tpBarT').textContent = $('tpTotal').textContent;
+        $('tpBar').classList.toggle('on', n > 0);
     }
     $('tpItems').addEventListener('click', function (e) {
         var b = e.target.closest('button[data-k]'); if (!b) return;
