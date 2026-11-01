@@ -154,12 +154,17 @@
             @endif
 
             <div id="bloqueUnica" @if($moda) style="display:none" @endif>
-                @unless ($sinConteo)
+                @if ($sinConteo)
+                {{-- Restaurante: los platos se venden sin límite; bebidas o empacados sí pueden llevar cantidad --}}
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" role="switch" id="contarCant" @checked(old('controla_inventario') === '1')>
+                    <label class="form-check-label fw-semibold" for="contarCant">Llevar cantidad <small class="text-muted d-block fw-normal">Ej: los almuerzos de hoy (30), gaseosas, postres. Se descuenta en cada venta y al llegar a 0 sale agotado. Apagado = se vende sin límite.</small></label>
+                </div>
+                @endif
+                <div id="cajaCant" @if ($sinConteo && old('controla_inventario') !== '1') style="display:none" @endif>
                 <label for="cantidad_inicial" class="form-label">Cantidad disponible <span id="cantUn" class="text-muted fw-normal"></span></label>
                 <input type="number" min="0" step="any" name="cantidad_inicial" id="cantidad_inicial" class="form-control form-control-lg fw-bold" style="max-width:220px" value="{{ old('cantidad_inicial', 0) }}" inputmode="decimal">
-                @else
-                <p class="text-muted mb-0"><i class="fa-solid fa-utensils me-1"></i> En su negocio no hace falta contar unidades: se vende sin límite. Puede cambiarlo en "Más opciones".</p>
-                @endunless
+                </div>
                 <label for="codigo_barras" class="form-label mt-3">Código de barras <span class="text-muted fw-normal">(opcional · si ya le pegó una etiqueta, escanéela)</span></label>
                 <div class="pf-barra">
                     <input type="text" name="codigo_barras" id="codigo_barras" class="form-control" data-barras value="{{ old('codigo_barras', request('barras')) }}" placeholder="Vacío = el sistema le crea uno" autocomplete="off">
@@ -228,6 +233,14 @@
 @push('js')
 <script src="{{ asset('js/escaner.js') }}?v=1"></script>
 <script>
+// Restaurante: "Llevar cantidad" muestra la cantidad y prende "Controlar inventario" (y al revés)
+(function () {
+    var sw = document.getElementById('contarCant'), ci = document.getElementById('controla_inventario'), caja = document.getElementById('cajaCant');
+    if (!sw || !ci || !caja) return;
+    function pintar(on) { caja.style.display = on ? '' : 'none'; sw.checked = on; ci.checked = on; }
+    sw.addEventListener('change', function () { pintar(sw.checked); if (sw.checked) document.getElementById('cantidad_inicial').focus(); });
+    ci.addEventListener('change', function () { pintar(ci.checked); });
+})();
 (function () {
     var f = document.getElementById('pf');
 

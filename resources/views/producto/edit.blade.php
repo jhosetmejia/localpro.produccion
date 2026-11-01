@@ -183,9 +183,10 @@
                     </h3>
                     @if ($variantes->isEmpty())
                         <p class="text-muted small mb-0">Este producto aún no tiene cantidades. <a href="{{ route('productos.variantes', $producto) }}">Agréguelas aquí</a>.</p>
-                    @elseif (!$producto->controla_inventario)
-                        <p class="text-muted small mb-0">Este producto se vende sin límite de cantidad (no controla inventario).</p>
                     @else
+                        @php $contando = old('controla_inventario', $producto->controla_inventario ? '1' : '0') == '1'; @endphp
+                        <p class="text-muted small mb-0" id="sinLimite" @if ($contando) style="display:none" @endif>Este producto se vende sin límite de cantidad. Prenda <b>Controlar inventario</b> (abajo) para ponerle cantidad, por ejemplo los almuerzos de hoy.</p>
+                        <div id="conCant" @unless ($contando) style="display:none" @endunless>
                         <div class="pe-stock" id="peStock">
                             @foreach ($variantes as $v)
                             <div class="pe-fila">
@@ -196,12 +197,20 @@
                             @endforeach
                         </div>
                         <div class="pe-tot"><span>{{ $puedeStock ? 'Escriba la cantidad que hay ahora.' : 'No tiene permiso para cambiar cantidades.' }}</span><span>Total: <span id="peTotal">{{ cantidad($variantes->sum('stock')) }}</span></span></div>
+                        </div>
                     @endif
                     <input type="hidden" name="controla_inventario" value="0">
                     <div class="form-check form-switch mt-3 mb-0">
                         <input class="form-check-input" type="checkbox" role="switch" name="controla_inventario" value="1" id="controla_inventario" @checked(old('controla_inventario', $producto->controla_inventario))>
-                        <label class="form-check-label small" for="controla_inventario"><b>Controlar inventario</b> <span class="text-muted d-block">Apáguelo en comidas preparadas o servicios.</span></label>
+                        <label class="form-check-label small" for="controla_inventario"><b>Controlar inventario</b> <span class="text-muted d-block">Prendido: lleva cantidad y se descuenta en cada venta. Apagado: se vende sin límite.</span></label>
                     </div>
+                    <script>
+                    (function () {
+                        var ci = document.getElementById('controla_inventario'), con = document.getElementById('conCant'), sin = document.getElementById('sinLimite');
+                        if (!ci || !con || !sin) return;
+                        ci.addEventListener('change', function () { con.style.display = ci.checked ? '' : 'none'; sin.style.display = ci.checked ? 'none' : ''; });
+                    })();
+                    </script>
                 </div>
             </div>
         </div>
