@@ -234,15 +234,24 @@ class pedidosController extends Controller
         return back()->with('success', 'La cuenta de ' . $pedido->titulo . ' pasó a caja: ' . dinero($pedido->total) . '.');
     }
 
-    public function anular(Pedido $pedido)
+    public function anular(Request $request, Pedido $pedido)
     {
         $this->tienda();
         $this->exigir('pedidos-tomar', 'pedidos-cobrar');
-        if ($pedido->pagado) return back()->withErrors('Este pedido ya se cobró: anule la venta en Ventas para devolver el dinero.');
-        DB::transaction(function () use ($pedido) {
-            $pedido->items()->update(['estado' => 'anulado']);
-            $pedido->forceFill(['estado' => 'anulado', 'cerrado_at' => now()])->save();
-        });
+        if ($pedido->pagado) {
+            $msg = 'Este pedido ya se cobró: anule la venta en Ventas para devolver el dinero.';
+            return $request->expectsJson() ? response()->json(['message' => $msg], 422) : back()->withErrors($msg);
+        }
+        if ($pedido->estado !== 'anulado') {
+            DB::transaction(function () use ($pedido) {
+                $pedido->items()->update(['estado' => 'anulado']);
+                $pedido->forceFill(['estado' => 'anulado', 'cerrado_at' => now()])->save();
+            });
+        }
+        // Desde la pantalla de pedidos por cobrar se cancela sin recargar (con animación)
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'mensaje' => 'Pedido ' . $pedido->titulo . ' cancelado.']);
+        }
         return redirect()->route('pedidos.index')->with('success', 'Pedido ' . $pedido->titulo . ' anulado.');
     }
 
