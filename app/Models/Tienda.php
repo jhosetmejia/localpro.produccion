@@ -212,6 +212,14 @@ class Tienda extends Model
         return $this->url_catalogo_navegador . '/carta';
     }
 
+    // Botón automático de "Mis enlaces": en restaurantes y cafeterías lleva a la carta; en los demás, a la tienda en línea
+    public function getEnlacesBotonCatalogoAttribute(): array
+    {
+        return $this->usa_carta
+            ? ['texto' => 'Ver nuestra carta en línea', 'icono' => 'fa-solid fa-utensils', 'url' => $this->url_carta]
+            : ['texto' => 'Ver nuestra tienda en línea', 'icono' => 'fa-solid fa-store', 'url' => $this->url_catalogo];
+    }
+
     public function plan()
     {
         return $this->belongsTo(Plan::class);

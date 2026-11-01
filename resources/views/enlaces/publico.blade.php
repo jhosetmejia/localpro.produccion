@@ -95,7 +95,7 @@ h1{font-size:1.35rem;font-weight:800;margin-top:16px;text-align:center;letter-sp
             @endif
         @endforeach
         @if ($catalogo)
-        <a class="bt" href="{{ $catalogo }}"><span class="i"><i class="fa-solid fa-store"></i></span><span class="t">Ver nuestra tienda en línea</span></a>
+        <a class="bt" href="{{ $catalogo['url'] }}"><span class="i"><i class="{{ $catalogo['icono'] }}"></i></span><span class="t">{{ $catalogo['texto'] }}</span></a>
         @endif
         @if ($enlaces->isEmpty() && !$catalogo)
         <p class="vacio">Pronto encontrará aquí nuestros enlaces.</p>

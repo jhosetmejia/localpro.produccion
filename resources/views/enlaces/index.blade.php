@@ -137,8 +137,22 @@
                 @empty
                 <p class="text-muted mb-0">Aún no tiene enlaces. Agregue el primero: su WhatsApp, su ubicación, su menú o su promoción del mes.</p>
                 @endforelse
-                @if ($tienda->enlaces_catalogo && $tienda->catalogo_activo)
-                <p class="small text-muted mt-2 mb-0"><i class="fa-solid fa-store me-1"></i>Al final sale solo el botón <b>"Ver nuestra tienda en línea"</b>.</p>
+                @if ($tienda->catalogo_activo)
+                @php $bc = $tienda->enlaces_boton_catalogo; @endphp
+                <div class="me-row mt-2 {{ $tienda->enlaces_catalogo ? '' : 'off' }}">
+                    <div class="ic"><i class="{{ $bc['icono'] }}"></i></div>
+                    <div class="tx">
+                        <b>{{ $bc['texto'] }}</b>
+                        <small>{{ $tienda->enlaces_catalogo ? 'Botón automático, sale al final de su página' : 'Oculto: no sale en su página' }}</small>
+                    </div>
+                    <div class="acc">
+                        <form method="post" action="{{ route('enlaces.catalogo') }}">@csrf
+                            <button class="btn btn-sm {{ $tienda->enlaces_catalogo ? 'btn-light' : 'btn-success' }}" title="{{ $tienda->enlaces_catalogo ? 'Quitar de mi página' : 'Mostrar en mi página' }}">
+                                <i class="fa-solid {{ $tienda->enlaces_catalogo ? 'fa-eye-slash' : 'fa-eye' }} me-1"></i>{{ $tienda->enlaces_catalogo ? 'Quitar' : 'Mostrar' }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
                 @endif
             </div>
 
@@ -185,10 +199,6 @@
                         @endforeach
                     </div>
 
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" name="enlaces_catalogo" value="1" id="p-cat" @checked($tienda->enlaces_catalogo)>
-                        <label class="form-check-label" for="p-cat">Mostrar el botón de mi tienda en línea</label>
-                    </div>
                     <button class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-1"></i>Guardar perfil</button>
                 </form>
             </div>

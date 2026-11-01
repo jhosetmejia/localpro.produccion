@@ -30,7 +30,7 @@ small b{color:#16b34a}
     <h1>{{ $tienda->nombre }}</h1>
     <p>Estamos dejando lista esta página con todos nuestros enlaces. ¡Muy pronto! Mientras tanto, escríbanos o mire nuestros productos.</p>
     @if ($wa)<a class="b wa" href="https://wa.me/{{ $wa }}" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> Escríbanos por WhatsApp</a>@endif
-    @if ($catalogo)<a class="b ct" href="{{ $catalogo }}"><i class="fa-solid fa-store"></i> Ver nuestra tienda en línea</a>@endif
+    @if ($catalogo)<a class="b ct" href="{{ $catalogo['url'] }}"><i class="{{ $catalogo['icono'] }}"></i> {{ $catalogo['texto'] }}</a>@endif
     <small>Hecho con <b>LocalPro</b></small>
 </div>
 </body>

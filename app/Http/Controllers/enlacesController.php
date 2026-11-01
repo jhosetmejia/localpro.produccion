@@ -75,7 +75,6 @@ class enlacesController extends Controller
 
         $datos = [
             'enlaces_activo' => $request->boolean('enlaces_activo'),
-            'enlaces_catalogo' => $request->boolean('enlaces_catalogo'),
             'enlaces_bio' => $request->input('enlaces_bio'),
             'enlaces_tema' => $request->input('enlaces_tema'),
             'enlaces_boton' => $request->input('enlaces_boton'),
@@ -198,6 +197,15 @@ class enlacesController extends Controller
         return back()->with('success', '¡Su página ya está publicada! Ahora sí la puede compartir: ' . self::urlPublica($t));
     }
 
+    // Mostrar u ocultar el botón automático de la tienda en línea (o de la carta en restaurantes)
+    public function alternarCatalogo()
+    {
+        $t = $this->tienda();
+        $t->forceFill(['enlaces_catalogo' => !$t->enlaces_catalogo])->save();
+        $que = $t->usa_carta ? 'la carta en línea' : 'la tienda en línea';
+        return back()->with('success', $t->enlaces_catalogo ? "El botón de $que ya sale en su página." : "Listo: el botón de $que ya no sale en su página.");
+    }
+
     // ===== Página pública =====
 
     public static function urlPublica(Tienda $t): string
@@ -226,7 +234,7 @@ class enlacesController extends Controller
                 'tienda' => $tienda,
                 'wa' => numero_whatsapp($tienda->telefono),
                 'foto' => $tienda->enlaces_foto_path ? Storage::disk('public')->url($tienda->enlaces_foto_path) : $tienda->logo_url,
-                'catalogo' => $tienda->catalogo_activo && $tienda->onboarding_completo && $tienda->slug ? $tienda->url_catalogo : null,
+                'catalogo' => $tienda->catalogo_activo && $tienda->onboarding_completo && $tienda->slug ? $tienda->enlaces_boton_catalogo : null,
             ]);
         }
 
@@ -248,7 +256,7 @@ class enlacesController extends Controller
             'tema' => Enlace::TEMAS[$tienda->enlaces_tema] ?? Enlace::TEMAS['localproo'],
             'boton' => $tienda->enlaces_boton ?: 'pildora',
             'foto' => $tienda->enlaces_foto_path ? Storage::disk('public')->url($tienda->enlaces_foto_path) : $tienda->logo_url,
-            'catalogo' => $tienda->enlaces_catalogo && $tienda->catalogo_activo && $tienda->onboarding_completo ? $tienda->url_catalogo : null,
+            'catalogo' => $tienda->enlaces_catalogo && $tienda->catalogo_activo && $tienda->onboarding_completo ? $tienda->enlaces_boton_catalogo : null,
             'url' => self::urlPublica($tienda),
             'borrador' => !$tienda->enlaces_activo,
         ]);
