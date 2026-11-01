@@ -500,6 +500,10 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::get('/mi-carta/ia', [\App\Http\Controllers\miCartaController::class, 'verIa'])->name('carta.ia.ver');
     Route::delete('/mi-carta/ia', [\App\Http\Controllers\miCartaController::class, 'borrarIa'])->name('carta.ia.borrar');
     Route::post('/mi-carta/ia/qr', [\App\Http\Controllers\miCartaController::class, 'qrIa'])->name('carta.ia.qr');
+    Route::post('/mi-carta/ia/compartir', [\App\Http\Controllers\miCartaController::class, 'compartirIa'])->name('carta.ia.compartir');
+    Route::get('/mi-carta/disenos/{id}', [\App\Http\Controllers\miCartaController::class, 'verPublica'])->whereNumber('id')->middleware('throttle:60,1')->name('carta.disenos.ver');
+    Route::post('/mi-carta/disenos/{id}', [\App\Http\Controllers\miCartaController::class, 'usarPublica'])->whereNumber('id')->middleware('throttle:20,1')->name('carta.disenos.usar');
+    Route::post('/mi-carta/disenos/{id}/ocultar', [\App\Http\Controllers\miCartaController::class, 'ocultarPublica'])->whereNumber('id')->name('carta.disenos.ocultar');
     Route::get('/mi-plan', [planController::class, 'index'])->name('plan.index');
     Route::get('/mi-plan/vencido', [planController::class, 'vencido'])->name('plan.vencido');
     Route::post('/mi-plan/aviso-prueba', [planController::class, 'avisoPruebaVisto'])->name('plan.avisoPrueba');

@@ -47,6 +47,13 @@
 .mc-ia-ias a:hover{border-color:#2fd15a}
 .mc-ia-lista{background:#fff;color:#151a17;border-radius:18px;padding:12px;display:grid;grid-template-columns:minmax(0,260px) 1fr;gap:16px;position:relative;z-index:1}
 @media (max-width:700px){.mc-ia-lista{grid-template-columns:1fr}}
+.mc-pub{background:#a6f34a1f;border:1.5px solid #a6f34a66;border-radius:14px;padding:10px 12px}
+.mc-dis{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem}
+.mc-dis-c{background:#fff;border:1.5px solid #e3ebe6;border-radius:18px;overflow:hidden;display:flex;flex-direction:column}
+.mc-dis-c iframe{width:100%;height:300px;border:0;border-bottom:1.5px solid #e3ebe6;background:#fff;pointer-events:none}
+.mc-dis-c .b{padding:12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.mc-dis-c .b .acc{display:grid;grid-template-columns:1fr 1.6fr;gap:6px;margin-top:auto}
+.mc-dis-c .b .acc .btn{border-radius:12px;font-weight:800;font-size:.85rem}
 .mc-ia-lista iframe{width:100%;height:340px;border:1.5px solid #e3ebe6;border-radius:14px;background:#fff}
 </style>
 @endpush
@@ -91,6 +98,31 @@
                 <small class="fw-bold" style="color:#b7791f"><i class="fa-solid fa-triangle-exclamation me-1"></i>Esta carta tiene los precios escritos a mano: si cambia un precio, hágala de nuevo con "Hacer otra carta".</small>
                 @endif
                 <small class="text-muted fw-semibold">Guardada {{ optional($cartaIaFecha)->diffForHumans() }}.</small>
+                @if ($cartaIaAuto)
+                    @if ($cartaIaCompartir === null)
+                    <form method="post" action="{{ route('carta.ia.compartir') }}" class="mc-pub">
+                        @csrf
+                        <div class="fw-bold mb-1"><i class="fa-solid fa-earth-americas me-1"></i>¿Quiere que su diseño sea público?</div>
+                        <small class="d-block text-muted fw-semibold mb-2">Otros negocios podrían usarlo como plantilla con <b>sus</b> platos y precios (los suyos no se comparten). Saldrá como "Diseño de {{ $tienda->nombre }}".</small>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button class="btn btn-success btn-sm fw-bold" name="compartir" value="si">Sí, que sea público</button>
+                            <button class="btn btn-light border btn-sm fw-bold" name="compartir" value="no">No, solo mío</button>
+                        </div>
+                    </form>
+                    @elseif ($cartaIaCompartir)
+                    <form method="post" action="{{ route('carta.ia.compartir') }}" class="d-flex align-items-center gap-2 flex-wrap">
+                        @csrf
+                        <small class="fw-bold" style="color:#16b34a"><i class="fa-solid fa-earth-americas me-1"></i>Su diseño es público: otros negocios lo pueden usar.</small>
+                        <button class="btn btn-link btn-sm p-0 fw-bold" name="compartir" value="no">Dejarlo solo mío</button>
+                    </form>
+                    @else
+                    <form method="post" action="{{ route('carta.ia.compartir') }}" class="d-flex align-items-center gap-2 flex-wrap">
+                        @csrf
+                        <small class="text-muted fw-semibold"><i class="fa-solid fa-lock me-1"></i>Su diseño es solo suyo.</small>
+                        <button class="btn btn-link btn-sm p-0 fw-bold" name="compartir" value="si">Hacerlo público</button>
+                    </form>
+                    @endif
+                @endif
                 @if ($listo)
                 <form method="post" action="{{ route('carta.ia.qr') }}" class="form-check form-switch m-0">
                     @csrf
@@ -145,6 +177,18 @@
                     <h4><b>3</b> Péguelo aquí y guarde</h4>
                     @if ($errors->any())<div class="alert alert-danger py-2 fw-semibold">{{ $errors->first() }}</div>@endif
                     <textarea class="form-control mb-2" name="html" id="mcIaHtml" rows="6" placeholder="<!DOCTYPE html> ... </html>" required>{{ old('html') }}</textarea>
+                    <div class="mc-pub mb-2" style="background:#f4fcf6;border-color:#cdeed6">
+                        <div class="fw-bold mb-1"><i class="fa-solid fa-earth-americas me-1"></i>¿Quiere que su diseño sea público?</div>
+                        <small class="d-block text-muted fw-semibold mb-2">Si dice que sí, otros negocios lo verán en "Diseños de otros negocios" y lo podrán usar con <b>sus</b> platos y precios. Sus platos, precios y datos no se comparten.</small>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="compartir" id="mcPubSi" value="si" required @checked(old('compartir') === 'si')>
+                            <label class="form-check-label fw-bold" for="mcPubSi">Sí, que sea público</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="compartir" id="mcPubNo" value="no" required @checked(old('compartir') === 'no')>
+                            <label class="form-check-label fw-bold" for="mcPubNo">No, solo mío</label>
+                        </div>
+                    </div>
                     <div class="d-flex gap-2 flex-wrap">
                         <button type="button" class="btn btn-dark fw-bold" id="mcIaPegar"><i class="fa-regular fa-paste me-1"></i>Pegar</button>
                         <button class="btn btn-success fw-bold"><i class="fa-solid fa-floppy-disk me-1"></i>Guardar mi carta</button>
@@ -154,6 +198,38 @@
             </div>
         </div>
     </div>
+
+    {{-- Diseños que otros negocios hicieron públicos (como las plantillas de Canva) --}}
+    @if (count($disenosPublicos))
+    <div class="lp-box mb-3" id="disenos">
+        <h3><span><i class="fa-solid fa-swatchbook me-1"></i>Diseños de otros negocios</span></h3>
+        <p class="text-muted fw-semibold mb-3">Cartas que otros negocios hicieron con su IA y quisieron compartir. Aquí las ve con <b>sus</b> platos y precios: si le gusta una, tóquela y queda como su carta personalizada.</p>
+        <div class="mc-dis">
+            @foreach ($disenosPublicos as $d)
+            <div class="mc-dis-c">
+                <iframe sandbox title="Diseño de {{ $d->autor }}" src="{{ route('carta.disenos.ver', $d->id) }}" loading="lazy" tabindex="-1"></iframe>
+                <div class="b">
+                    <div class="fw-bold">Diseño de {{ $d->autor }}</div>
+                    <small class="text-muted fw-semibold">{{ $d->ciudad ? $d->ciudad . ' · ' : '' }}{{ $d->usos === 1 ? 'Lo usa 1 negocio' : ($d->usos ? 'Lo usan ' . $d->usos . ' negocios' : 'Nuevo') }}</small>
+                    <div class="acc">
+                        <a class="btn btn-light border" target="_blank" rel="noopener" href="{{ route('carta.disenos.ver', $d->id) }}"><i class="fa-solid fa-eye me-1"></i>Ver</a>
+                        <form method="post" action="{{ route('carta.disenos.usar', $d->id) }}" @if ($cartaIa) data-confirm="Este diseño reemplaza su carta personalizada actual. ¿Usarlo?" data-confirm-ok="Sí, usarlo" @endif>
+                            @csrf
+                            <button class="btn btn-success w-100"><i class="fa-solid fa-check me-1"></i>Usar este</button>
+                        </form>
+                    </div>
+                    @if (auth()->user()->es_superadmin)
+                    <form method="post" action="{{ route('carta.disenos.ocultar', $d->id) }}" data-confirm="¿Sacar este diseño de la galería?" data-confirm-ok="Sí, ocultar" data-peligro>
+                        @csrf
+                        <button class="btn btn-link btn-sm text-danger p-0 fw-bold">Ocultar de la galería (admin)</button>
+                    </form>
+                    @endif
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
 
     <div class="lp-box mb-3">
         <h3><span><i class="fa-solid fa-qrcode me-1"></i>Carta en línea (para el QR de las mesas)</span></h3>

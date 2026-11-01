@@ -50,6 +50,57 @@ class CartaIa
         DB::table('cartas_ia')->where('tienda_id', $tiendaId)->delete();
     }
 
+    // ¿Quiere que su diseño sea público? null = no ha respondido, true = sí, false = no
+    public static function compartido(int $tiendaId): ?bool
+    {
+        $v = DB::table('cartas_ia')->where('tienda_id', $tiendaId)->value('compartir');
+        return $v === null ? null : (bool) $v;
+    }
+
+    public static function compartir(int $tiendaId, ?bool $si): void
+    {
+        DB::table('cartas_ia')->where('tienda_id', $tiendaId)->update(['compartir' => $si]);
+    }
+
+    /**
+     * Diseños públicos para la galería: solo los que el dueño aceptó compartir, que traen las marcas
+     * (así cada negocio ve SUS platos y precios, nunca los del autor) y que el administrador no ocultó.
+     */
+    public static function publicas(int $excluirTiendaId, int $max = 24): array
+    {
+        return DB::table('cartas_ia')
+            ->join('tiendas', 'tiendas.id', '=', 'cartas_ia.tienda_id')
+            ->where('cartas_ia.compartir', true)->where('cartas_ia.oculta', false)
+            ->where('cartas_ia.tienda_id', '<>', $excluirTiendaId)
+            ->where('cartas_ia.html', 'like', '%PLATOS%')
+            ->orderByDesc('cartas_ia.usos')->orderByDesc('cartas_ia.updated_at')
+            ->limit($max * 2)
+            ->get(['cartas_ia.id', 'cartas_ia.html', 'cartas_ia.usos', 'tiendas.nombre', 'tiendas.ciudad'])
+            ->filter(fn ($r) => self::esPlantilla($r->html))
+            ->take($max)
+            ->map(fn ($r) => (object) ['id' => $r->id, 'usos' => (int) $r->usos, 'autor' => $r->nombre, 'ciudad' => $r->ciudad])
+            ->values()->all();
+    }
+
+    // HTML de un diseño público (o null si ya no está disponible)
+    public static function publica(int $id): ?string
+    {
+        $html = DB::table('cartas_ia')->where('id', $id)->where('compartir', true)->where('oculta', false)->value('html');
+        return $html !== null && self::esPlantilla($html) ? $html : null;
+    }
+
+    // Copia un diseño público a la carta del negocio. La copia no se vuelve a compartir (ya está en la galería).
+    public static function usarPublica(int $id, int $tiendaId): bool
+    {
+        $html = self::publica($id);
+        if ($html === null) return false;
+        $propia = DB::table('cartas_ia')->where('tienda_id', $tiendaId)->value('id');
+        if ((int) $propia === $id) return false;
+        DB::table('cartas_ia')->updateOrInsert(['tienda_id' => $tiendaId], ['html' => $html, 'compartir' => false, 'updated_at' => now(), 'created_at' => now()]);
+        DB::table('cartas_ia')->where('id', $id)->increment('usos');
+        return true;
+    }
+
     // ¿El diseño trae las marcas para que LocalPro ponga los platos y precios solo?
     public static function esPlantilla(string $html): bool
     {
