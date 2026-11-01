@@ -84,7 +84,7 @@
 <script>
 (function () {
     var CAT = @json($catalogo), PEDIDO = @json($pedido?->id), URL = @json(route('pedidos.store'));
-    var M = @json(moneda()), CSRF = document.querySelector('meta[name=csrf-token]').content;
+    var M = @json(moneda()), CSRF = (document.querySelector('meta[name=csrf-token]') || {}).content || '';
     var cart = [], cat = null, $ = function (id) { return document.getElementById(id); };
     function fmt(n) { var t = Math.abs(Number((n || 0).toFixed(M.decimales))).toFixed(M.decimales).split('.'); t[0] = t[0].replace(/\B(?=(\d{3})+(?!\d))/g, M.miles); return M.simbolo + t.join(M.decimal); }
     var cats = []; CAT.forEach(function (p) { if (cats.indexOf(p.cat) < 0) cats.push(p.cat); });

@@ -59,7 +59,7 @@ body.ks-full .lp-hello,body.ks-full .pd-nav{display:none}
 <script>
 (function () {
     var URL = @json(route('pedidos.estacion.datos', $sel ? ['e' => $sel->id] : [])), MARCAR = @json(route('pedidos.estacion.marcar'));
-    var CSRF = document.querySelector('meta[name=csrf-token]').content, ultimo = null, datos = [], desfase = 0, EST = @json($sel?->id);
+    var CSRF = (document.querySelector('meta[name=csrf-token]') || {}).content || '', ultimo = null, datos = [], desfase = 0, EST = @json($sel?->id);
     var pr = document.getElementById('ksPrint'), clave = 'ksPrint' + (EST || '');
     try { pr.checked = localStorage.getItem(clave) === '1'; } catch (e) {}
     pr.addEventListener('change', function () { try { localStorage.setItem(clave, pr.checked ? '1' : '0'); } catch (e) {} });
