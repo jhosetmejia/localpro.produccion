@@ -2,7 +2,13 @@
 
 @php
     $lugarT = trim(implode(', ', array_filter([$tienda->ciudad, $tienda->departamento !== $tienda->ciudad ? $tienda->departamento : null])));
-    $desc = \Illuminate\Support\Str::limit(($tienda->descripcion ?: $tienda->tipo_nombre) . ($lugarT ? ' en ' . $lugarT : '') . '. ' . $productos->count() . ' productos: ' . $categorias->take(5)->implode(', ') . '. Compre por WhatsApp.', 158);
+    // Descripción para Google: sin "0 productos: ." cuando aún no hay productos; en restaurantes habla de la carta
+    $resumenCats = $categorias->take(5)->implode(', ');
+    $desc = \Illuminate\Support\Str::limit(trim(
+        ($tienda->descripcion ?: $tienda->tipo_nombre) . ($lugarT ? ' en ' . $lugarT : '') . '. '
+        . ($productos->count() ? ($tienda->usa_carta ? 'Carta: ' : $productos->count() . ' productos: ') . ($resumenCats ?: $productos->take(5)->pluck('nombre')->implode(', ')) . '. ' : '')
+        . ($tienda->direccion ? $tienda->direccion . '. ' : '')
+        . ($tienda->usa_carta ? 'Vea la carta y pida a domicilio por WhatsApp.' : 'Compre por WhatsApp.')), 158);
     $lista = $productos->where('disponible', true)->take(60)->values();
     // Enlaces compartidos por categoría: ?categoria=chaquetas o ?ver=promos (el título del enlace lo dice)
     $catSlugs = $categorias->mapWithKeys(fn ($c) => [\Illuminate\Support\Str::slug($c) => $c]);
@@ -13,15 +19,16 @@
 
 @php $imgT = \App\Http\Controllers\catalogoController::datosImagen($tienda, $productos); @endphp
 @section('imagen', route('catalogo.compartir', $tienda->slug) . '?v=' . $imgT['v'])
-@section('titulo', $antes . $tienda->nombre . ($lugarT ? ' · ' . $lugarT : '') . ' · Tienda en línea')
+@section('titulo', $antes . $tienda->nombre . ($lugarT ? ' · ' . $lugarT : '') . ($tienda->usa_carta ? ' · Carta y domicilios' : ' · Tienda en línea'))
 @section('descripcion', $desc)
 @section('canonical', $tienda->url_catalogo)
 
 @push('jsonld')
-<script type="application/ld+json">{!! json_encode([
-    '@context' => 'https://schema.org',
-    '@type' => 'Store',
+<script type="application/ld+json">{!! json_encode(array_filter([
+    '@' . 'context' => 'https://schema.org', // separado a propósito: Blade toma la palabra junta como directiva y rompe el JSON
+    '@type' => $tienda->usa_carta ? ($tienda->tipo_negocio === 'cafeteria' ? 'CafeOrCoffeeShop' : 'Restaurant') : 'Store',
     'name' => $tienda->nombre,
+    'hasMenu' => $tienda->usa_carta ? $tienda->url_carta : null,
     'description' => $tienda->descripcion ?: $tienda->tipo_nombre,
     'url' => $tienda->url_catalogo,
     'image' => $tienda->logo_url ?: null,
@@ -31,7 +38,7 @@
         '@type' => 'Offer', 'position' => $i + 1, 'url' => $p['url'], 'price' => $p['desde'] ?? $p['precio'], 'priceCurrency' => moneda()['moneda'],
         'itemOffered' => array_filter(['@type' => 'Product', 'name' => $p['nombre'], 'image' => $p['img'], 'sku' => $p['codigo']]),
     ])->all()],
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}</script>
+], fn ($v) => $v !== null), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}</script>
 @endpush
 
 @push('css')

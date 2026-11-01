@@ -38,7 +38,7 @@
 
 @push('jsonld')
 <script type="application/ld+json">{!! json_encode(array_filter([
-    '@context' => 'https://schema.org',
+    '@' . 'context' => 'https://schema.org', // separado a propósito: Blade toma la palabra junta como directiva y rompe el JSON
     '@type' => 'Product',
     'name' => $p['nombre'],
     'description' => $p['descripcion'] ?: $desc,
@@ -60,7 +60,7 @@
     ],
 ], fn ($v) => $v !== null), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}</script>
 <script type="application/ld+json">{!! json_encode([
-    '@context' => 'https://schema.org',
+    '@' . 'context' => 'https://schema.org', // separado a propósito: Blade toma la palabra junta como directiva y rompe el JSON
     '@type' => 'BreadcrumbList',
     'itemListElement' => array_values(array_filter([
         ['@type' => 'ListItem', 'position' => 1, 'name' => $tienda->nombre, 'item' => $tienda->url_catalogo],

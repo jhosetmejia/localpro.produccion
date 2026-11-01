@@ -323,6 +323,7 @@ class catalogoController extends Controller
                 if ($t->tipo_negocio && isset(Tienda::TIPOS[$t->tipo_negocio])) $mk['t:' . $t->tipo_negocio] = route('marketplace', ['tipo' => $t->tipo_negocio]);
                 if (!$t->en_google) continue;
                 $urls[] = ['loc' => $t->url_catalogo, 'pri' => '0.9', 'mod' => $t->updated_at];
+                if ($t->usa_carta) $urls[] = ['loc' => $t->url_carta, 'pri' => '0.9', 'mod' => $t->updated_at];
                 TiendaActual::como($t->id, function () use ($t, &$urls) {
                     foreach (Producto::enCatalogo()->get(['id', 'nombre', 'img_path', 'updated_at']) as $p) {
                         $urls[] = ['loc' => self::urlProducto($t, $p), 'pri' => '0.7', 'mod' => $p->updated_at,

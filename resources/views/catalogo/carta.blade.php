@@ -12,7 +12,8 @@
     [$cBg, $cCard, $cInk, $cMut, $cAcc, $cOnAcc, $cLine, $cHero] = $temas[$tema];
     $oscuro = in_array($tema, ['bistro', 'parrilla'], true);
     $titulo = 'Carta · ' . $tienda->nombre . ($lugar ? ' · ' . $lugar : '');
-    $desc = \Illuminate\Support\Str::limit(($tienda->descripcion ?: 'Nuestra carta') . '. ' . implode(', ', array_slice(array_keys($secciones), 0, 5)) . '. Pida por WhatsApp.', 158);
+    $secTxt = implode(', ', array_slice(array_keys($secciones), 0, 5));
+    $desc = \Illuminate\Support\Str::limit('Carta de ' . $tienda->nombre . ($lugar ? ' en ' . $lugar : '') . '. ' . ($tienda->descripcion ? $tienda->descripcion . '. ' : '') . ($secTxt ? $secTxt . '. ' : '') . 'Pida a domicilio por WhatsApp.', 158);
     $datos = collect($secciones)->flatten(1)->where('disponible', true)->keyBy('id')->map(fn ($p) => ['id' => $p['id'], 'nombre' => $p['nombre'], 'codigo' => $p['codigo'], 'variantes' => $p['variantes']]);
 @endphp
 <!DOCTYPE html>
@@ -31,6 +32,17 @@
 <meta property="og:url" content="{{ $tienda->url_carta }}">
 @if ($tienda->logo_url)<meta property="og:image" content="{{ $tienda->logo_url }}"><link rel="icon" href="{{ $tienda->logo_url }}">@endif
 <meta name="theme-color" content="{{ $cBg }}">
+<script type="application/ld+json">{!! json_encode(array_filter([
+    '@' . 'context' => 'https://schema.org', // separado a propósito: Blade toma la palabra junta como directiva y rompe el JSON
+    '@type' => $tienda->tipo_negocio === 'cafeteria' ? 'CafeOrCoffeeShop' : 'Restaurant',
+    'name' => $tienda->nombre,
+    'description' => $tienda->descripcion ?: null,
+    'url' => $tienda->url_catalogo,
+    'hasMenu' => $tienda->url_carta,
+    'image' => $tienda->logo_url ?: null,
+    'telephone' => $tienda->telefono ?: null,
+    'address' => array_filter(['@type' => 'PostalAddress', 'streetAddress' => $tienda->direccion, 'addressLocality' => $tienda->ciudad, 'addressRegion' => $tienda->departamento, 'addressCountry' => $tienda->pais]),
+], fn ($v) => $v !== null), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
