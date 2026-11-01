@@ -189,9 +189,9 @@
                     <b>{{ $nom }}</b><small>{{ $txt }}</small>
                     @if ($listo && $base)
                     <div class="mc-acc">
-                        <a class="btn btn-light" target="_blank" rel="noopener" href="{{ $base }}?plantilla={{ $k }}"><i class="fa-solid fa-eye"></i> Ver</a>
-                        <a class="btn btn-danger" target="_blank" rel="noopener" href="{{ $base }}?plantilla={{ $k }}&accion=pdf"><i class="fa-solid fa-file-pdf"></i> PDF</a>
-                        <a class="btn btn-success" target="_blank" rel="noopener" href="{{ $base }}?plantilla={{ $k }}&accion=jpg"><i class="fa-solid fa-image"></i> JPG</a>
+                        <a class="btn btn-light" href="{{ route('carta.imprimir', ['plantilla' => $k]) }}"><i class="fa-solid fa-eye"></i> Ver</a>
+                        <a class="btn btn-danger" href="{{ route('carta.imprimir', ['plantilla' => $k, 'accion' => 'pdf']) }}"><i class="fa-solid fa-file-pdf"></i> PDF</a>
+                        <a class="btn btn-success" href="{{ route('carta.imprimir', ['plantilla' => $k, 'accion' => 'jpg']) }}"><i class="fa-solid fa-image"></i> JPG</a>
                     </div>
                     @endif
                 </div>

@@ -31,6 +31,19 @@ class miCartaController extends Controller
         ]);
     }
 
+    // Carta para imprimir dentro del panel (con el menú), la hoja va en un marco
+    public function imprimir(Request $request)
+    {
+        $t = TiendaActual::tienda();
+        if (!($t->catalogo_activo && $t->slug && $t->activa && $t->onboarding_completo)) {
+            return redirect()->route('carta.index');
+        }
+        $plantilla = isset(catalogoController::PLANTILLAS_CARTA[$request->query('plantilla')]) ? $request->query('plantilla') : 'pro';
+        $accion = in_array($request->query('accion'), ['pdf', 'jpg'], true) ? $request->query('accion') : null;
+        $src = route('catalogo.carta.imprimir', $t->slug) . '?' . http_build_query(array_filter(['plantilla' => $plantilla, 'accion' => $accion, 'embed' => 1]));
+        return view('negocio.carta-imprimir', ['src' => $src]);
+    }
+
     // Guarda la carta que el negocio hizo con su IA (código HTML pegado)
     public function guardarIa(Request $request)
     {

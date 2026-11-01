@@ -43,6 +43,8 @@ body{background:#e9ece8;font-family:'Plus Jakarta Sans',system-ui,sans-serif;col
 /* ===== Barra de herramientas (no sale en la carta) ===== */
 .barra{position:sticky;top:0;z-index:10;background:#0b0d0c;color:#fff;padding:12px max(16px,env(safe-area-inset-left));display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;box-shadow:0 8px 24px -12px rgba(0,0,0,.5)}
 .barra b{font-weight:800}
+.b-volver{color:#fff;text-decoration:none;font-weight:800;font-size:.9rem;border:1.5px solid #2a312d;border-radius:99px;padding:.5rem 1rem;white-space:nowrap}
+.b-volver:hover{border-color:#a6f34a;color:#a6f34a}
 .barra .pl{display:flex;gap:6px;flex-wrap:wrap}
 .barra .pl a{color:#c9d3cc;text-decoration:none;font-weight:700;font-size:.88rem;border:1.5px solid #2a312d;border-radius:99px;padding:.45rem .9rem}
 .barra .pl a.on{background:#a6f34a;color:#0b0d0c;border-color:#a6f34a}
@@ -193,11 +195,20 @@ body{background:#e9ece8;font-family:'Plus Jakarta Sans',system-ui,sans-serif;col
 </style>
 </head>
 <body>
+@php $embed = request()->boolean('embed'); @endphp
 <div class="barra">
+    @if ($embed)
+    <a class="b-volver" href="{{ route('carta.index') }}" target="_top">← Volver a Mi carta</a>
+    @else
     <div><b>{{ $tienda->nombre }}</b> · carta para imprimir</div>
+    @endif
     <div class="pl">
         @foreach ($planes as $k => [$nom, $txt])
+            @if ($embed)
+            <a href="{{ route('carta.imprimir', ['plantilla' => $k]) }}" target="_top" class="{{ $k === $plantilla ? 'on' : '' }}" title="{{ $txt }}">{{ $nom }}</a>
+            @else
             <a href="?plantilla={{ $k }}" class="{{ $k === $plantilla ? 'on' : '' }}" title="{{ $txt }}">{{ $nom }}</a>
+            @endif
         @endforeach
     </div>
     <div class="acc">
