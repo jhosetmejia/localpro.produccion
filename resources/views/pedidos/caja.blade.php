@@ -11,6 +11,8 @@
 .cj-kpi b{display:block;font-size:1.5rem;font-weight:900;line-height:1.1}.cj-kpi .v b{color:#a6f34a}
 .cj-kpi small{font-weight:700;color:#6b7570}.cj-kpi .v small{color:#b8c4bc}
 .cj-row{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;background:#fff;border:1.5px solid #e3ebe6;border-radius:20px;padding:.85rem 1rem;margin-bottom:.55rem}
+.cj-auto{display:inline-block;margin:.2rem 0;background:#ede9fe;color:#5b21b6;border-radius:999px;padding:.15rem .65rem;font-weight:800;font-size:.78rem}
+.cj-row.auto{border-color:#8b5cf6}
 .cj-row.nuevo{border-color:#f59e0b;box-shadow:0 0 0 4px rgba(245,158,11,.15)}
 .cj-row .t{flex:1 1 240px;min-width:0}
 .cj-row .t b{font-size:1.1rem}
@@ -49,9 +51,11 @@
 
     <h3 class="h5 fw-bold">Por cobrar</h3>
     @forelse ($porCobrar as $p)
-    <div class="cj-row {{ $p->created_at->gt(now()->subMinutes(2)) ? 'nuevo' : '' }}" data-por-cobrar>
+    <div class="cj-row {{ $p->created_at->gt(now()->subMinutes(2)) ? 'nuevo' : '' }} {{ $p->origen === 'qr' ? 'auto' : '' }}" data-por-cobrar>
         <div class="t"><a href="{{ route('pedidos.show', $p) }}" class="text-reset text-decoration-none"><b>#{{ $p->numero }} {{ $p->cliente_nombre }}</b></a>
-            <small>@if ($p->mesa)Mesa {{ $p->mesa }} · @endif{{ $p->mesero?->name }} · {{ $p->created_at->locale('es')->diffForHumans() }}@if ($p->cuenta_pedida) · <b class="text-warning">pidió la cuenta</b>@endif</small>
+            @if ($p->origen === 'qr')<span class="cj-auto"><i class="fa-solid fa-mobile-screen me-1"></i>Autogestión · lo pidió el cliente desde el QR, viene a pagar</span>@endif
+            <small>@if ($p->mesa)Mesa {{ $p->mesa }} · @endif{{ $p->origen === 'qr' ? 'Cliente (QR)' : $p->mesero?->name }} · {{ $p->created_at->locale('es')->diffForHumans() }}@if ($p->cuenta_pedida) · <b class="text-warning">pidió la cuenta</b>@endif</small>
+            @if ($p->origen === 'qr' && \Illuminate\Support\Str::contains((string) $p->nota, ' · '))<small><b>Nota:</b> {{ \Illuminate\Support\Str::after($p->nota, ' · ') }}</small>@endif
             <small>{{ $p->items->where('estado', '<>', 'anulado')->map(fn ($i) => cantidad($i->cantidad) . ' × ' . $i->nombre)->join(' · ') }}</small></div>
         <div class="v">{{ dinero($p->total) }}</div>
         <button type="button" class="cj-cancel" data-cancelar="{{ route('pedidos.anular', $p) }}" data-titulo="#{{ $p->numero }} {{ $p->cliente_nombre }}"><i class="fa-solid fa-xmark me-1"></i>Cancelar</button>

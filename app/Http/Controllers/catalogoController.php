@@ -200,7 +200,7 @@ class catalogoController extends Controller
         // El negocio eligió su carta hecha con IA para el QR (?pedir=1 abre la carta normal para hacer el pedido)
         if (!$request->has('pedir') && !$request->has('tema') && \App\Support\CartaIa::enQr($tienda->id)
             && ($html = \App\Support\CartaIa::leer($tienda->id)) !== null) {
-            return $this->servirCartaIa($tienda, $html);
+            return $this->servirCartaIa($tienda, $html, (string) $request->query('mesa', ''));
         }
         [$secciones, $total] = $this->seccionesCarta($tienda);
 
@@ -210,10 +210,10 @@ class catalogoController extends Controller
         return view('catalogo.carta', compact('tienda', 'secciones', 'tema') + ['total' => $total]);
     }
 
-    private function servirCartaIa(Tienda $tienda, string $html)
+    private function servirCartaIa(Tienda $tienda, string $html, string $mesa = '')
     {
         $html = \App\Support\CartaIa::armar($html, $tienda, $this->seccionesCarta($tienda)[0]);
-        return \App\Support\CartaIa::respuesta(\App\Support\CartaIa::conBotonPedir($html, $tienda), $tienda);
+        return \App\Support\CartaIa::respuesta(\App\Support\CartaIa::conBotonPedir($html, $tienda, mb_substr(trim($mesa), 0, 10)), $tienda);
     }
 
     // Productos de la carta agrupados por categoría (los desactivados salen como "agotado por hoy")
@@ -275,6 +275,78 @@ class catalogoController extends Controller
             'logo' => $ruta($tienda->logo_url),
             'accion' => in_array($request->query('accion'), ['pdf', 'jpg'], true) ? $request->query('accion') : null,
         ]);
+    }
+
+    /**
+     * Autogestión: el cliente pide desde el QR de la mesa → llega a Caja (marcado "Autogestión") → se acerca a pagar.
+     * Es una dirección pública, así que lleva frenos contra bots y pedidos falsos: pocos intentos por minuto,
+     * campo trampa, tiempo mínimo en la página, máximo de pedidos por persona y por negocio, cantidades limitadas,
+     * y solo productos activos de esta tienda con el precio del sistema (nunca el que manda el navegador).
+     */
+    public function cartaPedido(Request $request, string $slug)
+    {
+        $tienda = $this->tienda($slug);
+        $no = fn (string $m, int $code = 422) => response()->json(['message' => $m], $code);
+        if (!$tienda->autopedido) return $no('Este negocio no recibe pedidos desde la carta. Pídale al mesero.', 403);
+
+        // Campo trampa (los humanos no lo ven) y tiempo mínimo: un bot llena todo y envía al instante
+        if (filled($request->input('web')) || (int) $request->input('t') < 2500) return $no('No se pudo enviar. Espere un momento e intente de nuevo.');
+
+        $d = $request->validate([
+            'nombre' => 'required|string|min:2|max:40',
+            'mesa' => 'required|string|max:10',
+            'nota' => 'nullable|string|max:200',
+            'items' => 'required|array|min:1|max:30',
+            'items.*.id' => 'required|integer',
+            'items.*.cant' => 'required|integer|min:1|max:20',
+        ], [
+            'nombre.required' => 'Escriba su nombre para que caja lo llame.', 'nombre.min' => 'Escriba su nombre para que caja lo llame.',
+            'mesa.required' => 'Escriba el número de su mesa.', 'items.required' => 'Su pedido está vacío.',
+            'items.*.cant.max' => 'Máximo 20 unidades de un mismo plato. Para más, pídale al mesero.',
+        ]);
+        if (array_sum(array_column($d['items'], 'cant')) > 60) return $no('Es un pedido muy grande. Pídale al mesero.');
+
+        $ip = sha1((string) $request->ip());
+        $claveIp = 'autopedido_' . $tienda->id . '_' . $ip;
+        if ((int) Cache::get($claveIp, 0) >= 4) return $no('Ya hizo varios pedidos. Acérquese a caja o pídale al mesero.', 429);
+        $abiertos = \App\Models\Pedido::where('origen', 'qr')->where('estado', 'por_cobrar')->where('pagado', false)->where('created_at', '>=', now()->subHours(3))->count();
+        if ($abiertos >= 40) return $no('Caja tiene muchos pedidos pendientes. Pídale al mesero, por favor.', 429);
+
+        $pedido = \Illuminate\Support\Facades\DB::transaction(function () use ($d, $tienda) {
+            $vars = \App\Models\ProductoVariante::with('producto:id,nombre,precio_venta,estacion_id,disponible,estado')
+                ->where('estado', 1)->whereIn('id', collect($d['items'])->pluck('id'))->get()->keyBy('id');
+            \App\Models\PedidoEstacion::asegurar();
+            $estaciones = \App\Models\PedidoEstacion::activas()->pluck('id')->map(fn ($x) => (int) $x)->all();
+            $lineas = [];
+            foreach ($d['items'] as $it) {
+                $v = $vars[$it['id']] ?? null;
+                if (!$v || (int) $v->producto?->estado !== 1) throw \Illuminate\Validation\ValidationException::withMessages(['items' => 'Algún plato ya no está en la carta. Recargue la página.']);
+                if ($v->producto->disponible === false) throw \Illuminate\Validation\ValidationException::withMessages(['items' => '"' . $v->producto->nombre . '" no está disponible ahora. Quítelo del pedido.']);
+                $lineas[] = [$v, (int) $it['cant']];
+            }
+            // Siempre "paga primero": llega a caja y a la cocina cuando se cobra
+            $pedido = \App\Models\Pedido::create([
+                'numero' => \App\Models\Pedido::siguienteNumero($tienda),
+                'cliente_nombre' => trim(strip_tags($d['nombre'])), 'mesa' => trim(strip_tags($d['mesa'])),
+                'nota' => trim('AUTOGESTIÓN: lo pidió el cliente desde el QR' . (!empty($d['nota']) ? ' · ' . trim(strip_tags($d['nota'])) : '')),
+                'user_id' => null, 'modo' => 'antes', 'origen' => 'qr', 'estado' => 'por_cobrar',
+            ]);
+            foreach ($lineas as [$v, $cant]) {
+                $est = $v->producto->estacion_id && in_array((int) $v->producto->estacion_id, $estaciones, true) ? (int) $v->producto->estacion_id : ($estaciones[0] ?? null);
+                $pedido->items()->create([
+                    'producto_id' => $v->producto_id, 'producto_variante_id' => $v->id, 'estacion_id' => $est,
+                    'nombre' => $v->producto->nombre, 'etiqueta' => ($v->talla || $v->color) ? ($v->etiqueta ?: null) : null,
+                    'cantidad' => $cant, 'precio' => $v->precio_final, 'subtotal' => round($cant * $v->precio_final, 2),
+                    'ronda' => 1, 'enviado_at' => null,
+                ]);
+            }
+            $pedido->recalcular();
+            return $pedido;
+        });
+
+        Cache::add($claveIp, 0, now()->addMinutes(30));
+        Cache::increment($claveIp);
+        return response()->json(['ok' => true, 'numero' => $pedido->numero, 'total' => dinero($pedido->total), 'nombre' => $pedido->cliente_nombre]);
     }
 
     public function producto(string $slug, string $producto)

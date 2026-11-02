@@ -18,7 +18,7 @@ class Tienda extends Model
         'fe_activa', 'fe_ambiente', 'fe_resolucion_numero', 'fe_resolucion_fecha', 'fe_resolucion_vigencia', 'fe_prefijo', 'fe_desde', 'fe_hasta', 'fe_clave_tecnica', 'fe_credenciales', 'estado', 'onboarding_paso', 'onboarding_completo', 'conj_dia_vence', 'conj_interes_mora', 'conj_zonas',
     ];
 
-    protected $casts = ['mod_medida' => 'boolean', 'mod_vencimiento' => 'boolean', 'mod_recetas' => 'boolean', 'mod_alquiler' => 'boolean', 'mod_360' => 'boolean', 'mod_obituarios' => 'boolean', 'mod_pantallas' => 'boolean', 'mod_eventos' => 'boolean', 'mod_contable' => 'boolean', 'mod_consultorio' => 'boolean', 'mod_pedidos' => 'boolean', 'mod_servicios' => 'boolean', 'usa_tallas' => 'boolean', 'onboarding_completo' => 'boolean', 'catalogo_activo' => 'boolean', 'compartir_asesores' => 'boolean', 'catalogo_agotados' => 'boolean', 'cliente_obligatorio' => 'boolean', 'plan_vence' => 'date', 'datos_depurados_at' => 'datetime', 'resolucion_fecha' => 'date', 'resolucion_vigencia' => 'date', 'pos_electronico' => 'boolean', 'fe_activa' => 'boolean', 'fe_resolucion_fecha' => 'date', 'fe_resolucion_vigencia' => 'date', 'fe_clave_tecnica' => 'encrypted', 'fe_credenciales' => 'encrypted:array', 'enlaces_activo' => 'boolean', 'enlaces_catalogo' => 'boolean', 'enlaces_redes' => 'array', 'menu_oculto' => 'array', 'impresora' => 'array'];
+    protected $casts = ['mod_medida' => 'boolean', 'mod_vencimiento' => 'boolean', 'mod_recetas' => 'boolean', 'mod_alquiler' => 'boolean', 'mod_360' => 'boolean', 'mod_obituarios' => 'boolean', 'mod_pantallas' => 'boolean', 'mod_eventos' => 'boolean', 'mod_contable' => 'boolean', 'mod_consultorio' => 'boolean', 'mod_pedidos' => 'boolean', 'mod_servicios' => 'boolean', 'usa_tallas' => 'boolean', 'onboarding_completo' => 'boolean', 'catalogo_activo' => 'boolean', 'compartir_asesores' => 'boolean', 'catalogo_agotados' => 'boolean', 'cliente_obligatorio' => 'boolean', 'plan_vence' => 'date', 'datos_depurados_at' => 'datetime', 'resolucion_fecha' => 'date', 'resolucion_vigencia' => 'date', 'pos_electronico' => 'boolean', 'fe_activa' => 'boolean', 'fe_resolucion_fecha' => 'date', 'fe_resolucion_vigencia' => 'date', 'fe_clave_tecnica' => 'encrypted', 'fe_credenciales' => 'encrypted:array', 'enlaces_activo' => 'boolean', 'enlaces_catalogo' => 'boolean', 'enlaces_redes' => 'array', 'menu_oculto' => 'array', 'impresora' => 'array', 'pedidos_qr' => 'boolean'];
 
     // Las llaves de facturación nunca salen en JSON ni en registros
     protected $hidden = ['fe_clave_tecnica', 'fe_credenciales'];
@@ -200,6 +200,12 @@ class Tienda extends Model
     public function getCartaTemaActualAttribute(): string
     {
         return isset(self::CARTA_TEMAS[$this->carta_tema]) ? $this->carta_tema : 'bistro';
+    }
+
+    // ¿El cliente puede pedir desde el QR de la mesa y pagar en caja? (módulo Pedidos activo y el dueño no lo apagó)
+    public function getAutopedidoAttribute(): bool
+    {
+        return (bool) $this->mod_pedidos && $this->pedidos_qr !== false;
     }
 
     public function getUrlCartaAttribute(): string

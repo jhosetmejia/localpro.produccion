@@ -21,6 +21,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+@if ($tienda->autopedido)<meta name="csrf-token" content="{{ csrf_token() }}">@endif
 <title>{{ $titulo }}</title>
 <meta name="description" content="{{ $desc }}">
 <link rel="canonical" href="{{ str_replace('://www.', '://', $tienda->url_carta) }}">
@@ -136,6 +137,16 @@ a{color:inherit}
 .in{width:100%;font:inherit;font-weight:600;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:14px;padding:.75rem .9rem;margin-top:8px;outline:none}
 .enviar{width:100%;margin-top:14px;border:0;border-radius:999px;padding:1rem;font:800 1.02rem 'Plus Jakarta Sans',sans-serif;background:var(--wa);color:#fff;cursor:pointer}
 .enviar:disabled{opacity:.5}
+.enviar.caja{background:var(--acc);color:var(--on)}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.aviso-caja{margin-top:10px;font-size:.84rem;font-weight:700;color:var(--mut);display:none}
+.exito{text-align:center;padding:18px 4px calc(22px + env(safe-area-inset-bottom))}
+.exito .ok{width:76px;height:76px;border-radius:50%;background:#16b34a;color:#fff;display:grid;place-items:center;font-size:2.4rem;margin:0 auto 12px;animation:okPop .45s cubic-bezier(.2,1.4,.4,1)}
+@keyframes okPop{from{transform:scale(.3);opacity:0}}
+.exito h3{font-size:1.5rem;font-weight:800;margin-bottom:6px}
+.exito .num{display:inline-block;margin:10px 0;border:2px dashed var(--acc);border-radius:18px;padding:10px 22px;font-size:2.4rem;font-weight:900;color:var(--acc)}
+.exito p{color:var(--mut);font-weight:600;margin:4px 0}
+.exito button{margin-top:16px;border:0;border-radius:999px;padding:.85rem 1.6rem;font-weight:800;background:var(--line);color:var(--ink)}
 .toast{position:fixed;left:50%;top:18px;transform:translate(-50%,-160%);z-index:70;background:var(--ink);color:var(--bg);font-weight:800;font-size:.9rem;border-radius:999px;padding:.6rem 1.1rem;transition:transform .25s;max-width:calc(100% - 32px)}
 .toast.on{transform:translate(-50%,0)}
 .foto-rota{display:grid;place-items:center;width:100%;height:100%;font:800 1.8rem 'Fraunces',serif;color:var(--acc)}
@@ -232,7 +243,9 @@ document.addEventListener('error', function (e) {
     <input class="in" id="nom" placeholder="Su nombre" maxlength="60">
     <input class="in" id="dir" placeholder="Dirección de entrega" maxlength="160">
     <input class="in" id="nota" placeholder="Nota: sin cebolla, salsa aparte… (opcional)" maxlength="200">
-    @if ($wa)
+    <input class="hp" id="web" name="web" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <div class="aviso-caja" id="avisoCaja">🧾 Su pedido llega a caja. Luego se acerca a pagar con su nombre o el número de pedido.</div>
+    @if ($wa || $tienda->autopedido)
     <button class="enviar" id="enviar">💬 Enviar pedido por WhatsApp</button>
     @else
     <p style="color:#e11d48;font-weight:700;margin:12px 0 0;padding-bottom:calc(22px + env(safe-area-inset-bottom))">Este negocio aún no tiene WhatsApp configurado.</p>
@@ -250,7 +263,23 @@ document.addEventListener('error', function (e) {
     var VAR = {}; Object.keys(P).forEach(function (k) { P[k].variantes.forEach(function (v) { VAR[v.id] = { p: P[k], v: v }; }); });
     var cart = []; try { cart = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { cart = []; }
     cart = cart.filter(function (i) { return VAR[i.id]; }); // lo desactivado o borrado sale solo del pedido
-    var modo = 'Domicilio';
+    var modo = 'Domicilio', AUTO = {{ $tienda->autopedido ? 'true' : 'false' }}, PEDIR = @json(route('catalogo.carta.pedido', $tienda->slug, false)), INICIO = Date.now();
+    var CSRF = (document.querySelector('meta[name=csrf-token]') || {}).content || '';
+    // En la mesa con autogestión: el pedido va a caja (no a WhatsApp)
+    function aCaja() { return AUTO && modo === 'En la mesa'; }
+    function botonEnviar() {
+        var b = $('enviar'); if (!b) return;
+        b.classList.toggle('caja', aCaja());
+        b.innerHTML = aCaja() ? '🧾 Enviar pedido a caja' : '💬 Enviar pedido por WhatsApp';
+        $('avisoCaja').style.display = aCaja() ? 'block' : 'none';
+        $('nom').placeholder = aCaja() ? 'Su nombre (para llamarlo en caja)' : 'Su nombre';
+    }
+    function elegirModo(m) {
+        modo = m;
+        [].forEach.call($('modos').children, function (x) { x.classList.toggle('on', x.dataset.m === m); });
+        $('dir').placeholder = modo === 'Domicilio' ? 'Dirección de entrega' : modo === 'En la mesa' ? 'Número de mesa' : 'Hora en que pasa a recoger (opcional)';
+        botonEnviar();
+    }
     function guardar() { try { localStorage.setItem(KEY, JSON.stringify(cart)); } catch (e) {} }
     function total() { return cart.reduce(function (a, i) { return a + i.precio * i.cant; }, 0); }
     function toast(t) { var x = $('toast'); x.textContent = t; x.classList.add('on'); clearTimeout(x._t); x._t = setTimeout(function () { x.classList.remove('on'); }, 1700); }
@@ -294,14 +323,42 @@ document.addEventListener('error', function (e) {
     });
     $('modos').addEventListener('click', function (e) {
         var b = e.target.closest('button'); if (!b) return;
-        modo = b.dataset.m;
-        [].forEach.call(this.children, function (x) { x.classList.toggle('on', x === b); });
-        $('dir').placeholder = modo === 'Domicilio' ? 'Dirección de entrega' : modo === 'En la mesa' ? 'Número de mesa' : 'Hora en que pasa a recoger (opcional)';
+        elegirModo(b.dataset.m);
     });
+    // QR de la mesa (?mesa=4): ya viene en "En la mesa" con el número puesto
+    (function () {
+        var m = new URLSearchParams(location.search).get('mesa');
+        if (m) { elegirModo('En la mesa'); $('dir').value = m.slice(0, 10); } else botonEnviar();
+    })();
+    function pedirEnCaja(b) {
+        var nom = $('nom').value.trim(), mesa = $('dir').value.trim(), nota = $('nota').value.trim();
+        if (nom.length < 2) { $('nom').focus(); toast('Escriba su nombre para que caja lo llame'); return; }
+        if (!mesa) { $('dir').focus(); toast('Escriba el número de su mesa'); return; }
+        b.disabled = true; var txt = b.innerHTML; b.innerHTML = 'Enviando…';
+        fetch(PEDIR, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': CSRF },
+            body: JSON.stringify({ nombre: nom, mesa: mesa, nota: nota, web: $('web').value, t: Date.now() - INICIO,
+                items: cart.map(function (i) { return { id: i.id, cant: i.cant }; }) }) })
+        .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, st: r.status, d: d }; }); })
+        .then(function (res) {
+            if (!res.ok) {
+                var m = res.st === 419 ? 'La página se venció. Recárguela e intente de nuevo.' : (res.d.message || 'No se pudo enviar.');
+                if (res.d.errors) m = res.d.errors[Object.keys(res.d.errors)[0]][0];
+                throw new Error(m);
+            }
+            cart = []; guardar(); barra();
+            $('ov').querySelector('.sheet').innerHTML = '<div class="exito"><div class="ok">✓</div><h3 class="serif">¡Pedido hecho con éxito!</h3>' +
+                '<p>Acérquese a <b>caja</b> a pagar. Diga su nombre o este número:</p><div class="num">#' + esc(res.d.numero) + '</div>' +
+                '<p><b>' + esc(res.d.nombre) + '</b> · Total ' + esc(res.d.total) + '</p><p>Cuando pague, su pedido pasa a la cocina.</p>' +
+                '<button type="button" onclick="location.reload()">Listo</button></div>';
+        })
+        .catch(function (err) { toast(err.message || 'Sin conexión. Intente de nuevo.'); b.disabled = false; b.innerHTML = txt; });
+    }
     $('bar').addEventListener('click', function () { pintar(); $('ov').classList.add('on'); });
     $('cerrar').addEventListener('click', function () { $('ov').classList.remove('on'); });
     $('ov').addEventListener('click', function (e) { if (e.target === this) this.classList.remove('on'); });
     if ($('enviar')) $('enviar').addEventListener('click', function () {
+        if (aCaja()) { pedirEnCaja(this); return; }
+        if (!WA) { toast('Este negocio recibe pedidos solo en la mesa. Elija "En la mesa".'); return; }
         var nom = $('nom').value.trim(), dir = $('dir').value.trim(), nota = $('nota').value.trim();
         if (modo === 'Domicilio' && !dir) { $('dir').focus(); toast('Escriba la dirección de entrega'); return; }
         var msg = '¡Hola ' + NEG + '! Quiero hacer este pedido de la carta:\n\n' +

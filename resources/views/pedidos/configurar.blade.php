@@ -42,6 +42,16 @@
         </div>
 
         <div class="lp-box mb-3">
+            <h3><i class="fa-solid fa-qrcode me-1"></i>Pedidos desde el QR de la mesa (autogestión)</h3>
+            <div class="form-check form-switch">
+                <input type="hidden" name="pedidos_qr" value="0">
+                <input class="form-check-input" type="checkbox" role="switch" name="pedidos_qr" id="cfQr" value="1" @checked($tienda->pedidos_qr !== false)>
+                <label class="form-check-label fw-bold" for="cfQr">El cliente pide desde la carta en línea y el pedido llega a Caja</label>
+            </div>
+            <small class="text-muted d-block mt-1">En la carta elige <b>"En la mesa"</b>, escribe su nombre y la mesa, y le sale <b>"Pedido hecho con éxito, acérquese a caja a pagar"</b> con su número de pedido. En Caja llega marcado <b>Autogestión</b>; al cobrarlo pasa a la cocina. Si un pedido es falso, tóquelo en <b>Cancelar</b>. Imprima los QR por mesa en <a href="{{ route('carta.qr') }}" target="_blank">Mi carta → Imprimir QR</a> (con el número de mesa ya puesto).</small>
+        </div>
+
+        <div class="lp-box mb-3">
             <h3><i class="fa-solid fa-kitchen-set me-1"></i>Estaciones</h3>
             <small class="text-muted d-block mb-2">Cada estación tiene su pantalla (tablet, celular o TV) y ve solo lo suyo. Ej.: Cocina, Cafetería, Bar, Entradas, Paseos con animales.</small>
             @foreach ($estaciones as $e)

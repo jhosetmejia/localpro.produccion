@@ -16,7 +16,7 @@ class Pedido extends Model
 {
     use PerteneceATienda;
 
-    protected $fillable = ['tienda_id', 'numero', 'cliente_nombre', 'mesa', 'nota', 'user_id', 'modo', 'estado', 'cuenta_pedida', 'total', 'pagado', 'pos_venta_id', 'cobrado_por', 'pagado_at', 'listo_at', 'entregado_at', 'cerrado_at'];
+    protected $fillable = ['tienda_id', 'numero', 'cliente_nombre', 'mesa', 'nota', 'user_id', 'modo', 'origen', 'estado', 'cuenta_pedida', 'total', 'pagado', 'pos_venta_id', 'cobrado_por', 'pagado_at', 'listo_at', 'entregado_at', 'cerrado_at'];
 
     protected $casts = ['total' => 'float', 'pagado' => 'boolean', 'cuenta_pedida' => 'boolean', 'pagado_at' => 'datetime', 'listo_at' => 'datetime', 'entregado_at' => 'datetime', 'cerrado_at' => 'datetime'];
 

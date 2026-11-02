@@ -70,21 +70,24 @@ body{margin:0;background:#e9efe9;font-family:'Plus Jakarta Sans',system-ui,sans-
 <script src="{{ asset('js/qrcode-generator.js') }}?v=1"></script>
 <script>
 (function () {
-    var URL = @json($url), NOMBRE = @json($tienda->nombre), LOGO = @json($tienda->logo_url ?: '');
+    var AUTO = {{ $tienda->autopedido ? 'true' : 'false' }}, URL = @json($url), NOMBRE = @json($tienda->nombre), LOGO = @json($tienda->logo_url ?: '');
     // QR con corrección alta (H): aguanta el logo en el centro y que se ensucie un poco en la mesa
-    var qr = qrcode(0, 'H'); qr.addData(URL); qr.make();
-    var n = qr.getModuleCount(), m = 2, path = '';
-    for (var r = 0; r < n; r++) for (var c = 0; c < n; c++) if (qr.isDark(r, c)) path += 'M' + (c + m) + ' ' + (r + m) + 'h1v1h-1z';
-    var SVG = '<svg viewBox="0 0 ' + (n + 2 * m) + ' ' + (n + 2 * m) + '" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#fff"/><path d="' + path + '" fill="#000"/></svg>';
+    // Con número de mesa el QR lleva ?mesa=N: la carta abre en "En la mesa" con el número ya puesto
+    function svg(texto) {
+        var qr = qrcode(0, 'H'); qr.addData(texto); qr.make();
+        var n = qr.getModuleCount(), m = 2, path = '';
+        for (var r = 0; r < n; r++) for (var c = 0; c < n; c++) if (qr.isDark(r, c)) path += 'M' + (c + m) + ' ' + (r + m) + 'h1v1h-1z';
+        return '<svg viewBox="0 0 ' + (n + 2 * m) + ' ' + (n + 2 * m) + '" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#fff"/><path d="' + path + '" fill="#000"/></svg>';
+    }
     var esc = function (s) { return String(s).replace(/[&<>"']/g, function (x) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[x]; }); };
 
     function tarjeta(mesa) {
         return '<div class="qr">' +
             (LOGO ? '<img class="logo" src="' + esc(LOGO) + '" alt="">' : '') +
             '<div class="nom">' + esc(NOMBRE) + '</div>' +
-            '<div class="codigo">' + SVG + (LOGO ? '<div class="centro"><img src="' + esc(LOGO) + '" alt=""></div>' : '') + '</div>' +
+            '<div class="codigo">' + svg(mesa ? URL + '?mesa=' + encodeURIComponent(mesa) : URL) + (LOGO ? '<div class="centro"><img src="' + esc(LOGO) + '" alt=""></div>' : '') + '</div>' +
             '<div class="t">Escanee y vea nuestra carta</div>' +
-            '<div class="s">Pida desde su celular por WhatsApp</div>' +
+            '<div class="s">' + (AUTO ? 'Pida desde su celular y pague en caja' : 'Pida desde su celular por WhatsApp') + '</div>' +
             (mesa ? '<div class="mesa">Mesa ' + esc(mesa) + '</div>' : '') +
             '<div class="lp">Hecho con <b>LocalProo</b> · localproo.com</div></div>';
     }

@@ -164,13 +164,14 @@ class CartaIa
     }
 
     // Botón flotante para pedir en línea (solo HTML y CSS: la carta no puede correr scripts)
-    public static function conBotonPedir(string $html, Tienda $tienda): string
+    public static function conBotonPedir(string $html, Tienda $tienda, string $mesa = ''): string
     {
         if (!$tienda->slug) return $html;
-        $btn = '<a href="' . e($tienda->url_carta . '?pedir=1') . '" style="position:fixed;right:16px;bottom:16px;z-index:2147483647;display:inline-flex;align-items:center;gap:8px;'
+        // Desde el QR de una mesa (?mesa=4) el botón lleva la mesa para que el pedido ya salga con ese número
+        $btn = '<a href="' . e($tienda->url_carta . '?pedir=1' . ($mesa !== '' ? '&mesa=' . rawurlencode($mesa) : '')) . '" style="position:fixed;right:16px;bottom:16px;z-index:2147483647;display:inline-flex;align-items:center;gap:8px;'
             . 'padding:13px 20px;border-radius:999px;background:#25d366;color:#fff;font:800 15px/1 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;text-decoration:none;'
             . 'box-shadow:0 10px 24px -8px rgba(0,0,0,.45)">🛒 Pedir en línea</a>'
-            . '<style>@media print{a[href$="?pedir=1"]{display:none!important}}</style>';
+            . '<style>@media print{a[href*="pedir=1"]{display:none!important}}</style>';
         return preg_match('#</body>#i', $html) ? preg_replace('#</body>#i', $btn . '</body>', $html, 1) : $html . $btn;
     }
 

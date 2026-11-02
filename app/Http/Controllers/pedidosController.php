@@ -319,7 +319,7 @@ class pedidosController extends Controller
             $cobrar = $env->isEmpty();
             return [
                 'id' => $p->id, 'numero' => $p->numero, 'cliente' => $p->cliente_nombre, 'mesa' => $p->mesa, 'nota' => $p->nota,
-                'mesero' => $p->mesero?->name, 'pagado' => $p->pagado, 'por_cobrar' => $cobrar,
+                'mesero' => $p->origen === 'qr' ? 'Cliente desde QR' : $p->mesero?->name, 'pagado' => $p->pagado, 'por_cobrar' => $cobrar,
                 'desde' => ($cobrar ? $p->created_at : $env->min('enviado_at'))?->toIso8601String(),
                 'listo' => $its->every(fn ($i) => $i->estado === 'listo'), 'comanda' => route('pedidos.comanda', $p),
                 'items' => $its->map(fn ($i) => ['id' => $i->id, 'n' => $i->nombre, 'et' => $i->etiqueta, 'c' => $i->cantidad, 'nota' => $i->nota, 'e' => $i->estado, 'est' => $i->estacion?->nombre, 'ronda' => $i->ronda, 'env' => $i->enviado_at !== null])->values(),
@@ -387,7 +387,7 @@ class pedidosController extends Controller
             'nueva_icono' => 'nullable|string|max:40|regex:/^fa-[a-z0-9-]+$/',
         ], ['est.*.nombre.required' => 'Cada estación necesita un nombre.']);
         DB::transaction(function () use ($request, $d, $t) {
-            DB::table('tiendas')->where('id', $t->id)->update(['pedidos_cobro' => $d['pedidos_cobro']]);
+            DB::table('tiendas')->where('id', $t->id)->update(['pedidos_cobro' => $d['pedidos_cobro'], 'pedidos_qr' => $request->boolean('pedidos_qr')]);
             foreach ((array) ($d['est'] ?? []) as $id => $e) {
                 PedidoEstacion::whereKey($id)->update([
                     'nombre' => trim($e['nombre']), 'icono' => $e['icono'] ?? 'fa-kitchen-set',
