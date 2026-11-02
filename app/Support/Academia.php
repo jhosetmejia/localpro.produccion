@@ -211,8 +211,15 @@ class Academia
                         'La cámara queda abierta: escanee una prenda tras otra y al final cobre. Si el negocio tiene <b>pistola lectora</b>, también sirve: el código entra solo.',
                         'Si una etiqueta no se lee (arrugada, rota o con poca luz), busque el producto por nombre y pídale al dueño que la vuelva a imprimir.',
                     ], 'tip' => 'Escanear evita equivocarse de talla, color o precio: lo que se vende es exactamente lo que se descuenta del inventario.'],
+                    ['titulo' => 'Su impresora de tiquetes', 'rutas' => [['impresora', 'Tamaño del rollo', 'Imprimir prueba', 'Guardar']], 'min' => 3, 'accion' => ['impresora.edit', 'Ajustar mi impresora'], 'contenido' => [
+                        '¿El tiquete sale <b>cortado o corrido</b>? En <b>Mi negocio → Impresora</b> elija su rollo: <b>80 mm</b> (el más común) o <b>58 mm</b>. LocalPro ya dibuja el tiquete con el ancho real que imprime (72 o 48 mm) y centrado.',
+                        'Ajuste con las barras: <b>Ancho que imprime</b> (si se cortan las letras de los lados), <b>Mover a los lados</b> (si sale corrido), <b>Tamaño de la letra</b>, <b>Negrita</b> (si sale pálido) y <b>Espacio al final</b> (para que el cortador no corte el texto).',
+                        'Toque <b>Imprimir prueba</b>: las marcas <b>|&lt;</b> y <b>&gt;|</b> deben salir completas a los dos lados. Cuando quede bien, <b>Guardar</b>: aplica al tiquete, los recibos y la comanda de cocina.',
+                        'En la ventana de imprimir de Chrome (una sola vez por computador): elija la impresora térmica, <b>Márgenes: Ninguno</b>, <b>Escala 100 %</b> y quite <b>Encabezados y pies de página</b>.',
+                    ], 'tip' => 'En el tiquete también sale el botón "¿Sale cortado? Ajustar impresora" para llegar rápido.'],
                 ],
                 'prueba' => [
+                    ['p' => 'El tiquete sale cortado a los lados. ¿Dónde lo arregla?', 'o' => ['Mi negocio → Impresora, eligiendo el rollo y ajustando el ancho', 'Comprando otra impresora', 'Cambiando los precios'], 'r' => 0],
                     ['p' => 'Pagó un domicilio con $8.000 de la caja. ¿Qué hace?', 'o' => ['Lo anoto en Egresos', 'No anoto nada', 'Lo saco y lo repongo otro día'], 'r' => 0],
                     ['p' => 'El cliente pagó por Nequi. ¿Cómo se registra?', 'o' => ['Como Nequi', 'Como efectivo', 'No se registra'], 'r' => 0],
                     ['p' => 'Si me equivoqué en una venta, ¿qué hago?', 'o' => ['Hago una devolución', 'Borro la venta', 'Lo dejo así'], 'r' => 0],
@@ -521,7 +528,7 @@ class Academia
             // ===== Cursos por tipo de negocio: "Cómo manejar su sistema" =====
             'restaurante' => [
                 'titulo' => 'Su restaurante o cafetería en LocalPro', 'icono' => 'fa-burger', 'color' => '#f97316', 'para' => ['todos', 'asesor'], 'modulo' => 'mod_pedidos', 'tipos' => ['restaurante', 'cafeteria'],
-                'resumen' => 'Pedidos de mesero a caja y cocina, roles del equipo, cobrar antes o al final, avisos de "listo", cierre del día y su carta virtual.',
+                'resumen' => 'Pedidos de mesero a caja y cocina, roles del equipo, cobrar antes o al final, avisos de "listo", cancelar pedidos, adelantar en cocina, pedidos desde el QR de la mesa, QR para imprimir, diseños de carta y cierre del día.',
                 'lecciones' => [
                     ['titulo' => 'Configure sus pedidos', 'rutas' => [['pedidos', 'Configurar', 'Estaciones y forma de cobro']], 'min' => 3, 'accion' => ['pedidos.configurar', 'Configurar pedidos'], 'contenido' => [
                         'En <b>Pedidos → Configurar</b> elija cómo cobra: <b>paga primero</b> (el pedido llega a cocina cuando la caja cobra) o <b>paga al final</b> (llega de una y el mesero pide la cuenta al terminar).',
@@ -534,7 +541,9 @@ class Academia
                     ], 'tip' => 'Un usuario por persona: así sabe quién tomó, cobró o preparó cada pedido.'],
                     ['titulo' => 'Mesero, caja y cocina en acción', 'rutas' => [['pedidos', 'Tomar pedido', 'Enviar']], 'min' => 3, 'accion' => ['pedidos.mesero', 'Tomar un pedido'], 'contenido' => [
                         'El <b>mesero</b> toca "Tomar pedido", pone mesa o nombre del cliente y notas por producto ("sin cebolla").',
+                        'Puede elegir <b>varios productos</b>: cada toque suma uno más (el producto se pone verde con la cantidad) y con <b>−</b> quita uno. Funciona igual cuando busca por nombre. En el celular, la barra de abajo muestra cuántos lleva y el total; tóquela para ir al pedido y enviarlo.',
                         'La <b>caja</b> ve los pedidos por cobrar, toca <b>Cobrar</b> y se abre la caja (POS) con el pedido cargado.',
+                        'Si un pedido no va (el cliente se arrepintió o es falso), en Caja toque <b>Cancelar</b>: pide confirmación, la fila se va con una animación y también sale de la cocina. Un pedido ya cobrado se anula desde Ventas para devolver la plata.',
                         'La <b>cocina</b> ve las tarjetas con reloj (amarillo a los 10 min, rojo a los 20), marca <b>Todo listo</b> y al mesero le suena el aviso para entregar.',
                     ], 'tip' => 'Haga una ronda de prueba con el equipo antes de abrir: un pedido completo de mesero a entregado.'],
                     ['titulo' => 'Cierre del día', 'rutas' => [['pedidos', 'Cierre']], 'min' => 2, 'accion' => ['pedidos.cierre', 'Ver el cierre'], 'contenido' => [
@@ -543,15 +552,38 @@ class Academia
                     ], 'tip' => null],
                     ['titulo' => 'Carta virtual y platos agotados', 'min' => 3, 'accion' => ['productos.index', 'Ver productos'], 'contenido' => [
                         'En el panel toque <b>Ver mi carta virtual</b>: su menú por categorías con pedido por WhatsApp (domicilio, recoger o en la mesa). Compártala o póngala en un QR en las mesas.',
+                        'En <b>Mi carta → Imprimir QR para las mesas</b> sale la hoja lista: su logo, el QR (con el logo en el centro), "Escanee y vea nuestra carta" y abajo pequeño "Hecho con LocalProo". Elija 1, 4 o 6 por hoja y escriba las mesas (ej. <b>1-10</b>) para sacar un QR por mesa con el número.',
                         'En <b>Mi negocio</b> elija el diseño de la carta: <b>Bistró</b>, <b>Fresca</b>, <b>Parrilla</b> o <b>Huerta</b>. Con "Ver cómo queda" los compara antes de guardar.',
                         'Para almuerzos no tiene que poner cantidades: apague <b>Controlar inventario</b>. Cuando se acaben, en <b>Productos</b> toque <b>Desactivar</b>: sale "Agotado por hoy" y nadie lo puede pedir (ni en la carta, ni en la caja, ni con los meseros). Al día siguiente toque <b>Activar</b>.',
                     ], 'tip' => 'Desactivar no borra el plato ni sus ventas: solo lo deja de ofrecer hasta que lo active.'],
+                    ['titulo' => 'Cocina: adelantar los pedidos por cobrar', 'rutas' => [['pedidos', 'Estaciones', 'Ver por cobrar (adelantar)']], 'min' => 2, 'accion' => ['pedidos.estacion', 'Abrir la cocina'], 'contenido' => [
+                        'En <b>Pedidos → Estaciones</b> está el interruptor <b>Ver por cobrar (adelantar)</b> (viene prendido). Los pedidos que el mesero mandó a caja y aún no pagan salen en <b>naranja con borde punteado</b> y la etiqueta 💰 <b>Por cobrar</b>.',
+                        'La cocina los puede ir preparando y marcando listos. Si termina antes, la tarjeta dice <b>"Adelantado: cuando lo paguen ya está listo"</b>.',
+                        'Cuando caja cobra, el pedido pasa a normal y <b>suena el aviso</b>. Si ya estaba listo, al mesero le aparece de una para llevarlo.',
+                        'Orden de la pantalla: primero lo pagado por hacer, después lo por cobrar y al final lo listo.',
+                    ], 'tip' => 'Adelante solo lo que es seguro (mesas ocupadas, clientes conocidos): lo que no se paga no debe salir de la cocina.'],
+                    ['titulo' => 'El cliente pide desde el QR de la mesa (autogestión)', 'rutas' => [['pedidos', 'Configurar', 'Pedidos desde el QR de la mesa'], ['carta', 'Imprimir QR para las mesas']], 'min' => 3, 'accion' => ['pedidos.configurar', 'Ver la configuración'], 'contenido' => [
+                        'El cliente escanea el QR de su mesa: la carta abre en <b>"En la mesa"</b> con el número de mesa puesto. Escribe su nombre, elige los platos y toca <b>Enviar pedido a caja</b>.',
+                        'Le sale <b>"¡Pedido hecho con éxito! Acérquese a caja a pagar"</b> con su <b>número de pedido</b> en grande.',
+                        'En <b>Caja</b> llega con sonido, en morado y marcado <b>Autogestión</b>. Cuando el cliente se acerca, búsquelo por su <b>nombre o el número</b> y toque Cobrar: ahí pasa a la cocina.',
+                        'Viene protegido contra bots y pedidos falsos: pocos intentos por minuto, máximo de pedidos por persona y precios puestos por el sistema. Si entra uno falso, toque <b>Cancelar</b>. Se apaga en <b>Pedidos → Configurar</b>.',
+                    ], 'tip' => 'Domicilio y Recoger siguen llegando por WhatsApp; solo "En la mesa" va directo a caja.'],
+                    ['titulo' => 'Su carta con IA y diseños de otros negocios', 'rutas' => [['carta', 'Nueva carta con tu IA'], ['carta', 'Diseños de otros negocios', 'Usar este']], 'min' => 3, 'accion' => ['carta.index', 'Ir a Mi carta'], 'contenido' => [
+                        'En <b>Mi carta → Nueva carta con tu IA</b> su propia IA (ChatGPT, Claude o Gemini) le diseña la carta; la pega y LocalPro le pone sus platos y precios solos.',
+                        'Al guardarla le pregunta <b>"¿Quiere que su diseño sea público?"</b>. Si dice que sí, otros negocios lo pueden usar como plantilla (como en Canva) con <b>sus</b> platos y precios; los suyos nunca se comparten.',
+                        'En <b>Diseños de otros negocios</b> ve las cartas que otros compartieron ya armadas con sus platos. Toque <b>Usar este</b> y queda como su carta personalizada.',
+                        'Actívela con <b>"Usar esta carta en el QR de las mesas"</b>: trae el botón "Pedir en línea" para seguir recibiendo pedidos.',
+                    ], 'tip' => 'Compartir su diseño ayuda a otros negocios y su nombre sale como autor del diseño.'],
                 ],
                 'prueba' => [
                     ['p' => 'En modo "paga primero", ¿cuándo llega el pedido a la cocina?', 'o' => ['Cuando la caja lo cobra', 'Apenas el mesero lo toma', 'Al día siguiente'], 'r' => 0],
                     ['p' => '¿Dónde crea el usuario de un mesero nuevo?', 'o' => ['Usuarios → Nuevo usuario, con el rol Mesero', 'En Productos', 'No se puede'], 'r' => 0],
                     ['p' => 'La tarjeta de un pedido se puso roja en la cocina. ¿Qué significa?', 'o' => ['Lleva más de 20 minutos', 'Ya se pagó', 'Se anuló'], 'r' => 0],
                     ['p' => 'Se acabaron los almuerzos de hoy. ¿Qué hace para que no los pidan en la carta?', 'o' => ['En Productos toca Desactivar en el almuerzo', 'Borra el producto', 'Cambia el precio a cero'], 'r' => 0],
+                    ['p' => 'Un cliente pidió desde el QR de la mesa. ¿Qué tiene que hacer?', 'o' => ['Acercarse a caja a pagar con su nombre o número de pedido', 'Esperar a que la cocina le cobre', 'Volver a pedir por WhatsApp'], 'r' => 0],
+                    ['p' => 'En la cocina una tarjeta sale naranja con "Por cobrar". ¿Qué significa?', 'o' => ['El cliente aún no paga, pero se puede ir adelantando', 'Ya se pagó y está atrasado', 'Se anuló'], 'r' => 0],
+                    ['p' => 'Un pedido de caja es falso o el cliente se fue. ¿Qué hace?', 'o' => ['Toca Cancelar en Caja', 'Lo deja ahí para siempre', 'Lo cobra igual'], 'r' => 0],
+                    ['p' => '¿Cómo saca un QR distinto para cada mesa?', 'o' => ['En Mi carta → Imprimir QR, escribiendo las mesas (ej. 1-10)', 'Tomándole foto a la pantalla', 'No se puede'], 'r' => 0],
                 ],
             ],
 

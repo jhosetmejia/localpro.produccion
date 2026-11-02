@@ -20,6 +20,9 @@ class GuiaVisual
         'roles' => ['Roles del negocio', 'fa-id-badge'],
         'menu' => ['Personalizar menú', 'fa-sliders'],
         'aprende' => ['Aprende', 'fa-graduation-cap'],
+        // De "Mi negocio": solo salen en la guía cuando son el destino
+        'carta' => ['Mi carta', 'fa-utensils'],
+        'impresora' => ['Impresora', 'fa-print'],
     ];
 
     // Secciones que dependen de un módulo o tipo de negocio: [módulo de la tienda, tipos que la tienen]
@@ -66,7 +69,8 @@ class GuiaVisual
         if (!in_array($destino, $antes, true) && isset(Tienda::MENU_OPCIONAL[$destino])) {
             $antes = array_merge(array_slice($antes, 0, $max - 1), [$destino]);
         }
-        $claves = array_merge(['panel'], $antes, ['negocio', 'usuarios', 'roles', 'menu', 'aprende']);
+        $extra = isset(self::FIJOS[$destino]) && !in_array($destino, ['panel', 'negocio', 'usuarios', 'roles', 'menu', 'aprende'], true) ? [$destino] : [];
+        $claves = array_merge(['panel'], $antes, ['negocio'], $extra, ['usuarios', 'roles', 'menu', 'aprende']);
         return array_map(fn ($k) => self::item($k) + ['activo' => $k === $destino], array_values(array_unique($claves)));
     }
 }
