@@ -18,6 +18,14 @@
 .im-prev{position:sticky;top:80px;background:#eef3ef;border-radius:22px;padding:12px}
 .im-prev iframe{width:100%;height:520px;border:0;border-radius:14px;background:#fff}
 .im-tips li{margin-bottom:.35rem}
+.im-tabs{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+.im-tabs a{border-radius:999px;padding:.6rem 1.1rem;font-weight:800;text-decoration:none;background:#fff;border:1.5px solid #e3ebe6;color:#151a17}
+.im-tabs a.on{background:#0b0d0c;color:#a6f34a;border-color:#0b0d0c}
+.im-tabs a small{font-weight:700;opacity:.7;margin-left:.3rem}
+.im-casos{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.8rem}
+.im-caso{border:1.5px solid #e3ebe6;border-radius:18px;padding:.9rem 1rem;background:#fff}
+.im-caso b{display:block;margin-bottom:.3rem}
+.im-caso small{color:#4b5550;font-weight:600;display:block;line-height:1.45}
 </style>
 @endpush
 
@@ -25,15 +33,26 @@
 <div class="lp-dash">
     <div class="lp-hello">
         <div><small><i class="fa-solid fa-print me-1"></i>Mi negocio</small><h1>Mi <span>impresora</span></h1>
-            <span class="text-muted fw-semibold">Ajuste su impresora de tiquetes para que el tiquete, los recibos y la comanda de cocina salgan derechos y completos.</span></div>
+            <span class="text-muted fw-semibold">Ajuste sus impresoras para que todo salga derecho y completo. Puede tener una para <b>caja</b> y otra para <b>cocina</b>, cada una con su tamaño.</span></div>
     </div>
     @include('layouts.partials.lp-flash')
 
+    @if ($tienda->mod_pedidos)
+    <div class="im-tabs">
+        <a href="{{ route('impresora.edit', ['para' => 'caja']) }}" class="{{ $para === 'caja' ? 'on' : '' }}"><i class="fa-solid fa-cash-register me-1"></i>Impresora de caja<small>tiquetes, facturas, cuadre, recibos</small></a>
+        <a href="{{ route('impresora.edit', ['para' => 'cocina']) }}" class="{{ $para === 'cocina' ? 'on' : '' }}"><i class="fa-solid fa-fire-burner me-1"></i>Impresora de cocina<small>comandas</small></a>
+    </div>
+    @if ($cocinaUsaCaja)
+    <div class="alert border-0 fw-semibold" style="background:#eef6ff;color:#1e40af"><i class="fa-solid fa-circle-info me-1"></i>Por ahora las comandas usan los ajustes de la impresora de caja. Si la de cocina es de otro tamaño, ajústela aquí y guarde.</div>
+    @endif
+    @endif
+
     <form method="post" action="{{ route('impresora.update') }}" id="imForm" class="im">
         @csrf
+        <input type="hidden" name="para" value="{{ $para }}">
         <div>
             <div class="lp-box">
-                <h3><span><i class="fa-solid fa-scroll me-1"></i>¿De qué tamaño es el rollo?</span></h3>
+                <h3><span><i class="fa-solid fa-scroll me-1"></i>{{ $para === 'cocina' ? 'Impresora de cocina: ¿de qué tamaño es el rollo?' : '¿De qué tamaño es el rollo?' }}</span></h3>
                 <div class="im-papel">
                     @foreach (\App\Support\Impresora::PAPELES as $mm => $txt)
                     <label><input type="radio" name="papel" value="{{ $mm }}" @checked($imp['papel'] === $mm)><span>{{ $txt }}</span></label>
@@ -82,16 +101,27 @@
                     <li>Chrome recuerda estas opciones: se hacen una sola vez en cada computador.</li>
                 </ol>
             </div>
+
+            <div class="lp-box mt-3" id="dos-impresoras">
+                <h3><span><i class="fa-solid fa-print me-1"></i>¿Tiene una o dos impresoras? Así se organiza</span></h3>
+                <div class="im-casos">
+                    <div class="im-caso"><b>🖨 Una sola impresora</b><small>Ajuste solo la <b>de caja</b>. Si usa Pedidos, las comandas salen por la misma con esos ajustes. No tiene que hacer nada más.</small></div>
+                    <div class="im-caso"><b>🖨🖨 Dos impresoras en aparatos distintos <span class="badge bg-success">recomendado</span></b><small>La de caja en el computador de caja y la de cocina en la tablet o PC de cocina. En la cocina abra <b>Pedidos → Estaciones</b> y prenda <b>Imprimir al llegar</b>. Chrome recuerda en cada aparato cuál es su impresora: cada una imprime lo suyo.</small></div>
+                    <div class="im-caso"><b>🖨🖨 Dos impresoras en el mismo computador</b><small>Funciona, pero al imprimir revise en la ventana de Chrome cuál impresora está elegida: Chrome propone la última que usó. Truco: en Windows ponga la de caja como <b>predeterminada</b> y elija la de cocina solo para comandas.</small></div>
+                    <div class="im-caso"><b>📏 Tamaños distintos (80 mm y 58 mm)</b><small>Ajuste cada una en su pestaña: <b>Impresora de caja</b> y <b>Impresora de cocina</b>. Cada una guarda su rollo, ancho, letra y espacio para el corte.</small></div>
+                </div>
+                <small class="text-muted fw-semibold d-block mt-2"><i class="fa-solid fa-lock me-1"></i>Por seguridad, ningún navegador deja que una página web imprima sin mostrar la ventana de imprimir. Por eso cada impresora va mejor en su propio aparato.</small>
+            </div>
         </div>
 
         <div class="im-prev">
-            <div class="fw-bold mb-2"><i class="fa-solid fa-eye me-1"></i>Así sale el tiquete</div>
-            <iframe id="imVista" title="Vista del tiquete de prueba" src="{{ route('impresora.prueba', $imp + ['embed' => 1]) }}"></iframe>
+            <div class="fw-bold mb-2"><i class="fa-solid fa-eye me-1"></i>{{ $para === 'cocina' ? 'Así sale la comanda' : 'Así sale el tiquete' }}</div>
+            <iframe id="imVista" title="Vista de la prueba" src="{{ route('impresora.prueba', $imp + ['embed' => 1, 'para' => $para]) }}"></iframe>
             <small class="text-muted fw-semibold d-block mt-2">Los cambios se ven aquí al instante. Imprima la prueba: las rayas <b>|&lt;</b> y <b>&gt;|</b> deben salir completas a los dos lados.</small>
         </div>
     </form>
     @if ($configurada)
-    <form method="post" action="{{ route('impresora.borrar') }}" class="mt-3" data-confirm="¿Quitar los ajustes de la impresora de este negocio?" data-confirm-texto="El tiquete vuelve a salir como venía de fábrica." data-confirm-ok="Sí, quitar">
+    <form method="post" action="{{ route('impresora.borrar', ['para' => $para]) }}" class="mt-3" data-confirm="¿Quitar los ajustes de la impresora {{ $para === 'cocina' ? 'de cocina' : 'de caja' }}?" data-confirm-texto="El tiquete vuelve a salir como venía de fábrica." data-confirm-ok="Sí, quitar">
         @csrf @method('DELETE')
         <button class="btn btn-outline-danger fw-bold"><i class="fa-solid fa-rotate-left me-1"></i>Quitar mis ajustes (volver a como venía)</button>
         <small class="text-muted fw-semibold d-block mt-1">Los ajustes son solo de <b>{{ $tienda->nombre }}</b>: no cambian los tiquetes de otros negocios.</small>
@@ -105,12 +135,12 @@
 @push('js')
 <script>
 (function () {
-    var f = document.getElementById('imForm'), vista = document.getElementById('imVista'), base = @json(route('impresora.prueba'));
+    var f = document.getElementById('imForm'), vista = document.getElementById('imVista'), base = @json(route('impresora.prueba')), PARA = @json($para);
     var DEF = { 80: { ancho: 72 }, 58: { ancho: 48 } };
     function val(n) { return f.elements[n]; }
     function datos() {
         return { papel: f.querySelector('input[name=papel]:checked').value, ancho: val('ancho').value, margen: val('margen').value,
-            letra: val('letra').value, final: val('final').value, negrita: val('negrita').checked ? 1 : 0 };
+            letra: val('letra').value, final: val('final').value, negrita: val('negrita').checked ? 1 : 0, para: PARA };
     }
     var t = null;
     function pintar() {

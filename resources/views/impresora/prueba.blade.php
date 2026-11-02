@@ -23,8 +23,8 @@
     <div class="regla"><span>|&lt;</span><span>IZQ · CENTRO · DER</span><span>&gt;|</span></div>
     <div class="borde">ESTE RECUADRO DEBE VERSE COMPLETO</div>
     <hr>
-    <div class="c b big">{{ $tienda?->nombre ?: 'Mi negocio' }}</div>
-    <div class="c">Tiquete de prueba · {{ now()->locale('es')->isoFormat('D MMM YYYY h:mm a') }}</div>
+    <div class="c b big">{{ ($cocina ?? false) ? 'COMANDA DE PRUEBA' : ($tienda?->nombre ?: 'Mi negocio') }}</div>
+    <div class="c">{{ ($cocina ?? false) ? 'Impresora de cocina' : 'Tiquete de prueba' }} · {{ now()->locale('es')->isoFormat('D MMM YYYY h:mm a') }}</div>
     <hr>
     <table>
         <tr><td>2 x Producto de ejemplo</td><td class="r">{{ dinero(24000) }}</td></tr>

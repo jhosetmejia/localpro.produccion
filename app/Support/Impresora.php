@@ -34,17 +34,39 @@ class Impresora
         ];
     }
 
-    public static function de(?Tienda $t = null): array
+    // Cada negocio puede tener dos: 'caja' (tiquetes, facturas, cuadre, recibos) y 'cocina' (comandas)
+    public const PARA = ['caja' => 'impresora', 'cocina' => 'impresora_cocina'];
+
+    public static function para(?string $para): string
+    {
+        return isset(self::PARA[$para]) ? $para : 'caja';
+    }
+
+    private static function datos(?Tienda $t, string $para): ?array
+    {
+        $v = $t?->{self::PARA[self::para($para)]};
+        return is_array($v) && $v !== [] ? $v : null;
+    }
+
+    public static function de(?Tienda $t = null, string $para = 'caja'): array
     {
         $t = $t ?: TiendaActual::tienda();
-        return self::normalizar(is_array($t?->impresora) ? $t->impresora : []);
+        return self::normalizar(self::datos($t, $para) ?? []);
+    }
+
+    // Ajustes para la comanda: los de la impresora de cocina; si no tiene, los de caja (como antes); si no, null (sin cambios)
+    public static function deCocina(?Tienda $t = null): ?array
+    {
+        $t = $t ?: TiendaActual::tienda();
+        $d = self::datos($t, 'cocina') ?? self::datos($t, 'caja');
+        return $d ? self::normalizar($d) : null;
     }
 
     // ¿Este negocio ya ajustó su impresora? (los ajustes son de cada negocio: columna tiendas.impresora)
-    public static function configurada(?Tienda $t = null): bool
+    public static function configurada(?Tienda $t = null, string $para = 'caja'): bool
     {
         $t = $t ?: TiendaActual::tienda();
-        return is_array($t?->impresora) && $t->impresora !== [];
+        return self::datos($t, $para) !== null;
     }
 
     /**

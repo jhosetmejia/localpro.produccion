@@ -49,6 +49,7 @@
             <li><b>Roles:</b> en <b>Roles del negocio</b> puede crear más roles con las plantillas (Caja, Mesero, Cocina, Cafetería, Entradas, Paseos con animales, Granjero) y ajuste los permisos de cada uno.</li>
             <li><b>Personas:</b> en <b>Usuarios</b> cree a cada empleado con su correo y clave, y elija su rol. Al entrar, cada uno ve directo su pantalla.</li>
             <li><b>Pantallas:</b> en la cocina (y cada estación) deje abierta su pantalla en una tablet, celular o TV con <b>Pantalla completa</b>. Si quiere, active "Imprimir al llegar".</li>
+            <li><b>Impresoras:</b> si tiene una para caja y otra para cocina, póngalas en aparatos distintos (caja en el computador de caja, cocina en la tablet o PC de cocina) y ajuste cada una en <a href="{{ route('impresora.edit') }}#dos-impresoras">Mi negocio → Impresora</a> (pestañas <b>Impresora de caja</b> e <b>Impresora de cocina</b>). Si son del mismo computador, revise en la ventana de Chrome cuál está elegida antes de imprimir.</li>
         </ol>
 
         <h2>2. Qué hace cada rol</h2>

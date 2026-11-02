@@ -216,6 +216,8 @@ class Academia
                         'Ajuste con las barras: <b>Ancho que imprime</b> (si se cortan las letras de los lados), <b>Mover a los lados</b> (si sale corrido), <b>Tamaño de la letra</b>, <b>Negrita</b> (si sale pálido) y <b>Espacio al final</b> (para que el cortador no corte el texto).',
                         'Toque <b>Imprimir prueba</b>: las marcas <b>|&lt;</b> y <b>&gt;|</b> deben salir completas a los dos lados. Cuando quede bien, <b>Guardar</b>: aplica al tiquete, los recibos y la comanda de cocina.',
                         'En la ventana de imprimir de Chrome (una sola vez por computador): elija la impresora térmica, <b>Márgenes: Ninguno</b>, <b>Escala 100 %</b> y quite <b>Encabezados y pies de página</b>.',
+                        '¿Tiene <b>dos impresoras</b> (caja y cocina)? Ajuste cada una en su pestaña: <b>Impresora de caja</b> (tiquetes, facturas, cuadre, recibos) e <b>Impresora de cocina</b> (comandas). Lo mejor es tener cada una en su propio aparato: Chrome recuerda la impresora de cada uno. Si están en el mismo computador, revise en la ventana de imprimir cuál está elegida.',
+                        'Los ajustes son <b>solo de su negocio</b>: no cambian los tiquetes de otros. Si algo quedó mal, toque <b>Quitar mis ajustes</b> y vuelve a salir como venía.',
                     ], 'tip' => 'En el tiquete también sale el botón "¿Sale cortado? Ajustar impresora" para llegar rápido.'],
                 ],
                 'prueba' => [
