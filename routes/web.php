@@ -500,6 +500,7 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::get('/impresora/prueba', [\App\Http\Controllers\impresoraController::class, 'prueba'])->middleware('throttle:120,1')->name('impresora.prueba');
     Route::get('/mi-carta', [\App\Http\Controllers\miCartaController::class, 'index'])->name('carta.index');
     Route::get('/mi-carta/imprimir', [\App\Http\Controllers\miCartaController::class, 'imprimir'])->name('carta.imprimir');
+    Route::get('/mi-carta/qr', [\App\Http\Controllers\miCartaController::class, 'qr'])->name('carta.qr');
     Route::post('/mi-carta/ia', [\App\Http\Controllers\miCartaController::class, 'guardarIa'])->middleware('throttle:20,1')->name('carta.ia.guardar');
     Route::get('/mi-carta/ia', [\App\Http\Controllers\miCartaController::class, 'verIa'])->name('carta.ia.ver');
     Route::delete('/mi-carta/ia', [\App\Http\Controllers\miCartaController::class, 'borrarIa'])->name('carta.ia.borrar');

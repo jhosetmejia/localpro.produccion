@@ -33,6 +33,16 @@ class miCartaController extends Controller
         ]);
     }
 
+    // QR para las mesas, listo para imprimir: logo, QR a la carta en línea y "Hecho con LocalProo" pequeño
+    public function qr()
+    {
+        $t = TiendaActual::tienda();
+        if (!($t->catalogo_activo && $t->slug && $t->activa && $t->onboarding_completo)) {
+            return redirect()->route('carta.index')->withErrors('Primero active su tienda en línea en Datos del negocio para tener el enlace de la carta.');
+        }
+        return view('negocio.carta-qr', ['tienda' => $t, 'url' => $t->url_carta]);
+    }
+
     // Carta para imprimir dentro del panel (con el menú), la hoja va en un marco
     public function imprimir(Request $request)
     {

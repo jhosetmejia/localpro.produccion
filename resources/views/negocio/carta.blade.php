@@ -237,6 +237,7 @@
         <div class="d-flex gap-2 flex-wrap">
             <input class="form-control" style="flex:1 1 240px" value="{{ $tienda->url_carta }}" readonly onclick="this.select()">
             @if ($listo)<a class="btn btn-dark" target="_blank" rel="noopener" href="{{ $tienda->url_carta_navegador }}"><i class="fa-solid fa-utensils me-1"></i>Ver mi carta</a>@endif
+            @if ($listo)<a class="btn btn-warning fw-bold" target="_blank" rel="noopener" href="{{ route('carta.qr') }}"><i class="fa-solid fa-qrcode me-1"></i>Imprimir QR para las mesas</a>@endif
             <a class="btn btn-success" target="_blank" rel="noopener" href="https://wa.me/?text={{ rawurlencode('🍽️ Mira nuestra carta y pide por WhatsApp: ' . $tienda->url_carta) }}"><i class="fa-brands fa-whatsapp me-1"></i>Compartir</a>
         </div>
     </div>
