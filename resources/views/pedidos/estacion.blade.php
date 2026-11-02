@@ -16,6 +16,12 @@
 .ks-card.rojo{border-color:#dc2626}.ks-card.rojo .t{background:#fee2e2;color:#b91c1c;animation:pulso 1s infinite}
 @keyframes pulso{50%{opacity:.55}}
 .ks-card.hecho{opacity:.55}
+/* Por cobrar: el mesero lo mandó a caja y aún no lo pagan; la cocina lo puede adelantar */
+.ks-card.cobrar{border-style:dashed;border-color:#f59e0b;background:#fffdf5}
+.ks-card.cobrar .h{background:#b45309}
+.ks-card.cobrar .h small{color:#fde8c4}
+.ks-card.cobrar .t{background:#fef3c7;color:#92400e}
+.ks-card .pc{background:#fef3c7;color:#92400e;font-weight:800;font-size:.82rem;padding:.35rem .85rem}
 .ks-card .nota{background:#fff7ed;color:#9a3412;font-weight:700;font-size:.85rem;padding:.4rem .85rem}
 .ks-it{display:flex;gap:.6rem;align-items:flex-start;padding:.55rem .85rem;border-top:1px solid #eef1ef;cursor:pointer;user-select:none}
 .ks-it .c{font-weight:900;font-size:1.2rem;min-width:34px}
@@ -38,7 +44,7 @@ body.ks-full .lp-hello,body.ks-full .pd-nav{display:none}
 <div class="lp-dash">
     <div class="lp-hello">
         <div><small><i class="fa-solid fa-fire-burner me-1"></i>Pedidos</small><h1>{!! $sel ? e($sel->nombre) : 'Pantalla de <span>estación</span>' !!}</h1>
-            <span class="text-muted fw-semibold">Toque cada producto cuando esté listo (o <b>Todo listo</b>). Suena cuando llega un pedido nuevo. Se actualiza sola.</span></div>
+            <span class="text-muted fw-semibold">Toque cada producto cuando esté listo (o <b>Todo listo</b>). Suena cuando llega un pedido nuevo. Con <b>Ver por cobrar</b> salen en naranja los pedidos que aún no pagan, para irlos adelantando. Se actualiza sola.</span></div>
     </div>
     @include('pedidos._nav')
     <div class="ks-bar">
@@ -47,6 +53,7 @@ body.ks-full .lp-hello,body.ks-full .pd-nav{display:none}
         @foreach ($estaciones as $e)<a href="{{ route('pedidos.estacion', ['e' => $e->id]) }}" class="{{ $sel && $sel->id === $e->id ? 'on' : '' }}"><i class="fa-solid {{ $e->icono ?: 'fa-kitchen-set' }} me-1"></i>{{ $e->nombre }}</a>@endforeach
         @endif
         <span class="ms-auto"></span>
+        <label class="form-check form-switch m-0 fw-bold small" title="Pedidos que el mesero mandó a caja y aún no pagan: la cocina los puede ir adelantando"><input class="form-check-input" type="checkbox" id="ksCobrar"> Ver por cobrar (adelantar)</label>
         <label class="form-check form-switch m-0 fw-bold small"><input class="form-check-input" type="checkbox" id="ksPrint"> Imprimir al llegar</label>
         <button type="button" id="ksFull"><i class="fa-solid fa-expand me-1"></i>Pantalla completa</button>
     </div>
@@ -63,6 +70,11 @@ body.ks-full .lp-hello,body.ks-full .pd-nav{display:none}
     var pr = document.getElementById('ksPrint'), clave = 'ksPrint' + (EST || '');
     try { pr.checked = localStorage.getItem(clave) === '1'; } catch (e) {}
     pr.addEventListener('change', function () { try { localStorage.setItem(clave, pr.checked ? '1' : '0'); } catch (e) {} });
+    // Ver los pedidos por cobrar para adelantarlos (viene prendido; se recuerda en este aparato)
+    var vc = document.getElementById('ksCobrar');
+    try { vc.checked = localStorage.getItem('ksCobrar') !== '0'; } catch (e) { vc.checked = true; }
+    vc.addEventListener('change', function () { try { localStorage.setItem('ksCobrar', vc.checked ? '1' : '0'); } catch (e) {} cargar(); });
+    var vistos = null, cobrarVistos = null;
     document.getElementById('ksFull').addEventListener('click', function () {
         document.body.classList.toggle('ks-full');
         var d = document.documentElement; if (!document.fullscreenElement && d.requestFullscreen) d.requestFullscreen().catch(function () {}); else if (document.exitFullscreen) document.exitFullscreen().catch(function () {});
@@ -72,9 +84,10 @@ body.ks-full .lp-hello,body.ks-full .pd-nav{display:none}
         var el = document.getElementById('ksLista');
         if (!datos.length) { el.innerHTML = '<div class="ks-vacio"><i class="fa-solid fa-mug-hot d-block mb-2" style="font-size:2rem"></i>Sin pedidos pendientes</div>'; return; }
         el.innerHTML = datos.map(function (p) {
-            var m = minutos(p.desde), color = p.listo ? 'hecho' : (m >= 20 ? 'rojo' : (m >= 10 ? 'amarillo' : ''));
+            var m = minutos(p.desde), color = p.por_cobrar ? 'cobrar' + (p.listo ? ' hecho' : '') : (p.listo ? 'hecho' : (m >= 20 ? 'rojo' : (m >= 10 ? 'amarillo' : '')));
             return '<div class="ks-card ' + color + '"><div class="h"><div><b>#' + p.numero + ' ' + Pd.esc(p.cliente || '') + '</b><small class="d-block">' +
-                (p.mesa ? 'Mesa ' + Pd.esc(p.mesa) + ' · ' : '') + Pd.esc(p.mesero || '') + '</small></div><span class="t">' + (p.listo ? 'Listo' : m + ' min') + '</span></div>' +
+                (p.mesa ? 'Mesa ' + Pd.esc(p.mesa) + ' · ' : '') + Pd.esc(p.mesero || '') + '</small></div><span class="t">' + (p.por_cobrar ? '💰 Por cobrar' : (p.listo ? 'Listo' : m + ' min')) + '</span></div>' +
+                (p.por_cobrar ? '<div class="pc"><i class="fa-solid fa-hourglass-half me-1"></i>' + (p.listo ? 'Adelantado: cuando lo paguen ya está listo.' : 'Aún no lo pagan. Puede ir adelantándolo (hace ' + m + ' min).') + '</div>' : '') +
                 (p.nota ? '<div class="nota"><i class="fa-solid fa-note-sticky me-1"></i>' + Pd.esc(p.nota) + '</div>' : '') +
                 p.items.map(function (i) {
                     return '<div class="ks-it ' + i.e + '" data-id="' + i.id + '" data-e="' + i.e + '"><span class="c">' + Pd.cant(i.c) + '</span><div class="n">' + Pd.esc(i.n) +
@@ -100,13 +113,22 @@ body.ks-full .lp-hello,body.ks-full .pd-nav{display:none}
         }
     });
     function cargar() {
-        fetch(URL, { headers: { Accept: 'application/json' } }).then(function (r) { return r.json(); }).then(function (d) {
+        fetch(URL + (URL.indexOf('?') < 0 ? '?' : '&') + 'adelantar=' + (vc.checked ? 1 : 0), { headers: { Accept: 'application/json' } }).then(function (r) { return r.json(); }).then(function (d) {
             desfase = Date.now() - new Date(d.ahora).getTime();
-            if (ultimo !== null && d.ultimo > ultimo) {
-                Pd.sonar(2);
-                if (pr.checked) d.pedidos.filter(function (p) { return p.items.some(function (i) { return i.id > ultimo && i.e === 'pendiente'; }); })
-                    .forEach(function (p) { window.open(p.comanda + '?imprimir=1' + (EST ? '&e=' + EST : ''), '_blank', 'width=380,height=600'); });
+            // Suena cuando llega a cocina algo nuevo ya pagado (o en modo "cobrar después"), aunque antes estuviera en "por cobrar"
+            var env = {}, cob = {}, nuevos = [], hayCobrar = false;
+            d.pedidos.forEach(function (p) { p.items.forEach(function (i) { if (i.env) env[i.id] = 1; else cob[i.id] = 1; }); });
+            if (vistos !== null) {
+                d.pedidos.forEach(function (p) {
+                    if (p.items.some(function (i) { return i.env && !vistos[i.id] && i.e === 'pendiente'; })) nuevos.push(p);
+                    if (p.items.some(function (i) { return !i.env && !cobrarVistos[i.id]; })) hayCobrar = true;
+                });
+                if (nuevos.length) {
+                    Pd.sonar(2);
+                    if (pr.checked) nuevos.forEach(function (p) { window.open(p.comanda + '?imprimir=1' + (EST ? '&e=' + EST : ''), '_blank', 'width=380,height=600'); });
+                } else if (hayCobrar) Pd.sonar(1);
             }
+            vistos = Object.assign(vistos || {}, env); cobrarVistos = Object.assign(cobrarVistos || {}, cob);
             ultimo = Math.max(ultimo || 0, d.ultimo); datos = d.pedidos; pintar();
         }).catch(function () {});
     }

@@ -304,21 +304,28 @@ class pedidosController extends Controller
         $ids = $this->misEstaciones()->pluck('id')->all();
         if ($e = (int) $request->query('e')) $ids = array_values(array_intersect($ids, [$e]));
         $pedidos = Pedido::where('estado', '<>', 'anulado')->where('created_at', '>=', now()->subDay())->pluck('id');
+        // Pedidos que el mesero mandó a caja y aún no se cobran: la cocina los ve para adelantarlos (si activa "Ver por cobrar")
+        $adelantar = $request->boolean('adelantar');
+        $porCobrar = $adelantar ? Pedido::whereIn('id', $pedidos)->where('estado', 'por_cobrar')->where('pagado', false)->pluck('id')->all() : [];
         $items = PedidoItem::with('estacion:id,nombre')
-            ->whereIn('pedido_id', $pedidos)->whereIn('estacion_id', $ids)->whereNotNull('enviado_at')
-            ->where(fn ($q) => $q->where('estado', 'pendiente')->orWhere(fn ($w) => $w->where('estado', 'listo')->where('listo_at', '>=', now()->subMinutes(20))))
-            ->orderBy('enviado_at')->orderBy('id')->limit(400)->get();
+            ->whereIn('pedido_id', $pedidos)->whereIn('estacion_id', $ids)
+            ->where(fn ($q) => $q->whereNotNull('enviado_at')->orWhere(fn ($w) => $w->whereNull('enviado_at')->whereIn('pedido_id', $porCobrar ?: [0])))
+            ->where(fn ($q) => $q->where('estado', 'pendiente')->orWhere(fn ($w) => $w->where('estado', 'listo')->where(fn ($l) => $l->whereNull('enviado_at')->orWhere('listo_at', '>=', now()->subMinutes(20)))))
+            ->orderBy('id')->limit(400)->get();
         $peds = Pedido::with('mesero:id,name')->whereIn('id', $items->pluck('pedido_id')->unique())->get()->keyBy('id');
         $grupos = $items->groupBy('pedido_id')->map(function ($its, $pid) use ($peds) {
             $p = $peds[$pid];
+            $env = $its->whereNotNull('enviado_at');
+            $cobrar = $env->isEmpty();
             return [
                 'id' => $p->id, 'numero' => $p->numero, 'cliente' => $p->cliente_nombre, 'mesa' => $p->mesa, 'nota' => $p->nota,
-                'mesero' => $p->mesero?->name, 'pagado' => $p->pagado, 'desde' => $its->min('enviado_at')?->toIso8601String(),
+                'mesero' => $p->mesero?->name, 'pagado' => $p->pagado, 'por_cobrar' => $cobrar,
+                'desde' => ($cobrar ? $p->created_at : $env->min('enviado_at'))?->toIso8601String(),
                 'listo' => $its->every(fn ($i) => $i->estado === 'listo'), 'comanda' => route('pedidos.comanda', $p),
-                'items' => $its->map(fn ($i) => ['id' => $i->id, 'n' => $i->nombre, 'et' => $i->etiqueta, 'c' => $i->cantidad, 'nota' => $i->nota, 'e' => $i->estado, 'est' => $i->estacion?->nombre, 'ronda' => $i->ronda])->values(),
+                'items' => $its->map(fn ($i) => ['id' => $i->id, 'n' => $i->nombre, 'et' => $i->etiqueta, 'c' => $i->cantidad, 'nota' => $i->nota, 'e' => $i->estado, 'est' => $i->estacion?->nombre, 'ronda' => $i->ronda, 'env' => $i->enviado_at !== null])->values(),
             ];
-        })->sortBy(fn ($g) => ($g['listo'] ? '1' : '0') . $g['desde'])->values();
-        return response()->json(['pedidos' => $grupos, 'ultimo' => (int) $items->max('id'), 'ahora' => now()->toIso8601String()]);
+        })->sortBy(fn ($g) => ($g['listo'] ? '2' : ($g['por_cobrar'] ? '1' : '0')) . $g['desde'])->values();
+        return response()->json(['pedidos' => $grupos, 'ultimo' => (int) $items->whereNotNull('enviado_at')->max('id'), 'ahora' => now()->toIso8601String()]);
     }
 
     // Marcar listo (o deshacer) productos de la estación
