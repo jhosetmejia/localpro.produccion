@@ -498,6 +498,7 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     // Impresora de tiquetes (papel, ancho, margen, letra y corte)
     Route::get('/impresora', [\App\Http\Controllers\impresoraController::class, 'edit'])->name('impresora.edit');
     Route::post('/impresora', [\App\Http\Controllers\impresoraController::class, 'update'])->name('impresora.update');
+    Route::delete('/impresora', [\App\Http\Controllers\impresoraController::class, 'borrar'])->name('impresora.borrar');
     Route::get('/impresora/prueba', [\App\Http\Controllers\impresoraController::class, 'prueba'])->middleware('throttle:120,1')->name('impresora.prueba');
     Route::get('/mi-carta', [\App\Http\Controllers\miCartaController::class, 'index'])->name('carta.index');
     Route::get('/mi-carta/imprimir', [\App\Http\Controllers\miCartaController::class, 'imprimir'])->name('carta.imprimir');

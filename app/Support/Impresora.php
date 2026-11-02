@@ -40,17 +40,33 @@ class Impresora
         return self::normalizar(is_array($t?->impresora) ? $t->impresora : []);
     }
 
-    // CSS que se pone después del estilo del tiquete (.tk) para respetar la impresora del negocio
+    // ¿Este negocio ya ajustó su impresora? (los ajustes son de cada negocio: columna tiendas.impresora)
+    public static function configurada(?Tienda $t = null): bool
+    {
+        $t = $t ?: TiendaActual::tienda();
+        return is_array($t?->impresora) && $t->impresora !== [];
+    }
+
+    /**
+     * CSS que se pone después del estilo del tiquete (.tk).
+     * - Negocio que nunca ajustó su impresora: no cambia nada (el tiquete sale exactamente como siempre).
+     * - Negocio con ajustes: la hoja mide lo que mide el papel y los lados quedan como relleno (padding),
+     *   así el texto nunca queda pegado al borde, en pantalla ni impreso.
+     */
     public static function css(?array $c = null): string
     {
-        $c = $c ?: self::de();
-        $w = $c['ancho'];
-        return '@page{size:' . $c['papel'] . 'mm auto;margin:0}'
-            . '.tk{width:' . $w . 'mm;padding:2mm 0 ' . $c['final'] . 'mm;font-size:' . $c['letra'] . 'px' . ($c['negrita'] ? ';font-weight:700' : '') . '}'
-            . '.tk .logo{max-width:' . round($w * .65) . 'mm}'
-            . '.acc{width:' . max($w, 72) . 'mm}'
-            . '@media print{html,body{width:' . $c['papel'] . 'mm;margin:0;padding:0}'
-            . '.tk{width:' . $w . 'mm;margin:0 0 0 ' . self::izquierda($c) . 'mm!important;box-shadow:none}}';
+        if ($c === null) {
+            if (!self::configurada()) return '';
+            $c = self::de();
+        }
+        $papel = $c['papel'];
+        $izq = self::izquierda($c);
+        $der = max(0, round($papel - $c['ancho'] - $izq, 1));
+        return '@page{size:' . $papel . 'mm auto;margin:0}'
+            . '.tk{width:' . $papel . 'mm;padding:3mm ' . $der . 'mm ' . $c['final'] . 'mm ' . $izq . 'mm;font-size:' . $c['letra'] . 'px' . ($c['negrita'] ? ';font-weight:700' : '') . '}'
+            . '.tk .logo{max-width:' . round($c['ancho'] * .65) . 'mm}'
+            . '.acc{width:' . max($papel, 72) . 'mm}'
+            . '@media print{html,body{width:' . $papel . 'mm;margin:0;padding:0}.tk{width:' . $papel . 'mm;margin:0!important;box-shadow:none}}';
     }
 
     // Distancia desde el borde izquierdo del papel: centrado + el ajuste del dueño (negativo = hacia la izquierda)

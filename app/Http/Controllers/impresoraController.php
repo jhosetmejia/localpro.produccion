@@ -18,7 +18,7 @@ class impresoraController extends Controller
     {
         $t = TiendaActual::tienda();
         abort_unless($t, 404);
-        return view('impresora.edit', ['tienda' => $t, 'imp' => Impresora::de($t)]);
+        return view('impresora.edit', ['tienda' => $t, 'imp' => Impresora::de($t), 'configurada' => Impresora::configurada($t)]);
     }
 
     public function update(Request $request)
@@ -31,6 +31,15 @@ class impresoraController extends Controller
         ]);
         $t->forceFill(['impresora' => Impresora::normalizar($request->only('papel', 'ancho', 'margen', 'letra', 'final') + ['negrita' => $request->boolean('negrita')])])->save();
         return redirect()->route('impresora.edit')->with('success', 'Impresora guardada: los tiquetes, recibos y comandas ya salen con estos ajustes.');
+    }
+
+    // Quita los ajustes de este negocio: el tiquete vuelve a salir como venía de fábrica
+    public function borrar()
+    {
+        $t = TiendaActual::tienda();
+        abort_unless($t, 404);
+        $t->forceFill(['impresora' => null])->save();
+        return redirect()->route('impresora.edit')->with('success', 'Listo: su tiquete volvió a salir como venía (sin ajustes).');
     }
 
     // Tiquete de prueba con reglas para ver si sale derecho. Acepta ajustes sin guardar (para probar antes).

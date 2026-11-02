@@ -16,11 +16,13 @@ hr{border:0;border-top:1px dashed #000;margin:8px 0}
 .no-print button{flex:1;padding:10px;border-radius:10px;border:1px solid #999;background:#f4f4f4;font-weight:700}
 @media print{.no-print{display:none}@page{margin:0}body{padding:4px}}
 </style>
+@if (\App\Support\Impresora::configurada($tienda ?? null))
 @php $imp = \App\Support\Impresora::de($tienda ?? null); @endphp
 <style>
 body{max-width:{{ max($imp['ancho'], 48) }}mm}
 @media print{@page{size:{{ $imp['papel'] }}mm auto;margin:0}html,body{margin:0}body{width:{{ $imp['ancho'] }}mm;max-width:none;padding:0 0 {{ $imp['final'] }}mm;margin-left:{{ \App\Support\Impresora::izquierda($imp) }}mm}}
 </style>
+@endif
 </head>
 <body>
     <div class="c s">{{ $tienda?->nombre }}</div>
