@@ -30,8 +30,8 @@ class asesorVenderController extends Controller
 
     /**
      * "Vende más": una imagen tipo historia (1080×1920) por cada sistema, para que el asesor la suba a sus estados
-     * de WhatsApp e historias de Instagram. La imagen vende con beneficios y solo lleva el nombre y el WhatsApp del
-     * asesor (sin QR ni enlace: nadie escanea un estado). El enlace con el tipo de negocio va en el texto que se copia.
+     * de WhatsApp e historias de Instagram. La imagen vende con beneficios y solo lleva el WhatsApp del
+     * asesor ("Contáctanos"; también se puede bajar sin número). Sin QR ni enlace: nadie escanea un estado. El enlace con el tipo de negocio va en el texto que se copia.
      * pantalla = lo que se ve en el celular de la imagen: titulo, dato grande y filas [texto, valor, alerta?].
      */
     public static function estados(\App\Models\Asesor $yo): array
@@ -97,7 +97,7 @@ class asesorVenderController extends Controller
                 'puntos' => array_merge($puntos, ['Página de enlaces para tus redes', 'Tienda virtual y catálogo en línea']),
                 'pantalla' => ['titulo' => $pant[0], 'etiqueta' => $pant[1], 'dato' => $pant[2], 'filas' => $pant[3]],
                 'enlace' => $enlace,
-                'texto' => $texto . "\n🎁 2 meses gratis 👉 " . $enlace,
+                'texto' => $texto . "\n🎁 Pruébalo gratis 👉 " . $enlace,
             ];
         }
         return $out;
@@ -111,7 +111,6 @@ class asesorVenderController extends Controller
             'yo' => $yo,
             'lista' => $lista,
             'sugerida' => $lista[now()->dayOfYear % count($lista)]['clave'],
-            'nombre' => trim((string) $yo->user?->name),
             'whatsapp' => preg_replace('/\D+/', '', (string) $yo->user?->telefono),
         ]);
     }

@@ -23,7 +23,7 @@
 .es-card h3{font-size:1rem;font-weight:900;margin:0}
 .es-btns{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
 .es-btns .btn{border-radius:999px;font-weight:800;font-size:.82rem;padding:.45rem .5rem}
-.es-btns .btn-success{grid-column:1/-1}
+.es-btns .btn-success,.es-btns .es-full{grid-column:1/-1}
 .es-ver{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;place-items:center;z-index:3000;padding:1rem}
 .es-ver.on{display:grid}
 .es-ver img{max-height:92vh;max-width:100%;border-radius:18px}
@@ -37,9 +37,9 @@
     <div class="es-hero">
         <small><i class="fa-solid fa-bullhorn me-1"></i>Vende más</small>
         <h1>Suba estas imágenes a sus <em>estados</em></h1>
-        <p>Hay una para cada tipo de negocio: tiendas de ropa, restaurantes, odontólogos, conjuntos y más. Cada imagen vende con los beneficios de ese sistema y lleva <b>su nombre y su WhatsApp</b> para que le escriban. El texto que se copia trae su enlace con el código {{ $yo->codigo }}: el negocio que se registre queda a su nombre.</p>
+        <p>Hay una para cada tipo de negocio: tiendas de ropa, restaurantes, odontólogos, conjuntos y más. Cada imagen vende con los beneficios de ese sistema y puede llevar <b>su WhatsApp</b> ("Contáctanos") o ir sin número. El texto que se copia trae su enlace con el código {{ $yo->codigo }}: el negocio que se registre queda a su nombre.</p>
         <div class="es-pasos">
-            <span><b>1.</b> Toque "Compartir" o "Descargar"</span>
+            <span><b>1.</b> Toque "Compartir" o descárguela con o sin su número</span>
             <span><b>2.</b> Súbala a su estado de WhatsApp o historia de Instagram</span>
             <span><b>3.</b> Pegue el texto (ya queda copiado)</span>
             <span><b>💡</b> Una distinta cada día</span>
@@ -58,8 +58,9 @@
             <h3>{{ $e['emoji'] }} {{ $e['titulo'] }}</h3>
             <div class="es-btns">
                 <button type="button" class="btn btn-success" data-compartir="{{ $i }}"><i class="fa-solid fa-share-nodes me-1"></i>Compartir</button>
-                <button type="button" class="btn btn-dark" data-bajar="{{ $i }}"><i class="fa-solid fa-download me-1"></i>Descargar</button>
-                <button type="button" class="btn btn-light" style="border:1.5px solid #bfeccb" data-texto="{{ $i }}"><i class="fa-regular fa-copy me-1"></i>Texto</button>
+                <button type="button" class="btn btn-dark" data-bajar="{{ $i }}" @if (!$whatsapp) disabled @endif><i class="fa-solid fa-download me-1"></i>Con mi número</button>
+                <button type="button" class="btn btn-outline-dark" data-bajar-sin="{{ $i }}"><i class="fa-solid fa-download me-1"></i>Sin número</button>
+                <button type="button" class="btn btn-light es-full" style="border:1.5px solid #bfeccb" data-texto="{{ $i }}"><i class="fa-regular fa-copy me-1"></i>Copiar texto</button>
             </div>
         </div>
         @endforeach
@@ -73,12 +74,33 @@
 <script>
 (function () {
     var L = {!! json_encode($lista, JSON_HEX_TAG | JSON_UNESCAPED_UNICODE) !!};
-    var NOMBRE = {!! json_encode($nombre, JSON_HEX_TAG | JSON_UNESCAPED_UNICODE) !!};
     var WA = {!! json_encode($whatsapp) !!};
     var CODIGO = {!! json_encode($yo->codigo) !!};
     var W = 1080, H = 1920, F = "'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif";
     var VERDE = '#a6f34a', VERDE2 = '#16b34a', NEGRO = '#0b0d0c';
-    var listas = {}; // i → dataURL jpg
+    var listas = {}, listasSin = {}; // i → dataURL jpg (con número / sin número)
+    var EMO = "'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif";
+    // Color y objetos de cada negocio para el fondo. st = los dos "stickers" grandes al lado del celular
+    var TEMAS = {
+        general: { a: '#0f3d1f', b: '#06120a', luz: 'rgba(166,243,74,.30)', em: ['🏪', '📒', '💵', '🧾', '📦', '📈'], st: ['💵', '📈'] },
+        moda: { a: '#5a1250', b: '#160414', luz: 'rgba(255,120,210,.30)', em: ['👗', '👠', '👜', '🕶️', '👕', '💄', '👚'], st: ['👗', '👜'] },
+        calzado: { a: '#4a3010', b: '#120b04', luz: 'rgba(255,190,90,.28)', em: ['👟', '👠', '👢', '🥾', '👞', '🩴'], st: ['👟', '👠'] },
+        restaurante: { a: '#6a1d06', b: '#180703', luz: 'rgba(255,140,40,.32)', em: ['🍔', '🍟', '🍕', '🌭', '🌮', '🥤', '🍗'], st: ['🍔', '🍟'] },
+        cafeteria: { a: '#4a2c16', b: '#120a05', luz: 'rgba(255,190,120,.28)', em: ['☕', '🥐', '🍩', '🍰', '🥖', '🧁'], st: ['☕', '🥐'] },
+        minimercado: { a: '#0f5a22', b: '#041408', luz: 'rgba(255,220,60,.26)', em: ['🛒', '🥫', '🥖', '🍎', '🥛', '🧃', '🥚', '🍌'], st: ['🛒', '🥫'] },
+        belleza: { a: '#5a1240', b: '#16040f', luz: 'rgba(255,130,190,.30)', em: ['💇', '✂️', '💅', '💄', '🪒', '💆'], st: ['✂️', '💅'] },
+        odontologia: { a: '#06566b', b: '#03161c', luz: 'rgba(110,230,255,.32)', em: ['🦷', '🪥', '😁', '✨', '🦷', '🪥'], st: ['🦷', '🪥'] },
+        consultorio: { a: '#0a4a6a', b: '#03121b', luz: 'rgba(120,200,255,.30)', em: ['🩺', '💊', '🩹', '📋', '❤️', '🌡️'], st: ['🩺', '💊'] },
+        conjunto: { a: '#16376a', b: '#050d1b', luz: 'rgba(120,170,255,.28)', em: ['🏢', '🏠', '🔑', '🧾', '🌳', '🏊'], st: ['🏢', '🔑'] },
+        instituto: { a: '#30206e', b: '#0b071b', luz: 'rgba(160,140,255,.30)', em: ['🎓', '📚', '✏️', '🏫', '📝', '📐'], st: ['🎓', '📚'] },
+        contable: { a: '#123a6a', b: '#040c18', luz: 'rgba(110,180,255,.28)', em: ['🧮', '📊', '🧾', '💼', '📑', '💰'], st: ['🧮', '📊'] },
+        alquiler: { a: '#561e6a', b: '#12051a', luz: 'rgba(230,140,255,.30)', em: ['🎉', '🪑', '⛺', '🎈', '🍾', '🎊'], st: ['🎈', '🪑'] },
+        '360': { a: '#6a1258', b: '#180415', luz: 'rgba(255,110,220,.32)', em: ['📸', '🎥', '💃', '🕺', '✨', '🎶'], st: ['📸', '🎥'] },
+        eventos: { a: '#44127a', b: '#0d041b', luz: 'rgba(180,110,255,.34)', em: ['🎟️', '🎤', '🎶', '🎉', '💃', '🔊'], st: ['🎟️', '🎤'] },
+        funeraria: { a: '#1d2e46', b: '#070b13', luz: 'rgba(200,215,255,.22)', em: ['🕊️', '💐', '🕯️', '🌹', '🤍'], st: ['🕊️', '💐'], suave: true }
+    };
+    // Azar fijo por negocio: la imagen sale igual cada vez
+    function azar(semilla) { var h = 2166136261; for (var k = 0; k < semilla.length; k++) { h ^= semilla.charCodeAt(k); h = Math.imul(h, 16777619); } return function () { h = Math.imul(h ^ (h >>> 15), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16; return (h >>> 0) / 4294967296; }; }
 
     function aviso(t) { var e = document.getElementById('esToast'); e.textContent = t; e.classList.add('on'); clearTimeout(aviso.t); aviso.t = setTimeout(function () { e.classList.remove('on'); }, 2600); }
     function copiar(t, ok) {
@@ -105,14 +127,22 @@
         c.beginPath(); c.moveTo(x - r * 0.45, y + r * 0.02); c.lineTo(x - r * 0.1, y + r * 0.38); c.lineTo(x + r * 0.48, y - r * 0.35); c.stroke();
     }
 
-    function dibujar(c, e) {
-        // Fondo
-        c.fillStyle = NEGRO; c.fillRect(0, 0, W, H);
-        var g = c.createRadialGradient(540, 900, 60, 540, 900, 720); g.addColorStop(0, 'rgba(166,243,74,.28)'); g.addColorStop(1, 'rgba(166,243,74,0)');
+    function dibujar(c, e, conNumero) {
+        // Fondo de propaganda según el negocio: color del tema + objetos del negocio regados + dos "stickers" grandes
+        var t = TEMAS[e.clave] || TEMAS.general, rnd = azar(e.clave);
+        var g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, t.a); g.addColorStop(0.55, t.b); g.addColorStop(1, '#040605');
         c.fillStyle = g; c.fillRect(0, 0, W, H);
-        c.strokeStyle = 'rgba(166,243,74,.12)'; c.lineWidth = 90;
-        c.beginPath(); c.arc(1020, 80, 260, 0, Math.PI * 2); c.stroke();
-        c.beginPath(); c.arc(40, 1420, 200, 0, Math.PI * 2); c.stroke();
+        var gl = c.createRadialGradient(540, 780, 40, 540, 780, 640); gl.addColorStop(0, t.luz); gl.addColorStop(1, 'rgba(0,0,0,0)');
+        c.fillStyle = gl; c.fillRect(0, 0, W, H);
+        c.save(); c.textAlign = 'center'; c.textBaseline = 'middle';
+        for (var k = 0; k < 26; k++) {
+            var ex = rnd() * W, ey = 120 + rnd() * 1700, es = 70 + rnd() * 110;
+            c.save(); c.globalAlpha = t.suave ? 0.12 : 0.2; c.translate(ex, ey); c.rotate((rnd() - 0.5) * 0.9);
+            c.font = es + 'px ' + EMO; c.fillText(t.em[k % t.em.length], 0, 0); c.restore();
+        }
+        c.restore();
+        var os = c.createLinearGradient(0, 1050, 0, H); os.addColorStop(0, 'rgba(0,0,0,0)'); os.addColorStop(0.35, 'rgba(0,0,0,.55)'); os.addColorStop(1, 'rgba(0,0,0,.75)');
+        c.fillStyle = os; c.fillRect(0, 1050, W, H - 1050);
 
         // Marca y para quién es
         c.textBaseline = 'alphabetic';
@@ -161,6 +191,12 @@
         [0, 1, 2, 3].forEach(function (k) { c.fillStyle = k === 0 ? VERDE2 : '#c7d3cb'; rr(c, sx + 50 + k * ((sw - 100) / 3) - 20, sy + sh - 52, 40, 24, 8); c.fill(); });
         c.restore();
         c.restore();
+        [[175, 700, -0.25, 170], [905, 930, 0.22, 150]].forEach(function (st, k) {
+            c.save(); c.translate(st[0], st[1]); c.rotate(st[2]); c.textAlign = 'center'; c.textBaseline = 'middle';
+            c.shadowColor = 'rgba(0,0,0,.55)'; c.shadowBlur = 30; c.shadowOffsetY = 14;
+            c.font = st[3] + 'px ' + EMO; c.fillText(t.st[k], 0, 0); c.restore();
+        });
+        c.textBaseline = 'alphabetic';
 
         // Beneficios (los del sistema + página de enlaces y tienda virtual)
         e.puntos.forEach(function (t, k) {
@@ -169,14 +205,18 @@
             ajustado(c, t, 144, y, 870, 38, '700', '#fff');
         });
 
-        // Tarjeta final: prueba gratis + WhatsApp del asesor (sin QR ni enlace: en un estado nadie los usa)
-        var cy = 1480, ch = 270;
-        rr(c, 60, cy, 960, ch, 40); c.fillStyle = '#fff'; c.fill();
-        ajustado(c, '🎁 Pruébalo 2 meses GRATIS', 540, cy + 74, 880, 54, '900', NEGRO, 'center');
-        var quien = NOMBRE ? NOMBRE.split(' ')[0] : '';
-        ajustado(c, WA ? (quien ? 'Escríbele a ' + quien + ' y te lo muestra' : 'Escríbeme y te lo muestro') : (quien ? 'Pregúntale a ' + quien + ' por LocalPro' : 'Pregúntame por LocalPro'), 540, cy + 120, 880, 32, '600', '#55605a', 'center');
-        rr(c, 100, cy + 146, 880, 100, 50); c.fillStyle = '#25d366'; c.fill();
-        ajustado(c, WA ? '💬  ' + telefono(WA) : '💬  ' + (NOMBRE || 'Asesor LocalPro'), 540, cy + 215, 820, 58, '900', '#fff', 'center');
+        // Tarjeta final: "Pruébalo GRATIS" y, si se quiere, "Contáctanos" con el WhatsApp del asesor (sin nombre, sin QR ni enlace)
+        if (conNumero && WA) {
+            var cy = 1480;
+            rr(c, 60, cy, 960, 280, 40); c.fillStyle = '#fff'; c.fill();
+            ajustado(c, '🎁 Pruébalo GRATIS', 540, cy + 86, 880, 66, '900', NEGRO, 'center');
+            ajustado(c, 'Contáctanos', 540, cy + 134, 880, 34, '700', '#55605a', 'center');
+            rr(c, 100, cy + 158, 880, 100, 50); c.fillStyle = '#25d366'; c.fill();
+            ajustado(c, '💬  ' + telefono(WA), 540, cy + 227, 820, 60, '900', '#fff', 'center');
+        } else {
+            rr(c, 60, 1530, 960, 180, 40); c.fillStyle = VERDE; c.fill();
+            ajustado(c, '🎁 Pruébalo GRATIS', 540, 1645, 880, 82, '900', NEGRO, 'center');
+        }
     }
 
     var lienzo = document.createElement('canvas'); lienzo.width = W; lienzo.height = H;
@@ -184,7 +224,7 @@
     function generar(i) {
         if (i >= L.length) return;
         try {
-            dibujar(ctx, L[i]);
+            dibujar(ctx, L[i], true);
             listas[i] = lienzo.toDataURL('image/jpeg', 0.9);
             var caja = document.querySelector('[data-prev="' + i + '"]');
             caja.innerHTML = ''; var img = new Image(); img.src = listas[i]; img.alt = L[i].titulo; img.dataset.ver = i; caja.appendChild(img);
@@ -192,6 +232,7 @@
         setTimeout(function () { generar(i + 1); }, 15);
     }
     var fuentes = document.fonts && document.fonts.load ? Promise.all(['900', '800', '700', '600'].map(function (p) { return document.fonts.load(p + ' 40px "Plus Jakarta Sans"'); })) : Promise.resolve();
+    function sinNumero(i) { if (!listasSin[i]) { dibujar(ctx, L[i], false); listasSin[i] = lienzo.toDataURL('image/jpeg', 0.9); } return listasSin[i]; }
     Promise.race([fuentes, new Promise(function (ok) { setTimeout(ok, 2500); })]).then(function () { generar(0); });
 
     function archivo(i) {
@@ -199,19 +240,20 @@
         for (var k = 0; k < b.length; k++) a[k] = b.charCodeAt(k);
         return new File([a], 'localpro-' + L[i].clave + '-' + CODIGO + '.jpg', { type: 'image/jpeg' });
     }
-    function bajar(i) {
-        var a = document.createElement('a'); a.href = listas[i]; a.download = 'localpro-' + L[i].clave + '-' + CODIGO + '.jpg';
+    function bajar(i, sin) {
+        var a = document.createElement('a'); a.href = sin ? sinNumero(i) : listas[i]; a.download = 'localpro-' + L[i].clave + (sin ? '' : '-' + CODIGO) + '.jpg';
         document.body.appendChild(a); a.click(); a.remove();
     }
     document.addEventListener('click', function (ev) {
-        var s = ev.target.closest('[data-compartir]'), d = ev.target.closest('[data-bajar]'), t = ev.target.closest('[data-texto]'), v = ev.target.closest('[data-ver]'), cierre = ev.target.closest('#esVer');
+        var s = ev.target.closest('[data-compartir]'), d = ev.target.closest('[data-bajar]'), ds = ev.target.closest('[data-bajar-sin]'), t = ev.target.closest('[data-texto]'), v = ev.target.closest('[data-ver]'), cierre = ev.target.closest('#esVer');
         if (v) { var ver = document.getElementById('esVer'); ver.querySelector('img').src = listas[v.dataset.ver]; ver.classList.add('on'); return; }
         if (cierre) { cierre.classList.remove('on'); return; }
-        var i = s ? s.dataset.compartir : (d ? d.dataset.bajar : (t ? t.dataset.texto : null));
+        var i = s ? s.dataset.compartir : (d ? d.dataset.bajar : (ds ? ds.dataset.bajarSin : (t ? t.dataset.texto : null)));
         if (i === null) return;
         if (t) { copiar(L[i].texto, '✅ Texto copiado: péguelo en su estado'); return; }
         if (!listas[i]) { aviso('Espere un momento, la imagen se está preparando'); return; }
         if (d) { bajar(i); copiar(L[i].texto); aviso('✅ Imagen descargada y texto copiado'); return; }
+        if (ds) { bajar(i, true); copiar(L[i].texto); aviso('✅ Imagen sin número descargada'); return; }
         copiar(L[i].texto);
         var f = archivo(i);
         if (navigator.canShare && navigator.canShare({ files: [f] })) {
