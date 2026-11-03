@@ -94,10 +94,11 @@
         <span class="n">4</span>
         <div class="cuerpo">
             <h3>Publíquelo en sus estados de WhatsApp</h3>
-            <p>Un estado al día con su enlace. Sus contactos lo ven sin que usted les escriba.</p>
+            <p>Un estado al día con su enlace. Sus contactos lo ven sin que usted les escriba. Use las <b>imágenes listas por tipo de negocio</b> (ropa, restaurantes, odontólogos…): ya llevan su QR y su WhatsApp.</p>
             <div class="ev-msg" data-plantilla="estado"></div>
             <div class="ev-btns">
-                <button type="button" class="btn btn-dark" data-copiar="estado" data-marca="estado"><i class="fa-regular fa-copy me-1"></i>Copiar texto del estado</button>
+                <a href="{{ route('asesor.estados') }}" class="btn btn-dark" data-marca="estado"><i class="fa-solid fa-images me-1" style="color:#a6f34a"></i>Ver imágenes para mis estados</a>
+                <button type="button" class="btn btn-light" style="border:1.5px solid #bfeccb" data-copiar="estado" data-marca="estado"><i class="fa-regular fa-copy me-1"></i>Copiar texto del estado</button>
                 <a class="btn btn-success" target="_blank" rel="noopener" data-compartir="estado" data-marca="estado"><i class="fa-brands fa-whatsapp me-1"></i>Compartir en WhatsApp</a>
             </div>
         </div>

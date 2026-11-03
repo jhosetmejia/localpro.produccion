@@ -101,6 +101,10 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-rocket"></i></div>
                     Empiece a vender <span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c;font-size:.6rem">20 AL DÍA</span>
                 </a>
+                <a class="nav-link {{ $on('asesor.estados') }}" href="{{ route('asesor.estados') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-bullhorn"></i></div>
+                    Vende más · estados <span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c;font-size:.6rem">NUEVO</span>
+                </a>
                 <a class="nav-link {{ $on('asesor.red') }}" href="{{ route('asesor.red') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-sitemap"></i></div>
                     Mi red

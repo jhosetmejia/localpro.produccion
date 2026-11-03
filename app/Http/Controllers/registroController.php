@@ -38,6 +38,8 @@ class registroController extends Controller
     // Enlace del asesor: guarda su código (60 días) y abre el registro
     public function referido(string $codigo, array $query = [])
     {
+        // El enlace del asesor puede traer el sistema (ej. /r/LCP-00012?tipo=odontologia, desde las imágenes para estados)
+        $query = $query ?: request()->only('tipo', 'actividad', 'plataforma', 'desde');
         // Código de un negocio (LCT-00012): "Comparta LocalProo y gane"
         if (\App\Support\Referidos::esCodigoNegocio($codigo)) {
             $t = \App\Support\Referidos::tiendaPorCodigo($codigo);
