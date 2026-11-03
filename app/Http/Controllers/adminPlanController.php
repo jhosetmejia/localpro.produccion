@@ -104,6 +104,8 @@ class adminPlanController extends Controller
         Ajuste::guardar('meta_agente_humano', $request->boolean('meta_agente_humano') ? '1' : '');
         Ajuste::guardar('meta_en_vivo', $request->boolean('meta_en_vivo') ? '1' : '');
         Ajuste::guardar('meta_tiendas_prueba', mb_substr(strtoupper(preg_replace('/[^A-Za-z0-9,\-]/', '', str_replace([' ', ';', "\n"], ',', (string) $request->input('meta_tiendas_prueba')))), 0, 2000));
+        // "Guardar y revisar" de YouTube: guarda y muestra de una la revisión de la conexión
+        if ($request->boolean('revisar_youtube')) return redirect()->to(route('admin.planes.index', ['revisar_youtube' => 1]) . '#ytDiag')->with('success', 'Guardado. Abajo está la revisión de YouTube.');
         return back()->with('success', 'Planes guardados.');
     }
 }

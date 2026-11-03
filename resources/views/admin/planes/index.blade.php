@@ -103,7 +103,7 @@
                     <div class="row g-2 mt-1">
                         <div class="col-md-6"><label class="form-label small fw-bold mb-1">ID de cliente</label><input name="youtube_client_id" class="form-control" value="{{ $ytClientId }}" placeholder="{{ config('services.youtube.client_id') ?: '1234-abc.apps.googleusercontent.com' }}" autocomplete="off"></div>
                         <div class="col-md-4"><label class="form-label small fw-bold mb-1">Secreto del cliente</label><input name="youtube_client_secret" type="password" class="form-control" value="" placeholder="{{ $ytSecretoGuardado ? 'Guardado (déjelo vacío para no cambiarlo)' : (config('services.youtube.client_secret') ? 'Usando el del .env' : 'GOCSPX-…') }}" autocomplete="new-password"></div>
-                        <div class="col-md-2 d-grid align-items-end"><a href="{{ route('admin.planes.index', ['revisar_youtube' => 1]) }}#ytDiag" class="btn btn-outline-danger mt-auto"><i class="fa-solid fa-stethoscope me-1"></i>Revisar</a></div>
+                        <div class="col-md-2 d-grid align-items-end"><button name="revisar_youtube" value="1" class="btn btn-outline-danger mt-auto" title="Guarda y revisa"><i class="fa-solid fa-stethoscope me-1"></i>Guardar y revisar</button></div>
                     </div>
                     <small class="text-muted d-block mt-2"><b>Ojo:</b> mientras Google no verifique la app (pantalla de consentimiento) y no apruebe la auditoría de la API de YouTube, los videos que suban los negocios quedan <b>privados</b> y el cupo es de unas 6 subidas al día para todo LocalPro. Pida la verificación y el aumento de cupo en Google Cloud.</small>
                     @if ($ytDiag)
