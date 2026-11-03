@@ -37,7 +37,7 @@
     <div class="es-hero">
         <small><i class="fa-solid fa-bullhorn me-1"></i>Vende más</small>
         <h1>Suba estas imágenes a sus <em>estados</em></h1>
-        <p>Hay una para cada tipo de negocio: tiendas de ropa, restaurantes, odontólogos, conjuntos y más. Cada imagen ya lleva <b>su QR, su enlace con el código {{ $yo->codigo }} y su WhatsApp</b>: el negocio que se registre queda a su nombre.</p>
+        <p>Hay una para cada tipo de negocio: tiendas de ropa, restaurantes, odontólogos, conjuntos y más. Cada imagen vende con los beneficios de ese sistema y lleva <b>su nombre y su WhatsApp</b> para que le escriban. El texto que se copia trae su enlace con el código {{ $yo->codigo }}: el negocio que se registre queda a su nombre.</p>
         <div class="es-pasos">
             <span><b>1.</b> Toque "Compartir" o "Descargar"</span>
             <span><b>2.</b> Súbala a su estado de WhatsApp o historia de Instagram</span>
@@ -47,7 +47,7 @@
     </div>
 
     @if (!$whatsapp)
-    <div class="es-aviso"><i class="fa-solid fa-circle-info me-1"></i>Sus imágenes no muestran su WhatsApp porque no lo tiene en su perfil. <a href="{{ route('cuenta.edit') }}" class="fw-bold">Agréguelo en Mi cuenta</a> para que los negocios le escriban directo.</div>
+    <div class="es-aviso"><i class="fa-solid fa-circle-info me-1"></i>Sus imágenes no muestran su WhatsApp porque no lo tiene en su perfil, y es lo más importante para que le escriban. <a href="{{ route('cuenta.edit') }}" class="fw-bold">Agréguelo en Mi cuenta</a>.</div>
     @endif
 
     <div class="es-grid">
@@ -70,7 +70,6 @@
 @endsection
 
 @push('js')
-<script src="{{ asset('js/qrcode-generator.js') }}"></script>
 <script>
 (function () {
     var L = {!! json_encode($lista, JSON_HEX_TAG | JSON_UNESCAPED_UNICODE) !!};
@@ -127,8 +126,9 @@
         ajustado(c, e.linea1, 80, 335, 920, 84, '800', '#fff');
         ajustado(c, e.linea2, 80, 428, 920, 84, '800', VERDE);
 
-        // Celular con la pantalla del sistema
+        // Celular con la pantalla del sistema (se dibuja a 540×750 y se reduce para dejar espacio a los beneficios)
         var px = 270, py = 490, pw = 540, ph = 750;
+        c.save(); c.translate(540, 478); c.scale(0.78, 0.78); c.translate(-540, -py);
         c.save(); c.shadowColor = 'rgba(0,0,0,.6)'; c.shadowBlur = 60; c.shadowOffsetY = 30;
         rr(c, px, py, pw, ph, 64); c.fillStyle = '#1d2220'; c.fill(); c.restore();
         rr(c, px, py, pw, ph, 64); c.strokeStyle = '#3a423e'; c.lineWidth = 4; c.stroke();
@@ -160,27 +160,23 @@
         c.fillStyle = '#fff'; c.fillRect(sx, sy + sh - 80, sw, 80);
         [0, 1, 2, 3].forEach(function (k) { c.fillStyle = k === 0 ? VERDE2 : '#c7d3cb'; rr(c, sx + 50 + k * ((sw - 100) / 3) - 20, sy + sh - 52, 40, 24, 8); c.fill(); });
         c.restore();
+        c.restore();
 
-        // Beneficios
+        // Beneficios (los del sistema + página de enlaces y tienda virtual)
         e.puntos.forEach(function (t, k) {
-            var y = 1310 + k * 66;
-            chulo(c, 104, y - 14, 24);
-            ajustado(c, t, 148, y, 860, 40, '700', '#fff');
+            var y = 1135 + k * 60;
+            chulo(c, 102, y - 13, 22);
+            ajustado(c, t, 144, y, 870, 38, '700', '#fff');
         });
 
-        // Tarjeta final: QR + prueba gratis + contacto
-        var cy = 1495, ch = 250;
+        // Tarjeta final: prueba gratis + WhatsApp del asesor (sin QR ni enlace: en un estado nadie los usa)
+        var cy = 1480, ch = 270;
         rr(c, 60, cy, 960, ch, 40); c.fillStyle = '#fff'; c.fill();
-        var q = qrcode(0, 'M'); q.addData(e.enlace); q.make();
-        var n = q.getModuleCount(), qs = 206, m = qs / n, qx = 88, qy = cy + 22;
-        c.fillStyle = '#fff'; c.fillRect(qx, qy, qs, qs); c.fillStyle = NEGRO;
-        for (var r = 0; r < n; r++) for (var col = 0; col < n; col++) if (q.isDark(r, col)) c.fillRect(qx + col * m, qy + r * m, Math.ceil(m), Math.ceil(m));
-        var tx = 320, tw = 670;
-        ajustado(c, '🎁 Pruébalo 2 meses GRATIS', tx, cy + 70, tw, 46, '900', NEGRO);
-        ajustado(c, 'Escanea el código o escríbeme', tx, cy + 112, tw, 30, '600', '#55605a');
-        var contacto = (NOMBRE ? NOMBRE.split(' ').slice(0, 2).join(' ') : 'Asesor LocalPro') + (WA ? '  ·  ' + telefono(WA) : '');
-        ajustado(c, contacto, tx, cy + 162, tw, 34, '800', '#1f2a24');
-        ajustado(c, e.enlace.replace(/^https?:\/\//, '').split('?')[0], tx, cy + 210, tw, 30, '800', VERDE2);
+        ajustado(c, '🎁 Pruébalo 2 meses GRATIS', 540, cy + 74, 880, 54, '900', NEGRO, 'center');
+        var quien = NOMBRE ? NOMBRE.split(' ')[0] : '';
+        ajustado(c, WA ? (quien ? 'Escríbele a ' + quien + ' y te lo muestra' : 'Escríbeme y te lo muestro') : (quien ? 'Pregúntale a ' + quien + ' por LocalPro' : 'Pregúntame por LocalPro'), 540, cy + 120, 880, 32, '600', '#55605a', 'center');
+        rr(c, 100, cy + 146, 880, 100, 50); c.fillStyle = '#25d366'; c.fill();
+        ajustado(c, WA ? '💬  ' + telefono(WA) : '💬  ' + (NOMBRE || 'Asesor LocalPro'), 540, cy + 215, 820, 58, '900', '#fff', 'center');
     }
 
     var lienzo = document.createElement('canvas'); lienzo.width = W; lienzo.height = H;
