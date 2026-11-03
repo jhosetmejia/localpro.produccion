@@ -26,6 +26,7 @@ class Enlace extends Model
         'minimal' => ['Minimal', '#f5f3ee', '#151a17', '#151a17', '#ffffff', 'transparent'],
         'cafe' => ['Café', 'linear-gradient(160deg,#3b2618 0%,#6f4a2f 100%)', '#fff6ea', '#fff6ea', '#3b2618', 'transparent'],
         'lila' => ['Lila', 'linear-gradient(160deg,#ece4ff 0%,#b9a2ff 100%)', '#2a1660', '#2a1660', '#ffffff', 'transparent'],
+        'sonrisa' => ['Sonrisa (odontología)', 'linear-gradient(160deg,#ecfeff 0%,#a5f3fc 55%,#22d3ee 100%)', '#083344', '#0e7490', '#ffffff', 'transparent'],
     ];
 
     // Forma de los botones

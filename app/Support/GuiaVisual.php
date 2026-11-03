@@ -27,7 +27,7 @@ class GuiaVisual
 
     // Secciones que dependen de un módulo o tipo de negocio: [módulo de la tienda, tipos que la tienen]
     private const DE_MODULO = [
-        'consultorio' => ['mod_consultorio', ['consultorio']],
+        'consultorio' => ['mod_consultorio', ['consultorio', 'odontologia']],
         'obituarios' => ['mod_obituarios', ['funeraria']],
         'eventos' => ['mod_eventos', ['eventos']],
         'contabilidad' => ['mod_contable', ['contable']],

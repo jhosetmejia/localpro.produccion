@@ -67,6 +67,10 @@
         </div>
     </div>
 
+    @if (\App\Support\TiendaActual::tienda()?->es_odontologia)
+    @include('odontologia._ficha')
+    @endif
+
     <div class="fp-grid">
         <div class="cs-card">
             @if ($clinico)

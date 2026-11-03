@@ -26,10 +26,14 @@
 .cs-privado{display:flex;gap:.5rem;align-items:center;color:var(--lp-muted);font-size:.78rem;font-weight:700}
 </style>
 @if ($errors->any())<div class="cs-err"><i class="fa-solid fa-triangle-exclamation me-1"></i>{{ $errors->first() }}</div>@endif
-@php $clinicoNav = auth()->user()->es_superadmin || auth()->user()->can('historia-clinica'); @endphp
+@php $clinicoNav = auth()->user()->es_superadmin || auth()->user()->can('historia-clinica'); $odoNav = \App\Support\TiendaActual::tienda()?->es_odontologia; @endphp
+@if ($odoNav)@include('odontologia._tema')@endif
 <nav class="cs-tabs">
     <a href="{{ route('consultorio.inicio') }}" class="{{ request()->routeIs('consultorio.inicio') ? 'on' : '' }}"><i class="fa-solid fa-house-medical"></i>Hoy</a>
     <a href="{{ route('consultorio.agenda') }}" class="{{ request()->routeIs('consultorio.agenda') ? 'on' : '' }}"><i class="fa-solid fa-calendar-check"></i>Agenda</a>
     <a href="{{ route('consultorio.pacientes') }}" class="{{ request()->routeIs('consultorio.pacientes*', 'consultorio.paciente', 'consultorio.atencion*') ? 'on' : '' }}"><i class="fa-solid fa-users"></i>Pacientes</a>
+    @if ($odoNav)
+    <a href="{{ route('odonto.tratamientos') }}" class="{{ request()->routeIs('odonto.tratamientos', 'odonto.plan') ? 'on' : '' }}"><i class="fa-solid fa-file-invoice-dollar"></i>Tratamientos</a>
+    @endif
     <a href="{{ route('consultorio.configuracion') }}" class="{{ request()->routeIs('consultorio.configuracion') ? 'on' : '' }}"><i class="fa-solid fa-sliders"></i>{{ $clinicoNav ? 'Mi perfil y firma' : 'Configuración' }}</a>
 </nav>

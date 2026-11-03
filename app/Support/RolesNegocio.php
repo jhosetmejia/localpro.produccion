@@ -90,6 +90,9 @@ class RolesNegocio
         // Consultorio
         'recepcion_con' => ['Recepción del consultorio', 'fa-calendar-check', ['agenda-consultorio', 'usar-pos', 'ver-producto', 'ver-cliente', 'crear-cliente'], 'panel', null],
         'profesional' => ['Profesional de salud', 'fa-user-doctor', ['agenda-consultorio', 'historia-clinica'], 'panel', null],
+        // Consultorio odontológico
+        'odontologo' => ['Odontólogo(a)', 'fa-tooth', ['agenda-consultorio', 'historia-clinica', 'ver-producto'], 'panel', null],
+        'auxiliar_odo' => ['Auxiliar de odontología', 'fa-hand-holding-medical', ['agenda-consultorio', 'usar-pos', 'ver-producto', 'ver-cliente', 'crear-cliente'], 'panel', null],
         // Firma contable
         'auxiliar_contable' => ['Auxiliar contable', 'fa-calculator', ['contabilidad'], 'panel', null],
         // Alquiler
@@ -110,6 +113,7 @@ class RolesNegocio
         'belleza' => ['admin', 'caja', 'estilista'],
         'funeraria' => ['admin', 'recepcion_fun', 'salas', 'contador'],
         'consultorio' => ['admin', 'recepcion_con', 'profesional'],
+        'odontologia' => ['admin', 'recepcion_con', 'odontologo', 'auxiliar_odo'],
         'contable' => ['admin', 'auxiliar_contable'],
         'otro' => ['admin', 'vendedor', 'bodega'],
         // Eventos usa EVENTOS_POR_DEFECTO; instituto y conjunto tienen su propio panel de administración

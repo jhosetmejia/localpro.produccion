@@ -108,6 +108,9 @@
 
             @foreach ($plantilla['campos'] as [$k, $lab, $tipo, $ay])
             <div class="at-sec"><label>{{ $lab }}</label>@if ($ay)<small class="ay">{{ $ay }}</small>@endif
+                @if ($k === 'odontograma' && \Illuminate\Support\Facades\Route::has('odonto.odontograma'))
+                <a href="{{ route('odonto.odontograma', [$p, 'atencion' => $a->id]) }}" class="cs-btn sm mb-2" style="border-color:#a5f3fc"><i class="fa-solid fa-tooth" style="color:#0891b2"></i>Abrir el odontograma gráfico</a>
+                @endif
                 @if ($tipo === 'area')<textarea name="c[{{ $k }}]" class="form-control" rows="3" maxlength="10000">{{ $c[$k] ?? '' }}</textarea>
                 @else<input name="c[{{ $k }}]" class="form-control" value="{{ $c[$k] ?? '' }}" maxlength="500">@endif
             </div>
@@ -199,6 +202,16 @@
                 <a href="{{ route('consultorio.atencion', $x) }}" class="at-prev"><b>{{ $x->fecha->format('d/m/Y') }}</b> · {{ \App\Support\Consultorio::plantilla($x->plantilla)['nombre'] }}<small>{{ \Illuminate\Support\Str::limit($x->contenido['motivo'] ?? '', 70) }}</small></a>
                 @empty<span class="text-muted small">Es su primera atención.</span>@endforelse
             </div>
+            @if ($a->plantilla === 'odontologia' && \Illuminate\Support\Facades\Route::has('odonto.odontograma'))
+            <div class="cs-card" style="border-color:#a5f3fc;background:linear-gradient(180deg,#f5feff,#fff)">
+                <h3><span><i class="fa-solid fa-tooth me-1" style="color:#0891b2"></i>Odontología</span></h3>
+                <div class="d-grid gap-2">
+                    <a href="{{ route('odonto.odontograma', [$p, 'atencion' => $a->id]) }}" class="cs-btn justify-content-center"><i class="fa-solid fa-tooth"></i>Odontograma</a>
+                    <a href="{{ route('odonto.consentimiento.nuevo', $p) }}" class="cs-btn justify-content-center"><i class="fa-solid fa-file-signature"></i>Consentimiento firmado</a>
+                    <a href="{{ route('consultorio.paciente', $p) }}#fo-adj" class="cs-btn justify-content-center"><i class="fa-solid fa-x-ray"></i>Radiografías y planes</a>
+                </div>
+            </div>
+            @endif
             @can('usar-pos')<a href="{{ route('pos.index') }}" class="cs-btn w-100 justify-content-center"><i class="fa-solid fa-cash-register"></i>Cobrar la consulta en la caja</a>@endcan
         </div>
     </div>

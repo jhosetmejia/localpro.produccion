@@ -141,7 +141,7 @@
 
                 @if ($tiendaMenu || (!auth()->user()->asesor && !auth()->user()->es_superadmin))
                 <div class="sb-sidenav-menu-heading">{{ $tiendaMenu ? \Illuminate\Support\Str::limit($tiendaMenu->nombre, 22) : 'Inicio' }}</div>
-                @php $esConsultorio = $tiendaMenu?->tipo_negocio === 'consultorio' && $tiendaMenu?->mod_consultorio; @endphp
+                @php $esConsultorio = $tiendaMenu?->es_consultorio && $tiendaMenu?->mod_consultorio; @endphp
                 <a class="nav-link {{ $on('panel') }}" href="{{ $esConsultorio ? route('panel', ['ventas' => 1]) : route('panel') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid {{ $esConsultorio ? 'fa-chart-line' : 'fa-house' }}"></i></div>
                     {{ $esConsultorio ? 'Ventas del consultorio' : 'Panel' }}
@@ -201,10 +201,14 @@
                 </a>
                 @endif
                 @if ($tiendaMenu?->mod_consultorio && (auth()->user()->can('agenda-consultorio') || auth()->user()->can('historia-clinica')) && $ver('consultorio'))
-                <div class="sb-sidenav-menu-heading">Consultorio</div>
-                <a class="nav-link {{ $on('consultorio.inicio') }}" href="{{ route('consultorio.inicio') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-house-medical"></i></div>Hoy en consulta</a>
+                @php $esOdonto = $tiendaMenu->es_odontologia; @endphp
+                <div class="sb-sidenav-menu-heading">{{ $esOdonto ? 'Consultorio odontológico' : 'Consultorio' }}</div>
+                <a class="nav-link {{ $on('consultorio.inicio') }}" href="{{ route('consultorio.inicio') }}"><div class="sb-nav-link-icon"><i class="fa-solid {{ $esOdonto ? 'fa-tooth' : 'fa-house-medical' }}"></i></div>Hoy en consulta</a>
                 <a class="nav-link {{ $on('consultorio.agenda') }}" href="{{ route('consultorio.agenda') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-calendar-check"></i></div>Agenda de citas</a>
-                <a class="nav-link {{ $on('consultorio.pacientes*') }} {{ $on('consultorio.paciente') }} {{ $on('consultorio.atencion*') }}" href="{{ route('consultorio.pacientes') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-users"></i></div>Pacientes</a>
+                <a class="nav-link {{ $on('consultorio.pacientes*') }} {{ $on('consultorio.paciente') }} {{ $on('consultorio.atencion*') }} {{ $on('odonto.*') }}" href="{{ route('consultorio.pacientes') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-users"></i></div>Pacientes</a>
+                @if ($esOdonto && \Illuminate\Support\Facades\Route::has('odonto.tratamientos'))
+                <a class="nav-link {{ $on('odonto.tratamientos') }}" href="{{ route('odonto.tratamientos') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>Tratamientos y saldos</a>
+                @endif
                 @endif
                 @if ($tiendaMenu?->mod_obituarios && (auth()->user()->can('gestionar-obituarios') || auth()->user()->can('editar-negocio')) && \Illuminate\Support\Facades\Route::has('obituarios.index'))
                 @if ($ver('obituarios'))<a class="nav-link {{ $on('obituarios.*') }}" href="{{ route('obituarios.index') }}">

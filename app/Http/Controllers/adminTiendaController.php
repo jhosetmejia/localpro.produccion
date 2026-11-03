@@ -270,7 +270,9 @@ class adminTiendaController extends Controller
             return back()->withErrors('La tienda ' . $tienda->nombre . ' tiene pagos aprobados; no se puede eliminar. Puede suspenderla.');
         }
         // Consultorios: la historia clínica se debe conservar por ley (Res. 1995/1999)
-        if (\Illuminate\Support\Facades\Schema::hasTable('atenciones') && DB::table('atenciones')->where('tienda_id', $tienda->id)->exists()) {
+        if ((\Illuminate\Support\Facades\Schema::hasTable('atenciones') && DB::table('atenciones')->where('tienda_id', $tienda->id)->exists())
+            || (\Illuminate\Support\Facades\Schema::hasTable('odontogramas') && DB::table('odontogramas')->where('tienda_id', $tienda->id)->exists())
+            || (\Illuminate\Support\Facades\Schema::hasTable('consentimientos') && DB::table('consentimientos')->where('tienda_id', $tienda->id)->exists())) {
             return back()->withErrors($tienda->nombre . ' tiene historias clínicas de pacientes: por ley se deben conservar y no se puede eliminar. Puede suspenderla.');
         }
 

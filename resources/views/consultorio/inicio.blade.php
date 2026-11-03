@@ -25,10 +25,12 @@
 @section('content')
 <div class="lp-dash">
     <div class="lp-hello">
-        <div><small><i class="fa-solid fa-user-doctor me-1"></i>Consultorio</small><h1>Su día en <span>consulta</span></h1>
+        @php $odoIni = \App\Support\TiendaActual::tienda()?->es_odontologia; @endphp
+        <div><small><i class="fa-solid {{ $odoIni ? 'fa-tooth' : 'fa-user-doctor' }} me-1"></i>{{ $odoIni ? 'Consultorio odontológico' : 'Consultorio' }}</small><h1>{!! $odoIni ? 'Sonrisas de <span>hoy</span>' : 'Su día en <span>consulta</span>' !!}</h1>
             <span class="text-muted fw-semibold">{{ ucfirst(now()->translatedFormat('l j \d\e F')) }}</span></div>
         <div class="lp-quick d-flex gap-2 flex-wrap">
             <a href="{{ route('consultorio.pacientes.create') }}" class="cs-btn"><i class="fa-solid fa-user-plus"></i>Nuevo paciente</a>
+            @if ($odoIni)<a href="{{ route('odonto.tratamientos') }}" class="cs-btn"><i class="fa-solid fa-file-invoice-dollar"></i>Tratamientos y saldos</a>@endif
             <a href="{{ route('consultorio.agenda') }}#nueva" class="cs-btn prim"><i class="fa-solid fa-calendar-plus"></i>Agendar cita</a>
         </div>
     </div>

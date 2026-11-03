@@ -213,8 +213,15 @@ class consultorioController extends Controller
     public function pacienteBorrar(Paciente $paciente)
     {
         abort_unless(auth()->user()->can('editar-negocio'), 403);
-        if ($paciente->atenciones()->exists()) {
+        if ($paciente->atenciones()->exists() || $paciente->odontogramas()->exists() || $paciente->consentimientos()->exists() || $paciente->adjuntos()->exists()) {
             return back()->with('error', 'Este paciente tiene historia clínica: por ley no se puede borrar.');
+        }
+        if ($paciente->tratamientos()->where('abonado', '>', 0)->exists()) {
+            return back()->with('error', 'Este paciente tiene abonos a tratamientos: no se puede borrar.');
+        }
+        foreach ($paciente->tratamientos()->get() as $pl) {
+            $pl->items()->delete();
+            $pl->delete();
         }
         $paciente->citas()->delete();
         $paciente->delete();

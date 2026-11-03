@@ -135,6 +135,11 @@
                 <div class="tip" id="tip-alquila" style="display:none"><i class="fa-solid fa-lightbulb me-1"></i> Su sistema entra directo a <b>Alquileres</b>: cotizaciones en PDF, disponibilidad por fecha, abonos, entrega y devolución. La caja de venta y los separados quedan escondidos (no se borra nada). Si más adelante vende algo, cambie a <b>Vende y alquila</b> en Datos del negocio y vuelven a aparecer.</div>
             </div>
 
+            <div class="tip" id="tip-odonto" style="display:none;margin-bottom:1rem;background:linear-gradient(135deg,#e0f7fa,#ecfeff);border-color:#a5f3fc">
+                <i class="fa-solid fa-tooth me-1" style="color:#0891b2"></i> <b>Su consultorio odontológico queda listo:</b> agenda de citas, pacientes, historia clínica dental,
+                <b>odontograma</b>, <b>planes de tratamiento con abonos</b>, consentimientos firmados en pantalla, radiografías y fotos, caja, Mis enlaces y sus servicios en línea.
+                Lo que no usa una clínica dental (alquiler, recetas, eventos…) no le aparece.
+            </div>
             <div class="mods" id="mods">
                 <div class="field" style="margin-bottom:.4rem"><label>¿Qué necesita su negocio? <span style="color:var(--muted);font-weight:600">(lo marcamos según su tipo; puede cambiarlo cuando quiera)</span></label></div>
                 @foreach ([
@@ -182,7 +187,8 @@
             var mods = document.getElementById('mods'); if (!mods) return;
             mods.addEventListener('change', function (e) { if (e.target.dataset.mod) tocados[e.target.dataset.mod] = true; });
             var act = document.getElementById('actividad'), tipAlq = document.getElementById('tip-alquila');
-            function verActividad(tipo) { act.style.display = ['conjunto', 'instituto', 'contable', 'eventos'].indexOf(tipo) !== -1 ? 'none' : ''; }
+            function verActividad(tipo) { act.style.display = ['conjunto', 'instituto', 'contable', 'eventos', 'odontologia'].indexOf(tipo) !== -1 ? 'none' : '';
+                var od = document.getElementById('tip-odonto'); if (od) od.style.display = tipo === 'odontologia' ? '' : 'none'; }
             function verTip() { var a = document.querySelector('input[name=actividad]:checked'); tipAlq.style.display = a && a.value === 'alquila' ? '' : 'none';
                 var c360 = document.getElementById('mod360-caja'); if (c360) c360.style.display = a && (a.value === 'alquila' || a.value === 'ambos') ? '' : 'none'; }
             document.querySelectorAll('input[name=actividad]').forEach(function (r) { r.addEventListener('change', verTip); });
@@ -191,14 +197,15 @@
             selTipo.addEventListener('change', function () { verActividad(selTipo.value); });
             if (selTipo.value) verActividad(selTipo.value);
             function aplicar(tipo) {
-                mods.style.display = (tipo === 'conjunto' || tipo === 'instituto') ? 'none' : '';
+                mods.style.display = (tipo === 'conjunto' || tipo === 'instituto' || tipo === 'odontologia') ? 'none' : '';
                 var on = MAP[tipo] || [];
                 mods.querySelectorAll('[data-mod]').forEach(function (c) { if (!tocados[c.dataset.mod]) c.checked = on.indexOf(c.dataset.mod) !== -1; });
             }
             selTipo.addEventListener('change', function () { aplicar(selTipo.value); });
             var marcado = selTipo.value ? selTipo : null;
             if (marcado && {{ ($tienda->mod_servicios || $tienda->mod_medida || $tienda->mod_vencimiento || $tienda->mod_recetas || $tienda->mod_obituarios || $tienda->mod_pantallas || $tienda->mod_eventos || $tienda->mod_contable || $tienda->mod_consultorio || old('mod_medida') !== null) ? 'false' : 'true' }}) aplicar(marcado.value);
-            else if (marcado) mods.style.display = (marcado.value === 'conjunto' || marcado.value === 'instituto') ? 'none' : '';
+            else if (marcado) mods.style.display = (marcado.value === 'conjunto' || marcado.value === 'instituto' || marcado.value === 'odontologia') ? 'none' : '';
+            if (marcado && marcado.value === 'odontologia') mods.style.display = 'none';
         })();
         </script>
         @endif

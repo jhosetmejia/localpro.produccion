@@ -65,6 +65,8 @@ Route::get('/institutos', fn () => redirect()->route('registro', ['tipo' => 'ins
 Route::get('/alquiler', fn () => redirect()->route('registro', ['actividad' => 'alquila'] + request()->only('desde', 'tipo')))->name('registro.alquiler');
 Route::get('/alquiler-360', fn () => redirect()->route('registro', ['actividad' => 'alquila', 'plataforma' => '360', 'desde' => request('desde', 'alquiler-360')]))->name('registro.360');
 Route::get('/contadores', fn () => redirect()->route('registro', ['tipo' => 'contable'] + request()->only('desde')))->name('registro.contadores');
+// Enlace corto para odontólogos: el registro nace como "Consultorio odontológico"
+Route::get('/odontologos', fn () => redirect()->route('registro', ['tipo' => 'odontologia'] + request()->only('desde')))->name('registro.odontologos');
 Route::get('/contadores/{codigo}', [registroController::class, 'referidoContador'])->where('codigo', '[A-Za-z0-9\-]+')->name('registro.contadores.asesor');
 Route::post('/registro', [registroController::class, 'store'])->middleware(['throttle:5,1', 'antibot']);
 Route::get('/recuperar', [recuperarController::class, 'formulario'])->name('password.request');
@@ -285,6 +287,30 @@ Route::middleware(['auth', 'tienda'])->prefix('consultorio')->name('consultorio.
     Route::get('/cie10', 'cie')->name('cie');
     Route::get('/configuracion', 'configuracion')->name('configuracion');
     Route::post('/configuracion', 'configuracionGuardar')->name('configuracion.guardar');
+});
+
+// ===== Consultorio odontológico: odontograma, planes de tratamiento con abonos, consentimientos y radiografías =====
+Route::middleware(['auth', 'tienda'])->prefix('consultorio')->name('odonto.')->controller(\App\Http\Controllers\odontologiaController::class)->group(function () {
+    Route::get('/pacientes/{paciente}/odontograma', 'odontograma')->whereNumber('paciente')->name('odontograma');
+    Route::post('/pacientes/{paciente}/odontograma', 'odontogramaGuardar')->whereNumber('paciente')->name('odontograma.guardar');
+    Route::post('/odontogramas/{odontograma}/plan', 'odontogramaPlan')->whereNumber('odontograma')->name('odontograma.plan');
+    Route::get('/tratamientos', 'tratamientos')->name('tratamientos');
+    Route::post('/pacientes/{paciente}/tratamientos', 'planCrear')->whereNumber('paciente')->name('plan.crear');
+    Route::get('/tratamientos/{plan}', 'plan')->whereNumber('plan')->name('plan');
+    Route::put('/tratamientos/{plan}', 'planGuardar')->whereNumber('plan')->name('plan.guardar');
+    Route::get('/tratamientos/{plan}/presupuesto', 'presupuesto')->whereNumber('plan')->name('plan.presupuesto');
+    Route::post('/tratamientos/{plan}/items', 'itemGuardar')->whereNumber('plan')->name('item.store');
+    Route::put('/tratamientos/{plan}/items/{item}', 'itemGuardar')->whereNumber(['plan', 'item'])->name('item.update');
+    Route::delete('/tratamientos/{plan}/items/{item}', 'itemBorrar')->whereNumber(['plan', 'item'])->name('item.destroy');
+    Route::post('/tratamientos/{plan}/items/{item}/hecho', 'itemHecho')->whereNumber(['plan', 'item'])->name('item.hecho');
+    Route::post('/tratamientos/{plan}/abonos', 'abono')->whereNumber('plan')->name('abono');
+    Route::get('/abonos-tratamiento/{abono}/recibo', 'recibo')->whereNumber('abono')->name('abono.recibo');
+    Route::get('/pacientes/{paciente}/consentimientos/nuevo', 'consentimientoNuevo')->whereNumber('paciente')->name('consentimiento.nuevo');
+    Route::post('/pacientes/{paciente}/consentimientos', 'consentimientoGuardar')->whereNumber('paciente')->name('consentimiento.guardar');
+    Route::get('/consentimientos/{consentimiento}', 'consentimiento')->whereNumber('consentimiento')->name('consentimiento');
+    Route::post('/pacientes/{paciente}/adjuntos', 'adjuntoSubir')->whereNumber('paciente')->name('adjunto.subir');
+    Route::get('/adjuntos/{adjunto}', 'adjunto')->whereNumber('adjunto')->name('adjunto');
+    Route::delete('/adjuntos/{adjunto}', 'adjuntoBorrar')->whereNumber('adjunto')->name('adjunto.borrar');
 });
 
 // ===== Pantallas de la tienda =====

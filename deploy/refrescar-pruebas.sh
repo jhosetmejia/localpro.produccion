@@ -16,7 +16,7 @@ fi
 MYSQL_PWD="$DBP" mysql -u "$DBU" "$DBN" -e "UPDATE ajustes SET valor='simulado' WHERE clave='fe_proveedor' AND valor='api'" 2>/dev/null
 echo "    Copiando fotos y archivos…"
 mkdir -p "$RAIZP/storage/app"
-for d in public firmas; do [ -d "$PROD/storage/app/$d" ] && rsync -a --delete "$PROD/storage/app/$d/" "$RAIZP/storage/app/$d/"; done
+for d in public firmas consentimientos pacientes; do [ -d "$PROD/storage/app/$d" ] && rsync -a --delete "$PROD/storage/app/$d/" "$RAIZP/storage/app/$d/"; done
 chown -R "$SUSR:$SUSR" "$RAIZP/storage"
 if [ "${1:-}" != "--sin-migrar" ]; then
   cd "$RAIZP" && sudo -u "$SUSR" php8.2 artisan migrate --force && sudo -u "$SUSR" php8.2 artisan optimize:clear >/dev/null && sudo -u "$SUSR" php8.2 artisan config:cache >/dev/null

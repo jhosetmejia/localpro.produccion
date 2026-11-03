@@ -82,9 +82,14 @@ class negocioController extends Controller
             $datos[$m] = $request->boolean($m);
         }
         // Al pasar a consultorio se enciende solo el módulo de pacientes e historia clínica
-        if ($datos['tipo_negocio'] === 'consultorio' && $negocio->tipo_negocio !== 'consultorio') {
+        if (in_array($datos['tipo_negocio'], \App\Models\Tienda::TIPOS_CONSULTORIO, true) && $negocio->tipo_negocio !== $datos['tipo_negocio']) {
             $datos['mod_consultorio'] = true;
-            if ($negocio->menu_oculto === null) $datos['menu_oculto'] = \App\Models\Tienda::MENU_OCULTO_POR_TIPO['consultorio'];
+            if ($negocio->menu_oculto === null || $datos['tipo_negocio'] === 'odontologia') $datos['menu_oculto'] = \App\Models\Tienda::MENU_OCULTO_POR_TIPO[$datos['tipo_negocio']];
+            // Odontología: la historia clínica sale con la plantilla dental y el odontograma
+            if ($datos['tipo_negocio'] === 'odontologia') {
+                \App\Models\Ajuste::guardar('t' . $negocio->id . '_hc_plantilla', 'odontologia');
+                $datos['mod_alquiler'] = false;
+            }
         }
         $datos['usa_tallas'] = \App\Models\Tienda::TIPOS[$datos['tipo_negocio']][2];
         // Al pasar a funeraria se enciende solo el módulo de obituarios

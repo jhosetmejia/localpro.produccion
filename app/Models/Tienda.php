@@ -35,7 +35,11 @@ class Tienda extends Model
         'eventos' => ['mod_eventos'],
         'contable' => ['mod_contable'],
         'consultorio' => ['mod_consultorio', 'mod_servicios'],
+        'odontologia' => ['mod_consultorio', 'mod_servicios'],
     ];
+
+    // Tipos de negocio que trabajan con pacientes, agenda e historia clínica
+    public const TIPOS_CONSULTORIO = ['consultorio', 'odontologia'];
 
     // Secciones del menú que el negocio puede esconder si no las usa: [nombre, ícono, grupo, para qué sirve]
     // (Panel, Datos del negocio, Mi plan, Usuarios y Personalizar menú siempre se ven)
@@ -86,6 +90,10 @@ class Tienda extends Model
         'minimercado' => ['separados'],
         'belleza' => ['separados', 'entradas'],
         'consultorio' => ['separados', 'existencias', 'entradas', 'categorias', 'catalogo'],
+        // Consultorio odontológico: Consultorio (pacientes, odontograma, tratamientos), caja, ventas, servicios, gastos, nómina,
+        // facturación, Mis enlaces, servicios en línea y redes. Lo que no usa una clínica dental queda oculto (se puede mostrar en Personalizar menú).
+        'odontologia' => ['obituarios', 'pantallas', 'eventos', 'contabilidad', 'pedidos', 'separados', 'tiquetera', 'alquiler', 'cotizaciones',
+            'existencias', 'entradas', 'categorias'],
     ];
 
     // Qué hace el negocio (ajuste encima del tipo): vende, solo alquila o vende y alquila
@@ -115,7 +123,8 @@ class Tienda extends Model
         'eventos' => ['Eventos, fiestas y conciertos', 'fa-ticket', false, 'Venta de entradas con registro, pago por Nequi y QR en la puerta'],
         'contable' => ['Contador / analista contable', 'fa-calculator', false, 'Retenciones, IVA y cruce de facturas con la DIAN para sus clientes'],
         'conjunto' => ['Conjunto residencial / edificio', 'fa-building', false, 'Administración de conjuntos, torres y edificios'],
-        'consultorio' => ['Consultorio / salud', 'fa-user-doctor', false, 'Psicología, odontología, estética, fisioterapia, nutrición, medicina'],
+        'odontologia' => ['Consultorio odontológico', 'fa-tooth', false, 'Odontólogos y clínicas dentales: odontograma, planes de tratamiento, abonos y consentimientos'],
+        'consultorio' => ['Consultorio / salud', 'fa-user-doctor', false, 'Psicología, estética, fisioterapia, nutrición, medicina'],
         'instituto' => ['Instituto / academia', 'fa-graduation-cap', false, 'Institutos técnicos, academias y cursos: inscripciones, matrículas y cuotas'],
         'otro' => ['Otro negocio', 'fa-store', false, 'Cualquier otro comercio'],
     ];
@@ -285,7 +294,7 @@ class Tienda extends Model
     public const ICONO_PRODUCTO = [
         'moda' => 'fa-shirt', 'calzado' => 'fa-shoe-prints', 'accesorios' => 'fa-gem', 'restaurante' => 'fa-burger',
         'cafeteria' => 'fa-mug-hot', 'minimercado' => 'fa-basket-shopping', 'belleza' => 'fa-spa', 'tecnologia' => 'fa-mobile-screen',
-        'papeleria' => 'fa-pen-ruler', 'ferreteria' => 'fa-screwdriver-wrench', 'funeraria' => 'fa-dove', 'eventos' => 'fa-ticket', 'conjunto' => 'fa-building', 'contable' => 'fa-calculator', 'consultorio' => 'fa-stethoscope', 'instituto' => 'fa-graduation-cap',
+        'papeleria' => 'fa-pen-ruler', 'ferreteria' => 'fa-screwdriver-wrench', 'funeraria' => 'fa-dove', 'eventos' => 'fa-ticket', 'conjunto' => 'fa-building', 'contable' => 'fa-calculator', 'consultorio' => 'fa-stethoscope', 'odontologia' => 'fa-tooth', 'instituto' => 'fa-graduation-cap',
     ];
 
     public function getIconoProductoAttribute(): string
@@ -486,6 +495,21 @@ class Tienda extends Model
     public function enMenu(string $clave): bool
     {
         return !in_array($clave, (array) ($this->menu_oculto ?? []), true);
+    }
+
+    // Consultorios (salud y odontología): su inicio es el consultorio
+    public function getEsConsultorioAttribute(): bool
+    {
+        return in_array($this->tipo_negocio, self::TIPOS_CONSULTORIO, true);
+    }
+
+    // Consultorio odontológico: odontograma, planes de tratamiento con abonos, consentimientos y radiografías
+    public function getEsOdontologiaAttribute(): bool
+    {
+        if ($this->tipo_negocio === 'odontologia') return true;
+        if (!$this->mod_consultorio || !$this->id) return false;
+        static $memo = [];
+        return $memo[$this->id] ??= \App\Models\Ajuste::valor('t' . $this->id . '_hc_plantilla') === 'odontologia';
     }
 
     // Funerarias: obituarios en las pantallas de las salas de velación

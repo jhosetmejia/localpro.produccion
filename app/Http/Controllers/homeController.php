@@ -57,7 +57,7 @@ class homeController extends Controller
             return redirect()->route('eventos.index');
         }
         // Consultorios: su inicio es la agenda del día (el panel de ventas sigue en /?ventas=1)
-        if ($tienda->tipo_negocio === 'consultorio' && $tienda->mod_consultorio && !request()->boolean('ventas')
+        if ($tienda->es_consultorio && $tienda->mod_consultorio && !request()->boolean('ventas')
             && (Auth::user()->can('agenda-consultorio') || Auth::user()->can('historia-clinica'))) {
             return redirect()->route('consultorio.inicio');
         }

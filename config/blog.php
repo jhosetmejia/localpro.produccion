@@ -6,6 +6,26 @@
 // palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
+    'software-para-consultorio-odontologico-odontograma' => [
+        'titulo' => 'Software para consultorio odontológico: odontograma, presupuestos con abonos y consentimientos firmados en el celular',
+        'resumen' => 'Odontólogos y clínicas dentales: odontograma gráfico por caras, plan de tratamiento que sale solo del odontograma, abonos que entran a la caja, saldo de cada paciente, consentimientos firmados en la pantalla y radiografías en la historia. Todo en LocalProo.',
+        'fecha' => '3 de noviembre de 2026',
+        'publicado' => '2026-11-03',
+        'minutos' => 5,
+        'icono' => 'fa-tooth',
+        'rol' => 'odontologos',
+        'seo_titulo' => 'Software para odontólogos con odontograma | LocalProo',
+        'descripcion' => 'Programa para consultorio odontológico: odontograma digital, presupuesto por pieza, abonos y saldos, consentimiento informado con firma y radiografías.',
+        'keywords' => ['software para consultorio odontológico', 'programa para odontólogos', 'odontograma digital', 'odontograma en línea', 'historia clínica odontológica',
+            'presupuesto odontológico', 'consentimiento informado odontología', 'software clínica dental Colombia'],
+        'faq' => [
+            ['¿El odontograma usa la convención de colores de Colombia?', 'Sí: rojo para lo que hay que tratar (caries, extracción indicada, endodoncia indicada) y azul para lo que ya está hecho o existe (resinas, coronas, ausentes). Se marca por caras: vestibular, lingual o palatina, mesial, distal y oclusal.'],
+            ['¿Se pierde el odontograma anterior si lo cambio?', 'No. Cada vez que lo guarda queda una versión nueva con fecha y profesional, y puede ver las anteriores para comparar.'],
+            ['¿Cómo llevo lo que me debe cada paciente?', 'Cada plan de tratamiento muestra el total, lo abonado y el saldo. Los abonos se reciben en la caja (efectivo, Nequi, tarjeta…), salen en el cierre de caja y el paciente recibe su recibo por WhatsApp o impreso.'],
+            ['¿El consentimiento firmado en la pantalla tiene validez?', 'El paciente firma con el dedo en el celular o la tableta y queda guardado con fecha, hora, nombre del profesional y una huella de integridad que muestra si el documento se alteró. Puede imprimirlo o guardarlo en PDF.'],
+            ['¿La recepcionista ve la historia clínica?', 'No. Recepción y la auxiliar manejan la agenda, los planes y los abonos; el odontograma, los consentimientos y las radiografías solo los ve el odontólogo.'],
+        ],
+    ],
     'alquiler-de-plataforma-360-app-para-videos-360' => [
         'titulo' => 'Alquiler de plataforma 360: la app gratis para editar los videos 360 en el celular y llenar su agenda',
         'resumen' => 'Si alquila una plataforma 360 (cabina o "photo booth 360") para bodas, quinces y eventos, LocalProo le da la app que graba y edita el video al instante con cámara lenta, logo del evento y música, guarda el WhatsApp de cada invitado y además lleva sus alquileres, cotizaciones y abonos.',

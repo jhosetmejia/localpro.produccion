@@ -40,6 +40,27 @@ class Paciente extends Model
         return $this->hasMany(Atencion::class);
     }
 
+    // Consultorio odontológico
+    public function odontogramas()
+    {
+        return $this->hasMany(Odontograma::class)->orderByDesc('id');
+    }
+
+    public function tratamientos()
+    {
+        return $this->hasMany(TratamientoPlan::class)->orderByDesc('id');
+    }
+
+    public function consentimientos()
+    {
+        return $this->hasMany(Consentimiento::class)->orderByDesc('id');
+    }
+
+    public function adjuntos()
+    {
+        return $this->hasMany(PacienteAdjunto::class)->orderByDesc('id');
+    }
+
     public function getNombreCompletoAttribute(): string
     {
         return trim($this->nombres . ' ' . $this->apellidos);

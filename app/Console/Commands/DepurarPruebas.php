@@ -31,7 +31,8 @@ class DepurarPruebas extends Command
     // Tablas que NO se tocan: datos del negocio, usuarios, pagos, red comercial y configuración básica
     // Historia clínica (consultorios): la ley obliga a conservarla (Res. 839 de 2017, 15 años); nunca se borra con la depuración
     private const CONSERVAR = ['tiendas', 'users', 'avisos_plan', 'pagos_suscripcion', 'comisiones', 'asesores', 'planes', 'ajustes', 'metodos_pago',
-        'pacientes', 'citas', 'atenciones', 'atencion_notas', 'clinica_accesos'];
+        'pacientes', 'citas', 'atenciones', 'atencion_notas', 'clinica_accesos',
+        'odontogramas', 'tratamiento_planes', 'tratamiento_items', 'tratamiento_abonos', 'consentimientos', 'paciente_adjuntos'];
 
     // Días para pagar, contados desde que se le notificó que la prueba terminó (se puede cambiar en ajustes: dias_gracia_depuracion)
     public const DIAS_GRACIA = 15;

@@ -59,7 +59,7 @@ class Caja extends Model
     public function abonosPorMetodo()
     {
         $filas = collect();
-        foreach (['separado_abonos', 'alquiler_abonos'] as $tabla) {
+        foreach (['separado_abonos', 'alquiler_abonos', 'tratamiento_abonos'] as $tabla) {
             if (!\Illuminate\Support\Facades\Schema::hasTable($tabla)) continue;
             $filas = $filas->concat(DB::table($tabla . ' as a')
                 ->join('metodos_pago as m', 'm.id', '=', 'a.metodo_pago_id')
@@ -190,6 +190,24 @@ class Caja extends Model
                     'hora' => $r->created_at, 'tipo' => $r->monto < 0 ? 'Devolución de alquiler' : 'Abono de alquiler', 'numero' => $r->numero,
                     'detalle' => 'Alquiler ' . $r->ref . ' · ' . $r->que_alquila . ($r->nota ? ' · ' . $r->nota : ''),
                     'extra' => self::textoAlquiler($r),
+                    'nombre' => $r->metodo, 'es_efectivo' => $r->es_efectivo, 'monto' => (float) $r->monto,
+                ]);
+            }
+        }
+
+        // Abonos a planes de tratamiento (consultorio odontológico)
+        if ($S::hasTable('tratamiento_abonos')) {
+            $abonos = DB::table('tratamiento_abonos as a')
+                ->join('tratamiento_planes as tp', 'tp.id', '=', 'a.plan_id')
+                ->leftJoin('pacientes as pa', 'pa.id', '=', 'tp.paciente_id')
+                ->join('metodos_pago as m', 'm.id', '=', 'a.metodo_pago_id')
+                ->where('a.caja_id', $this->id)->where('a.anulado', false)
+                ->select('a.monto', 'a.created_at', 'a.numero', 'a.nota', 'tp.numero as ref', 'pa.nombres', 'pa.apellidos', 'm.nombre as metodo', 'm.es_efectivo')
+                ->get();
+            foreach ($abonos as $r) {
+                $filas->push((object) [
+                    'hora' => $r->created_at, 'tipo' => 'Abono de tratamiento', 'numero' => $r->numero,
+                    'detalle' => 'Tratamiento ' . $r->ref . ' · ' . trim($r->nombres . ' ' . $r->apellidos) . ($r->nota ? ' · ' . $r->nota : ''),
                     'nombre' => $r->metodo, 'es_efectivo' => $r->es_efectivo, 'monto' => (float) $r->monto,
                 ]);
             }

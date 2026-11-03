@@ -34,6 +34,8 @@ class bienvenidaController extends Controller
         'ferreteria' => [['Martillo', 25000, '', '', 10], ['Destornillador', 12000, '', '', 15], ['Cinta aislante', 4000, '', '', 30], ['Tornillos x100', 9000, '', '', 20]],
         'eventos' => [['Entrada en puerta', 30000, '', '', 0], ['Manilla VIP', 60000, '', '', 0], ['Bebida', 6000, '', '', 50]],
         'funeraria' => [['Plan exequial mensual', 25000, '', '', 0], ['Arreglo floral', 120000, '', '', 5], ['Cofre fúnebre básico', 1800000, '', '', 2], ['Servicio de cremación', 1500000, '', '', 0]],
+        'odontologia' => [['Valoración odontológica', 50000, '', '', 0], ['Profilaxis y detartraje (limpieza)', 90000, '', '', 0], ['Resina por superficie', 120000, '', '', 0],
+            ['Exodoncia simple', 100000, '', '', 0], ['Endodoncia unirradicular', 350000, '', '', 0], ['Blanqueamiento dental', 600000, '', '', 0], ['Control de ortodoncia', 90000, '', '', 0]],
         'consultorio' => [['Consulta de primera vez', 80000, '', '', 0], ['Consulta de control', 50000, '', '', 0], ['Valoración', 60000, '', '', 0], ['Paquete de 4 sesiones', 200000, '', '', 0]],
         'otro' => [['Producto 1', 10000, '', '', 10], ['Producto 2', 15000, '', '', 10], ['Producto 3', 20000, '', '', 10], ['Producto 4', 25000, '', '', 10]],
     ];
@@ -57,7 +59,7 @@ class bienvenidaController extends Controller
                 'nombre' => $e[0], 'precio' => $cop ? $e[1] : '', 'tallas' => $tienda->usa_tallas ? $e[2] : '',
                 'colores' => $tienda->usa_tallas ? $e[3] : '', 'cantidad' => $e[4],
                 // Si maneja servicios, los ejemplos sin cantidad (consultas, planes, servicios) salen como servicio
-                'servicio' => $tienda->mod_servicios && ($e[4] === 0 || $tienda->tipo_negocio === 'consultorio') ? 1 : 0,
+                'servicio' => $tienda->mod_servicios && ($e[4] === 0 || $tienda->es_consultorio) ? 1 : 0,
             ], $ej);
         }
         if ($paso === 4) {
@@ -123,18 +125,35 @@ class bienvenidaController extends Controller
         unset($datos['logo']);
 
         $datos['usa_tallas'] = Tienda::TIPOS[$datos['tipo_negocio']][2];
+        // Cambió de tipo durante la configuración: se quitan los roles por defecto del tipo anterior que nadie tiene
+        // (ej. un consultorio odontológico no debe quedar con Vendedor y Bodega del tipo con el que nació la cuenta)
+        if ($tienda->tipo_negocio !== $datos['tipo_negocio'] && !$tienda->onboarding_completo && \Illuminate\Support\Facades\Schema::hasTable('negocio_roles')) {
+            $nombres = fn ($tipo) => array_map(fn ($k) => \App\Support\RolesNegocio::PLANTILLAS[$k][0], \App\Support\RolesNegocio::plantillasPorDefecto($tipo));
+            $sobran = array_diff($nombres($tienda->tipo_negocio), $nombres($datos['tipo_negocio']));
+            if ($sobran) \App\Models\NegocioRol::whereIn('nombre', $sobran)->whereDoesntHave('users')->delete();
+        }
         foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'mod_eventos', 'mod_contable', 'mod_consultorio', 'mod_pedidos', 'mod_servicios', 'mod_pantallas'] as $m) {
             $datos[$m] = $request->has($m) ? $request->boolean($m) : in_array($m, Tienda::MODULOS_POR_TIPO[$datos['tipo_negocio']] ?? [], true);
         }
-        if ($tienda->menu_oculto === null && isset(Tienda::MENU_OCULTO_POR_TIPO[$datos['tipo_negocio']])) {
+        if (($tienda->menu_oculto === null || $datos['tipo_negocio'] === 'odontologia') && isset(Tienda::MENU_OCULTO_POR_TIPO[$datos['tipo_negocio']])) {
             $datos['menu_oculto'] = Tienda::MENU_OCULTO_POR_TIPO[$datos['tipo_negocio']];
+        }
+        // Consultorio odontológico: sistema armado para la clínica dental (sin alquiler, recetas, eventos…) y la historia sale con la plantilla dental
+        if ($datos['tipo_negocio'] === 'odontologia') {
+            foreach (['mod_medida', 'mod_vencimiento', 'mod_recetas', 'mod_alquiler', 'mod_obituarios', 'mod_eventos', 'mod_contable', 'mod_pedidos'] as $m) $datos[$m] = false;
+            $datos['mod_consultorio'] = true;
+            $datos['mod_servicios'] = true;
+            $datos['actividad'] = null;
+            \App\Models\Ajuste::guardar('t' . $tienda->id . '_hc_plantilla', 'odontologia');
+            // Mis enlaces sale con el diseño "Sonrisa" (lo puede cambiar)
+            if (in_array($tienda->enlaces_tema, [null, '', 'localproo'], true) && \Illuminate\Support\Facades\Schema::hasColumn('tiendas', 'enlaces_tema')) $tienda->forceFill(['enlaces_tema' => 'sonrisa']);
         }
         // Vende / solo alquila / vende y alquila: enciende Alquiler y, si solo alquila, esconde la caja de venta y el inventario
         $actividad = $datos['actividad'] ?? null;
         unset($datos['actividad']);
         // Plataforma 360: solo para quien alquila
         $datos['mod_360'] = in_array($actividad, ['alquila', 'ambos'], true) && $request->boolean('mod_360');
-        if ($actividad && !in_array($datos['tipo_negocio'], ['contable', 'instituto', 'conjunto', 'eventos'], true)) {
+        if ($actividad && !in_array($datos['tipo_negocio'], ['contable', 'instituto', 'conjunto', 'eventos', 'odontologia'], true)) {
             $datos = array_merge($datos, Tienda::ajustesActividad($datos['menu_oculto'] ?? $tienda->menu_oculto, $datos['tipo_negocio'], $actividad, $tienda->actividad_actual));
         }
         $datos['onboarding_paso'] = 3;
@@ -202,7 +221,7 @@ class bienvenidaController extends Controller
                     if (Producto::where('nombre', $nombre)->exists()) {
                         continue;
                     }
-                    $controla = !in_array($tienda->tipo_negocio, ['restaurante', 'cafeteria', 'consultorio'], true)
+                    $controla = !in_array($tienda->tipo_negocio, ['restaurante', 'cafeteria', 'consultorio', 'odontologia'], true)
                         && !($tienda->tipo_negocio === 'funeraria' && preg_match('/\\b(plan|servicio)\\b/iu', $nombre)); // en funerarias los planes y servicios no llevan inventario
                     // Servicio: no se acaba ni lleva stock, siempre está disponible
                     $servicio = $tienda->mod_servicios && !empty($p['servicio']);

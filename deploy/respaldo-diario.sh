@@ -33,8 +33,8 @@ else
 fi
 
 if [ $RAPIDO = 0 ]; then
-  # Archivos subidos (fotos, logos) y firmas de los profesionales del consultorio (carpeta privada)
-  CARPETAS="public"; [ -d "$RAIZ/storage/app/firmas" ] && CARPETAS="$CARPETAS firmas"
+  # Archivos subidos (fotos, logos), firmas de los profesionales, consentimientos firmados y radiografías/fotos de pacientes (carpetas privadas)
+  CARPETAS="public"; for c in firmas consentimientos pacientes; do [ -d "$RAIZ/storage/app/$c" ] && CARPETAS="$CARPETAS $c"; done
   # Los videos de Mis redes no se respaldan: pesan mucho y se borran solos a los pocos días de publicarse
   tar -czf "$DEST/archivos-$HOY.tar.gz" --exclude='public/redes/*/video-*' -C "$RAIZ/storage/app" $CARPETAS 2>/dev/null && SUBIR+=("$DEST/archivos-$HOY.tar.gz") && echo "$(date '+%F %T') archivos OK"
   # Configuración: .env (llave interna de Laravel, Wompi, Meta, DIAN). Sin ella los datos cifrados de la base

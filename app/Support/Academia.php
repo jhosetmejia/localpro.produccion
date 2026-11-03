@@ -527,6 +527,46 @@ class Academia
                 ],
             ],
 
+            // Consultorio odontológico (tipo "odontologia"): odontograma, planes con abonos, consentimientos y radiografías
+            'odontologia' => [
+                'titulo' => 'Su consultorio odontológico en LocalPro', 'icono' => 'fa-tooth', 'color' => '#0891b2', 'para' => ['todos', 'asesor'], 'tipos' => ['odontologia'],
+                'resumen' => 'Odontograma por caras, plan de tratamiento que sale del odontograma, abonos y saldos, consentimientos firmados en la pantalla y radiografías.',
+                'lecciones' => [
+                    ['titulo' => 'El odontograma', 'min' => 4, 'accion' => ['consultorio.pacientes', 'Ver pacientes'], 'contenido' => [
+                        'Abra el paciente y toque <b>Odontograma</b> (o, dentro de una atención, <b>Abrir el odontograma gráfico</b>). Elija la dentición: permanente, temporal o mixta.',
+                        'Toque una herramienta y luego la cara de la pieza (vestibular, lingual, mesial, distal u oclusal). <b>Rojo</b> es lo que hay que tratar; <b>azul</b>, lo que ya está hecho.',
+                        'Las de "toda la pieza" (extracción indicada, ausente, endodoncia, corona, implante…) se marcan tocando cualquier parte del diente. Tocar otra vez con la misma herramienta lo quita; <b>Borrar</b> limpia.',
+                        'Sin herramienta, tocar una pieza la selecciona para ponerle una nota. Al <b>Guardar</b> queda una versión nueva con fecha: las anteriores se pueden ver en "Versiones".',
+                    ], 'tip' => 'Haga el odontograma inicial en la primera cita y uno nuevo en cada control: así ve cómo avanza el tratamiento.'],
+                    ['titulo' => 'Plan de tratamiento y presupuesto', 'min' => 3, 'accion' => ['odonto.tratamientos', 'Ver tratamientos'], 'contenido' => [
+                        'En el odontograma toque <b>Pasar al plan de tratamiento</b>: se arma solo con lo que está en rojo y los precios de sus servicios (resina por superficie, exodoncia, endodoncia…).',
+                        'En el plan ajuste valores, agregue procedimientos o un descuento, e imprima el <b>presupuesto</b> con su logo y su firma, o mándelo por WhatsApp.',
+                        'Cuando el paciente acepte, toque <b>El paciente aprobó</b>. A medida que hace cada procedimiento, márquelo con el chulo verde.',
+                    ], 'tip' => 'Ponga sus precios en Productos (son servicios): así el presupuesto sale con los valores correctos.'],
+                    ['titulo' => 'Abonos y saldos', 'min' => 2, 'accion' => ['odonto.tratamientos', 'Tratamientos y saldos'], 'contenido' => [
+                        'Con la caja abierta, en el plan escriba el abono y la forma de pago y toque <b>Recibir abono</b>. Entra a su caja y sale en el cierre.',
+                        'Imprima el recibo o envíelo por WhatsApp: le dice al paciente cuánto abonó y cuánto le falta.',
+                        'En <b>Tratamientos y saldos</b> ve lo que le deben en total, los presupuestos sin aprobar y los abonos del mes.',
+                    ], 'tip' => 'Recepción y la auxiliar pueden recibir abonos sin ver la historia clínica.'],
+                    ['titulo' => 'Consentimientos y radiografías', 'min' => 3, 'accion' => ['consultorio.pacientes', 'Ver pacientes'], 'contenido' => [
+                        'En la ficha del paciente toque <b>Consentimiento</b>, elija el tipo (exodoncia, endodoncia, implantes, blanqueamiento, ortodoncia, anestesia o el del acudiente de un menor) y escriba el procedimiento.',
+                        'El paciente lee, pregunta y <b>firma con el dedo</b> en la pantalla. Queda guardado con fecha, hora y huella: ya no se puede cambiar. Imprímalo o guárdelo en PDF si quiere una copia.',
+                        'Con <b>Radiografías y fotos</b> sube periapicales, panorámicas y fotos de antes y después. Quedan privadas y solo las ve el odontólogo.',
+                    ], 'tip' => 'Firme siempre el consentimiento antes de una exodoncia, una endodoncia o una cirugía.'],
+                    ['titulo' => 'Su equipo y su página', 'rutas' => [['roles', 'Revisar los roles'], ['usuarios', 'Nuevo usuario', 'Elegir su rol']], 'min' => 2, 'accion' => ['users.index', 'Crear usuarios'], 'contenido' => [
+                        'Su consultorio trae roles listos: <b>Administrador</b>, <b>Recepción del consultorio</b>, <b>Odontólogo(a)</b> y <b>Auxiliar de odontología</b>. Cree a cada persona en Usuarios y elija su rol.',
+                        'Su menú viene limpio: sin alquiler, recetas ni eventos. Si algún día lo necesita, lo muestra en <b>Personalizar menú</b>.',
+                        'En <b>Mis enlaces</b> su página sale con el diseño "Sonrisa": póngala en su Instagram para que los pacientes le escriban por WhatsApp.',
+                    ], 'tip' => null],
+                ],
+                'prueba' => [
+                    ['p' => '¿Qué significa el color rojo en el odontograma?', 'o' => ['Lo que hay que tratar', 'Lo que ya está hecho', 'Que la pieza está sana'], 'r' => 0],
+                    ['p' => '¿Cómo arma el presupuesto rápido?', 'o' => ['Con "Pasar al plan de tratamiento" desde el odontograma', 'Escribiéndolo en un papel', 'No se puede'], 'r' => 0],
+                    ['p' => 'El paciente abona $200.000 en efectivo. ¿Dónde queda ese dinero?', 'o' => ['En la caja abierta de quien lo recibió, y sale en el cierre de caja', 'En ninguna parte', 'En la cuenta de LocalProo'], 'r' => 0],
+                    ['p' => '¿Se puede cambiar un consentimiento ya firmado?', 'o' => ['No: queda guardado con su huella y no se modifica', 'Sí, cuando quiera', 'Solo el paciente'], 'r' => 0],
+                ],
+            ],
+
             // ===== Cursos por tipo de negocio: "Cómo manejar su sistema" =====
             'restaurante' => [
                 'titulo' => 'Su restaurante o cafetería en LocalPro', 'icono' => 'fa-burger', 'color' => '#f97316', 'para' => ['todos', 'asesor'], 'modulo' => 'mod_pedidos', 'tipos' => ['restaurante', 'cafeteria'],
