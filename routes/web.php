@@ -114,6 +114,17 @@ Route::middleware(['auth', \App\Http\Middleware\Puede360::class])->group(functio
 Route::get('/@{slug}', [\App\Http\Controllers\enlacesController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('enlaces.publico');
 Route::get('/@{slug}/ir/{enlace}', [\App\Http\Controllers\enlacesController::class, 'ir'])->where(['slug' => '[a-z0-9-]+', 'enlace' => '[0-9]+'])->middleware('throttle:120,1')->name('enlaces.ir');
 Route::get('/l/{slug}', fn (string $slug) => redirect('/@' . $slug, 301))->where('slug', '[a-z0-9-]+');
+// Consultorios: el paciente pide su cita en línea, confirma o cancela con el enlace del recordatorio y ve su portal (sin clave)
+Route::controller(\App\Http\Controllers\citasPublicasController::class)->group(function () {
+    Route::get('/citas/{slug}', 'show')->where('slug', '[a-z0-9-]+')->name('citas.publica');
+    Route::get('/citas/{slug}/horas', 'horas')->where('slug', '[a-z0-9-]+')->middleware('throttle:60,1')->name('citas.horas');
+    Route::post('/citas/{slug}', 'store')->where('slug', '[a-z0-9-]+')->middleware('throttle:6,1')->name('citas.store');
+    Route::get('/cita/{token}', 'confirmar')->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:60,1')->name('citas.confirmar');
+    Route::post('/cita/{token}', 'responder')->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:10,1')->name('citas.responder');
+    Route::get('/paciente/{token}', 'portal')->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:60,1')->name('paciente.portal');
+    Route::get('/paciente/{token}/plan/{plan}', 'portalPlan')->where('token', '[A-Za-z0-9]{40}')->whereNumber('plan')->middleware('throttle:60,1')->name('paciente.plan');
+    Route::get('/paciente/{token}/consentimiento/{id}', 'portalConsentimiento')->where('token', '[A-Za-z0-9]{40}')->whereNumber('id')->middleware('throttle:60,1')->name('paciente.consentimiento');
+});
 
 // Blog público (artículos para compartir con negocios y asesores)
 Route::get('/donaciones', fn () => redirect('/blog/navidad-localproo-ayudas-para-los-ninos-de-pasto'))->name('donaciones');
@@ -311,6 +322,18 @@ Route::middleware(['auth', 'tienda'])->prefix('consultorio')->name('odonto.')->c
     Route::post('/pacientes/{paciente}/adjuntos', 'adjuntoSubir')->whereNumber('paciente')->name('adjunto.subir');
     Route::get('/adjuntos/{adjunto}', 'adjunto')->whereNumber('adjunto')->name('adjunto');
     Route::delete('/adjuntos/{adjunto}', 'adjuntoBorrar')->whereNumber('adjunto')->name('adjunto.borrar');
+    Route::post('/tratamientos/{plan}/controles', 'controlGuardar')->whereNumber('plan')->name('control.guardar');
+    Route::get('/pacientes/{paciente}/periodontograma', 'periodontograma')->whereNumber('paciente')->name('perio');
+    Route::post('/pacientes/{paciente}/periodontograma', 'periodontogramaGuardar')->whereNumber('paciente')->name('perio.guardar');
+    Route::get('/laboratorio', 'laboratorio')->name('laboratorio');
+    Route::post('/laboratorio', 'laboratorioGuardar')->name('laboratorio.guardar');
+    Route::post('/laboratorio/{orden}/estado', 'laboratorioEstado')->whereNumber('orden')->name('laboratorio.estado');
+    Route::get('/insumos', 'insumos')->name('insumos');
+    Route::post('/insumos', 'insumoGuardar')->name('insumo.guardar');
+    Route::delete('/insumos/{insumo}', 'insumoBorrar')->whereNumber('insumo')->name('insumo.borrar');
+    Route::get('/comisiones', 'comisiones')->name('comisiones');
+    Route::post('/comisiones', 'comisionesGuardar')->name('comisiones.guardar');
+    Route::get('/indicadores', 'indicadores')->name('indicadores');
 });
 
 // ===== Pantallas de la tienda =====

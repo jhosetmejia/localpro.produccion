@@ -49,6 +49,8 @@
                 @endif
                 <a href="{{ route('consultorio.agenda', ['paciente' => $p->id]) }}#nueva" class="cs-btn"><i class="fa-solid fa-calendar-plus"></i>Agendar cita</a>
                 @if ($p->whatsapp)<a href="https://wa.me/{{ $p->whatsapp }}" target="_blank" rel="noopener" class="cs-btn"><i class="fa-brands fa-whatsapp" style="color:#16a34a"></i>WhatsApp</a>@endif
+                @php $msgPortal = 'Hola ' . $p->nombres . ', este es su portal de paciente en ' . \App\Support\TiendaActual::tienda()?->nombre . ': ahí ve sus citas, sus tratamientos y lo que lleva pagado. ' . $p->url_portal; @endphp
+                <a href="{{ $p->whatsapp ? 'https://wa.me/' . $p->whatsapp . '?text=' . rawurlencode($msgPortal) : $p->url_portal }}" target="_blank" rel="noopener" class="cs-btn" title="Enlace personal del paciente: citas, tratamientos, saldos y consentimientos"><i class="fa-solid fa-id-card" style="color:#0891b2"></i>Portal del paciente</a>
                 <a href="{{ route('consultorio.pacientes.edit', $p) }}" class="cs-btn"><i class="fa-solid fa-pen"></i>Editar</a>
             </div>
         </div>

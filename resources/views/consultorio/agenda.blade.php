@@ -59,16 +59,31 @@
         <a class="ag-flecha" href="{{ route('consultorio.agenda', ['fecha' => $desde->copy()->addWeek()->toDateString()]) }}" aria-label="Semana siguiente"><i class="fa-solid fa-chevron-right"></i></a>
     </div>
 
+    @php $manana = \App\Models\Cita::with('paciente')->whereDate('fecha', today()->addDay())->whereIn('estado', ['programada', 'confirmada'])->orderBy('hora')->get(); @endphp
+    @if ($manana->count())
+    <div class="cs-card mb-3" style="border-color:#a5f3fc;background:linear-gradient(180deg,#f5feff,#fff)">
+        <h3><span><i class="fa-solid fa-bell me-1" style="color:#0891b2"></i>Recordar las citas de mañana</span> <small>{{ $manana->where('estado', 'confirmada')->count() }} de {{ $manana->count() }} confirmadas · a los que tienen correo les llega solo a las 9 a. m.</small></h3>
+        <div class="d-flex flex-wrap gap-2">
+            @foreach ($manana as $m)
+            @if ($m->paciente?->whatsapp)
+            <a class="cs-btn sm" target="_blank" rel="noopener" href="https://wa.me/{{ $m->paciente->whatsapp }}?text={{ rawurlencode($m->mensajeRecordatorio($tienda)) }}" style="{{ $m->estado === 'confirmada' ? 'opacity:.55' : '' }}">
+                <i class="fa-brands fa-whatsapp" style="color:#16a34a"></i>{{ $m->hora_corta }} · {{ \Illuminate\Support\Str::limit($m->paciente->nombre_completo, 22) }}{{ $m->estado === 'confirmada' ? ' ✓' : '' }}{{ $m->recordada_at ? ' ✉' : '' }}</a>
+            @endif
+            @endforeach
+        </div>
+    </div>
+    @endif
+
     <div class="ag-grid">
         <div class="cs-card">
             <h3>{{ $fecha->isToday() ? 'Hoy' : ucfirst($fecha->translatedFormat('l j')) }} <small>{{ $delDia->count() }} cita(s)</small></h3>
             @forelse ($delDia as $c)
             @php [$en, $col] = \App\Models\Cita::ESTADOS[$c->estado];
-                $msg = 'Hola ' . $c->paciente?->nombres . ', le recordamos su cita en ' . $tienda->nombre . ' el ' . $c->fecha->translatedFormat('l j \d\e F') . ' a las ' . $c->hora_corta . '. Por favor confírmenos su asistencia. ¡Gracias!'; @endphp
+                $msg = $c->activa ? $c->mensajeRecordatorio($tienda) : ''; @endphp
             <div class="ag-cita {{ in_array($c->estado, ['cancelada', 'no_asistio']) ? 'off' : '' }}">
                 <div class="ag-hora">{{ \Carbon\Carbon::parse($c->hora)->format('h:i') }}<small>{{ \Carbon\Carbon::parse($c->hora)->format('a') }} · {{ $c->duracion }}′</small></div>
                 <div>
-                    <b><a href="{{ route('consultorio.paciente', $c->paciente_id) }}" class="text-decoration-none" style="color:inherit">{{ $c->paciente?->nombre_completo }}</a> <span class="cs-est" style="background:{{ $col }}">{{ $en }}</span></b>
+                    <b><a href="{{ route('consultorio.paciente', $c->paciente_id) }}" class="text-decoration-none" style="color:inherit">{{ $c->paciente?->nombre_completo }}</a> <span class="cs-est" style="background:{{ $col }}">{{ $en }}</span>@if ($c->origen === 'en_linea') <span class="cs-est" style="background:#7c3aed">En línea</span>@endif @if ($c->confirmada_at) <span class="cs-est" style="background:#0891b2" title="Confirmó desde el enlace"><i class="fa-solid fa-link"></i> confirmó</span>@endif</b>
                     <div class="det">{{ $c->motivo ?: 'Consulta' }}{{ $c->profesional ? ' · ' . $c->profesional->name : '' }}{{ $c->valor ? ' · ' . dinero($c->valor) : '' }}{{ $c->nota ? ' · ' . $c->nota : '' }}</div>
                     <div class="ag-acc">
                         @if ($c->activa)

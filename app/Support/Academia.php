@@ -553,6 +553,23 @@ class Academia
                         'El paciente lee, pregunta y <b>firma con el dedo</b> en la pantalla. Queda guardado con fecha, hora y huella: ya no se puede cambiar. Imprímalo o guárdelo en PDF si quiere una copia.',
                         'Con <b>Radiografías y fotos</b> sube periapicales, panorámicas y fotos de antes y después. Quedan privadas y solo las ve el odontólogo.',
                     ], 'tip' => 'Firme siempre el consentimiento antes de una exodoncia, una endodoncia o una cirugía.'],
+                    ['titulo' => 'Citas en línea, recordatorios y portal del paciente', 'min' => 3, 'accion' => ['consultorio.configuracion', 'Activar citas en línea'], 'contenido' => [
+                        'En <b>Mi perfil y firma → Citas en línea</b> active "Recibir citas por internet", marque los días, el horario y la hora de almuerzo. Comparta el enlace o póngalo en Mis enlaces (sale solo el botón "Pedir cita en línea").',
+                        'El día antes, a las 9 a. m., a los pacientes con correo les llega el <b>recordatorio</b> con un botón para confirmar o cancelar. En la Agenda sale "Recordar las citas de mañana" con un botón de WhatsApp por paciente, con el mismo enlace.',
+                        'En la ficha del paciente, <b>Portal del paciente</b> le manda por WhatsApp su enlace personal: ve sus citas, sus tratamientos, lo que lleva pagado y sus consentimientos.',
+                    ], 'tip' => 'Las citas que piden los pacientes salen en la agenda con la etiqueta morada "En línea".'],
+                    ['titulo' => 'Ortodoncia, periodontograma, recetas y laboratorio', 'min' => 4, 'accion' => ['odonto.laboratorio', 'Ir a laboratorio'], 'contenido' => [
+                        '<b>Ortodoncia:</b> en la ficha toque "Ortodoncia", ponga inicio, cuota inicial, cuota mensual y meses. El sistema le dice si el paciente va <b>atrasado</b> y le arma el mensaje de cobro. En cada control registre arcos, ligaduras y elásticos.',
+                        '<b>Periodontograma:</b> escriba la profundidad de los 6 sitios por pieza (salta solo al siguiente), marque sangrado y placa, movilidad y furca. Calcula el promedio, los sitios de 4 y 6 mm y el % de sangrado, y guarda versiones para comparar.',
+                        '<b>Recetas:</b> en la atención, en Fórmula, toque una receta lista (ibuprofeno, amoxicilina, clorhexidina, postquirúrgico…) y ajuste la dosis.',
+                        '<b>Laboratorio:</b> registre cada corona o prótesis que envía, con fecha de entrega y costo. Le avisa cuáles van atrasadas y marca cuándo llegó y cuándo se instaló.',
+                        '<b>Historia por pieza:</b> en el odontograma toque un diente y vea todo lo que se le ha hecho y planeado.',
+                    ], 'tip' => null],
+                    ['titulo' => 'Indicadores, comisiones e insumos (dueño)', 'min' => 3, 'accion' => ['odonto.indicadores', 'Ver indicadores'], 'contenido' => [
+                        '<b>Indicadores:</b> ingresos del mes, pacientes nuevos, % de inasistencia, presupuestos aprobados, lo que le deben y la lista <b>"Es hora de su control"</b> con los pacientes que no vienen hace 6 meses, para invitarlos por WhatsApp.',
+                        '<b>Comisiones:</b> ponga el % de cada odontólogo y vea cuánto produjo cada uno en el mes (procedimientos marcados como hechos).',
+                        '<b>Insumos:</b> diga qué gasta cada procedimiento (resina, carpules, guantes…). Al marcarlo hecho se descuenta del inventario; si lo desmarca, vuelve.',
+                    ], 'tip' => 'Revise "Es hora de su control" cada semana: es la forma más barata de llenar la agenda.'],
                     ['titulo' => 'Su equipo y su página', 'rutas' => [['roles', 'Revisar los roles'], ['usuarios', 'Nuevo usuario', 'Elegir su rol']], 'min' => 2, 'accion' => ['users.index', 'Crear usuarios'], 'contenido' => [
                         'Su consultorio trae roles listos: <b>Administrador</b>, <b>Recepción del consultorio</b>, <b>Odontólogo(a)</b> y <b>Auxiliar de odontología</b>. Cree a cada persona en Usuarios y elija su rol.',
                         'Su menú viene limpio: sin alquiler, recetas ni eventos. Si algún día lo necesita, lo muestra en <b>Personalizar menú</b>.',
@@ -564,6 +581,8 @@ class Academia
                     ['p' => '¿Cómo arma el presupuesto rápido?', 'o' => ['Con "Pasar al plan de tratamiento" desde el odontograma', 'Escribiéndolo en un papel', 'No se puede'], 'r' => 0],
                     ['p' => 'El paciente abona $200.000 en efectivo. ¿Dónde queda ese dinero?', 'o' => ['En la caja abierta de quien lo recibió, y sale en el cierre de caja', 'En ninguna parte', 'En la cuenta de LocalProo'], 'r' => 0],
                     ['p' => '¿Se puede cambiar un consentimiento ya firmado?', 'o' => ['No: queda guardado con su huella y no se modifica', 'Sí, cuando quiera', 'Solo el paciente'], 'r' => 0],
+                    ['p' => '¿Cómo confirma el paciente su cita de mañana?', 'o' => ['Con el enlace del recordatorio (correo o WhatsApp): toca "Confirmo que voy"', 'Llamando a LocalProo', 'No se puede'], 'r' => 0],
+                    ['p' => '¿Dónde ve qué pacientes de ortodoncia van atrasados en sus cuotas?', 'o' => ['En el plan de ortodoncia y en Indicadores', 'En ninguna parte', 'En Mis enlaces'], 'r' => 0],
                 ],
             ],
 

@@ -34,6 +34,29 @@
 <h2>Radiografías y fotos en la historia</h2>
 <p>Suba periapicales, panorámicas y fotos de antes y después desde el celular o el computador. Se guardan en privado: no quedan públicas en internet y solo las ve el odontólogo.</p>
 
+<h2>Menos citas perdidas: citas en línea, recordatorio y confirmación</h2>
+<ul>
+    <li>Sus pacientes piden la cita por internet: eligen el día y la hora libre según su horario (sin la hora del almuerzo).</li>
+    <li>El día antes les llega el <b>recordatorio</b> con un botón para <b>confirmar o cancelar</b>. En la agenda ve quién confirmó.</li>
+    <li>Cada paciente tiene su <b>portal</b>: sus citas, sus tratamientos, lo que lleva pagado y sus consentimientos, sin clave.</li>
+</ul>
+
+<h2>Ortodoncia, periodoncia y laboratorio</h2>
+<ul>
+    <li><b>Ortodoncia:</b> cuota inicial y cuota mensual; el sistema le avisa quién va atrasado y registra cada control (arcos, ligaduras, elásticos).</li>
+    <li><b>Periodontograma:</b> profundidad de 6 sitios por pieza, sangrado, placa, movilidad y furca, con promedio y % de sangrado calculados solos.</li>
+    <li><b>Recetas dentales listas:</b> ibuprofeno, amoxicilina, clindamicina, clorhexidina, postquirúrgico…</li>
+    <li><b>Laboratorio:</b> coronas y prótesis enviadas, fecha de entrega, costo y aviso de las atrasadas.</li>
+    <li><b>Historia por pieza:</b> toque un diente y vea todo lo que se le ha hecho.</li>
+</ul>
+
+<h2>Para el dueño de la clínica</h2>
+<ul>
+    <li><b>Indicadores:</b> ingresos, pacientes nuevos, inasistencia, presupuestos aprobados y la lista de pacientes a los que <b>ya les toca control</b>, para invitarlos por WhatsApp.</li>
+    <li><b>Comisiones por odontólogo</b> según lo que produjo cada uno en el mes.</li>
+    <li><b>Insumos</b> que se descuentan solos del inventario al hacer cada procedimiento.</li>
+</ul>
+
 <h2>Su equipo, cada uno con lo suyo</h2>
 <ul>
     <li><b>Odontólogo(a):</b> agenda, historia clínica, odontograma, planes y consentimientos.</li>

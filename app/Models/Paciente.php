@@ -23,7 +23,7 @@ class Paciente extends Model
     ];
 
     protected $fillable = ['tipo_documento', 'documento', 'nombres', 'apellidos', 'fecha_nacimiento', 'sexo', 'telefono', 'correo', 'direccion',
-        'ciudad', 'aseguradora', 'ocupacion', 'acompanante', 'alergias', 'antecedentes', 'notas', 'autoriza_datos_at'];
+        'ciudad', 'aseguradora', 'ocupacion', 'acompanante', 'alergias', 'antecedentes', 'notas', 'autoriza_datos_at', 'portal_token'];
 
     protected $casts = [
         'fecha_nacimiento' => 'date', 'autoriza_datos_at' => 'datetime',
@@ -38,6 +38,13 @@ class Paciente extends Model
     public function atenciones()
     {
         return $this->hasMany(Atencion::class);
+    }
+
+    // Enlace privado del paciente: sus citas, sus tratamientos y saldos, y sus consentimientos (sin clave)
+    public function getUrlPortalAttribute(): string
+    {
+        if (!$this->portal_token) $this->forceFill(['portal_token' => \Illuminate\Support\Str::random(40)])->save();
+        return route('paciente.portal', $this->portal_token);
     }
 
     // Consultorio odontológico

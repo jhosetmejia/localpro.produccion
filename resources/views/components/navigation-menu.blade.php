@@ -205,9 +205,13 @@
                 <div class="sb-sidenav-menu-heading">{{ $esOdonto ? 'Consultorio odontológico' : 'Consultorio' }}</div>
                 <a class="nav-link {{ $on('consultorio.inicio') }}" href="{{ route('consultorio.inicio') }}"><div class="sb-nav-link-icon"><i class="fa-solid {{ $esOdonto ? 'fa-tooth' : 'fa-house-medical' }}"></i></div>Hoy en consulta</a>
                 <a class="nav-link {{ $on('consultorio.agenda') }}" href="{{ route('consultorio.agenda') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-calendar-check"></i></div>Agenda de citas</a>
-                <a class="nav-link {{ $on('consultorio.pacientes*') }} {{ $on('consultorio.paciente') }} {{ $on('consultorio.atencion*') }} {{ $on('odonto.*') }}" href="{{ route('consultorio.pacientes') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-users"></i></div>Pacientes</a>
+                <a class="nav-link {{ $on('consultorio.pacientes*') }} {{ $on('consultorio.paciente') }} {{ $on('consultorio.atencion*') }} {{ $on('odonto.odontograma') }} {{ $on('odonto.perio') }} {{ $on('odonto.consentimiento*') }}" href="{{ route('consultorio.pacientes') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-users"></i></div>Pacientes</a>
                 @if ($esOdonto && \Illuminate\Support\Facades\Route::has('odonto.tratamientos'))
                 <a class="nav-link {{ $on('odonto.tratamientos') }}" href="{{ route('odonto.tratamientos') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>Tratamientos y saldos</a>
+                <a class="nav-link {{ $on('odonto.laboratorio') }}" href="{{ route('odonto.laboratorio') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-flask"></i></div>Laboratorio</a>
+                @if (auth()->user()->es_superadmin || auth()->user()->can('editar-negocio'))
+                <a class="nav-link {{ $on('odonto.indicadores') }} {{ $on('odonto.comisiones') }} {{ $on('odonto.insumos') }}" href="{{ route('odonto.indicadores') }}"><div class="sb-nav-link-icon"><i class="fa-solid fa-chart-line"></i></div>Indicadores</a>
+                @endif
                 @endif
                 @endif
                 @if ($tiendaMenu?->mod_obituarios && (auth()->user()->can('gestionar-obituarios') || auth()->user()->can('editar-negocio')) && \Illuminate\Support\Facades\Route::has('obituarios.index'))

@@ -9,7 +9,7 @@
 </head>
 <body>
 <div class="bar">
-    <a href="{{ route('consultorio.paciente', $p) }}" class="blanco">← Volver al paciente</a>
+    <a href="{{ !empty($portal) ? route('paciente.portal', $portal) : route('consultorio.paciente', $p) }}" class="blanco">← Volver</a>
     <button onclick="window.print()">Imprimir / Guardar PDF</button>
 </div>
 <div class="hoja">

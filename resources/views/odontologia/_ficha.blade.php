@@ -9,6 +9,7 @@
 <style>
 .fo-cab{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap;margin-bottom:.6rem}
 .fo-acc{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:.8rem}
+.fo-acc form{margin:0}
 .fo-acc a,.fo-acc button{display:flex;flex-direction:column;align-items:flex-start;gap:.2rem;border:1.5px solid #d6eef3;background:linear-gradient(180deg,#fff,#f5fdff);border-radius:18px;padding:.8rem .9rem;text-decoration:none;color:var(--lp-ink);font-weight:800;text-align:left;width:100%}
 .fo-acc a:hover,.fo-acc button:hover{border-color:#67e8f9;color:var(--lp-ink)}
 .fo-acc i{font-size:1.25rem;color:#0891b2}
@@ -42,6 +43,10 @@
             <form method="post" action="{{ route('odonto.plan.crear', $paciente) }}">@csrf<button><i class="fa-solid fa-file-invoice-dollar"></i>Nuevo plan<small>Presupuesto por pieza con abonos</small></button></form>
             <a href="{{ route('odonto.consentimiento.nuevo', $paciente) }}"><i class="fa-solid fa-file-signature"></i>Consentimiento<small>Firma en la pantalla</small></a>
             <a href="#fo-adj" onclick="document.getElementById('fo-archivos').click();return false;"><i class="fa-solid fa-x-ray"></i>Radiografías y fotos<small>Suba desde el celular o el PC</small></a>
+            <a href="{{ route('odonto.perio', $paciente) }}"><i class="fa-solid fa-teeth"></i>Periodontograma<small>Bolsas, sangrado, movilidad</small></a>
+            <form method="post" action="{{ route('odonto.plan.crear', $paciente) }}">@csrf<input type="hidden" name="tipo" value="ortodoncia"><button><i class="fa-solid fa-teeth-open"></i>Ortodoncia<small>Cuotas mensuales y controles</small></button></form>
+            <a href="{{ route('odonto.laboratorio', ['paciente' => $paciente->id]) }}#nueva"><i class="fa-solid fa-flask"></i>Enviar a laboratorio<small>Coronas, prótesis, placas</small></a>
+            <form method="post" action="{{ route('consultorio.atencion.nueva', $paciente) }}">@csrf<button><i class="fa-solid fa-prescription"></i>Atención y receta<small>Recetas dentales listas</small></button></form>
         </div>
     @endif
 
@@ -50,9 +55,9 @@
         @forelse ($planes as $pl)
         @php [$en, $ec] = \App\Models\TratamientoPlan::ESTADOS[$pl->estado]; @endphp
         <a href="{{ route('odonto.plan', $pl) }}" class="fo-plan">
-            <div class="cs-av" style="background:#e0f7fa;color:#0e7490"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+            <div class="cs-av" style="background:#e0f7fa;color:#0e7490"><i class="fa-solid {{ $pl->es_ortodoncia ? 'fa-teeth-open' : 'fa-file-invoice-dollar' }}"></i></div>
             <div class="tx"><b>{{ $pl->numero }} · {{ $pl->nombre }}</b>
-                <small>{{ $pl->items->count() }} procedimiento(s) · Total {{ dinero($pl->total) }} · Abonado {{ dinero($pl->abonado) }}{{ $pl->saldo > 0 ? ' · Debe ' . dinero($pl->saldo) : '' }}</small>
+                <small>@if ($pl->es_ortodoncia && $pl->atraso > 0)<b style="color:#e11d48">{{ $pl->cuotas_atrasadas }} cuota(s) atrasada(s) · </b>@endif{{ $pl->items->count() }} procedimiento(s) · Total {{ dinero($pl->total) }} · Abonado {{ dinero($pl->abonado) }}{{ $pl->saldo > 0 ? ' · Debe ' . dinero($pl->saldo) : '' }}</small>
                 <div class="fo-bar"><i style="width:{{ $pl->avance }}%"></i></div></div>
             <span class="cs-est" style="background:{{ $ec }}">{{ $en }}</span>
         </a>
@@ -95,6 +100,6 @@
     @endif
 </div>
 @if ($odo)
-<script src="{{ asset('js/odontograma.js') }}?v=1"></script>
+<script src="{{ asset('js/odontograma.js') }}?v=2"></script>
 <script>Odonto.montar(document.getElementById('fo-mini'), { piezas: {!! json_encode($odo->piezas ?: new \stdClass) !!}, denticion: {!! json_encode($odo->denticion) !!}, hallazgos: {!! json_encode(\App\Support\Odontologia::HALLAZGOS) !!}, soloVer: true });</script>
 @endif

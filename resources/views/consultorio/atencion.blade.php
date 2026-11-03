@@ -136,6 +136,12 @@
             <div class="at-sec"><label>Análisis</label><textarea name="c[analisis]" class="form-control" rows="2" maxlength="10000">{{ $c['analisis'] ?? '' }}</textarea></div>
             <div class="at-sec"><label>Plan y conducta</label><textarea name="c[plan]" class="form-control" rows="3" maxlength="10000" placeholder="Exámenes, remisiones, recomendaciones, próximo control">{{ $c['plan'] ?? '' }}</textarea></div>
             <div class="at-sec"><label>Fórmula / prescripción</label><small class="ay">Un medicamento por línea: nombre, presentación, dosis, frecuencia, duración y cantidad. Sale en una hoja aparte para el paciente.</small>
+                @if ($a->plantilla === 'odontologia')
+                <div class="d-flex flex-wrap gap-1 mb-2" id="recetas-odo">
+                    @foreach (\App\Support\Odontologia::RECETAS as $rn => $rt)<button type="button" class="cs-btn sm" data-receta="{{ $rt }}"><i class="fa-solid fa-plus"></i>{{ $rn }}</button>@endforeach
+                </div>
+                <script>document.getElementById('recetas-odo').addEventListener('click',function(e){var b=e.target.closest('[data-receta]');if(!b)return;var t=document.querySelector('textarea[name=formula]');t.value=(t.value.trim()?t.value.trim()+'\n\n':'')+b.dataset.receta;t.dispatchEvent(new Event('input',{bubbles:true}));t.focus();});</script>
+                @endif
                 <textarea name="formula" class="form-control" rows="3" maxlength="10000" placeholder="Acetaminofén tabletas 500 mg · 1 cada 8 horas por 3 días · Total: 9 tabletas">{{ $a->formula }}</textarea></div>
             <div class="at-sec row g-2">
                 <div class="col-6 col-md-3"><label>Incapacidad (días)</label><input type="number" name="incapacidad_dias" class="form-control" min="0" max="180" value="{{ $a->incapacidad_dias }}"></div>

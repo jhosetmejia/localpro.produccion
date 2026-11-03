@@ -90,14 +90,14 @@
         }
       }
       if (d.nota) el('circle', { cx: 40, cy: 0, r: 4.5, fill: '#f59e0b', stroke: '#fff', 'stroke-width': 1.5, 'pointer-events': 'none' }, g);
-      if (!op.soloVer) g.addEventListener('click', function (e) { tocar(num, e.target.getAttribute('data-cara')); });
+      if (!op.soloVer || op.alElegir) g.addEventListener('click', function (e) { tocar(num, e.target.getAttribute('data-cara')); });
     }
 
     var CARA_NOMBRE = { V: 'Vestibular', L: 'Lingual / palatina', M: 'Mesial', D: 'Distal', O: 'Oclusal / incisal' };
 
     function tocar(num, cara) {
       elegida = num;
-      if (herramienta) {
+      if (herramienta && !op.soloVer) {
         var d = datos[num] || {};
         if (herramienta === 'borrar') {
           if (cara && d.caras && d.caras[cara]) delete d.caras[cara]; else { delete d.pieza; if (!cara) d.caras = {}; }

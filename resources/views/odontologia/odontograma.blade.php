@@ -110,6 +110,10 @@
                     </div>
                 </div>
                 @endunless
+                <div class="cs-card" id="odo-hist" style="display:none">
+                    <h3>Historia de la pieza <span id="odo-hist-num" style="color:#0e7490"></span></h3>
+                    <div id="odo-hist-lista"></div>
+                </div>
                 <div class="cs-card">
                     <h3>Hallazgos</h3>
                     <div id="odo-leyenda"></div>
@@ -143,7 +147,7 @@
 @endsection
 
 @push('js')
-<script src="{{ asset('js/odontograma.js') }}?v=1"></script>
+<script src="{{ asset('js/odontograma.js') }}?v=2"></script>
 <script>
 (function () {
     var input = document.getElementById('odo-piezas'), sel = document.getElementById('odo-sel'), nota = document.getElementById('odo-nota'), elegida = null, cambios = false;
@@ -151,8 +155,21 @@
         piezas: JSON.parse(input.value || '{}'), denticion: document.getElementById('odo-den').value,
         hallazgos: {!! json_encode($H) !!}, soloVer: {{ $soloVer ? 'true' : 'false' }}, leyenda: document.getElementById('odo-leyenda'),
         alCambiar: function (d) { input.value = JSON.stringify(d); cambios = true; },
-        alElegir: function (num, d) { elegida = num; if (!sel) return; sel.style.display = ''; document.getElementById('odo-sel-num').textContent = num; nota.value = d.nota || ''; }
+        alElegir: function (num, d) { elegida = num; verHistoria(num); if (!sel) return; sel.style.display = ''; document.getElementById('odo-sel-num').textContent = num; nota.value = d.nota || ''; }
     });
+    var HIST = {!! json_encode($historia ?: new \stdClass) !!}, COL = { odo: '#64748b', plan: '#f59e0b', hecho: '#16a34a' };
+    function verHistoria(num) {
+        var box = document.getElementById('odo-hist'), l = document.getElementById('odo-hist-lista');
+        box.style.display = ''; document.getElementById('odo-hist-num').textContent = num; l.innerHTML = '';
+        var h = HIST[num] || [];
+        if (!h.length) { l.innerHTML = '<div class="odo-vacio">Sin registros para esta pieza.</div>'; return; }
+        h.forEach(function (x) {
+            var d = document.createElement('div'); d.className = 'odo-pend'; d.style.borderColor = '#e2eef1';
+            var a = document.createElement('span'); a.style.cssText = 'color:' + COL[x.tipo] + ';font-weight:800;white-space:nowrap'; a.textContent = x.f || '';
+            var b = document.createElement('span'); b.style.textAlign = 'right'; b.textContent = x.t;
+            d.appendChild(a); d.appendChild(b); l.appendChild(d);
+        });
+    }
     document.getElementById('odo-den').addEventListener('change', function () { od.denticion(this.value); cambios = true; });
     document.querySelectorAll('.odo-tool').forEach(function (b) {
         b.addEventListener('click', function () {

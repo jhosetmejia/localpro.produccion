@@ -150,6 +150,40 @@
                 @empty<div class="text-muted small">Sin abonos todavía.</div>@endforelse
             </div>
 
+            @if ($plan->es_ortodoncia)
+            <div class="cs-card" style="border-color:#a5f3fc">
+                <h3><span><i class="fa-solid fa-teeth-open me-1" style="color:#0891b2"></i>Ortodoncia</span>
+                    @if ($plan->atraso > 0)<span class="cs-est" style="background:#e11d48">{{ $plan->cuotas_atrasadas }} cuota(s) atrasada(s)</span>@elseif ($plan->cuota_mensual > 0)<span class="cs-est" style="background:#16a34a">Al día</span>@endif</h3>
+                @if ($plan->cuota_mensual > 0)
+                <div class="small mb-2">Inicio {{ $plan->inicio?->format('d/m/Y') }} · Cuota inicial {{ dinero($plan->cuota_inicial) }} · {{ $plan->cuotas }} cuotas de {{ dinero($plan->cuota_mensual) }}</div>
+                <div class="d-flex justify-content-between small fw-bold"><span>Debería llevar pagado hoy</span><span>{{ dinero($plan->deberia_llevar) }}</span></div>
+                <div class="d-flex justify-content-between small fw-bold"><span>Lleva pagado</span><span style="color:#16a34a">{{ dinero($plan->abonado) }}</span></div>
+                @if ($plan->atraso > 0)<div class="d-flex justify-content-between small fw-bold"><span>Atrasado</span><span style="color:#e11d48">{{ dinero($plan->atraso) }}</span></div>
+                @if ($p->whatsapp)<a class="cs-btn sm mt-2" target="_blank" rel="noopener" href="https://wa.me/{{ $p->whatsapp }}?text={{ rawurlencode('Hola ' . $p->nombres . ', le recordamos que tiene ' . $plan->cuotas_atrasadas . ' cuota(s) pendiente(s) de su ortodoncia por ' . dinero($plan->atraso) . '. Puede pagarla en su próximo control. ¡Gracias!') }}"><i class="fa-brands fa-whatsapp" style="color:#16a34a"></i>Recordarle el pago</a>@endif
+                @endif
+                @else
+                <div class="small text-muted">Ponga abajo, en "Datos del plan", la cuota inicial, la cuota mensual y el número de meses.</div>
+                @endif
+                <h3 class="mt-3" style="font-size:.92rem">Controles <small>{{ $plan->controles->count() }}</small></h3>
+                @if ($clinico && $abierto)
+                <form method="post" action="{{ route('odonto.control.guardar', $plan) }}" class="d-grid gap-2 mb-2">
+                    @csrf
+                    <div class="d-flex gap-2"><input type="date" name="fecha" class="form-control form-control-sm" value="{{ today()->toDateString() }}" max="{{ today()->toDateString() }}" required>
+                        <input type="date" name="proximo" class="form-control form-control-sm" title="Próximo control" value="{{ today()->addMonth()->toDateString() }}"></div>
+                    <div class="d-flex gap-2"><input name="arco_sup" class="form-control form-control-sm" maxlength="60" placeholder="Arco superior (ej. 0.016 NiTi)"><input name="arco_inf" class="form-control form-control-sm" maxlength="60" placeholder="Arco inferior"></div>
+                    <div class="d-flex gap-2"><input name="ligaduras" class="form-control form-control-sm" maxlength="60" placeholder="Ligaduras (color)"><input name="elasticos" class="form-control form-control-sm" maxlength="80" placeholder="Elásticos (ej. clase II 3/16)"></div>
+                    <textarea name="notas" class="form-control form-control-sm" rows="2" maxlength="3000" placeholder="Qué se hizo, indicaciones…"></textarea>
+                    <button class="cs-btn sm justify-content-center"><i class="fa-solid fa-plus"></i>Guardar control</button>
+                </form>
+                @endif
+                @foreach ($plan->controles->take(12) as $ct)
+                <div class="pt-ab"><span><b>{{ $ct->fecha->format('d/m/Y') }}</b> · {{ implode(' · ', array_filter([$ct->arco_sup ? 'Sup: ' . $ct->arco_sup : null, $ct->arco_inf ? 'Inf: ' . $ct->arco_inf : null, $ct->ligaduras, $ct->elasticos])) ?: 'Control' }}
+                    @if ($clinico && $ct->notas)<br><small class="text-muted">{{ $ct->notas }}</small>@endif
+                    <br><small class="text-muted">{{ $ct->profesional_nombre }}{{ $ct->proximo ? ' · Próximo: ' . $ct->proximo->format('d/m/Y') : '' }}</small></span></div>
+                @endforeach
+            </div>
+            @endif
+
             @if ($clinico)
             <div class="cs-card">
                 <h3>Datos del plan</h3>
@@ -159,6 +193,15 @@
                     <input name="nombre" class="form-control" value="{{ $plan->nombre }}" maxlength="120" style="border-radius:14px">
                     <div class="d-flex gap-2 align-items-center"><label class="small fw-bold text-nowrap" style="color:var(--lp-muted)">Descuento</label>
                         <input name="descuento" class="form-control" data-dinero inputmode="numeric" value="{{ (float) $plan->descuento ?: '' }}" placeholder="0" style="border-radius:14px"></div>
+                    @if ($plan->es_ortodoncia)
+                    <div class="row g-2">
+                        <div class="col-6"><label class="small fw-bold" style="color:var(--lp-muted)">Inicio</label><input type="date" name="inicio" class="form-control" value="{{ $plan->inicio?->toDateString() }}" style="border-radius:14px"></div>
+                        <div class="col-6"><label class="small fw-bold" style="color:var(--lp-muted)">Meses (cuotas)</label><input type="number" name="cuotas" min="0" max="120" class="form-control" value="{{ $plan->cuotas }}" style="border-radius:14px"></div>
+                        <div class="col-6"><label class="small fw-bold" style="color:var(--lp-muted)">Cuota inicial</label><input name="cuota_inicial" class="form-control" data-dinero inputmode="numeric" value="{{ (float) $plan->cuota_inicial ?: '' }}" placeholder="0" style="border-radius:14px"></div>
+                        <div class="col-6"><label class="small fw-bold" style="color:var(--lp-muted)">Cuota mensual</label><input name="cuota_mensual" class="form-control" data-dinero inputmode="numeric" value="{{ (float) $plan->cuota_mensual ?: '' }}" placeholder="0" style="border-radius:14px"></div>
+                    </div>
+                    <small class="text-muted">El valor del tratamiento queda como un renglón: cuota inicial + meses × cuota. Los abonos se descuentan del saldo y el sistema le avisa si va atrasado.</small>
+                    @endif
                     <textarea name="notas" class="form-control" rows="2" maxlength="3000" placeholder="Notas: forma de pago acordada, duración, indicaciones…" style="border-radius:14px">{{ $plan->notas }}</textarea>
                     <button class="cs-btn justify-content-center"><i class="fa-solid fa-floppy-disk"></i>Guardar</button>
                 </form>

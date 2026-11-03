@@ -17,9 +17,23 @@ class Cita extends Model
         'cancelada' => ['Cancelada', '#94a3b8'],
     ];
 
-    protected $fillable = ['paciente_id', 'profesional_id', 'fecha', 'hora', 'duracion', 'motivo', 'estado', 'valor', 'nota', 'atencion_id', 'user_id'];
+    protected $fillable = ['paciente_id', 'profesional_id', 'fecha', 'hora', 'duracion', 'motivo', 'estado', 'valor', 'nota', 'atencion_id', 'user_id', 'origen', 'token', 'recordada_at', 'confirmada_at'];
 
-    protected $casts = ['fecha' => 'date', 'valor' => 'decimal:2'];
+    protected $casts = ['fecha' => 'date', 'valor' => 'decimal:2', 'recordada_at' => 'datetime', 'confirmada_at' => 'datetime'];
+
+    // Enlace para que el paciente confirme o cancele su cita sin entrar al sistema
+    public function getUrlConfirmarAttribute(): string
+    {
+        if (!$this->token) $this->forceFill(['token' => \Illuminate\Support\Str::random(40)])->save();
+        return route('citas.confirmar', $this->token);
+    }
+
+    public function mensajeRecordatorio(?Tienda $t = null): string
+    {
+        $t ??= \App\Support\TiendaActual::tienda();
+        return 'Hola ' . $this->paciente?->nombres . ', le recordamos su cita en ' . $t?->nombre . ' el ' . $this->fecha->translatedFormat('l j \d\e F')
+            . ' a las ' . $this->hora_corta . '. Confirme o cancele aquí: ' . $this->url_confirmar . ' ¡Gracias!';
+    }
 
     public function paciente()
     {

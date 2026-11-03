@@ -379,7 +379,13 @@ class consultorioController extends Controller
             'firma' => 'nullable|image|max:2048',
             'plantilla' => ['nullable', Rule::in(array_keys(Consultorio::plantillas()))],
             'cita_duracion' => 'nullable|integer|min:5|max:240',
-        ]);
+            'agenda' => 'nullable|array',
+            'agenda.dias' => 'nullable|array', 'agenda.dias.*' => 'integer|between:1,7',
+            'agenda.desde' => 'nullable|date_format:H:i', 'agenda.hasta' => 'nullable|date_format:H:i|after:agenda.desde',
+            'agenda.pausa_desde' => 'nullable|date_format:H:i', 'agenda.pausa_hasta' => 'nullable|date_format:H:i',
+            'agenda.anticipacion' => 'nullable|integer|min:0|max:72', 'agenda.max_dias' => 'nullable|integer|min:1|max:120',
+            'agenda.mensaje' => 'nullable|string|max:200',
+        ], ['agenda.hasta.after' => 'La hora final de atención debe ser después de la hora inicial.']);
         $u = auth()->user();
         if ($this->clinico()) {
             $cambios = ['registro_profesional' => $request->input('registro_profesional'), 'especialidad' => $request->input('especialidad')];
@@ -397,6 +403,7 @@ class consultorioController extends Controller
             $tid = TiendaActual::id();
             if ($request->filled('plantilla')) Ajuste::guardar('t' . $tid . '_hc_plantilla', $request->plantilla);
             if ($request->filled('cita_duracion')) Ajuste::guardar('t' . $tid . '_cita_duracion', (int) $request->cita_duracion);
+            if ($request->has('agenda')) \App\Support\AgendaEnLinea::guardar(TiendaActual::tienda(), (array) $request->input('agenda'));
         }
         return back()->with('success', 'Configuración guardada.');
     }

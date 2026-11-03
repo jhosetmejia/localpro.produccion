@@ -34,6 +34,10 @@
     <a href="{{ route('consultorio.pacientes') }}" class="{{ request()->routeIs('consultorio.pacientes*', 'consultorio.paciente', 'consultorio.atencion*') ? 'on' : '' }}"><i class="fa-solid fa-users"></i>Pacientes</a>
     @if ($odoNav)
     <a href="{{ route('odonto.tratamientos') }}" class="{{ request()->routeIs('odonto.tratamientos', 'odonto.plan') ? 'on' : '' }}"><i class="fa-solid fa-file-invoice-dollar"></i>Tratamientos</a>
+    <a href="{{ route('odonto.laboratorio') }}" class="{{ request()->routeIs('odonto.laboratorio') ? 'on' : '' }}"><i class="fa-solid fa-flask"></i>Laboratorio</a>
+    @if (auth()->user()->es_superadmin || auth()->user()->can('editar-negocio'))
+    <a href="{{ route('odonto.indicadores') }}" class="{{ request()->routeIs('odonto.indicadores', 'odonto.comisiones', 'odonto.insumos') ? 'on' : '' }}"><i class="fa-solid fa-chart-line"></i>Indicadores</a>
+    @endif
     @endif
     <a href="{{ route('consultorio.configuracion') }}" class="{{ request()->routeIs('consultorio.configuracion') ? 'on' : '' }}"><i class="fa-solid fa-sliders"></i>{{ $clinicoNav ? 'Mi perfil y firma' : 'Configuración' }}</a>
 </nav>

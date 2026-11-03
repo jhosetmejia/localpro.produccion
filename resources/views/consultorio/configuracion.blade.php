@@ -16,7 +16,7 @@
 @section('content')
 <div class="lp-dash">
     <div class="lp-hello">
-        <div><small><i class="fa-solid fa-user-doctor me-1"></i>Consultorio</small><h1>{{ $clinico ? 'Mi perfil' : 'Configuración' }} <span>profesional</span></h1></div>
+        <div><small><i class="fa-solid fa-user-doctor me-1"></i>{{ \App\Support\TiendaActual::tienda()?->es_odontologia ? 'Consultorio odontológico' : 'Consultorio' }}</small><h1>{{ $clinico ? 'Mi perfil' : 'Configuración' }} <span>profesional</span></h1></div>
     </div>
     @include('consultorio._nav')
 
@@ -47,6 +47,26 @@
                     <select name="plantilla" class="form-select">@foreach (\App\Support\Consultorio::plantillas() as $k => $pl)<option value="{{ $k }}" @selected($plantilla === $k)>{{ $pl['nombre'] }}</option>@endforeach</select></div>
                 <div class="mb-2"><label>Duración de cada cita (minutos)</label><input type="number" name="cita_duracion" class="form-control" min="5" max="240" step="5" value="{{ $duracion }}"></div>
                 <small class="text-muted">Para que otro usuario pueda ver y escribir historias, actívele el permiso <b>"Historia clínica"</b> en Usuarios. Recepción solo necesita "Agenda del consultorio".</small>
+            </div>
+            @php $ag = \App\Support\AgendaEnLinea::config(\App\Support\TiendaActual::tienda()); $urlCitas = route('citas.publica', \App\Support\TiendaActual::tienda()->slug); @endphp
+            <div class="cs-card" id="citas-en-linea">
+                <h3>Citas en línea <small>los pacientes piden su cita solos</small></h3>
+                <label class="d-flex gap-2 align-items-center mb-2" style="font-size:.92rem;color:var(--lp-ink)"><input type="hidden" name="agenda[online]" value="0"><input type="checkbox" name="agenda[online]" value="1" @checked($ag['activa'])> Recibir citas por internet</label>
+                <div class="mb-2"><label>Días de atención</label>
+                    <div class="d-flex flex-wrap gap-2">@foreach (\App\Support\AgendaEnLinea::DIAS as $n => $dn)<label class="d-flex gap-1 align-items-center" style="color:var(--lp-ink)"><input type="checkbox" name="agenda[dias][]" value="{{ $n }}" @checked(in_array($n, $ag['dias']))> {{ $dn }}</label>@endforeach</div></div>
+                <div class="row g-2 mb-2">
+                    <div class="col-6"><label>Desde</label><input type="time" name="agenda[desde]" class="form-control" value="{{ $ag['desde'] }}"></div>
+                    <div class="col-6"><label>Hasta</label><input type="time" name="agenda[hasta]" class="form-control" value="{{ $ag['hasta'] }}"></div>
+                    <div class="col-6"><label>Almuerzo desde</label><input type="time" name="agenda[pausa_desde]" class="form-control" value="{{ $ag['pausa_desde'] }}"></div>
+                    <div class="col-6"><label>Almuerzo hasta</label><input type="time" name="agenda[pausa_hasta]" class="form-control" value="{{ $ag['pausa_hasta'] }}"></div>
+                    <div class="col-6"><label>Horas mínimas de anticipación</label><input type="number" min="0" max="72" name="agenda[anticipacion]" class="form-control" value="{{ $ag['anticipacion'] }}"></div>
+                    <div class="col-6"><label>Hasta cuántos días adelante</label><input type="number" min="1" max="120" name="agenda[max_dias]" class="form-control" value="{{ $ag['max_dias'] }}"></div>
+                </div>
+                <div class="mb-2"><label>Mensaje para el paciente (opcional)</label><input name="agenda[mensaje]" class="form-control" maxlength="200" value="{{ $ag['mensaje'] }}" placeholder="Ej. Llegue 10 minutos antes. Parqueadero en el sótano."></div>
+                <small class="text-muted d-block mb-2">Cada hora recibe tantos pacientes como profesionales de salud tenga. Las citas pedidas en línea salen en la agenda con la etiqueta <b>En línea</b>.</small>
+                <div class="d-flex gap-2 flex-wrap"><a href="{{ $urlCitas }}" target="_blank" class="cs-btn sm"><i class="fa-solid fa-arrow-up-right-from-square"></i>Ver la página</a>
+                    <button type="button" class="cs-btn sm" onclick="navigator.clipboard.writeText('{{ $urlCitas }}');if(window.LP)LP.toast('Enlace copiado','ok')"><i class="fa-solid fa-copy"></i>Copiar enlace</button></div>
+                <small class="text-muted d-block mt-2">Si tiene Mis enlaces publicado, sale solo el botón "Pedir cita en línea".</small>
             </div>
             @endcan
             <div class="cs-card">

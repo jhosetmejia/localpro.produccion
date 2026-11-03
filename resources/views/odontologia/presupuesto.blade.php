@@ -9,8 +9,8 @@
 </head>
 <body>
 <div class="bar">
-    <a href="{{ route('odonto.plan', $plan) }}" class="blanco">← Volver</a>
-    @if ($p->whatsapp)<a id="whatsapp" class="wa" href="https://wa.me/{{ $p->whatsapp }}?text={{ rawurlencode($wa) }}" target="_blank" rel="noopener">Enviar por WhatsApp</a>@endif
+    <a href="{{ !empty($portal) ? route('paciente.portal', $portal) : route('odonto.plan', $plan) }}" class="blanco">← Volver</a>
+    @if (empty($portal) && $p->whatsapp)<a id="whatsapp" class="wa" href="https://wa.me/{{ $p->whatsapp }}?text={{ rawurlencode($wa) }}" target="_blank" rel="noopener">Enviar por WhatsApp</a>@endif
     <button onclick="window.print()">Imprimir / Guardar PDF</button>
 </div>
 <div class="hoja">

@@ -259,6 +259,7 @@ class enlacesController extends Controller
             'catalogo' => $tienda->enlaces_catalogo && $tienda->catalogo_activo && $tienda->onboarding_completo ? $tienda->enlaces_boton_catalogo : null,
             'url' => self::urlPublica($tienda),
             'borrador' => !$tienda->enlaces_activo,
+            'citas' => $tienda->mod_consultorio && \App\Support\AgendaEnLinea::config($tienda)['activa'] ? route('citas.publica', $tienda->slug) : null,
         ]);
     }
 

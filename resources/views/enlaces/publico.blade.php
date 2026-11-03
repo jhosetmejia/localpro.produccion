@@ -94,10 +94,13 @@ h1{font-size:1.35rem;font-weight:800;margin-top:16px;text-align:center;letter-sp
             </a>
             @endif
         @endforeach
+        @if (!empty($citas))
+        <a class="bt" href="{{ $citas }}"><span class="i"><i class="fa-solid fa-calendar-check"></i></span><span class="t">Pedir cita en línea</span></a>
+        @endif
         @if ($catalogo)
         <a class="bt" href="{{ $catalogo['url'] }}"><span class="i"><i class="{{ $catalogo['icono'] }}"></i></span><span class="t">{{ $catalogo['texto'] }}</span></a>
         @endif
-        @if ($enlaces->isEmpty() && !$catalogo)
+        @if ($enlaces->isEmpty() && !$catalogo && empty($citas))
         <p class="vacio">Pronto encontrará aquí nuestros enlaces.</p>
         @endif
     </div>

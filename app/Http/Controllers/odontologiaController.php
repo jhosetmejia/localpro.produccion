@@ -6,6 +6,14 @@ use App\Models\Atencion;
 use App\Models\Caja;
 use App\Models\ClinicaAcceso;
 use App\Models\Consentimiento;
+use App\Models\Ajuste;
+use App\Models\Cita;
+use App\Models\LaboratorioOrden;
+use App\Models\OrtodonciaControl;
+use App\Models\Periodontograma;
+use App\Models\ProcedimientoInsumo;
+use App\Models\ProductoVariante;
+use App\Models\PosVenta;
 use App\Models\MetodoPago;
 use App\Models\Odontograma;
 use App\Models\Paciente;
@@ -30,7 +38,10 @@ use Illuminate\Validation\ValidationException;
 class odontologiaController extends Controller
 {
     private const SOLO_CLINICO = ['odontograma', 'odontogramaGuardar', 'odontogramaPlan', 'planCrear', 'itemGuardar', 'itemBorrar', 'itemHecho', 'planGuardar',
-        'consentimientoNuevo', 'consentimientoGuardar', 'consentimiento', 'adjuntoSubir', 'adjunto', 'adjuntoBorrar'];
+        'consentimientoNuevo', 'consentimientoGuardar', 'consentimiento', 'adjuntoSubir', 'adjunto', 'adjuntoBorrar',
+        'controlGuardar', 'periodontograma', 'periodontogramaGuardar'];
+    // Solo el dueño o administrador (editar-negocio)
+    private const SOLO_DUENO = ['insumos', 'insumoGuardar', 'insumoBorrar', 'comisiones', 'comisionesGuardar', 'indicadores'];
 
     public function __construct()
     {
@@ -47,6 +58,10 @@ class odontologiaController extends Controller
             abort_unless($request->user()->es_superadmin || $request->user()->can('historia-clinica'), 403, 'Solo el odontólogo(a) ve y cambia la parte clínica.');
             return $next($request);
         })->only(self::SOLO_CLINICO);
+        $this->middleware(function ($request, $next) {
+            abort_unless($request->user()->es_superadmin || $request->user()->can('editar-negocio'), 403, 'Solo el dueño o el administrador ve esta parte.');
+            return $next($request);
+        })->only(self::SOLO_DUENO);
     }
 
     private function clinico(): bool
@@ -69,6 +84,7 @@ class odontologiaController extends Controller
             'p' => $paciente, 'versiones' => $versiones, 'actual' => $actual, 'soloVer' => (bool) $ver && $ver->id !== $versiones->first()?->id,
             'atencion' => $atencion, 'denticion' => $denticion,
             'pendientes' => $actual ? Odontologia::pendientes($actual->piezas ?? []) : [],
+            'historia' => Odontologia::historiaPiezas($paciente),
         ]);
     }
 
@@ -149,14 +165,19 @@ class odontologiaController extends Controller
 
     public function planCrear(Request $request, Paciente $paciente)
     {
-        $request->validate(['nombre' => 'nullable|string|max:120']);
-        $plan = $this->nuevoPlan($paciente->id, trim((string) $request->input('nombre')) ?: 'Plan de tratamiento');
+        $request->validate(['nombre' => 'nullable|string|max:120', 'tipo' => 'nullable|in:general,ortodoncia']);
+        $orto = $request->input('tipo') === 'ortodoncia';
+        $plan = $this->nuevoPlan($paciente->id, trim((string) $request->input('nombre')) ?: ($orto ? 'Tratamiento de ortodoncia' : 'Plan de tratamiento'));
+        if ($orto) {
+            $plan->update(['tipo' => 'ortodoncia', 'inicio' => today(), 'cuotas' => 24]);
+            return redirect()->route('odonto.plan', $plan)->with('success', 'Ortodoncia ' . $plan->numero . ' creada. Ponga la cuota inicial, la cuota mensual y el número de meses, y agregue los procedimientos (instalación de brackets, retenedores…).');
+        }
         return redirect()->route('odonto.plan', $plan)->with('success', 'Plan ' . $plan->numero . ' creado. Agregue los procedimientos.');
     }
 
     public function plan(TratamientoPlan $plan)
     {
-        $plan->load(['paciente', 'items', 'abonos.metodo', 'abonos.user:id,name', 'profesional:id,name']);
+        $plan->load(['paciente', 'items', 'abonos.metodo', 'abonos.user:id,name', 'profesional:id,name', 'controles']);
         return view('odontologia.plan', [
             'plan' => $plan, 'p' => $plan->paciente, 'clinico' => $this->clinico(),
             'servicios' => Producto::where('estado', 1)->orderByDesc('es_servicio')->orderBy('nombre')->get(['id', 'nombre', 'precio_venta', 'es_servicio']),
@@ -228,13 +249,19 @@ class odontologiaController extends Controller
         abort_unless($item->plan_id === $plan->id, 404);
         $this->abierto($plan);
         if ($item->estado === 'hecho') {
-            $item->update(['estado' => 'pendiente', 'hecho_at' => null, 'hecho_por' => null]);
-            return back()->with('success', 'Procedimiento marcado otra vez como pendiente.');
+            DB::transaction(function () use ($item, $plan) {
+                $item->update(['estado' => 'pendiente', 'hecho_at' => null, 'hecho_por' => null, 'hecho_user_id' => null]);
+                Odontologia::moverInsumos($item, false, $plan->numero);
+            });
+            return back()->with('success', 'Procedimiento marcado otra vez como pendiente.' . ($item->producto_id ? ' Si se habían descontado insumos, volvieron al inventario.' : ''));
         }
-        $item->update(['estado' => 'hecho', 'hecho_at' => now(), 'hecho_por' => auth()->user()->name]);
+        $insumos = DB::transaction(function () use ($item, $plan) {
+            $item->update(['estado' => 'hecho', 'hecho_at' => now(), 'hecho_por' => auth()->user()->name, 'hecho_user_id' => auth()->id()]);
+            return Odontologia::moverInsumos($item, true, $plan->numero);
+        });
         if ($plan->estado === 'propuesto') $plan->update(['estado' => 'aprobado', 'aprobado_at' => $plan->aprobado_at ?? now()]);
         $plan->load('items');
-        $msg = 'Procedimiento marcado como hecho.';
+        $msg = 'Procedimiento marcado como hecho.' . ($insumos ? ' Se descontaron ' . $insumos . ' insumo(s) del inventario.' : '');
         if ($plan->items->every(fn ($i) => $i->estado === 'hecho')) $msg .= ' ¡Ya se hizo todo el plan! Si está pagado, márquelo como terminado.';
         return back()->with('success', $msg);
     }
@@ -248,14 +275,35 @@ class odontologiaController extends Controller
             'descuento' => 'nullable|numeric|min:0|max:999999999',
             'accion' => ['nullable', Rule::in(['aprobar', 'terminar', 'cancelar', 'reabrir'])],
             'aprobado_nota' => 'nullable|string|max:160',
+            'cuota_inicial' => 'nullable|numeric|min:0|max:999999999',
+            'cuota_mensual' => 'nullable|numeric|min:0|max:999999999',
+            'cuotas' => 'nullable|integer|min:0|max:120',
+            'inicio' => 'nullable|date',
         ]);
         $accion = $d['accion'] ?? null;
         if (!$accion) {
-            $this->abierto($plan);
-            $plan->fill(['nombre' => trim((string) ($d['nombre'] ?? '')) ?: $plan->nombre, 'notas' => $d['notas'] ?? null, 'descuento' => (float) ($d['descuento'] ?? 0)]);
-            if ($plan->descuento > $plan->subtotal) throw ValidationException::withMessages(['descuento' => 'El descuento no puede ser mayor que el valor del plan.']);
-            $this->revisarTotal($plan);
-            $plan->save();
+            DB::transaction(function () use ($plan, $d) {
+                $this->abierto($plan);
+                $plan->fill(['nombre' => trim((string) ($d['nombre'] ?? '')) ?: $plan->nombre, 'notas' => $d['notas'] ?? null, 'descuento' => (float) ($d['descuento'] ?? 0)]);
+                if ($plan->es_ortodoncia) {
+                    $plan->fill(['cuota_inicial' => (float) ($d['cuota_inicial'] ?? 0), 'cuota_mensual' => (float) ($d['cuota_mensual'] ?? 0),
+                        'cuotas' => (int) ($d['cuotas'] ?? 0), 'inicio' => $d['inicio'] ?? $plan->inicio ?? today()]);
+                    // El valor del tratamiento queda como un renglón propio (orden 0): cuota inicial + cuotas mensuales
+                    $valor = round($plan->cuota_inicial + $plan->cuotas * $plan->cuota_mensual, 2);
+                    $fila = $plan->items()->where('orden', 0)->first();
+                    if ($valor > 0) {
+                        $desc = 'Ortodoncia: cuota inicial ' . dinero($plan->cuota_inicial) . ' + ' . $plan->cuotas . ' cuotas de ' . dinero($plan->cuota_mensual);
+                        $fila ? $fila->update(['descripcion' => mb_substr($desc, 0, 160), 'valor' => $valor, 'cantidad' => 1])
+                            : TratamientoItem::create(['plan_id' => $plan->id, 'descripcion' => mb_substr($desc, 0, 160), 'valor' => $valor, 'cantidad' => 1, 'orden' => 0]);
+                    } elseif ($fila && $fila->estado !== 'hecho') {
+                        $fila->delete();
+                    }
+                    $plan->unsetRelation('items');
+                }
+                if ($plan->descuento > $plan->subtotal) throw ValidationException::withMessages(['descuento' => 'El descuento no puede ser mayor que el valor del plan.']);
+                $this->revisarTotal($plan);
+                $plan->save();
+            });
             return back()->with('success', 'Plan guardado.');
         }
         if ($accion === 'aprobar') {
@@ -450,4 +498,192 @@ class odontologiaController extends Controller
         ClinicaAcceso::anotar('editar', $adjunto->paciente_id);
         return back()->with('success', 'Archivo quitado.');
     }
+
+    // ================= Ortodoncia: controles mensuales =================
+    public function controlGuardar(Request $request, TratamientoPlan $plan)
+    {
+        abort_unless($plan->es_ortodoncia, 404);
+        $d = $request->validate([
+            'fecha' => 'required|date|before_or_equal:today',
+            'arco_sup' => 'nullable|string|max:60', 'arco_inf' => 'nullable|string|max:60',
+            'ligaduras' => 'nullable|string|max:60', 'elasticos' => 'nullable|string|max:80',
+            'notas' => 'nullable|string|max:3000', 'proximo' => 'nullable|date|after:fecha',
+        ]);
+        OrtodonciaControl::create($d + ['plan_id' => $plan->id, 'paciente_id' => $plan->paciente_id, 'user_id' => auth()->id(), 'profesional_nombre' => auth()->user()->name]);
+        ClinicaAcceso::anotar('editar', $plan->paciente_id);
+        $msg = 'Control de ortodoncia guardado.';
+        if (!empty($d['proximo'])) $msg .= ' Agende la próxima cita para el ' . \Carbon\Carbon::parse($d['proximo'])->format('d/m/Y') . '.';
+        return back()->with('success', $msg);
+    }
+
+    // ================= Periodontograma =================
+    public function periodontograma(Request $request, Paciente $paciente)
+    {
+        $versiones = Periodontograma::where('paciente_id', $paciente->id)->orderByDesc('id')->get(['id', 'created_at', 'profesional_nombre', 'resumen']);
+        $actual = $request->integer('version') ? Periodontograma::where('paciente_id', $paciente->id)->find($request->integer('version')) : Periodontograma::where('paciente_id', $paciente->id)->latest('id')->first();
+        ClinicaAcceso::anotar('ver', $paciente->id);
+        return view('odontologia.periodontograma', ['p' => $paciente, 'versiones' => $versiones, 'actual' => $actual,
+            'soloVer' => $actual && $versiones->first() && $actual->id !== $versiones->first()->id]);
+    }
+
+    public function periodontogramaGuardar(Request $request, Paciente $paciente)
+    {
+        $request->validate(['datos' => 'nullable|string|max:80000', 'notas' => 'nullable|string|max:3000']);
+        $datos = Odontologia::limpiarPerio(json_decode((string) $request->input('datos'), true) ?: []);
+        if (!$datos) return back()->with('error', 'El periodontograma está vacío: escriba al menos una profundidad.');
+        Periodontograma::create(['paciente_id' => $paciente->id, 'user_id' => auth()->id(), 'profesional_nombre' => auth()->user()->name,
+            'datos' => $datos, 'resumen' => Odontologia::resumenPerio($datos), 'notas' => trim((string) $request->input('notas')) ?: null]);
+        ClinicaAcceso::anotar('editar', $paciente->id);
+        return redirect()->route('odonto.perio', $paciente)->with('success', 'Periodontograma guardado.');
+    }
+
+    // ================= Laboratorio dental =================
+    public function laboratorio(Request $request)
+    {
+        $estado = $request->get('estado', 'pendientes');
+        $ordenes = LaboratorioOrden::with('paciente')
+            ->when($estado === 'pendientes', fn ($q) => $q->whereIn('estado', ['enviado', 'devuelto', 'recibido']))
+            ->when(isset(LaboratorioOrden::ESTADOS[$estado]), fn ($q) => $q->where('estado', $estado))
+            ->orderByRaw("CASE WHEN estado IN ('enviado','devuelto') THEN 0 WHEN estado = 'recibido' THEN 1 ELSE 2 END")->orderBy('entrega')->orderByDesc('id')
+            ->paginate(40)->withQueryString();
+        $paciente = $request->integer('paciente') ? Paciente::find($request->integer('paciente')) : null;
+        $planes = $paciente ? TratamientoPlan::where('paciente_id', $paciente->id)->whereIn('estado', ['propuesto', 'aprobado'])->get(['id', 'numero', 'nombre']) : collect();
+        $kpi = [
+            'en_lab' => LaboratorioOrden::whereIn('estado', ['enviado', 'devuelto'])->count(),
+            'atrasados' => LaboratorioOrden::whereIn('estado', ['enviado', 'devuelto'])->whereDate('entrega', '<', today())->count(),
+            'costo_mes' => (float) LaboratorioOrden::whereBetween('enviado', [now()->startOfMonth(), now()->endOfMonth()])->sum('costo'),
+        ];
+        $laboratorios = LaboratorioOrden::distinct()->orderBy('laboratorio')->pluck('laboratorio');
+        return view('odontologia.laboratorio', compact('ordenes', 'estado', 'paciente', 'planes', 'kpi', 'laboratorios'));
+    }
+
+    public function laboratorioGuardar(Request $request)
+    {
+        $d = $request->validate([
+            'paciente_id' => ['required', 'integer', Rule::exists('pacientes', 'id')->where('tienda_id', TiendaActual::id())],
+            'plan_id' => ['nullable', 'integer', Rule::exists('tratamiento_planes', 'id')->where('tienda_id', TiendaActual::id())],
+            'laboratorio' => 'required|string|max:120', 'trabajo' => 'required|string|max:160',
+            'pieza' => 'nullable|string|max:30', 'color' => 'nullable|string|max:30', 'material' => 'nullable|string|max:80',
+            'enviado' => 'required|date', 'entrega' => 'nullable|date|after_or_equal:enviado',
+            'costo' => 'nullable|numeric|min:0|max:999999999', 'notas' => 'nullable|string|max:500',
+        ], ['paciente_id.required' => 'Busque y elija el paciente.', 'trabajo.required' => 'Escriba qué trabajo se envía (ej. corona en zirconio).']);
+        $o = LaboratorioOrden::create($d + ['numero' => LaboratorioOrden::siguienteNumero(), 'estado' => 'enviado', 'costo' => (float) ($d['costo'] ?? 0), 'user_id' => auth()->id()]);
+        return redirect()->route('odonto.laboratorio')->with('success', 'Orden ' . $o->numero . ' registrada: ' . $o->trabajo . ' en ' . $o->laboratorio . '.');
+    }
+
+    public function laboratorioEstado(Request $request, LaboratorioOrden $orden)
+    {
+        $request->validate(['estado' => ['required', Rule::in(array_keys(LaboratorioOrden::ESTADOS))], 'notas' => 'nullable|string|max:500']);
+        $cambios = ['estado' => $request->estado];
+        if ($request->estado === 'recibido' && !$orden->recibido) $cambios['recibido'] = today();
+        if ($request->estado === 'devuelto') {
+            $cambios['recibido'] = null;
+            if ($request->filled('notas')) $cambios['notas'] = mb_substr(trim(($orden->notas ? $orden->notas . ' · ' : '') . 'Devuelto ' . today()->format('d/m') . ': ' . $request->notas), 0, 500);
+        }
+        $orden->update($cambios);
+        return back()->with('success', 'Orden ' . $orden->numero . ': ' . mb_strtolower(LaboratorioOrden::ESTADOS[$request->estado][0]) . '.');
+    }
+
+    // ================= Insumos por procedimiento =================
+    public function insumos()
+    {
+        $servicios = Producto::where('estado', 1)->where('es_servicio', true)->orderBy('nombre')->get(['id', 'nombre']);
+        $insumos = ProductoVariante::with('producto:id,nombre,es_servicio,controla_inventario')
+            ->whereHas('producto', fn ($q) => $q->where('estado', 1)->where('es_servicio', false))->get()
+            ->sortBy(fn ($v) => $v->producto?->nombre)->values();
+        $config = ProcedimientoInsumo::with(['variante.producto:id,nombre'])->get()->groupBy('producto_id');
+        return view('odontologia.insumos', compact('servicios', 'insumos', 'config'));
+    }
+
+    public function insumoGuardar(Request $request)
+    {
+        $d = $request->validate([
+            'producto_id' => ['required', 'integer', Rule::exists('productos', 'id')->where('tienda_id', TiendaActual::id())],
+            'producto_variante_id' => ['required', 'integer'],
+            'cantidad' => 'required|numeric|min:0.001|max:9999',
+        ], ['producto_variante_id.required' => 'Elija el insumo que se gasta.']);
+        $v = ProductoVariante::whereKey($d['producto_variante_id'])->whereHas('producto')->first();
+        abort_unless($v, 422, 'Ese insumo no existe en su inventario.');
+        ProcedimientoInsumo::updateOrCreate(['producto_id' => $d['producto_id'], 'producto_variante_id' => $v->id], ['cantidad' => $d['cantidad']]);
+        return back()->with('success', 'Insumo guardado: cada vez que se marque hecho este procedimiento se descuenta del inventario.');
+    }
+
+    public function insumoBorrar(ProcedimientoInsumo $insumo)
+    {
+        $insumo->delete();
+        return back()->with('success', 'Insumo quitado del procedimiento.');
+    }
+
+    // ================= Comisiones por profesional =================
+    private function porcentajes(): array
+    {
+        return json_decode((string) Ajuste::valor('t' . TiendaActual::id() . '_comisiones', '{}'), true) ?: [];
+    }
+
+    public function comisiones(Request $request)
+    {
+        $mes = rescue(fn () => \Carbon\Carbon::createFromFormat('Y-m', (string) $request->get('mes', now()->format('Y-m')))->startOfMonth(), now()->startOfMonth(), false);
+        $desde = $mes->copy()->startOfMonth(); $hasta = $mes->copy()->endOfMonth();
+        $items = TratamientoItem::with('plan.paciente')->where('estado', 'hecho')->whereBetween('hecho_at', [$desde, $hasta])->get();
+        $pct = $this->porcentajes();
+        $profes = User::where('tienda_id', TiendaActual::id())->get()->filter(fn ($u) => $u->can('historia-clinica'))->keyBy('id');
+        $filas = $items->groupBy(fn ($i) => (int) $i->hecho_user_id)->map(function ($g, $uid) use ($pct, $profes) {
+            $prod = round((float) $g->sum(fn ($i) => $i->total), 2);
+            $p = (float) ($pct[$uid] ?? 0);
+            return ['id' => $uid, 'nombre' => $profes[$uid]->name ?? ($g->first()->hecho_por ?: 'Sin profesional'), 'procedimientos' => $g->count(),
+                'produccion' => $prod, 'porcentaje' => $p, 'comision' => round($prod * $p / 100, 2), 'detalle' => $g->sortBy('hecho_at')->values()];
+        })->sortByDesc('produccion')->values();
+        $atenciones = \App\Models\Atencion::whereNotNull('cerrada_at')->whereBetween('fecha', [$desde, $hasta])->selectRaw('profesional_id, COUNT(*) n')->groupBy('profesional_id')->pluck('n', 'profesional_id');
+        return view('odontologia.comisiones', compact('mes', 'filas', 'profes', 'pct', 'atenciones'));
+    }
+
+    public function comisionesGuardar(Request $request)
+    {
+        $request->validate(['pct' => 'array', 'pct.*' => 'nullable|numeric|min:0|max:100']);
+        $ids = User::where('tienda_id', TiendaActual::id())->pluck('id')->map(fn ($x) => (string) $x)->all();
+        $pct = array_filter(array_intersect_key((array) $request->input('pct', []), array_flip($ids)), fn ($v) => $v !== null && $v !== '');
+        Ajuste::guardar('t' . TiendaActual::id() . '_comisiones', json_encode(array_map('floatval', $pct)));
+        return back()->with('success', 'Porcentajes de comisión guardados.');
+    }
+
+    // ================= Indicadores del consultorio y pacientes para recordar control =================
+    public function indicadores(Request $request)
+    {
+        $mes = rescue(fn () => \Carbon\Carbon::createFromFormat('Y-m', (string) $request->get('mes', now()->format('Y-m')))->startOfMonth(), now()->startOfMonth(), false);
+        $desde = $mes->copy()->startOfMonth(); $hasta = $mes->copy()->endOfMonth();
+        $citas = Cita::whereBetween('fecha', [$desde->toDateString(), $hasta->toDateString()])->get(['estado', 'origen']);
+        $tot = $citas->count();
+        $abonos = (float) TratamientoAbono::where('anulado', false)->whereBetween('created_at', [$desde, $hasta])->sum('monto');
+        $ventas = (float) PosVenta::where('estado', 'pagada')->whereBetween('created_at', [$desde, $hasta])->sum('total');
+        $planes = TratamientoPlan::whereBetween('created_at', [$desde, $hasta])->get(['estado', 'aprobado_at']);
+        $produccion = TratamientoItem::where('estado', 'hecho')->whereBetween('hecho_at', [$desde, $hasta])->get()
+            ->groupBy(fn ($i) => $i->descripcion)->map(fn ($g, $k) => ['nombre' => $k, 'n' => $g->sum('cantidad'), 'valor' => round($g->sum(fn ($i) => $i->total), 2)])
+            ->sortByDesc('valor')->take(10)->values();
+        $kpi = [
+            'ingresos' => round($abonos + $ventas, 2), 'abonos' => $abonos, 'ventas' => $ventas,
+            'nuevos' => Paciente::whereBetween('created_at', [$desde, $hasta])->count(),
+            'citas' => $tot, 'atendidas' => $citas->where('estado', 'atendida')->count(),
+            'no_asistio' => $tot ? round($citas->where('estado', 'no_asistio')->count() * 100 / $tot) : 0,
+            'en_linea' => $citas->where('origen', 'en_linea')->count(),
+            'presupuestos' => $planes->count(), 'aprobados' => $planes->whereNotNull('aprobado_at')->count(),
+            'por_cobrar' => round(TratamientoPlan::with('items')->where('estado', 'aprobado')->get()->sum(fn ($p) => $p->saldo), 2),
+            'orto_atrasados' => TratamientoPlan::with('items')->where('tipo', 'ortodoncia')->where('estado', 'aprobado')->get()->filter(fn ($p) => $p->atraso > 0)->count(),
+        ];
+        // Últimos 6 meses de ingresos para la gráfica
+        $serie = collect(range(5, 0))->map(function ($i) use ($mes) {
+            $m = $mes->copy()->subMonths($i);
+            $a = (float) TratamientoAbono::where('anulado', false)->whereBetween('created_at', [$m->copy()->startOfMonth(), $m->copy()->endOfMonth()])->sum('monto');
+            $v = (float) PosVenta::where('estado', 'pagada')->whereBetween('created_at', [$m->copy()->startOfMonth(), $m->copy()->endOfMonth()])->sum('total');
+            return ['mes' => ucfirst($m->translatedFormat('M')), 'valor' => round($a + $v)];
+        });
+        // Pacientes para recordar control: su última cita atendida fue hace más de 6 meses y no tienen cita próxima
+        $meses = max(3, min(24, $request->integer('meses', 6)));
+        $ultimas = Cita::where('estado', 'atendida')->selectRaw('paciente_id, MAX(fecha) f')->groupBy('paciente_id')->pluck('f', 'paciente_id');
+        $conProxima = Cita::whereIn('estado', ['programada', 'confirmada'])->whereDate('fecha', '>=', today())->pluck('paciente_id')->flip();
+        $idsRecall = $ultimas->filter(fn ($f, $pid) => \Carbon\Carbon::parse($f)->lt(today()->subMonths($meses)) && !isset($conProxima[$pid]))->keys();
+        $recall = Paciente::whereIn('id', $idsRecall)->get()->map(fn ($p) => ['p' => $p, 'ultima' => \Carbon\Carbon::parse($ultimas[$p->id])])->sortBy('ultima')->take(60)->values();
+        $ortoAtrasados = TratamientoPlan::with(['items', 'paciente'])->where('tipo', 'ortodoncia')->where('estado', 'aprobado')->get()->filter(fn ($p) => $p->atraso > 0)->values();
+        return view('odontologia.indicadores', compact('mes', 'kpi', 'serie', 'produccion', 'recall', 'meses', 'ortoAtrasados'));
+    }
 }
+
