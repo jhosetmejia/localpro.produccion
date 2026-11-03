@@ -57,6 +57,10 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-video"></i></div>
                     Clientes 360
                 </a>
+                <a class="nav-link {{ $on('admin.redes*') }}" href="{{ route('admin.redes') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-hashtag"></i></div>
+                    Redes de los negocios
+                </a>
                 <a class="nav-link {{ $on('admin.eventos*') }}" href="{{ route('admin.eventos') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-ticket"></i></div>
                     Eventos

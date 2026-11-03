@@ -568,6 +568,8 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::get('/tiendas/{tienda}', [adminTiendaController::class, 'show'])->name('tiendas.show');
     Route::post('/tiendas/{tienda}/estado', [adminTiendaController::class, 'estado'])->name('tiendas.estado');
     Route::post('/tiendas/{tienda}/entrar', [adminTiendaController::class, 'entrar'])->name('tiendas.entrar');
+    Route::get('/redes', [\App\Http\Controllers\adminRedesController::class, 'index'])->name('redes');
+    Route::post('/redes/{tienda}/abrir', [\App\Http\Controllers\adminRedesController::class, 'abrir'])->name('redes.abrir');
     Route::get('/eventos', [\App\Http\Controllers\adminEventosController::class, 'index'])->name('eventos');
     Route::get('/donaciones', [\App\Http\Controllers\adminDonacionesController::class, 'index'])->name('donaciones');
     Route::get('/360', [\App\Http\Controllers\giro360Controller::class, 'admin'])->name('giro360');
