@@ -111,7 +111,7 @@
         @foreach ($cuentas as $c)
         @php $nl = (int) ($sinLeerPorCuenta[$c->id] ?? 0); @endphp
         <a href="{{ route('redes.index', ['cuenta' => $c->id]) }}" class="rc-tab {{ (int) $cuentaSel === (int) $c->id ? 'on' : '' }}" role="tab">
-            @if ($c->page_foto || $c->ig_foto)<img src="{{ $c->ig_foto ?: $c->page_foto }}" alt="" loading="lazy">@else<span class="rc-ini">{{ mb_substr($c->page_nombre, 0, 1) }}</span>@endif
+            @if ($c->foto_url)<img src="{{ $c->foto_url }}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'rc-ini',textContent:{{ json_encode(mb_substr($c->page_nombre, 0, 1)) }}}))">@else<span class="rc-ini">{{ mb_substr($c->page_nombre, 0, 1) }}</span>@endif
             <span class="rc-tx"><b>{{ $c->es_correo ? '✉️ Correo' : $c->page_nombre }}</b><small>{{ $c->es_correo ? $c->page_nombre : ($c->ig_usuario ? '@' . $c->ig_usuario : 'Facebook') }}</small></span>
             @if ($nl)<span class="rc-nl">{{ $nl }}</span>@endif
         </a>

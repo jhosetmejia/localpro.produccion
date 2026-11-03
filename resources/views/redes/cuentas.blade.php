@@ -6,7 +6,7 @@
 <div class="lp-dash">
     <div class="lp-hello">
         <div><small><i class="fa-solid fa-hashtag me-1"></i>Mis redes</small><h1>Cuentas <span>conectadas</span></h1>
-            <span class="text-muted fw-semibold">Las páginas de Facebook y cuentas de Instagram de su negocio.</span></div>
+            <span class="text-muted fw-semibold">Las páginas de Facebook, cuentas de Instagram y canales de YouTube de su negocio.</span></div>
         @php
             $cupo = \App\Http\Controllers\redesController::cupoRedes();
             $maxR = max(1, (int) (\App\Support\TiendaActual::tienda()?->redes_max ?? 1));
@@ -40,7 +40,7 @@
                     @if ($c->estado === 'error')<small class="d-block" style="color:#b0173f"><i class="fa-solid fa-triangle-exclamation me-1"></i>{{ $c->error }} — vuelva a conectarlo abajo.</small>@endif
                 </div>
                 @else
-                <div class="av" style="overflow:hidden">@if ($c->page_foto)<img src="{{ $c->page_foto }}" alt="" style="width:100%;height:100%;object-fit:cover">@else<i class="fa-brands fa-facebook-f"></i>@endif</div>
+                <div class="av" style="overflow:hidden">@if ($c->foto_url)<img src="{{ $c->foto_url }}" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.outerHTML='&lt;i class=&quot;fa-brands fa-facebook-f&quot;&gt;&lt;/i&gt;'">@else<i class="fa-brands fa-facebook-f"></i>@endif</div>
                 <div class="t">
                     <b>{{ $c->page_nombre }}</b>
                     <small><span class="rd-ico facebook" style="width:16px;height:16px;font-size:.55rem"><i class="fa-brands fa-facebook-f"></i></span> Página de Facebook

@@ -91,9 +91,9 @@
             @if ($hayMeta)
                 @if ($cuentas->count() > 1)
                 <div class="mb-3"><label class="form-label">Página</label>
-                    <select name="cuenta_id" id="cuenta" class="form-select" data-nativo>@foreach ($cuentas as $c)<option value="{{ $c->id }}" data-ig="{{ $c->ig_usuario }}" data-nom="{{ $c->page_nombre }}" data-foto="{{ $c->ig_foto ?: $c->page_foto }}">{{ $c->page_nombre }}{{ $c->ig_usuario ? ' · @' . $c->ig_usuario : '' }}</option>@endforeach</select></div>
+                    <select name="cuenta_id" id="cuenta" class="form-select" data-nativo>@foreach ($cuentas as $c)<option value="{{ $c->id }}" data-ig="{{ $c->ig_usuario }}" data-nom="{{ $c->page_nombre }}" data-foto="{{ $c->foto_url }}">{{ $c->page_nombre }}{{ $c->ig_usuario ? ' · @' . $c->ig_usuario : '' }}</option>@endforeach</select></div>
                 @else
-                <input type="hidden" name="cuenta_id" id="cuenta" value="{{ $c0->id }}" data-ig="{{ $c0->ig_usuario }}" data-nom="{{ $c0->page_nombre }}" data-foto="{{ $c0->ig_foto ?: $c0->page_foto }}">
+                <input type="hidden" name="cuenta_id" id="cuenta" value="{{ $c0->id }}" data-ig="{{ $c0->ig_usuario }}" data-nom="{{ $c0->page_nombre }}" data-foto="{{ $c0->foto_url }}">
                 @endif
             @endif
 

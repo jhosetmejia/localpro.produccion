@@ -49,6 +49,15 @@ class RedCuenta extends Model
         return $this->tipo === 'correo';
     }
 
+    // Foto de la cuenta. Las de Facebook/Instagram que guarda Meta vencen a los días (salían rotas):
+    // para las páginas se usa la dirección fija de su foto de perfil, que no vence.
+    public function getFotoUrlAttribute(): ?string
+    {
+        if ($this->es_correo) return null;
+        if ($this->es_youtube) return $this->page_foto;
+        return preg_match('/^\d+$/', (string) $this->page_id) ? 'https://graph.facebook.com/' . $this->page_id . '/picture?type=normal' : ($this->page_foto ?: $this->ig_foto);
+    }
+
     public function getEsYoutubeAttribute(): bool
     {
         return $this->tipo === 'youtube';
