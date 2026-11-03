@@ -32,9 +32,39 @@ class RedCuenta extends Model
         return $q->where('tipo', 'correo');
     }
 
+    // Canales de YouTube (solo para publicar videos; no tienen bandeja de mensajes)
+    public function scopeYoutube($q)
+    {
+        return $q->where('tipo', 'youtube');
+    }
+
+    // Las cuentas que tienen mensajes: Facebook/Instagram y correo
+    public function scopeConBandeja($q)
+    {
+        return $q->where(fn ($w) => $w->whereNull('tipo')->orWhere('tipo', '<>', 'youtube'));
+    }
+
     public function getEsCorreoAttribute(): bool
     {
         return $this->tipo === 'correo';
+    }
+
+    public function getEsYoutubeAttribute(): bool
+    {
+        return $this->tipo === 'youtube';
+    }
+
+    // YouTube: llaves de acceso de Google guardadas cifradas (access, refresh, vence)
+    public function getYoutubeTokenAttribute(): array
+    {
+        if (!$this->es_youtube) return [];
+        $c = json_decode((string) $this->page_token, true);
+        return is_array($c) ? $c : [];
+    }
+
+    public function guardarYoutubeToken(array $t): void
+    {
+        $this->forceFill(['page_token' => json_encode($t)])->save();
     }
 
     // Configuración del correo (servidor, usuario, clave…) guardada cifrada

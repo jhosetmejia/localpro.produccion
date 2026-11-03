@@ -40,6 +40,11 @@
             <div class="alert alert-warning mb-0" style="max-width:520px;position:relative;z-index:1"><b>Muy pronto.</b> Estamos activando la conexión con Facebook e Instagram para todos los negocios.</div>
             @endif
             <a href="{{ route('redes.cuentas') }}#correo" class="d-inline-block mt-2 fw-bold" style="position:relative;z-index:1;color:inherit"><i class="fa-solid fa-envelope me-1"></i>También puede conectar su correo (Gmail, Outlook…)</a>
+            @if (($canales ?? collect())->isNotEmpty())
+            <a href="{{ route('redes.publicar') }}" class="d-block mt-2 fw-bold" style="position:relative;z-index:1;color:#ff8a8a"><i class="fa-brands fa-youtube me-1"></i>Ya tiene YouTube conectado: subir un video</a>
+            @elseif ($ytActivo ?? false)
+            <a href="{{ route('redes.cuentas') }}#youtube" class="d-block mt-2 fw-bold" style="position:relative;z-index:1;color:inherit"><i class="fa-brands fa-youtube me-1"></i>También puede conectar su canal de YouTube</a>
+            @endif
         @else
         <div class="alert alert-light mb-0" style="max-width:520px;position:relative;z-index:1">El dueño del negocio debe conectar las cuentas desde su usuario.</div>
         @endcan
@@ -48,7 +53,7 @@
     <div class="cx-ben">
         <div><i class="fa-regular fa-comments"></i><b>Todos los chats juntos</b><p>Messenger e Instagram Direct en una sola bandeja, con aviso de los no leídos.</p></div>
         <div><i class="fa-solid {{ \App\Models\Tienda::iconoProducto() }}"></i><b>Envíe productos en un toque</b><p>Busque el producto y mándele al cliente la foto, el precio y el enlace para comprar.</p></div>
-        <div><i class="fa-regular fa-paper-plane"></i><b>Publique en las dos redes</b><p>Una foto, un texto y listo: sale en Facebook e Instagram, ahora o a la hora que programe.</p></div>
+        <div><i class="fa-regular fa-paper-plane"></i><b>Publique fotos y videos</b><p>Una foto o un video y listo: sale en Facebook, Instagram (Reels) y YouTube, ahora o a la hora que programe.</p></div>
         <div><i class="fa-solid fa-user-plus"></i><b>Convierta chats en clientes</b><p>Guarde a quien le escribe como cliente y márquelo: nuevo, interesado, hizo pedido.</p></div>
     </div>
 

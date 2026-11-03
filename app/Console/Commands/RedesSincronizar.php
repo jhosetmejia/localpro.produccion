@@ -21,7 +21,7 @@ class RedesSincronizar extends Command
     {
         Meta::$hasta = microtime(true) + 200; // deja margen antes de la siguiente corrida
         $n = 0;
-        $cuentas = RedCuenta::withoutGlobalScopes()->where('estado', 'activa')->orderBy('sincronizado_en')->get();
+        $cuentas = RedCuenta::withoutGlobalScopes()->conBandeja()->where('estado', 'activa')->orderBy('sincronizado_en')->get();
         foreach ($cuentas as $c) {
             if (microtime(true) > Meta::$hasta) break;
             Meta::$avisos = [];

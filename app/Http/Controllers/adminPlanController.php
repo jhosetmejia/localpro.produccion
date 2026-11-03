@@ -28,6 +28,9 @@ class adminPlanController extends Controller
             'metaAgente' => (string) Ajuste::valor('meta_agente_humano') === '1',
             'metaVersion' => Ajuste::valor('meta_graph_version'),
             'metaDiag' => request()->boolean('revisar_meta') ? \App\Support\Meta::diagnostico() : null,
+            'ytClientId' => Ajuste::valor('youtube_client_id'),
+            'ytSecretoGuardado' => filled(Ajuste::valor('youtube_client_secret')),
+            'ytDiag' => request()->boolean('revisar_youtube') ? \App\Support\YouTube::diagnostico() : null,
             'wompi' => planController::wompiActivo(),
             'ingresosMes' => (float) PagoSuscripcion::where('estado', 'aprobado')->where('updated_at', '>=', now()->startOfMonth())->sum(PagoSuscripcion::sqlEnCop()), // en pesos (los de Venezuela pasados a pesos)
             'pagos' => PagoSuscripcion::with(['tienda:id,nombre', 'plan:id,nombre'])->latest()->limit(20)->get(),
@@ -59,7 +62,10 @@ class adminPlanController extends Controller
             'tasa_ves_usd' => 'nullable|numeric|min:0|max:100000000',
             'meta_config_id' => 'nullable|string|max:40',
             'meta_graph_version' => ['nullable', 'regex:/^v\d+\.\d+$/'],
+            'youtube_client_id' => ['nullable', 'string', 'max:200', 'regex:/^[A-Za-z0-9._\-]*$/'],
+            'youtube_client_secret' => 'nullable|string|max:200',
         ], [
+            'youtube_client_id.regex' => 'El ID de cliente de Google termina en .apps.googleusercontent.com y no lleva espacios.',
             'meta_graph_version.regex' => 'La versión de la API va así: v24.0',
         ]);
         foreach ((array) $request->input('planes') as $id => $d) {
@@ -91,6 +97,10 @@ class adminPlanController extends Controller
         if ($request->has('ejemplos_tiendas')) Ajuste::guardar(asesorEjemplosController::AJUSTE, mb_substr(strtoupper(preg_replace('/[^A-Za-z0-9,\-]/', '', str_replace([' ', ';'], ',', (string) $request->input('ejemplos_tiendas')))), 0, 300));
         if ($request->has('meta_config_id')) Ajuste::guardar('meta_config_id', preg_replace('/\D/', '', (string) $request->input('meta_config_id')));
         if ($request->has('meta_graph_version')) Ajuste::guardar('meta_graph_version', trim((string) $request->input('meta_graph_version')));
+        // YouTube (proyecto de Google Cloud de LocalPro): el secreto se guarda cifrado y si se deja vacío no se cambia
+        if ($request->has('youtube_client_id')) Ajuste::guardar('youtube_client_id', trim((string) $request->input('youtube_client_id')));
+        if ($request->filled('youtube_client_secret')) Ajuste::guardar('youtube_client_secret', \Illuminate\Support\Facades\Crypt::encryptString(trim((string) $request->input('youtube_client_secret'))));
+        if ($request->boolean('youtube_quitar_secreto')) Ajuste::guardar('youtube_client_secret', '');
         Ajuste::guardar('meta_agente_humano', $request->boolean('meta_agente_humano') ? '1' : '');
         Ajuste::guardar('meta_en_vivo', $request->boolean('meta_en_vivo') ? '1' : '');
         Ajuste::guardar('meta_tiendas_prueba', mb_substr(strtoupper(preg_replace('/[^A-Za-z0-9,\-]/', '', str_replace([' ', ';', "\n"], ',', (string) $request->input('meta_tiendas_prueba')))), 0, 2000));

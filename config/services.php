@@ -43,6 +43,13 @@ return [
         'en_vivo' => (bool) env('META_EN_VIVO', false),
     ],
 
+    // YouTube para "Mis redes" (proyecto de Google Cloud de LocalPro con YouTube Data API v3).
+    // También se pueden poner desde Admin → Planes y cobros (tienen prioridad las del panel).
+    'youtube' => [
+        'client_id' => env('YOUTUBE_CLIENT_ID'),
+        'client_secret' => env('YOUTUBE_CLIENT_SECRET'),
+    ],
+
     'wompi' => [
         'public_key' => env('WOMPI_PUBLIC_KEY'),
         'private_key' => env('WOMPI_PRIVATE_KEY'),

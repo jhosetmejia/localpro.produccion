@@ -410,6 +410,10 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::get('/mis-redes/productos', [redesController::class, 'productos'])->name('redes.productos');
     Route::get('/mis-redes/publicar', [redesController::class, 'publicar'])->name('redes.publicar');
     Route::post('/mis-redes/publicar', [redesController::class, 'guardarPublicacion'])->middleware('throttle:20,1')->name('redes.publicar.guardar');
+    Route::post('/mis-redes/video', [redesController::class, 'subirVideo'])->middleware('throttle:400,1')->name('redes.video.subir');
+    Route::get('/mis-redes/publicaciones/estado', [redesController::class, 'estadoPublicaciones'])->name('redes.publicaciones.estado');
+    Route::get('/mis-redes/youtube/conectar', [redesController::class, 'youtubeConectar'])->name('redes.youtube.conectar');
+    Route::get('/mis-redes/youtube/retorno', [redesController::class, 'youtubeRetorno'])->name('redes.youtube.retorno');
     Route::post('/mis-redes/publicaciones/{publicacion}/reintentar', [redesController::class, 'reintentar'])->whereNumber('publicacion')->name('redes.reintentar');
     Route::delete('/mis-redes/publicaciones/{publicacion}', [redesController::class, 'borrarPublicacion'])->whereNumber('publicacion')->name('redes.publicacion.borrar');
     Route::get('/mis-redes/cuentas', [redesController::class, 'cuentasVista'])->name('redes.cuentas');

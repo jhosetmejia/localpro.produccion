@@ -96,6 +96,24 @@
                     </ul>
                     @endif
                 </div></div>
+                <div class="col-12"><div style="border:1.5px solid #ffd4d4;background:#fff7f7;border-radius:18px;padding:1rem 1.1rem" id="youtubeCfg">
+                    <b><i class="fa-brands fa-youtube me-1" style="color:#ff0000"></i>Conexión con YouTube (Mis redes → Publicar video)</b>
+                    <small class="text-muted d-block mt-1">Credencial "ID de cliente de OAuth" tipo <b>Aplicación web</b> del proyecto de Google Cloud de LocalPro, con la <b>YouTube Data API v3</b> activada.
+                        En "URI de redireccionamiento autorizados" agregue exactamente: <code style="user-select:all">{{ route('redes.youtube.retorno') }}</code></small>
+                    <div class="row g-2 mt-1">
+                        <div class="col-md-6"><label class="form-label small fw-bold mb-1">ID de cliente</label><input name="youtube_client_id" class="form-control" value="{{ $ytClientId }}" placeholder="{{ config('services.youtube.client_id') ?: '1234-abc.apps.googleusercontent.com' }}" autocomplete="off"></div>
+                        <div class="col-md-4"><label class="form-label small fw-bold mb-1">Secreto del cliente</label><input name="youtube_client_secret" type="password" class="form-control" value="" placeholder="{{ $ytSecretoGuardado ? 'Guardado (déjelo vacío para no cambiarlo)' : (config('services.youtube.client_secret') ? 'Usando el del .env' : 'GOCSPX-…') }}" autocomplete="new-password"></div>
+                        <div class="col-md-2 d-grid align-items-end"><a href="{{ route('admin.planes.index', ['revisar_youtube' => 1]) }}#ytDiag" class="btn btn-outline-danger mt-auto"><i class="fa-solid fa-stethoscope me-1"></i>Revisar</a></div>
+                    </div>
+                    <small class="text-muted d-block mt-2"><b>Ojo:</b> mientras Google no verifique la app (pantalla de consentimiento) y no apruebe la auditoría de la API de YouTube, los videos que suban los negocios quedan <b>privados</b> y el cupo es de unas 6 subidas al día para todo LocalPro. Pida la verificación y el aumento de cupo en Google Cloud.</small>
+                    @if ($ytDiag)
+                    <ul class="list-unstyled mt-3 mb-0" id="ytDiag">
+                        @foreach ($ytDiag as [$ok, $titulo, $detalle])
+                        <li class="d-flex gap-2 py-1" style="border-bottom:1px solid #ffe3e3"><span style="width:22px;flex:none">{{ $ok === true ? '✅' : ($ok === false ? '❌' : 'ℹ️') }}</span><span><b>{{ $titulo }}</b><small class="d-block text-muted" style="word-break:break-all">{{ $detalle }}</small></span></li>
+                        @endforeach
+                    </ul>
+                    @endif
+                </div></div>
             </div>
         </div>
     </form>

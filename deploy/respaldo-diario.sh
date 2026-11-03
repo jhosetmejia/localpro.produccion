@@ -35,7 +35,8 @@ fi
 if [ $RAPIDO = 0 ]; then
   # Archivos subidos (fotos, logos) y firmas de los profesionales del consultorio (carpeta privada)
   CARPETAS="public"; [ -d "$RAIZ/storage/app/firmas" ] && CARPETAS="$CARPETAS firmas"
-  tar -czf "$DEST/archivos-$HOY.tar.gz" -C "$RAIZ/storage/app" $CARPETAS 2>/dev/null && SUBIR+=("$DEST/archivos-$HOY.tar.gz") && echo "$(date '+%F %T') archivos OK"
+  # Los videos de Mis redes no se respaldan: pesan mucho y se borran solos a los pocos días de publicarse
+  tar -czf "$DEST/archivos-$HOY.tar.gz" --exclude='public/redes/*/video-*' -C "$RAIZ/storage/app" $CARPETAS 2>/dev/null && SUBIR+=("$DEST/archivos-$HOY.tar.gz") && echo "$(date '+%F %T') archivos OK"
   # Configuración: .env (llave interna de Laravel, Wompi, Meta, DIAN). Sin ella los datos cifrados de la base
   # (credenciales de facturación) no se pueden abrir en un servidor nuevo. Solo la lee root.
   ( umask 077; tar -czf "$DEST/config-$HOY.tar.gz" -C "$RAIZ" .env ) && chmod 600 "$DEST/config-$HOY.tar.gz" && chown root:root "$DEST/config-$HOY.tar.gz" \

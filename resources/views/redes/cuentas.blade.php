@@ -31,6 +31,14 @@
                         · {{ $c->sincronizado_en ? 'revisado ' . $c->sincronizado_en->locale('es')->diffForHumans() : 'conectado ' . $c->created_at->format('d/m/Y') }}</small>
                     @if ($c->estado === 'error')<small class="d-block" style="color:#b0173f"><i class="fa-solid fa-triangle-exclamation me-1"></i>{{ $c->error }} — vuelva a conectarlo abajo.</small>@endif
                 </div>
+                @elseif ($c->es_youtube)
+                <div class="av" style="overflow:hidden;background:#ffe5e5;color:#ff0000">@if ($c->page_foto)<img src="{{ $c->page_foto }}" alt="" style="width:100%;height:100%;object-fit:cover">@else<i class="fa-brands fa-youtube"></i>@endif</div>
+                <div class="t">
+                    <b>{{ $c->page_nombre }}</b>
+                    <small><span class="rd-ico" style="width:16px;height:16px;font-size:.55rem;background:#ff0000"><i class="fa-brands fa-youtube"></i></span> Canal de YouTube{{ $c->ig_usuario ? ' · @' . $c->ig_usuario : '' }}
+                        · conectado {{ ($c->sincronizado_en ?? $c->created_at)->format('d/m/Y') }}</small>
+                    @if ($c->estado === 'error')<small class="d-block" style="color:#b0173f"><i class="fa-solid fa-triangle-exclamation me-1"></i>{{ $c->error }} — vuelva a conectarlo abajo.</small>@endif
+                </div>
                 @else
                 <div class="av" style="overflow:hidden">@if ($c->page_foto)<img src="{{ $c->page_foto }}" alt="" style="width:100%;height:100%;object-fit:cover">@else<i class="fa-brands fa-facebook-f"></i>@endif</div>
                 <div class="t">
@@ -45,7 +53,7 @@
                 <span class="badge bg-secondary">Desconectada</span>
                 @else
                 <span class="badge {{ $c->estado === 'error' ? 'bg-danger' : 'bg-success' }}">{{ $c->estado === 'error' ? 'Con error' : 'Activa' }}</span>
-                <form method="post" action="{{ route('redes.desconectar', $c) }}" data-confirm="¿Desconectar {{ $c->page_nombre }}?" data-confirm-texto="Ya no llegarán mensajes nuevos ni podrá publicar en ella desde LocalPro. Los chats guardados se conservan." data-confirm-ok="Sí, desconectar" data-peligro>@csrf<button class="btn btn-sm btn-outline-danger">Desconectar</button></form>
+                <form method="post" action="{{ route('redes.desconectar', $c) }}" data-confirm="¿Desconectar {{ $c->page_nombre }}?" data-confirm-texto="{{ $c->es_youtube ? 'Ya no podrá subir videos a este canal desde LocalPro. Los videos que ya subió siguen en YouTube.' : 'Ya no llegarán mensajes nuevos ni podrá publicar en ella desde LocalPro. Los chats guardados se conservan.' }}" data-confirm-ok="Sí, desconectar" data-peligro>@csrf<button class="btn btn-sm btn-outline-danger">Desconectar</button></form>
                 @endif
             </li>
             @empty
@@ -63,6 +71,20 @@
         @endif
         <p class="small text-muted mt-3 mb-1"><i class="fa-solid fa-layer-group me-1"></i>Cada negocio conecta <b>{{ $maxR === 1 ? 'una página de Facebook' : $maxR . ' páginas de Facebook' }}</b> con su Instagram. Si la cuenta falla, vuelva a conectarla con <a href="{{ route('redes.conectar', ['reconectar' => 1]) }}">Reconectar</a>.</p>
         <p class="small text-muted mt-0 mb-0"><i class="fa-solid fa-circle-info me-1"></i>¿No aparece su Instagram? Debe ser <b>cuenta profesional</b> y estar <b>vinculada a la página</b> de Facebook. Vincúlela y toque "Reconectar" para actualizar.</p>
+    </div>
+
+    {{-- YouTube: para subir videos (Shorts y videos normales) --}}
+    <div class="lp-box mt-3" id="youtube">
+        <h3><span><i class="fa-brands fa-youtube me-1" style="color:#ff0000"></i>YouTube <small class="text-muted fw-semibold">(para sus videos)</small></span></h3>
+        <p class="text-muted small mb-2">Conecte el canal de YouTube de su negocio y, cuando publique un video en <b>Publicar</b>, sale también en YouTube: como <b>Short</b> si es vertical y dura máximo 3 minutos, o como <b>video normal</b> si es horizontal o más largo. Puede conectar hasta {{ \App\Support\YouTube::MAX_CANALES }} canales.</p>
+        @if (!$ytActivo)
+        <div class="alert alert-warning mb-0"><b>Muy pronto.</b> Estamos activando la conexión con YouTube para todos los negocios.</div>
+        @elseif ($cupoYt > 0)
+        <a href="{{ route('redes.youtube.conectar') }}" class="btn" style="background:#ff0000;color:#fff;font-weight:800"><i class="fa-brands fa-youtube me-1"></i>Conectar canal de YouTube</a>
+        <small class="text-muted d-block mt-2">Google le pide elegir la cuenta (o la cuenta de marca) dueña del canal y aceptar el permiso para subir videos. LocalPro no ve su clave.</small>
+        @else
+        <p class="small fw-semibold mb-0" style="color:#11702f"><i class="fa-solid fa-circle-check me-1"></i>Ya tiene conectados {{ \App\Support\YouTube::MAX_CANALES }} canales (el máximo).</p>
+        @endif
     </div>
 
     {{-- Correo en la bandeja (opcional) --}}

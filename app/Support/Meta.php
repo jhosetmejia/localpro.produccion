@@ -462,6 +462,86 @@ class Meta
         return $p;
     }
 
+    // ---------- Videos (Reels) ----------
+
+    // Facebook: Reel si es vertical y de 3 a 90 segundos; si no (o si falla el Reel), video normal de la página.
+    // Meta baja el video desde nuestra dirección pública (file_url) y lo procesa por su cuenta.
+    public static function publicarVideoFacebook(RedPublicacion $p): void
+    {
+        $c = $p->cuenta;
+        if ($p->es_reel_facebook) {
+            try {
+                $ini = self::post($c->page_id . '/video_reels', ['upload_phase' => 'start', 'access_token' => $c->page_token]);
+                $vid = (string) ($ini['video_id'] ?? throw new RuntimeException('Facebook no abrió la subida del Reel.'));
+                try {
+                    $r = Http::timeout(120)->acceptJson()->withHeaders(['Authorization' => 'OAuth ' . $c->page_token, 'file_url' => $p->video_url])
+                        ->post('https://rupload.facebook.com/video-upload/' . self::v() . '/' . $vid);
+                } catch (\Illuminate\Http\Client\ConnectionException $e) {
+                    throw new RuntimeException('Timeout: Facebook no respondió a tiempo');
+                }
+                self::respuesta($r);
+                $fin = self::post($c->page_id . '/video_reels', ['upload_phase' => 'finish', 'video_id' => $vid, 'video_state' => 'PUBLISHED',
+                    'description' => (string) $p->texto, 'access_token' => $c->page_token]);
+                if (empty($fin['success'])) throw new RuntimeException('Facebook no confirmó el Reel.');
+                $p->fb_post_id = $vid;
+                $p->fb_url = 'https://www.facebook.com/reel/' . $vid;
+                return;
+            } catch (\Throwable $e) {
+                // Sigue abajo como video normal
+                Log::info('Reel de Facebook no salió, se publica como video: ' . self::sinLlaves($e->getMessage()));
+            }
+        }
+        $d = ['file_url' => $p->video_url, 'description' => (string) $p->texto, 'access_token' => $c->page_token];
+        if ($p->titulo) $d['title'] = mb_substr((string) $p->titulo, 0, 100);
+        $r = self::post($c->page_id . '/videos', $d);
+        $id = (string) ($r['id'] ?? throw new RuntimeException('Facebook no recibió el video.'));
+        $p->fb_post_id = $id;
+        $p->fb_url = 'https://www.facebook.com/' . $c->page_id . '/videos/' . $id;
+    }
+
+    // Instagram, paso 1: entrega el video para que Instagram lo procese como Reel (tarda de segundos a varios minutos)
+    public static function crearReelInstagram(RedPublicacion $p): string
+    {
+        $c = $p->cuenta;
+        if (!$c->ig_id) throw new RuntimeException('la página no tiene Instagram vinculado.');
+        $d = ['media_type' => 'REELS', 'video_url' => $p->video_url, 'caption' => (string) $p->texto, 'share_to_feed' => 'true', 'access_token' => $c->page_token];
+        if ($p->portada_url) $d['cover_url'] = $p->portada_url;
+        $r = self::post($c->ig_id . '/media', $d);
+        return (string) ($r['id'] ?? throw new RuntimeException('Instagram no recibió el video.'));
+    }
+
+    // Instagram, paso 2: si ya terminó de procesarlo, lo publica. true = publicado, false = sigue procesando
+    public static function terminarReelInstagram(RedPublicacion $p): bool
+    {
+        $c = $p->cuenta;
+        $st = self::get($p->ig_contenedor, ['fields' => 'status_code,status', 'access_token' => $c->page_token]);
+        $code = (string) ($st['status_code'] ?? '');
+        if ($code === 'ERROR' || $code === 'EXPIRED') {
+            $p->ig_contenedor = null;
+            throw new RuntimeException('Instagram no aceptó el video (' . self::motivoVideo((string) ($st['status'] ?? '')) . ').');
+        }
+        if ($code !== 'FINISHED') return false;
+        $pub = self::post($c->ig_id . '/media_publish', ['creation_id' => $p->ig_contenedor, 'access_token' => $c->page_token]);
+        $p->ig_media_id = (string) ($pub['id'] ?? throw new RuntimeException('Instagram no publicó el Reel.'));
+        try {
+            $p->ig_url = self::get($p->ig_media_id, ['fields' => 'permalink', 'access_token' => $c->page_token])['permalink'] ?? null;
+        } catch (\Throwable $e) {
+        }
+        return true;
+    }
+
+    private static function motivoVideo(string $s): string
+    {
+        $s = mb_strtolower($s);
+        return match (true) {
+            str_contains($s, 'duration') => 'la duración no es válida para un Reel',
+            str_contains($s, 'aspect') || str_contains($s, 'ratio') => 'la forma del video no es válida; use vertical 9:16',
+            str_contains($s, 'codec') || str_contains($s, 'format') => 'el formato no es válido; use MP4',
+            str_contains($s, 'size') => 'el video pesa demasiado',
+            default => 'revise que sea MP4 vertical' . ($s !== '' ? ' · ' . mb_substr($s, 0, 120) : ''),
+        };
+    }
+
     // ---------- HTTP ----------
     private static function get(string $ruta, array $q, int $espera = 20): array
     {
