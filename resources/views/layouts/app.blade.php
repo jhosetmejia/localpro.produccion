@@ -74,6 +74,13 @@
         });
     })();
     </script>
+    @auth
+    {{-- Guía con foco (como CapCut): ilumina lo que toca hacer. Se abre con ?foco=N desde Primeros pasos --}}
+    <script src="{{ asset('js/lp-foco.js') }}?v=1"></script>
+    @if (ctype_digit((string) request('foco')))
+    <script>window.addEventListener('load', function () { LPFoco.iniciar({!! json_encode(\App\Support\PrimerosPasos::foco((int) request('foco')), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}, { boton: '¡A trabajar!' }); });</script>
+    @endif
+    @endauth
     @stack('js')
 
 </body>

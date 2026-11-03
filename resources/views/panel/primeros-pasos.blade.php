@@ -39,7 +39,7 @@
             <h3>{{ $i + 1 }}. {{ $p['titulo'] }} <span>{{ $p['hecho'] ? '✓ Hecho' : $p['avance'] }}</span></h3>
             <p><b>Para qué:</b> {{ $p['por'] }}</p>
             <p><b>Cómo:</b> {{ $p['como'] }}</p>
-            @unless ($p['hecho'])<a href="{{ $p['url'] }}" class="btn btn-primary rounded-pill fw-bold mt-2">{{ $p['boton'] }} <i class="fa-solid fa-arrow-right ms-1"></i></a>@endunless
+            @unless ($p['hecho'])<a href="{{ $p['url'] . (str_contains($p['url'], '?') ? '&' : '?') . 'foco=' . $i }}" class="btn btn-primary rounded-pill fw-bold mt-2">{{ $p['boton'] }} <i class="fa-solid fa-arrow-right ms-1"></i></a>@endunless
         </div>
     </div>
     @endforeach

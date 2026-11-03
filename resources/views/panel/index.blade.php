@@ -152,12 +152,23 @@
     @if (auth()->user()?->hasAnyRole(['dueno', 'administrador']))
     @php $ppRes = \App\Support\PrimerosPasos::resumen(); @endphp
     @if ($ppRes['hechos'] < $ppRes['total'])
-    <a href="{{ route('primeros.pasos') }}" class="d-flex align-items-center gap-3 text-decoration-none mb-3" style="background:#0b0d0c;color:#fff;border-radius:20px;padding:.9rem 1.1rem">
+    <a href="{{ route('primeros.pasos') }}" data-foco-inicio class="d-flex align-items-center gap-3 text-decoration-none mb-3" style="background:#0b0d0c;color:#fff;border-radius:20px;padding:.9rem 1.1rem">
         <span style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#a6f34a,#16b34a);color:#0b0d0c;display:grid;place-items:center;flex:none"><i class="fa-solid fa-graduation-cap"></i></span>
         <span class="flex-grow-1"><b class="d-block">Primeros pasos para vender más · {{ $ppRes['hechos'] }} de {{ $ppRes['total'] }}</b>
             <span style="display:block;height:8px;border-radius:99px;background:rgba(255,255,255,.15);overflow:hidden;margin-top:6px;max-width:360px"><i style="display:block;height:100%;width:{{ round($ppRes['hechos'] / $ppRes['total'] * 100) }}%;background:#a6f34a"></i></span></span>
         <span class="fw-bold" style="color:#a6f34a;white-space:nowrap">Continuar →</span>
     </a>
+    @if ($ppRes['hechos'] < 2)
+    <script>
+    // Negocio nuevo: la primera vez se ilumina por dónde empezar (como CapCut)
+    window.addEventListener('load', function () {
+        try { if (localStorage.getItem('lpFocoInicio') === '1') return; } catch (e) {}
+        if (!window.LPFoco) return;
+        LPFoco.iniciar([{ sel: '[data-foco-inicio]', titulo: '¡Bienvenido! Empiece aquí 👋', texto: 'Son {{ $ppRes['total'] }} pasos cortos para dejar su negocio listo y vender. Tóquelo y le mostramos dónde va cada cosa.' }],
+            { boton: 'Entendido', fin: function () { try { localStorage.setItem('lpFocoInicio', '1'); } catch (e) {} } });
+    });
+    </script>
+    @endif
     @endif
     @endif
     <div class="lp-hello">

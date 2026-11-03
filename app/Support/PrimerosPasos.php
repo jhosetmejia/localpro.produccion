@@ -54,4 +54,43 @@ class PrimerosPasos
         $h = count(array_filter($p, fn ($x) => $x['hecho']));
         return ['hechos' => $h, 'total' => count($p)];
     }
+
+    /**
+     * Guía con foco (como CapCut) de cada paso: qué iluminar en la página a la que lleva el botón.
+     * Si un campo no aparece (otro diseño, permisos), el globo sale en el centro con la explicación.
+     */
+    public static function foco(int $i): array
+    {
+        $guardar = ['sel' => 'form button[type=submit]:not([form]), form .btn-primary[type=submit]', 'titulo' => 'Guarde', 'texto' => 'Cuando termine, toque este botón para guardar. ¡Y listo este paso!'];
+        $f = [
+            0 => [
+                ['sel' => 'input[name=logo]', 'titulo' => 'Su logo', 'texto' => 'Toque aquí y suba el logo de su negocio (una foto sirve).'],
+                ['sel' => 'input[name=telefono]', 'titulo' => 'Su WhatsApp', 'texto' => 'Escriba el número de WhatsApp del negocio: así le escriben los clientes.'],
+                $guardar,
+            ],
+            1 => [
+                ['sel' => 'input[name=nombre]', 'titulo' => 'Nombre del producto', 'texto' => 'Escriba el nombre como lo buscaría un cliente. Ej: "Chaqueta de cuero café para dama".'],
+                ['sel' => 'input[name=precio_venta]', 'titulo' => 'Precio', 'texto' => 'El precio al que lo vende.'],
+                ['sel' => 'input[name=img_path]', 'titulo' => 'La foto', 'texto' => 'Lo que tiene foto se vende más: tómela con el celular y súbala aquí.'],
+                $guardar,
+            ],
+            2 => [
+                ['sel' => 'input[name=catalogo_activo][type=checkbox]', 'titulo' => 'Su tienda en línea', 'texto' => 'Active esta opción para que su tienda salga en internet y en Google.'],
+                $guardar,
+            ],
+            3 => [
+                ['sel' => 'input[type=file]', 'titulo' => 'Sus contactos', 'texto' => 'Exporte los contactos de su celular y súbalos aquí. No se repiten.'],
+            ],
+            4 => [
+                ['sel' => 'a[href*="wa.me"], a[href*="whatsapp"], .btn-success', 'titulo' => 'Escríbales', 'texto' => 'Toque Enviar en cada contacto: se abre WhatsApp con el mensaje listo.'],
+            ],
+            5 => [
+                ['sel' => 'input[type=search], input[name=q], input[placeholder*="uscar"]', 'titulo' => 'Busque el producto', 'texto' => 'Escriba el nombre o escanee el código con la cámara, agréguelo y cobre.'],
+            ],
+        ];
+        $paso = self::pasos()[$i] ?? null;
+        if (!$paso) return [];
+        // Siempre arranca con la explicación del paso
+        return array_merge([['sel' => null, 'titulo' => ($i + 1) . '. ' . $paso['titulo'], 'texto' => $paso['como']]], $f[$i] ?? []);
+    }
 }
