@@ -331,7 +331,7 @@ class obituariosController extends Controller
         } else {
             $plantilla = new ObituarioPlantilla([
                 'nombre' => 'Plantilla ' . (ObituarioPlantilla::count() + 1), 'diseno' => 'clasico', 'medida' => 'fhd', 'fondo_tipo' => 'diseno',
-                'animacion' => 'ninguna', 'mostrar_logo' => true, 'titulo' => 'Obituario', 'frase' => ObituarioPlantilla::FRASE, 'oscurecer' => 30, 'adornos' => 'muchos',
+                'animacion' => 'ninguna', 'mostrar_logo' => true, 'titulo' => '', 'frase' => ObituarioPlantilla::FRASE, 'oscurecer' => 30, 'adornos' => 'muchos',
             ]);
         }
         return view('obituarios.plantilla-form', [
@@ -575,7 +575,7 @@ class obituariosController extends Controller
         $obituarios = $this->obituariosGenerales();
         return response()->view('obituarios.pantalla', [
             'tienda' => $tienda,
-            'titulo' => 'Obituarios',
+            'titulo' => $tienda->nombre,
             'obituarios' => $obituarios,
             'rotar' => $tienda->obituarios_rotar ?: 30,
             'version' => route('obituarios.general.version', $token),

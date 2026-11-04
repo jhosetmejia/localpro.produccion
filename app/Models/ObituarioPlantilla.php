@@ -114,7 +114,7 @@ class ObituarioPlantilla extends Model
         'velacion' => ['Lugar de velación (debajo de la foto)', 'h' => [16, 78, 28, 100, 1], 'v' => [50, 33, 80, 100, 1], 'c' => [22, 82, 38, 90, 1]],
         'memoria' => ['"En memoria de"', 'h' => [16, 86, 28, 100, 0], 'v' => [50, 36, 80, 100, 0], 'c' => [22, 90, 38, 90, 0]],
         'cab' => ['Logo', 'h' => [50, 10, 40, 100, 1], 'v' => [50, 4, 60, 100, 1], 'c' => [66, 8, 50, 80, 1]],
-        'titulo' => ['Título ("Obituario")', 'h' => [50, 22, 44, 100, 1], 'v' => [50, 37, 86, 100, 1], 'c' => [66, 18, 60, 90, 1]],
+        'titulo' => ['Título', 'h' => [50, 22, 44, 100, 1], 'v' => [50, 37, 86, 100, 1], 'c' => [66, 18, 60, 90, 1]],
         'frase' => ['Frase', 'h' => [50, 29, 44, 100, 1], 'v' => [50, 41, 86, 100, 1], 'c' => [66, 24, 60, 90, 1]],
         'nombre' => ['Nombre', 'h' => [50, 38, 46, 100, 1], 'v' => [50, 46, 90, 100, 1], 'c' => [66, 33, 62, 90, 1]],
         'anios' => ['Fechas (nació / falleció)', 'h' => [50, 45, 44, 100, 1], 'v' => [50, 50, 86, 100, 1], 'c' => [66, 40, 60, 90, 1]],
@@ -182,7 +182,7 @@ class ObituarioPlantilla extends Model
         'cita' => 'Frase de arriba a la derecha',
         'foto' => 'Foto (con sus flores)',
         'memoria' => '"En memoria de"',
-        'titulo' => 'Título ("Obituario")',
+        'titulo' => 'Título',
         'frase' => 'Frase',
         'nombre' => 'Nombre',
         'anios' => 'Fechas (nació / falleció)',
@@ -256,7 +256,7 @@ class ObituarioPlantilla extends Model
             if (static::where('base', $diseno)->exists()) continue;
             static::create($x + [
                 'base' => $diseno, 'diseno' => $diseno, 'medida' => 'fhd', 'fondo_tipo' => 'diseno', 'oscurecer' => 30,
-                'mostrar_logo' => true, 'titulo' => 'Obituarios', 'frase' => self::FRASE, 'adornos' => 'muchos',
+                'mostrar_logo' => true, 'titulo' => '', 'frase' => self::FRASE, 'adornos' => 'muchos',
             ]);
         }
         $tienda->forceFill(['obituarios_predisenadas' => true])->save();
@@ -299,7 +299,7 @@ class ObituarioPlantilla extends Model
     {
         return static::firstOrCreate(['nombre' => 'Clásica'], [
             'diseno' => 'clasico', 'medida' => 'fhd', 'fondo_tipo' => 'diseno', 'animacion' => 'destellos',
-            'mostrar_logo' => true, 'titulo' => 'Obituario', 'frase' => self::FRASE, 'adornos' => 'muchos',
+            'mostrar_logo' => true, 'titulo' => '', 'frase' => self::FRASE, 'adornos' => 'muchos',
         ]);
     }
 }

@@ -29,7 +29,7 @@
     <div class="espera">
         @if ($tienda->logo_url)<img src="{{ $tienda->logo_url }}" alt="">@endif
         <h1>{{ $titulo }}</h1>
-        <p>{{ $tienda->nombre }}</p>
+        @if ($titulo !== $tienda->nombre)<p>{{ $tienda->nombre }}</p>@endif
     </div>
 @endforelse
 <div class="aviso">Toque la pantalla para verla completa</div>
