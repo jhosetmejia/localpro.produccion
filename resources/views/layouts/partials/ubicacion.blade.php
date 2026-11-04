@@ -1,7 +1,7 @@
 {{--
     País → Departamento/Provincia → Ciudad.
     Uso: @include('layouts.partials.ubicacion', ['pais' => .., 'departamento' => .., 'ciudad' => .., 'clase' => 'in', 'envoltura' => 'field', 'etiqueta' => ''])
-    Colombia, Costa Rica y El Salvador tienen listas; en otros países se escribe a mano.
+    Colombia, Costa Rica, El Salvador, Guatemala, México y Perú tienen listas; en otros países se escribe a mano.
     Opcionales: 'paisSelect' => id de un <select name="pais"> que ya está en el formulario (no se dibuja otro),
     'obligatorio' => false para no exigir departamento y ciudad, 'estilo' => estilo en línea de los campos.
 --}}
@@ -30,12 +30,12 @@
 @endunless
 <div class="{{ $envoltura }}">
     <label class="{{ $etiqueta }}" for="{{ $uid }}d" id="{{ $uid }}dl">Departamento</label>
-    <select class="{{ $claseSel }}" id="{{ $uid }}d" style="{{ $estilo }}"></select>
+    <select class="{{ $claseSel }}" id="{{ $uid }}d" data-buscar style="{{ $estilo }}"></select>
     <input class="{{ $clase }}" id="{{ $uid }}dt" maxlength="60" style="{{ $estilo }};display:none">
 </div>
 <div class="{{ $envoltura }}">
     <label class="{{ $etiqueta }}" for="{{ $uid }}c" id="{{ $uid }}cl">Ciudad</label>
-    <select class="{{ $claseSel }}" id="{{ $uid }}c" style="{{ $estilo }}"></select>
+    <select class="{{ $claseSel }}" id="{{ $uid }}c" data-buscar style="{{ $estilo }}"></select>
     <input class="{{ $clase }}" id="{{ $uid }}ct" maxlength="60" style="{{ $estilo }};display:none">
 </div>
 <script>

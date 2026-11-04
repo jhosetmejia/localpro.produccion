@@ -5,7 +5,7 @@ namespace App\Support;
 use Illuminate\Validation\Rule;
 
 /**
- * Departamentos/provincias y ciudades de Colombia, Costa Rica y El Salvador
+ * Departamentos/provincias/estados y ciudades de Colombia, Costa Rica, El Salvador, Guatemala, México y Perú
  * (resources/data/ubicaciones.json). En otros países se escriben a mano.
  */
 class Ubicaciones
