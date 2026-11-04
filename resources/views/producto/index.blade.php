@@ -50,7 +50,25 @@ a.pl-foto.sinfoto:hover{border-color:#16b84e;color:#16b84e;background:#f0fbf4}
 .pl-acc .del{color:#b0173f}
 .pl-acc i,.pl-acc svg{font-size:.95rem}
 .pl-vacio{text-align:center;padding:2.5rem 1rem;color:#6b7570}
-.pl-vacio i,.pl-vacio svg{font-size:2.4rem;margin-bottom:.6rem;color:#16b84e}
+.pl-vacio>div>i,.pl-vacio>div>svg{font-size:2.4rem;margin-bottom:.6rem;color:#16b84e}
+.pl-empty{text-align:center;padding:2.2rem 1.2rem 1.8rem;color:#6b7570}
+.pl-empty-ico{width:76px;height:76px;margin:0 auto 1rem;border-radius:24px;display:grid;place-items:center;background:linear-gradient(135deg,#eafbe0,#d4f6dc);color:#16b84e;font-size:2rem}
+.pl-empty h3{font-size:1.25rem;font-weight:800;color:#0b0d0c;margin:0 0 .3rem}
+.pl-empty>p{margin:0 auto 1.4rem;max-width:420px}
+.pl-opc{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.9rem;max-width:620px;margin:0 auto}
+.pl-opc a{display:flex;align-items:center;gap:.85rem;text-align:left;padding:1rem 1.1rem;border-radius:20px;text-decoration:none;border:1.5px solid #e3ebe6;background:#fff;color:#0b0d0c;transition:transform .15s,box-shadow .15s,border-color .15s}
+.pl-opc a:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(11,13,12,.08);border-color:#16b84e;color:#0b0d0c}
+.pl-opc .ic{flex:0 0 46px;width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:1.25rem;background:#eef8f1;color:#16b34a}
+.pl-opc .tx{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+.pl-opc .tx b{font-size:1rem;font-weight:800}
+.pl-opc .tx small{color:#6b7570;font-size:.82rem;margin-top:.15rem}
+.pl-opc .fl{margin-left:auto;color:#9aa6a0;font-size:.9rem}
+.pl-opc a.prin{background:linear-gradient(90deg,#a3f04a,#16b84e);border-color:transparent}
+.pl-opc a.prin .ic{background:rgba(255,255,255,.55);color:#0b0d0c}
+.pl-opc a.prin .tx small,.pl-opc a.prin .fl{color:#123a1d}
+.pl-empty-nota{display:flex;width:fit-content;max-width:100%;align-items:center;gap:.45rem;margin:1.2rem auto 0;font-size:.85rem;color:#6b7570;background:#f5f8f6;border-radius:999px;padding:.45rem .95rem}
+.pl-empty-nota i{color:#16b34a}
+@media (max-width:560px){.pl-opc{grid-template-columns:1fr}.pl-empty-nota{border-radius:14px}}
 @media (max-width:420px){.pl-lista{grid-template-columns:minmax(0,1fr)}.pl-top h1{font-size:1.35rem}}
 </style>
 @endpush
@@ -108,13 +126,24 @@ a.pl-foto.sinfoto:hover{border-color:#16b84e;color:#16b84e;background:#f0fbf4}
     @endif
 
     @if ($productos->isEmpty())
-        <div class="pl-item pl-vacio">
-            <div><i class="fa-solid {{ \App\Models\Tienda::iconoProducto() }}"></i></div>
-            <b>Aún no tiene productos.</b>
-            <span>Cree el primero y quedará listo para vender en la caja.</span>
+        <div class="pl-item pl-empty">
+            <div class="pl-empty-ico"><i class="fa-solid {{ \App\Models\Tienda::iconoProducto() }}"></i></div>
+            <h3>Aún no tiene productos</h3>
+            <p>Cree el primero y quedará listo para vender en la caja y en su tienda en línea.</p>
             @can('crear-producto')
-            <div class="d-flex gap-2 justify-content-center flex-wrap mt-2"><a href="{{ route('productos.create') }}" class="pl-nuevo d-inline-block">+ Crear mi primer producto</a><a href="{{ route('productos.importar') }}" class="pl-imp d-inline-block"><i class="fa-solid fa-file-excel"></i> Ya los tengo en Excel</a></div>
-            <small class="d-block mt-2">¿Tiene cientos de productos? Impórtelos de una vez o envíenos el archivo y se los cargamos.</small>
+            <div class="pl-opc">
+                <a href="{{ route('productos.create') }}" class="prin">
+                    <span class="ic"><i class="fa-solid fa-plus"></i></span>
+                    <span class="tx"><b>Crear mi primer producto</b><small>Uno por uno, con foto y precio</small></span>
+                    <i class="fa-solid fa-chevron-right fl"></i>
+                </a>
+                <a href="{{ route('productos.importar') }}">
+                    <span class="ic"><i class="fa-solid fa-file-excel"></i></span>
+                    <span class="tx"><b>Ya los tengo en Excel</b><small>Súbalos todos de una vez</small></span>
+                    <i class="fa-solid fa-chevron-right fl"></i>
+                </a>
+            </div>
+            <span class="pl-empty-nota"><i class="fa-solid fa-circle-info"></i>¿Tiene cientos de productos? Envíenos el archivo y se los cargamos.</span>
             @endcan
         </div>
     @else
