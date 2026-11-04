@@ -135,6 +135,6 @@ class ReferidosMes
     public static function mensaje(Tienda $t): string
     {
         return "¡Hola! 👋 Yo manejo mi negocio con *LocalProo*: ventas, caja, inventario y mi tienda en línea, todo desde el celular.\n\n"
-            . "Te lo recomiendo 💚 Regístrate con mi link y tienes *2 meses gratis* con todo:\n👉 " . Referidos::enlace($t);
+            . "Te lo recomiendo 💚 Regístrate con mi link y tienes *1 mes gratis* con todo:\n👉 " . Referidos::enlace($t);
     }
 }

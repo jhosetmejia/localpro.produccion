@@ -62,10 +62,10 @@ class Plan extends Model
         return \App\Support\Moneda::formato($antes - $this->precioEn($m), $m);
     }
 
-    // Plan de prueba para negocios que llegan por un asesor o por un código (2 meses; antes 3)
+    // Plan de prueba para negocios que llegan por un asesor o por un código (1 mes; antes 2)
     public static function prueba(): ?self
     {
-        return static::whereIn('nombre', ['Prueba 2 meses', 'Prueba 3 meses'])->orderByRaw("nombre = 'Prueba 2 meses' desc")->first();
+        return static::whereIn('nombre', ['Prueba 1 mes', 'Prueba 2 meses', 'Prueba 3 meses'])->orderByRaw("nombre = 'Prueba 1 mes' desc")->first();
     }
 
     public function tiendas()

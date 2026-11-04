@@ -39,7 +39,7 @@
             </div>
             @endif
             @php $tPlan = \App\Support\TiendaActual::tienda(); @endphp
-            @if ($tPlan && $tPlan->plan_vence && $tPlan->dias_para_vencer !== null && $tPlan->dias_para_vencer <= 30 && $tPlan->dias_para_vencer >= 0 && !request()->routeIs('plan.*') && !request()->routeIs('panel') && auth()->user()?->can('editar-negocio'))
+            @if ($tPlan && $tPlan->plan_vence && $tPlan->dias_para_vencer !== null && $tPlan->dias_para_vencer <= 15 && $tPlan->dias_para_vencer >= 0 && !request()->routeIs('plan.*') && !request()->routeIs('panel') && auth()->user()?->can('editar-negocio'))
             @php $urg = $tPlan->dias_para_vencer <= 7; $grat = !$tPlan->plan || (float) $tPlan->plan->precio <= 0; @endphp
             <div style="background:{{ $urg ? '#2a0f1c' : '#0f1411' }};color:#fff;padding:.6rem 1.2rem;font-weight:700;font-size:.9rem;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:center">
                 <span><i class="fa-solid fa-hourglass-half me-1" style="color:{{ $urg ? '#ff5c9a' : '#2fd15a' }}"></i> {{ $tPlan->dias_para_vencer === 0 ? '¡Hoy es el último día de su ' . ($grat ? 'prueba gratis' : 'plan') . '!' : 'Le quedan ' . $tPlan->dias_para_vencer . ' ' . ($tPlan->dias_para_vencer === 1 ? 'día' : 'días') . ' de su ' . ($grat ? 'prueba gratis' : 'plan') . '.' }} <span style="color:#c9d3cc;font-weight:600">Pague antes del {{ $tPlan->plan_vence->format('d/m/Y') }} para no perder el acceso @if (\Illuminate\Support\Facades\Route::has('beneficios.index')) o <a href="{{ route('beneficios.index') }}#localpro-gratis" style="color:#a6f34a;font-weight:800">gane meses gratis invitando emprendedores</a>@endif.</span></span>

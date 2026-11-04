@@ -43,7 +43,7 @@
 <div class="lg" id="localpro-gratis">
     <span class="lg-tag"><i class="fa-solid fa-gift me-1"></i>LocalPro gratis</span>
     <h2>¿Quiere LocalPro <span>gratis</span> con todas sus funciones?</h2>
-    <p>Comparta su link con <b style="color:#fff">10 emprendedores</b>. Por cada uno que se una y complete sus primeros pasos, usted gana <b style="color:#fff">1 mes gratis</b>. Ellos también empiezan con 2 meses gratis.</p>
+    <p>Comparta su link con <b style="color:#fff">10 emprendedores</b>. Por cada uno que se una y complete sus primeros pasos, usted gana <b style="color:#fff">1 mes gratis</b>. Ellos también empiezan con 1 mes gratis.</p>
 
     <div class="lg-slots" aria-hidden="true">
         @for ($k = 1; $k <= 10; $k++)

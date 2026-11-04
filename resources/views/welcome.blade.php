@@ -44,7 +44,7 @@
                     <span class="app-txt"><b>Ver todas las funciones que tiene LocalProo</b><small>Revíselas con calma, una por una</small></span>
                     <i class="fa-solid fa-arrow-right app-flecha"></i>
                 </a>
-                <p class="hero-note"><span>🎁 2 meses gratis</span><span>🌐 Página web en Google</span><span>📱 App en su celular</span></p>
+                <p class="hero-note"><span>🎁 1 mes gratis</span><span>🌐 Página web en Google</span><span>📱 App en su celular</span></p>
             </div>
 
             <div class="mock rise d2" aria-hidden="true">
@@ -151,7 +151,7 @@
                 <div class="plus-t">
                     <span class="eyebrow">El plus de LocalProo</span>
                     <h3 class="serif">Por solo @if ($antes > $vp)<s style="opacity:.55;font-size:.75em">${{ number_format($antes, 0, ',', '.') }}</s> @endif${{ number_format($vp, 0, ',', '.') }} al año: sistema completo + su página web en Google.</h3>
-                    <p>Empiece con <b>2 meses gratis con todo</b> (hasta 100 productos y usuarios ilimitados). Si le sirve, sigue con el plan anual: menos de ${{ number_format(ceil($vp / 12 / 100) * 100, 0, ',', '.') }} al mes. <b>Páguelo en línea</b> con tarjeta, PSE o Nequi y se activa al instante.</p>
+                    <p>Empiece con <b>1 mes gratis con todo</b> (hasta 100 productos y usuarios ilimitados). Si le sirve, sigue con el plan anual: menos de ${{ number_format(ceil($vp / 12 / 100) * 100, 0, ',', '.') }} al mes. <b>Páguelo en línea</b> con tarjeta, PSE o Nequi y se activa al instante.</p>
                 </div>
                 <a class="btn btn-amber" href="{{ route('registro') }}"><i class="fa-solid fa-gift"></i> Empezar gratis</a>
             </div>

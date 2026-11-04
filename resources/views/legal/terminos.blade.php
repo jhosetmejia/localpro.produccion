@@ -19,7 +19,7 @@
 </ul>
 <h2 id="prueba">3. Prueba gratis, plan vencido y visibilidad de la tienda</h2>
 <ul>
-    <li>Cada negocio nuevo tiene un tiempo de <strong>prueba gratis</strong>. Su duración depende de la promoción vigente al momento del registro (hoy, 2 meses) y se muestra dentro del sistema. Antes de que termine se envía un recordatorio por correo y con un aviso dentro del sistema.</li>
+    <li>Cada negocio nuevo tiene un tiempo de <strong>prueba gratis</strong>. Su duración depende de la promoción vigente al momento del registro (hoy, 1 mes) y se muestra dentro del sistema. Antes de que termine se envía un recordatorio por correo y con un aviso dentro del sistema.</li>
     <li>Cuando termina la prueba gratis, o el mes gratis ganado por invitar emprendedores, o el plan pagado, el <strong>panel del negocio se bloquea</strong> (caja, inventario, ventas y demás herramientas) y se muestran tres opciones para seguir: <strong>(1) pagar el plan anual</strong>, <strong>(2) pagar el plan mensual</strong> o <strong>(3) invitar a otros empresarios</strong> con el código del negocio para ganar meses gratis (ver "LocalPro gratis"). Al elegir una opción, todo vuelve a funcionar tal como estaba.</li>
     <li><strong>Visibilidad de la tienda.</strong> Al registrarse, el negocio autoriza a LocalProo a publicar su tienda en línea (nombre, logo, ciudad, productos, fotos, precios y descripción) en el Marketplace de LocalProo y a permitir que buscadores como Google la muestren en sus resultados. La tienda sigue publicada aunque el plan esté vencido. El negocio puede apagar su tienda en línea en "Datos del negocio" o pedir que se retire escribiendo a LocalProo.</li>
     <li><strong>Tienda en mantenimiento.</strong> Mientras el plan esté vencido, los botones de WhatsApp de la tienda (comprar, hacer pedidos y escribir al negocio) no abren el chat: muestran el mensaje "Esta tienda está en mantenimiento, por el momento no recibe mensajes de WhatsApp". Al activar un plan o ganar un mes gratis, los botones vuelven a funcionar de inmediato.</li>
@@ -65,7 +65,7 @@
 </ul>
 <h3>Comparta y gane (negocios que recomiendan LocalProo)</h3>
 <ul>
-    <li>Cada negocio tiene un código (LCT-…). El negocio que se registra con ese código recibe la prueba gratis de 2 meses.</li>
+    <li>Cada negocio tiene un código (LCT-…). El negocio que se registra con ese código recibe la prueba gratis de 1 mes.</li>
     <li>Cada vez que el negocio invitado paga su <strong>plan anual</strong> (sin contar pagos de prueba), el negocio que lo invitó recibe un abono de {{ \App\Support\Moneda::formato(\App\Support\Referidos::valor('COP'), 'COP') }} ({{ \App\Support\Moneda::formato(\App\Support\Referidos::valor('USD'), 'USD') }} en Venezuela), mientras el invitado siga pagando.</li>
     <li>El abono <strong>no se consigna en dinero</strong>: es saldo que se descuenta automáticamente cuando el negocio paga su propio plan anual. No se transfiere a otros negocios ni se cambia por dinero.</li>
     <li>LocalProo puede cambiar el valor del abono avisándolo con anticipación; los abonos ya ganados se respetan. Si un pago se devuelve o se anula, el abono de ese pago también se anula. Los negocios suspendidos no reciben abonos.</li>

@@ -207,7 +207,7 @@ document.querySelectorAll('form[data-eliminar]').forEach(function (f) {
         if (b) {
             f.action = b.dataset.prueba;
             document.getElementById('prTienda').textContent = b.dataset.tienda;
-            document.getElementById('prInfo').textContent = 'Se registró el ' + b.dataset.registro + (b.dataset.vence ? ' · hoy vence el ' + b.dataset.vence : '') + '. Por defecto son 2 meses.';
+            document.getElementById('prInfo').textContent = 'Se registró el ' + b.dataset.registro + (b.dataset.vence ? ' · hoy vence el ' + b.dataset.vence : '') + '. Por defecto es 1 mes.';
             ov.classList.add('on'); ov.setAttribute('aria-hidden', 'false');
             return;
         }

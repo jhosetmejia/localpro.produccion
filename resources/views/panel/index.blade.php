@@ -28,7 +28,7 @@
         @if ($nivel === 2)
         <div class="vm-felicita">
             <span class="vm-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></span>
-            <div><b>¡Muy bien! Completó el nivel 1</b><small>Ya domina lo básico de LocalPro: productos, clientes, tienda en línea, ventas en caja y redes. Ahora arme su negocio como un profesional.</small></div>
+            <div><b>¡Muy bien! Completó el nivel 1</b><small>Ya domina lo básico de LocalPro: productos, clientes, tienda en línea, ventas en caja, sus enlaces y redes. Ahora arme su negocio como un profesional.</small></div>
             <a href="{{ route('panel.certificado', 1) }}" class="vm-cert"><i class="fa-solid fa-award me-1"></i>Mi certificado</a>
         </div>
         @endif

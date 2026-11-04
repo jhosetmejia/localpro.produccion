@@ -1,4 +1,4 @@
-{{-- Cuenta regresiva del plan: se muestra al dueño cuando faltan 30 días o menos para que venza (prueba gratis o plan pagado) --}}
+{{-- Cuenta regresiva del plan: se muestra al dueño cuando faltan 15 días o menos para que venza (prueba gratis o plan pagado) --}}
 @php
     $tCR = \App\Support\TiendaActual::tienda();
     $dCR = $tCR?->plan_vence && !$tCR->plan_vencido ? $tCR->dias_para_vencer : null;
@@ -20,7 +20,7 @@
 .lp-ap-btn{border:0;background:#0f1411;color:#fff;font-weight:800;border-radius:999px;padding:.7rem 1.3rem}
 </style>
 @endif
-@if ($dCR !== null && $dCR <= 30 && auth()->user()?->can('editar-negocio'))
+@if ($dCR !== null && $dCR <= 15 && auth()->user()?->can('editar-negocio'))
 @php
     $gratisCR = !$tCR->plan || (float) $tCR->plan->precio <= 0;
     $urgenteCR = $dCR <= 7;

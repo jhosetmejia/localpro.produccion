@@ -29,7 +29,12 @@
     <a href="{{ $urlAmpliar ?: route('plan.index') }}" @if ($urlAmpliar) target="_blank" rel="noopener" @endif class="lp-limite-btn"><i class="fa-brands fa-whatsapp me-1"></i>Ampliar</a>
 </div>
 @endif
-@elseif ($uso && ($uso['gratis'] || $uso['actual'] >= $uso['max'] * 0.8))
+@php
+    // Recién creada la cuenta no se muestra "Pásate a Pro": solo en los últimos 15 días de la prueba, si ya venció o si llenó el límite
+    $tLim = \App\Support\TiendaActual::tienda();
+    $finPrueba = $tLim?->plan_vence && ($tLim->plan_vencido || ($tLim->dias_para_vencer !== null && $tLim->dias_para_vencer <= 15));
+@endphp
+@elseif ($uso && ($uso['actual'] >= $uso['max'] || ($finPrueba && ($uso['gratis'] || $uso['actual'] >= $uso['max'] * 0.8))))
 @php $pct = min(100, round($uso['actual'] / max(1, $uso['max']) * 100)); $lleno = $uso['actual'] >= $uso['max']; @endphp
 <div class="lp-limite {{ $lleno ? 'lleno' : '' }}">
     <div class="lp-limite-t">

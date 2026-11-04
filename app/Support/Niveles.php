@@ -25,6 +25,9 @@ class Niveles
         $nUsuarios = $tid ? User::where('tienda_id', $tid)->count() : 0;
         $nVentas = $tid ? PosVenta::where('tienda_id', $tid)->where('estado', 'pagada')->count() : 0;
         $tieneLogo = filled($t?->logo_path);
+        // Mis enlaces: primero crearla y publicarla, luego compartirla en redes
+        $enlacesPub = (bool) $t?->enlaces_activo;
+        $compartioEnl = (bool) Ajuste::valor('t' . $tid . '_compartio_enlaces');
         // Cajas cerradas de verdad (no cuentan las de ventas históricas importadas)
         $nCierres = $tid ? Caja::where('tienda_id', $tid)->where('estado', 'cerrada')->where(fn ($q) => $q->whereNull('nota_apertura')->orWhere('nota_apertura', 'not like', 'Ventas históricas%'))->count() : 0;
 
@@ -33,6 +36,9 @@ class Niveles
             ['Comparte tu tienda en línea con tus contactos', 'Envía tu página por WhatsApp a tus clientes y grupos', $compartio, route('panel.compartir'), 'Compartir por WhatsApp', 'fa-share-nodes', 0, null, null, true],
             ['Mete tus contactos al sistema', min($nCli, 10) . ' de 10 clientes · para enviarles mensajes por WhatsApp', $nCli >= 10, route('clientes.create'), 'Agregar cliente', 'fa-address-book', min(100, $nCli * 10), route('clientes.importar'), '¿Los tiene en Excel?', false],
             ['Haz tu primera venta en la caja', $nVentas > 0 ? $nVentas . ' ventas registradas' : 'Abra la caja y registre una venta: el inventario se descuenta solo', $nVentas > 0, route('cajas.abrir'), 'Abrir caja y vender', 'fa-cash-register', 0, null, null, false],
+            $enlacesPub
+                ? ['Comparte tus enlaces en tus redes sociales', 'Ya está publicada: póngala en la biografía de Instagram, TikTok, Facebook y en su estado de WhatsApp', $compartioEnl, route('panel.compartirEnlaces'), 'Compartir mis enlaces', 'fa-share-nodes', 50, route('enlaces.index'), 'Ver mi página', true]
+                : ['Crea tus enlaces y compártelos en tus redes', 'Una sola página con su WhatsApp, Instagram, tienda y promociones. Créela y publíquela', false, route('enlaces.index'), 'Crear mis enlaces', 'fa-link', 0, null, null, false],
             ['Conecta tus redes sociales', 'Facebook e Instagram: responda todos sus chats y publique desde LocalPro', $nRedes > 0, route('redes.cuentas'), 'Conectar redes', 'fa-share-from-square', 0, null, null, false],
         ];
         $n2 = [

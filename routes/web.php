@@ -354,6 +354,14 @@ Route::middleware(['auth', 'tienda'])->group(function () {
         $msg = '¡Hola! 👋 Le comparto la página de ' . $t->nombre . ': vea nuestros productos y compre por WhatsApp 👉 ' . $t->url_catalogo;
         return redirect()->away('https://wa.me/?text=' . rawurlencode($msg));
     })->name('panel.compartir');
+    // Paso "comparte tus enlaces": se marca hecho y abre WhatsApp con la página de Mis enlaces (localproo.com/@negocio)
+    Route::get('/compartir-enlaces', function () {
+        $t = \App\Support\TiendaActual::tienda();
+        abort_unless($t->enlaces_activo && $t->slug, 404);
+        \App\Models\Ajuste::guardar('t' . $t->id . '_compartio_enlaces', now()->toDateTimeString());
+        $msg = '¡Hola! 👋 Aquí están todas las redes y enlaces de ' . $t->nombre . ' en un solo lugar: síganos y escríbanos 👉 ' . route('enlaces.publico', $t->slug);
+        return redirect()->away('https://wa.me/?text=' . rawurlencode($msg));
+    })->name('panel.compartirEnlaces');
     Route::get('/certificado/{nivel}', function (int $nivel) {
         $nv = \App\Support\Niveles::calcular();
         abort_unless($nivel >= 1 && $nivel <= $nv['logrados'], 404);
