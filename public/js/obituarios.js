@@ -601,4 +601,15 @@
         window.addEventListener('resize', function () { todos().forEach(Obi.escalar); });
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar); else iniciar();
+
+    // ===== Foto con su forma real: se marca si es ancha (la alta es la de siempre) =====
+    function marcarFoto(img) {
+        if (img.naturalWidth) img.classList.toggle('foto-ancha', img.naturalWidth > img.naturalHeight);
+    }
+    document.addEventListener('load', function (e) {
+        var t = e.target;
+        if (t && t.tagName === 'IMG' && t.closest && t.closest('.obi-foto')) marcarFoto(t);
+    }, true);
+    function marcarTodas() { [].forEach.call(document.querySelectorAll('.obi-foto img'), function (i) { if (i.complete) marcarFoto(i); }); }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', marcarTodas); else marcarTodas();
 })();
