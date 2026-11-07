@@ -1005,7 +1005,17 @@ async function abrirExportar() {
   $('[data-fps]', m).onclick = (e) => { const v = e.target.dataset.v; if (!v) return; EXP.fps = Number(v); marcar(); };
   marcar();
   $('[data-cerrar]', m).onclick = () => { m.hidden = true; };
-  $('[data-iniciar]', m).onclick = () => exportar().catch(err => { S.exportando = false; ajustarVista(); aviso('No se pudo exportar: ' + (err.message || err), 'mal'); $('.cut-exp-op', m).hidden = false; $('.cut-exp-run', m).hidden = true; });
+  const intentar = () => exportar().catch(err => {
+    S.exportando = false; ajustarVista();
+    if (EXP.res > 1080) {
+      aviso(`Su equipo no alcanzó ${EXP.res === 2160 ? '4K' : '2K'}. Exportando en 1080p (Full HD)…`, 'mal');
+      EXP.res = 1080; marcar();
+      return intentar();
+    }
+    aviso('No se pudo exportar: ' + (err.message === 'memoria' ? 'el equipo se quedó sin memoria. Pruebe con 720p.' : (err.message || err)), 'mal');
+    $('.cut-exp-op', m).hidden = false; $('.cut-exp-run', m).hidden = true;
+  });
+  $('[data-iniciar]', m).onclick = intentar;
 }
 $('#cutBtnExportar').addEventListener('click', abrirExportar);
 
@@ -1024,6 +1034,17 @@ async function destino() {
   return { target, archivo: async () => new Blob([target.buffer], { type: 'video/mp4' }), opfs: false };
 }
 
+// ¿El cuadro salió negro? (los videos HDR/HEVC del iPhone a veces se leen negros con el lector rápido)
+const _mini = document.createElement('canvas'); _mini.width = 8; _mini.height = 8;
+function esNegro(fuente) {
+  try {
+    const x = _mini.getContext('2d', { willReadFrequently: true });
+    x.clearRect(0, 0, 8, 8); x.drawImage(fuente, 0, 0, 8, 8);
+    const d = x.getImageData(0, 0, 8, 8).data;
+    let mx = 0; for (let i = 0; i < d.length; i += 4) mx = Math.max(mx, d[i], d[i + 1], d[i + 2]);
+    return mx < 8;
+  } catch (e) { return false; }
+}
 async function seekEl(v, t) {
   if (Math.abs(v.currentTime - t) < 0.001 && v.readyState >= 2) return;
   await new Promise((ok) => { const f = () => { v.removeEventListener('seeked', f); ok(); }; v.addEventListener('seeked', f); v.currentTime = t; setTimeout(f, 1500); });
@@ -1110,13 +1131,19 @@ async function exportar() {
         if (c.tipo === 'imagen') f = { src: c.bmp, w: c.w, h: c.h };
         else {
           const lc = lectores.get(i);
-          if (lc.el) {
-            await seekEl(c.el, tOrigen(c, t - L.start[i]));
-            f = { src: c.el, w: c.el.videoWidth, h: c.el.videoHeight };
-          } else {
+          if (!lc.el) {
             const r = await lc.it.next();
             if (!r.done && r.value) lc.ultimo = r.value.canvas;
             f = lc.ultimo ? { src: lc.ultimo, w: lc.w, h: lc.h } : null;
+            // Revisar los primeros cuadros: si el lector rápido los da negros pero el video sí tiene imagen, usar el método de la vista previa
+            if (f && (lc.revisados = (lc.revisados || 0) + 1) <= 3 && esNegro(f.src)) {
+              await seekEl(c.el, tOrigen(c, t - L.start[i]));
+              if (!esNegro(c.el)) lc.el = true;
+            }
+          }
+          if (lc.el) {
+            await seekEl(c.el, tOrigen(c, t - L.start[i]));
+            f = { src: c.el, w: c.el.videoWidth, h: c.el.videoHeight };
           }
         }
         if (f && S.belleza.on && BEL.listo()) {
@@ -1127,6 +1154,7 @@ async function exportar() {
         cuadros.set(i, f);
       }
       dibujarCuadro(t, (i) => cuadros.get(i), W, H, lctx);
+      if (motor.gl.isContextLost()) throw new Error('memoria');
       await vsrc.add(t, 1 / fps);
       if (asrc && t + segAudio > audioHasta && audioHasta < L.total) await pedazoAudio(Math.min(L.total, audioHasta + segAudio * 2));
       if (n % 5 === 0) {
