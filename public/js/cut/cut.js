@@ -71,7 +71,7 @@ function reg(o) { REG.set(o.id, o); return o; }
 const HIST = { pila: [], pos: -1, aplicando: false };
 function foto() {
   return JSON.stringify({
-    clips: S.clips.map(c => ({ id: c.id, in: c.in, out: c.out, mute: !!c.mute, vol: c.vol ?? 1, vel: c.vel || 1, curva: c.curva || null, z: c.z || 1, x: c.x || 0, y: c.y || 0, trans: c.trans })),
+    clips: S.clips.map(c => ({ id: c.id, in: c.in, out: c.out, mute: !!c.mute, vol: c.vol ?? 1, vel: c.vel || 1, curva: c.curva || null, z: c.z || 1, x: c.x || 0, y: c.y || 0, kf: c.kf?.length ? c.kf : null, trans: c.trans })),
     musica: S.musica.map(m => ({ id: m.id, start: m.start, in: m.in, out: m.out ?? null, vol: m.vol ?? 1, fadeIn: !!m.fadeIn, fadeOut: !!m.fadeOut })),
     subs: S.subs, segs: S.segs, sub: S.sub, belleza: S.belleza, aspecto: S.aspecto, silenciar: !!S.silenciar,
   });
@@ -151,6 +151,39 @@ function tOrigen(c, lt) {
   const acum = T.cum[i] + (T.cum[i + 1] - T.cum[i]) * f;
   return c.in + (c.out - c.in) * acum / T.media;
 }
+/* ---------- zoom por momentos (como los fotogramas clave de CapCut) ---------- */
+// Si se hace zoom a mitad del clip, se acerca suave desde ese momento; antes queda como estaba.
+const RAMPA = 0.35;
+function encuadreEn(c, lt) {
+  const k = c.kf;
+  if (!k || !k.length) return { z: c.z || 1, x: c.x || 0, y: c.y || 0 };
+  if (lt <= k[0].t) return k[0];
+  const u = k[k.length - 1];
+  if (lt >= u.t) return u;
+  for (let i = 0; i < k.length - 1; i++) {
+    if (lt < k[i + 1].t) {
+      const a = k[i], b = k[i + 1], f = (lt - a.t) / Math.max(0.001, b.t - a.t), s = f * f * (3 - 2 * f);
+      return { z: a.z + (b.z - a.z) * s, x: a.x + (b.x - a.x) * s, y: a.y + (b.y - a.y) * s };
+    }
+  }
+  return u;
+}
+function ltClip(c) { const L = lay(), i = S.clips.indexOf(c); return Math.max(0, S.t - (L.start[i] || 0)); }
+// Punto que se edita en el momento actual (lo crea si hace falta)
+function puntoZoom(c) {
+  const lt = ltClip(c);
+  if (!c.kf?.length && lt < 0.15) return c; // al inicio del clip: zoom en todo el clip
+  if (!c.kf?.length) c.kf = [{ t: 0, z: c.z || 1, x: c.x || 0, y: c.y || 0 }];
+  let k = c.kf.find(q => Math.abs(q.t - lt) < 0.12);
+  if (k) return k;
+  const antes = { ...encuadreEn(c, Math.max(0, lt - RAMPA)) }, ahora = { ...encuadreEn(c, lt) };
+  if (lt - RAMPA > 0.05 && !c.kf.some(q => q.t < lt && q.t > lt - RAMPA - 0.05)) c.kf.push({ t: lt - RAMPA, z: antes.z, x: antes.x, y: antes.y });
+  k = { t: lt, z: ahora.z, x: ahora.x, y: ahora.y };
+  c.kf.push(k);
+  c.kf.sort((a, b) => a.t - b.t);
+  return k;
+}
+
 function lay() {
   const n = S.clips.length, start = [], tr = [];
   let t = 0;
@@ -195,7 +228,7 @@ function dibujarCuadro(t, fuentes, W, H, ctx) {
     act.forEach((i, k) => {
       const f = fuentes(i);
       const cc = S.clips[i];
-      motor.clip(k, f?.src, f?.w, f?.h, S.belleza.on ? f?.mascara : null, S.belleza, { z: cc.z, x: cc.x, y: cc.y });
+      motor.clip(k, f?.src, f?.w, f?.h, S.belleza.on ? f?.mascara : null, S.belleza, encuadreEn(cc, t - L.start[i]));
     });
     if (act.length === 2) {
       const c = S.clips[act[0]];
@@ -548,7 +581,8 @@ function dividir() {
   if (i < 0) return aviso('Ponga la línea blanca encima del clip que quiere cortar');
   const c = S.clips[i];
   const loc = tOrigen(c, S.t - L.start[i]);
-  const n = reg({ ...c, _tk: null, id: uid(), in: loc, el: null, mascara: null, trans: { ...c.trans } });
+  const corte = S.t - L.start[i];
+  const n = reg({ ...c, _tk: null, id: uid(), in: loc, el: null, mascara: null, trans: { ...c.trans }, kf: c.kf ? c.kf.map(k => ({ ...k, t: k.t - corte })) : null });
   c.out = loc; c.trans = { tipo: 'ninguna', dur: 0.5 };
   S.clips.splice(i + 1, 0, n);
   const listo = () => { S.sel = n.id; pintarLinea(); pintarPanel(); guardar(); aviso('Clip dividido ✂️'); };
@@ -566,7 +600,7 @@ async function eliminar() {
 function duplicar() {
   const c = clipSel(); if (!c) return;
   const i = S.clips.indexOf(c);
-  const n = reg({ ...c, id: uid(), el: null, mascara: null, _tk: null, trans: { ...c.trans } });
+  const n = reg({ ...c, id: uid(), el: null, mascara: null, _tk: null, trans: { ...c.trans }, kf: c.kf ? c.kf.map(k => ({ ...k })) : null });
   S.clips.splice(i + 1, 0, n);
   const listo = () => { S.sel = n.id; pintarLinea(); pintarPanel(); guardar(); };
   if (n.tipo === 'video') cargarVideo(n).then(listo); else listo();
@@ -618,17 +652,19 @@ function pintarPanel() {
         ${c.tipo === 'video' ? `<button type="button" data-a="mute"><i>${c.mute ? '🔈' : '🔇'}</i>${c.mute ? 'Con sonido' : 'Silenciar'}</button>` : ''}
         <button type="button" data-a="eliminar"><i>🗑️</i>Eliminar</button>
       </div>
-      <div class="cut-fila"><small>Zoom</small><input type="range" min="1" max="4" step="0.01" value="${c.z || 1}" data-zoom><b class="cut-val" data-zv>${Math.round((c.z || 1) * 100)}%</b></div>
-      ${(c.z || 1) > 1.001 || c.x || c.y ? '<button type="button" class="cut-btn-sec" data-reenc>Restablecer encuadre</button>' : ''}
-      <p class="cut-nota">💡 Pellizque el video con dos dedos para acercarlo y arrástrelo con un dedo para escoger qué parte se ve.</p>
+      <div class="cut-fila"><small>Zoom aquí</small><input type="range" min="1" max="4" step="0.01" value="${encuadreEn(c, ltClip(c)).z}" data-zoom><b class="cut-val" data-zv>${Math.round(encuadreEn(c, ltClip(c)).z * 100)}%</b></div>
+      ${c.kf?.length ? `<p class="cut-nota" style="text-align:left">🔍 Zoom animado: cambia en ${c.kf.filter(k => k.t > 0.01).map(k => fmt(k.t).slice(3, 7) + ' s').slice(0, 4).join(', ')}. Antes de ese momento el video se ve como estaba.</p>` : ''}
+      ${(c.z || 1) > 1.001 || c.x || c.y || c.kf?.length ? `<div class="cut-acciones2"><button type="button" class="cut-btn-sec" data-reenc>Quitar zoom</button>${c.kf?.length ? '<button type="button" class="cut-btn-sec" data-todo>Zoom en todo el clip</button>' : ''}</div>` : ''}
+      <p class="cut-nota">💡 Pellizque el video con dos dedos para acercarlo y arrástrelo con un dedo para escoger qué parte se ve. El zoom empieza en el momento donde está la línea blanca.</p>
       ${c.tipo === 'video' ? `<div class="cut-fila"><small>Volumen</small><input type="range" min="0" max="2" step="0.05" value="${c.vol ?? 1}" data-vol><b class="cut-val">${Math.round((c.vol ?? 1) * 100)}%</b></div>` : ''}
       ${c.tipo === 'imagen' ? `<div class="cut-fila"><small>Duración de la foto</small>${chips('durfoto', [[2, '2 s'], [3, '3 s'], [5, '5 s'], [8, '8 s']], largo(c))}</div>` : ''}
       <p class="cut-nota">Para recortar: ponga la línea blanca donde quiere cortar, toque <b>Dividir</b> y elimine el pedazo que sobra.</p>`;
     $$('[data-a]', p).forEach(b => b.onclick = () => ({ dividir, eliminar, duplicar, izq: () => mover(-1), der: () => mover(1), vel: () => abrirTab('velocidad'), extraer: () => extraerDeClip(c), mute: () => { c.mute = !c.mute; pintarLinea(); pintarPanel(); sincronizar(); guardar(); } })[b.dataset.a]());
     const rz = $('[data-zoom]', p);
-    rz.oninput = () => { c.z = Number(rz.value); $('[data-zv]', p).textContent = Math.round(c.z * 100) + '%'; S.dirty = true; };
+    rz.oninput = () => { const k = puntoZoom(c); k.z = Number(rz.value); $('[data-zv]', p).textContent = Math.round(k.z * 100) + '%'; S.dirty = true; };
     rz.onchange = () => { guardar(); pintarPanel(); };
-    const re = $('[data-reenc]', p); if (re) re.onclick = () => { c.z = 1; c.x = 0; c.y = 0; S.dirty = true; guardar(); pintarPanel(); };
+    const re = $('[data-reenc]', p); if (re) re.onclick = () => { c.z = 1; c.x = 0; c.y = 0; c.kf = null; S.dirty = true; guardar(); pintarPanel(); };
+    const rt = $('[data-todo]', p); if (rt) rt.onclick = () => { const e2 = encuadreEn(c, ltClip(c)); c.z = e2.z; c.x = e2.x; c.y = e2.y; c.kf = null; S.dirty = true; guardar(); pintarPanel(); };
     const rv = $('[data-vol]', p);
     if (rv) { rv.oninput = () => { c.vol = Number(rv.value); $('.cut-val', p).textContent = Math.round(c.vol * 100) + '%'; sincronizar(); }; rv.onchange = guardar; }
     const g = $('[data-grupo="durfoto"]', p);
@@ -1135,7 +1171,7 @@ function guardarDB() {
   clearTimeout(tGuardar);
   tGuardar = setTimeout(() => {
     DB.put('estado', 'actual', {
-      clips: S.clips.map(c => ({ id: c.id, fileId: c.fileId, nombre: c.nombre, tipo: c.tipo, in: c.in, out: c.out, dur: c.dur, mute: c.mute, vol: c.vol ?? 1, trans: c.trans, vel: c.vel || 1, curva: c.curva || null, z: c.z || 1, x: c.x || 0, y: c.y || 0 })),
+      clips: S.clips.map(c => ({ id: c.id, fileId: c.fileId, nombre: c.nombre, tipo: c.tipo, in: c.in, out: c.out, dur: c.dur, mute: c.mute, vol: c.vol ?? 1, trans: c.trans, vel: c.vel || 1, curva: c.curva || null, z: c.z || 1, x: c.x || 0, y: c.y || 0, kf: c.kf?.length ? c.kf : null })),
       musica: S.musica.map(m => ({ id: m.id, fileId: m.fileId, nombre: m.nombre, start: m.start, in: m.in, out: m.out ?? null, dur: m.dur, vol: m.vol, fadeIn: m.fadeIn, fadeOut: m.fadeOut })),
       silenciar: !!S.silenciar,
       subs: S.subs, segs: S.segs, sub: S.sub, belleza: S.belleza, aspecto: S.aspecto, fecha: Date.now(),
@@ -1201,24 +1237,33 @@ vista.addEventListener('pointerdown', (e) => {
   dedos.set(e.pointerId, { x: e.clientX, y: e.clientY });
   if (S.sel !== c.id) { S.sel = c.id; S.selM = null; pintarLinea(); }
   const pts = [...dedos.values()];
-  gesto = { c, z0: c.z || 1, x0: c.x || 0, y0: c.y || 0, p0: pts.map(q => ({ ...q })), d0: pts.length > 1 ? Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) : 0 };
+  const k0 = gesto?.k || null;
+  gesto = { c, k: k0, z0: k0?.z || 1, x0: k0?.x || 0, y0: k0?.y || 0, p0: pts.map(q => ({ ...q })), d0: pts.length > 1 ? Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) : 0 };
 });
 vista.addEventListener('pointermove', (e) => {
   if (!gesto || !dedos.has(e.pointerId)) return;
   dedos.set(e.pointerId, { x: e.clientX, y: e.clientY });
   const c = gesto.c, r = vista.getBoundingClientRect(), pts = [...dedos.values()];
+  if (!gesto.k) {
+    const dm = Math.hypot(pts[0].x - gesto.p0[0].x, pts[0].y - gesto.p0[0].y);
+    if (dm < 4 && pts.length === gesto.p0.length) return;
+    gesto.k = puntoZoom(c); gesto.z0 = gesto.k.z || 1; gesto.x0 = gesto.k.x || 0; gesto.y0 = gesto.k.y || 0;
+    gesto.p0 = pts.map(q => ({ ...q }));
+    if (pts.length > 1) gesto.d0 = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+  }
+  const k = gesto.k;
   if (pts.length > 1 && gesto.d0) {
     const d = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
-    c.z = Math.max(1, Math.min(4, gesto.z0 * d / gesto.d0));
+    k.z = Math.max(1, Math.min(4, gesto.z0 * d / gesto.d0));
   } else if (pts.length === 1 && gesto.p0.length === 1) {
     // Arrastrar: la imagen sigue al dedo
     const ao = vista.width / vista.height, as = (c.w || 1) / (c.h || 1);
-    const z = c.z || 1;
+    const z = k.z || 1;
     const sc = (as > ao ? [ao / as, 1] : [1, as / ao]).map(v => v / z);
     const mx = (1 - sc[0]) / 2, my = (1 - sc[1]) / 2;
     const dx = (pts[0].x - gesto.p0[0].x) / r.width, dy = (pts[0].y - gesto.p0[0].y) / r.height;
-    if (mx > 0.001) c.x = Math.max(-1, Math.min(1, gesto.x0 - dx * sc[0] / mx));
-    if (my > 0.001) c.y = Math.max(-1, Math.min(1, gesto.y0 - dy * sc[1] / my));
+    if (mx > 0.001) k.x = Math.max(-1, Math.min(1, gesto.x0 - dx * sc[0] / mx));
+    if (my > 0.001) k.y = Math.max(-1, Math.min(1, gesto.y0 - dy * sc[1] / my));
   }
   S.dirty = true;
 });
@@ -1228,8 +1273,9 @@ const soltar = (e) => {
   if (gesto) {
     const c = gesto.c;
     const pts = [...dedos.values()];
-    gesto = pts.length ? { c, z0: c.z || 1, x0: c.x || 0, y0: c.y || 0, p0: pts.map(q => ({ ...q })), d0: 0 } : null;
-    if (!pts.length) { guardar(); if (S.tab === 'editar') pintarPanel(); }
+    const k = gesto.k;
+    gesto = pts.length ? { c, k, z0: k?.z || 1, x0: k?.x || 0, y0: k?.y || 0, p0: pts.map(q => ({ ...q })), d0: 0 } : null;
+    if (!pts.length && k) { guardar(); if (S.tab === 'editar') pintarPanel(); }
   }
 };
 vista.addEventListener('pointerup', soltar);
@@ -1237,7 +1283,8 @@ vista.addEventListener('pointercancel', soltar);
 vista.addEventListener('wheel', (e) => {
   const c = clipBajoLinea(); if (!c) return;
   e.preventDefault();
-  c.z = Math.max(1, Math.min(4, (c.z || 1) * (e.deltaY < 0 ? 1.08 : 1 / 1.08)));
+  const k = puntoZoom(c);
+  k.z = Math.max(1, Math.min(4, (k.z || 1) * (e.deltaY < 0 ? 1.08 : 1 / 1.08)));
   S.dirty = true;
   clearTimeout(vista._tz); vista._tz = setTimeout(() => { guardar(); if (S.tab === 'editar') pintarPanel(); }, 300);
 }, { passive: false });
