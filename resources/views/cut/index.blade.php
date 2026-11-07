@@ -139,6 +139,19 @@ button{font:inherit;color:inherit;cursor:pointer}
 .cut-switch input:checked+span{background:var(--v2)}
 .cut-switch input:checked+span::after{left:23px}
 .cut-estado-bel{font-size:.8rem;color:var(--v);margin:.3rem 0;min-height:1em}
+.cut-modo{display:flex;justify-content:center;margin-bottom:.6rem}
+.cut-vel-num{text-align:center;margin:.2rem 0 .3rem}
+.cut-vel-num b{display:block;font-family:Unbounded,sans-serif;font-size:1.5rem;color:var(--v)}
+.cut-vel-num small{color:var(--m);font-size:.78rem}
+.cut-vel-rango{width:100%;accent-color:var(--v)}
+.cut-vel-marcas{display:flex;justify-content:space-between;font-size:.7rem;color:var(--m);margin:-.1rem 0 .6rem}
+.cut-curvas{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem}
+.cut-curvas button{background:var(--f2);border:1px solid var(--b);border-radius:12px;padding:.45rem .2rem;display:flex;flex-direction:column;align-items:center;gap:.2rem;color:#cfd8d2}
+.cut-curvas button.on{border-color:var(--v);color:var(--v);background:#1b2a17}
+.cut-curvas svg{width:100%;max-width:64px;height:30px}
+.cut-curvas small{font-size:.66rem;font-weight:700}
+.cut-tab{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:440px){.cut-tab{font-size:.58rem;letter-spacing:-.01em}.cut-tab svg{width:20px;height:20px}}
 .cut-formatos{display:grid;grid-template-columns:repeat(4,1fr);gap:.45rem}
 .cut-formatos button{background:var(--f2);border:1px solid var(--b);border-radius:14px;padding:.6rem .3rem;display:flex;flex-direction:column;align-items:center;gap:.25rem}
 .cut-formatos button.on{border-color:var(--v);color:var(--v)}
@@ -231,6 +244,7 @@ button{font:inherit;color:inherit;cursor:pointer}
     <button type="button" class="cut-tab" data-tab="agregar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M12 8v8M8 12h8"/></svg>Agregar</button>
     <button type="button" class="cut-tab on" data-tab="editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></svg>Editar</button>
     <button type="button" class="cut-tab" data-tab="transicion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3 21 12 12 21 3 12z"/></svg>Transición</button>
+    <button type="button" class="cut-tab" data-tab="velocidad"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 18a8 8 0 1 1 16 0"/><path d="m12 18 4.5-6"/></svg>Velocidad</button>
     <button type="button" class="cut-tab" data-tab="subtitulos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M6 12h4M14 12h4M6 15h8"/></svg>Subtítulos</button>
     <button type="button" class="cut-tab" data-tab="belleza"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5s1.3 2 3.5 2 3.5-2 3.5-2M9 9.5h.01M15 9.5h.01"/></svg>Belleza</button>
     <button type="button" class="cut-tab" data-tab="formato"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/></svg>Formato</button>

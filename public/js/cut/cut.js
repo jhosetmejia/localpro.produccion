@@ -49,7 +49,44 @@ function preguntar(titulo, texto, si = 'Sí', no = 'Cancelar') {
 }
 
 /* ---------- tiempos de la línea ---------- */
-function largo(c) { return Math.max(0.1, c.out - c.in); }
+/* ---------- velocidad (normal y en curva, como CapCut) ---------- */
+// Cada curva: multiplicador de velocidad a lo largo del clip (se suaviza entre puntos)
+const CURVAS = {
+  montaje: { n: 'Montaje', p: [1, 1, 3.5, 3.5, 1, 1] },
+  heroe: { n: 'Héroe', p: [3, 3, 0.35, 0.35, 3, 3] },
+  bala: { n: 'Bala', p: [5, 5, 0.25, 5, 5] },
+  salto: { n: 'Salto', p: [0.6, 0.6, 5, 0.6, 0.6] },
+  entrada: { n: 'Entrada rápida', p: [5, 3, 1, 1, 1] },
+  salida: { n: 'Salida rápida', p: [1, 1, 1, 3, 5] },
+  pulso: { n: 'Pulso', p: [1, 4, 0.5, 4, 0.5, 4, 1] },
+};
+function velEn(c, u) {
+  let v = 1;
+  const cu = c.tipo === 'video' && c.curva && CURVAS[c.curva];
+  if (cu) {
+    const p = cu.p, x = Math.max(0, Math.min(1, u)) * (p.length - 1);
+    const i = Math.min(p.length - 2, Math.floor(x)), f = x - i, sm = (1 - Math.cos(f * Math.PI)) / 2;
+    v = p[i] + (p[i + 1] - p[i]) * sm;
+  }
+  return (c.tipo === 'video' ? (c.vel || 1) : 1) * v;
+}
+const NT = 256;
+function tablaVel(c) {
+  const k = (c.vel || 1) + '|' + (c.curva || '') + '|' + c.tipo;
+  if (c._tk === k) return c._t;
+  const cum = [0];
+  for (let i = 1; i <= NT; i++) cum.push(cum[i - 1] + velEn(c, (i - 0.5) / NT) / NT);
+  c._t = { cum, media: cum[NT] }; c._tk = k;
+  return c._t;
+}
+function largo(c) { return Math.max(0.1, (c.out - c.in) / tablaVel(c).media); }
+// Tiempo del archivo original que corresponde a "lt" segundos dentro del clip en la línea
+function tOrigen(c, lt) {
+  const T = tablaVel(c), u = Math.max(0, Math.min(1, lt / largo(c))) * NT;
+  const i = Math.min(NT - 1, Math.floor(u)), f = u - i;
+  const acum = T.cum[i] + (T.cum[i + 1] - T.cum[i]) * f;
+  return c.in + (c.out - c.in) * acum / T.media;
+}
 function lay() {
   const n = S.clips.length, start = [], tr = [];
   let t = 0;
@@ -123,11 +160,13 @@ function sincronizar() {
     if (c.tipo !== 'video' || !c.el) return;
     const v = c.el;
     const act = S.t >= L.start[i] && S.t < L.start[i] + largo(c);
-    const loc = c.in + (S.t - L.start[i]);
+    const loc = tOrigen(c, S.t - L.start[i]);
+    const vel = Math.max(0.1, Math.min(8, velEn(c, (S.t - L.start[i]) / largo(c))));
+    if (Math.abs(v.playbackRate - vel) > 0.01) { try { v.playbackRate = vel; } catch (e) { /* fuera de rango */ } }
     v.muted = !!c.mute;
     if (act && S.playing) {
       if (v.paused) { v.currentTime = loc; v.play().catch(() => {}); }
-      else if (Math.abs(v.currentTime - loc) > 0.3) v.currentTime = loc;
+      else if (Math.abs(v.currentTime - loc) > 0.3 * Math.max(1, vel)) v.currentTime = loc;
     } else {
       if (!v.paused) v.pause();
       if (act && Math.abs(v.currentTime - loc) > 0.03 && !v.seeking) v.currentTime = loc;
@@ -201,13 +240,14 @@ function pintarLinea() {
     b.style.width = Math.max(18, largo(c) * S.pps - 2) + 'px';
     if (c.tira) {
       b.style.backgroundImage = `url(${c.tira})`;
-      const anchoTotal = (c.tipo === 'imagen' ? largo(c) : c.dur) * S.pps;
+      const anchoTotal = (c.tipo === 'imagen' ? largo(c) : c.dur / tablaVel(c).media) * S.pps;
       b.style.backgroundSize = c.tipo === 'imagen' ? 'auto 100%' : `${anchoTotal}px 100%`;
-      b.style.backgroundPositionX = c.tipo === 'imagen' ? '0' : `${-c.in * S.pps}px`;
+      b.style.backgroundPositionX = c.tipo === 'imagen' ? '0' : `${-c.in / tablaVel(c).media * S.pps}px`;
       b.style.backgroundRepeat = c.tipo === 'imagen' ? 'repeat-x' : 'no-repeat';
     }
-    b.innerHTML = `<span>${c.tipo === 'imagen' ? '🖼' : (c.mute ? '🔇' : '')} ${fmt(largo(c)).slice(0, 5)}</span>`;
-    b.onclick = (e) => { e.stopPropagation(); S.sel = c.id; abrirTab('editar'); pintarLinea(); };
+    const etqVel = c.tipo === 'video' && c.curva ? '〰 ' + CURVAS[c.curva].n + ' · ' : (c.tipo === 'video' && (c.vel || 1) !== 1 ? (c.vel + 'x · ') : '');
+    b.innerHTML = `<span>${c.tipo === 'imagen' ? '🖼' : (c.mute ? '🔇' : '')} ${etqVel}${fmt(largo(c)).slice(0, 5)}</span>`;
+    b.onclick = (e) => { e.stopPropagation(); S.sel = c.id; abrirTab(['editar', 'velocidad'].includes(S.tab) ? S.tab : 'editar'); pintarLinea(); };
     pista.appendChild(b);
     if (i < S.clips.length - 1) {
       const tb = document.createElement('button');
@@ -340,8 +380,8 @@ function dividir() {
   const i = S.clips.findIndex((c, k) => S.t > L.start[k] + 0.1 && S.t < L.start[k] + largo(c) - 0.1);
   if (i < 0) return aviso('Ponga la línea blanca encima del clip que quiere cortar');
   const c = S.clips[i];
-  const loc = c.in + (S.t - L.start[i]);
-  const n = { ...c, id: uid(), in: loc, el: null, mascara: null, trans: { ...c.trans } };
+  const loc = tOrigen(c, S.t - L.start[i]);
+  const n = { ...c, _tk: null, id: uid(), in: loc, el: null, mascara: null, trans: { ...c.trans } };
   c.out = loc; c.trans = { tipo: 'ninguna', dur: 0.5 };
   S.clips.splice(i + 1, 0, n);
   const listo = () => { S.sel = n.id; pintarLinea(); pintarPanel(); guardar(); aviso('Clip dividido ✂️'); };
@@ -359,7 +399,7 @@ async function eliminar() {
 function duplicar() {
   const c = clipSel(); if (!c) return;
   const i = S.clips.indexOf(c);
-  const n = { ...c, id: uid(), el: null, mascara: null, trans: { ...c.trans } };
+  const n = { ...c, id: uid(), el: null, mascara: null, _tk: null, trans: { ...c.trans } };
   S.clips.splice(i + 1, 0, n);
   const listo = () => { S.sel = n.id; pintarLinea(); pintarPanel(); guardar(); };
   if (n.tipo === 'video') cargarVideo(n).then(listo); else listo();
@@ -479,6 +519,39 @@ function pintarPanel() {
     $$('input[type=range]', p).forEach(r => { r.oninput = () => { b[r.dataset.k] = Number(r.value); b.on = true; $('[data-on]', p).checked = true; S.dirty = true; }; r.onchange = () => { guardar(); activarBelleza(); }; });
     return;
   }
+  if (S.tab === 'velocidad') {
+    if (!c || c.tipo !== 'video') { p.innerHTML = `<p class="cut-nota">Toque un <b>video</b> en la línea de tiempo para cambiarle la velocidad.</p>`; return; }
+    const modo = c.curva ? 'curva' : 'normal';
+    const graf = (pts) => { const W = 64, H = 30, mx = 5.2; const d = Array.from({ length: 33 }, (_, k) => { const u = k / 32; const x = u * (pts.length - 1), i = Math.min(pts.length - 2, Math.floor(x)), f = x - i, sm = (1 - Math.cos(f * Math.PI)) / 2; const v = pts[i] + (pts[i + 1] - pts[i]) * sm; return `${(u * W).toFixed(1)},${(H - 3 - (Math.log(v) - Math.log(0.2)) / (Math.log(mx) - Math.log(0.2)) * (H - 6)).toFixed(1)}`; }).join(' '); return `<svg viewBox="0 0 ${W} ${H}"><polyline points="${d}" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`; };
+    p.innerHTML = `
+      <div class="cut-modo">${chips('modo', [['normal', 'Normal'], ['curva', 'Curva']], modo)}</div>
+      ${modo === 'normal' ? `
+        <div class="cut-vel-num"><b>${(c.vel || 1).toFixed(2).replace(/\.?0+$/, '')}x</b><small>${fmt(largo(c)).slice(0, 5)} de duración</small></div>
+        <input type="range" class="cut-vel-rango" min="0" max="1" step="0.001" value="${Math.log(c.vel || 1) / Math.log(10) / 2 + 0.5}" data-vel>
+        <div class="cut-vel-marcas"><span>0.1x</span><span>1x</span><span>10x</span></div>
+        ${chips('velr', [[0.25, '0.25x'], [0.5, '0.5x'], [1, '1x'], [1.5, '1.5x'], [2, '2x'], [3, '3x'], [5, '5x']], c.vel || 1)}
+      ` : `
+        <div class="cut-curvas">
+          <button type="button" data-cu="" class="${!c.curva ? 'on' : ''}">${graf([1, 1])}<small>Ninguna</small></button>
+          ${Object.entries(CURVAS).map(([k, v]) => `<button type="button" data-cu="${k}" class="${c.curva === k ? 'on' : ''}">${graf(v.p)}<small>${v.n}</small></button>`).join('')}
+        </div>
+        <div class="cut-fila"><small>Velocidad base</small>${chips('velb', [[0.5, '0.5x'], [1, '1x'], [1.5, '1.5x'], [2, '2x']], c.vel || 1)}</div>
+      `}
+      <p class="cut-nota">${modo === 'normal' ? 'Más rápido acorta el clip; más lento lo alarga (cámara lenta).' : 'La curva cambia la velocidad dentro del mismo clip: rápido, cámara lenta en el mejor momento y rápido otra vez.'}</p>
+      <button type="button" class="cut-btn-sec" data-todos>Aplicar a todos los videos</button>`;
+    const cambio = (ver = true) => { pintarLinea(); pintarPanel(); guardar(); if (ver) { const L = lay(), i = S.clips.indexOf(c); irA(L.start[i]); setTimeout(() => reproducir(L.start[i] + largo(c)), 60); } };
+    $('[data-grupo="modo"]', p).onclick = (e) => { const v = e.target.dataset.v; if (!v) return; if (v === 'normal') { c.curva = null; cambio(false); } else { c.curva = c.curva || 'montaje'; cambio(); } };
+    const r = $('[data-vel]', p);
+    if (r) {
+      r.oninput = () => { const v = Math.round(Math.pow(10, (Number(r.value) - 0.5) * 2) * 100) / 100; c.vel = Math.abs(v - 1) < 0.04 ? 1 : v; $('.cut-vel-num b', p).textContent = c.vel + 'x'; $('.cut-vel-num small', p).textContent = fmt(largo(c)).slice(0, 5) + ' de duración'; pintarLinea(); };
+      r.onchange = () => cambio();
+    }
+    const g1 = $('[data-grupo="velr"]', p); if (g1) g1.onclick = (e) => { const v = e.target.dataset.v; if (!v) return; c.vel = Number(v); cambio(); };
+    const g2 = $('[data-grupo="velb"]', p); if (g2) g2.onclick = (e) => { const v = e.target.dataset.v; if (!v) return; c.vel = Number(v); cambio(); };
+    const cv = $('.cut-curvas', p); if (cv) cv.onclick = (e) => { const b = e.target.closest('[data-cu]'); if (!b) return; c.curva = b.dataset.cu || null; cambio(); };
+    $('[data-todos]', p).onclick = () => { S.clips.forEach(x => { if (x.tipo === 'video') { x.vel = c.vel || 1; x.curva = c.curva || null; } }); pintarLinea(); guardar(); aviso('Velocidad puesta en todos los videos ⚡'); };
+    return;
+  }
   if (S.tab === 'formato') {
     p.innerHTML = `
       <div class="cut-formatos">
@@ -524,8 +597,12 @@ async function mezclarAudio(rate, canales) {
     g.gain.setValueAtTime(fe ? 0 : 1, ini);
     if (fe) g.gain.linearRampToValueAtTime(1, ini + fe);
     if (fs) { g.gain.setValueAtTime(1, ini + dur - fs); g.gain.linearRampToValueAtTime(0, ini + dur); }
+    if (c.curva && CURVAS[c.curva]) {
+      const pts = Array.from({ length: 64 }, (_, k) => Math.max(0.1, velEn(c, k / 63)));
+      src.playbackRate.setValueCurveAtTime(Float32Array.from(pts), ini, dur);
+    } else src.playbackRate.value = c.vel || 1;
     src.connect(g).connect(oc.destination);
-    src.start(ini, c.in, dur);
+    src.start(ini, c.in, c.out - c.in);
   }
   if (!hay) return null;
   return oc.startRendering();
@@ -700,7 +777,7 @@ async function exportar() {
     const c = S.clips[i];
     if (c.tipo !== 'video') continue;
     const tiempos = [];
-    for (let n = 0; n < N; n++) { const t = n / fps; if (t >= L.start[i] && t < L.start[i] + largo(c)) tiempos.push(c.in + (t - L.start[i])); }
+    for (let n = 0; n < N; n++) { const t = n / fps; if (t >= L.start[i] && t < L.start[i] + largo(c)) tiempos.push(tOrigen(c, t - L.start[i])); }
     try {
       const input = new MB.Input({ source: new MB.BlobSource(c.file), formats: MB.ALL_FORMATS });
       const tr = await input.getPrimaryVideoTrack();
@@ -742,7 +819,7 @@ async function exportar() {
         else {
           const lc = lectores.get(i);
           if (lc.el) {
-            await seekEl(c.el, c.in + (t - L.start[i]));
+            await seekEl(c.el, tOrigen(c, t - L.start[i]));
             f = { src: c.el, w: c.el.videoWidth, h: c.el.videoHeight };
           } else {
             const r = await lc.it.next();
@@ -816,7 +893,7 @@ function guardar() {
   clearTimeout(tGuardar);
   tGuardar = setTimeout(() => {
     DB.put('estado', 'actual', {
-      clips: S.clips.map(c => ({ id: c.id, fileId: c.fileId, nombre: c.nombre, tipo: c.tipo, in: c.in, out: c.out, dur: c.dur, mute: c.mute, trans: c.trans })),
+      clips: S.clips.map(c => ({ id: c.id, fileId: c.fileId, nombre: c.nombre, tipo: c.tipo, in: c.in, out: c.out, dur: c.dur, mute: c.mute, trans: c.trans, vel: c.vel || 1, curva: c.curva || null })),
       subs: S.subs, segs: S.segs, sub: S.sub, belleza: S.belleza, aspecto: S.aspecto, fecha: Date.now(),
     });
   }, 400);
