@@ -12,9 +12,9 @@ class Separado extends Model
 
     protected $table = 'separados';
 
-    protected $fillable = ['numero', 'cliente_id', 'cliente_nombre', 'cliente_telefono', 'user_id', 'total', 'abonado', 'estado', 'vence_en', 'nota', 'pos_venta_id', 'entregado_en', 'cancelado_en', 'motivo_cancelacion'];
+    protected $fillable = ['numero', 'cliente_id', 'cliente_nombre', 'cliente_telefono', 'cliente_correo', 'user_id', 'total', 'abonado', 'estado', 'vence_en', 'nota', 'pos_venta_id', 'entregado_en', 'cancelado_en', 'motivo_cancelacion'];
 
-    protected $casts = ['vence_en' => 'date', 'entregado_en' => 'datetime', 'cancelado_en' => 'datetime', 'total' => 'float', 'abonado' => 'float'];
+    protected $casts = ['vence_en' => 'date', 'entregado_en' => 'datetime', 'cancelado_en' => 'datetime', 'avisado_previo_at' => 'datetime', 'avisado_hoy_at' => 'datetime', 'avisado_vencido_at' => 'datetime', 'total' => 'float', 'abonado' => 'float'];
 
     public function items() { return $this->hasMany(SeparadoItem::class); }
     public function abonos() { return $this->hasMany(SeparadoAbono::class)->orderBy('id'); }

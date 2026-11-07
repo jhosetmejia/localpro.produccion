@@ -54,6 +54,7 @@
             <div class="mb-2"><label class="form-label">Nombre *</label><input name="cliente_nombre" id="cliNom" class="form-control" maxlength="80" required autocomplete="off" placeholder="Escriba para buscar o crear" value="{{ old('cliente_nombre') }}"></div>
             <div class="ns-cli-res" id="cliRes"></div>
             <div class="mb-3"><label class="form-label">WhatsApp</label><input name="cliente_telefono" id="cliTel" class="form-control" maxlength="20" inputmode="tel" placeholder="Para enviarle sus recibos" value="{{ old('cliente_telefono') }}"></div>
+            <div class="mb-3"><label class="form-label">Correo <small class="text-muted">(opcional)</small></label><input name="cliente_correo" id="cliCorreo" type="email" class="form-control" maxlength="120" inputmode="email" placeholder="Le avisamos antes de que venza" value="{{ old('cliente_correo') }}"></div>
 
             <h3><span><i class="fa-solid fa-coins me-1"></i> 3. Abono</span></h3>
             <div class="row g-2">
@@ -146,7 +147,7 @@
     $('cliRes').addEventListener('click', function (e) {
         var b = e.target.closest('button[data-i]'); if (!b) return;
         var c = $('cliRes')._l[+b.dataset.i];
-        $('cliId').value = c.id; $('cliNom').value = c.nombre; if (c.telefono) $('cliTel').value = c.telefono;
+        $('cliId').value = c.id; $('cliNom').value = c.nombre; if (c.telefono) $('cliTel').value = c.telefono; if (c.email && $('cliCorreo')) $('cliCorreo').value = c.email;
         $('cliRes').style.display = 'none';
     });
 

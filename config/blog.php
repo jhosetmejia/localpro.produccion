@@ -27,6 +27,23 @@ return [
             ['¿Es igual a CapCut?', 'La pantalla está organizada como CapCut para que se sienta en casa: Editar, Audio, Texto, Subtítulos, Velocidad, Transición, Filtros y Formato. Es más sencillo y está pensado para los videos de su negocio.'],
         ],
     ],
+    'separados-con-abonos-aviso-de-vencimiento-por-correo' => [
+        'titulo' => 'Separados con abonos: LocalProo le avisa a usted y al cliente antes de que venzan',
+        'resumen' => 'Campanita con los separados por vencer y correo automático al cliente 3 días antes, el día que vence y al día siguiente, con lo que le falta por pagar. Menos prendas quietas y más ventas cerradas.',
+        'fecha' => '7 de noviembre de 2026',
+        'publicado' => '2026-11-07',
+        'minutos' => 3,
+        'icono' => 'fa-bell',
+        'rol' => 'negocios',
+        'seo_titulo' => 'Programa de separados con abonos y avisos | LocalProo',
+        'descripcion' => 'Lleve los separados con abonos de su tienda: campanita de separados por vencer y correo automático al cliente para que vuelva a pagar a tiempo.',
+        'keywords' => ['programa de separados', 'separados con abonos', 'sistema de apartados tienda de ropa', 'control de separados', 'recordatorio de pago a clientes', 'plan separe', 'software para tienda de ropa'],
+        'faq' => [
+            ['¿Cuándo le llega el correo al cliente?', 'Tres días antes de que venza el separado, el mismo día que vence y al día siguiente si no ha pagado. Si ya pagó todo, no se le envía.'],
+            ['¿Qué pasa si el cliente no tiene correo?', 'Usted ve el separado en la campanita y le envía el recordatorio por WhatsApp con un toque: el mensaje ya va escrito con lo que le falta.'],
+            ['¿Puedo cambiar el plazo del separado?', 'Sí. Al crearlo elige cuántos días tiene el cliente para pagar (o sin plazo).'],
+        ],
+    ],
     'software-para-consultorio-odontologico-odontograma' => [
         'titulo' => 'Software para consultorio odontológico: odontograma, presupuestos con abonos y consentimientos firmados en el celular',
         'resumen' => 'Odontólogos y clínicas dentales: odontograma, presupuestos con abonos, ortodoncia con cuotas, periodontograma, citas en línea con recordatorio y confirmación, portal del paciente, laboratorio, comisiones e indicadores. Todo en LocalProo.',

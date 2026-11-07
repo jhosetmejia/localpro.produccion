@@ -702,6 +702,7 @@ class Academia
                     ], 'tip' => null],
                     ['titulo' => 'Separados y catálogo', 'rutas' => [['separados', 'Nuevo separado'], ['catalogo', 'Compartir enlace']], 'min' => 3, 'accion' => ['separados.index', 'Ver separados'], 'contenido' => [
                         'Con <b>Separados</b> el cliente aparta una prenda con un abono, paga en cuotas y se la lleva al terminar. El producto queda reservado.',
+                        'Pídale el <b>correo</b> al cliente al separar: 3 días antes de que venza, el día que vence y al día siguiente le llega un aviso con lo que le falta. Usted ve en la <b>campanita 🔔</b> de arriba los separados por vencer y le recuerda por WhatsApp con un toque (o en Separados → <b>Por vencer</b>).',
                         'Active su <b>catálogo en línea</b> y compártalo por WhatsApp e Instagram: los clientes ven fotos, tallas y precios.',
                     ], 'tip' => 'Fotos claras y con buena luz venden más en el catálogo.'],
                     ['titulo' => 'Su equipo y sus roles', 'rutas' => [['roles', 'Revisar los roles'], ['usuarios', 'Nuevo usuario', 'Elegir su rol']], 'min' => 2, 'accion' => ['users.index', 'Crear usuarios'], 'contenido' => [

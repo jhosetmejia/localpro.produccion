@@ -19,7 +19,8 @@
         </select>
     </form>
     @endif
-    <ul class="navbar-nav {{ auth()->user()->es_superadmin ? '' : 'ms-auto' }} me-3 me-lg-4">
+    <ul class="navbar-nav {{ auth()->user()->es_superadmin ? '' : 'ms-auto' }} me-3 me-lg-4 align-items-center">
+        <x-campana-separados />
         <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle lp-user" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <span class="lp-avatar">{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}</span>

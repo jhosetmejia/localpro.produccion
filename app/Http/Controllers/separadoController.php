@@ -37,6 +37,7 @@ class separadoController extends Controller
             ->when($filtro === 'activos', fn ($w) => $w->where('estado', 'activo'))
             ->when($filtro === 'listos', fn ($w) => $w->where('estado', 'activo')->whereColumn('abonado', '>=', 'total'))
             ->when($filtro === 'vencidos', fn ($w) => $w->where('estado', 'activo')->whereDate('vence_en', '<', today()))
+            ->when($filtro === 'porvencer', fn ($w) => $w->where('estado', 'activo')->whereColumn('abonado', '<', 'total')->whereDate('vence_en', '>=', today())->whereDate('vence_en', '<=', today()->addDays(\App\Support\SeparadosPorVencer::DIAS_ANTES)))
             ->when($filtro === 'entregados', fn ($w) => $w->where('estado', 'entregado'))
             ->when($filtro === 'cancelados', fn ($w) => $w->where('estado', 'cancelado'))
             ->when($q !== '', fn ($w) => $w->where(fn ($x) => $x->where('numero', 'like', "%$q%")->orWhere('cliente_nombre', 'like', "%$q%")->orWhere('cliente_telefono', 'like', "%$q%")))
@@ -51,6 +52,7 @@ class separadoController extends Controller
                 'abonado' => (float) (clone $activos)->sum('abonado'),
                 'listos' => (clone $activos)->whereColumn('abonado', '>=', 'total')->count(),
                 'vencidos' => (clone $activos)->whereDate('vence_en', '<', today())->count(),
+                'porVencer' => (clone $activos)->whereColumn('abonado', '<', 'total')->whereDate('vence_en', '>=', today())->whereDate('vence_en', '<=', today()->addDays(\App\Support\SeparadosPorVencer::DIAS_ANTES))->count(),
                 'abonosHoy' => (float) SeparadoAbono::where('anulado', false)->whereDate('created_at', today())->sum('monto'),
             ],
         ]);
@@ -73,6 +75,7 @@ class separadoController extends Controller
             'cliente_id' => 'nullable|integer',
             'cliente_nombre' => 'required|string|min:2|max:80',
             'cliente_telefono' => 'nullable|string|max:20',
+            'cliente_correo' => 'nullable|email|max:120',
             'descuento' => 'nullable|numeric|min:0',
             'abono' => 'required|numeric|min:0',
             'metodo_id' => 'nullable|integer',
@@ -112,6 +115,7 @@ class separadoController extends Controller
                 'cliente_id' => \App\Models\Cliente::whereKey($d['cliente_id'] ?? 0)->value('id'),
                 'cliente_nombre' => trim($d['cliente_nombre']),
                 'cliente_telefono' => $tel ?: null,
+                'cliente_correo' => trim((string) ($d['cliente_correo'] ?? '')) ?: null,
                 'user_id' => Auth::id(),
                 'total' => $total,
                 'abonado' => 0,

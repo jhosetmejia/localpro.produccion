@@ -42,7 +42,7 @@
     <div class="lp-kpis">
         <div class="lp-kpi hero"><div class="ic"><i class="fa-solid fa-hand-holding-dollar"></i></div><div class="lbl">Por cobrar en separados</div><div class="val">{{ $f($kpi['porCobrar']) }}</div><div class="sub">{{ $kpi['activos'] }} separados activos · ya abonaron {{ $f($kpi['abonado']) }}</div></div>
         <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-circle-check"></i></div><div class="lbl">Listos para entregar</div><div class="val">{{ $kpi['listos'] }}</div><div class="sub">Pagados completos</div></div>
-        <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-calendar-xmark"></i></div><div class="lbl">Vencidos</div><div class="val">{{ $kpi['vencidos'] }}</div><div class="sub">Abonos recibidos hoy: {{ $f($kpi['abonosHoy']) }}</div></div>
+        <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-calendar-xmark"></i></div><div class="lbl">Vencidos</div><div class="val">{{ $kpi['vencidos'] }}</div><div class="sub">Por vencer ({{ \App\Support\SeparadosPorVencer::DIAS_ANTES }} días): {{ $kpi['porVencer'] }} · Abonos hoy: {{ $f($kpi['abonosHoy']) }}</div></div>
     </div>
 
     <div class="lp-box">
@@ -52,7 +52,7 @@
             <button class="btn btn-dark">Buscar</button>
         </form>
         <div class="sp-fil">
-            @foreach (['activos' => 'Activos', 'listos' => 'Listos para entregar', 'vencidos' => 'Vencidos', 'entregados' => 'Entregados', 'cancelados' => 'Cancelados', 'todos' => 'Todos'] as $k => $v)
+            @foreach (['activos' => 'Activos', 'listos' => 'Listos para entregar', 'porvencer' => 'Por vencer', 'vencidos' => 'Vencidos', 'entregados' => 'Entregados', 'cancelados' => 'Cancelados', 'todos' => 'Todos'] as $k => $v)
             <a href="{{ route('separados.index', ['ver' => $k, 'q' => $q ?: null]) }}" class="{{ $filtro === $k ? 'on' : '' }}">{{ $v }}</a>
             @endforeach
         </div>

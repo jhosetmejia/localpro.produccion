@@ -32,6 +32,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('contabilidad:recordatorios')->dailyAt('07:20')->withoutOverlapping();
         // Consultorios: recordatorio por correo de las citas de mañana, con enlace para confirmar o cancelar
         $schedule->command('consultorio:recordatorios')->dailyAt('09:05')->withoutOverlapping();
+        // Separados por vencer: correo al cliente 3 días antes, el día que vence y al día siguiente
+        $schedule->command('separados:avisos')->dailyAt('09:20')->withoutOverlapping();
         // Prospección: busca firmas contables y su correo; envía la secuencia repartida en el día (lunes a viernes, 8 a 5)
         $schedule->command('prospectos:buscar')->dailyAt('06:30')->withoutOverlapping(60)->runInBackground();
         $schedule->command('prospectos:enviar')->weekdays()->everyFifteenMinutes()->between('08:00', '16:59')->withoutOverlapping(14);
