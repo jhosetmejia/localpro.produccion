@@ -1137,10 +1137,49 @@ async function exportar() {
   const t0 = performance.now();
   let recuperaciones = 0;
   S.exportando = true;
+
+  // Modo "reproducir y grabar" (iPhone): en vez de saltar el video cuadro por cuadro (muy lento con HEVC 4K),
+  // se reproduce seguido a media velocidad y se toma cada cuadro al pasar. Si el celular se atrasa, baja la velocidad.
+  const tiempoReal = IOS || /[?&]tr=1/.test(location.search);
+  const RT = { factor: 0.5, t: 0, desde: 0, atrasos: 0 };
+  const reloj = () => RT.t + (performance.now() - RT.desde) / 1000 * RT.factor;
+  const raf = () => new Promise(r => requestAnimationFrame(() => r()));
+  const syncRT = (tt, tocar) => {
+    S.clips.forEach((c, i) => {
+      if (c.tipo !== 'video' || !c.el) return;
+      const v = c.el; v.muted = true;
+      const ini = L.start[i], fin = ini + largo(c);
+      if (tocar && tt >= ini && tt < fin) {
+        const lt = tt - ini, loc = tOrigen(c, lt);
+        try { v.playbackRate = Math.max(0.1, Math.min(8, velEn(c, lt / largo(c)) * RT.factor)); } catch (e) { /* nada */ }
+        if (v.paused) { v.currentTime = loc; v.play().catch(() => {}); }
+        else if (Math.abs(v.currentTime - loc) > 0.35) v.currentTime = loc;
+      } else {
+        if (!v.paused) v.pause();
+        // Dejar listo el siguiente clip un momento antes de que empiece
+        if (tocar && tt >= ini - 0.5 && tt < ini && Math.abs(v.currentTime - c.in) > 0.05 && !v.seeking) v.currentTime = c.in;
+      }
+    });
+  };
+  if (tiempoReal) {
+    syncRT(0, true);
+    await Promise.race([
+      Promise.all(S.clips.filter((c, i) => c.tipo === 'video' && c.el && L.start[i] <= 0.001).map(c => new Promise(r => { if (!c.el.paused && c.el.readyState >= 3) r(); else c.el.addEventListener('playing', r, { once: true }); }))),
+      new Promise(r => setTimeout(r, 2500)),
+    ]);
+    RT.t = 0; RT.desde = performance.now();
+  }
+
   try {
     for (let n = 0; n < N; n++) {
       if (EXP.cancelar) throw new Error('cancelado');
       const t = n / fps;
+      if (tiempoReal) {
+        while (reloj() < t) { syncRT(reloj(), true); await raf(); if (EXP.cancelar) throw new Error('cancelado'); }
+        // Si el celular quedó muy atrás, bajar la velocidad de grabación para no perder cuadros
+        if (reloj() - t > 0.25 && ++RT.atrasos > 5 && RT.factor > 0.2) { RT.t = reloj(); RT.desde = performance.now(); RT.factor *= 0.7; RT.atrasos = 0; }
+        syncRT(t, true);
+      }
       const act = activos(t, L);
       const cuadros = new Map();
       for (const i of act) {
@@ -1160,7 +1199,8 @@ async function exportar() {
             }
           }
           if (lc.el) {
-            await seekEl(c.el, tOrigen(c, t - L.start[i]));
+            if (!tiempoReal) await seekEl(c.el, tOrigen(c, t - L.start[i]));
+            else if (c.el.readyState < 2) await new Promise(r => { c.el.addEventListener('loadeddata', r, { once: true }); setTimeout(r, 800); });
             const vw = c.el.videoWidth, vh = c.el.videoHeight;
             const k = Math.min(1, Math.max(W / vw, H / vh) * 1.0001);
             if (k < 0.99) {
@@ -1198,11 +1238,13 @@ async function exportar() {
         poner(3 + pct * 95, `Exportando ${Math.round(pct * 100)}%` + (falta != null ? ` · faltan ${falta < 60 ? falta + ' s' : Math.round(falta / 60) + ' min'}` : ''));
       }
     }
+    if (tiempoReal) S.clips.forEach(c => { if (c.el) { c.el.pause(); try { c.el.playbackRate = 1; } catch (e) { /* nada */ } } });
     await pedazoAudio(L.total);
     poner(99, 'Terminando el archivo…');
     await out.finalize();
   } catch (e) {
     try { await out.cancel(); } catch (e2) { /* nada */ }
+    S.clips.forEach(c => { if (c.el) { c.el.pause(); try { c.el.playbackRate = 1; } catch (e3) { /* nada */ } } });
     S.exportando = false;
     motor.tamano(vistaW, vistaH); S.dirty = true;
     if (e.message === 'cancelado') { $('.cut-exp-op', m).hidden = false; $('.cut-exp-run', m).hidden = true; aviso('Exportación cancelada'); return; }
