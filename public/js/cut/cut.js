@@ -72,7 +72,7 @@ const HIST = { pila: [], pos: -1, aplicando: false };
 function foto() {
   return JSON.stringify({
     clips: S.clips.map(c => ({ id: c.id, in: c.in, out: c.out, mute: !!c.mute, vol: c.vol ?? 1, vel: c.vel || 1, curva: c.curva || null, z: c.z || 1, x: c.x || 0, y: c.y || 0, trans: c.trans })),
-    musica: S.musica.map(m => ({ id: m.id, start: m.start, in: m.in, vol: m.vol ?? 1, fadeIn: !!m.fadeIn, fadeOut: !!m.fadeOut })),
+    musica: S.musica.map(m => ({ id: m.id, start: m.start, in: m.in, out: m.out ?? null, vol: m.vol ?? 1, fadeIn: !!m.fadeIn, fadeOut: !!m.fadeOut })),
     subs: S.subs, segs: S.segs, sub: S.sub, belleza: S.belleza, aspecto: S.aspecto, silenciar: !!S.silenciar,
   });
 }
@@ -373,7 +373,7 @@ function pintarLinea() {
   const finMus = S.musica.length ? Math.max(...S.musica.map(m => Math.min(finM(m), L.total))) : 0;
   addA.style.left = (pad + finMus * S.pps + (S.musica.length ? 6 : 0)) + 'px';
   addA.innerHTML = '+ Agregar audio';
-  addA.onclick = (e) => { e.stopPropagation(); $('#cutMusica').click(); };
+  addA.onclick = (e) => { e.stopPropagation(); S.selM = null; S.sel = null; abrirTab('audio'); pintarLinea(); };
   pa.appendChild(addA);
 
   // Fila de texto (subtítulos y textos)
@@ -399,7 +399,7 @@ function pintarLinea() {
 }
 
 /* ---------- música ---------- */
-function largoM(m) { return Math.max(0.1, (m.dur || 0) - (m.in || 0)); }
+function largoM(m) { return Math.max(0.1, (m.out ?? m.dur ?? 0) - (m.in || 0)); }
 function finM(m) { return m.start + largoM(m); }
 function prepararMusica(m) {
   return new Promise((ok, mal) => {
@@ -411,20 +411,39 @@ function prepararMusica(m) {
     $('#cutVideos').appendChild(a);
   });
 }
-async function agregarMusica(f) {
+async function agregarMusica(f, nombre = null, msg = 'Música agregada 🎵') {
   if (!f) return;
   const L = lay();
-  const m = reg({ id: uid(), fileId: uid(), file: f, nombre: f.name || 'Música', start: S.t >= L.total - 0.2 ? 0 : S.t, in: 0, dur: 0, vol: 1, fadeIn: false, fadeOut: true });
+  const m = reg({ id: uid(), fileId: uid(), file: f, nombre: nombre || f.name || 'Música', start: S.t >= L.total - 0.2 ? 0 : S.t, in: 0, dur: 0, vol: 1, fadeIn: false, fadeOut: true });
   try {
     await prepararMusica(m);
     S.musica.push(m);
     DB.put('archivos', m.fileId, f);
     S.selM = m.id; S.sel = null;
     abrirTab('audio'); pintarLinea(); guardar();
-    aviso('Música agregada 🎵');
+    aviso(msg);
   } catch (e) { aviso(e.message, 'mal'); }
 }
 $('#cutMusica').addEventListener('change', (e) => { agregarMusica(e.target.files[0]); e.target.value = ''; });
+// Extraer audio (como CapCut): toma el sonido de un video del celular y lo pone en la fila de audio
+$('#cutExtraer').addEventListener('change', (e) => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (f) agregarMusica(f, 'Audio de ' + f.name.replace(/\.[^.]+$/, ''), 'Audio extraído del video 🎬');
+});
+// Extraer audio de un clip que ya está en la línea: el sonido pasa a la fila de audio y el clip queda en silencio
+async function extraerDeClip(c) {
+  if (!c || c.tipo !== 'video') return;
+  const L = lay(), i = S.clips.indexOf(c);
+  const m = reg({ id: uid(), fileId: c.fileId, file: c.file, nombre: 'Audio · ' + (c.nombre || 'video').replace(/\.[^.]+$/, ''), start: L.start[i], in: c.in, out: c.out, dur: c.dur, vol: c.vol ?? 1, fadeIn: false, fadeOut: false });
+  try {
+    await prepararMusica(m);
+    S.musica.push(m);
+    c.mute = true;
+    S.selM = m.id; S.sel = null;
+    abrirTab('audio'); pintarLinea(); sincronizar(); guardar();
+    aviso((c.vel || 1) !== 1 || c.curva ? 'Audio extraído (suena a velocidad normal) 🎬' : 'Audio extraído: ya lo puede mover o cambiarle el volumen 🎬');
+  } catch (e) { aviso('No se pudo extraer el audio de este video', 'mal'); }
+}
 function nuevoTexto() {
   if (!S.clips.length) return aviso('Primero agregue un video');
   const x = SUB.repartir({ id: uid(), start: S.t, end: Math.min(S.t + 2, Math.max(lay().total, S.t + 0.5)), text: 'Escriba aquí' });
@@ -595,6 +614,7 @@ function pintarPanel() {
         <button type="button" data-a="duplicar"><i>⧉</i>Duplicar</button>
         <button type="button" data-a="izq"><i>⬅️</i>Mover</button>
         <button type="button" data-a="der"><i>➡️</i>Mover</button>
+        ${c.tipo === 'video' ? `<button type="button" data-a="extraer"><i>🎵</i>Extraer audio</button>` : ''}
         ${c.tipo === 'video' ? `<button type="button" data-a="mute"><i>${c.mute ? '🔈' : '🔇'}</i>${c.mute ? 'Con sonido' : 'Silenciar'}</button>` : ''}
         <button type="button" data-a="eliminar"><i>🗑️</i>Eliminar</button>
       </div>
@@ -604,7 +624,7 @@ function pintarPanel() {
       ${c.tipo === 'video' ? `<div class="cut-fila"><small>Volumen</small><input type="range" min="0" max="2" step="0.05" value="${c.vol ?? 1}" data-vol><b class="cut-val">${Math.round((c.vol ?? 1) * 100)}%</b></div>` : ''}
       ${c.tipo === 'imagen' ? `<div class="cut-fila"><small>Duración de la foto</small>${chips('durfoto', [[2, '2 s'], [3, '3 s'], [5, '5 s'], [8, '8 s']], largo(c))}</div>` : ''}
       <p class="cut-nota">Para recortar: ponga la línea blanca donde quiere cortar, toque <b>Dividir</b> y elimine el pedazo que sobra.</p>`;
-    $$('[data-a]', p).forEach(b => b.onclick = () => ({ dividir, eliminar, duplicar, izq: () => mover(-1), der: () => mover(1), vel: () => abrirTab('velocidad'), mute: () => { c.mute = !c.mute; pintarLinea(); pintarPanel(); sincronizar(); guardar(); } })[b.dataset.a]());
+    $$('[data-a]', p).forEach(b => b.onclick = () => ({ dividir, eliminar, duplicar, izq: () => mover(-1), der: () => mover(1), vel: () => abrirTab('velocidad'), extraer: () => extraerDeClip(c), mute: () => { c.mute = !c.mute; pintarLinea(); pintarPanel(); sincronizar(); guardar(); } })[b.dataset.a]());
     const rz = $('[data-zoom]', p);
     rz.oninput = () => { c.z = Number(rz.value); $('[data-zv]', p).textContent = Math.round(c.z * 100) + '%'; S.dirty = true; };
     rz.onchange = () => { guardar(); pintarPanel(); };
@@ -653,11 +673,15 @@ function pintarPanel() {
       return;
     }
     p.innerHTML = `
-      <button type="button" class="cut-btn" data-mus>🎵 Agregar música</button>
-      <p class="cut-nota">Escoja una canción o audio de su celular (MP3, M4A…). Empieza donde está la línea blanca.</p>
+      <div class="cut-acciones cut-acc-audio">
+        <button type="button" data-mus><i>🎵</i>Agregar música</button>
+        <button type="button" data-ext><i>🎬</i>Extraer audio</button>
+      </div>
+      <p class="cut-nota"><b>Agregar música:</b> una canción o audio de su celular (MP3, M4A…).<br><b>Extraer audio:</b> escoja un video y se le saca solo el sonido para ponerlo en su edición.<br>Empieza donde está la línea blanca.</p>
       <label class="cut-check"><input type="checkbox" data-sil ${S.silenciar ? 'checked' : ''}> Silenciar el sonido original de los videos</label>
       ${S.musica.length ? `<p class="cut-nota">Toque una música en la fila <b>♪</b> para cambiarle el volumen o quitarla.</p>` : ''}`;
     $('[data-mus]', p).onclick = () => $('#cutMusica').click();
+    $('[data-ext]', p).onclick = () => $('#cutExtraer').click();
     $('[data-sil]', p).onchange = (e) => { S.silenciar = e.target.checked; sincronizar(); pintarLinea(); guardar(); };
     return;
   }
@@ -1112,7 +1136,7 @@ function guardarDB() {
   tGuardar = setTimeout(() => {
     DB.put('estado', 'actual', {
       clips: S.clips.map(c => ({ id: c.id, fileId: c.fileId, nombre: c.nombre, tipo: c.tipo, in: c.in, out: c.out, dur: c.dur, mute: c.mute, vol: c.vol ?? 1, trans: c.trans, vel: c.vel || 1, curva: c.curva || null, z: c.z || 1, x: c.x || 0, y: c.y || 0 })),
-      musica: S.musica.map(m => ({ id: m.id, fileId: m.fileId, nombre: m.nombre, start: m.start, in: m.in, dur: m.dur, vol: m.vol, fadeIn: m.fadeIn, fadeOut: m.fadeOut })),
+      musica: S.musica.map(m => ({ id: m.id, fileId: m.fileId, nombre: m.nombre, start: m.start, in: m.in, out: m.out ?? null, dur: m.dur, vol: m.vol, fadeIn: m.fadeIn, fadeOut: m.fadeOut })),
       silenciar: !!S.silenciar,
       subs: S.subs, segs: S.segs, sub: S.sub, belleza: S.belleza, aspecto: S.aspecto, fecha: Date.now(),
     });

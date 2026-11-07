@@ -97,6 +97,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .cut-mus{position:absolute;top:0;height:28px;border-radius:6px;background:#173a2a;border:1px solid #2c7a52;color:#b9f5cf;font-size:.68rem;font-weight:700;padding:6px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
 .cut-mus.sel{border-color:#fff}
 .cut-sub{position:absolute;top:0;height:28px;border-radius:6px;background:#3b2a52;border:1px solid #6b4aa0;color:#e9dcff;font-size:.68rem;font-weight:700;padding:6px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.cut-acc-audio button{flex:1 1 0;min-width:120px;padding:.8rem .5rem;font-size:.82rem}
 .cut-panel-h{display:flex;align-items:center;gap:.5rem;margin:-4px 0 8px}
 .cut-panel-h button{width:30px;height:30px;border-radius:9px;border:1px solid var(--b);background:var(--f2);font-size:1.2rem;line-height:1;padding:0}
 .cut-panel-h b{font-size:.92rem}
@@ -279,6 +280,7 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
 
 <input type="file" id="cutArchivo" accept="video/*,image/*" multiple hidden>
 <input type="file" id="cutMusica" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg" hidden>
+<input type="file" id="cutExtraer" accept="video/*" hidden>
 <div id="cutVideos"></div>
 <div class="cut-toasts" id="cutToasts"></div>
 <div class="cut-cargando" id="cutCargando" hidden><div><i></i><span>Cargando…</span></div></div>
