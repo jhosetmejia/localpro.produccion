@@ -153,7 +153,7 @@
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                                 </div>
                                 <div class="modal-body">
-                                    ¿Seguro que quieres eliminar el usuario?
+                                    ¿Seguro que quieres eliminar el usuario? Ya no podrá entrar. Si tiene ventas, quedan a su nombre como "ex empleado" para los reportes.
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>

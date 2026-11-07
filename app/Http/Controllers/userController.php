@@ -113,22 +113,27 @@ class userController extends Controller
         $user->syncPermissions([]);
         $user->tokens()->delete();
 
+        $retirado = false;
         try {
             DB::transaction(fn () => $user->delete());
         } catch (\Illuminate\Database\QueryException $e) {
             // Tiene historial (cajas, ventas…): no se puede borrar sin dañar los reportes.
             // Se retira: sale de la tienda, no puede entrar y libera su correo. Su nombre sigue en el historial.
+            // Sus ventas siguen a su nombre (no se pasan a otro) y en los reportes sale como "(ex empleado)".
+            $nombre = str_contains($user->name, '(ex empleado)') ? $user->name : \Illuminate\Support\Str::limit(trim($user->name), 200, '') . ' (ex empleado)';
             $user->forceFill([
+                'name' => $nombre,
                 'tienda_id' => null,
                 'email' => 'retirado-' . $user->id . '-' . time() . '@localproo.invalid',
                 'telefono' => null,
                 'password' => Hash::make(\Illuminate\Support\Str::random(40)),
                 'remember_token' => null,
             ])->save();
+            $retirado = true;
         }
         app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 
-        return redirect()->route('users.index')->with('success', 'Usuario eliminado');
+        return redirect()->route('users.index')->with('success', $retirado ? 'Usuario retirado: sus ventas siguen a su nombre (ex empleado) en los reportes' : 'Usuario eliminado');
     }
 
     // Permisos extra del vendedor: el dueño elige qué más puede hacer (crear productos, etc.)
