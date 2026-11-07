@@ -1334,6 +1334,23 @@ vista.addEventListener('wheel', (e) => {
   clearTimeout(vista._tz); vista._tz = setTimeout(() => { guardar(); if (S.tab === 'editar') pintarPanel(); }, 300);
 }, { passive: false });
 
+/* ---------- X para cerrar todas las ventanas (y tocar afuera) ---------- */
+function cerrarModal(m) {
+  if (m.id === 'cutExportar' && !$('.cut-exp-run', m).hidden) { EXP.cancelar = true; return; } // primero cancela la exportación
+  if (m.id === 'cutPregunta') { $('[data-no]', m).click(); return; }
+  const v = $('video', m); if (v) v.pause();
+  m.hidden = true;
+}
+$$('.cut-modal').forEach((m) => {
+  const h = $('.cut-hoja', m);
+  const x = document.createElement('button');
+  x.type = 'button'; x.className = 'cut-x'; x.setAttribute('aria-label', 'Cerrar');
+  x.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+  x.onclick = () => cerrarModal(m);
+  h.prepend(x);
+  m.addEventListener('click', (e) => { if (e.target === m && !(m.id === 'cutExportar' && !$('.cut-exp-run', m).hidden)) cerrarModal(m); });
+});
+
 /* ---------- arranque ---------- */
 $('#cutPlay').addEventListener('click', () => (S.playing ? pausar() : reproducir()));
 $('#cutZoomMas').addEventListener('click', () => { S.pps = Math.min(240, S.pps * 1.4); pintarLinea(); });

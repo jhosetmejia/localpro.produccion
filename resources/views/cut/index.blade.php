@@ -191,7 +191,10 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
 @media (min-width:700px){.cut-modal{align-items:center}}
 .cut-hoja{background:var(--f2);border:1px solid var(--b);border-radius:22px 22px 0 0;width:100%;max-width:520px;padding:18px 18px calc(env(safe-area-inset-bottom,0px) + 18px);max-height:90dvh;overflow-y:auto}
 @media (min-width:700px){.cut-hoja{border-radius:22px}}
-.cut-hoja h3{margin:0 0 .4rem;font-family:Unbounded,sans-serif;font-size:1.05rem}
+.cut-hoja{position:relative}
+.cut-x{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid var(--b);background:var(--f3);color:var(--t);display:grid;place-items:center;padding:0;z-index:2}
+.cut-x svg{width:18px;height:18px}
+.cut-hoja h3{padding-right:44px;margin:0 0 .4rem;font-family:Unbounded,sans-serif;font-size:1.05rem}
 .cut-hoja p{color:var(--m);margin:.2rem 0 .8rem;font-size:.9rem}
 .cut-hoja .fila-b{display:flex;gap:.5rem;justify-content:flex-end;margin-top:.9rem;flex-wrap:wrap}
 .cut-hoja textarea,.cut-hoja input[type=number],.cut-lista input{width:100%;background:var(--f);border:1px solid var(--b);color:var(--t);border-radius:12px;padding:.6rem;font:inherit}
