@@ -11,6 +11,7 @@ const fmt = (t) => { t = Math.max(0, t); const m = Math.floor(t / 60), s = Math.
 const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 
+const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const ASPECTOS = { '9:16': [9, 16], '16:9': [16, 9], '1:1': [1, 1], '4:5': [4, 5] };
 const RESOL = { 720: '720p', 1080: '1080p · Full HD', 1440: '2K', 2160: '4K' };
 
@@ -294,6 +295,11 @@ function bucle(ahora) {
     sincronizar();
     moverLinea();
     S.dirty = true;
+  }
+  // Si el celular le quitó la parte gráfica y no la devolvió, se arma de nuevo
+  if (motor && !S.exportando && motor.gl.isContextLost()) {
+    motor._perdidoDesde ||= ahora;
+    if (ahora - motor._perdidoDesde > 2500) { try { motor = new Motor(); ajustarVista(); } catch (e) { /* nada */ } }
   }
   if (S.dirty && motor && !S.exportando) {
     S.dirty = false;
@@ -993,7 +999,6 @@ async function abrirExportar() {
   const ops = $('[data-res]', m);
   ops.innerHTML = Object.entries(RESOL).map(([v, t]) => `<button type="button" class="cut-chip" data-v="${v}">${t}</button>`).join('');
   // Desactivar lo que el equipo no puede codificar. En iPhone/iPad, 4K se queda sin memoria a mitad: solo en computador
-  const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   for (const b of $$('button', ops)) {
     if (IOS && Number(b.dataset.v) === 2160) { b.disabled = true; b.textContent = '4K (solo en computador)'; if (EXP.res === 2160) EXP.res = 1440; continue; }
     const { W, H } = tamSalida(Number(b.dataset.v));
@@ -1016,6 +1021,11 @@ async function abrirExportar() {
     if (EXP.res > 1080) {
       aviso(`Su equipo no alcanzó ${EXP.res === 2160 ? '4K' : '2K'}: lo exportamos en 1080p (Full HD), que se ve muy bien en redes.`);
       EXP.res = 1080; marcar();
+      return intentar();
+    }
+    if (err.message === 'memoria' && (EXP.res > 720 || EXP.fps > 30)) {
+      aviso('Al celular le faltó memoria: lo exportamos en 720p a 30 fps.');
+      EXP.res = 720; EXP.fps = 30; marcar();
       return intentar();
     }
     aviso('No se pudo exportar: ' + (err.message === 'memoria' ? 'el equipo se quedó sin memoria. Pruebe con 720p.' : (err.message || err)), 'mal');
@@ -1098,6 +1108,7 @@ async function exportar() {
     const tiempos = [];
     for (let n = 0; n < N; n++) { const t = n / fps; if (t >= L.start[i] && t < L.start[i] + largo(c)) tiempos.push(tOrigen(c, t - L.start[i])); }
     try {
+      if (IOS) throw 0;
       const input = new MB.Input({ source: new MB.BlobSource(c.file), formats: MB.ALL_FORMATS });
       const tr = await input.getPrimaryVideoTrack();
       if (!tr || !(await tr.canDecode())) throw 0;
@@ -1124,6 +1135,7 @@ async function exportar() {
   };
 
   const t0 = performance.now();
+  let recuperaciones = 0;
   S.exportando = true;
   try {
     for (let n = 0; n < N; n++) {
@@ -1149,7 +1161,15 @@ async function exportar() {
           }
           if (lc.el) {
             await seekEl(c.el, tOrigen(c, t - L.start[i]));
-            f = { src: c.el, w: c.el.videoWidth, h: c.el.videoHeight };
+            const vw = c.el.videoWidth, vh = c.el.videoHeight;
+            const k = Math.min(1, Math.max(W / vw, H / vh) * 1.0001);
+            if (k < 0.99) {
+              lc.cv ||= document.createElement('canvas');
+              const cw = Math.max(2, Math.round(vw * k)), ch = Math.max(2, Math.round(vh * k));
+              if (lc.cv.width !== cw || lc.cv.height !== ch) { lc.cv.width = cw; lc.cv.height = ch; }
+              lc.cv.getContext('2d').drawImage(c.el, 0, 0, cw, ch);
+              f = { src: lc.cv, w: cw, h: ch };
+            } else f = { src: c.el, w: vw, h: vh };
           }
         }
         if (f && S.belleza.on && BEL.listo()) {
@@ -1160,7 +1180,15 @@ async function exportar() {
         cuadros.set(i, f);
       }
       dibujarCuadro(t, (i) => cuadros.get(i), W, H, lctx);
-      if (motor.gl.isContextLost()) throw new Error('memoria');
+      if (motor.gl.isContextLost()) {
+        if (++recuperaciones > 4) throw new Error('memoria');
+        poner(3 + (n / N) * 95, 'El celular liberó memoria, retomando…');
+        if (!(await motor.recuperar(3000))) { motor = new Motor(); }
+        motor.tamano(W, H);
+        masc.clear();
+        dibujarCuadro(t, (i) => cuadros.get(i), W, H, lctx);
+        if (motor.gl.isContextLost()) throw new Error('memoria');
+      }
       await vsrc.add(t, 1 / fps);
       if (asrc && t + segAudio > audioHasta && audioHasta < L.total) await pedazoAudio(Math.min(L.total, audioHasta + segAudio * 2));
       if (n % 5 === 0) {

@@ -162,6 +162,13 @@ export class Motor {
     const gl = this.canvas.getContext('webgl2', { preserveDrawingBuffer: true, alpha: false, antialias: false, premultipliedAlpha: false });
     if (!gl) throw new Error('Este navegador no tiene WebGL2. Actualice Chrome o Safari.');
     this.gl = gl;
+    // Si el celular se queda sin memoria le quita la parte gráfica al navegador: se pide que la devuelva y se rearma
+    this.canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); this.perdido = true; });
+    this.canvas.addEventListener('webglcontextrestored', () => { const W = this.W, H = this.H; this.init(); this.perdido = false; this.tamano(W, H); });
+    this.init();
+  }
+  init() {
+    const gl = this.gl;
     this.pClip = compilar(gl, VERT, FRAG_CLIP);
     this.pMix = compilar(gl, VERT, FRAG_MIX);
     this.vao = gl.createVertexArray();
@@ -178,6 +185,12 @@ export class Motor {
     this.fb = [null, null];
     this.fbt = [null, null];
     this.W = 0; this.H = 0;
+  }
+  // Espera a que vuelva la parte gráfica (máximo "ms"); devuelve true si volvió
+  async recuperar(ms = 3000) {
+    const t0 = performance.now();
+    while (this.gl.isContextLost() && performance.now() - t0 < ms) await new Promise(r => setTimeout(r, 100));
+    return !this.gl.isContextLost();
   }
   tex() {
     const gl = this.gl, t = gl.createTexture();
