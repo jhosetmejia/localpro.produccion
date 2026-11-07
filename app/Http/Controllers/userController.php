@@ -110,7 +110,23 @@ class userController extends Controller
         abort_if($user->es_superadmin, 422, 'Este usuario no se puede eliminar.');
 
         $user->syncRoles([]);
-        $user->delete();
+        $user->syncPermissions([]);
+        $user->tokens()->delete();
+
+        try {
+            DB::transaction(fn () => $user->delete());
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Tiene historial (cajas, ventas…): no se puede borrar sin dañar los reportes.
+            // Se retira: sale de la tienda, no puede entrar y libera su correo. Su nombre sigue en el historial.
+            $user->forceFill([
+                'tienda_id' => null,
+                'email' => 'retirado-' . $user->id . '-' . time() . '@localproo.invalid',
+                'telefono' => null,
+                'password' => Hash::make(\Illuminate\Support\Str::random(40)),
+                'remember_token' => null,
+            ])->save();
+        }
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 
         return redirect()->route('users.index')->with('success', 'Usuario eliminado');
     }
