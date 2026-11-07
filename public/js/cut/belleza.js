@@ -13,7 +13,7 @@ export function cargar() {
   cargando = (async () => {
     const v = await import(`${MP}/vision_bundle.mjs`);
     const fs = await v.FilesetResolver.forVisionTasks(`${MP}/wasm`);
-    const op = (delegate) => ({ baseOptions: { modelAssetPath: MODELO, delegate }, runningMode: 'IMAGE', numFaces: 3 });
+    const op = (delegate) => ({ baseOptions: { modelAssetPath: MODELO, delegate }, runningMode: 'VIDEO', numFaces: 3, minTrackingConfidence: 0.4 });
     try { detector = await v.FaceLandmarker.createFromOptions(fs, op('GPU')); }
     catch (e) { detector = await v.FaceLandmarker.createFromOptions(fs, op('CPU')); }
     const uniq = (con) => [...new Set(con.flatMap(c => [c.start, c.end]))];
@@ -47,11 +47,31 @@ function poligono(ctx, pts, S, crecer) {
   ctx.fill();
 }
 
-// Detecta los rostros en la fuente y dibuja la máscara (blanco = piel del rostro) en "lienzo"
+// Copia reducida del cuadro para detectar rápido (los puntos salen en proporción 0..1, sirven igual)
+const chico = document.createElement('canvas');
+let ts = 0;
+export let ultimoMs = 0;
+function reducir(fuente) {
+  const w = fuente.videoWidth || fuente.width, h = fuente.videoHeight || fuente.height;
+  if (!w || !h) return null;
+  const k = Math.min(1, 384 / Math.max(w, h));
+  const cw = Math.max(2, Math.round(w * k)), ch = Math.max(2, Math.round(h * k));
+  if (chico.width !== cw || chico.height !== ch) { chico.width = cw; chico.height = ch; }
+  chico.getContext('2d').drawImage(fuente, 0, 0, cw, ch);
+  return chico;
+}
+// Detecta los rostros en la fuente (modo video: sigue la cara cuadro a cuadro) y dibuja la máscara en "lienzo"
 export function mascara(fuente, lienzo) {
   if (!detector) return false;
   let r;
-  try { r = detector.detect(fuente); } catch (e) { return false; }
+  const t0 = performance.now();
+  try {
+    const img = reducir(fuente);
+    if (!img) return false;
+    ts = Math.max(ts + 1, Math.round(t0));
+    r = detector.detectForVideo(img, ts);
+  } catch (e) { return false; }
+  ultimoMs = ultimoMs * 0.8 + (performance.now() - t0) * 0.2;
   const S = 192;
   if (lienzo.width !== S) { lienzo.width = S; lienzo.height = S; }
   const ctx = lienzo.getContext('2d');

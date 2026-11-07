@@ -248,7 +248,11 @@ function fuentePrevia(i) {
   if (!v || v.readyState < 2) return null;
   if (S.belleza.on && BEL.listo()) {
     const ahora = performance.now();
-    if (!c.ultDet || ahora - c.ultDet > 140) { c.ultDet = ahora; c.mascara ||= document.createElement('canvas'); BEL.mascara(v, c.mascara); }
+    // Detectar la cara en cada cuadro nuevo para que el filtro quede pegado al rostro.
+    // Solo si el celular es lento (más de 40 ms por detección) se salta un cuadro de por medio.
+    const cuadroNuevo = c.ultT !== v.currentTime;
+    const saltar = S.playing && BEL.ultimoMs > 40 && (c.par = !c.par);
+    if (cuadroNuevo && !saltar) { c.ultT = v.currentTime; c.ultDet = ahora; c.mascara ||= document.createElement('canvas'); BEL.mascara(v, c.mascara); }
   }
   return { src: v, w: v.videoWidth, h: v.videoHeight, mascara: c.mascara };
 }
