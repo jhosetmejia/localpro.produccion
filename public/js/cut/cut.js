@@ -314,9 +314,9 @@ function pintarLinea() {
   regla.innerHTML = rh;
   // Columna izquierda (como CapCut): silenciar clip y los íconos de las filas
   const izq = $('#cutIzq');
-  izq.style.left = Math.max(4, pad - 92) + 'px';
-  izq.innerHTML = `<button type="button" class="cut-sil ${S.silenciar ? 'on' : ''}" data-silenciar>${S.silenciar ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="m17 9 4 6M21 9l-4 6"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>'}<small>${S.silenciar ? 'Activar sonido' : 'Silenciar clip'}</small></button>
-    <span class="cut-fila-ic" style="top:94px">♪</span><span class="cut-fila-ic" style="top:128px">T</span>`;
+  izq.style.left = Math.max(4, pad - 116) + 'px';
+  izq.innerHTML = `<button type="button" class="cut-sil ${S.silenciar ? 'on' : ''}" data-silenciar>${S.silenciar ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="m17 9 4 6M21 9l-4 6"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>'}<small>${S.silenciar ? 'Activar<br>sonido' : 'Silenciar<br>clip'}</small></button>
+    <span class="cut-fila-ic" style="top:68px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18V5l9-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="15" cy="16" r="3"/></svg></span><span class="cut-fila-ic" style="top:102px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 5h14M12 5v15"/></svg></span>`;
   $('[data-silenciar]', izq).onclick = (e) => { e.stopPropagation(); S.silenciar = !S.silenciar; sincronizar(); pintarLinea(); guardar(); aviso(S.silenciar ? 'Sonido original silenciado 🔇' : 'Sonido original activado 🔈'); };
 
   const pista = $('#cutPistaV');

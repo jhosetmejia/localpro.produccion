@@ -75,15 +75,16 @@ button{font:inherit;color:inherit;cursor:pointer}
 #cutRegla{position:absolute;left:0;right:0;top:22px;height:14px}
 #cutRegla span{position:absolute;transform:translateX(-50%);font-size:.62rem;color:var(--m);font-variant-numeric:tabular-nums}
 #cutRegla i{position:absolute;top:6px;width:3px;height:3px;margin-left:-1.5px;border-radius:50%;background:var(--m)}
-#cutIzq{position:absolute;top:40px;width:84px;height:130px}
-.cut-sil{position:absolute;top:2px;left:0;width:80px;height:58px;border:0;background:transparent;color:#cfd8d2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:.6rem;font-weight:700;line-height:1.1}
-.cut-sil svg{width:24px;height:24px}
+#cutIzq{position:absolute;top:40px;width:110px;height:134px}
+.cut-sil{position:absolute;top:0;left:0;width:72px;height:60px;border:0;background:transparent;color:#e6ece8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:.66rem;font-weight:700;line-height:1.15;text-align:center;padding:0}
+.cut-sil svg{width:26px;height:26px}
 .cut-sil.on{color:#ff8fb8}
-.cut-fila-ic{position:absolute;right:10px;width:26px;height:26px;margin-top:-40px;border-radius:7px;background:var(--f3);display:grid;place-items:center;font-size:.8rem;font-weight:800;color:var(--m)}
+.cut-fila-ic{position:absolute;right:6px;width:30px;height:30px;border-radius:8px;background:var(--f3);display:grid;place-items:center;color:#cfd8d2}
+.cut-fila-ic svg{width:17px;height:17px}
 .cut-ph{position:absolute;left:50%;top:22px;bottom:4px;width:2px;margin-left:-1px;background:#fff;border-radius:2px;pointer-events:none;z-index:5;box-shadow:0 0 6px rgba(0,0,0,.6)}
 #cutPistaV{position:absolute;left:0;right:0;top:42px;height:58px}
-#cutPistaA{position:absolute;left:0;right:0;top:108px;height:28px}
-#cutPistaT{position:absolute;left:0;right:0;top:142px;height:28px}
+#cutPistaA{position:absolute;left:0;right:0;top:107px;height:30px}
+#cutPistaT{position:absolute;left:0;right:0;top:141px;height:30px}
 .cut-clip{position:absolute;top:0;height:58px;border-radius:6px;background:#2a332d center/cover;border:2px solid transparent;overflow:hidden;cursor:pointer}
 .cut-clip span{position:absolute;left:4px;bottom:3px;font-size:.64rem;font-weight:700;background:rgba(0,0,0,.6);padding:1px 5px;border-radius:5px}
 .cut-clip em{position:absolute;left:4px;top:3px;font-style:normal;font-size:.64rem;font-weight:800;background:rgba(0,0,0,.6);padding:1px 6px;border-radius:5px;color:#fff}
@@ -92,7 +93,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .cut-rombo{position:absolute;top:17px;width:24px;height:24px;border-radius:6px;border:0;background:#fff;color:var(--f);font-size:.8rem;font-weight:900;z-index:3;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.5);padding:0}
 .cut-rombo.on{background:var(--v)}
 .cut-mas{position:absolute;top:10px;width:38px;height:38px;border-radius:8px;border:0;background:#fff;color:var(--f);font-size:1.5rem;font-weight:600;line-height:1;padding:0}
-.cut-agregar{position:absolute;top:0;height:28px;min-width:150px;border:0;border-radius:6px;background:var(--f2);color:#cfd8d2;font-size:.74rem;font-weight:700;text-align:left;padding:0 10px;white-space:nowrap}
+.cut-agregar{position:absolute;top:0;height:30px;min-width:150px;border:0;border-radius:6px;background:var(--f2);color:#cfd8d2;font-size:.74rem;font-weight:700;text-align:left;padding:0 10px;white-space:nowrap}
 .cut-mus{position:absolute;top:0;height:28px;border-radius:6px;background:#173a2a;border:1px solid #2c7a52;color:#b9f5cf;font-size:.68rem;font-weight:700;padding:6px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
 .cut-mus.sel{border-color:#fff}
 .cut-sub{position:absolute;top:0;height:28px;border-radius:6px;background:#3b2a52;border:1px solid #6b4aa0;color:#e9dcff;font-size:.68rem;font-weight:700;padding:6px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
