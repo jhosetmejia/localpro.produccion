@@ -350,7 +350,7 @@ function pintarLinea() {
   izq.style.left = Math.max(4, pad - 116) + 'px';
   izq.innerHTML = `<button type="button" class="cut-sil ${S.silenciar ? 'on' : ''}" data-silenciar>${S.silenciar ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="m17 9 4 6M21 9l-4 6"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>'}<small>${S.silenciar ? 'Activar<br>sonido' : 'Silenciar<br>clip'}</small></button>
     <span class="cut-fila-ic" style="top:68px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18V5l9-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="15" cy="16" r="3"/></svg></span><span class="cut-fila-ic" style="top:102px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 5h14M12 5v15"/></svg></span>`;
-  $('[data-silenciar]', izq).onclick = (e) => { e.stopPropagation(); S.silenciar = !S.silenciar; sincronizar(); pintarLinea(); guardar(); aviso(S.silenciar ? 'Sonido original silenciado 🔇' : 'Sonido original activado 🔈'); };
+
 
   const pista = $('#cutPistaV');
   pista.innerHTML = '';
@@ -430,6 +430,21 @@ function pintarLinea() {
   moverLinea();
   S.dirty = true;
 }
+
+// Silenciar clip: responde al primer toque aunque esté dentro de la línea que se desliza
+(() => {
+  const izq = $('#cutIzq');
+  let ini = null;
+  const alternar = () => { S.silenciar = !S.silenciar; sincronizar(); pintarLinea(); guardar(); aviso(S.silenciar ? 'Sonido original silenciado 🔇' : 'Sonido original activado 🔈'); };
+  izq.addEventListener('pointerdown', (e) => { if (e.target.closest('[data-silenciar]')) { ini = { x: e.clientX, y: e.clientY, t: Date.now() }; e.stopPropagation(); } }, true);
+  izq.addEventListener('pointerup', (e) => {
+    if (!ini || !e.target.closest('[data-silenciar]')) { ini = null; return; }
+    const mov = Math.hypot(e.clientX - ini.x, e.clientY - ini.y);
+    ini = null;
+    if (mov < 14) { e.preventDefault(); e.stopPropagation(); izq._ultimo = Date.now(); alternar(); }
+  }, true);
+  izq.addEventListener('click', (e) => { if (e.target.closest('[data-silenciar]')) { e.stopPropagation(); if (Date.now() - (izq._ultimo || 0) > 600) alternar(); } });
+})();
 
 /* ---------- música ---------- */
 function largoM(m) { return Math.max(0.1, (m.out ?? m.dur ?? 0) - (m.in || 0)); }
@@ -1266,6 +1281,8 @@ vista.addEventListener('pointermove', (e) => {
     if (my > 0.001) k.y = Math.max(-1, Math.min(1, gesto.y0 - dy * sc[1] / my));
   }
   S.dirty = true;
+  clearTimeout(vista._tg);
+  vista._tg = setTimeout(() => { guardar(); if (S.tab === 'editar') pintarPanel(); }, 450);
 });
 const soltar = (e) => {
   if (!dedos.has(e.pointerId)) return;
@@ -1275,7 +1292,7 @@ const soltar = (e) => {
     const pts = [...dedos.values()];
     const k = gesto.k;
     gesto = pts.length ? { c, k, z0: k?.z || 1, x0: k?.x || 0, y0: k?.y || 0, p0: pts.map(q => ({ ...q })), d0: 0 } : null;
-    if (!pts.length && k) { guardar(); if (S.tab === 'editar') pintarPanel(); }
+    if (!pts.length && k) { clearTimeout(vista._tg); guardar(); if (S.tab === 'editar') pintarPanel(); }
   }
 };
 vista.addEventListener('pointerup', soltar);

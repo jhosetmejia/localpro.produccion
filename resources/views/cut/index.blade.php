@@ -75,8 +75,11 @@ button{font:inherit;color:inherit;cursor:pointer}
 #cutRegla{position:absolute;left:0;right:0;top:22px;height:14px}
 #cutRegla span{position:absolute;transform:translateX(-50%);font-size:.62rem;color:var(--m);font-variant-numeric:tabular-nums}
 #cutRegla i{position:absolute;top:6px;width:3px;height:3px;margin-left:-1.5px;border-radius:50%;background:var(--m)}
-#cutIzq{position:absolute;top:40px;width:110px;height:134px}
-.cut-sil{position:absolute;top:0;left:0;width:72px;height:60px;border:0;background:transparent;color:#e6ece8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:.66rem;font-weight:700;line-height:1.15;text-align:center;padding:0}
+#cutIzq{position:absolute;top:40px;width:110px;height:134px;z-index:4;pointer-events:none}
+#cutIzq .cut-sil{pointer-events:auto}
+#cutPistaV,#cutPistaA,#cutPistaT,#cutRegla{pointer-events:none}
+#cutPistaV>*,#cutPistaA>*,#cutPistaT>*{pointer-events:auto}
+.cut-sil{position:absolute;top:-4px;left:-6px;width:84px;height:68px;touch-action:manipulation;-webkit-user-select:none;user-select:none;border:0;background:transparent;color:#e6ece8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:.66rem;font-weight:700;line-height:1.15;text-align:center;padding:0}
 .cut-sil svg{width:26px;height:26px}
 .cut-sil.on{color:#ff8fb8}
 .cut-fila-ic{position:absolute;right:6px;width:30px;height:30px;border-radius:8px;background:var(--f3);display:grid;place-items:center;color:#cfd8d2}
