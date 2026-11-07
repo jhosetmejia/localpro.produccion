@@ -93,6 +93,9 @@ foreach (['privacidad' => 'privacidad', 'terminos' => 'terminos', 'eliminar-dato
     Route::get('/' . $ruta, fn () => view('legal.' . $vista, ['correo' => \App\Models\Ajuste::valor('correo_legal') ?: config('mail.from.address')]))->name('legal.' . $vista);
 }
 // Giro 360: página pública para las máquinas de video 360 (graba, edita con velocidad curva y guarda el cliente)
+// LocalProCut: editor de video en el navegador (todo pasa en el equipo del usuario, nada se sube)
+Route::view('/cut', 'cut.index')->name('cut');
+Route::redirect('/localprocut', '/cut');
 Route::get('/360', [\App\Http\Controllers\giro360Controller::class, 'index'])->name('giro360');
 Route::view('/360/audio', 'giro360.audio')->name('giro360.audio');
 Route::view('/360/avanzado', 'giro360.avanzado')->name('giro360.avanzado');

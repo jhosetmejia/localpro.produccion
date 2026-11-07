@@ -15,6 +15,7 @@
     ],
     "shortcuts": [
         { "name": "Vender (POS)", "url": "/pos", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
-        { "name": "Inventario", "url": "/inventario", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+        { "name": "Inventario", "url": "/inventario", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+        { "name": "Edita tus videos con LocalPro", "short_name": "LocalProCut", "url": "/cut", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
     ]
 }

@@ -66,6 +66,7 @@ class Tienda extends Model
         'entradas' => ['Entradas de mercancía', 'fa-truck-ramp-box', 'Inventario', 'Registrar compras a proveedores'],
         'categorias' => ['Categorías', 'fa-tags', 'Inventario', 'Grupos de productos'],
         'redes' => ['Mis redes', 'fa-hashtag', 'Inventario', 'Mensajes de Facebook e Instagram'],
+        'cut' => ['LocalProCut (editar videos)', 'fa-scissors', 'Inventario', 'Subtítulos, transiciones, belleza y 4K para sus videos'],
         'clientes' => ['Clientes', 'fa-people-group', 'Contactos', 'Datos de sus clientes'],
         'proveedores' => ['Proveedores', 'fa-handshake', 'Contactos', 'A quién le compra'],
         'facturacion' => ['Facturación DIAN', 'fa-file-invoice-dollar', 'Mi negocio', 'Factura electrónica'],

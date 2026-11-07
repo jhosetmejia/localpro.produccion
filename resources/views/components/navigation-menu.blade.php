@@ -105,6 +105,10 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-bullhorn"></i></div>
                     Vende más · estados <span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c;font-size:.6rem">NUEVO</span>
                 </a>
+                <a class="nav-link" href="{{ route('cut') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-scissors"></i></div>
+                    Edita tus videos <span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c;font-size:.6rem">NUEVO</span>
+                </a>
                 <a class="nav-link {{ $on('asesor.red') }}" href="{{ route('asesor.red') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-sitemap"></i></div>
                     Mi red
@@ -361,6 +365,10 @@
                     Mis redes @if ($redesNl)<span class="badge rounded-pill ms-auto" style="background:#ff3b6b;color:#fff">{{ $redesNl }}</span>@else<span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c;font-size:.6rem">NUEVO</span>@endif
                 </a>@endif
                 @endcanany
+                @if ($tiendaMenu && $ver('cut'))<a class="nav-link {{ $on('cut') }}" href="{{ route('cut') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-scissors"></i></div>
+                    Edita tus videos <span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c;font-size:.6rem">NUEVO</span>
+                </a>@endif
 
                 @canany(['ver-cliente', 'ver-proveedore'])
                 @if ($ver('clientes') || $ver('proveedores'))<div class="sb-sidenav-menu-heading">Contactos</div>@endif
