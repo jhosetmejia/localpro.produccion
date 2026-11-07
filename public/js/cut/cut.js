@@ -1,6 +1,6 @@
 /* LocalProCut · editor de video en el navegador (celular primero).
    Todo pasa en el equipo del usuario: los videos no se suben al servidor. */
-import * as MB from './mediabunny.min.mjs';
+import * as MB from './mediabunny.min.js';
 import { Motor, TRANSICIONES } from './motor.js';
 import * as SUB from './subtitulos.js';
 import * as BEL from './belleza.js';

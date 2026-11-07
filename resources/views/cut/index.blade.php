@@ -269,8 +269,23 @@ button{font:inherit;color:inherit;cursor:pointer}
     </div>
 </div>
 
+<script>
+/* Si el editor no arranca (navegador viejo o archivo bloqueado), mostrar el motivo en pantalla */
+(function(){
+  var errores = [];
+  function mostrar(msg){
+    var v = document.getElementById('cutVacio');
+    if (!v || window.__cut) return;
+    v.hidden = false;
+    v.innerHTML = '<h2>No se pudo abrir el editor</h2><p>Actualice su iPhone/Android y use Safari o Chrome actualizados. Si sigue, envíe una foto de esta pantalla a LocalPro.</p><p style="font-size:.75rem;color:#ff8fb8;word-break:break-word">' + String(msg).replace(/</g,'&lt;') + '</p>';
+  }
+  window.addEventListener('error', function(e){ errores.push((e.message || 'Error') + (e.filename ? ' · ' + e.filename.split('/').pop() + ':' + e.lineno : '')); }, true);
+  window.addEventListener('unhandledrejection', function(e){ errores.push(String(e.reason && e.reason.message || e.reason)); });
+  window.addEventListener('load', function(){ setTimeout(function(){ if (!window.__cut) mostrar(errores.join(' | ') || 'El editor no cargó (' + navigator.userAgent + ')'); }, 4000); });
+})();
+</script>
 @php $cv = fn ($f) => '/js/cut/' . $f . '?v=' . @filemtime(public_path('js/cut/' . $f)); @endphp
-<script type="importmap">{!! json_encode(['imports' => collect(['motor.js', 'subtitulos.js', 'belleza.js', 'mediabunny.min.mjs'])->mapWithKeys(fn ($f) => ['/js/cut/' . $f => $cv($f)])->all()], JSON_UNESCAPED_SLASHES) !!}</script>
+<script type="importmap">{!! json_encode(['imports' => collect(['motor.js', 'subtitulos.js', 'belleza.js', 'mediabunny.min.js'])->mapWithKeys(fn ($f) => ['/js/cut/' . $f => $cv($f)])->all()], JSON_UNESCAPED_SLASHES) !!}</script>
 <script type="module" src="{{ $cv('cut.js') }}"></script>
 </body>
 </html>
