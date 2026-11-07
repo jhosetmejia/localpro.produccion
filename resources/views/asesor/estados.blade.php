@@ -27,6 +27,15 @@
 .es-ver{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;place-items:center;z-index:3000;padding:1rem}
 .es-ver.on{display:grid}
 .es-ver img{max-height:92vh;max-width:100%;border-radius:18px}
+.es-sec{display:flex;align-items:end;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin:1.4rem 0 .7rem}
+.es-sec h2{font-size:1.3rem;font-weight:900;margin:0}
+.es-sec p{margin:0;color:#55605a;font-weight:600;font-size:.9rem}
+.es-vid{position:relative;aspect-ratio:9/16;border-radius:16px;background:#0b0d0c;overflow:hidden}
+.es-vid video{width:100%;height:100%;object-fit:cover;display:block}
+.es-vid .play{position:absolute;inset:0;display:grid;place-items:center;border:0;background:linear-gradient(180deg,rgba(0,0,0,0) 55%,rgba(0,0,0,.45));color:#fff;cursor:pointer}
+.es-vid .play span{width:64px;height:64px;border-radius:50%;background:rgba(166,243,74,.95);color:#0b0d0c;display:grid;place-items:center;font-size:1.4rem;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.es-vid.sonando .play{opacity:0}
+.es-vid .dur{position:absolute;right:.5rem;bottom:.5rem;background:rgba(0,0,0,.6);color:#fff;font-weight:800;font-size:.72rem;border-radius:999px;padding:.15rem .5rem;pointer-events:none}
 .es-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:#0b0d0c;color:#fff;border-radius:999px;padding:.6rem 1.2rem;font-weight:800;opacity:0;transition:.25s;z-index:3100;pointer-events:none;text-align:center;max-width:92vw}
 .es-toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
@@ -36,10 +45,10 @@
 <div class="lp-dash">
     <div class="es-hero">
         <small><i class="fa-solid fa-bullhorn me-1"></i>Vende más</small>
-        <h1>Suba estas imágenes a sus <em>estados</em></h1>
+        <h1>Suba estos videos e imágenes a sus <em>estados</em></h1>
         <p>Hay una para cada tipo de negocio: tiendas de ropa, restaurantes, odontólogos, conjuntos y más. Cada imagen vende con los beneficios de ese sistema y puede llevar <b>su WhatsApp</b> ("Contáctanos") o ir sin número. El texto que se copia trae su enlace con el código {{ $yo->codigo }}: el negocio que se registre queda a su nombre.</p>
         <div class="es-pasos">
-            <span><b>1.</b> Toque "Compartir" o descárguela con o sin su número</span>
+            <span><b>1.</b> Toque "Compartir" en un video o una imagen</span>
             <span><b>2.</b> Súbala a su estado de WhatsApp o historia de Instagram</span>
             <span><b>3.</b> Pegue el texto (ya queda copiado)</span>
             <span><b>💡</b> Una distinta cada día</span>
@@ -48,6 +57,31 @@
 
     @if (!$whatsapp)
     <div class="es-aviso"><i class="fa-solid fa-circle-info me-1"></i>Sus imágenes no muestran su WhatsApp porque no lo tiene en su perfil, y es lo más importante para que le escriban. <a href="{{ route('cuenta.edit') }}" class="fw-bold">Agréguelo en Mi cuenta</a>.</div>
+    @endif
+
+    @if (count($videos))
+    <div class="es-sec">
+        <div><h2>🎬 Videos para estados</h2><p>Con música, listos para subir. Quien los vea le responde el estado y usted le ayuda a registrarse.</p></div>
+    </div>
+    <div class="es-grid mb-2">
+        @foreach ($videos as $v)
+        <div class="es-card {{ $v['clave'] === $sugerida ? 'hoy' : '' }}">
+            @if ($v['clave'] === $sugerida)<span class="tag">⭐ Sugerido hoy</span>@endif
+            <div class="es-vid">
+                <video src="{{ $v['video'] }}" poster="{{ $v['poster'] }}" preload="none" playsinline loop></video>
+                <button type="button" class="play" data-play aria-label="Ver video"><span><i class="fa-solid fa-play"></i></span></button>
+                <span class="dur">0:16</span>
+            </div>
+            <h3>{{ $v['emoji'] }} {{ $v['titulo'] }}</h3>
+            <div class="es-btns">
+                <button type="button" class="btn btn-success" data-vcompartir="{{ $v['i'] }}"><i class="fa-solid fa-share-nodes me-1"></i>Compartir video</button>
+                <a class="btn btn-outline-dark" href="{{ $v['video'] }}" download="localpro-{{ $v['clave'] }}.mp4" data-vbajar="{{ $v['i'] }}"><i class="fa-solid fa-download me-1"></i>Descargar</a>
+                <button type="button" class="btn btn-light" style="border:1.5px solid #bfeccb" data-texto="{{ $v['i'] }}"><i class="fa-regular fa-copy me-1"></i>Texto</button>
+            </div>
+        </div>
+        @endforeach
+    </div>
+    <div class="es-sec"><div><h2>🖼️ Imágenes para estados</h2><p>Pueden llevar su WhatsApp o ir sin número.</p></div></div>
     @endif
 
     <div class="es-grid">
@@ -254,6 +288,37 @@
     function bajar(i, sin) {
         var a = document.createElement('a'); a.href = sin ? sinNumero(i) : listas[i]; a.download = 'localpro-' + L[i].clave + (sin ? '' : '-' + CODIGO) + '.jpg';
         document.body.appendChild(a); a.click(); a.remove();
+    }
+    document.addEventListener('click', function (ev) {
+        var pl = ev.target.closest('[data-play]');
+        if (pl) {
+            var caja = pl.parentNode, vid = caja.querySelector('video');
+            document.querySelectorAll('.es-vid video').forEach(function (o) { if (o !== vid) { o.pause(); o.parentNode.classList.remove('sonando'); } });
+            if (vid.paused) { vid.play().then(function () { caja.classList.add('sonando'); }, function () {}); } else { vid.pause(); caja.classList.remove('sonando'); }
+            return;
+        }
+        var vv = ev.target.closest('.es-vid video');
+        if (vv) { vv.pause(); vv.parentNode.classList.remove('sonando'); return; }
+        var vb = ev.target.closest('[data-vbajar]');
+        if (vb) { copiar(L[vb.dataset.vbajar].texto); aviso('✅ Video descargándose y texto copiado'); return; }
+        var vc = ev.target.closest('[data-vcompartir]');
+        if (!vc) return;
+        var k = vc.dataset.vcompartir, url = vc.closest('.es-card').querySelector('video').getAttribute('src');
+        copiar(L[k].texto);
+        if (!navigator.canShare) { bajarVideo(url, k); return; }
+        vc.disabled = true; var antes = vc.innerHTML; vc.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Preparando…';
+        fetch(url).then(function (r) { if (!r.ok) throw new Error(); return r.blob(); }).then(function (b) {
+            vc.disabled = false; vc.innerHTML = antes;
+            var f = new File([b], 'localpro-' + L[k].clave + '.mp4', { type: 'video/mp4' });
+            if (navigator.canShare({ files: [f] })) {
+                navigator.share({ files: [f], text: L[k].texto }).then(function () { aviso('✅ ¡Listo! El texto también quedó copiado'); }, function () {});
+            } else { bajarVideo(url, k); }
+        }).catch(function () { vc.disabled = false; vc.innerHTML = antes; bajarVideo(url, k); });
+    });
+    function bajarVideo(url, k) {
+        var a = document.createElement('a'); a.href = url; a.download = 'localpro-' + L[k].clave + '.mp4';
+        document.body.appendChild(a); a.click(); a.remove();
+        aviso('✅ Video descargado y texto copiado: súbalo a su estado');
     }
     document.addEventListener('click', function (ev) {
         var s = ev.target.closest('[data-compartir]'), d = ev.target.closest('[data-bajar]'), ds = ev.target.closest('[data-bajar-sin]'), t = ev.target.closest('[data-texto]'), v = ev.target.closest('[data-ver]'), cierre = ev.target.closest('#esVer');

@@ -118,9 +118,19 @@ class asesorVenderController extends Controller
     {
         $yo = $request->attributes->get('asesor');
         $lista = self::estados($yo);
+        // Videos para estados (public/videos/estados/{clave}.mp4 con su portada .jpg)
+        $videos = [];
+        foreach ($lista as $i => $e) {
+            $base = 'videos/estados/' . $e['clave'];
+            if (is_file(public_path($base . '.mp4'))) {
+                $v = '?v=' . filemtime(public_path($base . '.mp4'));
+                $videos[] = ['i' => $i, 'clave' => $e['clave'], 'titulo' => $e['titulo'], 'emoji' => $e['emoji'], 'video' => asset($base . '.mp4') . $v, 'poster' => asset($base . '.jpg') . $v];
+            }
+        }
         return view('asesor.estados', [
             'yo' => $yo,
             'lista' => $lista,
+            'videos' => $videos,
             'sugerida' => $lista[now()->dayOfYear % count($lista)]['clave'],
             'whatsapp' => preg_replace('/\D+/', '', (string) $yo->user?->telefono),
         ]);
