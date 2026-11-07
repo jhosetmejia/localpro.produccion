@@ -1,0 +1,19 @@
+{
+    "id": "/cut",
+    "name": "LocalProCut — Editor de videos",
+    "short_name": "LocalProCut",
+    "description": "Edite sus videos: subtítulos automáticos, transiciones, filtro de belleza y 4K a 60 fps.",
+    "start_url": "/cut?app=1",
+    "scope": "/cut",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#0b0d0c",
+    "theme_color": "#0b0d0c",
+    "lang": "es",
+    "categories": ["photo", "video", "productivity"],
+    "icons": [
+        { "src": "/icons/cut-192.png", "sizes": "192x192", "type": "image/png" },
+        { "src": "/icons/cut-512.png", "sizes": "512x512", "type": "image/png" },
+        { "src": "/icons/cut-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    ]
+}

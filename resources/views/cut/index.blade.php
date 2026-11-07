@@ -8,8 +8,13 @@
 <meta name="description" content="Editor de videos de LocalProo: subtítulos automáticos con estilos, transiciones, filtro de belleza y exportar en 4K a 60 fps. Desde el celular o el computador, sin instalar nada.">
 <meta property="og:title" content="LocalProCut · Edite sus videos con LocalProo">
 <meta property="og:description" content="Subtítulos automáticos, transiciones, filtro de belleza y 4K a 60 fps. Gratis en el navegador.">
-<link rel="icon" href="/favicon.ico">
-<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/cut-192.png" type="image/png">
+<link rel="manifest" href="/cut.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LocalProCut">
+<link rel="apple-touch-icon" href="/icons/cut-apple-touch.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700;800&family=Montserrat:wght@700;800;900&family=Playfair+Display:ital,wght@1,700&family=Space+Mono:wght@700&family=Unbounded:wght@700;800&display=swap" rel="stylesheet">
@@ -27,10 +32,23 @@ button{font:inherit;color:inherit;cursor:pointer}
 .cut-logo b{color:var(--v)}
 .cut-top .sp{flex:1}
 .cut-top .nuevo{background:transparent;border:1px solid var(--b);border-radius:999px;padding:.35rem .75rem;font-size:.8rem;color:var(--m)}
+.cut-app{display:flex;align-items:center;gap:.35rem;background:var(--f3);border:1px solid var(--b);border-radius:999px;padding:.35rem .7rem;font-size:.78rem;font-weight:800;color:var(--v)}
+.cut-app img{width:18px;height:18px;border-radius:5px}
+@media (max-width:440px){.cut-top{gap:.4rem;padding-left:8px;padding-right:10px}.cut-app span{display:none}.cut-app{padding:.3rem .45rem}.cut-top .nuevo{padding:.35rem .55rem;font-size:.74rem}.cut-logo{font-size:.86rem;gap:.3rem}.cut-logo i{width:22px;height:22px;font-size:.7rem}.cut-exp{padding:.45rem .8rem!important;font-size:.85rem}}
+.es-cutapp .solo-web{display:none!important}
+.cut-vacio .app-baja{margin-top:.4rem;display:flex;align-items:center;gap:.55rem;background:var(--f3);border:1px solid var(--b);border-radius:16px;padding:.6rem .9rem;color:var(--t);font-weight:700;font-size:.88rem}
+.cut-vacio .app-baja img{width:34px;height:34px;border-radius:9px}
+.cut-vacio .app-baja small{display:block;color:var(--m);font-weight:600;font-size:.74rem}
+.cut-guia li{display:flex;gap:.6rem;align-items:center;padding:.55rem 0;border-top:1px solid var(--b);font-weight:700;font-size:.92rem}
+.cut-guia ol{list-style:none;padding:0;margin:0 0 .6rem;counter-reset:p}
+.cut-guia li::before{counter-increment:p;content:counter(p);flex:0 0 26px;height:26px;border-radius:50%;background:var(--v);color:var(--f);display:grid;place-items:center;font-weight:900;font-size:.8rem}
+.cut-guia h3{display:flex;align-items:center;gap:.6rem}
+.cut-guia h3 img{width:42px;height:42px;border-radius:11px}
 .cut-exp{background:linear-gradient(90deg,var(--v),var(--v2));border:0;border-radius:999px;padding:.5rem 1.05rem;font-weight:800;color:var(--f)!important}
 #cutVistaCaja{flex:1 1 0;min-height:150px;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 40%,#161c18,#0b0d0c 70%)}
 #cutLienzo{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:auto;height:auto;max-width:calc(100% - 20px);max-height:calc(100% - 20px);background:#000;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
-.cut-vacio{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;gap:.6rem;background:var(--f)}
+.cut-vacio{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:16px 20px;gap:.55rem;background:var(--f);overflow-y:auto}
+.cut-vacio::before,.cut-vacio::after{content:"";flex:1 1 0}
 .cut-vacio h2{font-family:Unbounded,sans-serif;font-size:1.35rem;margin:.2rem 0 0;line-height:1.2}
 .cut-vacio h2 b{color:var(--v)}
 .cut-vacio p{margin:0;color:var(--m);max-width:34ch}
@@ -172,9 +190,10 @@ button{font:inherit;color:inherit;cursor:pointer}
 </head>
 <body>
 <header class="cut-top">
-    <a class="volver" href="{{ url('/') }}" aria-label="Volver">‹</a>
+    <a class="volver solo-web" href="{{ url('/') }}" aria-label="Volver">‹</a>
     <div class="cut-logo"><i>✂</i>LocalPro<b>Cut</b></div>
     <span class="sp"></span>
+    <button type="button" class="cut-app solo-web" data-instalar><img src="/icons/cut-192.png" alt=""><span>Descargar app</span></button>
     <button type="button" class="nuevo" id="cutNuevo">Nuevo</button>
     <button type="button" class="cut-exp" id="cutBtnExportar">Exportar</button>
 </header>
@@ -185,6 +204,7 @@ button{font:inherit;color:inherit;cursor:pointer}
         <h2>Edite sus videos con <b>LocalPro</b></h2>
         <p>Subtítulos automáticos, transiciones, filtro de belleza y exporte en 4K a 60 fps. Todo aquí mismo, sin instalar nada.</p>
         <button type="button" class="grande" data-agregar><span>+</span> Agregar videos o fotos</button>
+        <button type="button" class="app-baja solo-web" data-instalar><img src="/icons/cut-192.png" alt=""><span>Descargar LocalProCut<small>Instálela en su celular como una app aparte</small></span></button>
         <ul><li>✨ Subtítulos con estilos</li><li>◆ Transiciones</li><li>💄 Belleza</li><li>🎬 4K · 60 fps</li></ul>
     </div>
 </div>
@@ -220,6 +240,15 @@ button{font:inherit;color:inherit;cursor:pointer}
 <div id="cutVideos"></div>
 <div class="cut-toasts" id="cutToasts"></div>
 <div class="cut-cargando" id="cutCargando" hidden><div><i></i><span>Cargando…</span></div></div>
+
+<div class="cut-modal" id="cutGuiaApp" hidden>
+    <div class="cut-hoja cut-guia">
+        <h3><img src="/icons/cut-192.png" alt="">Descargar LocalProCut</h3>
+        <p data-nota></p>
+        <ol data-pasos></ol>
+        <div class="fila-b"><button type="button" class="cut-exp" data-cerrar>Entendido</button></div>
+    </div>
+</div>
 
 <div class="cut-modal" id="cutPregunta" hidden>
     <div class="cut-hoja"><h3></h3><p></p><div class="fila-b"><button type="button" class="cut-btn-sec" data-no></button><button type="button" class="cut-exp" data-si></button></div></div>
@@ -269,6 +298,53 @@ button{font:inherit;color:inherit;cursor:pointer}
     </div>
 </div>
 
+<script>
+/* Descargar LocalProCut como app aparte (Android: instalador del navegador · iPhone: pasos de Safari) */
+(function(){
+  // Dentro de la app LocalProCut (abierta desde su ícono) no se muestra "Descargar"
+  var standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+  try { if (/[?&]app=1/.test(location.search)) sessionStorage.setItem('cutApp', '1'); } catch (x) {}
+  var enCutApp = false;
+  // iPhone abre el ícono en /cut sin ?app=1: si no viene de otra página de LocalPro, es la app LocalProCut
+  try { enCutApp = standalone && (sessionStorage.getItem('cutApp') === '1' || !document.referrer); } catch (x) {}
+  if (enCutApp) document.documentElement.classList.add('es-cutapp');
+  if ('serviceWorker' in navigator) window.addEventListener('load', function(){ navigator.serviceWorker.register('/sw.js?v=3').catch(function(){}); });
+  var aviso = null;
+  window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); aviso = e; });
+  window.addEventListener('appinstalled', function(){ aviso = null; document.querySelectorAll('[data-instalar]').forEach(function(b){ b.hidden = true; }); });
+  var ua = navigator.userAgent || '';
+  var iOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var compartir = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#3ea6ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
+  function guia(nota, pasos){
+    var m = document.getElementById('cutGuiaApp');
+    m.querySelector('[data-nota]').textContent = nota;
+    m.querySelector('[data-pasos]').innerHTML = pasos.map(function(p){ return '<li><span>' + p + '</span></li>'; }).join('');
+    m.hidden = false;
+    m.querySelector('[data-cerrar]').onclick = function(){ m.hidden = true; };
+  }
+  document.addEventListener('click', function(e){
+    var b = e.target.closest && e.target.closest('[data-instalar]');
+    if (!b) return;
+    if (aviso) { var p = aviso; p.prompt(); p.userChoice.finally(function(){ aviso = null; }); return; }
+    if (standalone) return guia('Está dentro de la app de LocalPro. Para tener LocalProCut con su propio ícono, ábralo en el navegador:', [
+      'Abra <b>' + (iOS ? 'Safari' : 'Chrome') + '</b> y entre a <b>localproo.com/cut</b>',
+      'Toque <b>Descargar app</b> arriba',
+      'Siga los pasos y listo: le queda el ícono <b>LocalProCut</b>'
+    ]);
+    if (iOS) return guia('Queda con su propio ícono en la pantalla de inicio y se abre a pantalla completa, como una app.', [
+      'Abra esta página en <b>Safari</b>',
+      'Toque <b>Compartir</b> ' + compartir + ' (abajo en Safari)',
+      'Baje y toque <b>Agregar a inicio</b>',
+      'Toque <b>Agregar</b>. Listo: busque el ícono <b>LocalProCut</b>'
+    ]);
+    guia('Queda con su propio ícono, aparte de la app de LocalPro.', [
+      'Toque el menú <b>⋮</b> del navegador (arriba a la derecha)',
+      'Toque <b>Instalar aplicación</b> o <b>Agregar a pantalla principal</b>',
+      'Confirme con <b>Instalar</b>. Busque el ícono <b>LocalProCut</b>'
+    ]);
+  });
+})();
+</script>
 <script>
 /* Si el editor no arranca (navegador viejo o archivo bloqueado), mostrar el motivo en pantalla */
 (function(){
