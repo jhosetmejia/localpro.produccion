@@ -17,7 +17,7 @@ const RESOL = { 720: '720p', 1080: '1080p · Full HD', 1440: '2K', 2160: '4K' };
 const S = {
   clips: [], subs: [], segs: [],
   sub: { estilo: 'tiktok', tam: 'M', pos: 0.72, color: '#a6f34a', mayus: false, palabras: 3 },
-  belleza: { on: false, suave: 0.55, aclara: 0.3, brillo: 0.1, preset: 'natural' },
+  belleza: { on: false, suave: 0.45, aclara: 0.25, brillo: 0, preset: 'natural' },
   aspecto: '9:16',
   musica: [], silenciar: false, selM: null,
   t: 0, playing: false, sel: null, tab: null, pps: 56,
@@ -782,16 +782,16 @@ function pintarPanel() {
       <div class="cut-estado-bel"></div>
       <div class="cut-fila"><small>Estilo</small>${chips('preset', [['natural', 'Natural'], ['suave', 'Suave'], ['glam', 'Glam']], b.preset)}</div>
       <div class="cut-fila"><small>Suavizar piel</small><input type="range" min="0" max="1" step="0.01" value="${b.suave}" data-k="suave"></div>
-      <div class="cut-fila"><small>Iluminar rostro</small><input type="range" min="0" max="1" step="0.01" value="${b.aclara}" data-k="aclara"></div>
+      <div class="cut-fila"><small>Iluminar (su tono)</small><input type="range" min="0" max="1" step="0.01" value="${b.aclara}" data-k="aclara"></div>
       <div class="cut-fila"><small>Brillo general</small><input type="range" min="0" max="1" step="0.01" value="${b.brillo}" data-k="brillo"></div>
-      <p class="cut-nota">Detecta los rostros y suaviza solo la piel: ojos, cejas y boca quedan nítidos.</p>`;
+      <p class="cut-nota">Toma su tono de piel y lo empareja sin cambiarle el color. Ojos, cejas, gafas y boca quedan nítidos.</p>`;
     const estado = $('.cut-estado-bel', p);
     const pintarEstado = () => { estado.textContent = b.on ? (BEL.listo() ? '✅ Detector de rostro activo' : '⏳ Cargando detector de rostro…') : ''; };
     pintarEstado();
     $('[data-on]', p).onchange = async (e) => { b.on = e.target.checked; S.dirty = true; guardar(); pintarEstado(); if (b.on) activarBelleza().then(pintarEstado); };
     $('[data-grupo="preset"]', p).onclick = (e) => {
       const v = e.target.dataset.v; if (!v) return;
-      Object.assign(b, { natural: { suave: 0.55, aclara: 0.3, brillo: 0.1 }, suave: { suave: 0.8, aclara: 0.45, brillo: 0.2 }, glam: { suave: 1, aclara: 0.65, brillo: 0.35 } }[v], { preset: v, on: true });
+      Object.assign(b, { natural: { suave: 0.45, aclara: 0.25, brillo: 0 }, suave: { suave: 0.7, aclara: 0.4, brillo: 0.2 }, glam: { suave: 0.95, aclara: 0.6, brillo: 0.4 } }[v], { preset: v, on: true });
       pintarPanel(); S.dirty = true; guardar(); activarBelleza().then(() => pintarPanel());
     };
     $$('input[type=range]', p).forEach(r => { r.oninput = () => { b[r.dataset.k] = Number(r.value); b.on = true; $('[data-on]', p).checked = true; S.dirty = true; }; r.onchange = () => { guardar(); activarBelleza(); }; });

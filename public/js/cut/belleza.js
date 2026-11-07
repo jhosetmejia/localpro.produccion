@@ -20,7 +20,9 @@ export function cargar() {
     const F = v.FaceLandmarker;
     IDX = {
       ovalo: uniq(F.FACE_LANDMARKS_FACE_OVAL),
-      quitar: [F.FACE_LANDMARKS_LEFT_EYE, F.FACE_LANDMARKS_RIGHT_EYE, F.FACE_LANDMARKS_LIPS, F.FACE_LANDMARKS_LEFT_EYEBROW, F.FACE_LANDMARKS_RIGHT_EYEBROW].map(uniq),
+      // Ojos + cejas de cada lado juntos (así queda protegida toda la zona de las gafas) y la boca
+      ojos: [uniq([...F.FACE_LANDMARKS_LEFT_EYE, ...F.FACE_LANDMARKS_LEFT_EYEBROW]), uniq([...F.FACE_LANDMARKS_RIGHT_EYE, ...F.FACE_LANDMARKS_RIGHT_EYEBROW])],
+      boca: uniq(F.FACE_LANDMARKS_LIPS),
     };
     return true;
   })().catch((e) => { cargando = null; throw e; });
@@ -49,6 +51,8 @@ function poligono(ctx, pts, S, crecer) {
 
 // Copia reducida del cuadro para detectar rápido (los puntos salen en proporción 0..1, sirven igual)
 const chico = document.createElement('canvas');
+// Puntos de piel limpia: mejillas, frente y mentón
+const PIEL = [50, 280, 205, 425, 117, 346, 151, 108, 337, 199];
 let ts = 0;
 export let ultimoMs = 0;
 function reducir(fuente) {
@@ -79,14 +83,34 @@ export function mascara(fuente, lienzo) {
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, S, S);
   const caras = r?.faceLandmarks || [];
   if (!caras.length) return true;
-  ctx.filter = 'blur(4px)';
+  ctx.filter = 'blur(3px)';
   for (const lm of caras) {
     const pt = (i) => [lm[i].x, lm[i].y];
     ctx.fillStyle = '#fff';
-    poligono(ctx, envolvente(IDX.ovalo.map(pt)), S, 1.02);
+    poligono(ctx, envolvente(IDX.ovalo.map(pt)), S, 0.97);
     ctx.fillStyle = '#000';
-    for (const g of IDX.quitar) poligono(ctx, envolvente(g.map(pt)), S, 1.25);
+    for (const g of IDX.ojos) poligono(ctx, envolvente(g.map(pt)), S, 1.45);
+    poligono(ctx, envolvente(IDX.boca.map(pt)), S, 1.2);
   }
   ctx.filter = 'none';
+  // Tono de piel de la persona: promedio de mejillas, frente y mentón (se suaviza entre cuadros)
+  try {
+    const lm = caras[0], W = chico.width, H = chico.height;
+    const d = chico.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, W, H).data;
+    let r = 0, g = 0, b = 0, n = 0;
+    for (const i of PIEL) {
+      const cx = Math.round(lm[i].x * W), cy = Math.round(lm[i].y * H);
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+        const x = cx + dx, y = cy + dy;
+        if (x < 0 || y < 0 || x >= W || y >= H) continue;
+        const o = (y * W + x) * 4; r += d[o]; g += d[o + 1]; b += d[o + 2]; n++;
+      }
+    }
+    if (n) {
+      const t = [r / n / 255, g / n / 255, b / n / 255];
+      const prev = lienzo._tono;
+      lienzo._tono = prev ? prev.map((v, k) => v * 0.7 + t[k] * 0.3) : t;
+    }
+  } catch (e) { /* sin tono: se suaviza igual */ }
   return true;
 }

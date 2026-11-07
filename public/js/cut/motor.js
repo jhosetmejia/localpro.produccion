@@ -15,7 +15,8 @@ uniform sampler2D uMask;
 uniform vec2 uScale;
 uniform vec2 uPan;
 uniform vec2 uStep;
-uniform float uBeauty, uHasMask, uSuave, uAclara, uBrillo;
+uniform float uBeauty, uHasMask, uSuave, uAclara, uBrillo, uHasTono;
+uniform vec3 uTono;
 out vec4 o;
 float piel(vec3 c){
   float y = dot(c, vec3(0.299, 0.587, 0.114));
@@ -43,14 +44,22 @@ void main(){
         }
       }
       vec3 sm = acc / ws;
-      c = mix(c, sm, clamp(w * (0.25 + 0.75 * uSuave), 0.0, 1.0) * step(0.001, uSuave));
-      // Aclarar el rostro (luz suave, sin quemar) y quitar un poco de rojo
-      vec3 luz = c + (1.0 - c) * 0.32;
-      luz.r = mix(luz.r, (luz.g + luz.r) * 0.5, 0.15);
-      c = mix(c, luz, w * uAclara);
+      float yS = dot(sm, vec3(0.299, 0.587, 0.114));
+      // Igualar el tono: lleva la piel hacia el color promedio de la propia persona (quita manchas y rojeces sin cambiarle el color)
+      if (uHasTono > 0.5) {
+        float yT = max(0.04, dot(uTono, vec3(0.299, 0.587, 0.114)));
+        vec3 igual = clamp(uTono * (yS / yT), 0.0, 1.0);
+        sm = mix(sm, igual, 0.35 * uSuave);
+      }
+      c = mix(c, sm, clamp(w * (0.2 + 0.7 * uSuave), 0.0, 1.0) * step(0.001, uSuave));
+      // Iluminar dentro del mismo tono (sube la luz sin mezclar con blanco)
+      float y0 = max(0.02, dot(c, vec3(0.299, 0.587, 0.114)));
+      float y1 = y0 + (1.0 - y0) * 0.14 * uAclara;
+      c = mix(c, clamp(c * (y1 / y0), 0.0, 1.0), w);
     }
-    // Brillo general (glow suave en todo el cuadro)
-    c = mix(c, 1.0 - (1.0 - c) * (1.0 - c * 0.45), uBrillo * 0.6);
+    // Brillo general muy suave (un toque de luz, sin velo blanco)
+    float yg = max(0.02, dot(c, vec3(0.299, 0.587, 0.114)));
+    c = mix(c, clamp(c * (1.0 + 0.10 * uBrillo * (1.0 - yg)), 0.0, 1.0), 1.0);
   }
   o = vec4(c, 1.0);
 }`;
@@ -228,6 +237,9 @@ export class Motor {
     gl.uniform1f(P.u.uSuave, k);
     gl.uniform1f(P.u.uAclara, belleza?.aclara ?? 0);
     gl.uniform1f(P.u.uBrillo, belleza?.brillo ?? 0);
+    const tono = conMascara && mascara._tono;
+    gl.uniform1f(P.u.uHasTono, tono ? 1 : 0);
+    gl.uniform3f(P.u.uTono, tono ? tono[0] : 0.6, tono ? tono[1] : 0.45, tono ? tono[2] : 0.4);
     gl.bindVertexArray(this.vao);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
