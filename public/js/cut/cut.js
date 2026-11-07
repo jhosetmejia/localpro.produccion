@@ -992,8 +992,10 @@ async function abrirExportar() {
   $('.cut-exp-op', m).hidden = false; $('.cut-exp-run', m).hidden = true; $('.cut-exp-fin', m).hidden = true;
   const ops = $('[data-res]', m);
   ops.innerHTML = Object.entries(RESOL).map(([v, t]) => `<button type="button" class="cut-chip" data-v="${v}">${t}</button>`).join('');
-  // Desactivar lo que el equipo no puede codificar
+  // Desactivar lo que el equipo no puede codificar. En iPhone/iPad, 4K se queda sin memoria a mitad: solo en computador
+  const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   for (const b of $$('button', ops)) {
+    if (IOS && Number(b.dataset.v) === 2160) { b.disabled = true; b.textContent = '4K (solo en computador)'; if (EXP.res === 2160) EXP.res = 1440; continue; }
     const { W, H } = tamSalida(Number(b.dataset.v));
     const ok = await MB.canEncodeVideo('avc', { width: W, height: H }) || await MB.canEncodeVideo('hevc', { width: W, height: H }) || await MB.canEncodeVideo('vp9', { width: W, height: H });
     if (!ok) { b.disabled = true; b.title = 'Este equipo no alcanza esta resolución'; if (EXP.res === Number(b.dataset.v)) EXP.res = 1080; }
@@ -1012,7 +1014,7 @@ async function abrirExportar() {
   const intentar = () => exportar().catch(err => {
     S.exportando = false; ajustarVista();
     if (EXP.res > 1080) {
-      aviso(`Su equipo no alcanzó ${EXP.res === 2160 ? '4K' : '2K'}. Exportando en 1080p (Full HD)…`, 'mal');
+      aviso(`Su equipo no alcanzó ${EXP.res === 2160 ? '4K' : '2K'}: lo exportamos en 1080p (Full HD), que se ve muy bien en redes.`);
       EXP.res = 1080; marcar();
       return intentar();
     }
@@ -1194,6 +1196,7 @@ async function exportar() {
   comp.hidden = !(navigator.canShare && navigator.canShare({ files: [file] }));
   comp.onclick = () => navigator.share({ files: [file], title: 'Mi video' }).catch(() => {});
   $('[data-otra]', fin).onclick = () => { $('.cut-exp-op', m).hidden = false; fin.hidden = true; };
+  aviso(`¡Listo! Su video quedó en ${RESOL[EXP.res].split(' ')[0]} · ${fps} fps ✅`);
 }
 
 /* ---------- guardar el proyecto en el equipo (si se recarga la página, sigue) ---------- */
