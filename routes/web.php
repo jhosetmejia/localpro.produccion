@@ -208,6 +208,8 @@ Route::middleware(['auth', 'asesor'])->prefix('asesor')->name('asesor.')->group(
 // Mi cuenta (todos los usuarios): datos y clave
 Route::middleware('auth')->group(function () {
     Route::get('/cuenta', [cuentaController::class, 'edit'])->name('cuenta.edit');
+    // Campanita de notificaciones: al abrirla se marcan como vistas (se apaga el número rojo)
+    Route::post('/notificaciones/vistas', function () { \App\Support\Notificaciones::marcarVistas(auth()->user()); return response()->noContent(); })->name('notificaciones.vistas');
     Route::put('/cuenta', [cuentaController::class, 'update'])->name('cuenta.update');
 });
 // Simulador de ganancias para reclutar: solo asesores, líderes y el administrador

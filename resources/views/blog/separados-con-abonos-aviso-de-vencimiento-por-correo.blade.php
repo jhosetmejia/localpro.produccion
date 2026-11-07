@@ -12,8 +12,8 @@
 <p>En una tienda de ropa, calzado o accesorios, el <b>separado con abonos</b> vende mucho: el cliente aparta la prenda, paga por cuotas y se la lleva al terminar. El problema es que muchos se olvidan, el plazo se vence y la prenda queda guardada en bodega sin venderse.</p>
 <p>Ahora LocalProo <b>le avisa a usted y le avisa al cliente</b> antes de que el separado venza.</p>
 
-<h2>1. La campanita en su panel</h2>
-<p>Arriba, al lado de su nombre, aparece una <b>campanita 🔔</b> con el número de separados que vencen en los próximos 5 días o que ya vencieron. Al tocarla ve:</p>
+<h2>1. La campanita de notificaciones</h2>
+<p>Arriba, al lado de su nombre, está la <b>campanita de notificaciones 🔔</b> (como la de Facebook). Ahí le salen los separados que vencen en los próximos 5 días o que ya vencieron. Al tocarla ve:</p>
 <ul>
     <li>El cliente, el número del separado y <b>cuánto le falta</b>.</li>
     <li>Cuándo vence: <b>"Vence en 3 días"</b>, <b>"Vence hoy"</b> o <b>"Venció hace 2 días"</b> (en rojo).</li>
