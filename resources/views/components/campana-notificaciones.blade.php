@@ -29,6 +29,7 @@
 @keyframes lpNoti{0%,70%,100%{transform:rotate(0)}75%{transform:rotate(14deg)}80%{transform:rotate(-12deg)}85%{transform:rotate(8deg)}90%{transform:rotate(-6deg)}}
 @media (prefers-reduced-motion:reduce){.lp-noti-mueve{animation:none}}
 .lp-noti-menu{width:360px;max-width:94vw;max-height:75vh;overflow:auto;padding:.3rem;border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.18)}
+@media (max-width:576px){.lp-noti-menu.show{position:fixed!important;inset:var(--lp-noti-top,70px) 10px auto 10px!important;transform:none!important;width:auto;max-width:none;margin:0!important}}
 .lp-noti-tit{font-weight:800;font-size:1.25rem;padding:.5rem .7rem .4rem}
 .lp-noti-item{display:flex;align-items:center;border-radius:10px}
 .lp-noti-item:hover{background:#f2f3f5}
@@ -46,6 +47,10 @@
 document.addEventListener('DOMContentLoaded', function () {
     var b = document.getElementById('lpNotiBtn');
     if (!b) return;
+    // En el celular el cuadro va de lado a lado debajo de la campana (no se sale de la pantalla)
+    b.addEventListener('show.bs.dropdown', function () {
+        b.closest('.lp-noti').querySelector('.lp-noti-menu').style.setProperty('--lp-noti-top', Math.round(b.getBoundingClientRect().bottom + 8) + 'px');
+    });
     b.addEventListener('show.bs.dropdown', function () {
         var n = document.getElementById('lpNotiNum');
         if (!n) return;
