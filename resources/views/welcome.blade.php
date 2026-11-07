@@ -125,6 +125,11 @@
                     <p>Responda los chats de Messenger e Instagram desde LocalPro, envíe sus productos con foto y precio en un toque y publique en las dos redes al tiempo.</p>
                 </article>
                 <article class="feature">
+                    <div class="ico"><i class="fa-solid fa-scissors"></i></div>
+                    <h3>Editor de videos gratis: LocalProCut</h3>
+                    <p>Edite sus videos para redes en el celular: subtítulos automáticos, transiciones, velocidad en curva y filtro de belleza. Sin marca de agua ni publicidad. <a href="{{ route('cut') }}" style="font-weight:800">Abrir LocalProCut</a></p>
+                </article>
+                <article class="feature">
                     <div class="ico"><i class="fa-solid fa-file-invoice-dollar"></i></div>
                     <h3>Preparado para la DIAN</h3>
                     <p>IVA separado en cada venta, resoluciones de numeración con aviso de vencimiento, POS electrónico y factura electrónica con CUFE y código QR, a través de un proveedor autorizado.</p>
@@ -197,6 +202,17 @@
         </div>
     </section>
     @endif
+
+    <section class="section" id="localprocut" style="padding-top:0">
+        <div class="wrap">
+            <div class="section-head">
+                <span class="eyebrow">Nuevo · Gratis</span>
+                <h2 class="serif">Edite sus videos con <span class="grad-text">LocalProCut.</span></h2>
+                <p>El editor de videos de LocalProo, gratis y sin marca de agua: subtítulos automáticos con estilos, transiciones, velocidad en curva, música, zoom y filtro de belleza natural. Desde el celular o el computador, y se instala como app.</p>
+            </div>
+            <p><a class="btn btn-amber" href="{{ route('cut') }}"><i class="fa-solid fa-scissors me-1"></i> Abrir el editor gratis</a> <a class="btn btn-ink" href="{{ route('blog.show', 'editor-de-videos-gratis-sin-marca-de-agua-localprocut') }}">Cómo funciona</a></p>
+        </div>
+    </section>
 
     <section class="section" id="marketplace" style="padding-top:0">
         <div class="wrap">

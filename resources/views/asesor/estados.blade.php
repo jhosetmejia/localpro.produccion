@@ -53,7 +53,7 @@
     <div class="es-grid">
         @foreach ($lista as $i => $e)
         <div class="es-card {{ $e['clave'] === $sugerida ? 'hoy' : '' }}">
-            @if ($e['clave'] === $sugerida)<span class="tag">⭐ Sugerida hoy</span>@endif
+            @if ($e['clave'] === $sugerida)<span class="tag">⭐ Sugerida hoy</span>@elseif ($e['clave'] === 'cut')<span class="tag">🎬 Nuevo</span>@endif
             <div class="es-prev" data-prev="{{ $i }}">Preparando imagen…</div>
             <h3>{{ $e['emoji'] }} {{ $e['titulo'] }}</h3>
             <div class="es-btns">
@@ -82,6 +82,7 @@
     var EMO = "'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif";
     // Color y objetos de cada negocio para el fondo. st = los dos "stickers" grandes al lado del celular
     var TEMAS = {
+        cut: { a: '#1b1450', b: '#07051a', luz: 'rgba(166,243,74,.30)', em: ['🎬', '🎞️', '✂️', '🎥', '📱', '✨', '🎶'], st: ['🎬', '✂️'] },
         general: { a: '#0f3d1f', b: '#06120a', luz: 'rgba(166,243,74,.30)', em: ['🏪', '📒', '💵', '🧾', '📦', '📈'], st: ['💵', '📈'] },
         moda: { a: '#5a1250', b: '#160414', luz: 'rgba(255,120,210,.30)', em: ['👗', '👠', '👜', '🕶️', '👕', '💄', '👚'], st: ['👗', '👜'] },
         calzado: { a: '#4a3010', b: '#120b04', luz: 'rgba(255,190,90,.28)', em: ['👟', '👠', '👢', '🥾', '👞', '🩴'], st: ['👟', '👠'] },
@@ -146,9 +147,9 @@
 
         // Marca y para quién es
         c.textBaseline = 'alphabetic';
-        c.font = '800 58px ' + F; c.fillStyle = '#fff'; c.fillText('Local', 80, 150);
-        var wl = c.measureText('Local').width; c.fillStyle = VERDE; c.fillText('Proo', 80 + wl, 150);
-        c.font = '800 30px ' + F; var chip = e.emoji + '  Para ' + e.titulo.toLowerCase(), wc = c.measureText(chip).width + 56;
+        c.font = '800 58px ' + F; c.fillStyle = '#fff'; c.fillText(e.marca === 'cut' ? 'LocalPro' : 'Local', 80, 150);
+        var wl = c.measureText(e.marca === 'cut' ? 'LocalPro' : 'Local').width; c.fillStyle = VERDE; c.fillText(e.marca === 'cut' ? 'Cut' : 'Proo', 80 + wl, 150);
+        c.font = '800 30px ' + F; var chip = e.chip || (e.emoji + '  Para ' + e.titulo.toLowerCase()), wc = c.measureText(chip).width + 56;
         rr(c, 80, 182, wc, 60, 30); c.fillStyle = 'rgba(166,243,74,.16)'; c.fill(); c.strokeStyle = 'rgba(166,243,74,.5)'; c.lineWidth = 2; c.stroke();
         c.fillStyle = VERDE; c.fillText(chip, 108, 223);
 
@@ -205,6 +206,16 @@
             ajustado(c, t, 144, y, 870, 38, '700', '#fff');
         });
 
+        // LocalProCut: la tarjeta final lleva la dirección del editor (es gratis para cualquiera) y, si se quiere, el WhatsApp
+        if (e.cta) {
+            var con = conNumero && WA, cy2 = con ? 1462 : 1500, ch2 = con ? 330 : 250;
+            rr(c, 60, cy2, 960, ch2, 40); c.fillStyle = '#fff'; c.fill();
+            ajustado(c, e.cta.arriba, 540, cy2 + 76, 880, 50, '900', NEGRO, 'center');
+            rr(c, 100, cy2 + 104, 880, 108, 54); c.fillStyle = VERDE; c.fill();
+            ajustado(c, '🎬  ' + e.cta.enlace, 540, cy2 + 178, 820, 64, '900', NEGRO, 'center');
+            if (con) ajustado(c, '¿Dudas? 💬 ' + telefono(WA), 540, cy2 + 286, 880, 42, '800', '#128c4a', 'center');
+            return;
+        }
         // Tarjeta final: "Pruébalo GRATIS" y, si se quiere, "Contáctanos" con el WhatsApp del asesor (sin nombre, sin QR ni enlace)
         if (conNumero && WA) {
             var cy = 1480;

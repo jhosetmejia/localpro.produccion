@@ -290,6 +290,12 @@ class Academia
                         'En <b>Mis redes</b> responde los mensajes de Messenger e Instagram en un solo lugar y publica sus productos con foto y precio.',
                         'En <b>Mis enlaces</b> arma una página con su WhatsApp, redes y promociones para poner en un código QR en el mostrador.',
                     ], 'tip' => 'Responda rápido: el cliente que escribe por redes casi siempre le escribe también a la competencia.'],
+                    ['titulo' => 'Edite sus videos gratis con LocalProCut', 'min' => 3, 'accion' => ['cut', 'Abrir LocalProCut'], 'contenido' => [
+                        'Con su cuenta tiene <b>LocalProCut</b>, el editor de videos de LocalProo: gratis, <b>sin marca de agua y sin publicidad</b>. Está en el menú <b>Editar videos · App</b> y en <b>Mis redes</b>.',
+                        'Agregue sus videos o fotos y use la barra de abajo, igual que CapCut: <b>Editar</b> (dividir, zoom, volumen), <b>Audio</b> (música o extraer audio), <b>Texto</b>, <b>Subtítulos automáticos</b>, <b>Velocidad</b> (normal o en curva), <b>Transición</b> y <b>Filtros</b> de belleza.',
+                        'Toque <b>Exportar</b> y elija la calidad: 1080p, 2K a 60 fps (4K en el computador). Lo descarga o lo comparte directo a WhatsApp, TikTok o Instagram.',
+                        'Puede instalarlo como app en su celular con el botón <b>Descargar app</b>: le queda el ícono <b>LocalProCut</b>.',
+                    ], 'tip' => 'Un video corto (15 a 30 segundos) del producto en uso, con subtítulos, vende más que una foto. Publíquelo en sus estados todos los días.'],
                     ['titulo' => 'Comparta LocalProo y gane', 'min' => 2, 'accion' => ['beneficios.index', 'Ver mi código'], 'contenido' => [
                         'Su negocio tiene un <b>código (LCT-…)</b> y un enlace. Compártalo con otros dueños de negocio: su colega recibe <b>1 mes gratis</b>.',
                         'Cada vez que ese negocio pague su <b>plan anual</b>, a usted se le abona un valor <b>de por vida</b>, que se descuenta solo cuando paga su propio plan. Si alcanza, su plan le sale gratis.',
@@ -301,6 +307,7 @@ class Academia
                     ['p' => '¿Qué funciona mejor para escribir a los clientes?', 'o' => ['Pocos mensajes todos los días', '500 mensajes de una vez', 'Escribir a medianoche'], 'r' => 0],
                     ['p' => '¿Qué necesita para que sus productos salgan en el Marketplace LocalProo?', 'o' => ['Tener la tienda en línea activa y productos con foto', 'Pagar un anuncio aparte', 'Llamar a cada cliente'], 'r' => 0],
                     ['p' => 'Alguien pide que no le escriban más. ¿Qué hace?', 'o' => ['Lo marca como "No le interesa"', 'Le sigue escribiendo', 'Le escribe desde otro número'], 'r' => 0],
+                    ['p' => '¿Con qué edita gratis los videos de sus productos, sin marca de agua?', 'o' => ['Con LocalProCut, en el menú Editar videos · App', 'Pagando un programa aparte', 'No se puede'], 'r' => 0],
                 ],
             ],
 

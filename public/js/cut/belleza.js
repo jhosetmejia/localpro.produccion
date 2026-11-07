@@ -1,5 +1,6 @@
 /* LocalProCut · detector de rostros (MediaPipe Face Landmarker) y máscara de piel del rostro */
-const MP = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21';
+// MediaPipe 0.10.21 alojado en LocalPro (no se ejecuta código de servidores externos); el modelo es solo datos
+const MP = new URL('./vendor/mediapipe', import.meta.url).href;
 const MODELO = 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
 
 let detector = null;
@@ -11,7 +12,7 @@ export function listo() { return !!detector; }
 export function cargar() {
   if (cargando) return cargando;
   cargando = (async () => {
-    const v = await import(`${MP}/vision_bundle.mjs`);
+    const v = await import(`${MP}/vision_bundle.js`);
     const fs = await v.FilesetResolver.forVisionTasks(`${MP}/wasm`);
     const op = (delegate) => ({ baseOptions: { modelAssetPath: MODELO, delegate }, runningMode: 'VIDEO', numFaces: 3, minTrackingConfidence: 0.4 });
     try { detector = await v.FaceLandmarker.createFromOptions(fs, op('GPU')); }

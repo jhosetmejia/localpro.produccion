@@ -100,6 +100,17 @@ class asesorVenderController extends Controller
                 'texto' => $texto . "\n🎁 Pruébalo gratis 👉 " . $enlace,
             ];
         }
+        // LocalProCut: el editor de videos gratis (gancho para cualquiera, tenga o no negocio). Va de primera.
+        $cut = route('cut');
+        array_unshift($out, [
+            'clave' => 'cut', 'titulo' => 'Editor de videos', 'emoji' => '🎬', 'chip' => '🎬  Editor de videos GRATIS', 'marca' => 'cut',
+            'linea1' => 'Edita tus videos GRATIS', 'linea2' => 'sin marca de agua',
+            'puntos' => ['Subtítulos automáticos con estilos', 'Transiciones y velocidad en curva', 'Música, zoom y filtro de belleza', 'Exporta en alta calidad: 2K a 60 fps', 'Sin publicidad y sin marca de agua', 'Instálala en tu celular: LocalProCut'],
+            'pantalla' => ['titulo' => 'LocalProCut', 'etiqueta' => 'Tu video quedó listo', 'dato' => '2K · 60 fps', 'filas' => [['Subtítulos', 'Automáticos'], ['Velocidad', 'Curva Héroe', 1], ['Belleza', 'Natural'], ['Transición', 'Zoom']]],
+            'cta' => ['arriba' => 'Reemplaza a CapCut · 100% gratis', 'enlace' => preg_replace('#^https?://(www\.)?#', '', $cut)],
+            'enlace' => $cut,
+            'texto' => "¿Editas videos para tus redes? 🎬 Usa LocalProCut: el editor de videos GRATIS, sin marca de agua ni publicidad (reemplaza a CapCut).\n✨ Subtítulos automáticos, transiciones, velocidad en curva, música y filtro de belleza. Exporta en 2K a 60 fps.\n👉 " . $cut . "\n🏪 ¿Tienes negocio? Organízalo gratis con LocalPro 👉 " . $yo->enlace . '?desde=estado-cut',
+        ]);
         return $out;
     }
 

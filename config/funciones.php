@@ -70,6 +70,12 @@ return [
                 ['fa-store', 'Marketplace LocalProo', 'Sus productos también salen en el Marketplace, al lado de las tiendas locales de su ciudad, sin comisión por venta.', [], 'marketplace-localproo-tiendas-locales'],
                 ['fa-utensils', 'Carta virtual para restaurantes', 'Menú digital con diseño bonito, código QR para las mesas y pedidos por WhatsApp.', [], 'carta-virtual-para-restaurantes-con-pedidos-por-whatsapp'],
                 ['fa-link', 'Mis enlaces (tipo Linktree)', 'Una página con todos los enlaces de su negocio (WhatsApp, redes, tienda, ubicación) para poner en la biografía de Instagram o TikTok.', [], 'linktree-gratis-para-negocios-mis-enlaces'],
+                ['fa-scissors', 'Editor de videos gratis (LocalProCut)', 'Edite los videos de sus productos y promociones en el celular, sin marca de agua ni publicidad, y súbalos a sus redes.', [
+                    'Subtítulos automáticos con estilos (TikTok, karaoke, palabra resaltada…)',
+                    'Transiciones, velocidad normal y en curva, zoom, música y extraer audio',
+                    'Filtro de belleza natural que respeta su tono de piel',
+                    'Exporta en 1080p, 2K a 60 fps y 4K en el computador; se instala como app',
+                ], 'editor-de-videos-gratis-sin-marca-de-agua-localprocut'],
                 ['fa-hashtag', 'Facebook e Instagram en un solo lugar', 'Responda los chats de Messenger e Instagram desde LocalProo, envíe productos con foto y precio en un toque y publique en las dos redes al tiempo.', [], null],
             ],
         ],

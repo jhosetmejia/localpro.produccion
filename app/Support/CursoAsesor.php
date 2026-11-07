@@ -51,6 +51,7 @@ class CursoAsesor
                     'También sirve para administrar conjuntos residenciales y edificios.',
                     'No hay que instalar nada: funciona en el navegador del celular o del computador.',
                     'El dueño del negocio sabe al instante cuánto vendió, qué se le está acabando y cuánto ganó.',
+                    '🎬 <b>Regalo por registrarse:</b> usted (y cada negocio que inscriba) tiene <b>LocalProCut</b>, el editor de videos de LocalPro, <b>gratis y sin publicidad ni marca de agua</b>. Instálelo en su celular como la app <b>LocalProCut</b> (botón "Descargar app" en localproo.com/cut) y úselo para sus estados y redes.',
                 ],
                 'clave' => 'LocalPro ayuda a los negocios a organizarse y a saber exactamente cuánto ganan cada día.',
             ],
@@ -68,6 +69,7 @@ class CursoAsesor
                     '<b>Página web del negocio:</b> sus productos por categorías con botón "Comprar por WhatsApp" y que aparece en Google.',
                     '<b>Reportes:</b> ventas del día, productos más vendidos, clientes y metas para los vendedores.',
                     '<b>Mis enlaces:</b> una página tipo Linktree (localproo.com/@negocio) con su WhatsApp, redes, promociones y tienda en línea, para ponerla en la biografía de Instagram o TikTok o en un código QR del mostrador. Muestra cuántas visitas y clics tiene.',
+                    '<b>Editor de videos LocalProCut (gratis):</b> el negocio edita los videos de sus productos en el celular, como en CapCut: subtítulos automáticos, transiciones, velocidad en curva, música, zoom y filtro de belleza, <b>sin marca de agua ni publicidad</b>, y exporta en alta calidad. Se instala como app. Úselo para convencer: "además le damos un editor de videos gratis".',
                     '<b>Nómina (opcional):</b> si el negocio tiene empleados, liquida el mes o la quincena y saca los desprendibles. El negocio escoge: <b>sin DIAN</b> (solo interna) o <b>nómina electrónica DIAN</b>. También sirve si paga más o menos del mínimo.',
                 ],
                 'clave' => 'Si una persona sabe usar WhatsApp, sabe usar LocalPro.',
@@ -209,6 +211,7 @@ class CursoAsesor
             37 => ['Un odontólogo pierde muchas citas porque los pacientes no llegan. ¿Qué le muestra?', ['El recordatorio automático con enlace para confirmar o cancelar, y las citas en línea', 'Que llame a cada paciente', 'Nada, eso no se puede'], 0],
             38 => ['Un ortodoncista quiere saber quién le debe cuotas. ¿Qué le muestra?', ['El plan de ortodoncia con cuota mensual: le dice quién va atrasado y le arma el mensaje de cobro', 'Una hoja de Excel aparte', 'Los separados'], 0],
             36 => ['Un odontólogo ya marcó caries y extracciones en el odontograma. ¿Cómo arma el presupuesto?', ['Con "Pasar al plan de tratamiento": se arma solo con lo que está en rojo y los precios de sus servicios', 'Lo escribe en Word', 'Tiene que crear una cotización de alquiler'], 0],
+            39 => ['Un negocio le dice que paga una app para editar los videos de sus redes. ¿Qué le muestra de LocalPro?', ['LocalProCut: el editor de videos gratis, sin marca de agua ni publicidad, que se instala como app', 'Que siga pagando su app', 'Que LocalPro no sirve para redes'], 0],
             16 => ['El negocio que usted inscribió le paga a un empleado menos del salario mínimo por medio tiempo. ¿Puede liquidarlo en LocalPro?', ['No, el sistema solo acepta el salario mínimo', 'Sí, con la liquidación personalizada pone el salario que pagan', 'Solo si lo envía a la DIAN'], 1],
         ];
     }

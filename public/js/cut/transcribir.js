@@ -1,7 +1,13 @@
 /* LocalProCut · trabajador de transcripción (Whisper en el navegador, sin servidor) */
-import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1';
+// transformers.js 3.8.1 y ONNX Runtime alojados en LocalPro (no se ejecuta código de servidores externos).
+// Los modelos de voz (solo datos) se descargan de Hugging Face la primera vez.
+import { pipeline, env } from './vendor/tf/transformers.min.js';
 
 env.allowLocalModels = false;
+env.backends.onnx.wasm.wasmPaths = {
+  mjs: new URL('./vendor/tf/ort-wasm-simd-threaded.jsep.js', import.meta.url).href,
+  wasm: new URL('./vendor/tf/ort-wasm-simd-threaded.jsep.wasm', import.meta.url).href,
+};
 
 let asr = null;
 let modeloActual = null;

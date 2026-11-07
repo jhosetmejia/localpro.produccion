@@ -144,6 +144,7 @@
                     <div id="vVacio"><i class="fa-solid fa-film"></i><div class="fw-bold mt-1">Toque para subir su video</div><small class="text-muted">MP4 o MOV · máximo {{ $videoMaxMb }} MB · vertical para Reels y Shorts</small></div>
                     <video id="vPrev" muted playsinline controls style="display:none"></video>
                 </label>
+                <a href="{{ route('cut') }}" class="d-inline-flex align-items-center gap-1 mt-2 fw-bold small" style="color:#16a34a"><i class="fa-solid fa-scissors"></i> ¿Quiere editar el video antes? Ábralo en LocalProCut (gratis)</a>
                 <div class="pb-barra" id="vBarra" style="display:none"><div></div></div>
                 <div class="small fw-bold mt-1" id="vEstado"></div>
                 <div class="pb-info" id="vInfo"></div>

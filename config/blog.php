@@ -6,6 +6,27 @@
 // palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
+    'editor-de-videos-gratis-sin-marca-de-agua-localprocut' => [
+        'titulo' => 'Editor de videos gratis y sin marca de agua: LocalProCut, la alternativa a CapCut para su negocio',
+        'resumen' => 'LocalProCut es el editor de videos gratis de LocalProo: subtítulos automáticos con estilos, transiciones, velocidad en curva, música, zoom y filtro de belleza natural, sin marca de agua ni publicidad. Funciona en el navegador del celular o el computador y se instala como app.',
+        'fecha' => '7 de noviembre de 2026',
+        'publicado' => '2026-11-07',
+        'minutos' => 5,
+        'icono' => 'fa-scissors',
+        'rol' => 'negocios',
+        'seo_titulo' => 'Editor de videos gratis sin marca de agua | LocalProCut',
+        'descripcion' => 'Editor de videos gratis en el celular: subtítulos automáticos, transiciones, velocidad en curva y belleza. Sin marca de agua ni publicidad. Alternativa a CapCut.',
+        'keywords' => ['editor de videos gratis', 'editor de video sin marca de agua', 'alternativa a CapCut', 'app para editar videos gratis', 'editar videos en el celular', 'subtítulos automáticos gratis',
+            'poner subtítulos a un video', 'editor de videos online gratis', 'velocidad en curva', 'editar videos para TikTok y Reels', 'filtro de belleza para videos', 'editor de video en el navegador'],
+        'faq' => [
+            ['¿LocalProCut es gratis?', 'Sí. Es gratis, sin marca de agua y sin publicidad. No tiene que pagar para exportar ni para usar los subtítulos o los efectos.'],
+            ['¿Mis videos se suben a internet?', 'No. Todo se edita en su propio celular o computador: los videos no se suben a ningún servidor. Por eso es privado y no gasta datos subiendo el video.'],
+            ['¿Funciona en iPhone y Android?', 'Sí, en el navegador (Safari o Chrome). También puede instalarlo como app: toque "Descargar app" en el editor y le queda el ícono de LocalProCut en el celular.'],
+            ['¿Qué calidad exporta?', '720p, 1080p y 2K hasta 60 fps en el celular, y 4K en el computador.'],
+            ['¿Cómo pongo subtítulos automáticos?', 'Abra la pestaña Subtítulos y toque "Generar subtítulos automáticos": el editor escucha el video y escribe el texto. Elija un estilo (TikTok, karaoke, palabra resaltada…) y corrija lo que quiera.'],
+            ['¿Es igual a CapCut?', 'La pantalla está organizada como CapCut para que se sienta en casa: Editar, Audio, Texto, Subtítulos, Velocidad, Transición, Filtros y Formato. Es más sencillo y está pensado para los videos de su negocio.'],
+        ],
+    ],
     'software-para-consultorio-odontologico-odontograma' => [
         'titulo' => 'Software para consultorio odontológico: odontograma, presupuestos con abonos y consentimientos firmados en el celular',
         'resumen' => 'Odontólogos y clínicas dentales: odontograma, presupuestos con abonos, ortodoncia con cuotas, periodontograma, citas en línea con recordatorio y confirmación, portal del paciente, laboratorio, comisiones e indicadores. Todo en LocalProo.',

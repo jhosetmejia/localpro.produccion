@@ -55,6 +55,7 @@
         <div><i class="fa-solid {{ \App\Models\Tienda::iconoProducto() }}"></i><b>Envíe productos en un toque</b><p>Busque el producto y mándele al cliente la foto, el precio y el enlace para comprar.</p></div>
         <div><i class="fa-regular fa-paper-plane"></i><b>Publique fotos y videos</b><p>Una foto o un video y listo: sale en Facebook, Instagram (Reels) y YouTube, ahora o a la hora que programe.</p></div>
         <div><i class="fa-solid fa-user-plus"></i><b>Convierta chats en clientes</b><p>Guarde a quien le escribe como cliente y márquelo: nuevo, interesado, hizo pedido.</p></div>
+        <div><i class="fa-solid fa-scissors"></i><b>Edite sus videos gratis</b><p>Con <a href="{{ route('cut') }}" class="fw-bold">LocalProCut</a>: subtítulos automáticos, transiciones, velocidad, belleza y exportar en alta calidad. Sin marca de agua.</p></div>
     </div>
 
     <div class="lp-box">

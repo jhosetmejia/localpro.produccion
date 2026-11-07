@@ -7,6 +7,7 @@
     @canany(['publicar-redes', 'editar-negocio'])
     <a href="{{ route('redes.publicar') }}" class="{{ request()->routeIs('redes.publicar') ? 'on' : '' }}"><i class="fa-regular fa-paper-plane"></i> Publicar</a>
     @endcanany
+    <a href="{{ route('cut') }}"><i class="fa-solid fa-scissors"></i> Editar videos <span class="n" style="background:#a6f34a;color:#0b0d0c">Gratis</span></a>
     @can('editar-negocio')
     <a href="{{ route('redes.cuentas') }}" class="{{ request()->routeIs('redes.cuentas') ? 'on' : '' }}"><i class="fa-solid fa-link"></i> Cuentas</a>
     @endcan

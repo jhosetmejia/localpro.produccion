@@ -94,7 +94,20 @@ foreach (['privacidad' => 'privacidad', 'terminos' => 'terminos', 'eliminar-dato
 }
 // Giro 360: página pública para las máquinas de video 360 (graba, edita con velocidad curva y guarda el cliente)
 // LocalProCut: editor de video en el navegador (todo pasa en el equipo del usuario, nada se sube)
-Route::view('/cut', 'cut.index')->name('cut');
+Route::get('/cut', function () {
+    // El editor solo ejecuta código de LocalPro; solo se conecta a LocalPro y a los servidores de modelos (datos)
+    $csp = "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob:; worker-src 'self' blob:; "
+        . "connect-src 'self' blob: data: https://storage.googleapis.com https://huggingface.co https://*.huggingface.co https://*.hf.co; "
+        . "img-src 'self' blob: data:; media-src 'self' blob: data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        . "font-src 'self' data: https://fonts.gstatic.com; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'";
+    return response()->view('cut.index')->withHeaders([
+        'Content-Security-Policy' => $csp,
+        'X-Content-Type-Options' => 'nosniff',
+        'Referrer-Policy' => 'strict-origin-when-cross-origin',
+        'X-Frame-Options' => 'SAMEORIGIN',
+        'Permissions-Policy' => 'camera=(), microphone=(), geolocation=(), payment=()',
+    ]);
+})->name('cut');
 Route::redirect('/localprocut', '/cut');
 Route::get('/360', [\App\Http\Controllers\giro360Controller::class, 'index'])->name('giro360');
 Route::view('/360/audio', 'giro360.audio')->name('giro360.audio');
