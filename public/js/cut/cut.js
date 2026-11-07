@@ -19,7 +19,8 @@ const S = {
   sub: { estilo: 'tiktok', tam: 'M', pos: 0.72, color: '#a6f34a', mayus: false, palabras: 3 },
   belleza: { on: false, suave: 0.55, aclara: 0.3, brillo: 0.1, preset: 'natural' },
   aspecto: '9:16',
-  t: 0, playing: false, sel: null, tab: 'editar', pps: 56,
+  musica: [], silenciar: false, selM: null,
+  t: 0, playing: false, sel: null, tab: null, pps: 56,
   dirty: true,
 };
 
@@ -47,6 +48,69 @@ function preguntar(titulo, texto, si = 'Sí', no = 'Cancelar') {
     $('[data-no]', m).onclick = () => fin(false);
   });
 }
+
+/* ---------- volumen (iPhone ignora el volumen de los elementos: se usa WebAudio) ---------- */
+let actx = null;
+function audioCtx() {
+  if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { actx = null; } }
+  if (actx && actx.state === 'suspended') actx.resume().catch(() => {});
+  return actx;
+}
+function volumen(el, v) {
+  if (!el) return;
+  if (!el._g && v !== 1 && !el._gFallo) {
+    const a = audioCtx();
+    try { const src = a.createMediaElementSource(el); el._g = a.createGain(); src.connect(el._g).connect(a.destination); } catch (e) { el._gFallo = true; }
+  }
+  if (el._g) el._g.gain.value = v; else { try { el.volume = Math.max(0, Math.min(1, v)); } catch (e) { /* nada */ } }
+}
+
+/* ---------- deshacer / rehacer ---------- */
+const REG = new Map();
+function reg(o) { REG.set(o.id, o); return o; }
+const HIST = { pila: [], pos: -1, aplicando: false };
+function foto() {
+  return JSON.stringify({
+    clips: S.clips.map(c => ({ id: c.id, in: c.in, out: c.out, mute: !!c.mute, vol: c.vol ?? 1, vel: c.vel || 1, curva: c.curva || null, z: c.z || 1, x: c.x || 0, y: c.y || 0, trans: c.trans })),
+    musica: S.musica.map(m => ({ id: m.id, start: m.start, in: m.in, vol: m.vol ?? 1, fadeIn: !!m.fadeIn, fadeOut: !!m.fadeOut })),
+    subs: S.subs, segs: S.segs, sub: S.sub, belleza: S.belleza, aspecto: S.aspecto, silenciar: !!S.silenciar,
+  });
+}
+function registrarHist() {
+  if (HIST.aplicando) return;
+  const f = foto();
+  if (HIST.pila[HIST.pos] === f) return;
+  HIST.pila = HIST.pila.slice(0, HIST.pos + 1);
+  HIST.pila.push(f);
+  if (HIST.pila.length > 80) HIST.pila.shift();
+  HIST.pos = HIST.pila.length - 1;
+  botonesHist();
+}
+function botonesHist() {
+  $('#cutDeshacer').disabled = HIST.pos <= 0;
+  $('#cutRehacer').disabled = HIST.pos >= HIST.pila.length - 1;
+}
+function aplicarFoto(f) {
+  const d = JSON.parse(f);
+  HIST.aplicando = true;
+  if (S.playing) pausar();
+  S.clips = d.clips.map(m => Object.assign(REG.get(m.id), m, { trans: { ...m.trans } })).filter(Boolean);
+  S.musica = d.musica.map(m => Object.assign(REG.get(m.id), m)).filter(Boolean);
+  S.subs = JSON.parse(JSON.stringify(d.subs)); S.segs = d.segs;
+  Object.assign(S.sub, d.sub); Object.assign(S.belleza, d.belleza);
+  const cambioAsp = S.aspecto !== d.aspecto;
+  S.aspecto = d.aspecto; S.silenciar = d.silenciar;
+  if (!S.clips.some(c => c.id === S.sel)) S.sel = null;
+  if (!S.musica.some(m => m.id === S.selM)) S.selM = null;
+  S.clips.forEach(c => { if (c.tipo === 'video' && !c.el) cargarVideo(c).then(() => { S.dirty = true; }); });
+  if (cambioAsp) ajustarVista();
+  $('#cutVacio').hidden = !!S.clips.length;
+  irA(S.t); pintarLinea(); pintarPanel(); guardarDB();
+  HIST.aplicando = false;
+  botonesHist();
+}
+function deshacer() { if (HIST.pos <= 0) return; HIST.pos--; aplicarFoto(HIST.pila[HIST.pos]); aviso('Deshecho ↩'); }
+function rehacer() { if (HIST.pos >= HIST.pila.length - 1) return; HIST.pos++; aplicarFoto(HIST.pila[HIST.pos]); aviso('Rehecho ↪'); }
 
 /* ---------- tiempos de la línea ---------- */
 /* ---------- velocidad (normal y en curva, como CapCut) ---------- */
@@ -130,7 +194,8 @@ function dibujarCuadro(t, fuentes, W, H, ctx) {
   else {
     act.forEach((i, k) => {
       const f = fuentes(i);
-      motor.clip(k, f?.src, f?.w, f?.h, S.belleza.on ? f?.mascara : null, S.belleza);
+      const cc = S.clips[i];
+      motor.clip(k, f?.src, f?.w, f?.h, S.belleza.on ? f?.mascara : null, S.belleza, { z: cc.z, x: cc.x, y: cc.y });
     });
     if (act.length === 2) {
       const c = S.clips[act[0]];
@@ -163,7 +228,8 @@ function sincronizar() {
     const loc = tOrigen(c, S.t - L.start[i]);
     const vel = Math.max(0.1, Math.min(8, velEn(c, (S.t - L.start[i]) / largo(c))));
     if (Math.abs(v.playbackRate - vel) > 0.01) { try { v.playbackRate = vel; } catch (e) { /* fuera de rango */ } }
-    v.muted = !!c.mute;
+    v.muted = !!c.mute || !!S.silenciar;
+    volumen(v, c.vol ?? 1);
     if (act && S.playing) {
       if (v.paused) { v.currentTime = loc; v.play().catch(() => {}); }
       else if (Math.abs(v.currentTime - loc) > 0.3 * Math.max(1, vel)) v.currentTime = loc;
@@ -172,6 +238,14 @@ function sincronizar() {
       if (act && Math.abs(v.currentTime - loc) > 0.03 && !v.seeking) v.currentTime = loc;
     }
   });
+  for (const m of S.musica) {
+    const a = m.el; if (!a) continue;
+    const act = S.playing && S.t >= m.start && S.t < Math.min(m.start + largoM(m), L.total);
+    const loc = m.in + (S.t - m.start);
+    volumen(a, m.vol ?? 1);
+    if (act) { if (a.paused) { a.currentTime = loc; a.play().catch(() => {}); } else if (Math.abs(a.currentTime - loc) > 0.3) a.currentTime = loc; }
+    else if (!a.paused) a.pause();
+  }
 }
 let ignorarScroll = false;
 function bucle(ahora) {
@@ -188,7 +262,7 @@ function bucle(ahora) {
     S.dirty = false;
     if (S.clips.length) dibujarCuadro(S.t, fuentePrevia, vista.width, vista.height, vctx);
     else { vctx.fillStyle = '#000'; vctx.fillRect(0, 0, vista.width, vista.height); }
-    $('#cutTiempo').textContent = `${fmt(S.t)} / ${fmt(lay().total)}`;
+    $('#cutTiempo').textContent = `${fmt(S.t).slice(0, 5)} / ${fmt(lay().total).slice(0, 5)}`;
   }
   requestAnimationFrame(bucle);
 }
@@ -196,6 +270,7 @@ function reproducir(hasta = null) {
   if (!S.clips.length) return;
   const L = lay();
   if (S.t >= L.total - 0.05) S.t = 0;
+  audioCtx();
   S.playing = true; S.t0 = S.t; S.inicio = performance.now(); S.hasta = hasta;
   $('#cutPlay').classList.add('on');
   sincronizar();
@@ -229,13 +304,26 @@ function pintarLinea() {
   const L = lay();
   const pad = linea.clientWidth / 2;
   const cont = $('#cutLineaIn');
-  cont.style.width = (L.total * S.pps + pad * 2 + 60) + 'px';
-  cont.style.setProperty('--pad', pad + 'px');
+  const ancho = Math.max(L.total, ...S.musica.map(finM), ...S.subs.map(x => x.end)) * S.pps;
+  cont.style.width = (ancho + pad * 2 + 60) + 'px';
+  // Regla de tiempos
+  const regla = $('#cutRegla');
+  const paso = [0.5, 1, 2, 5, 10, 30, 60].find(x => x * S.pps >= 70) || 60;
+  let rh = '';
+  for (let t = 0; t <= Math.max(L.total, 1) + paso; t += paso) rh += `<span style="left:${pad + t * S.pps}px">${fmt(t).slice(0, 5)}</span><i style="left:${pad + (t + paso / 2) * S.pps}px"></i>`;
+  regla.innerHTML = rh;
+  // Columna izquierda (como CapCut): silenciar clip y los íconos de las filas
+  const izq = $('#cutIzq');
+  izq.style.left = Math.max(4, pad - 92) + 'px';
+  izq.innerHTML = `<button type="button" class="cut-sil ${S.silenciar ? 'on' : ''}" data-silenciar>${S.silenciar ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="m17 9 4 6M21 9l-4 6"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>'}<small>${S.silenciar ? 'Activar sonido' : 'Silenciar clip'}</small></button>
+    <span class="cut-fila-ic" style="top:94px">♪</span><span class="cut-fila-ic" style="top:128px">T</span>`;
+  $('[data-silenciar]', izq).onclick = (e) => { e.stopPropagation(); S.silenciar = !S.silenciar; sincronizar(); pintarLinea(); guardar(); aviso(S.silenciar ? 'Sonido original silenciado 🔇' : 'Sonido original activado 🔈'); };
+
   const pista = $('#cutPistaV');
   pista.innerHTML = '';
   S.clips.forEach((c, i) => {
     const b = document.createElement('div');
-    b.className = 'cut-clip' + (S.sel === c.id ? ' sel' : '') + (c.mute ? ' mudo' : '');
+    b.className = 'cut-clip' + (S.sel === c.id ? ' sel' : '') + (c.mute || S.silenciar ? ' mudo' : '');
     b.style.left = (pad + L.start[i] * S.pps) + 'px';
     b.style.width = Math.max(18, largo(c) * S.pps - 2) + 'px';
     if (c.tira) {
@@ -245,43 +333,103 @@ function pintarLinea() {
       b.style.backgroundPositionX = c.tipo === 'imagen' ? '0' : `${-c.in / tablaVel(c).media * S.pps}px`;
       b.style.backgroundRepeat = c.tipo === 'imagen' ? 'repeat-x' : 'no-repeat';
     }
-    const etqVel = c.tipo === 'video' && c.curva ? '〰 ' + CURVAS[c.curva].n + ' · ' : (c.tipo === 'video' && (c.vel || 1) !== 1 ? (c.vel + 'x · ') : '');
-    b.innerHTML = `<span>${c.tipo === 'imagen' ? '🖼' : (c.mute ? '🔇' : '')} ${etqVel}${fmt(largo(c)).slice(0, 5)}</span>`;
-    b.onclick = (e) => { e.stopPropagation(); S.sel = c.id; abrirTab(['editar', 'velocidad'].includes(S.tab) ? S.tab : 'editar'); pintarLinea(); };
+    const etqVel = c.tipo === 'video' && c.curva ? '◷ ' + CURVAS[c.curva].n : (c.tipo === 'video' && (c.vel || 1) !== 1 ? '◷ ' + c.vel + 'x' : '');
+    b.innerHTML = (etqVel ? `<em>${etqVel}</em>` : '') + `<span>${c.tipo === 'imagen' ? '🖼 ' : (c.mute ? '🔇 ' : '')}${fmt(largo(c)).slice(0, 5)}</span>`;
+    b.onclick = (e) => { e.stopPropagation(); S.sel = c.id; S.selM = null; abrirTab(['editar', 'velocidad', 'belleza'].includes(S.tab) ? S.tab : 'editar'); pintarLinea(); };
     pista.appendChild(b);
     if (i < S.clips.length - 1) {
       const tb = document.createElement('button');
       tb.type = 'button';
       tb.className = 'cut-rombo' + (c.trans.tipo !== 'ninguna' ? ' on' : '');
       tb.title = 'Transición';
-      tb.style.left = (pad + (L.start[i + 1] + L.tr[i] / 2) * S.pps - 13) + 'px';
-      tb.innerHTML = c.trans.tipo !== 'ninguna' ? '◆' : '◇';
-      tb.onclick = (e) => { e.stopPropagation(); S.sel = c.id; abrirTab('transicion'); pintarLinea(); };
+      tb.style.left = (pad + (L.start[i + 1] + L.tr[i] / 2) * S.pps - 12) + 'px';
+      tb.innerHTML = c.trans.tipo !== 'ninguna' ? '⧓' : '|';
+      tb.onclick = (e) => { e.stopPropagation(); S.sel = c.id; S.selM = null; abrirTab('transicion'); pintarLinea(); };
       pista.appendChild(tb);
     }
   });
   const mas = document.createElement('button');
   mas.type = 'button';
   mas.className = 'cut-mas';
-  mas.style.left = (pad + L.total * S.pps + 10) + 'px';
+  mas.style.left = (pad + L.total * S.pps + 8) + 'px';
   mas.innerHTML = '+';
   mas.onclick = () => $('#cutArchivo').click();
   pista.appendChild(mas);
 
-  const ps = $('#cutPistaS');
+  // Fila de audio
+  const pa = $('#cutPistaA');
+  pa.innerHTML = '';
+  S.musica.forEach((m) => {
+    const b = document.createElement('div');
+    b.className = 'cut-mus' + (S.selM === m.id ? ' sel' : '');
+    b.style.left = (pad + m.start * S.pps) + 'px';
+    b.style.width = Math.max(14, Math.min(largoM(m), Math.max(0.1, L.total - m.start)) * S.pps - 2) + 'px';
+    b.textContent = '♪ ' + m.nombre.replace(/\.[^.]+$/, '');
+    b.onclick = (e) => { e.stopPropagation(); S.selM = m.id; S.sel = null; abrirTab('audio'); pintarLinea(); };
+    pa.appendChild(b);
+  });
+  const addA = document.createElement('button');
+  addA.type = 'button'; addA.className = 'cut-agregar';
+  const finMus = S.musica.length ? Math.max(...S.musica.map(m => Math.min(finM(m), L.total))) : 0;
+  addA.style.left = (pad + finMus * S.pps + (S.musica.length ? 6 : 0)) + 'px';
+  addA.innerHTML = '+ Agregar audio';
+  addA.onclick = (e) => { e.stopPropagation(); $('#cutMusica').click(); };
+  pa.appendChild(addA);
+
+  // Fila de texto (subtítulos y textos)
+  const ps = $('#cutPistaT');
   ps.innerHTML = '';
-  ps.hidden = !S.subs.length;
-  S.subs.forEach((s) => {
+  S.subs.forEach((x) => {
     const b = document.createElement('div');
     b.className = 'cut-sub';
-    b.style.left = (pad + s.start * S.pps) + 'px';
-    b.style.width = Math.max(10, (s.end - s.start) * S.pps - 2) + 'px';
-    b.textContent = s.text;
-    b.onclick = (e) => { e.stopPropagation(); editarSub(s); };
+    b.style.left = (pad + x.start * S.pps) + 'px';
+    b.style.width = Math.max(10, (x.end - x.start) * S.pps - 2) + 'px';
+    b.textContent = x.text;
+    b.onclick = (e) => { e.stopPropagation(); editarSub(x); };
     ps.appendChild(b);
   });
+  const addT = document.createElement('button');
+  addT.type = 'button'; addT.className = 'cut-agregar';
+  addT.style.left = (pad + (S.subs.length ? Math.max(...S.subs.map(x => x.end)) * S.pps + 6 : 0)) + 'px';
+  addT.innerHTML = '+ Agregar texto';
+  addT.onclick = (e) => { e.stopPropagation(); nuevoTexto(); };
+  ps.appendChild(addT);
   moverLinea();
   S.dirty = true;
+}
+
+/* ---------- música ---------- */
+function largoM(m) { return Math.max(0.1, (m.dur || 0) - (m.in || 0)); }
+function finM(m) { return m.start + largoM(m); }
+function prepararMusica(m) {
+  return new Promise((ok, mal) => {
+    m.url = URL.createObjectURL(m.file);
+    const a = document.createElement('audio');
+    a.preload = 'auto'; a.src = m.url;
+    a.onloadedmetadata = () => { m.el = a; if (!m.dur || !isFinite(m.dur)) m.dur = isFinite(a.duration) ? a.duration : 30; ok(); };
+    a.onerror = () => mal(new Error('No se pudo abrir ' + m.nombre));
+    $('#cutVideos').appendChild(a);
+  });
+}
+async function agregarMusica(f) {
+  if (!f) return;
+  const L = lay();
+  const m = reg({ id: uid(), fileId: uid(), file: f, nombre: f.name || 'Música', start: S.t >= L.total - 0.2 ? 0 : S.t, in: 0, dur: 0, vol: 1, fadeIn: false, fadeOut: true });
+  try {
+    await prepararMusica(m);
+    S.musica.push(m);
+    DB.put('archivos', m.fileId, f);
+    S.selM = m.id; S.sel = null;
+    abrirTab('audio'); pintarLinea(); guardar();
+    aviso('Música agregada 🎵');
+  } catch (e) { aviso(e.message, 'mal'); }
+}
+$('#cutMusica').addEventListener('change', (e) => { agregarMusica(e.target.files[0]); e.target.value = ''; });
+function nuevoTexto() {
+  if (!S.clips.length) return aviso('Primero agregue un video');
+  const x = SUB.repartir({ id: uid(), start: S.t, end: Math.min(S.t + 2, Math.max(lay().total, S.t + 0.5)), text: 'Escriba aquí' });
+  S.subs.push(x); S.subs.sort((a, b) => a.start - b.start);
+  pintarLinea(); editarSub(x);
 }
 
 /* ---------- agregar videos y fotos ---------- */
@@ -356,7 +504,7 @@ async function agregarArchivos(lista) {
     if (c.tipo === 'imagen') { c.dur = 3; c.out = 3; }
     try {
       await prepararClip(c);
-      S.clips.push(c);
+      S.clips.push(reg(c));
       await DB.put('archivos', c.fileId, f);
     } catch (e) { aviso(e.message || 'No se pudo abrir el archivo', 'mal'); }
   }
@@ -381,7 +529,7 @@ function dividir() {
   if (i < 0) return aviso('Ponga la línea blanca encima del clip que quiere cortar');
   const c = S.clips[i];
   const loc = tOrigen(c, S.t - L.start[i]);
-  const n = { ...c, _tk: null, id: uid(), in: loc, el: null, mascara: null, trans: { ...c.trans } };
+  const n = reg({ ...c, _tk: null, id: uid(), in: loc, el: null, mascara: null, trans: { ...c.trans } });
   c.out = loc; c.trans = { tipo: 'ninguna', dur: 0.5 };
   S.clips.splice(i + 1, 0, n);
   const listo = () => { S.sel = n.id; pintarLinea(); pintarPanel(); guardar(); aviso('Clip dividido ✂️'); };
@@ -391,7 +539,7 @@ async function eliminar() {
   const c = clipSel(); if (!c) return;
   const i = S.clips.indexOf(c);
   S.clips.splice(i, 1);
-  if (c.el) { c.el.pause(); c.el.remove(); }
+  if (c.el) c.el.pause();
   S.sel = S.clips[Math.min(i, S.clips.length - 1)]?.id || null;
   if (!S.clips.length) $('#cutVacio').hidden = false;
   irA(S.t); pintarLinea(); pintarPanel(); guardar();
@@ -399,7 +547,7 @@ async function eliminar() {
 function duplicar() {
   const c = clipSel(); if (!c) return;
   const i = S.clips.indexOf(c);
-  const n = { ...c, id: uid(), el: null, mascara: null, _tk: null, trans: { ...c.trans } };
+  const n = reg({ ...c, id: uid(), el: null, mascara: null, _tk: null, trans: { ...c.trans } });
   S.clips.splice(i + 1, 0, n);
   const listo = () => { S.sel = n.id; pintarLinea(); pintarPanel(); guardar(); };
   if (n.tipo === 'video') cargarVideo(n).then(listo); else listo();
@@ -413,37 +561,56 @@ function mover(d) {
 }
 
 /* ---------- panel de herramientas ---------- */
+const TITULOS = { editar: 'Editar', audio: 'Audio', texto: 'Texto', subtitulos: 'Subtítulos', velocidad: 'Velocidad', transicion: 'Transición', belleza: 'Filtros · Belleza', formato: 'Formato' };
 function abrirTab(t) {
   S.tab = t;
   $$('.cut-tab').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+  $('#cutPanel').hidden = !t;
+  document.body.classList.toggle('con-panel', !!t);
+  $('#cutPanelTit').textContent = TITULOS[t] || '';
   pintarPanel();
+  requestAnimationFrame(() => pintarLinea());
 }
-$$('.cut-tab').forEach(b => b.addEventListener('click', () => {
-  if (b.dataset.tab === 'agregar') return $('#cutArchivo').click();
-  abrirTab(b.dataset.tab);
-}));
+$$('.cut-tab').forEach(b => b.addEventListener('click', () => abrirTab(S.tab === b.dataset.tab && innerWidth < 1000 ? null : b.dataset.tab)));
+$('#cutPanelCerrar').addEventListener('click', () => abrirTab(innerWidth >= 1000 ? 'editar' : null));
+$('#cutDeshacer').addEventListener('click', deshacer);
+$('#cutRehacer').addEventListener('click', rehacer);
+$('#cutPantalla').addEventListener('click', () => { document.body.classList.toggle('pantalla'); setTimeout(() => { pintarLinea(); S.dirty = true; }, 50); });
 
 function chips(nombre, opciones, actual) {
   return `<div class="cut-chips" data-grupo="${nombre}">${opciones.map(([v, t]) => `<button type="button" class="cut-chip ${String(v) === String(actual) ? 'on' : ''}" data-v="${v}">${t}</button>`).join('')}</div>`;
 }
 
 function pintarPanel() {
-  const p = $('#cutPanel');
+  const p = $('#cutPanelCuerpo');
+  if (!S.tab) { p.innerHTML = ''; return; }
   const c = clipSel();
+  const m = S.musica.find(x => x.id === S.selM);
   if (S.tab === 'editar') {
     if (!c) { p.innerHTML = `<p class="cut-nota">Agregue videos o fotos con el botón <b>+</b> y toque un clip para editarlo.</p>`; return; }
     p.innerHTML = `
       <div class="cut-acciones">
-        <button type="button" data-a="dividir"><i>✂️</i>Dividir aquí</button>
-        <button type="button" data-a="eliminar"><i>🗑️</i>Eliminar</button>
+        <button type="button" data-a="dividir"><i>✂️</i>Dividir</button>
+        ${c.tipo === 'video' ? `<button type="button" data-a="vel"><i>◷</i>Velocidad</button>` : ''}
         <button type="button" data-a="duplicar"><i>⧉</i>Duplicar</button>
         <button type="button" data-a="izq"><i>⬅️</i>Mover</button>
         <button type="button" data-a="der"><i>➡️</i>Mover</button>
         ${c.tipo === 'video' ? `<button type="button" data-a="mute"><i>${c.mute ? '🔈' : '🔇'}</i>${c.mute ? 'Con sonido' : 'Silenciar'}</button>` : ''}
+        <button type="button" data-a="eliminar"><i>🗑️</i>Eliminar</button>
       </div>
+      <div class="cut-fila"><small>Zoom</small><input type="range" min="1" max="4" step="0.01" value="${c.z || 1}" data-zoom><b class="cut-val" data-zv>${Math.round((c.z || 1) * 100)}%</b></div>
+      ${(c.z || 1) > 1.001 || c.x || c.y ? '<button type="button" class="cut-btn-sec" data-reenc>Restablecer encuadre</button>' : ''}
+      <p class="cut-nota">💡 Pellizque el video con dos dedos para acercarlo y arrástrelo con un dedo para escoger qué parte se ve.</p>
+      ${c.tipo === 'video' ? `<div class="cut-fila"><small>Volumen</small><input type="range" min="0" max="2" step="0.05" value="${c.vol ?? 1}" data-vol><b class="cut-val">${Math.round((c.vol ?? 1) * 100)}%</b></div>` : ''}
       ${c.tipo === 'imagen' ? `<div class="cut-fila"><small>Duración de la foto</small>${chips('durfoto', [[2, '2 s'], [3, '3 s'], [5, '5 s'], [8, '8 s']], largo(c))}</div>` : ''}
-      <p class="cut-nota">Para recortar: ponga la línea blanca donde quiere cortar, toque <b>Dividir aquí</b> y elimine el pedazo que sobra.</p>`;
-    $$('[data-a]', p).forEach(b => b.onclick = () => ({ dividir, eliminar, duplicar, izq: () => mover(-1), der: () => mover(1), mute: () => { c.mute = !c.mute; pintarLinea(); pintarPanel(); sincronizar(); guardar(); } })[b.dataset.a]());
+      <p class="cut-nota">Para recortar: ponga la línea blanca donde quiere cortar, toque <b>Dividir</b> y elimine el pedazo que sobra.</p>`;
+    $$('[data-a]', p).forEach(b => b.onclick = () => ({ dividir, eliminar, duplicar, izq: () => mover(-1), der: () => mover(1), vel: () => abrirTab('velocidad'), mute: () => { c.mute = !c.mute; pintarLinea(); pintarPanel(); sincronizar(); guardar(); } })[b.dataset.a]());
+    const rz = $('[data-zoom]', p);
+    rz.oninput = () => { c.z = Number(rz.value); $('[data-zv]', p).textContent = Math.round(c.z * 100) + '%'; S.dirty = true; };
+    rz.onchange = () => { guardar(); pintarPanel(); };
+    const re = $('[data-reenc]', p); if (re) re.onclick = () => { c.z = 1; c.x = 0; c.y = 0; S.dirty = true; guardar(); pintarPanel(); };
+    const rv = $('[data-vol]', p);
+    if (rv) { rv.oninput = () => { c.vol = Number(rv.value); $('.cut-val', p).textContent = Math.round(c.vol * 100) + '%'; sincronizar(); }; rv.onchange = guardar; }
     const g = $('[data-grupo="durfoto"]', p);
     if (g) g.onclick = (e) => { const v = e.target.dataset.v; if (!v) return; c.out = c.in + Number(v); pintarLinea(); pintarPanel(); guardar(); };
     return;
@@ -463,38 +630,70 @@ function pintarPanel() {
     $('[data-todas]', p).onclick = () => { S.clips.slice(0, -1).forEach(x => { x.trans = { ...c.trans }; }); pintarLinea(); guardar(); aviso('Transición puesta en todos los cortes ✨'); };
     return;
   }
-  if (S.tab === 'subtitulos') {
-    const st = S.sub;
+  if (S.tab === 'audio') {
+    if (m) {
+      p.innerHTML = `
+        <p class="cut-nota" style="text-align:left">🎵 <b>${esc(m.nombre)}</b></p>
+        <div class="cut-fila"><small>Volumen</small><input type="range" min="0" max="2" step="0.05" value="${m.vol ?? 1}" data-mvol><b class="cut-val">${Math.round((m.vol ?? 1) * 100)}%</b></div>
+        <label class="cut-check"><input type="checkbox" data-fi ${m.fadeIn ? 'checked' : ''}> Aparecer suave al inicio</label>
+        <label class="cut-check"><input type="checkbox" data-fo ${m.fadeOut ? 'checked' : ''}> Desaparecer suave al final</label>
+        <div class="cut-acciones2">
+          <button type="button" class="cut-btn-sec" data-aqui>Empezar donde está la línea</button>
+          <button type="button" class="cut-btn-sec" data-cero>Empezar al inicio</button>
+          <button type="button" class="cut-btn-sec" data-quitar>🗑 Quitar música</button>
+        </div>`;
+      const r = $('[data-mvol]', p);
+      r.oninput = () => { m.vol = Number(r.value); $('.cut-val', p).textContent = Math.round(m.vol * 100) + '%'; sincronizar(); };
+      r.onchange = guardar;
+      $('[data-fi]', p).onchange = (e) => { m.fadeIn = e.target.checked; guardar(); };
+      $('[data-fo]', p).onchange = (e) => { m.fadeOut = e.target.checked; guardar(); };
+      $('[data-aqui]', p).onclick = () => { m.start = S.t; pintarLinea(); guardar(); };
+      $('[data-cero]', p).onclick = () => { m.start = 0; pintarLinea(); guardar(); };
+      $('[data-quitar]', p).onclick = () => { if (m.el) m.el.pause(); S.musica = S.musica.filter(x => x !== m); S.selM = null; pintarLinea(); pintarPanel(); guardar(); };
+      return;
+    }
     p.innerHTML = `
-      <div class="cut-gen">
-        <button type="button" class="cut-btn" data-gen>✨ ${S.subs.length ? 'Volver a generar' : 'Generar subtítulos automáticos'}</button>
+      <button type="button" class="cut-btn" data-mus>🎵 Agregar música</button>
+      <p class="cut-nota">Escoja una canción o audio de su celular (MP3, M4A…). Empieza donde está la línea blanca.</p>
+      <label class="cut-check"><input type="checkbox" data-sil ${S.silenciar ? 'checked' : ''}> Silenciar el sonido original de los videos</label>
+      ${S.musica.length ? `<p class="cut-nota">Toque una música en la fila <b>♪</b> para cambiarle el volumen o quitarla.</p>` : ''}`;
+    $('[data-mus]', p).onclick = () => $('#cutMusica').click();
+    $('[data-sil]', p).onchange = (e) => { S.silenciar = e.target.checked; sincronizar(); pintarLinea(); guardar(); };
+    return;
+  }
+  if (S.tab === 'subtitulos' || S.tab === 'texto') {
+    const st = S.sub;
+    const esSub = S.tab === 'subtitulos';
+    p.innerHTML = `
+      ${esSub ? `<div class="cut-gen">
+        <button type="button" class="cut-btn" data-gen>✨ ${S.segs.length ? 'Volver a generar' : 'Generar subtítulos automáticos'}</button>
         <div class="cut-gen-op">
           <select data-idioma><option value="spanish">Español</option><option value="english">Inglés</option><option value="portuguese">Portugués</option></select>
           <select data-modelo><option value="onnx-community/whisper-base">Rápido</option><option value="onnx-community/whisper-small">Más preciso</option></select>
         </div>
         <div class="cut-progreso" hidden><i></i><span></span></div>
-      </div>
+      </div>` : `<button type="button" class="cut-btn" data-nuevo>T + Agregar texto aquí</button>`}
       <div class="cut-estilos">${SUB.ESTILOS.map(e => `<button type="button" class="est est-${e.id} ${st.estilo === e.id ? 'on' : ''}" data-e="${e.id}"><b>Hola</b><small>${e.n}</small></button>`).join('')}</div>
       <div class="cut-fila"><small>Tamaño</small>${chips('tam', [['S', 'Pequeño'], ['M', 'Mediano'], ['L', 'Grande']], st.tam)}</div>
       <div class="cut-fila"><small>Color</small><div class="cut-colores">${SUB.COLORES.map(col => `<button type="button" data-col="${col}" class="${st.color === col ? 'on' : ''}" style="background:${col}"></button>`).join('')}</div></div>
-      <div class="cut-fila"><small>Palabras por subtítulo</small>${chips('pal', [[1, '1'], [2, '2'], [3, '3'], [5, '5'], [0, 'Frase']], st.palabras)}</div>
+      ${esSub ? `<div class="cut-fila"><small>Palabras por subtítulo</small>${chips('pal', [[1, '1'], [2, '2'], [3, '3'], [5, '5'], [0, 'Frase']], st.palabras)}</div>` : ''}
       <div class="cut-fila"><small>Altura</small><input type="range" min="0.1" max="0.9" step="0.01" value="${st.pos}" data-pos></div>
       <label class="cut-check"><input type="checkbox" data-mayus ${st.mayus ? 'checked' : ''}> TODO EN MAYÚSCULAS</label>
       <div class="cut-acciones2">
-        <button type="button" class="cut-btn-sec" data-nuevo>+ Texto aquí</button>
-        ${S.subs.length ? '<button type="button" class="cut-btn-sec" data-lista>Editar textos</button><button type="button" class="cut-btn-sec" data-borrar>Quitar subtítulos</button>' : ''}
+        ${esSub ? '<button type="button" class="cut-btn-sec" data-nuevo>+ Texto aquí</button>' : ''}
+        ${S.subs.length ? '<button type="button" class="cut-btn-sec" data-lista>Editar textos</button><button type="button" class="cut-btn-sec" data-borrar>Quitar todos</button>' : ''}
       </div>`;
-    $('[data-gen]', p).onclick = () => generarSubs($('[data-idioma]', p).value, $('[data-modelo]', p).value);
+    const gen = $('[data-gen]', p); if (gen) gen.onclick = () => generarSubs($('[data-idioma]', p).value, $('[data-modelo]', p).value);
     $('.cut-estilos', p).onclick = (e) => { const b = e.target.closest('[data-e]'); if (!b) return; st.estilo = b.dataset.e; pintarPanel(); S.dirty = true; guardar(); };
     $('[data-grupo="tam"]', p).onclick = (e) => { if (!e.target.dataset.v) return; st.tam = e.target.dataset.v; pintarPanel(); S.dirty = true; guardar(); };
-    $('[data-grupo="pal"]', p).onclick = (e) => { if (e.target.dataset.v == null) return; st.palabras = Number(e.target.dataset.v); if (S.segs.length) { S.subs = SUB.armar(S.segs, st.palabras); pintarLinea(); } pintarPanel(); guardar(); };
+    const gp = $('[data-grupo="pal"]', p); if (gp) gp.onclick = (e) => { if (e.target.dataset.v == null) return; st.palabras = Number(e.target.dataset.v); if (S.segs.length) { S.subs = SUB.armar(S.segs, st.palabras); pintarLinea(); } pintarPanel(); guardar(); };
     $('.cut-colores', p).onclick = (e) => { if (!e.target.dataset.col) return; st.color = e.target.dataset.col; pintarPanel(); S.dirty = true; guardar(); };
     $('[data-pos]', p).oninput = (e) => { st.pos = Number(e.target.value); S.dirty = true; };
     $('[data-pos]', p).onchange = guardar;
     $('[data-mayus]', p).onchange = (e) => { st.mayus = e.target.checked; S.dirty = true; guardar(); };
-    $('[data-nuevo]', p).onclick = () => { const s = SUB.repartir({ id: uid(), start: S.t, end: Math.min(S.t + 2, lay().total || S.t + 2), text: 'Escriba aquí' }); S.subs.push(s); S.subs.sort((a, b) => a.start - b.start); pintarLinea(); editarSub(s); };
+    $('[data-nuevo]', p).onclick = nuevoTexto;
     const l = $('[data-lista]', p); if (l) l.onclick = listaSubs;
-    const q = $('[data-borrar]', p); if (q) q.onclick = async () => { if (await preguntar('¿Quitar los subtítulos?', 'Se borran todos los textos del video.', 'Quitar')) { S.subs = []; S.segs = []; pintarLinea(); pintarPanel(); guardar(); } };
+    const q = $('[data-borrar]', p); if (q) q.onclick = async () => { if (await preguntar('¿Quitar todos los textos?', 'Se borran los subtítulos y textos del video. Puede deshacerlo con ↩.', 'Quitar')) { S.subs = []; S.segs = []; pintarLinea(); pintarPanel(); guardar(); } };
     return;
   }
   if (S.tab === 'belleza') {
@@ -556,7 +755,9 @@ function pintarPanel() {
     p.innerHTML = `
       <div class="cut-formatos">
         ${[['9:16', 'TikTok · Reels · Estados'], ['16:9', 'YouTube · TV'], ['1:1', 'Cuadrado'], ['4:5', 'Instagram']].map(([v, t]) => `<button type="button" data-asp="${v}" class="${S.aspecto === v ? 'on' : ''}"><span class="caja-asp" style="aspect-ratio:${v.replace(':', '/')}"></span><b>${v}</b><small>${t}</small></button>`).join('')}
-      </div>`;
+      </div>
+      <button type="button" class="cut-btn-sec" data-nuevo-proy style="margin-top:.8rem">Empezar un video nuevo</button>`;
+    $('[data-nuevo-proy]', p).onclick = nuevoProyecto;
     $('.cut-formatos', p).onclick = (e) => { const b = e.target.closest('[data-asp]'); if (!b) return; S.aspecto = b.dataset.asp; ajustarVista(); pintarPanel(); guardar(); };
   }
 }
@@ -579,14 +780,14 @@ async function activarBelleza() {
 }
 
 /* ---------- subtítulos ---------- */
-async function mezclarAudio(rate, canales) {
+async function mezclarAudio(rate, canales, soloVoz = false) {
   const L = lay();
   const len = Math.max(1, Math.ceil(L.total * rate));
   const oc = new OfflineAudioContext(canales, len, rate);
   let hay = false;
   for (let i = 0; i < S.clips.length; i++) {
     const c = S.clips[i];
-    if (c.tipo !== 'video' || c.mute) continue;
+    if (c.tipo !== 'video' || c.mute || (S.silenciar && !soloVoz)) continue;
     const buf = await decodificar(c, oc);
     if (!buf) continue;
     hay = true;
@@ -594,15 +795,31 @@ async function mezclarAudio(rate, canales) {
     const g = oc.createGain();
     const ini = L.start[i], dur = largo(c);
     const fe = i > 0 ? L.tr[i - 1] : 0, fs = L.tr[i] || 0;
-    g.gain.setValueAtTime(fe ? 0 : 1, ini);
-    if (fe) g.gain.linearRampToValueAtTime(1, ini + fe);
-    if (fs) { g.gain.setValueAtTime(1, ini + dur - fs); g.gain.linearRampToValueAtTime(0, ini + dur); }
+    const vv = soloVoz ? 1 : (c.vol ?? 1);
+    g.gain.setValueAtTime(fe ? 0 : vv, ini);
+    if (fe) g.gain.linearRampToValueAtTime(vv, ini + fe);
+    if (fs) { g.gain.setValueAtTime(vv, ini + dur - fs); g.gain.linearRampToValueAtTime(0, ini + dur); }
     if (c.curva && CURVAS[c.curva]) {
       const pts = Array.from({ length: 64 }, (_, k) => Math.max(0.1, velEn(c, k / 63)));
       src.playbackRate.setValueCurveAtTime(Float32Array.from(pts), ini, dur);
     } else src.playbackRate.value = c.vel || 1;
     src.connect(g).connect(oc.destination);
     src.start(ini, c.in, c.out - c.in);
+  }
+  if (!soloVoz) for (const m of S.musica) {
+    const dur = Math.min(largoM(m), L.total - m.start);
+    if (dur <= 0.05) continue;
+    const buf = await decodificar(m, oc);
+    if (!buf) continue;
+    hay = true;
+    const src = oc.createBufferSource(); src.buffer = buf;
+    const g = oc.createGain(), v = m.vol ?? 1;
+    const fi = m.fadeIn ? Math.min(1.5, dur / 3) : 0, fo = m.fadeOut ? Math.min(1.5, dur / 3) : 0;
+    g.gain.setValueAtTime(fi ? 0 : v, m.start);
+    if (fi) g.gain.linearRampToValueAtTime(v, m.start + fi);
+    if (fo) { g.gain.setValueAtTime(v, m.start + dur - fo); g.gain.linearRampToValueAtTime(0, m.start + dur); }
+    src.connect(g).connect(oc.destination);
+    src.start(m.start, m.in || 0, dur);
   }
   if (!hay) return null;
   return oc.startRendering();
@@ -620,14 +837,14 @@ async function decodificar(c, ctx) {
 let trabajador = null;
 async function generarSubs(idioma, modelo) {
   if (!S.clips.length) return aviso('Primero agregue un video');
-  const p = $('#cutPanel');
+  const p = $('#cutPanelCuerpo');
   const barra = $('.cut-progreso', p);
   const btn = $('[data-gen]', p);
   const poner = (pct, txt) => { barra.hidden = false; $('i', barra).style.width = pct + '%'; $('span', barra).textContent = txt; };
   btn.disabled = true;
   poner(3, 'Preparando el audio…');
   try {
-    const audio = await mezclarAudio(16000, 1);
+    const audio = await mezclarAudio(16000, 1, true);
     if (!audio) throw new Error('El video no tiene sonido para escuchar');
     poner(8, 'Descargando el modelo de voz (solo la primera vez)…');
     trabajador ||= new Worker(new URL('./transcribir.js', import.meta.url), { type: 'module' });
@@ -889,11 +1106,14 @@ const DB = {
   async limpiar() { try { const db = await this.abrir(); for (const st of ['archivos', 'estado']) await new Promise((ok) => { const tx = db.transaction(st, 'readwrite'); tx.objectStore(st).clear(); tx.oncomplete = ok; tx.onerror = ok; }); } catch (e) { /* nada */ } },
 };
 let tGuardar = null;
-function guardar() {
+function guardar() { registrarHist(); guardarDB(); }
+function guardarDB() {
   clearTimeout(tGuardar);
   tGuardar = setTimeout(() => {
     DB.put('estado', 'actual', {
-      clips: S.clips.map(c => ({ id: c.id, fileId: c.fileId, nombre: c.nombre, tipo: c.tipo, in: c.in, out: c.out, dur: c.dur, mute: c.mute, trans: c.trans, vel: c.vel || 1, curva: c.curva || null })),
+      clips: S.clips.map(c => ({ id: c.id, fileId: c.fileId, nombre: c.nombre, tipo: c.tipo, in: c.in, out: c.out, dur: c.dur, mute: c.mute, vol: c.vol ?? 1, trans: c.trans, vel: c.vel || 1, curva: c.curva || null, z: c.z || 1, x: c.x || 0, y: c.y || 0 })),
+      musica: S.musica.map(m => ({ id: m.id, fileId: m.fileId, nombre: m.nombre, start: m.start, in: m.in, dur: m.dur, vol: m.vol, fadeIn: m.fadeIn, fadeOut: m.fadeOut })),
+      silenciar: !!S.silenciar,
       subs: S.subs, segs: S.segs, sub: S.sub, belleza: S.belleza, aspecto: S.aspecto, fecha: Date.now(),
     });
   }, 400);
@@ -911,23 +1131,92 @@ async function recuperar() {
     const file = await DB.get('archivos', d.fileId);
     if (!file) continue;
     const c = { ...d, file };
-    try { await prepararClip(c); S.clips.push(c); } catch (err) { /* archivo dañado */ }
+    try { await prepararClip(c); S.clips.push(reg(c)); } catch (err) { /* archivo dañado */ }
+  }
+  S.silenciar = !!e.silenciar;
+  for (const d of (e.musica || [])) {
+    const file = await DB.get('archivos', d.fileId);
+    if (!file) continue;
+    const m = reg({ ...d, file });
+    try { await prepararMusica(m); S.musica.push(m); } catch (err) { /* nada */ }
   }
   cargandoMsg(null);
   if (!S.clips.length) { $('#cutVacio').hidden = false; return; }
   S.sel = S.clips[0].id;
   ajustarVista(); pintarLinea(); pintarPanel();
+  HIST.pila = []; HIST.pos = -1; registrarHist();
   if (S.belleza.on) activarBelleza();
 }
-$('#cutNuevo').addEventListener('click', async () => {
+async function nuevoProyecto() {
   if (S.clips.length && !(await preguntar('¿Empezar un video nuevo?', 'Se borra lo que tiene en la línea de tiempo.', 'Empezar de nuevo'))) return;
   pausar();
   S.clips.forEach(c => { if (c.el) { c.el.pause(); c.el.remove(); } });
-  S.clips = []; S.subs = []; S.segs = []; S.sel = null; S.t = 0;
+  S.musica.forEach(m => { if (m.el) { m.el.pause(); m.el.remove(); } });
+  S.clips = []; S.subs = []; S.segs = []; S.musica = []; S.sel = null; S.selM = null; S.t = 0; S.silenciar = false;
+  REG.clear(); HIST.pila = []; HIST.pos = -1;
   await DB.limpiar();
   $('#cutVacio').hidden = false;
-  pintarLinea(); pintarPanel();
+  registrarHist();
+  pintarLinea(); abrirTab(innerWidth >= 1000 ? 'editar' : null);
+}
+
+/* ---------- zoom y encuadre con los dedos sobre el video ---------- */
+const dedos = new Map();
+let gesto = null;
+function clipBajoLinea() {
+  const act = activos(S.t);
+  if (!act.length) return null;
+  const sel = act.map(i => S.clips[i]).find(c => c.id === S.sel);
+  return sel || S.clips[act[act.length - 1]];
+}
+vista.style.touchAction = 'none';
+vista.addEventListener('pointerdown', (e) => {
+  const c = clipBajoLinea(); if (!c) return;
+  if (S.playing) pausar();
+  vista.setPointerCapture(e.pointerId);
+  dedos.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (S.sel !== c.id) { S.sel = c.id; S.selM = null; pintarLinea(); }
+  const pts = [...dedos.values()];
+  gesto = { c, z0: c.z || 1, x0: c.x || 0, y0: c.y || 0, p0: pts.map(q => ({ ...q })), d0: pts.length > 1 ? Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) : 0 };
 });
+vista.addEventListener('pointermove', (e) => {
+  if (!gesto || !dedos.has(e.pointerId)) return;
+  dedos.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  const c = gesto.c, r = vista.getBoundingClientRect(), pts = [...dedos.values()];
+  if (pts.length > 1 && gesto.d0) {
+    const d = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+    c.z = Math.max(1, Math.min(4, gesto.z0 * d / gesto.d0));
+  } else if (pts.length === 1 && gesto.p0.length === 1) {
+    // Arrastrar: la imagen sigue al dedo
+    const ao = vista.width / vista.height, as = (c.w || 1) / (c.h || 1);
+    const z = c.z || 1;
+    const sc = (as > ao ? [ao / as, 1] : [1, as / ao]).map(v => v / z);
+    const mx = (1 - sc[0]) / 2, my = (1 - sc[1]) / 2;
+    const dx = (pts[0].x - gesto.p0[0].x) / r.width, dy = (pts[0].y - gesto.p0[0].y) / r.height;
+    if (mx > 0.001) c.x = Math.max(-1, Math.min(1, gesto.x0 - dx * sc[0] / mx));
+    if (my > 0.001) c.y = Math.max(-1, Math.min(1, gesto.y0 - dy * sc[1] / my));
+  }
+  S.dirty = true;
+});
+const soltar = (e) => {
+  if (!dedos.has(e.pointerId)) return;
+  dedos.delete(e.pointerId);
+  if (gesto) {
+    const c = gesto.c;
+    const pts = [...dedos.values()];
+    gesto = pts.length ? { c, z0: c.z || 1, x0: c.x || 0, y0: c.y || 0, p0: pts.map(q => ({ ...q })), d0: 0 } : null;
+    if (!pts.length) { guardar(); if (S.tab === 'editar') pintarPanel(); }
+  }
+};
+vista.addEventListener('pointerup', soltar);
+vista.addEventListener('pointercancel', soltar);
+vista.addEventListener('wheel', (e) => {
+  const c = clipBajoLinea(); if (!c) return;
+  e.preventDefault();
+  c.z = Math.max(1, Math.min(4, (c.z || 1) * (e.deltaY < 0 ? 1.08 : 1 / 1.08)));
+  S.dirty = true;
+  clearTimeout(vista._tz); vista._tz = setTimeout(() => { guardar(); if (S.tab === 'editar') pintarPanel(); }, 300);
+}, { passive: false });
 
 /* ---------- arranque ---------- */
 $('#cutPlay').addEventListener('click', () => (S.playing ? pausar() : reproducir()));
@@ -945,7 +1234,8 @@ try {
 }
 ajustarVista();
 pintarLinea();
-abrirTab('editar');
+abrirTab(innerWidth >= 1000 ? 'editar' : null);
+registrarHist();
 requestAnimationFrame(bucle);
 recuperar();
 document.fonts.load('900 40px Montserrat');

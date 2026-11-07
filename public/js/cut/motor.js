@@ -197,7 +197,7 @@ export class Motor {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   }
   // Dibuja un clip (video/imagen/canvas) en el buffer "slot" con encuadre cover y belleza
-  clip(slot, fuente, sw, sh, mascara, belleza) {
+  clip(slot, fuente, sw, sh, mascara, belleza, enc) {
     const gl = this.gl, P = this.pClip;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.fb[slot]);
     gl.viewport(0, 0, this.W, this.H);
@@ -214,8 +214,11 @@ export class Motor {
     gl.uniform1i(P.u.uMask, 1);
     const ao = this.W / this.H, as = sw / sh;
     const sc = as > ao ? [ao / as, 1] : [1, as / ao];
+    // Zoom y encuadre del clip (acercar y mover dentro del mismo cuadro, lo de afuera se recorta)
+    const z = Math.max(1, Math.min(6, enc?.z || 1));
+    sc[0] /= z; sc[1] /= z;
     gl.uniform2f(P.u.uScale, sc[0], sc[1]);
-    gl.uniform2f(P.u.uPan, 0, 0);
+    gl.uniform2f(P.u.uPan, Math.max(-1, Math.min(1, enc?.x || 0)) * (1 - sc[0]) / 2, Math.max(-1, Math.min(1, enc?.y || 0)) * (1 - sc[1]) / 2);
     // Paso del suavizado relativo al tamaño del rostro en pantalla (igual en vista previa y exportado)
     const k = (belleza?.suave ?? 0);
     const paso = (0.0011 + 0.0016 * k) * (sc[1]);
