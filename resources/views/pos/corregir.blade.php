@@ -14,6 +14,22 @@
 
     @if ($bloqueo)
     <div class="alert alert-warning fw-bold">{{ $bloqueo }}</div>
+    @elseif ($soloPago)
+    <div class="alert alert-info small fw-semibold mb-3">
+        <b>¿Se registró con otra forma de pago?</b> (ej. quedó en Nequi y le pagaron en efectivo): cámbiela abajo en <b>¿Cómo pagó realmente?</b> y su caja se ajusta sola.
+        Como cajero solo puede cambiar la forma de pago de las ventas de su caja abierta; para cantidades o precios, pídaselo al dueño o al administrador. <b>El dueño recibe el aviso</b> de cada cambio.
+    </div>
+    <form method="post" action="{{ route('pos.corregir.guardar', $venta) }}" data-confirm="¿Cambiar la forma de pago de la venta {{ $venta->numero }}?" data-confirm-texto="Su caja se ajusta y el dueño recibe el aviso." data-confirm-ok="Sí, cambiar">
+        @csrf
+        <div class="lp-box mb-3">
+            <h3>Forma de pago</h3>
+            <p class="small text-muted mb-2">{{ $venta->items->map(fn ($i) => cantidad($i->cantidad) . ' × ' . $i->descripcion)->implode(', ') }} · <b>@pesos($venta->total)</b></p>
+            @include('pos._corregir_pagos')
+            <label class="form-label fw-bold small">Motivo</label>
+            <input type="text" name="motivo" class="form-control" maxlength="255" required value="{{ old('motivo') }}" placeholder="Ej.: el cliente pagó en efectivo, no por Nequi">
+            <button class="btn btn-primary btn-lg rounded-pill fw-bold mt-3"><i class="fa-solid fa-check me-1"></i>Cambiar forma de pago</button>
+        </div>
+    </form>
     @else
     <div class="alert alert-info small fw-semibold mb-3">
         <div class="mb-1"><b>¿Qué hago?</b> Deje cada producto como <b>realmente</b> se vendió:</div>
@@ -60,17 +76,7 @@
             @else
             <p class="small text-muted mb-2">La diferencia se ajusta en el pago: <b>{{ $venta->pagos->first()->metodo->nombre ?? '—' }}</b>.</p>
             @endif
-            <label class="form-label fw-bold small">¿Cómo pagó realmente?</label>
-            @foreach ($venta->pagos as $p)
-            <div class="d-flex align-items-center gap-2 mb-2">
-                @if ($venta->pagos->count() > 1)<span class="small text-muted text-nowrap">@pesos($p->monto):</span>@endif
-                <select name="metodos[{{ $p->id }}]" class="form-select" @disabled(($p->moneda ?? null) === 'VES')>
-                    @if (!$metodos->contains('id', $p->metodo_pago_id))<option value="">{{ $p->metodo->nombre ?? 'Pago' }}</option>@endif
-                    @foreach ($metodos as $m)<option value="{{ $m->id }}" @selected((int) $m->id === (int) $p->metodo_pago_id)>{{ $m->nombre }}</option>@endforeach
-                </select>
-            </div>
-            @endforeach
-            <small class="text-muted d-block mb-3">Si cambia Efectivo por Transferencia, la caja de ese día deja de esperar esa plata en efectivo.</small>
+            @include('pos._corregir_pagos')
             <label class="form-label fw-bold small">Motivo</label>
             <input type="text" name="motivo" class="form-control" maxlength="255" required value="{{ old('motivo') }}" placeholder="Ej.: se vendió en $150.000 por transferencia y se digitó $125.000 en efectivo">
             <button class="btn btn-primary btn-lg rounded-pill fw-bold mt-3"><i class="fa-solid fa-check me-1"></i>Corregir venta</button>
@@ -97,6 +103,7 @@
 @push('js')
 <script>
 (function () {
+    if (!document.getElementById('cvTotal')) return;
     var fmt = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 });
     var desc = {{ (float) $venta->descuento }};
     var num = function (t) { return parseInt(String(t).replace(/\D/g, ''), 10) || 0; };

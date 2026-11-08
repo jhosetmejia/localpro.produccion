@@ -19,6 +19,10 @@
             <table class="table align-middle">
                 <thead><tr><th>N.º</th><th>Fecha</th><th>Vendedor</th><th>Cliente</th><th>Pago</th><th>Total</th><th></th></tr></thead>
                 <tbody>
+                @php
+                    $esAdminCv = \App\Http\Controllers\correccionVentaController::esAdmin();
+                    $miCajaCv = $esAdminCv ? null : \App\Models\Caja::abiertaDe(auth()->id())?->id;
+                @endphp
                 @forelse ($ventas as $v)
                 <tr class="{{ $v->estado === 'anulada' ? 'opacity-50' : '' }}">
                     <td class="fw-bold">{{ $v->numero }}
@@ -31,8 +35,10 @@
                     <td class="fw-bold">@pesos($v->total) @if($v->estado === 'anulada')<span class="badge bg-danger">Anulada</span>@endif @if($v->registrada_despues_en)<span class="badge bg-info text-dark" title="Registrada el {{ $v->registrada_despues_en->format('d/m/Y h:i a') }}">Registrada después</span>@endif @if($v->corregida_en)<span class="badge bg-warning text-dark" title="Corregida el {{ $v->corregida_en->format('d/m/Y h:i a') }}">Corregida</span>@endif</td>
                     <td class="text-end text-nowrap">
                         <a href="{{ route('pos.ticket', $v) }}" target="_blank" class="btn btn-sm btn-dark"><i class="fa-solid fa-receipt"></i></a>
-                        @if ($v->estado === 'pagada' && (auth()->user()->es_superadmin || auth()->user()->hasAnyRole(['dueno', 'administrador'])))
+                        @if ($v->estado === 'pagada' && $esAdminCv)
                         <a href="{{ route('pos.corregir', $v) }}" class="btn btn-sm btn-light border" title="Corregir venta (error al digitar)"><i class="fa-solid fa-pen-to-square"></i></a>
+                        @elseif ($v->estado === 'pagada' && $miCajaCv && (int) $v->caja_id === (int) $miCajaCv)
+                        <a href="{{ route('pos.corregir', $v) }}" class="btn btn-sm btn-light border" title="Cambiar forma de pago"><i class="fa-solid fa-money-bill-transfer"></i></a>
                         @endif
                         @if ($v->estado === 'pagada')
                         @can('devolver-venta')

@@ -28,10 +28,26 @@ use Illuminate\Validation\ValidationException;
  */
 class correccionVentaController extends Controller
 {
-    private function soloAdmin(): void
+    public static function esAdmin(): bool
     {
         $u = Auth::user();
-        abort_unless($u && ($u->es_superadmin || $u->hasAnyRole(['dueno', 'administrador'])), 403, 'Solo el dueño o el administrador puede corregir ventas.');
+        return (bool) ($u && ($u->es_superadmin || $u->hasAnyRole(['dueno', 'administrador'])));
+    }
+
+    // El cajero puede cambiar solo la forma de pago de las ventas de SU caja mientras esté abierta (el dueño recibe el aviso)
+    public static function cajeroPuedeCambiarPago(PosVenta $venta): bool
+    {
+        if (self::esAdmin() || !$venta->caja_id || $venta->estado !== 'pagada') return false;
+        $caja = Caja::abiertaDe(Auth::id());
+        return $caja && (int) $caja->id === (int) $venta->caja_id;
+    }
+
+    // true = admin (corrige todo) · false = cajero (solo forma de pago) · 403 si no puede
+    private function permiso(PosVenta $venta): bool
+    {
+        if (self::esAdmin()) return true;
+        abort_unless(self::cajeroPuedeCambiarPago($venta), 403, 'Solo el dueño o el administrador puede corregir ventas. El cajero puede cambiar la forma de pago solo en las ventas de su caja abierta.');
+        return false;
     }
 
     // Por qué no se puede corregir esta venta (null = sí se puede)
@@ -56,16 +72,16 @@ class correccionVentaController extends Controller
 
     public function create(PosVenta $venta)
     {
-        $this->soloAdmin();
+        $soloPago = !$this->permiso($venta);
         $venta->load(['items', 'pagos.metodo', 'caja.user:id,name', 'user:id,name', 'correcciones.user:id,name']);
-        return view('pos.corregir', ['venta' => $venta, 'bloqueo' => self::bloqueo($venta), 'metodos' => self::metodosCambio()]);
+        return view('pos.corregir', ['venta' => $venta, 'bloqueo' => self::bloqueo($venta), 'metodos' => self::metodosCambio(), 'soloPago' => $soloPago]);
     }
 
     public function store(Request $request, PosVenta $venta)
     {
-        $this->soloAdmin();
+        $soloPago = !$this->permiso($venta);
         $datos = $request->validate([
-            'cantidades' => 'required|array',
+            'cantidades' => $soloPago ? 'nullable|array' : 'required|array',
             'cantidades.*' => 'nullable|numeric|min:0',
             'precios' => 'nullable|array',
             'precios.*' => 'nullable|string|max:20',
@@ -74,8 +90,10 @@ class correccionVentaController extends Controller
             'metodos.*' => 'nullable|integer',
             'motivo' => 'required|string|min:3|max:255',
         ], ['motivo.required' => 'Escriba el motivo de la corrección (ej. "se digitaron 2 de más").']);
+        // El cajero solo cambia la forma de pago: productos y precios quedan como están
+        if ($soloPago) { $datos['cantidades'] = []; $datos['precios'] = []; }
 
-        $res = DB::transaction(function () use ($venta, $datos) {
+        $res = DB::transaction(function () use ($venta, $datos, $soloPago) {
             $venta = PosVenta::with(['items.variante', 'pagos.metodo', 'documento'])->whereKey($venta->id)->lockForUpdate()->first();
             if ($b = self::bloqueo($venta)) throw ValidationException::withMessages(['cantidades' => $b]);
 
@@ -117,6 +135,8 @@ class correccionVentaController extends Controller
                 if (!$validos->has($m)) throw ValidationException::withMessages(['cantidades' => 'Ese método de pago no está disponible.']);
                 $cambiosMetodo[$p->id] = $m;
             }
+            if ($soloPago && !$cambiosMetodo) throw ValidationException::withMessages(['cantidades' => 'No cambió la forma de pago.']);
+            if ($soloPago && (!$caja || $caja->estado !== 'abierta')) throw ValidationException::withMessages(['cantidades' => 'Su caja ya está cerrada: pídale al dueño o al administrador que haga el cambio.']);
             if (!$cambios && !$cambiosMetodo) throw ValidationException::withMessages(['cantidades' => 'No cambió ninguna cantidad, precio ni método de pago.']);
 
             $items = $venta->items()->get();
@@ -191,12 +211,15 @@ class correccionVentaController extends Controller
                 'tienda_id' => TiendaActual::id(), 'pos_venta_id' => $venta->id, 'caja_id' => $caja?->id, 'user_id' => Auth::id(),
                 'total_antes' => $totalAntes, 'total_despues' => $totalDespues,
                 'esperado_antes' => $esperadoAntes, 'esperado_despues' => $esperadoDespues,
-                'detalle' => ['productos' => $cambios, 'pagos' => $pagosDet, 'metodos' => $metodosDet], 'motivo' => $datos['motivo'],
+                'detalle' => ['productos' => $cambios, 'pagos' => $pagosDet, 'metodos' => $metodosDet] + ($soloPago ? ['por_cajero' => true] : []), 'motivo' => $datos['motivo'],
             ]);
 
             return ['menos' => $totalAntes - $totalDespues, 'total' => $totalDespues, 'caja' => $caja?->fresh(), 'anulada' => $items->isEmpty()];
         });
 
+        if ($soloPago) {
+            return redirect()->route('pos.ventas')->with('success', '✅ Venta ' . $venta->numero . ': se cambió la forma de pago y su caja ya quedó al día. El dueño recibe el aviso.');
+        }
         $dif = (float) $res['menos'];
         $msg = '✅ Venta ' . $venta->numero . ' corregida: ahora vale ' . dinero($res['total'])
             . (abs($dif) < 0.01 ? '' : ' (' . ($dif > 0 ? dinero($dif) . ' menos' : dinero(-$dif) . ' más') . ')')

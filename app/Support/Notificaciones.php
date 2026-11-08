@@ -25,6 +25,7 @@ class Notificaciones
     public const FUENTES = [
         Anuncios::class,
         SeparadosPorVencer::class,
+        CambiosDePagoCajero::class,
     ];
 
     public static function paraUsuario(?User $u): array
