@@ -189,18 +189,20 @@ class userController extends Controller
 
         $tienda = TiendaActual::tienda()?->nombre ?: 'Su negocio';
         $link = route('app.descargar', ['email' => $user->email]);
-        $mensaje = "Hola " . strtok($user->name, ' ') . " 👋\n"
-            . "{$tienda} le dio acceso a LocalPro.\n\n"
-            . "1️⃣ Descargue la app aquí:\n{$link}\n\n"
-            . "2️⃣ Entre con estos datos:\n"
-            . "Correo: {$user->email}\n"
-            . "Clave: {$clave}\n\n"
-            . "No comparta esta clave con nadie.";
+        // Solo emojis "clásicos" (✨ ➡️ ✅ ⚠️): algunos celulares cambian por � los más nuevos al abrir el enlace
+        $mensaje = "¡Hola " . strtok($user->name, ' ') . "! ✨\n"
+            . "*{$tienda}* le dio acceso a *LocalProo*.\n\n"
+            . "➡️ *Paso 1:* descargue la app aquí:\n{$link}\n\n"
+            . "✅ *Paso 2:* entre con estos datos:\n"
+            . "✉️ Correo: {$user->email}\n"
+            . "☑️ Clave: *{$clave}*\n\n"
+            . "⚠️ No comparta esta clave con nadie.";
 
         $resultado = [
             'nombre' => $user->name,
             'mensaje' => $mensaje,
-            'url' => 'https://wa.me/' . $tel . '?text=' . rawurlencode($mensaje),
+            // api.whatsapp.com directo (wa.me redirige y en algunos Android daña los emojis)
+            'url' => 'https://api.whatsapp.com/send?' . ($tel !== '' ? 'phone=' . $tel . '&' : '') . 'text=' . rawurlencode($mensaje),
         ];
         // Desde la tabla se pide por JS para abrir WhatsApp de una vez
         if ($request->expectsJson()) {

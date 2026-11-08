@@ -200,7 +200,9 @@ a.pl-foto.sinfoto:hover{border-color:#16b84e;color:#16b84e;background:#f0fbf4}
                         <b>{{ $item->nombre }}</b>
                         @endif
                         <small>{{ $item->codigo }}{{ $cats ? ' · ' . $cats : '' }}</small>
-                        @if ($faltaFoto)
+                        @if ($item->ocultar_catalogo)
+                        <span class="pl-oculto" title="Se vende en la caja, pero no sale en la tienda en línea"><i class="fa-regular fa-eye-slash"></i>Solo en la caja (oculto del catálogo)</span>
+                        @elseif ($faltaFoto)
                         <span class="pl-oculto" title="Súbale una foto o márquelo para mostrarlo igual"><i class="fa-regular fa-eye-slash"></i>No visible en la tienda en línea</span>
                         @endif
                         <span class="pl-stk {{ $clase }}">

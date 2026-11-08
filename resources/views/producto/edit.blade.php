@@ -135,6 +135,11 @@
                         <label class="form-check-label small fw-semibold" for="mostrarSinFoto"><i class="fa-solid fa-triangle-exclamation me-1" style="color:#c78a00"></i>Si no tiene foto, no se mostrará en el catálogo. <b>Mostrar aunque no tenga foto</b></label>
                     </div>
                     @endunless
+                    <input type="hidden" name="en_catalogo" value="0">
+                    <div class="form-check form-switch mt-2 p-2 ps-5" style="background:#eefbf2;border-radius:12px">
+                        <input class="form-check-input" type="checkbox" role="switch" name="en_catalogo" value="1" id="enCatalogo" @checked(old('en_catalogo', !$producto->ocultar_catalogo))>
+                        <label class="form-check-label small fw-semibold" for="enCatalogo"><i class="fa-solid fa-store me-1" style="color:#16a34a"></i><b>Mostrar en el catálogo en línea</b><span class="d-block text-muted fw-normal">Si lo apaga, el producto se sigue vendiendo en la caja pero sus clientes no lo ven en la tienda en línea.</span></label>
+                    </div>
                     @php
                         $coloresProd = $variantes->pluck('color')->filter()->unique()->values();
                         $fotosColor = $producto->fotos->keyBy('color');

@@ -31,6 +31,7 @@ class Producto extends Model
         'img_path',
         'unidad',
         'mostrar_sin_foto',
+        'ocultar_catalogo',
         'disponible'
     ];
 
@@ -48,13 +49,13 @@ class Producto extends Model
     /** ¿Sale en el catálogo en línea? Sin foto no sale, salvo que el negocio pida mostrarlo igual */
     public function getEnCatalogoAttribute(): bool
     {
-        return (int) $this->estado === 1 && ($this->tiene_foto || $this->mostrar_sin_foto);
+        return (int) $this->estado === 1 && !$this->ocultar_catalogo && ($this->tiene_foto || $this->mostrar_sin_foto);
     }
 
     /** Productos que se muestran en el catálogo en línea */
     public function scopeEnCatalogo($q)
     {
-        return $q->where('productos.estado', 1)->where(fn ($w) => $w->where('productos.mostrar_sin_foto', true)
+        return $q->where('productos.estado', 1)->where(fn ($w) => $w->whereNull('productos.ocultar_catalogo')->orWhere('productos.ocultar_catalogo', false))->where(fn ($w) => $w->where('productos.mostrar_sin_foto', true)
             ->orWhere(fn ($x) => $x->whereNotNull('productos.img_path')->where('productos.img_path', '<>', ''))
             ->orWhereHas('fotos'));
     }
