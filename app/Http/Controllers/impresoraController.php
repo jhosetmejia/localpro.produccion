@@ -11,7 +11,8 @@ class impresoraController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:editar-negocio')->except('prueba');
+        // El cajero puede ajustar la impresora de SU computador; el ajuste para todo el negocio es del dueño/administrador
+        $this->middleware('permission:editar-negocio|usar-pos')->except('prueba');
     }
 
     public function edit(Request $request)
@@ -21,6 +22,8 @@ class impresoraController extends Controller
         $para = $this->para($request, $t);
         return view('impresora.edit', [
             'tienda' => $t, 'para' => $para, 'imp' => Impresora::de($t, $para), 'configurada' => Impresora::configurada($t, $para),
+            'enEquipo' => Impresora::delEquipo($t, $para) !== null, 'delNegocio' => Impresora::delNegocio($t, $para),
+            'puedeNegocio' => $request->user()->can('editar-negocio'),
             'cocinaUsaCaja' => $para === 'cocina' && !Impresora::configurada($t, 'cocina') && Impresora::configurada($t, 'caja'),
         ]);
     }
@@ -41,7 +44,13 @@ class impresoraController extends Controller
             'letra' => 'required|integer', 'final' => 'required|integer',
         ]);
         $para = $this->para($request, $t);
-        $t->forceFill([Impresora::PARA[$para] => Impresora::normalizar($request->only('papel', 'ancho', 'margen', 'letra', 'final') + ['negrita' => $request->boolean('negrita')])])->save();
+        $c = Impresora::normalizar($request->only('papel', 'ancho', 'margen', 'letra', 'final') + ['negrita' => $request->boolean('negrita')]);
+        // Solo este computador (cookie por 5 años) o todos los del negocio
+        if ($request->input('alcance') === 'equipo' || !$request->user()->can('editar-negocio')) {
+            \Illuminate\Support\Facades\Cookie::queue(Impresora::cookie($t, $para), json_encode($c), 60 * 24 * 365 * 5);
+            return redirect()->route('impresora.edit', ['para' => $para])->with('success', 'Guardado solo para ESTE computador: aquí la impresora ' . ($para === 'cocina' ? 'de cocina' : 'de caja') . ' sale con estos ajustes. Los otros computadores siguen con los suyos.');
+        }
+        $t->forceFill([Impresora::PARA[$para] => $c])->save();
         return redirect()->route('impresora.edit', ['para' => $para])->with('success', $para === 'cocina'
             ? 'Impresora de cocina guardada: las comandas ya salen con estos ajustes.'
             : 'Impresora de caja guardada: tiquetes, facturas, cuadre de caja y recibos ya salen con estos ajustes.');
@@ -53,6 +62,10 @@ class impresoraController extends Controller
         $t = TiendaActual::tienda();
         abort_unless($t, 404);
         $para = $this->para($request, $t);
+        if ($request->input('alcance') === 'equipo' || !$request->user()->can('editar-negocio')) {
+            \Illuminate\Support\Facades\Cookie::queue(\Illuminate\Support\Facades\Cookie::forget(Impresora::cookie($t, $para)));
+            return redirect()->route('impresora.edit', ['para' => $para])->with('success', 'Listo: este computador vuelve a usar el ajuste general del negocio.');
+        }
         $t->forceFill([Impresora::PARA[$para] => null])->save();
         return redirect()->route('impresora.edit', ['para' => $para])->with('success', $para === 'cocina'
             ? 'Listo: la comanda volvió a salir como venía (o con los ajustes de caja, si los tiene).'

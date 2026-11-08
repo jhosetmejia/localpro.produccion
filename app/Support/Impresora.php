@@ -42,10 +42,36 @@ class Impresora
         return isset(self::PARA[$para]) ? $para : 'caja';
     }
 
+    // Ajuste guardado en ESTE computador (cookie del navegador, por negocio): manda sobre el del negocio
+    public static function cookie(?Tienda $t, string $para): string
+    {
+        return 'lp_imp_' . self::para($para) . '_' . ($t?->id ?? 0);
+    }
+
+    public static function delEquipo(?Tienda $t, string $para): ?array
+    {
+        if (!$t) return null;
+        try {
+            $v = request()->cookie(self::cookie($t, $para));
+            $a = is_string($v) ? json_decode($v, true) : null;
+            return is_array($a) && isset($a['papel']) ? $a : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
     private static function datos(?Tienda $t, string $para): ?array
     {
+        if ($e = self::delEquipo($t, $para)) return $e;
         $v = $t?->{self::PARA[self::para($para)]};
         return is_array($v) && $v !== [] ? $v : null;
+    }
+
+    // ¿El negocio tiene ajuste general (para todos sus computadores)?
+    public static function delNegocio(?Tienda $t, string $para): ?array
+    {
+        $v = $t?->{self::PARA[self::para($para)]};
+        return is_array($v) && $v !== [] ? self::normalizar($v) : null;
     }
 
     public static function de(?Tienda $t = null, string $para = 'caja'): array

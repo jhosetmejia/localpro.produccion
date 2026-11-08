@@ -83,6 +83,17 @@
                     <label class="form-check-label fw-bold" for="negrita">Letra más oscura (negrita) — sirve si el tiquete sale pálido</label>
                 </div>
 
+                <div class="im-r">
+                    <div class="top mb-2"><span><i class="fa-solid fa-desktop me-1"></i>¿Para qué computador es este ajuste?</span></div>
+                    <div class="im-papel">
+                        <label><input type="radio" name="alcance" value="equipo" @checked($enEquipo || !$puedeNegocio)><span>Solo este computador<small class="d-block fw-semibold text-muted">Si tiene varias cajas con impresoras distintas</small></span></label>
+                        @if ($puedeNegocio)
+                        <label><input type="radio" name="alcance" value="negocio" @checked(!$enEquipo)><span>Todos los computadores<small class="d-block fw-semibold text-muted">Mismo ajuste en todo el negocio</small></span></label>
+                        @endif
+                    </div>
+                    @if ($enEquipo)<small class="d-block mt-1" style="color:#15803d"><i class="fa-solid fa-circle-check me-1"></i>Este computador tiene su propio ajuste (manda sobre el general del negocio).</small>@endif
+                </div>
+
                 <div class="d-flex gap-2 flex-wrap mt-3">
                     <button type="button" class="btn btn-dark btn-lg fw-bold" id="imProbar"><i class="fa-solid fa-print me-1"></i>Imprimir prueba</button>
                     <button class="btn btn-success btn-lg fw-bold"><i class="fa-solid fa-floppy-disk me-1"></i>Guardar</button>
@@ -120,13 +131,19 @@
             <small class="text-muted fw-semibold d-block mt-2">Los cambios se ven aquí al instante. Imprima la prueba: las rayas <b>|&lt;</b> y <b>&gt;|</b> deben salir completas a los dos lados.</small>
         </div>
     </form>
-    @if ($configurada)
+    @if ($enEquipo)
+    <form method="post" action="{{ route('impresora.borrar', ['para' => $para, 'alcance' => 'equipo']) }}" class="mt-3" data-confirm="¿Quitar el ajuste de este computador?" data-confirm-texto="Este computador vuelve a usar el ajuste general del negocio." data-confirm-ok="Sí, quitar">
+        @csrf @method('DELETE')
+        <button class="btn btn-outline-danger fw-bold"><i class="fa-solid fa-rotate-left me-1"></i>Quitar el ajuste de este computador</button>
+    </form>
+    @endif
+    @if ($configurada && $puedeNegocio && $delNegocio)
     <form method="post" action="{{ route('impresora.borrar', ['para' => $para]) }}" class="mt-3" data-confirm="¿Quitar los ajustes de la impresora {{ $para === 'cocina' ? 'de cocina' : 'de caja' }}?" data-confirm-texto="El tiquete vuelve a salir como venía de fábrica." data-confirm-ok="Sí, quitar">
         @csrf @method('DELETE')
-        <button class="btn btn-outline-danger fw-bold"><i class="fa-solid fa-rotate-left me-1"></i>Quitar mis ajustes (volver a como venía)</button>
+        <button class="btn btn-outline-danger fw-bold"><i class="fa-solid fa-rotate-left me-1"></i>Quitar el ajuste general del negocio (volver a como venía)</button>
         <small class="text-muted fw-semibold d-block mt-1">Los ajustes son solo de <b>{{ $tienda->nombre }}</b>: no cambian los tiquetes de otros negocios.</small>
     </form>
-    @else
+    @elseif (!$configurada)
     <small class="text-muted fw-semibold d-block mt-3"><i class="fa-solid fa-circle-info me-1"></i>Este negocio no tiene ajustes guardados: su tiquete sale como venía. Los ajustes son solo de <b>{{ $tienda->nombre }}</b>.</small>
     @endif
 </div>

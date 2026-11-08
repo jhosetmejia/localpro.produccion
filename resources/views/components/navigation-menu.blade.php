@@ -396,7 +396,7 @@
                 </a>@endif
                 @endcan
 
-                @canany(['ver-user', 'ver-metodo-pago', 'editar-negocio', 'gestionar-enlaces'])
+                @canany(['ver-user', 'ver-metodo-pago', 'editar-negocio', 'gestionar-enlaces', 'usar-pos'])
                 <div class="sb-sidenav-menu-heading">Mi negocio</div>
                 @endcanany
                 @can('editar-negocio')
@@ -441,12 +441,12 @@
                     Métodos de pago
                 </a>@endif
                 @endcan
-                @can('editar-negocio')
+                @canany(['editar-negocio', 'usar-pos'])
                 <a class="nav-link {{ $on('impresora.*') }}" href="{{ route('impresora.edit') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-print"></i></div>
                     Impresora
                 </a>
-                @endcan
+                @endcanany
                 @can('editar-negocio')
                 @if (\Illuminate\Support\Facades\Route::has('menu.edit'))
                 <a class="nav-link {{ $on('menu.*') }}" href="{{ route('menu.edit') }}">
