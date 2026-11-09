@@ -187,11 +187,15 @@ body.ordenando{-webkit-user-select:none;user-select:none}
 .cut-clip em:empty{display:none}
 .cut-clip em svg{width:13px;height:13px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.8))}
 .cut-clip em .ef{font-style:normal}
-.cut-clip.sel{border-color:#fff;box-shadow:0 0 0 1px #fff;overflow:visible;z-index:4}
-.cut-tir{position:absolute;top:-2px;bottom:-2px;width:16px;background:#fff;z-index:4;touch-action:none;cursor:ew-resize;display:grid;place-items:center}
-.cut-tir::after{content:"";width:3px;height:16px;border-radius:2px;background:#9aa6a0}
-.cut-tir.izq{left:-16px;border-radius:7px 0 0 7px}
-.cut-tir.der{right:-16px;border-radius:0 7px 7px 0}
+.cut-clip.sel{border-color:#fff;border-width:3px 2px;box-shadow:0 0 0 1px #fff;overflow:visible;z-index:4}
+/* Tiradores blancos a los lados del clip seleccionado (como CapCut): se arrastran para recortar el inicio o el final */
+.cut-tir{position:absolute;top:-3px;bottom:-3px;width:20px;background:#fff;z-index:4;touch-action:none;cursor:ew-resize;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.45)}
+.cut-tir::after{content:"";width:3px;height:18px;border-radius:2px;background:#8a958f}
+.cut-tir::before{content:"";position:absolute;top:-8px;bottom:-8px;left:-10px;right:-10px} /* área de toque más grande */
+.cut-tir.izq{left:-20px;border-radius:9px 0 0 9px}
+.cut-tir.der{right:-20px;border-radius:0 9px 9px 0}
+.cut-tir:active{background:var(--v)}
+body.recortando .cut-clip.sel>span{font-size:.85rem;background:var(--v);color:#0b0d0c}
 .cut-volver{flex:0 0 auto;width:44px;align-self:stretch;margin-right:4px;border:0;border-radius:10px;background:var(--f3);position:sticky;left:0;z-index:2;box-shadow:8px 0 10px var(--f);color:#cfd8d2;display:grid;place-items:center}
 .cut-volver svg{width:22px;height:22px}
 .cut-sep{flex:0 0 1px;align-self:center;height:28px;background:var(--b);margin:0 4px}

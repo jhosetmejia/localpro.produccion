@@ -535,7 +535,7 @@ function pintarLinea() {
     b.addEventListener('pointerdown', (e) => presionarClip(e, c));
     b.onclick = (e) => { e.stopPropagation(); if (b._recorto) { b._recorto = false; return; } if (Date.now() - (S._finOrden || 0) < 500) return; S.sel = c.id; S.selM = null; S.selC = null; S.barraClip = true; abrirTab(TABS_CLIP.includes(S.tab) ? S.tab : null); pintarLinea(); };
     // Tiradores para recortar arrastrando los bordes (como CapCut)
-    if (S.sel === c.id && S.barraClip) {
+    if (S.sel === c.id) {
       for (const lado of ['izq', 'der']) {
         const h = document.createElement('i');
         h.className = 'cut-tir ' + lado;
@@ -1054,9 +1054,15 @@ function recortarBorde(ev, c, lado, el) {
     } else if (lado === 'izq') c.in = Math.max(0, Math.min(out0 - minSrc, in0 + dSrc));
     else c.out = Math.min(c.dur, Math.max(in0 + minSrc, out0 + dSrc));
     c._tk = null; el._recorto = true;
+    document.body.classList.add('recortando');
     pintarLinea(); S.dirty = true;
   };
-  const fin = () => { window.removeEventListener('pointermove', mov); window.removeEventListener('pointerup', fin); window.removeEventListener('pointercancel', fin); if (c.in !== in0 || c.out !== out0) { irA(S.t); guardar(); aviso('Clip recortado ✂️'); } };
+  const fin = () => { document.body.classList.remove('recortando'); window.removeEventListener('pointermove', mov); window.removeEventListener('pointerup', fin); window.removeEventListener('pointercancel', fin); if (c.in !== in0 || c.out !== out0) {
+    // Al soltar, la línea blanca va al borde recortado: en la vista previa se ve dónde quedó el corte
+    const L = lay(), i = S.clips.indexOf(c);
+    irA(i < 0 ? S.t : Math.max(0, lado === 'izq' ? L.start[i] + 0.01 : L.start[i] + largo(c) - 0.05));
+    moverLinea(); guardar(); aviso('Clip recortado ✂️');
+  } };
   window.addEventListener('pointermove', mov);
   window.addEventListener('pointerup', fin);
   window.addEventListener('pointercancel', fin);
