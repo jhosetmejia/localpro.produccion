@@ -347,7 +347,7 @@ function sincronizar() {
         if (!v._pt || ahora - v._pt > 900) { v._pt = ahora; v.currentTime = loc; v.play().catch(() => {}); }
         else if (ahora - v._pt > 300 && !v.seeking && Math.abs(v.currentTime - loc) > 0.1) v.currentTime = loc;
       }
-      else if (Math.abs(v.currentTime - loc) > 0.3 * Math.max(1, vel)) v.currentTime = loc;
+      else if (Math.abs(v.currentTime - loc) > 0.8 * Math.max(1, vel)) v.currentTime = loc;
     } else {
       if (!v.paused) v.pause();
       if (act && Math.abs(v.currentTime - loc) > 0.03 && !v.seeking) v.currentTime = loc;
@@ -363,10 +363,38 @@ function sincronizar() {
   }
 }
 let ignorarScroll = false;
+// Tiempo de la línea que corresponde al segundo "ct" del archivo (inverso de tOrigen, sirve también con curvas)
+function ltDe(c, ct) {
+  let a = 0, b = largo(c);
+  for (let k = 0; k < 22; k++) { const m = (a + b) / 2; if (tOrigen(c, m) < ct) a = m; else b = m; }
+  return (a + b) / 2;
+}
+// Reloj de la reproducción: manda el video que está sonando (como CapCut). Si el video se demora en arrancar
+// o en cargar (videos pesados del iPhone), la línea lo espera en vez de adelantarse y obligarlo a saltar sin parar.
+function relojVideo(L, ahora) {
+  for (const i of activos(S.t, L)) {
+    const c = S.clips[i];
+    if (c.tipo !== 'video' || !c.el) continue;
+    const v = c.el;
+    // El clip llegó a su final: pasar al siguiente
+    if (v.ended || v.currentTime >= c.out - 0.04) return Math.max(S.t, L.start[i] + largo(c));
+    if (S._esperaId !== c.id) { S._esperaId = c.id; S._espera = 0; }
+    if (v.paused || v.seeking || v.readyState < 3) {
+      S._espera ||= ahora;
+      return ahora - S._espera > 1500 ? null : S.t; // si no arranca en 1.5 s, sigue con el reloj normal
+    }
+    S._espera = 0;
+    const t = L.start[i] + ltDe(c, v.currentTime);
+    return Math.max(S.t, Math.min(t, L.start[i] + largo(c)));
+  }
+  return null;
+}
 function bucle(ahora) {
   if (S.playing) {
     const L = lay();
-    S.t = S.t0 + (ahora - S.inicio) / 1000;
+    const rv = relojVideo(L, ahora);
+    if (rv != null) { S.t = rv; S.t0 = rv; S.inicio = ahora; }
+    else S.t = S.t0 + (ahora - S.inicio) / 1000;
     if (S.hasta != null && S.t >= S.hasta) { S.t = S.hasta; pausar(); }
     if (S.t >= L.total) { S.t = L.total; pausar(); }
     sincronizar();
@@ -393,7 +421,7 @@ function reproducir(hasta = null) {
   const L = lay();
   if (S.t >= L.total - 0.05) S.t = 0;
   audioCtx();
-  S.playing = true; S.t0 = S.t; S.inicio = performance.now(); S.hasta = hasta;
+  S.playing = true; S.t0 = S.t; S.inicio = performance.now(); S.hasta = hasta; S._espera = 0;
   $('#cutPlay').classList.add('on');
   sincronizar();
 }
