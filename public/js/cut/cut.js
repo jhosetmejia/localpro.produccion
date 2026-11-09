@@ -1574,10 +1574,27 @@ async function exportar() {
       if (EXP.cancelar) throw new Error('cancelado');
       const t = n / fps;
       if (tiempoReal) {
-        while (reloj() < t) { syncRT(reloj(), true); await raf(); if (EXP.cancelar) throw new Error('cancelado'); }
-        // Si el celular quedó muy atrás, bajar la velocidad de grabación para no perder cuadros
-        if (reloj() - t > 0.25 && ++RT.atrasos > 5 && RT.factor > 0.2) { RT.t = reloj(); RT.desde = performance.now(); RT.factor *= 0.7; RT.atrasos = 0; }
-        syncRT(t, true);
+        // Manda el video: se espera a que el video que suena llegue al cuadro que toca (sin obligarlo a saltar,
+        // que es lo que dejaba la imagen quieta en videos pesados del iPhone)
+        const vids = activos(t, L).filter(i => S.clips[i].tipo === 'video' && S.clips[i].el);
+        S.clips.forEach((c, i) => { if (c.el && !vids.includes(i) && !c.el.paused) c.el.pause(); });
+        for (let k = 0; k < vids.length; k++) {
+          const i = vids[k], c = S.clips[i], v = c.el, lt = t - L.start[i], loc = tOrigen(c, lt);
+          sonido(v, true);
+          if (k > 0) { if (!v.paused) v.pause(); await seekEl(v, loc); continue; } // el clip que entra en una transición: cuadro exacto
+          try { v.playbackRate = Math.max(0.1, Math.min(8, velEn(c, lt / largo(c)) * RT.factor)); } catch (e) { /* nada */ }
+          if (v.currentTime > loc + 0.3 || loc - v.currentTime > 1.5) { v.pause(); await seekEl(v, loc); }
+          if (v.paused && !v.ended) v.play().catch(() => {});
+          const t0 = performance.now();
+          while (v.currentTime < loc - 0.5 / fps && !v.ended && performance.now() - t0 < 2500) {
+            await raf();
+            if (EXP.cancelar) throw new Error('cancelado');
+            if (v.paused && !v.ended) v.play().catch(() => {});
+          }
+          if (performance.now() - t0 >= 2500) { v.pause(); await seekEl(v, loc); } // no avanzó: se toma el cuadro exacto
+          // El video va más rápido de lo que se alcanza a grabar: bajar la velocidad
+          if (v.currentTime - loc > 2.5 / fps) { if (++RT.atrasos > 3 && RT.factor > 0.15) { RT.factor *= 0.8; RT.atrasos = 0; } } else RT.atrasos = 0;
+        }
       }
       const act = activos(t, L);
       const cuadros = new Map();
