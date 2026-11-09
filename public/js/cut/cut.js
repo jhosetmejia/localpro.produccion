@@ -329,7 +329,45 @@ function fuentePrevia(i) {
     const saltar = S.playing && BEL.ultimoMs > 40 && (c.par = !c.par);
     if (cuadroNuevo && !saltar) { c.ultT = v.currentTime; c.ultDet = ahora; c.mascara ||= document.createElement('canvas'); BEL.mascara(v, c.mascara); }
   }
+  // iPhone: subir el <video> directo a la parte gráfica (WebGL) deja la imagen pegada en el mismo cuadro con los
+  // videos HEVC/HDR de la cámara aunque el video sí avance. Se copia primero a un lienzo 2D (camino que Safari sí
+  // actualiza) y ya reducido al tamaño de la vista previa, que además es más liviano que subir un cuadro 4K.
+  if (IOS || Math.max(v.videoWidth, v.videoHeight) > 2 * Math.max(vista.width, vista.height)) {
+    const k = Math.min(1, Math.max(vista.width / v.videoWidth, vista.height / v.videoHeight) * 1.25);
+    const cw = Math.max(2, Math.round(v.videoWidth * k)), ch = Math.max(2, Math.round(v.videoHeight * k));
+    const cv = c._prev ||= document.createElement('canvas');
+    if (cv.width !== cw || cv.height !== ch) { cv.width = cw; cv.height = ch; c._prevT = -1; }
+    if (c._prevT !== v.currentTime || S.playing) {
+      try { cv.getContext('2d').drawImage(v, 0, 0, cw, ch); c._prevT = v.currentTime; } catch (e) { return { src: v, w: v.videoWidth, h: v.videoHeight, mascara: c.mascara }; }
+      vigilarPegada(c, cv);
+    }
+    return { src: cv, w: cw, h: ch, mascara: c.mascara };
+  }
   return { src: v, w: v.videoWidth, h: v.videoHeight, mascara: c.mascara };
+}
+// Si la línea avanza y el video también pero la imagen no cambia (o el video no arranca), se reporta solo una vez
+// con los datos del video, para poder arreglarlo en ese celular (Admin → Opiniones y fallas → Errores automáticos)
+let pegadaReportada = false;
+function vigilarPegada(c, cv) {
+  if (pegadaReportada || !S.playing) return;
+  const ahora = performance.now();
+  if (ahora - (c._vgT || 0) < 1000) return;
+  c._vgT = ahora;
+  let huella = '';
+  // Huella de 16×16 con todo el detalle: en un video de cámara real el ruido del sensor la cambia siempre
+  try { const m = vigilarPegada.cv ||= Object.assign(document.createElement('canvas'), { width: 16, height: 16 }); const x = m.getContext('2d', { willReadFrequently: true }); x.drawImage(cv, 0, 0, 16, 16); huella = x.getImageData(0, 0, 16, 16).data.join(','); } catch (e) { return; }
+  const vt = c.el.currentTime;
+  if (huella === c._vgH && vt - (c._vgV ?? vt) > 0.5) c._vgN = (c._vgN || 0) + 1; else c._vgN = 0;
+  c._vgH = huella; c._vgV = vt;
+  if (c._vgN >= 4) { pegadaReportada = true; reportarVideo('Vista previa: la imagen se queda pegada aunque el video avanza', c); }
+}
+function reportarVideo(msg, c) {
+  const v = c.el || {};
+  window.LPOpinion?.error(new Error(msg), {
+    fase: 'reproducir', ios: IOS, paused: v.paused, readyState: v.readyState, networkState: v.networkState, error: v.error?.code || null,
+    t: Math.round((v.currentTime || 0) * 10) / 10, px: (v.videoWidth || 0) + 'x' + (v.videoHeight || 0), tipo: c.file?.type || '?', mb: c.file ? Math.round(c.file.size / 1e5) / 10 : null,
+    vel: c.vel || 1, curva: c.curva || null, mudo: !!v.muted, belleza: !!S.belleza.on,
+  });
 }
 function sincronizar() {
   const L = lay();
@@ -383,7 +421,8 @@ function relojVideo(L, ahora) {
     if (S._esperaId !== c.id) { S._esperaId = c.id; S._espera = 0; }
     if (v.paused || v.seeking || v.readyState < 3) {
       S._espera ||= ahora;
-      return ahora - S._espera > 1500 ? null : S.t; // si no arranca en 1.5 s, sigue con el reloj normal
+      if (ahora - S._espera > 1500) { if (!S._esperaRep) { S._esperaRep = true; reportarVideo('Vista previa: el video no arranca o se detiene (la línea sigue sola)', c); } return null; } // si no arranca en 1.5 s, sigue con el reloj normal
+      return S.t;
     }
     S._espera = 0;
     const t = L.start[i] + ltDe(c, v.currentTime);
@@ -1697,7 +1736,7 @@ async function exportar() {
             else if (c.el.readyState < 2) await new Promise(r => { c.el.addEventListener('loadeddata', r, { once: true }); setTimeout(r, 800); });
             const vw = c.el.videoWidth, vh = c.el.videoHeight;
             const k = Math.min(1, Math.max(W / vw, H / vh) * 1.0001);
-            if (k < 0.99) {
+            if (k < 0.99 || IOS) {
               lc.cv ||= document.createElement('canvas');
               const cw = Math.max(2, Math.round(vw * k)), ch = Math.max(2, Math.round(vh * k));
               if (lc.cv.width !== cw || lc.cv.height !== ch) { lc.cv.width = cw; lc.cv.height = ch; }
