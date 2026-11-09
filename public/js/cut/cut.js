@@ -332,7 +332,7 @@ function fuentePrevia(i) {
   // iPhone: subir el <video> directo a la parte gráfica (WebGL) deja la imagen pegada en el mismo cuadro con los
   // videos HEVC/HDR de la cámara aunque el video sí avance. Se copia primero a un lienzo 2D (camino que Safari sí
   // actualiza) y ya reducido al tamaño de la vista previa, que además es más liviano que subir un cuadro 4K.
-  if (IOS || Math.max(v.videoWidth, v.videoHeight) > 2 * Math.max(vista.width, vista.height)) {
+  if (IOS || S.copia2D || Math.max(v.videoWidth, v.videoHeight) > 2 * Math.max(vista.width, vista.height)) {
     const k = Math.min(1, Math.max(vista.width / v.videoWidth, vista.height / v.videoHeight) * 1.25);
     const cw = Math.max(2, Math.round(v.videoWidth * k)), ch = Math.max(2, Math.round(v.videoHeight * k));
     const cv = c._prev ||= document.createElement('canvas');
@@ -1915,6 +1915,56 @@ async function pedirPantalla() {
   try { if (navigator.wakeLock && !candado) { candado = await navigator.wakeLock.request('screen'); candado.addEventListener('release', () => { candado = null; }); } } catch (e) { candado = null; }
 }
 function soltarPantalla() { try { candado?.release(); } catch (e) { /* nada */ } candado = null; }
+/* ---------- volver al editor después de salir a otra app (WhatsApp…) ----------
+   Android/iPhone sueltan la parte gráfica y el decodificador de los videos escondidos mientras la app está atrás:
+   al volver sonaba el audio pero la imagen quedaba negra. Al salir se pausa; al volver se rearma todo y, si la
+   vista previa sigue negra, se pasa a dibujar los videos por un lienzo 2D (camino que siempre se actualiza). */
+let revisando = false;
+function salioDelEditor() { if (S.playing && !S.exportando) pausar(); }
+async function volvioAlEditor() {
+  if (S.exportando || revisando || !S.clips.length) return;
+  revisando = true;
+  try {
+    // 1) parte gráfica nueva si el celular la quitó
+    if (!motor || motor.gl.isContextLost()) { try { if (!motor || !(await motor.recuperar(1200))) motor = new Motor(); } catch (e) { /* se reintenta en el bucle */ } }
+    // 2) que cada video vuelva a decodificar su cuadro actual
+    S.clips.forEach(c => { if (c.el) { c._prevT = -1; try { c.el.currentTime = Math.max(0, (c.el.currentTime || 0) + 0.001); } catch (e) { /* nada */ } } });
+    ajustarVista(); irA(S.t); moverLinea();
+    await new Promise(r => setTimeout(r, 900));
+    // 3) si la vista sigue negra, se dibuja por lienzo 2D y, si hace falta, se recargan los videos
+    if (vistaNegra()) {
+      S.copia2D = true; S.clips.forEach(c => { c._prevT = -1; }); S.dirty = true;
+      await new Promise(r => setTimeout(r, 600));
+      if (vistaNegra()) {
+        for (const c of S.clips) {
+          if (!c.el || c.tipo !== 'video') continue;
+          const t = c.el.currentTime || c.in || 0, src = c.el.src;
+          c.el.removeAttribute('src'); c.el.load(); c.el.src = src;
+          await new Promise(r => { const ok = () => { c.el.removeEventListener('loadeddata', ok); r(); }; c.el.addEventListener('loadeddata', ok); setTimeout(r, 2500); });
+          try { c.el.currentTime = t; } catch (e) { /* nada */ }
+        }
+        motor = new Motor(); ajustarVista(); irA(S.t);
+        await new Promise(r => setTimeout(r, 700));
+        if (vistaNegra()) reportarVideo('Vista previa negra al volver de otra app (suena pero no se ve)', clipBajoLinea() || S.clips[0]);
+      }
+    }
+  } finally { revisando = false; S.dirty = true; }
+}
+// ¿La vista previa está toda negra? (muestra de 12×12 puntos)
+function vistaNegra() {
+  try {
+    const x = (vistaNegra.cv ||= Object.assign(document.createElement('canvas'), { width: 12, height: 12 })).getContext('2d', { willReadFrequently: true });
+    x.drawImage(vista, 0, 0, 12, 12);
+    const d = x.getImageData(0, 0, 12, 12).data;
+    let suma = 0; for (let i = 0; i < d.length; i += 4) suma += d[i] + d[i + 1] + d[i + 2];
+    return suma / (d.length / 4) < 6;
+  } catch (e) { return false; }
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') salioDelEditor(); else setTimeout(volvioAlEditor, 250); });
+window.addEventListener('pageshow', (e) => { if (e.persisted) setTimeout(volvioAlEditor, 250); });
+window.addEventListener('focus', () => { if (S._salio) { S._salio = false; setTimeout(volvioAlEditor, 250); } });
+window.addEventListener('blur', () => { S._salio = true; });
+
 document.addEventListener('visibilitychange', () => {
   if (!S.exportando) return;
   if (document.visibilityState === 'visible') { pedirPantalla(); aviso('Siga en esta pantalla hasta que termine de exportar ⏳'); }
@@ -2161,6 +2211,7 @@ document.fonts.load('900 40px Montserrat');
 document.fonts.load('italic 700 40px "Playfair Display"');
 document.fonts.load('700 40px "Space Mono"');
 window.__cut = S;
+Object.defineProperty(window, '__motor', { get: () => motor }); // para revisar fallas desde la consola
 if (window.LPOpinion) window.LPOpinion.contexto = () => {
   const L = lay();
   return {
