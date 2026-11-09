@@ -171,6 +171,17 @@ body.con-capas .cut-linea{height:210px}
 .cut-emos button{font-size:1.6rem;line-height:1;background:var(--f3);border:0;border-radius:10px;padding:.4rem 0;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
 #cutClave.on{color:var(--v)}
 .cut-clip{position:absolute;top:0;height:58px;border-radius:6px;background:#2a332d center/cover;border:2px solid transparent;overflow:hidden;cursor:pointer}
+.cut-clip{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+/* Cambiar el orden de los clips: cuadritos con la miniatura (mantener presionado un clip) */
+.cut-orden{position:fixed;z-index:40;height:72px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;background:linear-gradient(180deg,rgba(11,13,12,.94),rgba(11,13,12,.94));border-radius:12px;touch-action:none}
+.cut-orden::-webkit-scrollbar{display:none}
+.cut-orden .fila{display:flex;gap:8px;padding:10px 14px;height:100%;box-sizing:border-box}
+.cut-orden .cuad{flex:0 0 52px;height:52px;border-radius:10px;background:#2a332d left center/auto 100% no-repeat;border:2px solid #3a443e;position:relative;transition:transform .15s}
+.cut-orden .cuad span{position:absolute;left:3px;bottom:2px;font-size:.58rem;font-weight:800;background:rgba(0,0,0,.6);border-radius:4px;padding:0 3px;color:#fff}
+.cut-orden .hueco{background:transparent;border:2px dashed var(--v)}
+.cut-orden .fantasma{position:absolute;top:4px;width:52px;height:60px;flex:none;border:2px solid #fff;transform:scale(1.15);box-shadow:0 10px 26px rgba(0,0,0,.6);z-index:2;pointer-events:none}
+body.ordenando #cutPistaV{opacity:.12}
+body.ordenando{-webkit-user-select:none;user-select:none}
 .cut-clip span{position:absolute;left:4px;bottom:3px;font-size:.64rem;font-weight:700;background:rgba(0,0,0,.6);padding:1px 5px;border-radius:5px}
 .cut-clip em{position:absolute;left:4px;top:3px;font-style:normal;font-size:.68rem;font-weight:800;padding:1px 2px;color:#fff;display:flex;align-items:center;gap:4px;text-shadow:0 1px 3px rgba(0,0,0,.9)}
 .cut-clip em:empty{display:none}

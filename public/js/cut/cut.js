@@ -532,7 +532,8 @@ function pintarLinea() {
     const icMudo = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="m17 9 4 6M21 9l-4 6"/></svg>';
     const ef = c.ef && c.ef !== 'ninguno' ? EFECTOS.find(x => x.id === c.ef) : null;
     b.innerHTML = `<em>${etqVel ? icVel + esc(etqVel) : ''}${c.tipo === 'video' && (c.mute || S.silenciar) ? icMudo : ''}${ef ? `<i class="ef">${ef.e}</i>` : ''}</em>` + `<span>${c.tipo === 'imagen' ? '🖼 ' : ''}${fmt(largo(c)).slice(0, 5)}</span>`;
-    b.onclick = (e) => { e.stopPropagation(); if (b._recorto) { b._recorto = false; return; } S.sel = c.id; S.selM = null; S.selC = null; S.barraClip = true; abrirTab(TABS_CLIP.includes(S.tab) ? S.tab : null); pintarLinea(); };
+    b.addEventListener('pointerdown', (e) => presionarClip(e, c));
+    b.onclick = (e) => { e.stopPropagation(); if (b._recorto) { b._recorto = false; return; } if (Date.now() - (S._finOrden || 0) < 500) return; S.sel = c.id; S.selM = null; S.selC = null; S.barraClip = true; abrirTab(TABS_CLIP.includes(S.tab) ? S.tab : null); pintarLinea(); };
     // Tiradores para recortar arrastrando los bordes (como CapCut)
     if (S.sel === c.id && S.barraClip) {
       for (const lado of ['izq', 'der']) {
@@ -618,6 +619,98 @@ function pintarLinea() {
   S.dirty = true;
   try { pintarBarra(); } catch (e) { /* la barra aún no está lista */ }
 }
+
+/* ---------- mantener presionado un clip para cambiarlo de lugar (como CapCut) ----------
+   Los clips se vuelven cuadritos con su miniatura, el que se tocó sigue el dedo y los demás le abren espacio. */
+const ORD = { paso: 60, lado: 52, margen: 14 };
+let orden = null, ordenEspera = null;
+function presionarClip(e, c) {
+  if (S.clips.length < 2 || orden || (e.pointerType === 'mouse' && e.button !== 0)) return;
+  const x0 = e.clientX, y0 = e.clientY, id = e.pointerId;
+  const cancelar = () => { clearTimeout(ordenEspera); ordenEspera = null; window.removeEventListener('pointermove', mov); window.removeEventListener('pointerup', cancelar); window.removeEventListener('pointercancel', cancelar); };
+  const mov = (ev) => { if (ev.pointerId === id && Math.hypot(ev.clientX - x0, ev.clientY - y0) > 9) cancelar(); }; // se movió: es para deslizar la línea
+  window.addEventListener('pointermove', mov);
+  window.addEventListener('pointerup', cancelar);
+  window.addEventListener('pointercancel', cancelar);
+  clearTimeout(ordenEspera);
+  ordenEspera = setTimeout(() => { cancelar(); empezarOrden(c, x0, id); }, 380);
+}
+function empezarOrden(c, x, idPuntero) {
+  if (S.playing) pausar();
+  try { navigator.vibrate?.(18); } catch (e) { /* nada */ }
+  const caja = linea.getBoundingClientRect(), pista = $('#cutPistaV').getBoundingClientRect();
+  const i0 = S.clips.indexOf(c), n = S.clips.length;
+  const ov = document.createElement('div');
+  ov.className = 'cut-orden';
+  Object.assign(ov.style, { left: caja.left + 'px', width: caja.width + 'px', top: (pista.top - 7) + 'px' });
+  const fila = document.createElement('div');
+  fila.className = 'fila';
+  fila.style.width = (n * ORD.paso + ORD.margen * 2) + 'px';
+  const cuadro = (k) => {
+    const d = document.createElement('div');
+    d.className = 'cuad';
+    if (k.tira) d.style.backgroundImage = `url(${k.tira})`;
+    d.innerHTML = `<span>${k.tipo === 'imagen' ? '🖼' : fmt(largo(k)).slice(0, 5)}</span>`;
+    return d;
+  };
+  const cuads = S.clips.map((k) => { const d = cuadro(k); d._clip = k; return d; });
+  const hueco = document.createElement('div'); hueco.className = 'cuad hueco';
+  cuads.forEach((d, k) => fila.appendChild(k === i0 ? hueco : d));
+  const fant = cuadro(c); fant.classList.add('fantasma');
+  ov.append(fila, fant);
+  document.body.appendChild(ov);
+  document.body.classList.add('ordenando');
+  // El cuadrito que se tocó queda debajo del dedo
+  ov.scrollLeft = Math.max(0, ORD.margen + i0 * ORD.paso + ORD.lado / 2 - (x - caja.left));
+  orden = { c, hueco, fila, ov, fant, caja, x, idPuntero, i: i0 };
+  moverFantasma(x);
+  const auto = () => {
+    if (!orden) return;
+    const b = orden.caja;
+    if (orden.x < b.left + 44) ov.scrollLeft -= 7; else if (orden.x > b.right - 44) ov.scrollLeft += 7;
+    moverFantasma(orden.x);
+    requestAnimationFrame(auto);
+  };
+  requestAnimationFrame(auto);
+  window.addEventListener('pointermove', moverOrden);
+  window.addEventListener('pointerup', soltarOrden);
+  window.addEventListener('pointercancel', soltarOrden);
+}
+function moverOrden(e) { if (orden && e.pointerId === orden.idPuntero) { orden.x = e.clientX; moverFantasma(e.clientX); } }
+function moverFantasma(x) {
+  const o = orden; if (!o) return;
+  o.fant.style.left = (x - o.caja.left + o.ov.scrollLeft - ORD.lado / 2) + 'px'; // dentro de la fila que se desliza
+  const pos = x - o.caja.left + o.ov.scrollLeft - ORD.margen;
+  const idx = Math.max(0, Math.min(S.clips.length - 1, Math.floor(pos / ORD.paso)));
+  if (idx === o.i) return;
+  // Correr el hueco a la nueva posición (los demás cuadritos se acomodan)
+  const otros = [...o.fila.children].filter(d => d !== o.hueco);
+  o.fila.insertBefore(o.hueco, otros[idx] || null);
+  o.i = idx;
+}
+function soltarOrden(e) {
+  const o = orden; if (!o || (e && e.pointerId !== o.idPuntero)) return;
+  orden = null;
+  window.removeEventListener('pointermove', moverOrden);
+  window.removeEventListener('pointerup', soltarOrden);
+  window.removeEventListener('pointercancel', soltarOrden);
+  o.ov.remove();
+  document.body.classList.remove('ordenando');
+  S._finOrden = Date.now();
+  const antes = S.clips.indexOf(o.c);
+  if (o.i !== antes) {
+    S.clips.splice(antes, 1);
+    S.clips.splice(o.i, 0, o.c);
+    S.sel = o.c.id; S.barraClip = true;
+    irA(lay().start[o.i] + 0.01);
+    aviso('Clip movido ↔️');
+    guardar();
+  }
+  pintarLinea();
+}
+// Mientras se cambia de lugar un clip, el dedo no desliza la línea ni abre el menú del celular
+document.addEventListener('touchmove', (e) => { if (orden) e.preventDefault(); }, { passive: false });
+linea.addEventListener('contextmenu', (e) => { if (e.target.closest('.cut-clip')) e.preventDefault(); });
 
 // Silenciar clip: responde al primer toque aunque esté dentro de la línea que se desliza
 (() => {
