@@ -146,6 +146,8 @@
         </div>
     </div>
 
+    @include('cut._boton-panel')
+
     <div class="lp-kpis">
         <div class="lp-kpi hero"><div class="ic"><i class="fa-solid fa-sack-dollar"></i></div><div class="lbl">Comisión por cobrar</div><div class="val">{{ $f($resumen['pendiente']) }}</div><div class="sub">Este mes ganó {{ $f($resumen['mes']) }} · ya le pagaron {{ $f($resumen['pagada']) }}</div></div>
         <div class="lp-kpi"><div class="ic"><i class="fa-solid fa-store"></i></div><div class="lbl">Mis negocios</div><div class="val">{{ $negocios->count() }}</div><div class="sub">{{ $yo->cargo === 'asesor' ? 'Negocios que usted inscribió' : $resumen['negociosRed'] . ' en toda su red' }}</div></div>

@@ -54,6 +54,7 @@
             <span><b>💡</b> Una distinta cada día</span>
         </div>
     </div>
+    <div class="mt-3">@include('cut._boton-panel')</div>
 
     @if (!$whatsapp)
     <div class="es-aviso"><i class="fa-solid fa-circle-info me-1"></i>Sus imágenes no muestran su WhatsApp porque no lo tiene en su perfil, y es lo más importante para que le escriban. <a href="{{ route('cuenta.edit') }}" class="fw-bold">Agréguelo en Mi cuenta</a>.</div>

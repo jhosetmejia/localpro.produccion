@@ -163,6 +163,21 @@ class CursoAsesor
                 ],
                 'clave' => 'Tarea de esta lección: suba sus contactos y escríbale a ' . self::TAREA_MINIMO . ' personas. Cuando lo haga, se activa el botón para seguir.',
             ],
+            8 => [
+                'titulo' => 'Sus herramientas: editor de videos gratis y estados',
+                'icono' => 'fa-scissors',
+                'minutos' => 3,
+                'nuevo' => '2026-11',
+                'intro' => 'LocalPro le da todo para que se promocione en sus estados y redes sin pagar nada: imágenes listas y un editor de videos gratis.',
+                'puntos' => [
+                    '🎬 <b>LocalProCut, su editor de videos GRATIS:</b> en el menú <b>Editar videos · App</b> (o localproo.com/cut). Edite como en CapCut: cortar, ordenar los clips manteniéndolos presionados, <b>subtítulos automáticos</b>, música, velocidad, transiciones, filtros y su logo encima. <b>Sin marca de agua ni publicidad</b>. Toque <b>Descargar la app</b> y le queda el ícono en el celular.',
+                    '📢 <b>Vende más · estados:</b> imágenes listas para sus estados de WhatsApp, con su enlace de prueba gratis. Publique una cada día.',
+                    '🎥 <b>Videos que venden:</b> grábese 15 a 30 segundos mostrando LocalPro en un negocio real (la caja, el inventario, la tienda en línea), póngale subtítulos automáticos en LocalProCut y súbalo a sus estados, TikTok y Reels.',
+                    '🎁 <b>Úselo como gancho:</b> "le regalo un editor de videos para sus redes y además le organizo su negocio". Cada negocio que inscriba también lo tiene gratis.',
+                    '🤝 Cuando alguien termina un video, el editor le invita a compartirlo con un amigo y a registrarse: más gente conoce LocalPro.',
+                ],
+                'clave' => 'Publique en sus estados todos los días: una imagen de "Vende más" o un video hecho con LocalProCut. Lo que no se ve, no se vende.',
+            ],
         ];
     }
 
@@ -213,6 +228,7 @@ class CursoAsesor
             38 => ['Un ortodoncista quiere saber quién le debe cuotas. ¿Qué le muestra?', ['El plan de ortodoncia con cuota mensual: le dice quién va atrasado y le arma el mensaje de cobro', 'Una hoja de Excel aparte', 'Los separados'], 0],
             36 => ['Un odontólogo ya marcó caries y extracciones en el odontograma. ¿Cómo arma el presupuesto?', ['Con "Pasar al plan de tratamiento": se arma solo con lo que está en rojo y los precios de sus servicios', 'Lo escribe en Word', 'Tiene que crear una cotización de alquiler'], 0],
             39 => ['Un negocio le dice que paga una app para editar los videos de sus redes. ¿Qué le muestra de LocalPro?', ['LocalProCut: el editor de videos gratis, sin marca de agua ni publicidad, que se instala como app', 'Que siga pagando su app', 'Que LocalPro no sirve para redes'], 0],
+            41 => ['¿Qué herramientas le da LocalPro para promocionarse en sus estados?', ['Imágenes listas en "Vende más · estados" y LocalProCut, el editor de videos gratis', 'Ninguna, todo lo tiene que pagar aparte', 'Solo un correo de bienvenida'], 0],
             40 => ['Una tienda de ropa tiene muchos separados que se vencen sin que el cliente vuelva. ¿Qué le muestra?', ['La campanita de notificaciones con los separados por vencer y que pida el correo del cliente: le llega un aviso 3 días antes, el día que vence y al día siguiente', 'Que borre los separados', 'Que llame a cada cliente todos los días'], 0],
             16 => ['El negocio que usted inscribió le paga a un empleado menos del salario mínimo por medio tiempo. ¿Puede liquidarlo en LocalPro?', ['No, el sistema solo acepta el salario mínimo', 'Sí, con la liquidación personalizada pone el salario que pagan', 'Solo si lo envía a la DIAN'], 1],
         ];

@@ -147,6 +147,48 @@ class Academia
     public static function cursosNegocio(): array
     {
         return [
+            'localprocut' => [
+                'titulo' => 'LocalProCut: edite videos gratis (curso básico)', 'icono' => 'fa-scissors', 'color' => '#7a3dff', 'para' => ['todos', 'asesor'],
+                'resumen' => 'Edite los videos de su negocio en el celular como en CapCut, gratis y sin marca de agua: cortar, ordenar, subtítulos automáticos, música, efectos y exportar para estados, TikTok y Reels.',
+                'lecciones' => [
+                    ['titulo' => 'Qué es LocalProCut y cómo abrirlo', 'min' => 2, 'accion' => ['cut', 'Abrir LocalProCut'], 'contenido' => [
+                        '<b>LocalProCut</b> es el editor de videos de LocalProo: <b>gratis, sin marca de agua y sin publicidad</b>. Funciona en el celular (iPhone o Android) y en el computador.',
+                        'Ábralo en el menú <b>Editar videos · App</b>, con el botón <b>Editar videos · LocalProCut</b> del inicio, en <b>Mis redes</b> o en <b>localproo.com/cut</b>.',
+                        'Sus videos <b>no se suben a internet</b>: todo se edita en su propio equipo. Por eso es privado y no gasta datos subiendo el video.',
+                        'Si no tiene la app de LocalPro, toque <b>Descargar la app LocalProCut</b>: le queda su propio ícono. En iPhone: Safari → Compartir → <b>Agregar a inicio</b>.',
+                    ], 'tip' => 'Su edición queda guardada en el equipo: si cierra la página, al volver le pregunta si quiere seguir editando.'],
+                    ['titulo' => 'Agregar, cortar y ordenar sus videos', 'min' => 3, 'accion' => ['cut', 'Practicar'], 'contenido' => [
+                        'Toque <b>+ Agregar videos o fotos</b> y escoja uno o varios. Quedan en la <b>línea de tiempo</b>, uno detrás de otro.',
+                        'Toque un clip para ver sus herramientas: <b>Dividir</b> corta donde está la línea blanca, <b>Eliminar</b> quita el pedazo que sobra y los <b>bordes blancos</b> del clip se arrastran para recortar el inicio o el final.',
+                        '<b>Para cambiar el orden</b>, mantenga presionado un clip: todos se vuelven cuadritos, arrástrelo a su nuevo lugar y suéltelo.',
+                        '¿Se equivocó? La flecha <b>↩ Deshacer</b> lo devuelve.',
+                    ], 'tip' => 'Corte los primeros segundos aburridos: en redes la gente decide en 2 segundos si sigue viendo.'],
+                    ['titulo' => 'Subtítulos automáticos y textos', 'min' => 3, 'accion' => ['cut', 'Poner subtítulos'], 'contenido' => [
+                        'En <b>Subtítulos</b>, toque <b>Generar subtítulos automáticos</b>: el editor escucha el video y escribe lo que se dice (español, inglés o portugués). La primera vez descarga el modelo de voz.',
+                        'Escoja un <b>estilo</b> (TikTok, palabra resaltada, karaoke, neón…), el tamaño, el color, cuántas palabras salen a la vez y la altura.',
+                        'Con <b>Editar textos</b> corrige las palabras que la inteligencia artificial no entendió.',
+                        'En <b>Texto</b> agrega un título o un precio en el momento que quiera ("¡2x1 hoy!").',
+                    ], 'tip' => 'Muchas personas ven los videos sin sonido: con subtítulos entienden su mensaje igual.'],
+                    ['titulo' => 'Música, velocidad, efectos y belleza', 'min' => 3, 'accion' => ['cut', 'Probar efectos'], 'contenido' => [
+                        '<b>Audio:</b> agregue música de su celular, <b>extraiga el audio</b> de otro video, cambie el volumen o silencie el sonido original.',
+                        '<b>Velocidad:</b> más rápido o cámara lenta, o en <b>curva</b> (Montaje, Héroe, Bala…) para darle ritmo.',
+                        '<b>Transición:</b> toque el rombo ◇ entre dos clips y escoja fundido, zoom, giro, destello…',
+                        '<b>Efectos, Filtros, Ajustar y Retoque:</b> cambie colores, brillo o ponga el filtro de belleza natural. Con dos dedos sobre el video hace <b>zoom</b>; con un dedo escoge qué parte se ve.',
+                        '<b>Stickers y Superposición:</b> ponga emojis o su <b>logo</b> encima del video.',
+                    ], 'tip' => 'Menos es más: un efecto y una transición bien puestos se ven más profesionales que diez.'],
+                    ['titulo' => 'Exportar y compartir', 'min' => 3, 'accion' => ['cut', 'Exportar un video'], 'contenido' => [
+                        'En <b>Relación de aspecto</b> deje <b>9:16</b> para estados, TikTok y Reels (16:9 para YouTube).',
+                        'Escoja la <b>Portada</b>: el cuadro que se ve antes de darle play.',
+                        'Toque <b>Exportar</b>: <b>1080p</b> es la mejor opción para redes. Deje la pantalla abierta hasta que termine (en el celular tarda un poco más).',
+                        'Al final toque <b>Descargar</b> o <b>Compartir video</b> para mandarlo directo a WhatsApp, TikTok o Instagram.',
+                    ], 'tip' => 'Ideas que venden: el producto en uso, "llegó mercancía nueva", el antes y después, y la promoción del día en sus estados.'],
+                ],
+                'prueba' => [
+                    ['p' => '¿Cuánto cuesta usar LocalProCut?', 'o' => ['Es gratis, sin marca de agua ni publicidad', 'Se paga por cada video', 'Es gratis pero deja marca de agua'], 'r' => 0],
+                    ['p' => '¿Cómo cambia el orden de un clip en la línea de tiempo?', 'o' => ['Lo mantiene presionado y lo arrastra a su nuevo lugar', 'Tiene que borrar todo y empezar de nuevo', 'No se puede'], 'r' => 0],
+                    ['p' => '¿Qué formato usa para estados de WhatsApp, TikTok y Reels?', 'o' => ['Vertical 9:16', 'Horizontal 16:9', 'Cuadrado 1:1'], 'r' => 0],
+                ],
+            ],
             'primeros-pasos' => [
                 'no_tipos' => ['eventos'], 'titulo' => 'Primeros pasos en LocalPro', 'icono' => 'fa-seedling', 'color' => '#16b34a', 'para' => 'todos',
                 'resumen' => 'Conozca el panel, sus productos y cómo hacer su primera venta en 10 minutos.',

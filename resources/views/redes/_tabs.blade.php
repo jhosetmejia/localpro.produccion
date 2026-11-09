@@ -23,3 +23,5 @@
 .rd-ico.facebook{background:#1877f2}.rd-ico.instagram{background:linear-gradient(45deg,#f9a825,#e91e63 55%,#8e24aa)}.rd-ico.correo{background:#ea4335}.rd-ico.youtube{background:#ff0000}
 </style>
 @endonce
+{{-- Editor de videos gratis a la mano en todas las pantallas de Mis redes --}}
+@include('cut._boton-panel')
