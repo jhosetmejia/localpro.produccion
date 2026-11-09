@@ -243,7 +243,9 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
 .cut-cargando div{background:var(--f2);border:1px solid var(--b);border-radius:18px;padding:1rem 1.3rem;font-weight:700;display:flex;align-items:center;gap:.7rem}
 .cut-cargando i{width:22px;height:22px;border-radius:50%;border:3px solid var(--b);border-top-color:var(--v);animation:gira 0.8s linear infinite}
 @keyframes gira{to{transform:rotate(360deg)}}
-#cutVideos{position:fixed;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;left:-10px;top:-10px}
+/* Los videos quedan dentro de la pantalla (2 px, casi invisibles): el iPhone deja de dibujar los que están fuera */
+#cutVideos{position:fixed;left:0;bottom:0;width:2px;height:2px;overflow:hidden;opacity:.01;pointer-events:none;z-index:-1}
+#cutVideos video,#cutVideos audio{width:2px;height:2px;display:block}
 @media (min-width:1000px){
   body{display:grid;grid-template-columns:1fr 380px;grid-template-rows:auto 1fr auto auto auto;height:100dvh}
   .cut-top{grid-column:1/3}

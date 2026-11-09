@@ -71,6 +71,13 @@ function volumen(el, v) {
   if (el._g) el._g.gain.value = v; else { try { el.volume = Math.max(0, Math.min(1, v)); } catch (e) { /* nada */ } }
 }
 
+// Silenciar un video. Ojo: el iPhone PAUSA solo los videos mudos que no se ven en pantalla (la vista previa se quedaba quieta);
+// por eso los videos van dentro de la pantalla (#cutVideos, 2 px casi invisibles) y no afuera.
+function sonido(v, sil, vol = 1) {
+  v.muted = !!sil;
+  if (!sil) volumen(v, vol);
+}
+
 /* ---------- deshacer / rehacer ---------- */
 const REG = new Map();
 function reg(o) { REG.set(o.id, o); return o; }
@@ -321,10 +328,15 @@ function sincronizar() {
     const loc = tOrigen(c, S.t - L.start[i]);
     const vel = Math.max(0.1, Math.min(8, velEn(c, (S.t - L.start[i]) / largo(c))));
     if (Math.abs(v.playbackRate - vel) > 0.01) { try { v.playbackRate = vel; } catch (e) { /* fuera de rango */ } }
-    v.muted = !!c.mute || !!S.silenciar;
-    volumen(v, c.vol ?? 1);
+    sonido(v, !!c.mute || !!S.silenciar, c.vol ?? 1);
     if (act && S.playing) {
-      if (v.paused) { v.currentTime = loc; v.play().catch(() => {}); }
+      if (v.paused) {
+        // Intenta reproducir (sin insistir cada cuadro, eso lo dejaba buscando y la imagen quieta);
+        // si el navegador no lo deja, por lo menos mueve la imagen al tiempo de la línea
+        const ahora = performance.now();
+        if (!v._pt || ahora - v._pt > 900) { v._pt = ahora; v.currentTime = loc; v.play().catch(() => {}); }
+        else if (ahora - v._pt > 300 && !v.seeking && Math.abs(v.currentTime - loc) > 0.1) v.currentTime = loc;
+      }
       else if (Math.abs(v.currentTime - loc) > 0.3 * Math.max(1, vel)) v.currentTime = loc;
     } else {
       if (!v.paused) v.pause();
@@ -1360,7 +1372,7 @@ async function exportar() {
   const syncRT = (tt, tocar) => {
     S.clips.forEach((c, i) => {
       if (c.tipo !== 'video' || !c.el) return;
-      const v = c.el; v.muted = true;
+      const v = c.el; sonido(v, true);
       const ini = L.start[i], fin = ini + largo(c);
       if (tocar && tt >= ini && tt < fin) {
         const lt = tt - ini, loc = tOrigen(c, lt);
