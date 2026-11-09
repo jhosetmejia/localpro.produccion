@@ -24,6 +24,9 @@
     <li><b>Zoom y encuadre:</b> pellizque el video con dos dedos para acercarlo desde un momento y arrástrelo para escoger qué parte se ve.</li>
     <li><b>Audio:</b> agregue música, <b>extraiga el audio</b> de otro video, cambie el volumen o silencie el sonido original.</li>
     <li><b>Filtro de belleza natural:</b> toma su tono de piel y lo empareja sin dejarlo pálido; ojos, cejas y gafas quedan nítidos.</li>
+    <li><b>Efectos, filtros y ajustes:</b> blanco y negro, retro, destellos, sacudida, zoom al ritmo, espejo y glitch; filtros Vívido, Cálido, Frío, Cine, Atardecer y más; brillo, contraste, saturación, temperatura y viñeta.</li>
+    <li><b>Stickers y superposición:</b> ponga emojis o su logo encima del video, muévalos con el dedo y escoja cuánto duran.</li>
+    <li><b>Fondo y portada:</b> si el video no llena el formato, rellene con el mismo video desenfocado o con un color; y escoja la portada que se verá en estados, TikTok y Reels.</li>
     <li><b>Formatos:</b> vertical 9:16 (TikTok, Reels, estados), 16:9 (YouTube), cuadrado y 4:5.</li>
     <li><b>Exportar en alta calidad:</b> 1080p, 2K a 60 fps en el celular y 4K en el computador. Al terminar lo descarga o lo comparte directo a WhatsApp, TikTok o Instagram.</li>
     <li><b>Deshacer y rehacer</b>, y su trabajo queda guardado aunque cierre la página.</li>

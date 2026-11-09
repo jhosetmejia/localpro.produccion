@@ -75,7 +75,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 #cutRegla{position:absolute;left:0;right:0;top:22px;height:14px}
 #cutRegla span{position:absolute;transform:translateX(-50%);font-size:.62rem;color:var(--m);font-variant-numeric:tabular-nums}
 #cutRegla i{position:absolute;top:6px;width:3px;height:3px;margin-left:-1.5px;border-radius:50%;background:var(--m)}
-#cutIzq{position:absolute;top:40px;width:110px;height:134px;z-index:4;pointer-events:none}
+#cutIzq{position:absolute;top:40px;width:152px;height:170px;z-index:4;pointer-events:none}
+#cutIzq .cut-portada{pointer-events:auto}
 #cutIzq .cut-sil{pointer-events:auto}
 #cutPistaV,#cutPistaA,#cutPistaT,#cutRegla{pointer-events:none}
 #cutPistaV>*,#cutPistaA>*,#cutPistaT>*{pointer-events:auto}
@@ -88,18 +89,43 @@ button{font:inherit;color:inherit;cursor:pointer}
 #cutPistaV{position:absolute;left:0;right:0;top:42px;height:58px}
 #cutPistaA{position:absolute;left:0;right:0;top:107px;height:30px}
 #cutPistaT{position:absolute;left:0;right:0;top:141px;height:30px}
+#cutPistaC{position:absolute;left:0;right:0;top:175px;height:30px}
+body.con-capas .cut-linea{height:210px}
+.cut-capa{position:absolute;top:0;height:28px;border-radius:6px;background:#7a3dff;border:1px solid #a98bff;color:#fff;font-size:.68rem;font-weight:700;padding:6px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.cut-capa.sel{border-color:#fff;box-shadow:0 0 0 1px #fff}
+.cut-portada{position:absolute;top:-2px;left:82px;width:64px;height:62px;border-radius:10px;border:0;padding:0;background:#2a332d center/cover;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;overflow:hidden;box-shadow:inset 0 0 0 100px rgba(0,0,0,.35);touch-action:manipulation}
+.cut-portada svg{width:18px;height:18px}
+.cut-portada small{font-size:.62rem;font-weight:800;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.cut-portada-v{display:grid;place-items:center;margin-bottom:.6rem}
+.cut-portada-v img{max-height:160px;border-radius:10px}
+.cut-portada-v span{color:var(--m);font-size:.82rem}
+.cut-efs,.cut-fils{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:.5rem;margin-bottom:.4rem}
+.cut-efs button,.cut-fils button{background:var(--f3);border:1.5px solid var(--b);border-radius:12px;padding:.5rem .2rem;display:flex;flex-direction:column;align-items:center;gap:.25rem}
+.cut-efs i{font-style:normal;font-size:1.4rem;line-height:1}
+.cut-fils i{width:44px;height:44px;border-radius:10px}
+.cut-efs small,.cut-fils small{font-size:.66rem;font-weight:700;color:#cfd8d2;text-align:center;line-height:1.1}
+.cut-efs .on,.cut-fils .on{border-color:var(--v);background:#1d2a1f}
+.cut-emos{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:.35rem}
+.cut-emos button{font-size:1.6rem;line-height:1;background:var(--f3);border:0;border-radius:10px;padding:.4rem 0;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+#cutClave.on{color:var(--v)}
 .cut-clip{position:absolute;top:0;height:58px;border-radius:6px;background:#2a332d center/cover;border:2px solid transparent;overflow:hidden;cursor:pointer}
 .cut-clip span{position:absolute;left:4px;bottom:3px;font-size:.64rem;font-weight:700;background:rgba(0,0,0,.6);padding:1px 5px;border-radius:5px}
-.cut-clip em{position:absolute;left:4px;top:3px;font-style:normal;font-size:.64rem;font-weight:800;background:rgba(0,0,0,.6);padding:1px 6px;border-radius:5px;color:#fff}
+.cut-clip em{position:absolute;left:4px;top:3px;font-style:normal;font-size:.68rem;font-weight:800;padding:1px 2px;color:#fff;display:flex;align-items:center;gap:4px;text-shadow:0 1px 3px rgba(0,0,0,.9)}
+.cut-clip em:empty{display:none}
+.cut-clip em svg{width:13px;height:13px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.8))}
+.cut-clip em .ef{font-style:normal}
 .cut-clip.sel{border-color:#fff;box-shadow:0 0 0 1px #fff}
 .cut-clip.mudo{filter:saturate(.6)}
-.cut-rombo{position:absolute;top:17px;width:24px;height:24px;border-radius:6px;border:0;background:#fff;color:var(--f);font-size:.8rem;font-weight:900;z-index:3;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.5);padding:0}
+.cut-rombo{position:absolute;top:15px;width:26px;height:28px;border-radius:6px;border:0;background:#fff;color:var(--f);z-index:3;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.5);padding:0}
+.cut-rombo svg{width:15px;height:15px}
 .cut-rombo.on{background:var(--v)}
-.cut-mas{position:absolute;top:10px;width:38px;height:38px;border-radius:8px;border:0;background:#fff;color:var(--f);font-size:1.5rem;font-weight:600;line-height:1;padding:0}
+.cut-mas{position:absolute;top:8px;width:42px;height:42px;border-radius:9px;border:0;background:#fff;color:var(--f);display:grid;place-items:center;padding:0}
+.cut-mas svg{width:24px;height:24px}
 .cut-agregar{position:absolute;top:0;height:30px;min-width:150px;border:0;border-radius:6px;background:var(--f2);color:#cfd8d2;font-size:.74rem;font-weight:700;text-align:left;padding:0 10px;white-space:nowrap}
-.cut-mus{position:absolute;top:0;height:28px;border-radius:6px;background:#173a2a;border:1px solid #2c7a52;color:#b9f5cf;font-size:.68rem;font-weight:700;padding:6px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.cut-mus{position:absolute;top:0;height:28px;border-radius:6px;background:#1f6fa8 no-repeat;border:1px solid #3a93d1;color:#fff;font-size:.68rem;font-weight:700;padding:6px 8px;white-space:nowrap;overflow:hidden;cursor:pointer}
+.cut-mus span{position:relative;text-shadow:0 1px 3px rgba(0,0,0,.7)}
 .cut-mus.sel{border-color:#fff}
-.cut-sub{position:absolute;top:0;height:28px;border-radius:6px;background:#3b2a52;border:1px solid #6b4aa0;color:#e9dcff;font-size:.68rem;font-weight:700;padding:6px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.cut-sub{position:absolute;top:0;height:28px;border-radius:6px;background:#f26b1d;border:1px solid #ff9a5c;color:#fff;font-size:.68rem;font-weight:700;padding:6px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
 .cut-acc-audio button{flex:1 1 0;min-width:120px;padding:.8rem .5rem;font-size:.82rem}
 .cut-panel-h{display:flex;align-items:center;gap:.5rem;margin:-4px 0 8px}
 .cut-panel-h button{width:30px;height:30px;border-radius:9px;border:1px solid var(--b);background:var(--f2);font-size:1.2rem;line-height:1;padding:0}
@@ -184,7 +210,7 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
 .cut-formatos small{font-size:.62rem;color:var(--m);text-align:center;line-height:1.15}
 .cut-tabs{flex:0 0 auto;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;border-top:1px solid var(--b);background:var(--f);padding:6px 6px calc(env(safe-area-inset-bottom,0px) + 6px)}
 .cut-tabs::-webkit-scrollbar{display:none}
-.cut-tab{flex:0 0 auto;min-width:64px;background:transparent;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.68rem;font-weight:700;color:#cfd8d2;padding:4px 6px;white-space:nowrap}
+.cut-tab{flex:0 0 auto;min-width:64px;max-width:84px;line-height:1.1;text-align:center;background:transparent;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.68rem;font-weight:700;color:#cfd8d2;padding:4px 6px;white-space:normal}
 .cut-tab svg{width:24px;height:24px}
 .cut-tab.on{color:var(--v)}
 .cut-modal{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:50;display:flex;align-items:flex-end;justify-content:center}
@@ -257,6 +283,7 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
         <svg class="pa" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
     </button>
     <span class="sp"></span>
+    <button type="button" class="ic" id="cutClave" aria-label="Fotograma clave" title="Fotograma clave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3 21 12 12 21 3 12z"/><path d="M12 9v6M9 12h6" stroke-linecap="round"/></svg></button>
     <button type="button" class="ic" id="cutDeshacer" aria-label="Deshacer" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
     <button type="button" class="ic" id="cutRehacer" aria-label="Rehacer" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button>
 </div>
@@ -264,7 +291,7 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
 <div class="cut-linea">
     <span id="cutTiempo">00:00 / 00:00</span>
     <div class="cut-zoomt"><button type="button" id="cutZoomMenos" aria-label="Alejar">−</button><button type="button" id="cutZoomMas" aria-label="Acercar">+</button></div>
-    <div id="cutLinea"><div id="cutLineaIn"><div id="cutRegla"></div><div id="cutIzq"></div><div id="cutPistaV"></div><div id="cutPistaA"></div><div id="cutPistaT"></div></div></div>
+    <div id="cutLinea"><div id="cutLineaIn"><div id="cutRegla"></div><div id="cutIzq"></div><div id="cutPistaV"></div><div id="cutPistaA"></div><div id="cutPistaT"></div><div id="cutPistaC"></div></div></div>
     <div class="cut-ph"></div>
 </div>
 
@@ -277,16 +304,20 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
     <button type="button" class="cut-tab" data-tab="editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/><path d="M8 16 18 3M16 16 6 3"/></svg>Editar</button>
     <button type="button" class="cut-tab" data-tab="audio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>Audio</button>
     <button type="button" class="cut-tab" data-tab="texto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5h14M12 5v15"/></svg>Texto</button>
+    <button type="button" class="cut-tab" data-tab="efectos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg>Efectos</button>
+    <button type="button" class="cut-tab" data-tab="superposicion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="7" y="7" width="10" height="10" rx="1"/><path d="m7 15 3-3 2 2 2-2 3 3"/></svg>Superposición</button>
     <button type="button" class="cut-tab" data-tab="subtitulos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M6 12h4M14 12h4M6 15h8"/></svg>Subtítulos</button>
-    <button type="button" class="cut-tab" data-tab="velocidad"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18a8 8 0 1 1 16 0"/><path d="m12 18 4.5-6"/></svg>Velocidad</button>
-    <button type="button" class="cut-tab" data-tab="transicion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h6v14H4zM14 5h6v14h-6z"/><path d="m10 12 4 0"/></svg>Transición</button>
-    <button type="button" class="cut-tab" data-tab="belleza"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4.5"/><circle cx="8" cy="15" r="4.5"/><circle cx="16" cy="15" r="4.5"/></svg>Filtros</button>
-    <button type="button" class="cut-tab" data-tab="formato"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/></svg>Formato</button>
+    <button type="button" class="cut-tab" data-tab="filtros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4.5"/><circle cx="8" cy="15" r="4.5"/><circle cx="16" cy="15" r="4.5"/></svg>Filtros</button>
+    <button type="button" class="cut-tab" data-tab="ajustar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Ajustar</button>
+    <button type="button" class="cut-tab" data-tab="stickers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-8-8"/><path d="M20 12a8 8 0 0 0-8-8v4a4 4 0 0 0 4 4z"/></svg>Stickers</button>
+    <button type="button" class="cut-tab" data-tab="formato"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="16" rx="1"/></svg>Relación de aspecto</button>
+    <button type="button" class="cut-tab" data-tab="fondo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M4 14 14 4M4 20 20 4M10 20 20 10"/></svg>Fondo</button>
 </nav>
 
 <input type="file" id="cutArchivo" accept="video/*,image/*" multiple hidden>
 <input type="file" id="cutMusica" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg" hidden>
 <input type="file" id="cutExtraer" accept="video/*" hidden>
+<input type="file" id="cutCapaFoto" accept="image/*" hidden>
 <div id="cutVideos"></div>
 <div class="cut-toasts" id="cutToasts"></div>
 <div class="cut-cargando" id="cutCargando" hidden><div><i></i><span>Cargando…</span></div></div>

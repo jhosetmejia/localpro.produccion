@@ -1,7 +1,7 @@
 /* LocalProCut · editor de video en el navegador (celular primero).
    Todo pasa en el equipo del usuario: los videos no se suben al servidor. */
 import * as MB from './mediabunny.min.js';
-import { Motor, TRANSICIONES } from './motor.js';
+import { Motor, TRANSICIONES, EFECTOS, FILTROS } from './motor.js';
 import * as SUB from './subtitulos.js';
 import * as BEL from './belleza.js';
 
@@ -21,6 +21,11 @@ const S = {
   belleza: { on: false, suave: 0.45, aclara: 0.25, brillo: 0, preset: 'natural' },
   aspecto: '9:16',
   musica: [], silenciar: false, selM: null,
+  // Como CapCut: filtro y ajustes para todo el video, fondo cuando el video no llena el formato, capas (stickers y fotos) y portada
+  filtro: { id: 'ninguno', k: 1 },
+  ajuste: { brillo: 0, contraste: 0, saturacion: 0, temperatura: 0, vineta: 0 },
+  fondo: { modo: 'llenar', color: '#000000' },
+  capas: [], selC: null, portada: null,
   t: 0, playing: false, sel: null, tab: null, pps: 56,
   dirty: true,
 };
@@ -72,7 +77,8 @@ function reg(o) { REG.set(o.id, o); return o; }
 const HIST = { pila: [], pos: -1, aplicando: false };
 function foto() {
   return JSON.stringify({
-    clips: S.clips.map(c => ({ id: c.id, in: c.in, out: c.out, mute: !!c.mute, vol: c.vol ?? 1, vel: c.vel || 1, curva: c.curva || null, z: c.z || 1, x: c.x || 0, y: c.y || 0, kf: c.kf?.length ? c.kf : null, trans: c.trans })),
+    clips: S.clips.map(c => ({ id: c.id, in: c.in, out: c.out, mute: !!c.mute, vol: c.vol ?? 1, vel: c.vel || 1, curva: c.curva || null, z: c.z || 1, x: c.x || 0, y: c.y || 0, kf: c.kf?.length ? c.kf : null, trans: c.trans, ef: c.ef || 'ninguno' })),
+    capas: S.capas.map(datosCapa), filtro: S.filtro, ajuste: S.ajuste, fondo: S.fondo,
     musica: S.musica.map(m => ({ id: m.id, start: m.start, in: m.in, out: m.out ?? null, vol: m.vol ?? 1, fadeIn: !!m.fadeIn, fadeOut: !!m.fadeOut })),
     subs: S.subs, segs: S.segs, sub: S.sub, belleza: S.belleza, aspecto: S.aspecto, silenciar: !!S.silenciar,
   });
@@ -99,6 +105,11 @@ function aplicarFoto(f) {
   S.musica = d.musica.map(m => Object.assign(REG.get(m.id), m)).filter(Boolean);
   S.subs = JSON.parse(JSON.stringify(d.subs)); S.segs = d.segs;
   Object.assign(S.sub, d.sub); Object.assign(S.belleza, d.belleza);
+  S.capas = (d.capas || []).map(m => Object.assign(REG.get(m.id) || {}, m)).filter(x => x.id && (x.tipo !== 'imagen' || x.bmp));
+  if (d.filtro) S.filtro = { ...d.filtro };
+  if (d.ajuste) S.ajuste = { ...d.ajuste };
+  if (d.fondo) S.fondo = { ...d.fondo };
+  if (!S.capas.some(x => x.id === S.selC)) S.selC = null;
   const cambioAsp = S.aspecto !== d.aspecto;
   S.aspecto = d.aspecto; S.silenciar = d.silenciar;
   if (!S.clips.some(c => c.id === S.sel)) S.sel = null;
@@ -229,7 +240,7 @@ function dibujarCuadro(t, fuentes, W, H, ctx) {
     act.forEach((i, k) => {
       const f = fuentes(i);
       const cc = S.clips[i];
-      motor.clip(k, f?.src, f?.w, f?.h, S.belleza.on ? f?.mascara : null, S.belleza, encuadreEn(cc, t - L.start[i]));
+      motor.clip(k, f?.src, f?.w, f?.h, S.belleza.on ? f?.mascara : null, S.belleza, encuadreEn(cc, t - L.start[i]), opClip(cc, t - L.start[i]));
     });
     if (act.length === 2) {
       const c = S.clips[act[0]];
@@ -238,7 +249,51 @@ function dibujarCuadro(t, fuentes, W, H, ctx) {
     } else motor.mezclar(2, 0);
   }
   ctx.drawImage(motor.canvas, 0, 0, W, H);
+  if (S.capas.length) dibujarCapas(ctx, W, H, t);
   if (S.subs.length) SUB.dibujar(ctx, W, H, t, S.subs, S.sub);
+}
+const hexRgb = (h) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255);
+function opClip(c, lt) {
+  return {
+    fit: S.fondo.modo, bg: hexRgb(S.fondo.color || '#000000'), adj: S.ajuste,
+    fil: (FILTROS.find(f => f.id === S.filtro.id) || FILTROS[0]).t, filK: S.filtro.k ?? 1,
+    ef: (EFECTOS.find(e => e.id === c.ef) || EFECTOS[0]).t, t: lt,
+  };
+}
+
+/* ---------- capas: stickers y fotos/logos encima del video (Superposición) ---------- */
+function datosCapa(x) { return { id: x.id, tipo: x.tipo, emoji: x.emoji || null, fileId: x.fileId || null, nombre: x.nombre || '', start: x.start, end: x.end, x: x.x, y: x.y, tam: x.tam }; }
+function dibujarCapas(ctx, W, H, t) {
+  for (const k of S.capas) {
+    if (t < k.start || t >= k.end) continue;
+    const cx = k.x * W, cy = k.y * H, w = k.tam * Math.min(W, H);
+    // Entra con un pequeño "pop" (como los stickers de CapCut)
+    const e = Math.min(1, (t - k.start) / 0.25), pop = e < 1 ? 0.6 + 0.4 * (1 - Math.pow(1 - e, 3)) * 1.08 : 1;
+    ctx.save();
+    ctx.translate(cx, cy); ctx.scale(pop, pop);
+    if (k.tipo === 'sticker') {
+      ctx.font = `${Math.round(w)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(k.emoji, 0, 0);
+    } else if (k.bmp) {
+      const h = w * k.bmp.height / k.bmp.width;
+      ctx.drawImage(k.bmp, -w / 2, -h / 2, w, h);
+    }
+    ctx.restore();
+  }
+}
+function nuevaCapa(datos) {
+  if (!S.clips.length) { aviso('Primero agregue un video'); return null; }
+  const L = lay();
+  const ini = S.t >= L.total - 0.2 ? 0 : S.t;
+  const k = reg({ id: uid(), start: ini, end: Math.min(Math.max(L.total, ini + 0.5), ini + 3), x: 0.5, y: 0.35, tam: 0.3, ...datos });
+  S.capas.push(k);
+  S.selC = k.id; S.sel = null; S.selM = null;
+  abrirTab('capa'); pintarLinea(); guardar();
+  return k;
+}
+async function cargarCapaImagen(k) {
+  k.bmp = await createImageBitmap(k.file, { imageOrientation: 'from-image' });
 }
 
 /* ---------- vista previa ---------- */
@@ -306,6 +361,8 @@ function bucle(ahora) {
     if (S.clips.length) dibujarCuadro(S.t, fuentePrevia, vista.width, vista.height, vctx);
     else { vctx.fillStyle = '#000'; vctx.fillRect(0, 0, vista.width, vista.height); }
     $('#cutTiempo').textContent = `${fmt(S.t).slice(0, 5)} / ${fmt(lay().total).slice(0, 5)}`;
+    const cc = S.clips.length ? clipBajoLinea() : null, lt = cc ? ltClip(cc) : 0;
+    $('#cutClave').classList.toggle('on', !!cc?.kf?.some(q => q.t > 0.01 && Math.abs(q.t - lt) < 0.12));
   }
   requestAnimationFrame(bucle);
 }
@@ -347,7 +404,7 @@ function pintarLinea() {
   const L = lay();
   const pad = linea.clientWidth / 2;
   const cont = $('#cutLineaIn');
-  const ancho = Math.max(L.total, ...S.musica.map(finM), ...S.subs.map(x => x.end)) * S.pps;
+  const ancho = Math.max(L.total, ...S.musica.map(finM), ...S.subs.map(x => x.end), ...S.capas.map(x => x.end)) * S.pps;
   cont.style.width = (ancho + pad * 2 + 60) + 'px';
   // Regla de tiempos
   const regla = $('#cutRegla');
@@ -355,11 +412,14 @@ function pintarLinea() {
   let rh = '';
   for (let t = 0; t <= Math.max(L.total, 1) + paso; t += paso) rh += `<span style="left:${pad + t * S.pps}px">${fmt(t).slice(0, 5)}</span><i style="left:${pad + (t + paso / 2) * S.pps}px"></i>`;
   regla.innerHTML = rh;
-  // Columna izquierda (como CapCut): silenciar clip y los íconos de las filas
+  // Columna izquierda (como CapCut): silenciar audio del clip, portada y los íconos de las filas
   const izq = $('#cutIzq');
-  izq.style.left = Math.max(4, pad - 116) + 'px';
-  izq.innerHTML = `<button type="button" class="cut-sil ${S.silenciar ? 'on' : ''}" data-silenciar>${S.silenciar ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="m17 9 4 6M21 9l-4 6"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>'}<small>${S.silenciar ? 'Activar<br>sonido' : 'Silenciar<br>clip'}</small></button>
-    <span class="cut-fila-ic" style="top:68px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18V5l9-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="15" cy="16" r="3"/></svg></span><span class="cut-fila-ic" style="top:102px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 5h14M12 5v15"/></svg></span>`;
+  izq.style.left = Math.max(2, pad - 158) + 'px';
+  const fotoPortada = S.portada?.url || S.clips[0]?.tira || '';
+  izq.innerHTML = `<button type="button" class="cut-sil ${S.silenciar ? 'on' : ''}" data-silenciar>${S.silenciar ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="m17 9 4 6M21 9l-4 6"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>'}<small>${S.silenciar ? 'Reactivar audio<br>del clip' : 'Silenciar audio<br>del clip'}</small></button>
+    <button type="button" class="cut-portada" data-portada style="${fotoPortada ? `background-image:url(${fotoPortada})` : ''}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg><small>Portada</small></button>
+    <span class="cut-fila-ic" style="top:68px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18V5l9-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="15" cy="16" r="3"/></svg></span><span class="cut-fila-ic" style="top:102px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 5h14M12 5v15"/></svg></span>${S.capas.length ? '<span class="cut-fila-ic" style="top:136px">😀</span>' : ''}`;
+  document.body.classList.toggle('con-capas', S.capas.length > 0);
 
 
   const pista = $('#cutPistaV');
@@ -376,9 +436,12 @@ function pintarLinea() {
       b.style.backgroundPositionX = c.tipo === 'imagen' ? '0' : `${-c.in / tablaVel(c).media * S.pps}px`;
       b.style.backgroundRepeat = c.tipo === 'imagen' ? 'repeat-x' : 'no-repeat';
     }
-    const etqVel = c.tipo === 'video' && c.curva ? '◷ ' + CURVAS[c.curva].n : (c.tipo === 'video' && (c.vel || 1) !== 1 ? '◷ ' + c.vel + 'x' : '');
-    b.innerHTML = (etqVel ? `<em>${etqVel}</em>` : '') + `<span>${c.tipo === 'imagen' ? '🖼 ' : (c.mute ? '🔇 ' : '')}${fmt(largo(c)).slice(0, 5)}</span>`;
-    b.onclick = (e) => { e.stopPropagation(); S.sel = c.id; S.selM = null; abrirTab(['editar', 'velocidad', 'belleza'].includes(S.tab) ? S.tab : 'editar'); pintarLinea(); };
+    const etqVel = c.tipo === 'video' && c.curva ? CURVAS[c.curva].n : (c.tipo === 'video' && (c.vel || 1) !== 1 ? c.vel + 'x' : '');
+    const icVel = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-3-6.2"/><path d="m12 12 5-5"/></svg>';
+    const icMudo = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="m17 9 4 6M21 9l-4 6"/></svg>';
+    const ef = c.ef && c.ef !== 'ninguno' ? EFECTOS.find(x => x.id === c.ef) : null;
+    b.innerHTML = `<em>${etqVel ? icVel + esc(etqVel) : ''}${c.tipo === 'video' && (c.mute || S.silenciar) ? icMudo : ''}${ef ? `<i class="ef">${ef.e}</i>` : ''}</em>` + `<span>${c.tipo === 'imagen' ? '🖼 ' : ''}${fmt(largo(c)).slice(0, 5)}</span>`;
+    b.onclick = (e) => { e.stopPropagation(); S.sel = c.id; S.selM = null; abrirTab(['editar', 'velocidad', 'belleza', 'efectos'].includes(S.tab) ? S.tab : 'editar'); pintarLinea(); };
     pista.appendChild(b);
     if (i < S.clips.length - 1) {
       const tb = document.createElement('button');
@@ -386,7 +449,7 @@ function pintarLinea() {
       tb.className = 'cut-rombo' + (c.trans.tipo !== 'ninguna' ? ' on' : '');
       tb.title = 'Transición';
       tb.style.left = (pad + (L.start[i + 1] + L.tr[i] / 2) * S.pps - 12) + 'px';
-      tb.innerHTML = c.trans.tipo !== 'ninguna' ? '⧓' : '|';
+      tb.innerHTML = c.trans.tipo !== 'ninguna' ? '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 5l8 7-8 7zM20 5l-8 7 8 7z"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M4 5l8 7-8 7zM20 5l-8 7 8 7z"/></svg>';
       tb.onclick = (e) => { e.stopPropagation(); S.sel = c.id; S.selM = null; abrirTab('transicion'); pintarLinea(); };
       pista.appendChild(tb);
     }
@@ -395,7 +458,7 @@ function pintarLinea() {
   mas.type = 'button';
   mas.className = 'cut-mas';
   mas.style.left = (pad + L.total * S.pps + 8) + 'px';
-  mas.innerHTML = '+';
+  mas.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
   mas.onclick = () => $('#cutArchivo').click();
   pista.appendChild(mas);
 
@@ -407,7 +470,9 @@ function pintarLinea() {
     b.className = 'cut-mus' + (S.selM === m.id ? ' sel' : '');
     b.style.left = (pad + m.start * S.pps) + 'px';
     b.style.width = Math.max(14, Math.min(largoM(m), Math.max(0.1, L.total - m.start)) * S.pps - 2) + 'px';
-    b.textContent = '♪ ' + m.nombre.replace(/\.[^.]+$/, '');
+    b.innerHTML = `<span>${esc(m.nombre.replace(/\.[^.]+$/, ''))}</span>`;
+    if (m.onda) { b.style.backgroundImage = `url(${m.onda})`; b.style.backgroundSize = `${largoM(m) * S.pps}px 100%`; b.style.backgroundPositionX = `${-(m.in || 0) * S.pps}px`; }
+    else ondas(m);
     b.onclick = (e) => { e.stopPropagation(); S.selM = m.id; S.sel = null; abrirTab('audio'); pintarLinea(); };
     pa.appendChild(b);
   });
@@ -437,6 +502,18 @@ function pintarLinea() {
   addT.innerHTML = '+ Agregar texto';
   addT.onclick = (e) => { e.stopPropagation(); nuevoTexto(); };
   ps.appendChild(addT);
+  // Fila de capas (stickers y fotos)
+  const pc = $('#cutPistaC');
+  pc.innerHTML = '';
+  S.capas.forEach((k) => {
+    const b = document.createElement('div');
+    b.className = 'cut-capa' + (S.selC === k.id ? ' sel' : '');
+    b.style.left = (pad + k.start * S.pps) + 'px';
+    b.style.width = Math.max(14, (k.end - k.start) * S.pps - 2) + 'px';
+    b.textContent = k.tipo === 'sticker' ? k.emoji + ' Sticker' : '🖼 ' + (k.nombre || 'Foto');
+    b.onclick = (e) => { e.stopPropagation(); S.selC = k.id; S.sel = null; S.selM = null; abrirTab('capa'); pintarLinea(); };
+    pc.appendChild(b);
+  });
   moverLinea();
   S.dirty = true;
 }
@@ -446,15 +523,44 @@ function pintarLinea() {
   const izq = $('#cutIzq');
   let ini = null;
   const alternar = () => { S.silenciar = !S.silenciar; sincronizar(); pintarLinea(); guardar(); aviso(S.silenciar ? 'Sonido original silenciado 🔇' : 'Sonido original activado 🔈'); };
-  izq.addEventListener('pointerdown', (e) => { if (e.target.closest('[data-silenciar]')) { ini = { x: e.clientX, y: e.clientY, t: Date.now() }; e.stopPropagation(); } }, true);
+  const accion = (e) => (e.target.closest('[data-silenciar]') ? alternar : e.target.closest('[data-portada]') ? () => { S.sel = null; S.selM = null; S.selC = null; abrirTab('portada'); } : null);
+  izq.addEventListener('pointerdown', (e) => { if (accion(e)) { ini = { x: e.clientX, y: e.clientY, t: Date.now() }; e.stopPropagation(); } }, true);
   izq.addEventListener('pointerup', (e) => {
-    if (!ini || !e.target.closest('[data-silenciar]')) { ini = null; return; }
+    const f = accion(e);
+    if (!ini || !f) { ini = null; return; }
     const mov = Math.hypot(e.clientX - ini.x, e.clientY - ini.y);
     ini = null;
-    if (mov < 14) { e.preventDefault(); e.stopPropagation(); izq._ultimo = Date.now(); alternar(); }
+    if (mov < 14) { e.preventDefault(); e.stopPropagation(); izq._ultimo = Date.now(); f(); }
   }, true);
-  izq.addEventListener('click', (e) => { if (e.target.closest('[data-silenciar]')) { e.stopPropagation(); if (Date.now() - (izq._ultimo || 0) > 600) alternar(); } });
+  izq.addEventListener('click', (e) => { const f = accion(e); if (f) { e.stopPropagation(); if (Date.now() - (izq._ultimo || 0) > 600) f(); } });
 })();
+
+/* ---------- forma de onda del audio (fila azul, como CapCut) ---------- */
+async function ondas(m) {
+  if (m.onda || m._ondaPend || !m.file || m.file.size > 80e6) return;
+  m._ondaPend = true;
+  try {
+    const buf = await audioCtx().decodeAudioData(await m.file.arrayBuffer());
+    const d = buf.getChannelData(0), N = Math.min(1200, Math.max(60, Math.round(buf.duration * 24)));
+    const cv = document.createElement('canvas'); cv.width = N * 2; cv.height = 56;
+    const g = cv.getContext('2d'); g.fillStyle = '#8fd3ff';
+    const paso = Math.floor(d.length / N);
+    for (let i = 0; i < N; i++) {
+      let mx = 0; for (let j = i * paso, f = j + paso; j < f; j += 16) mx = Math.max(mx, Math.abs(d[j]));
+      const h = Math.max(2, Math.min(1, mx * 1.3) * 50);
+      g.fillRect(i * 2, 28 - h / 2, 1.4, h);
+    }
+    m.onda = cv.toDataURL('image/png');
+    pintarLinea();
+  } catch (e) { /* sin onda */ }
+}
+
+/* ---------- portada: el primer cuadro del video (el que muestran estados, TikTok y Reels) ---------- */
+function ponerPortada(url, t) {
+  const img = new Image();
+  img.src = url;
+  S.portada = { t, url, img };
+}
 
 /* ---------- música ---------- */
 function largoM(m) { return Math.max(0.1, (m.out ?? m.dur ?? 0) - (m.in || 0)); }
@@ -483,6 +589,14 @@ async function agregarMusica(f, nombre = null, msg = 'Música agregada 🎵') {
   } catch (e) { aviso(e.message, 'mal'); }
 }
 $('#cutMusica').addEventListener('change', (e) => { agregarMusica(e.target.files[0]); e.target.value = ''; });
+$('#cutCapaFoto').addEventListener('change', async (e) => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  const k = { tipo: 'imagen', file: f, fileId: uid(), nombre: f.name.replace(/\.[^.]+$/, ''), tam: 0.4, y: 0.25 };
+  try { await cargarCapaImagen(k); } catch (err) { return aviso('No se pudo abrir la imagen', 'mal'); }
+  DB.put('archivos', k.fileId, f);
+  if (nuevaCapa(k)) aviso('Foto agregada encima del video 🖼️');
+});
 // Extraer audio (como CapCut): toma el sonido de un video del celular y lo pone en la fila de audio
 $('#cutExtraer').addEventListener('change', (e) => {
   const f = e.target.files[0]; e.target.value = '';
@@ -639,7 +753,7 @@ function mover(d) {
 }
 
 /* ---------- panel de herramientas ---------- */
-const TITULOS = { editar: 'Editar', audio: 'Audio', texto: 'Texto', subtitulos: 'Subtítulos', velocidad: 'Velocidad', transicion: 'Transición', belleza: 'Filtros · Belleza', formato: 'Formato' };
+const TITULOS = { editar: 'Editar', audio: 'Audio', texto: 'Texto', efectos: 'Efectos', superposicion: 'Superposición', subtitulos: 'Subtítulos', filtros: 'Filtros', ajustar: 'Ajustar', stickers: 'Stickers', formato: 'Relación de aspecto', fondo: 'Fondo', velocidad: 'Velocidad', transicion: 'Transición', belleza: 'Belleza del rostro', capa: 'Capa', portada: 'Portada' };
 function abrirTab(t) {
   S.tab = t;
   $$('.cut-tab').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
@@ -652,6 +766,16 @@ function abrirTab(t) {
 $$('.cut-tab').forEach(b => b.addEventListener('click', () => abrirTab(S.tab === b.dataset.tab && innerWidth < 1000 ? null : b.dataset.tab)));
 $('#cutPanelCerrar').addEventListener('click', () => abrirTab(innerWidth >= 1000 ? 'editar' : null));
 $('#cutDeshacer').addEventListener('click', deshacer);
+// Fotograma clave (como CapCut): marca este momento para que el zoom cambie desde aquí
+$('#cutClave').addEventListener('click', () => {
+  const c = clipBajoLinea(); if (!c) return aviso('Ponga la línea blanca sobre un clip');
+  pausar();
+  const lt = ltClip(c);
+  const ya = c.kf?.find(q => Math.abs(q.t - lt) < 0.12 && q.t > 0.01);
+  if (ya) { c.kf = c.kf.filter(q => q !== ya); if (c.kf.length <= 1) { const e2 = c.kf[0] || encuadreEn(c, 0); c.z = e2.z; c.x = e2.x; c.y = e2.y; c.kf = null; } aviso('Fotograma clave quitado'); }
+  else { if (!c.kf?.length) c.kf = [{ t: 0, z: c.z || 1, x: c.x || 0, y: c.y || 0 }]; puntoZoom(c); aviso('◆ Fotograma clave: pellizque o mueva el video y cambia desde aquí'); }
+  S.sel = c.id; S.dirty = true; guardar(); pintarLinea(); if (S.tab === 'editar') pintarPanel();
+});
 $('#cutRehacer').addEventListener('click', rehacer);
 $('#cutPantalla').addEventListener('click', () => { document.body.classList.toggle('pantalla'); setTimeout(() => { pintarLinea(); S.dirty = true; }, 50); });
 
@@ -670,6 +794,8 @@ function pintarPanel() {
       <div class="cut-acciones">
         <button type="button" data-a="dividir"><i>✂️</i>Dividir</button>
         ${c.tipo === 'video' ? `<button type="button" data-a="vel"><i>◷</i>Velocidad</button>` : ''}
+        <button type="button" data-a="efecto"><i>✨</i>Efectos</button>
+        <button type="button" data-a="belleza"><i>💄</i>Belleza</button>
         <button type="button" data-a="duplicar"><i>⧉</i>Duplicar</button>
         <button type="button" data-a="izq"><i>⬅️</i>Mover</button>
         <button type="button" data-a="der"><i>➡️</i>Mover</button>
@@ -684,7 +810,7 @@ function pintarPanel() {
       ${c.tipo === 'video' ? `<div class="cut-fila"><small>Volumen</small><input type="range" min="0" max="2" step="0.05" value="${c.vol ?? 1}" data-vol><b class="cut-val">${Math.round((c.vol ?? 1) * 100)}%</b></div>` : ''}
       ${c.tipo === 'imagen' ? `<div class="cut-fila"><small>Duración de la foto</small>${chips('durfoto', [[2, '2 s'], [3, '3 s'], [5, '5 s'], [8, '8 s']], largo(c))}</div>` : ''}
       <p class="cut-nota">Para recortar: ponga la línea blanca donde quiere cortar, toque <b>Dividir</b> y elimine el pedazo que sobra.</p>`;
-    $$('[data-a]', p).forEach(b => b.onclick = () => ({ dividir, eliminar, duplicar, izq: () => mover(-1), der: () => mover(1), vel: () => abrirTab('velocidad'), extraer: () => extraerDeClip(c), mute: () => { c.mute = !c.mute; pintarLinea(); pintarPanel(); sincronizar(); guardar(); } })[b.dataset.a]());
+    $$('[data-a]', p).forEach(b => b.onclick = () => ({ dividir, eliminar, duplicar, izq: () => mover(-1), der: () => mover(1), vel: () => abrirTab('velocidad'), efecto: () => abrirTab('efectos'), belleza: () => abrirTab('belleza'), extraer: () => extraerDeClip(c), mute: () => { c.mute = !c.mute; pintarLinea(); pintarPanel(); sincronizar(); guardar(); } })[b.dataset.a]());
     const rz = $('[data-zoom]', p);
     rz.oninput = () => { const k = puntoZoom(c); k.z = Number(rz.value); $('[data-zv]', p).textContent = Math.round(k.z * 100) + '%'; S.dirty = true; };
     rz.onchange = () => { guardar(); pintarPanel(); };
@@ -834,6 +960,93 @@ function pintarPanel() {
     const g2 = $('[data-grupo="velb"]', p); if (g2) g2.onclick = (e) => { const v = e.target.dataset.v; if (!v) return; c.vel = Number(v); cambio(); };
     const cv = $('.cut-curvas', p); if (cv) cv.onclick = (e) => { const b = e.target.closest('[data-cu]'); if (!b) return; c.curva = b.dataset.cu || null; cambio(); };
     $('[data-todos]', p).onclick = () => { S.clips.forEach(x => { if (x.tipo === 'video') { x.vel = c.vel || 1; x.curva = c.curva || null; } }); pintarLinea(); guardar(); aviso('Velocidad puesta en todos los videos ⚡'); };
+    return;
+  }
+  if (S.tab === 'efectos') {
+    if (!c) { p.innerHTML = `<p class="cut-nota">Toque un clip en la línea de tiempo para ponerle un efecto.</p>`; return; }
+    p.innerHTML = `
+      <div class="cut-efs">${EFECTOS.map(e => `<button type="button" data-ef="${e.id}" class="${(c.ef || 'ninguno') === e.id ? 'on' : ''}"><i>${e.e}</i><small>${e.n}</small></button>`).join('')}</div>
+      <p class="cut-nota">El efecto se pone en el clip seleccionado.</p>
+      <button type="button" class="cut-btn-sec" data-todos>Aplicar a todos los clips</button>`;
+    $('.cut-efs', p).onclick = (e) => { const b = e.target.closest('[data-ef]'); if (!b) return; c.ef = b.dataset.ef; pintarLinea(); pintarPanel(); guardar(); const L = lay(), i = S.clips.indexOf(c); irA(L.start[i]); setTimeout(() => reproducir(L.start[i] + Math.min(largo(c), 3)), 60); };
+    $('[data-todos]', p).onclick = () => { S.clips.forEach(x => { x.ef = c.ef || 'ninguno'; }); pintarLinea(); guardar(); aviso('Efecto puesto en todos los clips ✨'); };
+    return;
+  }
+  if (S.tab === 'filtros') {
+    const f = S.filtro;
+    p.innerHTML = `
+      <div class="cut-fils">${FILTROS.map(x => `<button type="button" data-fil="${x.id}" class="${f.id === x.id ? 'on' : ''}"><i style="background:${x.g}"></i><small>${x.n}</small></button>`).join('')}</div>
+      ${f.id !== 'ninguno' ? `<div class="cut-fila"><small>Intensidad</small><input type="range" min="0" max="1" step="0.01" value="${f.k}" data-filk><b class="cut-val">${Math.round(f.k * 100)}%</b></div>` : ''}
+      <button type="button" class="cut-btn-sec" data-bel>💄 Belleza del rostro${S.belleza.on ? ' · activa' : ''}</button>`;
+    $('.cut-fils', p).onclick = (e) => { const b = e.target.closest('[data-fil]'); if (!b) return; f.id = b.dataset.fil; S.dirty = true; pintarPanel(); guardar(); };
+    const r = $('[data-filk]', p); if (r) { r.oninput = () => { f.k = Number(r.value); $('.cut-val', p).textContent = Math.round(f.k * 100) + '%'; S.dirty = true; }; r.onchange = guardar; }
+    $('[data-bel]', p).onclick = () => abrirTab('belleza');
+    return;
+  }
+  if (S.tab === 'ajustar') {
+    const a = S.ajuste;
+    const fila = (k, n, min = -1) => `<div class="cut-fila"><small>${n}</small><input type="range" min="${min}" max="1" step="0.01" value="${a[k]}" data-aj="${k}"><b class="cut-val" data-ajv="${k}">${Math.round(a[k] * 100)}</b></div>`;
+    p.innerHTML = fila('brillo', 'Brillo') + fila('contraste', 'Contraste') + fila('saturacion', 'Saturación') + fila('temperatura', 'Temperatura') + fila('vineta', 'Viñeta', 0)
+      + `<button type="button" class="cut-btn-sec" data-reset>Restablecer</button><p class="cut-nota">Se aplica a todo el video.</p>`;
+    $$('[data-aj]', p).forEach(r => { r.oninput = () => { a[r.dataset.aj] = Number(r.value); $(`[data-ajv="${r.dataset.aj}"]`, p).textContent = Math.round(a[r.dataset.aj] * 100); S.dirty = true; }; r.onchange = guardar; });
+    $('[data-reset]', p).onclick = () => { Object.keys(a).forEach(k => { a[k] = 0; }); S.dirty = true; pintarPanel(); guardar(); };
+    return;
+  }
+  if (S.tab === 'stickers') {
+    const EMO = ['😀', '😂', '😍', '🥳', '😎', '🤩', '🔥', '⭐', '❤️', '👍', '👏', '🙌', '🎉', '💯', '✨', '💥', '🎁', '🛒', '🏷️', '📢', '🆕', '✅', '📍', '➡️', '⬇️', '👇', '💰', '🍔', '🍕', '☕', '🍰', '💇', '💅', '🦷', '👗', '👟', '📸', '🎶', '🏆', '⚽'];
+    p.innerHTML = `<div class="cut-emos">${EMO.map(e => `<button type="button" data-emo="${e}">${e}</button>`).join('')}</div><p class="cut-nota">Toque un sticker y aparece donde está la línea blanca. Luego lo mueve y le cambia el tamaño.</p>`;
+    $('.cut-emos', p).onclick = (e) => { const b = e.target.closest('[data-emo]'); if (!b) return; if (nuevaCapa({ tipo: 'sticker', emoji: b.dataset.emo, tam: 0.28 })) aviso('Sticker agregado ' + b.dataset.emo); };
+    return;
+  }
+  if (S.tab === 'superposicion') {
+    p.innerHTML = `
+      <div class="cut-acciones cut-acc-audio"><button type="button" data-sup><i>🖼️</i>Agregar foto o logo</button></div>
+      <p class="cut-nota">Ponga su logo, un producto o una foto encima del video. Aparece donde está la línea blanca; luego lo mueve y le cambia el tamaño.</p>
+      ${S.capas.length ? '<p class="cut-nota">Toque una capa en la última fila para editarla.</p>' : ''}`;
+    $('[data-sup]', p).onclick = () => $('#cutCapaFoto').click();
+    return;
+  }
+  if (S.tab === 'capa') {
+    const k = S.capas.find(x => x.id === S.selC);
+    if (!k) { p.innerHTML = `<p class="cut-nota">Toque un sticker o una foto en la fila de capas.</p>`; return; }
+    const L = lay();
+    p.innerHTML = `
+      <p class="cut-nota" style="text-align:left">${k.tipo === 'sticker' ? k.emoji + ' <b>Sticker</b>' : '🖼 <b>' + esc(k.nombre || 'Foto') + '</b>'} · ${fmt(k.start).slice(0, 5)} → ${fmt(k.end).slice(0, 5)}</p>
+      <div class="cut-fila"><small>Tamaño</small><input type="range" min="0.06" max="1" step="0.01" value="${k.tam}" data-ck="tam"></div>
+      <div class="cut-fila"><small>Izquierda ↔ derecha</small><input type="range" min="0" max="1" step="0.005" value="${k.x}" data-ck="x"></div>
+      <div class="cut-fila"><small>Arriba ↕ abajo</small><input type="range" min="0" max="1" step="0.005" value="${k.y}" data-ck="y"></div>
+      <div class="cut-fila"><small>Duración</small>${chips('cdur', [[1, '1 s'], [2, '2 s'], [3, '3 s'], [5, '5 s'], ['todo', 'Todo el video']], '')}</div>
+      <div class="cut-acciones2">
+        <button type="button" class="cut-btn-sec" data-aqui>Empezar donde está la línea</button>
+        <button type="button" class="cut-btn-sec" data-quitar>🗑 Quitar</button>
+      </div>
+      <p class="cut-nota">💡 También puede arrastrarlo con el dedo sobre el video.</p>`;
+    $$('[data-ck]', p).forEach(r => { r.oninput = () => { k[r.dataset.ck] = Number(r.value); S.dirty = true; }; r.onchange = guardar; });
+    $('[data-grupo="cdur"]', p).onclick = (e) => { const v = e.target.dataset.v; if (!v) return; if (v === 'todo') { k.start = 0; k.end = L.total; } else k.end = k.start + Number(v); pintarLinea(); pintarPanel(); guardar(); };
+    $('[data-aqui]', p).onclick = () => { const d = k.end - k.start; k.start = S.t; k.end = S.t + d; pintarLinea(); pintarPanel(); guardar(); };
+    $('[data-quitar]', p).onclick = () => { S.capas = S.capas.filter(x => x !== k); S.selC = null; pintarLinea(); abrirTab(null); guardar(); };
+    return;
+  }
+  if (S.tab === 'fondo') {
+    const f = S.fondo;
+    const COL = ['#000000', '#ffffff', '#0b0d0c', '#a6f34a', '#16b84e', '#ff3d6e', '#ffd23d', '#2f6bff', '#7a3dff', '#ff8a3d', '#f4e1c1', '#1f2a44'];
+    p.innerHTML = `
+      ${chips('fmodo', [['llenar', 'Llenar (recortar)'], ['desenfoque', 'Desenfocado'], ['color', 'Color']], f.modo)}
+      ${f.modo === 'color' ? `<div class="cut-fila"><small>Color del fondo</small><div class="cut-colores">${COL.map(col => `<button type="button" data-fcol="${col}" class="${f.color === col ? 'on' : ''}" style="background:${col}"></button>`).join('')}</div></div>` : ''}
+      <p class="cut-nota">${f.modo === 'llenar' ? 'El video llena todo el formato y lo que sobra se recorta.' : 'El video se ve completo y el espacio que sobra se rellena ' + (f.modo === 'color' ? 'con el color.' : 'con el mismo video desenfocado.')}</p>`;
+    $('[data-grupo="fmodo"]', p).onclick = (e) => { const v = e.target.dataset.v; if (!v) return; f.modo = v; S.dirty = true; pintarPanel(); guardar(); };
+    const cc = $('.cut-colores', p); if (cc) cc.onclick = (e) => { const v = e.target.dataset.fcol; if (!v) return; f.color = v; S.dirty = true; pintarPanel(); guardar(); };
+    return;
+  }
+  if (S.tab === 'portada') {
+    if (!S.clips.length) { p.innerHTML = `<p class="cut-nota">Primero agregue un video.</p>`; return; }
+    p.innerHTML = `
+      <div class="cut-portada-v">${S.portada ? `<img src="${S.portada.url}" alt="">` : '<span>Sin portada: se usa el primer cuadro</span>'}</div>
+      <button type="button" class="cut-btn" data-usar>📸 Usar el cuadro donde está la línea</button>
+      ${S.portada ? '<button type="button" class="cut-btn-sec" data-quitar>Quitar portada</button>' : ''}
+      <p class="cut-nota">Mueva la línea blanca al mejor momento (con textos y stickers incluidos) y tóquelo. La portada sale en el primer cuadro del video: es la que se ve en estados, TikTok y Reels.</p>`;
+    $('[data-usar]', p).onclick = () => { pausar(); dibujarCuadro(S.t, fuentePrevia, vista.width, vista.height, vctx); ponerPortada(vista.toDataURL('image/jpeg', 0.88), S.t); pintarLinea(); pintarPanel(); guardarDB(); aviso('Portada lista 📸'); };
+    const q = $('[data-quitar]', p); if (q) q.onclick = () => { S.portada = null; pintarLinea(); pintarPanel(); guardarDB(); };
     return;
   }
   if (S.tab === 'formato') {
@@ -1220,6 +1433,7 @@ async function exportar() {
         cuadros.set(i, f);
       }
       dibujarCuadro(t, (i) => cuadros.get(i), W, H, lctx);
+      if (n === 0 && S.portada?.img) lctx.drawImage(S.portada.img, 0, 0, W, H);
       if (motor.gl.isContextLost()) {
         if (++recuperaciones > 4) throw new Error('memoria');
         poner(3 + (n / N) * 95, 'El celular liberó memoria, retomando…');
@@ -1295,6 +1509,7 @@ function guardarDB() {
       musica: S.musica.map(m => ({ id: m.id, fileId: m.fileId, nombre: m.nombre, start: m.start, in: m.in, out: m.out ?? null, dur: m.dur, vol: m.vol, fadeIn: m.fadeIn, fadeOut: m.fadeOut })),
       silenciar: !!S.silenciar,
       subs: S.subs, segs: S.segs, sub: S.sub, belleza: S.belleza, aspecto: S.aspecto, fecha: Date.now(),
+      capas: S.capas.map(datosCapa), filtro: S.filtro, ajuste: S.ajuste, fondo: S.fondo, portada: S.portada ? { t: S.portada.t, url: S.portada.url } : null,
     });
   }, 400);
 }
@@ -1314,6 +1529,15 @@ async function recuperar() {
     try { await prepararClip(c); S.clips.push(reg(c)); } catch (err) { /* archivo dañado */ }
   }
   S.silenciar = !!e.silenciar;
+  if (e.filtro) S.filtro = e.filtro;
+  if (e.ajuste) S.ajuste = e.ajuste;
+  if (e.fondo) S.fondo = e.fondo;
+  for (const d of (e.capas || [])) {
+    const k = reg({ ...d });
+    if (k.tipo === 'imagen') { k.file = await DB.get('archivos', k.fileId); if (!k.file) continue; try { await cargarCapaImagen(k); } catch (err) { continue; } }
+    S.capas.push(k);
+  }
+  if (e.portada?.url) ponerPortada(e.portada.url, e.portada.t);
   for (const d of (e.musica || [])) {
     const file = await DB.get('archivos', d.fileId);
     if (!file) continue;
@@ -1333,6 +1557,8 @@ async function nuevoProyecto() {
   S.clips.forEach(c => { if (c.el) { c.el.pause(); c.el.remove(); } });
   S.musica.forEach(m => { if (m.el) { m.el.pause(); m.el.remove(); } });
   S.clips = []; S.subs = []; S.segs = []; S.musica = []; S.sel = null; S.selM = null; S.t = 0; S.silenciar = false;
+  S.capas = []; S.selC = null; S.portada = null;
+  S.filtro = { id: 'ninguno', k: 1 }; S.ajuste = { brillo: 0, contraste: 0, saturacion: 0, temperatura: 0, vineta: 0 }; S.fondo = { modo: 'llenar', color: '#000000' };
   REG.clear(); HIST.pila = []; HIST.pos = -1;
   await DB.limpiar();
   $('#cutVacio').hidden = false;
@@ -1350,6 +1576,29 @@ function clipBajoLinea() {
   return sel || S.clips[act[act.length - 1]];
 }
 vista.style.touchAction = 'none';
+// Arrastrar un sticker o una foto (capa) con el dedo sobre el video
+let arrCapa = null;
+vista.addEventListener('pointerdown', (e) => {
+  const k = S.tab === 'capa' && S.capas.find(x => x.id === S.selC && S.t >= x.start && S.t < x.end);
+  if (!k) return;
+  e.stopImmediatePropagation();
+  if (S.playing) pausar();
+  vista.setPointerCapture(e.pointerId);
+  arrCapa = { k, x0: e.clientX, y0: e.clientY, kx: k.x, ky: k.y, id: e.pointerId };
+}, true);
+vista.addEventListener('pointermove', (e) => {
+  if (!arrCapa || e.pointerId !== arrCapa.id) return;
+  e.stopImmediatePropagation();
+  const r = vista.getBoundingClientRect();
+  arrCapa.k.x = Math.max(0, Math.min(1, arrCapa.kx + (e.clientX - arrCapa.x0) / r.width));
+  arrCapa.k.y = Math.max(0, Math.min(1, arrCapa.ky + (e.clientY - arrCapa.y0) / r.height));
+  S.dirty = true;
+}, true);
+['pointerup', 'pointercancel'].forEach(ev => vista.addEventListener(ev, (e) => {
+  if (!arrCapa || e.pointerId !== arrCapa.id) return;
+  e.stopImmediatePropagation();
+  arrCapa = null; guardar(); pintarPanel();
+}, true));
 vista.addEventListener('pointerdown', (e) => {
   const c = clipBajoLinea(); if (!c) return;
   if (S.playing) pausar();
