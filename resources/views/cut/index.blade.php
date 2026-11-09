@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="theme-color" content="#0b0d0c">
 <title>LocalProCut · Edite sus videos gratis en el navegador</title>
-<meta name="description" content="Editor de videos de LocalProo: subtítulos automáticos con estilos, transiciones, filtro de belleza y exportar en 4K a 60 fps. Desde el celular o el computador, sin instalar nada.">
+<meta name="description" content="Editor de videos gratis de LocalProo, sin marca de agua: subtítulos automáticos con estilos, transiciones, filtro de belleza y exportar en 4K a 60 fps. Descargue la app LocalProCut en su celular.">
 <meta property="og:title" content="LocalProCut · Edite sus videos con LocalProo">
 <meta property="og:description" content="Subtítulos automáticos, transiciones, filtro de belleza y 4K a 60 fps. Gratis en el navegador.">
 <link rel="icon" href="/icons/cut-192.png" type="image/png">
@@ -39,7 +39,47 @@ button{font:inherit;color:inherit;cursor:pointer}
 .es-cutapp .solo-web{display:none!important}
 .cut-vacio .app-baja{margin-top:.4rem;display:flex;align-items:center;gap:.55rem;background:var(--f3);border:1px solid var(--b);border-radius:16px;padding:.6rem .9rem;color:var(--t);font-weight:700;font-size:.88rem}
 .cut-vacio .app-baja img{width:34px;height:34px;border-radius:9px}
-.cut-vacio .app-baja small{display:block;color:var(--m);font-weight:600;font-size:.74rem}
+.cut-vacio .app-baja small,.cut-amigo .app-baja small{display:block;color:var(--m);font-weight:600;font-size:.74rem}
+.app-baja{position:relative;overflow:hidden;text-align:left}
+.app-baja .flecha{font-style:normal;margin-left:auto;width:30px;height:30px;border-radius:50%;background:var(--v);color:var(--f);display:grid;place-items:center;font-weight:900;animation:baja 1.6s ease-in-out infinite}
+.app-baja::after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.14),transparent);animation:brillo 3.2s ease-in-out infinite}
+@keyframes baja{0%,100%{transform:translateY(-2px)}50%{transform:translateY(3px)}}
+@keyframes brillo{0%,55%{left:-60%}100%{left:130%}}
+.cut-reg{display:flex;align-items:center;gap:.45rem;justify-content:center;margin-top:.15rem;color:var(--v);font-weight:800;font-size:.92rem;text-decoration:none;border:1.5px dashed rgba(166,243,74,.45);border-radius:16px;padding:.6rem 1rem}
+.cut-reg span{text-decoration:underline;text-underline-offset:3px}
+/* Animación de la pantalla inicial: celular editando un video, funciones flotando y el ícono de la app */
+.cut-hero{position:relative;width:250px;height:190px;flex:0 0 auto;margin-bottom:.2rem}
+.cut-hero .cel{position:absolute;left:50%;top:6px;width:96px;height:172px;margin-left:-48px;border-radius:20px;background:#050605;border:3px solid #2b332e;box-shadow:0 18px 40px rgba(0,0,0,.55),0 0 50px rgba(166,243,74,.12);animation:flotar 4s ease-in-out infinite}
+.cut-hero .pant{position:absolute;inset:6px;border-radius:14px;overflow:hidden;background:linear-gradient(160deg,#16b84e,#7a3dff 55%,#ff3d6e);background-size:200% 200%;animation:fondoMov 6s ease infinite}
+.cut-hero .luz{position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.35),transparent 45%);animation:fondoMov 5s ease infinite reverse}
+.cut-hero .sub{position:absolute;left:0;right:0;top:36%;text-align:center;font-family:Montserrat,sans-serif;font-weight:900;font-size:.8rem;line-height:1.05;letter-spacing:-.01em;color:#fff;-webkit-text-stroke:.6px #000;animation:pop 2.4s ease-in-out infinite}
+.cut-hero .sub em{font-style:normal;color:var(--v)}
+.cut-hero .lin{position:absolute;left:5px;right:5px;bottom:7px;height:18px;display:flex;gap:2px}
+.cut-hero .lin i{flex:1;border-radius:3px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.35)}
+.cut-hero .lin span{position:absolute;top:-3px;bottom:-3px;width:2px;background:#fff;border-radius:2px;left:0;animation:cabezal 3.5s linear infinite}
+.cut-hero .flota{position:absolute;background:var(--f3);border:1px solid var(--b);border-radius:999px;padding:.25rem .6rem;font-size:.7rem;font-weight:800;color:#e6ece8;white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.4);animation:flotar 3.6s ease-in-out infinite}
+.cut-hero .f1{left:0;top:22px;animation-delay:-.4s}.cut-hero .f2{right:0;top:44px;animation-delay:-1.3s}
+.cut-hero .f3{left:4px;top:112px;animation-delay:-2.1s}.cut-hero .f4{right:-6px;top:132px;animation-delay:-.9s}
+.cut-hero .icono{position:absolute;left:50%;bottom:-6px;width:46px;height:46px;margin-left:12px;border-radius:13px;box-shadow:0 8px 22px rgba(22,184,78,.45);animation:rebote 2.4s cubic-bezier(.3,1.6,.5,1) infinite}
+@keyframes flotar{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes fondoMov{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@keyframes pop{0%,15%{transform:scale(.6);opacity:0}25%,80%{transform:scale(1);opacity:1}100%{transform:scale(1.08);opacity:0}}
+@keyframes cabezal{from{left:0}to{left:100%}}
+@keyframes rebote{0%,60%,100%{transform:translateY(0) scale(1)}30%{transform:translateY(-12px) scale(1.06)}}
+@media (prefers-reduced-motion:reduce){.cut-hero *,.app-baja .flecha,.app-baja::after{animation:none!important}}
+@media (max-height:860px){.cut-hero{transform:scale(.72);margin:-26px 0 -30px}}
+@media (max-height:740px){.cut-hero{display:none}}
+/* Al terminar de exportar: compartir con un amigo y conocer LocalPro */
+.cut-amigo{margin-top:1rem;border-top:1px solid var(--b);padding-top:.9rem;display:flex;flex-direction:column;gap:.55rem}
+.cut-amigo>b{font-size:1rem}
+.cut-amigo p{margin:0;font-size:.84rem}
+.cut-amigo-b{display:flex;gap:.5rem;flex-wrap:wrap}
+.cut-amigo-b .wa{flex:1 1 180px;display:flex;align-items:center;justify-content:center;gap:.45rem;background:#25d366;color:#06290f;font-weight:800;border-radius:14px;padding:.75rem;text-decoration:none}
+.cut-amigo-b .wa svg{width:20px;height:20px}
+.cut-amigo-b .cut-btn-sec{flex:1 1 140px}
+.cut-amigo .app-baja{display:flex;align-items:center;gap:.55rem;background:var(--f3);border:1px solid var(--b);border-radius:16px;padding:.6rem .9rem;color:var(--t);font-weight:700;font-size:.88rem}
+.cut-amigo .app-baja img{width:34px;height:34px;border-radius:9px}
+.cut-lp{color:#cfd8d2;font-weight:700;font-size:.84rem;text-decoration:none;background:var(--f3);border:1px solid var(--b);border-radius:14px;padding:.65rem .8rem}
 .cut-guia li{display:flex;gap:.6rem;align-items:center;padding:.55rem 0;border-top:1px solid var(--b);font-weight:700;font-size:.92rem}
 .cut-guia ol{list-style:none;padding:0;margin:0 0 .6rem;counter-reset:p}
 .cut-guia li::before{counter-increment:p;content:counter(p);flex:0 0 26px;height:26px;border-radius:50%;background:var(--v);color:var(--f);display:grid;place-items:center;font-weight:900;font-size:.8rem}
@@ -52,6 +92,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 #cutLienzo{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:auto;height:auto;max-width:calc(100% - 20px);max-height:calc(100% - 20px);background:#000;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
 .cut-vacio{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:16px 20px;gap:.55rem;background:var(--f);overflow-y:auto}
 .cut-vacio::before,.cut-vacio::after{content:"";flex:1 1 0}
+.cut-vacio>*{flex-shrink:0}
 .cut-vacio h2{font-family:Unbounded,sans-serif;font-size:1.35rem;margin:.2rem 0 0;line-height:1.2}
 .cut-vacio h2 b{color:var(--v)}
 .cut-vacio p{margin:0;color:var(--m);max-width:34ch}
@@ -223,6 +264,7 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
 .cut-tab svg{width:24px;height:24px}
 .cut-tab.on{color:var(--v)}
 .cut-modal{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+#cutPregunta{z-index:56} /* las preguntas salen encima de la ventana de exportar */
 @media (min-width:700px){.cut-modal{align-items:center}}
 .cut-hoja{background:var(--f2);border:1px solid var(--b);border-radius:22px 22px 0 0;width:100%;max-width:520px;padding:18px 18px calc(env(safe-area-inset-bottom,0px) + 18px);max-height:90dvh;overflow-y:auto}
 @media (min-width:700px){.cut-hoja{border-radius:22px}}
@@ -280,11 +322,20 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
 <div id="cutVistaCaja">
     <canvas id="cutLienzo" width="540" height="960"></canvas>
     <div class="cut-vacio" id="cutVacio">
+        <div class="cut-hero solo-web" aria-hidden="true">
+            <div class="cel">
+                <div class="pant"><i class="luz"></i><b class="sub">¡VENDE<br><em>MÁS!</em></b><div class="lin"><i></i><i></i><i></i><span></span></div></div>
+            </div>
+            <span class="flota f1">✨ Subtítulos</span><span class="flota f2">🎬 4K · 60 fps</span><span class="flota f3">💄 Belleza</span><span class="flota f4">◆ Transiciones</span>
+            <img class="icono" src="/icons/cut-192.png" alt="">
+        </div>
         <h2>Edite sus videos con <b>LocalPro</b></h2>
-        <p>Subtítulos automáticos, transiciones, filtro de belleza y exporte en 4K a 60 fps. Todo aquí mismo, sin instalar nada.</p>
+        <p>Subtítulos automáticos, transiciones, belleza y 4K a 60 fps. <b style="color:var(--t)">Gratis y sin marca de agua.</b></p>
         <button type="button" class="grande" data-agregar><span>+</span> Agregar videos o fotos</button>
-        <button type="button" class="app-baja solo-web" data-instalar><img src="/icons/cut-192.png" alt=""><span>Descargar LocalProCut<small>Instálela en su celular como una app aparte</small></span></button>
-        <ul><li>✨ Subtítulos con estilos</li><li>◆ Transiciones</li><li>💄 Belleza</li><li>🎬 4K · 60 fps</li></ul>
+        <button type="button" class="app-baja solo-web" data-instalar><img src="/icons/cut-192.png" alt=""><span>Descargar la app LocalProCut<small>Con su propio ícono, más rápida y a pantalla completa</small></span><i class="flecha">⬇</i></button>
+        @guest
+        <a class="cut-reg" href="{{ route('registro', ['desde' => 'cut']) }}" target="_blank" rel="noopener" data-contar="clic_registro">🚀 <span>Regístrese y siga usándolo gratis</span></a>
+        @endguest
     </div>
 </div>
 
@@ -388,11 +439,77 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
         </div>
         <div class="cut-exp-fin" hidden>
             <video controls playsinline></video>
-            <div class="fila-b"><button type="button" class="cut-btn-sec" data-otra>Exportar otra vez</button><button type="button" class="cut-btn-sec" data-compartir>Compartir</button><button type="button" class="cut-exp" data-bajar>Descargar</button></div>
+            <div class="fila-b"><button type="button" class="cut-btn-sec" data-otra>Exportar otra vez</button><button type="button" class="cut-btn-sec" data-compartir>Compartir video</button><button type="button" class="cut-exp" data-bajar>Descargar</button></div>
+            <div class="cut-amigo">
+                <b>¿Le gustó? 🎉 Comparta LocalProCut con un amigo y siga usándolo gratis</b>
+                <p>Editor de videos gratis, sin marca de agua, con subtítulos automáticos y 4K. Entre más gente lo use, más funciones le agregamos.</p>
+                <div class="cut-amigo-b">
+                    <a class="wa" href="#" target="_blank" rel="noopener" data-wa>@include('cut._wa-icono') Compartir por WhatsApp</a>
+                    <button type="button" class="cut-btn-sec" data-enlace>🔗 Compartir enlace</button>
+                </div>
+                @guest
+                <a class="cut-reg" href="{{ route('registro', ['desde' => 'cut-exportar']) }}" target="_blank" rel="noopener" data-contar="clic_registro">🚀 <span>Regístrese y siga usándolo gratis</span></a>
+                @endguest
+                <button type="button" class="app-baja solo-web" data-instalar><img src="/icons/cut-192.png" alt=""><span>Descargar la app LocalProCut<small>Edite más rápido desde su pantalla de inicio</small></span><i class="flecha">⬇</i></button>
+                <a class="cut-lp" href="{{ route('funciones', ['desde' => 'cut']) }}" target="_blank" rel="noopener" data-contar="clic_funciones">💼 Mire todo lo que LocalPro hace por su negocio: ventas, inventario, tienda en línea, redes… →</a>
+            </div>
         </div>
     </div>
 </div>
 
+<script>
+/* Contador de LocalProCut: visitas, qué hace la persona, compartir con un amigo (Admin → LocalProCut en números).
+   Solo datos de uso: ningún video ni nombre de archivo sale del equipo. */
+(function(){
+  var vis, nuevo = false;
+  function aleatorio(){ return (window.crypto && crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '') : Math.random().toString(36).slice(2) + Date.now().toString(36)).slice(0, 24); }
+  try { vis = localStorage.getItem('cutVisitante'); if (!/^[a-z0-9]{8,32}$/.test(vis || '')) { vis = aleatorio(); localStorage.setItem('cutVisitante', vis); nuevo = true; } } catch (x) { vis = aleatorio(); nuevo = true; }
+  window.cutVisitante = vis;
+  var q = new URLSearchParams(location.search);
+  var app = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+  var visita = null, cola = [];
+  function post(url, cuerpo){
+    return fetch(url, { method: 'POST', credentials: 'same-origin', keepalive: true, headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(cuerpo) })
+      .then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
+  }
+  function recordar(){ visita.t = Date.now(); try { sessionStorage.setItem('cutVisita', JSON.stringify(visita)); } catch (x) {} }
+  function enviar(ev){ if (!visita) { if (cola.length < 30) cola.push(ev); return; } ev.id = visita.id; ev.firma = visita.firma; post('/cut/evento', ev); recordar(); }
+  window.cutContar = function(tipo, datos){ enviar({ tipo: tipo, datos: datos || null }); };
+  // Recargar la página dentro de la misma media hora es la misma visita
+  var antes = null; try { antes = JSON.parse(sessionStorage.getItem('cutVisita') || 'null'); } catch (x) {}
+  if (antes && antes.id && Date.now() - antes.t < 30 * 60000) { visita = antes; recordar(); }
+  else post('/cut/visita', {
+    visitante: vis, nuevo: nuevo, app: app, idioma: (navigator.language || '').slice(0, 20),
+    pantalla: (screen.width || 0) + 'x' + (screen.height || 0), referencia: document.referrer.slice(0, 480),
+    origen: (q.get('ref') || (q.get('app') ? 'app' : '') || '').slice(0, 60) || null, invito: q.get('r')
+  }).then(function(d){ if (d && d.id) { visita = { id: d.id, firma: d.firma }; recordar(); cola.splice(0).forEach(enviar); } });
+  // Tiempo con la pantalla abierta (cada minuto) → "Ahora mismo" en el panel
+  var desde = Date.now();
+  function latido(){ if (!visita) return; var sg = Math.min(600, Math.round((Date.now() - desde) / 1000)); desde = Date.now(); if (sg > 0) enviar({ tipo: 'latido', segundos: sg }); }
+  setInterval(function(){ if (!document.hidden) latido(); }, 60000);
+  document.addEventListener('visibilitychange', function(){ if (document.hidden) latido(); else desde = Date.now(); });
+  // Compartir con un amigo: el enlace lleva quién invitó (para saber cuántos llegan por recomendación)
+  var url = location.origin + '/cut?r=' + vis;
+  var texto = 'Mira este editor de videos gratis y sin marca de agua 🎬 Subtítulos automáticos, transiciones, filtro de belleza y 4K. Yo lo uso 👉 ';
+  document.addEventListener('DOMContentLoaded', function(){
+    document.querySelectorAll('[data-wa]').forEach(function(a){ a.href = 'https://wa.me/?text=' + encodeURIComponent(texto + url + '&ref=wa'); });
+  });
+  document.addEventListener('click', function(e){
+    var t = e.target.closest ? e.target : null; if (!t) return;
+    if (t.closest('[data-wa]')) cutContar('compartio_wa');
+    var c = t.closest('[data-contar]'); if (c) cutContar(c.dataset.contar);
+    if (t.closest('[data-instalar]')) cutContar('clic_app');
+    var en = t.closest('[data-enlace]');
+    if (en) {
+      var u = url + '&ref=enlace';
+      cutContar('compartio');
+      if (navigator.share) navigator.share({ title: 'LocalProCut · editor de videos gratis', text: texto, url: u }).catch(function(){});
+      else if (navigator.clipboard) navigator.clipboard.writeText(texto + u).then(function(){ en.textContent = '✅ Enlace copiado: péguelo en un chat'; });
+    }
+  });
+  window.addEventListener('appinstalled', function(){ cutContar('instalo'); });
+})();
+</script>
 <script>
 /* Descargar LocalProCut como app aparte (Android: instalador del navegador · iPhone: pasos de Safari) */
 (function(){
@@ -443,7 +560,7 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
 {{-- Botón "Opinar / reportar falla" + errores que se reportan solos (Admin → Opiniones y fallas) --}}
 <script>window.LP_OPINION = {!! json_encode(['modulo' => 'cut', 'tema' => 'oscuro', 'boton' => false, 'sesion' => auth()->check()]) !!};</script>
 <script src="/js/lp-opinion.js?v={{ @filemtime(public_path('js/lp-opinion.js')) }}"></script>
-<script>document.getElementById('cutOpinar').addEventListener('click', function () { if (window.LPOpinion) LPOpinion.abrir(); });</script>
+<script>document.getElementById('cutOpinar').addEventListener('click', function () { if (window.cutContar) cutContar('opino'); if (window.LPOpinion) LPOpinion.abrir(); });</script>
 <script>
 /* Si el editor no arranca (navegador viejo o archivo bloqueado), mostrar el motivo en pantalla */
 (function(){

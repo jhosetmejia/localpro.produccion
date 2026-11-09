@@ -112,6 +112,9 @@ Route::redirect('/localprocut', '/cut');
 // Botón "Opinar / reportar falla" (panel y LocalProCut) y errores del navegador que se reportan solos
 Route::post('/opinion', [\App\Http\Controllers\opinionController::class, 'guardar'])->middleware('throttle:6,1')->name('opinion.guardar');
 Route::post('/opinion/error', [\App\Http\Controllers\opinionController::class, 'error'])->middleware('throttle:20,1')->name('opinion.error');
+// Contador de LocalProCut (visitas, qué hace cada persona, si comparte, instala o se registra)
+Route::post('/cut/visita', [\App\Http\Controllers\cutVisitasController::class, 'visita'])->middleware('throttle:20,1')->name('cut.visita');
+Route::post('/cut/evento', [\App\Http\Controllers\cutVisitasController::class, 'evento'])->middleware('throttle:60,1')->name('cut.evento');
 Route::get('/opinion/mias', [\App\Http\Controllers\opinionController::class, 'mias'])->middleware(['auth', 'throttle:30,1'])->name('opinion.mias');
 Route::get('/360', [\App\Http\Controllers\giro360Controller::class, 'index'])->name('giro360');
 Route::view('/360/audio', 'giro360.audio')->name('giro360.audio');
@@ -653,6 +656,8 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::get('/eventos', [\App\Http\Controllers\adminEventosController::class, 'index'])->name('eventos');
     Route::get('/donaciones', [\App\Http\Controllers\adminDonacionesController::class, 'index'])->name('donaciones');
     Route::get('/opiniones', [\App\Http\Controllers\adminOpinionesController::class, 'index'])->name('opiniones');
+    Route::get('/cut', [\App\Http\Controllers\adminCutController::class, 'index'])->name('cut');
+    Route::get('/cut/vivo', [\App\Http\Controllers\adminCutController::class, 'vivo'])->name('cut.vivo');
     Route::post('/opiniones/{opinion}/estado', [\App\Http\Controllers\adminOpinionesController::class, 'estado'])->whereNumber('opinion')->name('opiniones.estado');
     Route::get('/opiniones/{opinion}/foto', [\App\Http\Controllers\adminOpinionesController::class, 'foto'])->whereNumber('opinion')->name('opiniones.foto');
     Route::post('/opiniones/errores/{error}/resuelto', [\App\Http\Controllers\adminOpinionesController::class, 'errorResuelto'])->whereNumber('error')->name('opiniones.error');

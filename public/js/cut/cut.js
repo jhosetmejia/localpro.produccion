@@ -9,6 +9,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const fmt = (t) => { t = Math.max(0, t); const m = Math.floor(t / 60), s = Math.floor(t % 60), d = Math.floor((t % 1) * 10); return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${d}`; };
 const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const contar = (tipo, datos) => { try { window.cutContar?.(tipo, datos); } catch (e) { /* el contador nunca debe dañar el editor */ } };
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 
 const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -766,6 +767,7 @@ async function agregarArchivos(lista) {
     }
   }
   cargandoMsg(null);
+  contar('agrego', { n: files.length, fotos: files.filter(f => /^image\//.test(f.type)).length });
   if (S.clips.length && !S.sel) S.sel = S.clips[0].id;
   pintarLinea(); pintarPanel(); guardar();
 }
@@ -1398,6 +1400,7 @@ async function generarSubs(idioma, modelo) {
     S.segs = segs.filter(s => s.text.trim()).map(s => ({ ...s, end: s.end ?? Math.min(total, s.start + 3) }));
     S.subs = SUB.armar(S.segs, S.sub.palabras);
     poner(100, S.subs.length ? `¡Listo! ${S.subs.length} subtítulos` : 'No se entendió ninguna voz');
+    contar('subtitulos', { n: S.subs.length, idioma });
     pintarLinea(); guardar();
     setTimeout(() => { if (S.tab === 'subtitulos') pintarPanel(); }, 1200);
   } catch (e) {
@@ -1483,14 +1486,30 @@ async function abrirExportar() {
     aviso('No se pudo exportar: ' + motivo, 'mal');
     $('.cut-exp-op', m).hidden = false; $('.cut-exp-run', m).hidden = true;
     window.LPOpinion?.error(err instanceof Error ? err : new Error(String(err)), { fase: 'exportar', res: EXP.res, fps: EXP.fps });
+    contar('exporto_falla', { res: EXP.res, fps: EXP.fps, motivo: motivo.slice(0, 70) });
     let caja = $('[data-fallo]', m);
     if (!caja) { caja = document.createElement('div'); caja.dataset.fallo = ''; caja.className = 'cut-exp-info'; $('.cut-exp-op', m).prepend(caja); }
     caja.innerHTML = `<b style="color:#ff8fb8">No se pudo exportar: ${esc(motivo)}</b><br>Ya le avisamos a LocalPro. <button type="button" class="cut-btn-sec" style="margin-top:.4rem">💬 Contar qué pasó</button>`;
     $('button', caja).onclick = () => window.LPOpinion?.abrir({ tipo: 'falla', mensaje: 'Al exportar el video me salió: ' + motivo + '\n\nLo que estaba haciendo: ', datos: { fase: 'exportar', res: EXP.res, fps: EXP.fps } });
   });
-  $('[data-iniciar]', m).onclick = () => { $('[data-fallo]', m)?.remove(); intentar(); };
+  $('[data-iniciar]', m).onclick = async () => {
+    $('[data-fallo]', m)?.remove();
+    await invitarRegistro();
+    contar('exportar', { res: EXP.res, fps: EXP.fps, seg: Math.round(lay().total) });
+    intentar();
+  };
 }
 $('#cutBtnExportar').addEventListener('click', abrirExportar);
+
+// Del tercer video en adelante (sin cuenta) se invita a crear la cuenta gratis: no bloquea, "Ahora no" sigue exportando
+function exportadosAqui() { try { return Number(localStorage.getItem('cutExportados')) || 0; } catch (e) { return 0; } }
+async function invitarRegistro() {
+  if (window.LP_OPINION?.sesion || exportadosAqui() < 2) return;
+  try { if (sessionStorage.getItem('cutInvitado')) return; sessionStorage.setItem('cutInvitado', '1'); } catch (e) { /* nada */ }
+  contar('muro_registro', { videos: exportadosAqui() });
+  const si = await preguntar('Cree su cuenta gratis y siga usándolo gratis 🚀', `Ya va por su video número ${exportadosAqui() + 1}. Con su cuenta de LocalPro guarda su acceso y además tiene ventas, inventario, tienda en línea y redes para su negocio. Es gratis y toma 1 minuto.`, 'Crear mi cuenta gratis', 'Ahora no, exportar');
+  if (si) { contar('clic_registro', { desde: 'invitacion' }); window.open('/registro?desde=cut-invitacion', '_blank', 'noopener'); }
+}
 
 async function destino() {
   try {
@@ -1742,12 +1761,14 @@ async function exportar() {
   const fin = $('.cut-exp-fin', m);
   fin.hidden = false;
   $('video', fin).src = url;
-  $('[data-bajar]', fin).onclick = () => { const a = document.createElement('a'); a.href = url; a.download = nombre; document.body.appendChild(a); a.click(); a.remove(); };
+  $('[data-bajar]', fin).onclick = () => { contar('descargo_video'); const a = document.createElement('a'); a.href = url; a.download = nombre; document.body.appendChild(a); a.click(); a.remove(); };
   const comp = $('[data-compartir]', fin);
   comp.hidden = !(navigator.canShare && navigator.canShare({ files: [file] }));
-  comp.onclick = () => navigator.share({ files: [file], title: 'Mi video' }).catch(() => {});
+  comp.onclick = () => { contar('compartio_video'); navigator.share({ files: [file], title: 'Mi video' }).catch(() => {}); };
   $('[data-otra]', fin).onclick = () => { $('.cut-exp-op', m).hidden = false; fin.hidden = true; };
   aviso(`¡Listo! Su video quedó en ${RESOL[EXP.res].split(' ')[0]} · ${fps} fps ✅`);
+  try { localStorage.setItem('cutExportados', String(exportadosAqui() + 1)); } catch (e) { /* nada */ }
+  contar('exporto', { res: EXP.res, fps, seg: Math.round(L.total), mb: Math.round(blob.size / 1e5) / 10, tardo: Math.round((performance.now() - t0) / 1000) });
 }
 
 // Pantalla siempre encendida mientras exporta (si se apaga, el celular pausa el video y la exportación se queda quieta)

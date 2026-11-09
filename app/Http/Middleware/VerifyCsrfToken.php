@@ -19,6 +19,8 @@ class VerifyCsrfToken extends Middleware
         '360/cliente', // formulario público de la máquina 360: queda abierto toda la noche, sin sesión que proteger
         'opinion', // botón Opinar: LocalProCut queda abierto horas (la sesión vence) y no hay nada que proteger
         'opinion/error', // errores del navegador que se reportan solos
+        'cut/visita', // contador de LocalProCut (sin sesión que proteger)
+        'cut/evento',
         //
     ];
 }

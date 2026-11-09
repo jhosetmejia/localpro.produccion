@@ -1,6 +1,6 @@
 @extends('legal._base')
 @section('titulo', 'Política de privacidad')
-@section('fecha', '24 de octubre de 2026')
+@section('fecha', '9 de noviembre de 2026')
 @section('cuerpo')
 <p>En LocalProo (localproo.com) tratamos los datos personales conforme a la Ley 1581 de 2012 de Colombia y sus decretos reglamentarios. Esta política explica qué datos recogemos, para qué los usamos y cómo puede ejercer sus derechos.</p>
 <h2>1. Qué datos tratamos</h2>
@@ -12,12 +12,14 @@
     <li><b>De los asistentes a eventos:</b> nombre, documento, correo, celular, fecha de nacimiento, las respuestas al formulario que el organizador arme y los datos de sus acompañantes.</li>
     <li><b>De firmas y negocios a los que ofrecemos LocalProo:</b> nombre del negocio y datos de contacto publicados en su página web o en directorios públicos.</li>
     <li><b>De los asesores:</b> nombre, cédula, celular, correo, ubicación y datos para el pago de comisiones.</li>
+    <li><b>De quienes usan LocalProCut (editor de videos) y el botón "Opinar":</b> datos técnicos de uso (tipo de equipo, sistema, navegador, ciudad aproximada calculada con la dirección IP y las acciones dentro del editor, como agregar, exportar o compartir) y, si la persona lo escribe, su mensaje, captura de pantalla y contacto. Los videos se editan en el equipo de cada persona y <b>no se suben</b> a nuestros servidores. La IP se borra apenas se ubica la ciudad.</li>
 </ul>
 <h2>2. Para qué los usamos</h2>
 <ul>
     <li>Prestar el servicio: ventas, inventario, clientes, facturas, separados, tienda en línea y "Mis redes".</li>
     <li>Responder mensajes y publicar en Facebook e Instagram <b>solo cuando el negocio lo decide</b>. No vendemos datos, no los usamos para publicidad de terceros y no leemos los mensajes con otro fin.</li>
     <li>Cobrar los planes, pagar comisiones y dar soporte.</li>
+    <li>Medir el uso de LocalProCut y de LocalProo, encontrar fallas y mejorar el servicio.</li>
 </ul>
 <h2>3. Quién es responsable de cada dato</h2>
 <ul>
@@ -27,7 +29,7 @@
     <li><b>Niñas, niños y adolescentes:</b> en eventos se registran con autorización de su padre, madre o acudiente. Sus datos se tratan respetando su interés superior y sus derechos fundamentales (Ley 1581, art. 7).</li>
 </ul>
 <h2>4. Con quién los compartimos</h2>
-<p>Solo con proveedores necesarios para operar, que nos prestan servicios como encargados: servidor (Hostinger), protección y correo del dominio (Cloudflare), envío de correos (Brevo), copias de seguridad (Backblaze), pagos (Wompi) y Meta Platforms (Facebook e Instagram) para los mensajes y publicaciones que el negocio ordena. Algunos de ellos guardan la información fuera de Colombia (por ejemplo, en Estados Unidos o la Unión Europea), con niveles adecuados de protección. No vendemos ni alquilamos datos.</p>
+<p>Solo con proveedores necesarios para operar, que nos prestan servicios como encargados: servidor (Hostinger), protección y correo del dominio (Cloudflare), envío de correos (Brevo), copias de seguridad (Backblaze), pagos (Wompi), ubicación aproximada por IP (ip-api.com, solo la IP, sin otros datos) y Meta Platforms (Facebook e Instagram) para los mensajes y publicaciones que el negocio ordena. Algunos de ellos guardan la información fuera de Colombia (por ejemplo, en Estados Unidos o la Unión Europea), con niveles adecuados de protección. No vendemos ni alquilamos datos.</p>
 <h2>5. Seguridad y conservación</h2>
 <p>Usamos conexión cifrada (HTTPS), claves guardadas de forma irreversible, permisos por rol y copias de seguridad diarias. Los tokens de acceso a Facebook e Instagram y las credenciales de facturación se guardan cifrados. Los datos se conservan mientras la cuenta esté activa; al terminar una prueba sin pago se aplica lo que dicen las <a href="{{ route('legal.terminos') }}">condiciones de uso</a>. Al desconectar una página en "Mis redes → Cuentas" dejamos de recibir mensajes y se invalida su token.</p>
 <h2>6. Sus derechos y cómo ejercerlos</h2>
