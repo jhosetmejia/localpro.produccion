@@ -28,6 +28,9 @@ uniform float uFilK;
 uniform int uEf;
 uniform float uT;
 uniform vec2 uRes;
+uniform int uAnT;
+uniform float uAnA;
+uniform float uAsp2;
 out vec4 o;
 float piel(vec3 c){
   float y = dot(c, vec3(0.299, 0.587, 0.114));
@@ -41,6 +44,17 @@ vec3 sepia(vec3 c){ return clamp(vec3(dot(c, vec3(0.393, 0.769, 0.189)), dot(c, 
 float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 void main(){
   vec2 su = vec2(vUv.x, 1.0 - vUv.y);
+  // Animación de entrada o salida del clip (como CapCut): lo que queda por fuera sale negro
+  bool anNegro = false;
+  if (uAnT >= 2 && uAnA > 0.0) {
+    float a = uAnA;
+    if (uAnT == 2) su = 0.5 + (su - 0.5) * (1.0 - 0.35 * a);
+    else if (uAnT == 3) su = 0.5 + (su - 0.5) * (1.0 + 0.8 * a);
+    else if (uAnT == 4) su.x += a;
+    else if (uAnT == 5) su.y -= a;
+    else if (uAnT == 6) { vec2 d = su - 0.5; d.x *= uAsp2; float r = a * 1.2; d = mat2(cos(r), -sin(r), sin(r), cos(r)) * d * (1.0 + a); d.x /= uAsp2; su = d + 0.5; }
+    anNegro = su.x < 0.0 || su.x > 1.0 || su.y < 0.0 || su.y > 1.0;
+  }
   // Efectos que mueven la imagen
   if (uEf == 6) { float g = step(0.55, fract(uT * 1.6)); su += vec2(sin(uT * 47.0), cos(uT * 39.0)) * 0.014 * g; }
   if (uEf == 7) { float b = pow(1.0 - fract(uT * 2.0), 3.0); su = 0.5 + (su - 0.5) / (1.0 + 0.09 * b); }
@@ -123,6 +137,8 @@ void main(){
   // Viñeta (ajuste general + efecto)
   float vig = clamp(uVig + (uEf == 4 ? 0.85 : 0.0) + (uEf == 3 ? 0.35 : 0.0), 0.0, 1.0);
   if (vig > 0.001) { vec2 d = vUv - 0.5; c *= mix(1.0, smoothstep(0.95, 0.2, length(d) * 1.25), vig); }
+  if (uAnT == 1) c *= 1.0 - uAnA;
+  if (anNegro) c = vec3(0.0);
   o = vec4(clamp(c, 0.0, 1.0), 1.0);
 }`;
 
@@ -230,6 +246,16 @@ export const EFECTOS = [
   { id: 'pulso', n: 'Zoom al ritmo', e: '💓', t: 7 },
   { id: 'espejo', n: 'Espejo', e: '🪞', t: 8 },
   { id: 'glitch', n: 'Glitch RGB', e: '🌈', t: 9 },
+];
+// Animaciones de entrada y salida de cada clip
+export const ANIMACIONES = [
+  { id: '', n: 'Ninguna', t: 0 },
+  { id: 'fundido', n: 'Fundido', t: 1 },
+  { id: 'acercar', n: 'Acercar', t: 2 },
+  { id: 'alejar', n: 'Alejar', t: 3 },
+  { id: 'deslizar', n: 'Deslizar', t: 4 },
+  { id: 'subir', n: 'Subir', t: 5 },
+  { id: 'girar', n: 'Girar', t: 6 },
 ];
 // Filtros de color (para todo el video)
 export const FILTROS = [
@@ -345,6 +371,9 @@ export class Motor {
     gl.uniform1i(P.u.uEf, op.ef || 0);
     gl.uniform1f(P.u.uT, op.t || 0);
     gl.uniform2f(P.u.uRes, this.W, this.H);
+    gl.uniform1i(P.u.uAnT, op.anT || 0);
+    gl.uniform1f(P.u.uAnA, op.anA || 0);
+    gl.uniform1f(P.u.uAsp2, this.W / this.H);
     // Paso del suavizado relativo al tamaño del rostro en pantalla (igual en vista previa y exportado)
     const k = (belleza?.suave ?? 0);
     const paso = (0.0011 + 0.0016 * k) * Math.min(1, sc[1]);

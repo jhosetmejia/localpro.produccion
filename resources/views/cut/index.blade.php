@@ -114,7 +114,14 @@ body.con-capas .cut-linea{height:210px}
 .cut-clip em:empty{display:none}
 .cut-clip em svg{width:13px;height:13px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.8))}
 .cut-clip em .ef{font-style:normal}
-.cut-clip.sel{border-color:#fff;box-shadow:0 0 0 1px #fff}
+.cut-clip.sel{border-color:#fff;box-shadow:0 0 0 1px #fff;overflow:visible;z-index:4}
+.cut-tir{position:absolute;top:-2px;bottom:-2px;width:16px;background:#fff;z-index:4;touch-action:none;cursor:ew-resize;display:grid;place-items:center}
+.cut-tir::after{content:"";width:3px;height:16px;border-radius:2px;background:#9aa6a0}
+.cut-tir.izq{left:-16px;border-radius:7px 0 0 7px}
+.cut-tir.der{right:-16px;border-radius:0 7px 7px 0}
+.cut-volver{flex:0 0 auto;width:44px;align-self:stretch;margin-right:4px;border:0;border-radius:10px;background:var(--f3);position:sticky;left:0;z-index:2;box-shadow:8px 0 10px var(--f);color:#cfd8d2;display:grid;place-items:center}
+.cut-volver svg{width:22px;height:22px}
+.cut-sep{flex:0 0 1px;align-self:center;height:28px;background:var(--b);margin:0 4px}
 .cut-clip.mudo{filter:saturate(.6)}
 .cut-rombo{position:absolute;top:15px;width:26px;height:28px;border-radius:6px;border:0;background:#fff;color:var(--f);z-index:3;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.5);padding:0}
 .cut-rombo svg{width:15px;height:15px}
@@ -320,6 +327,7 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
 <input type="file" id="cutMusica" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg" hidden>
 <input type="file" id="cutExtraer" accept="video/*" hidden>
 <input type="file" id="cutCapaFoto" accept="image/*" hidden>
+<input type="file" id="cutSustituir" accept="video/*,image/*" hidden>
 <div id="cutVideos"></div>
 <div class="cut-toasts" id="cutToasts"></div>
 <div class="cut-cargando" id="cutCargando" hidden><div><i></i><span>Cargando…</span></div></div>

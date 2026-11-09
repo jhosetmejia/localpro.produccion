@@ -1,7 +1,7 @@
 /* LocalProCut · editor de video en el navegador (celular primero).
    Todo pasa en el equipo del usuario: los videos no se suben al servidor. */
 import * as MB from './mediabunny.min.js';
-import { Motor, TRANSICIONES, EFECTOS, FILTROS } from './motor.js';
+import { Motor, TRANSICIONES, EFECTOS, FILTROS, ANIMACIONES } from './motor.js';
 import * as SUB from './subtitulos.js';
 import * as BEL from './belleza.js';
 
@@ -84,7 +84,7 @@ function reg(o) { REG.set(o.id, o); return o; }
 const HIST = { pila: [], pos: -1, aplicando: false };
 function foto() {
   return JSON.stringify({
-    clips: S.clips.map(c => ({ id: c.id, in: c.in, out: c.out, mute: !!c.mute, vol: c.vol ?? 1, vel: c.vel || 1, curva: c.curva || null, z: c.z || 1, x: c.x || 0, y: c.y || 0, kf: c.kf?.length ? c.kf : null, trans: c.trans, ef: c.ef || 'ninguno' })),
+    clips: S.clips.map(c => ({ id: c.id, in: c.in, out: c.out, mute: !!c.mute, vol: c.vol ?? 1, vel: c.vel || 1, curva: c.curva || null, z: c.z || 1, x: c.x || 0, y: c.y || 0, kf: c.kf?.length ? c.kf : null, trans: c.trans, ef: c.ef || 'ninguno', anim: c.anim || null })),
     capas: S.capas.map(datosCapa), filtro: S.filtro, ajuste: S.ajuste, fondo: S.fondo,
     musica: S.musica.map(m => ({ id: m.id, start: m.start, in: m.in, out: m.out ?? null, vol: m.vol ?? 1, fadeIn: !!m.fadeIn, fadeOut: !!m.fadeOut })),
     subs: S.subs, segs: S.segs, sub: S.sub, belleza: S.belleza, aspecto: S.aspecto, silenciar: !!S.silenciar,
@@ -265,7 +265,17 @@ function opClip(c, lt) {
     fit: S.fondo.modo, bg: hexRgb(S.fondo.color || '#000000'), adj: S.ajuste,
     fil: (FILTROS.find(f => f.id === S.filtro.id) || FILTROS[0]).t, filK: S.filtro.k ?? 1,
     ef: (EFECTOS.find(e => e.id === c.ef) || EFECTOS[0]).t, t: lt,
+    ...animEn(c, lt),
   };
+}
+// Animación de entrada/salida en el momento lt del clip: tipo y cuánto falta (1 = todo aplicado)
+function animEn(c, lt) {
+  const an = c.anim; if (!an || (!an.in && !an.out)) return {};
+  const L = largo(c), d = Math.min(an.dur || 0.5, L / 2);
+  const suave = (x) => x * x * (3 - 2 * x);
+  if (an.in && lt < d) return { anT: (ANIMACIONES.find(a => a.id === an.in) || {}).t || 0, anA: 1 - suave(lt / d) };
+  if (an.out && lt > L - d) return { anT: (ANIMACIONES.find(a => a.id === an.out) || {}).t || 0, anA: suave((lt - (L - d)) / d) };
+  return {};
 }
 
 /* ---------- capas: stickers y fotos/logos encima del video (Superposición) ---------- */
@@ -295,7 +305,7 @@ function nuevaCapa(datos) {
   const ini = S.t >= L.total - 0.2 ? 0 : S.t;
   const k = reg({ id: uid(), start: ini, end: Math.min(Math.max(L.total, ini + 0.5), ini + 3), x: 0.5, y: 0.35, tam: 0.3, ...datos });
   S.capas.push(k);
-  S.selC = k.id; S.sel = null; S.selM = null;
+  S.selC = k.id; S.sel = null; S.selM = null; S.barraClip = false;
   abrirTab('capa'); pintarLinea(); guardar();
   return k;
 }
@@ -453,7 +463,16 @@ function pintarLinea() {
     const icMudo = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="m17 9 4 6M21 9l-4 6"/></svg>';
     const ef = c.ef && c.ef !== 'ninguno' ? EFECTOS.find(x => x.id === c.ef) : null;
     b.innerHTML = `<em>${etqVel ? icVel + esc(etqVel) : ''}${c.tipo === 'video' && (c.mute || S.silenciar) ? icMudo : ''}${ef ? `<i class="ef">${ef.e}</i>` : ''}</em>` + `<span>${c.tipo === 'imagen' ? '🖼 ' : ''}${fmt(largo(c)).slice(0, 5)}</span>`;
-    b.onclick = (e) => { e.stopPropagation(); S.sel = c.id; S.selM = null; abrirTab(['editar', 'velocidad', 'belleza', 'efectos'].includes(S.tab) ? S.tab : 'editar'); pintarLinea(); };
+    b.onclick = (e) => { e.stopPropagation(); if (b._recorto) { b._recorto = false; return; } S.sel = c.id; S.selM = null; S.selC = null; S.barraClip = true; abrirTab(TABS_CLIP.includes(S.tab) ? S.tab : null); pintarLinea(); };
+    // Tiradores para recortar arrastrando los bordes (como CapCut)
+    if (S.sel === c.id && S.barraClip) {
+      for (const lado of ['izq', 'der']) {
+        const h = document.createElement('i');
+        h.className = 'cut-tir ' + lado;
+        h.addEventListener('pointerdown', (ev) => recortarBorde(ev, c, lado, b));
+        b.appendChild(h);
+      }
+    }
     pista.appendChild(b);
     if (i < S.clips.length - 1) {
       const tb = document.createElement('button');
@@ -462,7 +481,7 @@ function pintarLinea() {
       tb.title = 'Transición';
       tb.style.left = (pad + (L.start[i + 1] + L.tr[i] / 2) * S.pps - 12) + 'px';
       tb.innerHTML = c.trans.tipo !== 'ninguna' ? '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 5l8 7-8 7zM20 5l-8 7 8 7z"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M4 5l8 7-8 7zM20 5l-8 7 8 7z"/></svg>';
-      tb.onclick = (e) => { e.stopPropagation(); S.sel = c.id; S.selM = null; abrirTab('transicion'); pintarLinea(); };
+      tb.onclick = (e) => { e.stopPropagation(); S.sel = c.id; S.selM = null; S.barraClip = true; abrirTab('transicion'); pintarLinea(); };
       pista.appendChild(tb);
     }
   });
@@ -485,7 +504,7 @@ function pintarLinea() {
     b.innerHTML = `<span>${esc(m.nombre.replace(/\.[^.]+$/, ''))}</span>`;
     if (m.onda) { b.style.backgroundImage = `url(${m.onda})`; b.style.backgroundSize = `${largoM(m) * S.pps}px 100%`; b.style.backgroundPositionX = `${-(m.in || 0) * S.pps}px`; }
     else ondas(m);
-    b.onclick = (e) => { e.stopPropagation(); S.selM = m.id; S.sel = null; abrirTab('audio'); pintarLinea(); };
+    b.onclick = (e) => { e.stopPropagation(); S.selM = m.id; S.sel = null; S.barraClip = false; abrirTab('audio'); pintarLinea(); };
     pa.appendChild(b);
   });
   const addA = document.createElement('button');
@@ -523,11 +542,12 @@ function pintarLinea() {
     b.style.left = (pad + k.start * S.pps) + 'px';
     b.style.width = Math.max(14, (k.end - k.start) * S.pps - 2) + 'px';
     b.textContent = k.tipo === 'sticker' ? k.emoji + ' Sticker' : '🖼 ' + (k.nombre || 'Foto');
-    b.onclick = (e) => { e.stopPropagation(); S.selC = k.id; S.sel = null; S.selM = null; abrirTab('capa'); pintarLinea(); };
+    b.onclick = (e) => { e.stopPropagation(); S.selC = k.id; S.sel = null; S.selM = null; S.barraClip = false; abrirTab('capa'); pintarLinea(); };
     pc.appendChild(b);
   });
   moverLinea();
   S.dirty = true;
+  try { pintarBarra(); } catch (e) { /* la barra aún no está lista */ }
 }
 
 // Silenciar clip: responde al primer toque aunque esté dentro de la línea que se desliza
@@ -765,17 +785,106 @@ function mover(d) {
 }
 
 /* ---------- panel de herramientas ---------- */
-const TITULOS = { editar: 'Editar', audio: 'Audio', texto: 'Texto', efectos: 'Efectos', superposicion: 'Superposición', subtitulos: 'Subtítulos', filtros: 'Filtros', ajustar: 'Ajustar', stickers: 'Stickers', formato: 'Relación de aspecto', fondo: 'Fondo', velocidad: 'Velocidad', transicion: 'Transición', belleza: 'Belleza del rostro', capa: 'Capa', portada: 'Portada' };
+const TITULOS = { volumen: 'Volumen', animaciones: 'Animaciones', recortar: 'Recortar', editar: 'Editar', audio: 'Audio', texto: 'Texto', efectos: 'Efectos', superposicion: 'Superposición', subtitulos: 'Subtítulos', filtros: 'Filtros', ajustar: 'Ajustar', stickers: 'Stickers', formato: 'Relación de aspecto', fondo: 'Fondo', velocidad: 'Velocidad', transicion: 'Transición', belleza: 'Belleza del rostro', capa: 'Capa', portada: 'Portada' };
 function abrirTab(t) {
   S.tab = t;
-  $$('.cut-tab').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+  pintarBarra();
   $('#cutPanel').hidden = !t;
   document.body.classList.toggle('con-panel', !!t);
   $('#cutPanelTit').textContent = TITULOS[t] || '';
   pintarPanel();
   requestAnimationFrame(() => pintarLinea());
 }
-$$('.cut-tab').forEach(b => b.addEventListener('click', () => abrirTab(S.tab === b.dataset.tab && innerWidth < 1000 ? null : b.dataset.tab)));
+// Barra de abajo: la general, o la del clip cuando se toca un video (como CapCut)
+const TABS_CLIP = ['editar', 'volumen', 'animaciones', 'efectos', 'velocidad', 'recortar', 'ajustar', 'filtros', 'belleza', 'transicion'];
+const barra = $('.cut-tabs');
+const BARRA_GENERAL = barra.innerHTML;
+const ICS = {
+  volver: '<path d="m15 18-6-6 6-6"/>',
+  dividir: '<path d="M12 3v18"/><path d="M5 8 2 12l3 4M19 8l3 4-3 4"/>',
+  volumen: '<path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a9 9 0 0 1 0 12"/>',
+  animaciones: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="m10 9 5 3-5 3z"/>',
+  efectos: '<path d="m12 3 2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/>',
+  eliminar: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  velocidad: '<path d="M20 12a8 8 0 1 1-3-6.2"/><path d="m12 12 5-5"/>',
+  recortar: '<path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M2 6h14a2 2 0 0 1 2 2v14"/>',
+  duplicar: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/>',
+  sustituir: '<path d="M4 9a7 7 0 0 1 12-3l3 3M20 15a7 7 0 0 1-12 3l-3-3"/><path d="M19 4v5h-5M5 20v-5h5"/>',
+  extraer: '<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',
+  ajustar: '<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>',
+  filtros: '<circle cx="12" cy="8" r="4.5"/><circle cx="8" cy="15" r="4.5"/><circle cx="16" cy="15" r="4.5"/>',
+  belleza: '<circle cx="12" cy="9" r="5"/><path d="M5 21a7 7 0 0 1 14 0"/><path d="m18 3 .8 1.7L20.5 5l-1.7.8L18 7.5l-.8-1.7L15.5 5l1.7-.3z"/>',
+  transicion: '<path d="M4 5l8 7-8 7zM20 5l-8 7 8 7z"/>',
+  mover: '<path d="M5 12h14M15 8l4 4-4 4M9 8l-4 4 4 4"/>',
+};
+const ic = (k) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ICS[k]}</svg>`;
+function pintarBarra() {
+  const c = S.barraClip && clipSel();
+  const modo = c ? 'clip:' + c.id + ':' + c.tipo + ':' + (S.clips.indexOf(c) < S.clips.length - 1) + ':' + !!c.mute : 'general';
+  if (barra._modo !== modo) {
+    barra._modo = modo;
+    if (!c) barra.innerHTML = BARRA_GENERAL;
+    else {
+      const v = c.tipo === 'video', hay = S.clips.indexOf(c) < S.clips.length - 1;
+      const it = [
+        ['acc', 'dividir', 'Dividir'], v && ['tab', 'volumen', 'Volumen'], ['tab', 'animaciones', 'Animaciones'], ['tab', 'efectos', 'Efectos'],
+        ['acc', 'eliminar', 'Eliminar'], v && ['tab', 'velocidad', 'Velocidad'], ['tab', 'recortar', 'Recortar'], ['acc', 'duplicar', 'Duplicar'],
+        ['acc', 'sustituir', 'Sustituir'], v && ['acc', 'extraer', 'Extraer audio'], ['tab', 'ajustar', 'Ajustar'], ['tab', 'filtros', 'Filtros'],
+        'sep', ['tab', 'belleza', 'Retoque'], hay && ['tab', 'transicion', 'Transición'], ['tab', 'editar', 'Mover']].filter(Boolean);
+      barra.innerHTML = `<button type="button" class="cut-volver" data-volver aria-label="Volver">${ic('volver')}</button>`
+        + it.map(x => x === 'sep' ? '<span class="cut-sep"></span>' : `<button type="button" class="cut-tab" ${x[0] === 'tab' ? 'data-tab' : 'data-acc'}="${x[1]}">${ic(x[1] === 'editar' ? 'mover' : x[1])}${x[2]}</button>`).join('');
+      barra.scrollLeft = 0;
+    }
+  }
+  $$('.cut-tab', barra).forEach(b => b.classList.toggle('on', !!b.dataset.tab && b.dataset.tab === S.tab));
+}
+barra.addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.volver != null) { S.barraClip = false; S.sel = null; abrirTab(null); pintarLinea(); return; }
+  if (b.dataset.tab) return abrirTab(S.tab === b.dataset.tab && innerWidth < 1000 ? null : b.dataset.tab);
+  const c = clipSel(); if (!c) return;
+  ({ dividir, eliminar: () => { eliminar(); S.barraClip = false; S.sel = null; abrirTab(null); pintarLinea(); }, duplicar, sustituir: () => $('#cutSustituir').click(), extraer: () => extraerDeClip(c) })[b.dataset.acc]?.();
+});
+// Sustituir: cambia el video o la foto del clip y deja lo demás (velocidad, efectos, transición)
+$('#cutSustituir').addEventListener('change', async (e) => {
+  const f = e.target.files[0]; e.target.value = '';
+  const c = clipSel(); if (!f || !c) return;
+  const largoAntes = largo(c);
+  const n = { ...c, file: f, fileId: uid(), nombre: f.name, tipo: f.type.startsWith('image/') || /\.(jpe?g|png|webp|heic)$/i.test(f.name) ? 'imagen' : 'video', in: 0, out: null, dur: 0, el: null, bmp: null, tira: null, mascara: null, _tk: null, kf: null, z: 1, x: 0, y: 0 };
+  if (n.tipo === 'imagen') { n.dur = largoAntes; n.out = largoAntes; n.vel = 1; n.curva = null; }
+  cargandoMsg('Cambiando el clip…');
+  try {
+    await prepararClip(n);
+    if (n.tipo === 'video') n.out = Math.min(n.dur, largoAntes * tablaVel(n).media);
+    if (c.el) { c.el.pause(); c.el.remove(); }
+    S.clips[S.clips.indexOf(c)] = reg(n);
+    DB.put('archivos', n.fileId, f);
+    aviso('Clip sustituido 🔁');
+  } catch (err) { aviso('No se pudo abrir ese archivo', 'mal'); }
+  cargandoMsg(null);
+  barra._modo = null; pintarLinea(); pintarPanel(); guardar();
+});
+// Recortar arrastrando el borde izquierdo o derecho del clip seleccionado
+function recortarBorde(ev, c, lado, el) {
+  ev.stopPropagation(); ev.preventDefault();
+  if (S.playing) pausar();
+  const x0 = ev.clientX, in0 = c.in, out0 = c.out, media = tablaVel(c).media;
+  const minSrc = 0.2 * media;
+  const mov = (e) => {
+    const dSrc = (e.clientX - x0) / S.pps * media;
+    if (c.tipo === 'imagen') {
+      const d = lado === 'der' ? dSrc : -dSrc;
+      c.out = Math.max(c.in + 0.3, out0 + d);
+    } else if (lado === 'izq') c.in = Math.max(0, Math.min(out0 - minSrc, in0 + dSrc));
+    else c.out = Math.min(c.dur, Math.max(in0 + minSrc, out0 + dSrc));
+    c._tk = null; el._recorto = true;
+    pintarLinea(); S.dirty = true;
+  };
+  const fin = () => { window.removeEventListener('pointermove', mov); window.removeEventListener('pointerup', fin); window.removeEventListener('pointercancel', fin); if (c.in !== in0 || c.out !== out0) { irA(S.t); guardar(); aviso('Clip recortado ✂️'); } };
+  window.addEventListener('pointermove', mov);
+  window.addEventListener('pointerup', fin);
+  window.addEventListener('pointercancel', fin);
+}
 $('#cutPanelCerrar').addEventListener('click', () => abrirTab(innerWidth >= 1000 ? 'editar' : null));
 $('#cutDeshacer').addEventListener('click', deshacer);
 // Fotograma clave (como CapCut): marca este momento para que el zoom cambie desde aquí
@@ -972,6 +1081,47 @@ function pintarPanel() {
     const g2 = $('[data-grupo="velb"]', p); if (g2) g2.onclick = (e) => { const v = e.target.dataset.v; if (!v) return; c.vel = Number(v); cambio(); };
     const cv = $('.cut-curvas', p); if (cv) cv.onclick = (e) => { const b = e.target.closest('[data-cu]'); if (!b) return; c.curva = b.dataset.cu || null; cambio(); };
     $('[data-todos]', p).onclick = () => { S.clips.forEach(x => { if (x.tipo === 'video') { x.vel = c.vel || 1; x.curva = c.curva || null; } }); pintarLinea(); guardar(); aviso('Velocidad puesta en todos los videos ⚡'); };
+    return;
+  }
+  if (S.tab === 'volumen') {
+    if (!c || c.tipo !== 'video') { p.innerHTML = `<p class="cut-nota">Toque un video en la línea de tiempo.</p>`; return; }
+    p.innerHTML = `
+      <div class="cut-vel-num"><b>${Math.round((c.vol ?? 1) * 100)}</b><small>volumen del clip</small></div>
+      <input type="range" class="cut-vel-rango" min="0" max="2" step="0.01" value="${c.vol ?? 1}" data-vol>
+      <div class="cut-vel-marcas"><span>0</span><span>100</span><span>200</span></div>
+      <label class="cut-check"><input type="checkbox" data-mute ${c.mute ? 'checked' : ''}> Silenciar este clip</label>
+      <button type="button" class="cut-btn-sec" data-todos>Aplicar a todos los videos</button>`;
+    const r = $('[data-vol]', p);
+    r.oninput = () => { c.vol = Number(r.value); $('.cut-vel-num b', p).textContent = Math.round(c.vol * 100); if (c.vol > 0 && c.mute) { c.mute = false; $('[data-mute]', p).checked = false; } sincronizar(); };
+    r.onchange = () => { pintarLinea(); guardar(); };
+    $('[data-mute]', p).onchange = (e) => { c.mute = e.target.checked; sincronizar(); pintarLinea(); guardar(); };
+    $('[data-todos]', p).onclick = () => { S.clips.forEach(x => { if (x.tipo === 'video') { x.vol = c.vol ?? 1; x.mute = !!c.mute; } }); sincronizar(); pintarLinea(); guardar(); aviso('Volumen puesto en todos los videos 🔈'); };
+    return;
+  }
+  if (S.tab === 'animaciones') {
+    if (!c) { p.innerHTML = `<p class="cut-nota">Toque un clip en la línea de tiempo.</p>`; return; }
+    const an = c.anim || { in: '', out: '', dur: 0.5 };
+    const grid = (g, act) => `<div class="cut-efs" data-an="${g}">${ANIMACIONES.map(a => `<button type="button" data-v="${a.id}" class="${(act || '') === a.id ? 'on' : ''}"><i>${{ '': '⦸', fundido: '🌗', acercar: '🔍', alejar: '🔭', deslizar: '➡️', subir: '⬆️', girar: '🌀' }[a.id]}</i><small>${a.n}</small></button>`).join('')}</div>`;
+    p.innerHTML = `
+      <div class="lbl">Entrada</div>${grid('in', an.in)}
+      <div class="lbl">Salida</div>${grid('out', an.out)}
+      <div class="cut-fila"><small>Duración</small>${chips('andur', [[0.3, 'Rápida'], [0.5, 'Normal'], [0.8, 'Lenta'], [1.2, 'Muy lenta']], an.dur || 0.5)}</div>`;
+    const ver = (fin) => { const L = lay(), i = S.clips.indexOf(c); const ini = L.start[i], d = largo(c); if (fin) { irA(Math.max(ini, ini + d - 1.5)); setTimeout(() => reproducir(ini + d), 60); } else { irA(ini); setTimeout(() => reproducir(ini + Math.min(d, 1.5)), 60); } };
+    $$('[data-an]', p).forEach(g => g.onclick = (e) => { const b = e.target.closest('[data-v]'); if (!b) return; c.anim = { ...an, [g.dataset.an]: b.dataset.v }; pintarPanel(); guardar(); ver(g.dataset.an === 'out'); });
+    $('[data-grupo="andur"]', p).onclick = (e) => { const v = e.target.dataset.v; if (!v) return; c.anim = { ...an, dur: Number(v) }; pintarPanel(); guardar(); ver(false); };
+    return;
+  }
+  if (S.tab === 'recortar') {
+    if (!c) { p.innerHTML = `<p class="cut-nota">Toque un clip en la línea de tiempo.</p>`; return; }
+    const z = encuadreEn(c, ltClip(c)).z;
+    p.innerHTML = `
+      <div class="cut-fila"><small>Acercar</small><input type="range" min="1" max="4" step="0.01" value="${z}" data-zoom><b class="cut-val" data-zv>${Math.round(z * 100)}%</b></div>
+      <div class="cut-acciones2"><button type="button" class="cut-btn-sec" data-reenc>Quitar recorte</button></div>
+      <p class="cut-nota">✂️ Para cortar el inicio o el final, arrastre los <b>bordes blancos</b> del clip en la línea de tiempo.<br>🔍 Para encuadrar, pellizque el video con dos dedos y arrástrelo para escoger qué parte se ve.</p>`;
+    const rz = $('[data-zoom]', p);
+    rz.oninput = () => { const k = puntoZoom(c); k.z = Number(rz.value); $('[data-zv]', p).textContent = Math.round(k.z * 100) + '%'; S.dirty = true; };
+    rz.onchange = () => guardar();
+    $('[data-reenc]', p).onclick = () => { c.z = 1; c.x = 0; c.y = 0; c.kf = null; S.dirty = true; guardar(); pintarPanel(); };
     return;
   }
   if (S.tab === 'efectos') {
@@ -1517,7 +1667,7 @@ function guardarDB() {
   clearTimeout(tGuardar);
   tGuardar = setTimeout(() => {
     DB.put('estado', 'actual', {
-      clips: S.clips.map(c => ({ id: c.id, fileId: c.fileId, nombre: c.nombre, tipo: c.tipo, in: c.in, out: c.out, dur: c.dur, mute: c.mute, vol: c.vol ?? 1, trans: c.trans, vel: c.vel || 1, curva: c.curva || null, z: c.z || 1, x: c.x || 0, y: c.y || 0, kf: c.kf?.length ? c.kf : null })),
+      clips: S.clips.map(c => ({ id: c.id, fileId: c.fileId, nombre: c.nombre, tipo: c.tipo, in: c.in, out: c.out, dur: c.dur, mute: c.mute, vol: c.vol ?? 1, trans: c.trans, vel: c.vel || 1, curva: c.curva || null, z: c.z || 1, x: c.x || 0, y: c.y || 0, kf: c.kf?.length ? c.kf : null, ef: c.ef || 'ninguno', anim: c.anim || null })),
       musica: S.musica.map(m => ({ id: m.id, fileId: m.fileId, nombre: m.nombre, start: m.start, in: m.in, out: m.out ?? null, dur: m.dur, vol: m.vol, fadeIn: m.fadeIn, fadeOut: m.fadeOut })),
       silenciar: !!S.silenciar,
       subs: S.subs, segs: S.segs, sub: S.sub, belleza: S.belleza, aspecto: S.aspecto, fecha: Date.now(),
