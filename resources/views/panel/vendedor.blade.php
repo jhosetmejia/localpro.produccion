@@ -32,6 +32,8 @@
         </div>
     </div>
 
+    @include('cut._boton-panel')
+
     <div class="vd-hoy">
         <div class="vd-k">
             <small><i class="fa-solid fa-sack-dollar me-1"></i>Mis ventas de hoy</small>

@@ -192,6 +192,8 @@
         </div>
     </div>
 
+    @include('cut._boton-panel')
+
     <div class="lp-kpis">
         <div class="lp-kpi hero">
             <div class="ic"><i class="fa-solid fa-sack-dollar"></i></div>
