@@ -952,9 +952,9 @@ function pintarPanel() {
       <button type="button" class="cut-btn-sec" data-todas>Aplicar a todos los cortes</button>`;
     $('.cut-trans', p).onclick = (e) => {
       const b = e.target.closest('[data-t]'); if (!b) return;
-      c.trans.tipo = b.dataset.t; pintarLinea(); pintarPanel(); guardar(); verCorte(i);
+      c.trans.tipo = b.dataset.t; pintarLinea(); pintarPanel(); guardar(); irA(S.t);
     };
-    $('[data-grupo="durtr"]', p).onclick = (e) => { const v = e.target.dataset.v; if (!v) return; c.trans.dur = Number(v); pintarLinea(); pintarPanel(); guardar(); verCorte(i); };
+    $('[data-grupo="durtr"]', p).onclick = (e) => { const v = e.target.dataset.v; if (!v) return; c.trans.dur = Number(v); pintarLinea(); pintarPanel(); guardar(); irA(S.t); };
     $('[data-todas]', p).onclick = () => { S.clips.slice(0, -1).forEach(x => { x.trans = { ...c.trans }; }); pintarLinea(); guardar(); aviso('Transición puesta en todos los cortes ✨'); };
     return;
   }
@@ -1070,7 +1070,8 @@ function pintarPanel() {
       `}
       <p class="cut-nota">${modo === 'normal' ? 'Más rápido acorta el clip; más lento lo alarga (cámara lenta).' : 'La curva cambia la velocidad dentro del mismo clip: rápido, cámara lenta en el mejor momento y rápido otra vez.'}</p>
       <button type="button" class="cut-btn-sec" data-todos>Aplicar a todos los videos</button>`;
-    const cambio = (ver = true) => { pintarLinea(); pintarPanel(); guardar(); if (ver) { const L = lay(), i = S.clips.indexOf(c); irA(L.start[i]); setTimeout(() => reproducir(L.start[i] + largo(c)), 60); } };
+    // Se aplica sin mover la línea ni reiniciar el video (el usuario le da ▶ cuando quiera verlo)
+    const cambio = () => { pintarLinea(); pintarPanel(); guardar(); irA(S.t); };
     $('[data-grupo="modo"]', p).onclick = (e) => { const v = e.target.dataset.v; if (!v) return; if (v === 'normal') { c.curva = null; cambio(false); } else { c.curva = c.curva || 'montaje'; cambio(); } };
     const r = $('[data-vel]', p);
     if (r) {
@@ -1106,7 +1107,7 @@ function pintarPanel() {
       <div class="lbl">Entrada</div>${grid('in', an.in)}
       <div class="lbl">Salida</div>${grid('out', an.out)}
       <div class="cut-fila"><small>Duración</small>${chips('andur', [[0.3, 'Rápida'], [0.5, 'Normal'], [0.8, 'Lenta'], [1.2, 'Muy lenta']], an.dur || 0.5)}</div>`;
-    const ver = (fin) => { const L = lay(), i = S.clips.indexOf(c); const ini = L.start[i], d = largo(c); if (fin) { irA(Math.max(ini, ini + d - 1.5)); setTimeout(() => reproducir(ini + d), 60); } else { irA(ini); setTimeout(() => reproducir(ini + Math.min(d, 1.5)), 60); } };
+    const ver = () => { S.dirty = true; };
     $$('[data-an]', p).forEach(g => g.onclick = (e) => { const b = e.target.closest('[data-v]'); if (!b) return; c.anim = { ...an, [g.dataset.an]: b.dataset.v }; pintarPanel(); guardar(); ver(g.dataset.an === 'out'); });
     $('[data-grupo="andur"]', p).onclick = (e) => { const v = e.target.dataset.v; if (!v) return; c.anim = { ...an, dur: Number(v) }; pintarPanel(); guardar(); ver(false); };
     return;
@@ -1130,7 +1131,7 @@ function pintarPanel() {
       <div class="cut-efs">${EFECTOS.map(e => `<button type="button" data-ef="${e.id}" class="${(c.ef || 'ninguno') === e.id ? 'on' : ''}"><i>${e.e}</i><small>${e.n}</small></button>`).join('')}</div>
       <p class="cut-nota">El efecto se pone en el clip seleccionado.</p>
       <button type="button" class="cut-btn-sec" data-todos>Aplicar a todos los clips</button>`;
-    $('.cut-efs', p).onclick = (e) => { const b = e.target.closest('[data-ef]'); if (!b) return; c.ef = b.dataset.ef; pintarLinea(); pintarPanel(); guardar(); const L = lay(), i = S.clips.indexOf(c); irA(L.start[i]); setTimeout(() => reproducir(L.start[i] + Math.min(largo(c), 3)), 60); };
+    $('.cut-efs', p).onclick = (e) => { const b = e.target.closest('[data-ef]'); if (!b) return; c.ef = b.dataset.ef; pintarLinea(); pintarPanel(); guardar(); S.dirty = true; };
     $('[data-todos]', p).onclick = () => { S.clips.forEach(x => { x.ef = c.ef || 'ninguno'; }); pintarLinea(); guardar(); aviso('Efecto puesto en todos los clips ✨'); };
     return;
   }
@@ -1222,11 +1223,6 @@ function pintarPanel() {
   }
 }
 
-function verCorte(i) {
-  const L = lay();
-  irA(Math.max(0, L.start[i + 1] - 0.7));
-  setTimeout(() => reproducir(L.start[i + 1] + L.tr[i] + 0.7), 60);
-}
 
 /* ---------- belleza ---------- */
 async function activarBelleza() {
