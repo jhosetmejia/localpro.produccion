@@ -19,6 +19,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('wompi:conciliar')->everyTenMinutes()->withoutOverlapping();
         // Vigilante de errores: si alguien recibe un error, le llega un correo al súper administrador
         $schedule->command('localpro:vigilar-errores')->everyFiveMinutes()->withoutOverlapping();
+        // Opiniones y fallas que manda la gente (botón Opinar) + errores del navegador: correo al súper administrador
+        $schedule->command('localpro:opiniones --avisar')->everyTenMinutes()->withoutOverlapping();
         // Videos: la subida a YouTube puede tardar minutos, así que corre aparte para no frenar las demás tareas
         $schedule->command('redes:publicar-programadas')->everyMinute()->withoutOverlapping(15)->runInBackground();
         // Plan B de mensajes: revisa chats nuevos aunque los avisos en tiempo real de Meta no lleguen

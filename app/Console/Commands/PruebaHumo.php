@@ -56,7 +56,7 @@ class PruebaHumo extends Command
 
         // Administración
         if ($admin) {
-            foreach (['admin.inicio', 'admin.usuarios', 'admin.tiendas.index', 'admin.pagos', 'admin.giro360', 'admin.eventos', 'admin.donaciones'] as $r) {
+            foreach (['admin.inicio', 'admin.usuarios', 'admin.tiendas.index', 'admin.pagos', 'admin.giro360', 'admin.eventos', 'admin.donaciones', 'admin.opiniones'] as $r) {
                 $this->abrir($r, [], $admin);
             }
         }

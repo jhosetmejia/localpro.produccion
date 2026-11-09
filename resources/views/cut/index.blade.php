@@ -45,6 +45,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 .cut-guia li::before{counter-increment:p;content:counter(p);flex:0 0 26px;height:26px;border-radius:50%;background:var(--v);color:var(--f);display:grid;place-items:center;font-weight:900;font-size:.8rem}
 .cut-guia h3{display:flex;align-items:center;gap:.6rem}
 .cut-guia h3 img{width:42px;height:42px;border-radius:11px}
+.cut-opinar{display:flex;align-items:center;gap:.3rem;background:transparent;border:1px solid var(--b);border-radius:999px;padding:.35rem .7rem;font-size:.8rem;font-weight:700;color:var(--t)}
+@media (max-width:440px){.cut-opinar span{display:none}.cut-opinar{padding:.3rem .5rem}}
 .cut-exp{background:linear-gradient(90deg,var(--v),var(--v2));border:0;border-radius:999px;padding:.5rem 1.05rem;font-weight:800;color:var(--f)!important}
 #cutVistaCaja{flex:1 1 0;min-height:120px;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 40%,#161c18,#0b0d0c 70%)}
 #cutLienzo{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:auto;height:auto;max-width:calc(100% - 20px);max-height:calc(100% - 20px);background:#000;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
@@ -260,7 +262,8 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
   .cut-ctrl{grid-column:1;grid-row:3}
   .cut-linea{grid-column:1/3;grid-row:4}
   #cutPanel{grid-column:2;grid-row:2/4;max-height:none;border-left:1px solid var(--b);border-radius:0}
-  .cut-tabs{grid-column:1/3;grid-row:5;justify-content:center;gap:1rem}
+  .cut-tabs{grid-column:1/3;grid-row:5;justify-content:flex-start;gap:1rem}
+  .cut-tabs>:first-child{margin-left:auto}.cut-tabs>:last-child{margin-right:auto}
 }
 </style>
 </head>
@@ -270,6 +273,7 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
     <div class="cut-logo"><i>✂</i>LocalPro<b>Cut</b></div>
     <span class="sp"></span>
     <button type="button" class="cut-app solo-web" data-instalar><img src="/icons/cut-192.png" alt=""><span>Descargar app</span></button>
+    <button type="button" class="cut-opinar" id="cutOpinar" aria-label="Opinar o reportar una falla" title="¿Algo falla? Cuéntenos">💬<span>Opinar</span></button>
     <button type="button" class="cut-exp" id="cutBtnExportar">Exportar</button>
 </header>
 
@@ -436,6 +440,10 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
   });
 })();
 </script>
+{{-- Botón "Opinar / reportar falla" + errores que se reportan solos (Admin → Opiniones y fallas) --}}
+<script>window.LP_OPINION = {!! json_encode(['modulo' => 'cut', 'tema' => 'oscuro', 'boton' => false, 'sesion' => auth()->check()]) !!};</script>
+<script src="/js/lp-opinion.js?v={{ @filemtime(public_path('js/lp-opinion.js')) }}"></script>
+<script>document.getElementById('cutOpinar').addEventListener('click', function () { if (window.LPOpinion) LPOpinion.abrir(); });</script>
 <script>
 /* Si el editor no arranca (navegador viejo o archivo bloqueado), mostrar el motivo en pantalla */
 (function(){
@@ -444,7 +452,11 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
     var v = document.getElementById('cutVacio');
     if (!v || window.__cut) return;
     v.hidden = false;
-    v.innerHTML = '<h2>No se pudo abrir el editor</h2><p>Actualice su iPhone/Android y use Safari o Chrome actualizados. Si sigue, envíe una foto de esta pantalla a LocalPro.</p><p style="font-size:.75rem;color:#ff8fb8;word-break:break-word">' + String(msg).replace(/</g,'&lt;') + '</p>';
+    v.innerHTML = '<h2>No se pudo abrir el editor</h2><p>Actualice su iPhone/Android y use Safari o Chrome actualizados. Ya le avisamos a LocalPro; si quiere, cuéntenos qué celular usa.</p><button type="button" class="grande" data-avisar>💬 Contarle a LocalPro</button><p style="font-size:.75rem;color:#ff8fb8;word-break:break-word">' + String(msg).replace(/</g,'&lt;') + '</p>';
+    if (window.LPOpinion) {
+      LPOpinion.error(new Error('El editor no arrancó: ' + String(msg).slice(0, 400)), { donde: 'arranque' });
+      v.querySelector('[data-avisar]').onclick = function(){ LPOpinion.abrir({ tipo: 'falla', mensaje: 'El editor no me abre. Mi celular es: ', datos: { arranque: String(msg) } }); };
+    } else v.querySelector('[data-avisar]').hidden = true;
   }
   window.addEventListener('error', function(e){ errores.push((e.message || 'Error') + (e.filename ? ' · ' + e.filename.split('/').pop() + ':' + e.lineno : '')); }, true);
   window.addEventListener('unhandledrejection', function(e){ errores.push(String(e.reason && e.reason.message || e.reason)); });

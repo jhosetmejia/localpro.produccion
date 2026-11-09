@@ -130,6 +130,8 @@ set +o pipefail   # en el reporte, que no haya errores (grep sin resultados) no 
   echo; echo "--- Última actualización (últimas líneas) ---"; tail -n "$N" "$LOGACT" 2>/dev/null | limpio
   echo; echo "--- Errores recientes de Laravel ---"
   grep -h '\.\(ERROR\|CRITICAL\|EMERGENCY\)' "$RAIZ/storage/logs/laravel"*.log 2>/dev/null | tail -n "$N" | limpio
+  echo; echo "--- Opiniones de la gente y errores del navegador (botón Opinar) ---"
+  (cd "$RAIZ" && run timeout 20 $PHP artisan localpro:opiniones --resumen 2>/dev/null) | limpio
   echo "(fin del reporte)"
 } > "$F.tmp"
 mv -f "$F.tmp" "$F"; chown "$USR:$USR" "$F"; chmod 644 "$F"

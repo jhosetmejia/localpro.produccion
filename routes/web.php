@@ -109,6 +109,10 @@ Route::get('/cut', function () {
     ]);
 })->name('cut');
 Route::redirect('/localprocut', '/cut');
+// Botón "Opinar / reportar falla" (panel y LocalProCut) y errores del navegador que se reportan solos
+Route::post('/opinion', [\App\Http\Controllers\opinionController::class, 'guardar'])->middleware('throttle:6,1')->name('opinion.guardar');
+Route::post('/opinion/error', [\App\Http\Controllers\opinionController::class, 'error'])->middleware('throttle:20,1')->name('opinion.error');
+Route::get('/opinion/mias', [\App\Http\Controllers\opinionController::class, 'mias'])->middleware(['auth', 'throttle:30,1'])->name('opinion.mias');
 Route::get('/360', [\App\Http\Controllers\giro360Controller::class, 'index'])->name('giro360');
 Route::view('/360/audio', 'giro360.audio')->name('giro360.audio');
 Route::view('/360/avanzado', 'giro360.avanzado')->name('giro360.avanzado');
@@ -648,6 +652,11 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::post('/redes/{tienda}/abrir', [\App\Http\Controllers\adminRedesController::class, 'abrir'])->name('redes.abrir');
     Route::get('/eventos', [\App\Http\Controllers\adminEventosController::class, 'index'])->name('eventos');
     Route::get('/donaciones', [\App\Http\Controllers\adminDonacionesController::class, 'index'])->name('donaciones');
+    Route::get('/opiniones', [\App\Http\Controllers\adminOpinionesController::class, 'index'])->name('opiniones');
+    Route::post('/opiniones/{opinion}/estado', [\App\Http\Controllers\adminOpinionesController::class, 'estado'])->whereNumber('opinion')->name('opiniones.estado');
+    Route::get('/opiniones/{opinion}/foto', [\App\Http\Controllers\adminOpinionesController::class, 'foto'])->whereNumber('opinion')->name('opiniones.foto');
+    Route::post('/opiniones/errores/{error}/resuelto', [\App\Http\Controllers\adminOpinionesController::class, 'errorResuelto'])->whereNumber('error')->name('opiniones.error');
+    Route::post('/opiniones/errores/limpiar', [\App\Http\Controllers\adminOpinionesController::class, 'erroresLimpiar'])->name('opiniones.limpiar');
     Route::get('/360', [\App\Http\Controllers\giro360Controller::class, 'admin'])->name('giro360');
     Route::post('/360/codigo', [\App\Http\Controllers\giro360Controller::class, 'cambiarCodigo'])->name('giro360.codigo');
     Route::get('/360/exportar', [\App\Http\Controllers\giro360Controller::class, 'exportar'])->name('giro360.exportar');

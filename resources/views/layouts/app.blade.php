@@ -81,6 +81,9 @@
     <script>window.addEventListener('load', function () { LPFoco.iniciar({!! json_encode(\App\Support\PrimerosPasos::foco((int) request('foco')), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}, { boton: '¡A trabajar!' }); });</script>
     @endif
     @endauth
+    {{-- Botón "Opinar / reportar falla" en todo el panel + errores del navegador que se reportan solos (Admin → Opiniones y fallas) --}}
+    <script>window.LP_OPINION = {!! json_encode(['modulo' => \Illuminate\Support\Str::before((string) request()->route()?->getName(), '.') ?: 'panel', 'sesion' => true]) !!};</script>
+    <script src="{{ asset('js/lp-opinion.js') }}?v=1"></script>
     @stack('js')
 
 </body>

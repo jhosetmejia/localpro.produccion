@@ -57,6 +57,11 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-video"></i></div>
                     Clientes 360
                 </a>
+                @php try { $opNuevas = \App\Models\Opinion::where('estado', 'nuevo')->count(); } catch (\Throwable $e) { $opNuevas = 0; } @endphp
+                <a class="nav-link {{ $on('admin.opiniones*') }}" href="{{ route('admin.opiniones') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-comment-dots"></i></div>
+                    Opiniones y fallas @if ($opNuevas)<span class="badge rounded-pill ms-auto" style="background:#ff5c9a;color:#fff">{{ $opNuevas }}</span>@endif
+                </a>
                 <a class="nav-link {{ $on('admin.redes*') }}" href="{{ route('admin.redes') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-hashtag"></i></div>
                     Redes de los negocios

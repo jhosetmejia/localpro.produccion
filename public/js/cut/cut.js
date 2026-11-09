@@ -40,8 +40,9 @@ function aviso(msg, tipo = '') {
   d.className = 'cut-toast ' + tipo;
   d.textContent = msg;
   $('#cutToasts').appendChild(d);
-  setTimeout(() => d.classList.add('fuera'), 3200);
-  setTimeout(() => d.remove(), 3700);
+  const ms = Math.min(9000, 2600 + String(msg).length * 45);
+  setTimeout(() => d.classList.add('fuera'), ms);
+  setTimeout(() => d.remove(), ms + 500);
 }
 function preguntar(titulo, texto, si = 'Sí', no = 'Cancelar') {
   return new Promise((ok) => {
@@ -746,18 +747,23 @@ async function prepararClip(c) {
   }
 }
 async function agregarArchivos(lista) {
-  const files = [...lista].filter(f => /^(video|image)\//.test(f.type) || /\.(mp4|mov|webm|m4v|jpe?g|png|webp|heic)$/i.test(f.name));
+  const files = [...lista].filter(f => /^(video|image)\//.test(f.type) || /\.(mp4|mov|webm|m4v|jpe?g|png|webp|hei[cf])$/i.test(f.name));
   if (!files.length) return;
   $('#cutVacio').hidden = true;
   cargandoMsg(`Cargando ${files.length} ${files.length === 1 ? 'archivo' : 'archivos'}…`);
   for (const f of files) {
-    const c = { id: uid(), fileId: uid(), file: f, nombre: f.name, tipo: f.type.startsWith('image/') || /\.(jpe?g|png|webp|heic)$/i.test(f.name) ? 'imagen' : 'video', in: 0, out: null, dur: 0, mute: false, trans: { tipo: 'ninguna', dur: 0.5 } };
+    const c = { id: uid(), fileId: uid(), file: f, nombre: f.name, tipo: f.type.startsWith('image/') || /\.(jpe?g|png|webp|hei[cf])$/i.test(f.name) ? 'imagen' : 'video', in: 0, out: null, dur: 0, mute: false, trans: { tipo: 'ninguna', dur: 0.5 } };
     if (c.tipo === 'imagen') { c.dur = 3; c.out = 3; }
     try {
       await prepararClip(c);
       S.clips.push(reg(c));
       await DB.put('archivos', c.fileId, f);
-    } catch (e) { aviso(e.message || 'No se pudo abrir el archivo', 'mal'); }
+    } catch (e) {
+      const heic = /\.hei[cf]$/i.test(f.name) || /hei[cf]/i.test(f.type);
+      aviso(heic ? `"${f.name}" es una foto HEIC del iPhone y este navegador no la abre. Compártala como JPG o en el iPhone ponga Ajustes → Cámara → Formatos → Más compatible.`
+        : `No se pudo abrir "${f.name}". Pruebe con otro archivo (MP4, MOV, JPG o PNG).`, 'mal');
+      window.LPOpinion?.error(new Error('No abrió un archivo: ' + (e?.message || e)), { fase: 'agregar', tipo: f.type || '?', ext: (f.name.match(/\.\w+$/) || [''])[0].toLowerCase(), mb: Math.round(f.size / 1e5) / 10 });
+    }
   }
   cargandoMsg(null);
   if (S.clips.length && !S.sel) S.sel = S.clips[0].id;
@@ -781,7 +787,15 @@ function dividir() {
   const c = S.clips[i];
   const loc = tOrigen(c, S.t - L.start[i]);
   const corte = S.t - L.start[i];
-  const n = reg({ ...c, _tk: null, id: uid(), in: loc, el: null, mascara: null, trans: { ...c.trans }, kf: c.kf ? c.kf.map(k => ({ ...k, t: k.t - corte })) : null });
+  // Zoom animado: cada parte se queda con sus puntos y arranca/termina con el encuadre que había en el corte
+  let kfN = null, fijo = null;
+  if (c.kf?.length) {
+    const e0 = { ...encuadreEn(c, corte) };
+    kfN = [{ t: 0, z: e0.z, x: e0.x, y: e0.y }, ...c.kf.filter(k => k.t > corte + 0.01).map(k => ({ ...k, t: k.t - corte }))];
+    c.kf = [...c.kf.filter(k => k.t < corte - 0.01), { t: corte, z: e0.z, x: e0.x, y: e0.y }];
+    if (kfN.length === 1) { fijo = e0; kfN = null; } // después del corte ya no cambia: zoom fijo
+  }
+  const n = reg({ ...c, _tk: null, id: uid(), in: loc, el: null, mascara: null, trans: { ...c.trans }, kf: kfN, ...(fijo ? { z: fijo.z, x: fijo.x, y: fijo.y } : {}) });
   c.out = loc; c.trans = { tipo: 'ninguna', dur: 0.5 };
   S.clips.splice(i + 1, 0, n);
   const listo = () => { S.sel = n.id; pintarLinea(); pintarPanel(); guardar(); aviso('Clip dividido ✂️'); };
@@ -956,7 +970,7 @@ function pintarPanel() {
       ${c.kf?.length ? `<p class="cut-nota" style="text-align:left">🔍 Zoom animado: cambia en ${c.kf.filter(k => k.t > 0.01).map(k => fmt(k.t).slice(3, 7) + ' s').slice(0, 4).join(', ')}. Antes de ese momento el video se ve como estaba.</p>` : ''}
       ${(c.z || 1) > 1.001 || c.x || c.y || c.kf?.length ? `<div class="cut-acciones2"><button type="button" class="cut-btn-sec" data-reenc>Quitar zoom</button>${c.kf?.length ? '<button type="button" class="cut-btn-sec" data-todo>Zoom en todo el clip</button>' : ''}</div>` : ''}
       <p class="cut-nota">💡 Pellizque el video con dos dedos para acercarlo y arrástrelo con un dedo para escoger qué parte se ve. El zoom empieza en el momento donde está la línea blanca.</p>
-      ${c.tipo === 'video' ? `<div class="cut-fila"><small>Volumen</small><input type="range" min="0" max="2" step="0.05" value="${c.vol ?? 1}" data-vol><b class="cut-val">${Math.round((c.vol ?? 1) * 100)}%</b></div>` : ''}
+      ${c.tipo === 'video' ? `<div class="cut-fila"><small>Volumen</small><input type="range" min="0" max="2" step="0.05" value="${c.vol ?? 1}" data-vol><b class="cut-val" data-vv>${Math.round((c.vol ?? 1) * 100)}%</b></div>` : ''}
       ${c.tipo === 'imagen' ? `<div class="cut-fila"><small>Duración de la foto</small>${chips('durfoto', [[2, '2 s'], [3, '3 s'], [5, '5 s'], [8, '8 s']], largo(c))}</div>` : ''}
       <p class="cut-nota">Para recortar: ponga la línea blanca donde quiere cortar, toque <b>Dividir</b> y elimine el pedazo que sobra.</p>`;
     $$('[data-a]', p).forEach(b => b.onclick = () => ({ dividir, eliminar, duplicar, izq: () => mover(-1), der: () => mover(1), vel: () => abrirTab('velocidad'), efecto: () => abrirTab('efectos'), belleza: () => abrirTab('belleza'), extraer: () => extraerDeClip(c), mute: () => { c.mute = !c.mute; pintarLinea(); pintarPanel(); sincronizar(); guardar(); } })[b.dataset.a]());
@@ -966,7 +980,7 @@ function pintarPanel() {
     const re = $('[data-reenc]', p); if (re) re.onclick = () => { c.z = 1; c.x = 0; c.y = 0; c.kf = null; S.dirty = true; guardar(); pintarPanel(); };
     const rt = $('[data-todo]', p); if (rt) rt.onclick = () => { const e2 = encuadreEn(c, ltClip(c)); c.z = e2.z; c.x = e2.x; c.y = e2.y; c.kf = null; S.dirty = true; guardar(); pintarPanel(); };
     const rv = $('[data-vol]', p);
-    if (rv) { rv.oninput = () => { c.vol = Number(rv.value); $('.cut-val', p).textContent = Math.round(c.vol * 100) + '%'; sincronizar(); }; rv.onchange = guardar; }
+    if (rv) { rv.oninput = () => { c.vol = Number(rv.value); $('[data-vv]', p).textContent = Math.round(c.vol * 100) + '%'; sincronizar(); }; rv.onchange = guardar; }
     const g = $('[data-grupo="durfoto"]', p);
     if (g) g.onclick = (e) => { const v = e.target.dataset.v; if (!v) return; c.out = c.in + Number(v); pintarLinea(); pintarPanel(); guardar(); };
     return;
@@ -1312,10 +1326,46 @@ const audios = new Map();
 async function decodificar(c, ctx) {
   const k = c.fileId + '@' + ctx.sampleRate;
   if (audios.has(k)) return audios.get(k);
-  let buf = null;
-  try { buf = await ctx.decodeAudioData(await c.file.arrayBuffer()); } catch (e) { buf = null; }
+  let buf;
+  // Videos pesados (los del iPhone pasan de 500 MB): leer el archivo entero para sacarle el audio dejaba al
+  // celular sin memoria y la pestaña se cerraba. Se decodifica solo la pista de audio, por pedazos.
+  if (c.file.size > 40e6) buf = await audioPorPista(c.file, ctx);
+  if (buf === undefined) {
+    try { buf = await ctx.decodeAudioData(await c.file.arrayBuffer()); } catch (e) { buf = null; }
+  }
   audios.set(k, buf);
   return buf;
+}
+// undefined = no se pudo por este camino (probar el otro) · null = el archivo no tiene sonido
+async function audioPorPista(file, ctx) {
+  let input;
+  try {
+    input = new MB.Input({ source: new MB.BlobSource(file), formats: MB.ALL_FORMATS });
+    const tr = await input.getPrimaryAudioTrack();
+    if (!tr) return (await input.getPrimaryVideoTrack()) ? null : undefined; // video sin sonido: no hay nada que leer
+    if (!(await tr.canDecode())) return undefined;
+    const rate = tr.sampleRate, nch = Math.max(1, Math.min(2, ctx.destination.channelCount || 2));
+    const dur = await tr.computeDuration();
+    if (!(dur > 0) || !(rate > 0)) return undefined;
+    const len = Math.ceil(dur * rate) + 1;
+    const out = new AudioBuffer({ length: len, numberOfChannels: nch, sampleRate: rate });
+    const mezcla = nch === 1 ? new Float32Array(len) : null;
+    const sink = new MB.AudioBufferSink(tr);
+    for await (const w of sink.buffers()) {
+      const b = w.buffer, off = Math.max(0, Math.round(w.timestamp * rate));
+      if (off >= len) continue;
+      const n = Math.min(b.length, len - off);
+      if (mezcla) {
+        for (let ch = 0; ch < b.numberOfChannels; ch++) { const d = b.getChannelData(ch); for (let i = 0; i < n; i++) mezcla[off + i] += d[i] / b.numberOfChannels; }
+      } else {
+        for (let ch = 0; ch < nch; ch++) out.copyToChannel(b.getChannelData(Math.min(ch, b.numberOfChannels - 1)).subarray(0, n), ch, off);
+      }
+    }
+    if (mezcla) out.copyToChannel(mezcla, 0);
+    return out;
+  } catch (e) {
+    return undefined;
+  }
 }
 
 let trabajador = null;
@@ -1341,7 +1391,7 @@ async function generarSubs(idioma, modelo) {
         if (m.tipo === 'listo') ok(m.segmentos);
         if (m.tipo === 'error') mal(new Error(m.msg));
       };
-      trabajador.onerror = (e) => mal(new Error(e.message || 'Falló la transcripción'));
+      trabajador.onerror = (e) => { try { trabajador.terminate(); } catch (x) { /* nada */ } trabajador = null; mal(new Error(e.message || 'Falló la transcripción')); };
       trabajador.postMessage({ tipo: 'transcribir', audio: datos, idioma, modelo }, [datos.buffer]);
     });
     const total = lay().total;
@@ -1354,6 +1404,7 @@ async function generarSubs(idioma, modelo) {
     poner(0, '');
     barra.hidden = true;
     aviso(e.message || 'No se pudieron generar los subtítulos', 'mal');
+    if (!/no tiene sonido/.test(e.message || '')) window.LPOpinion?.error(e, { fase: 'subtitulos', idioma, modelo });
   } finally { btn.disabled = false; }
 }
 
@@ -1366,8 +1417,9 @@ function editarSub(s) {
   $('[data-fin]', m).value = s.end.toFixed(1);
   $('[data-guardar]', m).onclick = () => {
     s.text = $('textarea', m).value.trim() || s.text;
-    s.start = Math.max(0, Number($('[data-ini]', m).value) || s.start);
-    s.end = Math.max(s.start + 0.2, Number($('[data-fin]', m).value) || s.end);
+    const num = (v, d) => { const n = parseFloat(String(v).replace(',', '.')); return Number.isFinite(n) ? n : d; };
+    s.start = Math.max(0, num($('[data-ini]', m).value, s.start));
+    s.end = Math.max(s.start + 0.2, num($('[data-fin]', m).value, s.end));
     SUB.repartir(s); S.subs.sort((a, b) => a.start - b.start);
     m.hidden = true; pintarLinea(); guardar();
   };
@@ -1427,10 +1479,16 @@ async function abrirExportar() {
       EXP.res = 720; EXP.fps = 30; marcar();
       return intentar();
     }
-    aviso('No se pudo exportar: ' + (err.message === 'memoria' ? 'el equipo se quedó sin memoria. Pruebe con 720p.' : (err.message || err)), 'mal');
+    const motivo = err.message === 'memoria' ? 'el equipo se quedó sin memoria. Pruebe con 720p.' : (err.message || String(err));
+    aviso('No se pudo exportar: ' + motivo, 'mal');
     $('.cut-exp-op', m).hidden = false; $('.cut-exp-run', m).hidden = true;
+    window.LPOpinion?.error(err instanceof Error ? err : new Error(String(err)), { fase: 'exportar', res: EXP.res, fps: EXP.fps });
+    let caja = $('[data-fallo]', m);
+    if (!caja) { caja = document.createElement('div'); caja.dataset.fallo = ''; caja.className = 'cut-exp-info'; $('.cut-exp-op', m).prepend(caja); }
+    caja.innerHTML = `<b style="color:#ff8fb8">No se pudo exportar: ${esc(motivo)}</b><br>Ya le avisamos a LocalPro. <button type="button" class="cut-btn-sec" style="margin-top:.4rem">💬 Contar qué pasó</button>`;
+    $('button', caja).onclick = () => window.LPOpinion?.abrir({ tipo: 'falla', mensaje: 'Al exportar el video me salió: ' + motivo + '\n\nLo que estaba haciendo: ', datos: { fase: 'exportar', res: EXP.res, fps: EXP.fps } });
   });
-  $('[data-iniciar]', m).onclick = intentar;
+  $('[data-iniciar]', m).onclick = () => { $('[data-fallo]', m)?.remove(); intentar(); };
 }
 $('#cutBtnExportar').addEventListener('click', abrirExportar);
 
@@ -1536,6 +1594,7 @@ async function exportar() {
   const t0 = performance.now();
   let recuperaciones = 0;
   S.exportando = true;
+  pedirPantalla();
 
   // Modo "reproducir y grabar" (iPhone): en vez de saltar el video cuadro por cuadro (muy lento con HEVC 4K),
   // se reproduce seguido a media velocidad y se toma cada cuadro al pasar. Si el celular se atrasa, baja la velocidad.
@@ -1657,23 +1716,28 @@ async function exportar() {
     }
     if (tiempoReal) S.clips.forEach(c => { if (c.el) { c.el.pause(); try { c.el.playbackRate = 1; } catch (e) { /* nada */ } } });
     await pedazoAudio(L.total);
+    audios.clear();
     poner(99, 'Terminando el archivo…');
     await out.finalize();
   } catch (e) {
     try { await out.cancel(); } catch (e2) { /* nada */ }
+    audios.clear();
     S.clips.forEach(c => { if (c.el) { c.el.pause(); try { c.el.playbackRate = 1; } catch (e3) { /* nada */ } } });
-    S.exportando = false;
+    S.exportando = false; soltarPantalla();
     motor.tamano(vistaW, vistaH); S.dirty = true;
+    if (S._resizePend) { S._resizePend = false; ajustarVista(); pintarLinea(); }
     if (e.message === 'cancelado') { $('.cut-exp-op', m).hidden = false; $('.cut-exp-run', m).hidden = true; aviso('Exportación cancelada'); return; }
     throw e;
   }
-  S.exportando = false;
+  S.exportando = false; soltarPantalla();
   motor.tamano(vistaW, vistaH); S.dirty = true;
+  if (S._resizePend) { S._resizePend = false; ajustarVista(); pintarLinea(); }
 
   const blob = await archivo();
   const nombre = `localprocut-${new Date().toISOString().slice(0, 10)}-${EXP.res === 2160 ? '4k' : EXP.res + 'p'}${fps}.mp4`;
   const file = new File([blob], nombre, { type: 'video/mp4' });
-  const url = URL.createObjectURL(file);
+  if (EXP.url) URL.revokeObjectURL(EXP.url);
+  const url = EXP.url = URL.createObjectURL(file);
   $('.cut-exp-run', m).hidden = true;
   const fin = $('.cut-exp-fin', m);
   fin.hidden = false;
@@ -1685,6 +1749,18 @@ async function exportar() {
   $('[data-otra]', fin).onclick = () => { $('.cut-exp-op', m).hidden = false; fin.hidden = true; };
   aviso(`¡Listo! Su video quedó en ${RESOL[EXP.res].split(' ')[0]} · ${fps} fps ✅`);
 }
+
+// Pantalla siempre encendida mientras exporta (si se apaga, el celular pausa el video y la exportación se queda quieta)
+let candado = null;
+async function pedirPantalla() {
+  try { if (navigator.wakeLock && !candado) { candado = await navigator.wakeLock.request('screen'); candado.addEventListener('release', () => { candado = null; }); } } catch (e) { candado = null; }
+}
+function soltarPantalla() { try { candado?.release(); } catch (e) { /* nada */ } candado = null; }
+document.addEventListener('visibilitychange', () => {
+  if (!S.exportando) return;
+  if (document.visibilityState === 'visible') { pedirPantalla(); aviso('Siga en esta pantalla hasta que termine de exportar ⏳'); }
+});
+window.addEventListener('beforeunload', (e) => { if (S.exportando) { e.preventDefault(); e.returnValue = ''; } });
 
 /* ---------- guardar el proyecto en el equipo (si se recarga la página, sigue) ---------- */
 const DB = {
@@ -1698,7 +1774,17 @@ const DB = {
       r.onerror = () => mal(r.error);
     });
   },
-  async put(st, k, v) { try { const db = await this.abrir(); await new Promise((ok, mal) => { const tx = db.transaction(st, 'readwrite'); tx.objectStore(st).put(v, k); tx.oncomplete = ok; tx.onerror = () => mal(tx.error); }); } catch (e) { /* sin espacio: seguimos */ } },
+  async put(st, k, v) {
+    try {
+      const db = await this.abrir();
+      await new Promise((ok, mal) => { const tx = db.transaction(st, 'readwrite'); tx.objectStore(st).put(v, k); tx.oncomplete = ok; tx.onerror = () => mal(tx.error); tx.onabort = () => mal(tx.error); });
+      return true;
+    } catch (e) {
+      // Sin espacio (o modo privado): se sigue editando, pero se avisa una vez que si cierra la página se pierde
+      if (!this.avisado && st === 'archivos') { this.avisado = true; aviso('Su equipo no tiene espacio para guardar una copia de los videos: si cierra o recarga la página, se pierde la edición. Exporte antes de salir.', 'mal'); }
+      return false;
+    }
+  },
   async get(st, k) { try { const db = await this.abrir(); return await new Promise((ok) => { const r = db.transaction(st).objectStore(st).get(k); r.onsuccess = () => ok(r.result); r.onerror = () => ok(null); }); } catch (e) { return null; } },
   async limpiar() { try { const db = await this.abrir(); for (const st of ['archivos', 'estado']) await new Promise((ok) => { const tx = db.transaction(st, 'readwrite'); tx.objectStore(st).clear(); tx.oncomplete = ok; tx.onerror = ok; }); } catch (e) { /* nada */ } },
 };
@@ -1725,9 +1811,10 @@ async function recuperar() {
   cargandoMsg('Abriendo su video…');
   Object.assign(S.sub, e.sub || {}); Object.assign(S.belleza, e.belleza || {});
   S.aspecto = e.aspecto || '9:16'; S.subs = e.subs || []; S.segs = e.segs || [];
+  let faltan = 0;
   for (const d of e.clips) {
     const file = await DB.get('archivos', d.fileId);
-    if (!file) continue;
+    if (!file) { faltan++; continue; }
     const c = { ...d, file };
     try { await prepararClip(c); S.clips.push(reg(c)); } catch (err) { /* archivo dañado */ }
   }
@@ -1748,6 +1835,7 @@ async function recuperar() {
     try { await prepararMusica(m); S.musica.push(m); } catch (err) { /* nada */ }
   }
   cargandoMsg(null);
+  if (faltan) aviso(faltan === 1 ? 'Un video no se pudo recuperar (el equipo no lo alcanzó a guardar). Agréguelo otra vez con +.' : `${faltan} videos no se pudieron recuperar (el equipo no los alcanzó a guardar). Agréguelos otra vez con +.`, 'mal');
   if (!S.clips.length) { $('#cutVacio').hidden = false; return; }
   S.sel = S.clips[0].id;
   ajustarVista(); pintarLinea(); pintarPanel();
@@ -1884,7 +1972,17 @@ $$('.cut-modal').forEach((m) => {
 $('#cutPlay').addEventListener('click', () => (S.playing ? pausar() : reproducir()));
 $('#cutZoomMas').addEventListener('click', () => { S.pps = Math.min(240, S.pps * 1.4); pintarLinea(); });
 $('#cutZoomMenos').addEventListener('click', () => { S.pps = Math.max(12, S.pps / 1.4); pintarLinea(); });
-window.addEventListener('resize', () => { ajustarVista(); pintarLinea(); });
+window.addEventListener('resize', () => { if (S.exportando) { S._resizePend = true; return; } ajustarVista(); pintarLinea(); });
+document.addEventListener('keydown', (e) => {
+  const t = e.target;
+  if (t && (t.closest('input, textarea, select, [contenteditable]') || t.closest('.cut-modal:not([hidden])') || t.closest('.lpo-modal'))) return;
+  if ($$('.cut-modal').some(x => !x.hidden) || document.querySelector('.lpo-modal') || S.exportando) return;
+  const k = e.key, ctrl = e.ctrlKey || e.metaKey;
+  if (k === ' ' && !ctrl) { e.preventDefault(); if (S.playing) pausar(); else reproducir(); }
+  else if (ctrl && k.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); deshacer(); }
+  else if (ctrl && (k.toLowerCase() === 'y' || (k.toLowerCase() === 'z' && e.shiftKey))) { e.preventDefault(); rehacer(); }
+  else if ((k === 'ArrowLeft' || k === 'ArrowRight') && S.clips.length) { e.preventDefault(); if (S.playing) pausar(); irA(S.t + (k === 'ArrowRight' ? 1 : -1) * (e.shiftKey ? 1 : 1 / 30)); moverLinea(); }
+});
 document.addEventListener('dragover', (e) => e.preventDefault());
 document.addEventListener('drop', (e) => { e.preventDefault(); if (e.dataTransfer?.files?.length) agregarArchivos(e.dataTransfer.files); });
 
@@ -1904,3 +2002,12 @@ document.fonts.load('900 40px Montserrat');
 document.fonts.load('italic 700 40px "Playfair Display"');
 document.fonts.load('700 40px "Space Mono"');
 window.__cut = S;
+if (window.LPOpinion) window.LPOpinion.contexto = () => {
+  const L = lay();
+  return {
+    duracion: Math.round(L.total * 10) / 10, aspecto: S.aspecto, exportando: !!S.exportando, export: { res: EXP.res, fps: EXP.fps },
+    ios: IOS, webcodecs: typeof VideoEncoder !== 'undefined', grafica: motor ? (motor.gl.isContextLost() ? 'perdida' : 'ok') : 'sin motor',
+    clips: S.clips.slice(0, 20).map(c => ({ tipo: c.tipo, ext: ((c.nombre || '').match(/\.\w+$/) || [''])[0].toLowerCase(), mb: c.file ? Math.round(c.file.size / 1e5) / 10 : null, dur: Math.round((c.dur || 0) * 10) / 10, px: c.w ? c.w + 'x' + c.h : null, vel: c.vel || 1, curva: c.curva || null, trans: c.trans?.tipo, ef: c.ef || null })),
+    musica: S.musica.length, subtitulos: S.subs.length, capas: S.capas.length, belleza: !!S.belleza.on, filtro: S.filtro.id, tab: S.tab,
+  };
+};
