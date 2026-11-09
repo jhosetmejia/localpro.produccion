@@ -12,6 +12,7 @@
     <li><b>De los asistentes a eventos:</b> nombre, documento, correo, celular, fecha de nacimiento, las respuestas al formulario que el organizador arme y los datos de sus acompañantes.</li>
     <li><b>De firmas y negocios a los que ofrecemos LocalProo:</b> nombre del negocio y datos de contacto publicados en su página web o en directorios públicos.</li>
     <li><b>De los asesores:</b> nombre, cédula, celular, correo, ubicación y datos para el pago de comisiones.</li>
+    <li><b>De quienes visitan localproo.com:</b> una cookie propia que identifica el navegador (sin datos personales), las páginas que abre, el tipo de equipo y navegador y la ciudad aproximada por la IP, para medir el uso del servicio. La IP se borra apenas se ubica la ciudad y el recorrido página por página se guarda 60 días.</li>
     <li><b>De quienes usan LocalProCut (editor de videos) y el botón "Opinar":</b> datos técnicos de uso (tipo de equipo, sistema, navegador, ciudad aproximada calculada con la dirección IP y las acciones dentro del editor, como agregar, exportar o compartir) y, si la persona lo escribe, su mensaje, captura de pantalla y contacto. Los videos se editan en el equipo de cada persona y <b>no se suben</b> a nuestros servidores. La IP se borra apenas se ubica la ciudad.</li>
 </ul>
 <h2>2. Para qué los usamos</h2>

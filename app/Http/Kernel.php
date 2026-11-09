@@ -41,6 +41,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\VerifyCsrfToken::class,
             \App\Http\Middleware\ResolverTienda::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\ContarVisita::class, // visitas de todo el sitio (Admin → Visitas y uso)
         ],
 
         'api' => [

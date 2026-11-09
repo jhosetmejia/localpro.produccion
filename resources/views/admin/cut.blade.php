@@ -37,6 +37,7 @@
                 @if ($k['desde']) Contando desde el {{ \Illuminate\Support\Carbon::parse($k['desde'])->format('d/m/Y') }}.@endif</span></div>
         <div class="lp-quick"><a href="{{ route('cut') }}" target="_blank" rel="noopener" class="btn btn-dark"><i class="fa-solid fa-scissors me-1"></i>Abrir LocalProCut</a></div>
     </div>
+    @include('admin._visitas-tabs')
 
     <div class="lp-kpis">
         <div class="lp-kpi hero"><div class="lbl">Visitas desde el inicio</div><div class="val" data-historico>{{ number_format($k['historico'], 0, ',', '.') }}</div><div class="sub">{{ number_format($k['personas_historico'], 0, ',', '.') }} personas distintas</div><div class="ic"><i class="fa-solid fa-eye"></i></div></div>

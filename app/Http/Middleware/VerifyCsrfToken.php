@@ -21,6 +21,7 @@ class VerifyCsrfToken extends Middleware
         'opinion/error', // errores del navegador que se reportan solos
         'cut/visita', // contador de LocalProCut (sin sesión que proteger)
         'cut/evento',
+        'visita/latido', // latido del contador de visitas
         //
     ];
 }

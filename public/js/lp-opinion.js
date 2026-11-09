@@ -278,5 +278,10 @@
     contexto: null,
   };
   window.LPOpinion = api;
+  // Latido del contador de visitas (Admin → Visitas y uso → "Ahora mismo") mientras la página está a la vista
+  setInterval(function () {
+    if (document.hidden) return;
+    fetch('/visita/latido', { method: 'POST', credentials: 'same-origin', keepalive: true, headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': token() } }).catch(function () {});
+  }, 120000);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boton); else boton();
 })();

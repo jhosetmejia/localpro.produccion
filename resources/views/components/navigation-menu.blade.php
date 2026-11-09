@@ -62,9 +62,9 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-comment-dots"></i></div>
                     Opiniones y fallas @if ($opNuevas)<span class="badge rounded-pill ms-auto" style="background:#ff5c9a;color:#fff">{{ $opNuevas }}</span>@endif
                 </a>
-                <a class="nav-link {{ $on('admin.cut*') }}" href="{{ route('admin.cut') }}">
-                    <div class="sb-nav-link-icon"><i class="fa-solid fa-scissors"></i></div>
-                    LocalProCut en números
+                <a class="nav-link {{ request()->routeIs('admin.sitio*') || request()->routeIs('admin.cut*') ? 'active' : '' }}" href="{{ route('admin.sitio') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-chart-line"></i></div>
+                    Visitas y uso
                 </a>
                 <a class="nav-link {{ $on('admin.redes*') }}" href="{{ route('admin.redes') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-hashtag"></i></div>

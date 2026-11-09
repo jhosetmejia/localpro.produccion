@@ -83,7 +83,7 @@
     @endauth
     {{-- Botón "Opinar / reportar falla" en todo el panel + errores del navegador que se reportan solos (Admin → Opiniones y fallas) --}}
     <script>window.LP_OPINION = {!! json_encode(['modulo' => \Illuminate\Support\Str::before((string) request()->route()?->getName(), '.') ?: 'panel', 'sesion' => true]) !!};</script>
-    <script src="{{ asset('js/lp-opinion.js') }}?v=1"></script>
+    <script src="{{ asset('js/lp-opinion.js') }}?v=2"></script>
     @stack('js')
 
 </body>
