@@ -28,7 +28,7 @@
             @php $esCreador = ($tipoRegistro ?? null) === 'creador'; @endphp
             @if ($esCreador)
             <h1 class="serif">Cree su cuenta de creador 🎬</h1>
-            <p class="sub">El primer mes gratis, sin tarjeta; luego solo <b>$10.000 al mes</b>. Al terminar conecta Facebook, Instagram o YouTube y <b>publica o programa</b> su video. Incluye LocalProCut y su página <b>Mis enlaces</b>.</p>
+            <p class="sub">El primer mes gratis, sin tarjeta; luego solo <b>$10.000 al mes</b> o <b>$80.000 al año</b>. Al terminar conecta Facebook, Instagram o YouTube y <b>publica o programa</b> su video. Incluye LocalProCut y su página <b>Mis enlaces</b>.</p>
             @elseif (($tipoRegistro ?? null) && $tipoRegistro !== 'contable' && isset(\App\Models\Tienda::TIPOS[$tipoRegistro]))
             <h1 class="serif">Crear cuenta de empresa</h1>
             <p class="sub">Paso 1 de 4 · Su cuenta queda lista para <b>{{ \App\Models\Tienda::TIPOS[$tipoRegistro][0] }}</b>. Prueba gratis, sin tarjeta.</p>

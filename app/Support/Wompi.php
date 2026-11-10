@@ -144,7 +144,7 @@ class Wompi
 
     public static function planAnual(): ?\App\Models\Plan
     {
-        return \App\Models\Plan::where('activo', true)->whereBetween('dias', [360, 400])->where('precio', '>', 0)->orderBy('orden')->first();
+        return \App\Models\Plan::where('activo', true)->whereNotIn('nombre', \App\Models\Plan::CREADOR_PLANES)->whereBetween('dias', [360, 400])->where('precio', '>', 0)->orderBy('orden')->first();
     }
 
     public static function eventoValido(array $evento): bool

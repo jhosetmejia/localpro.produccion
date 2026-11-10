@@ -3,7 +3,7 @@
 @section('fecha', '27 de octubre de 2026')
 @section('cuerpo')
 @php
-    $planAnual = \App\Models\Plan::where('activo', true)->where('precio', '>', 0)->where('dias', '>=', 365)->orderBy('precio')->first();
+    $planAnual = \App\Models\Plan::where('activo', true)->whereNotIn('nombre', \App\Models\Plan::CREADOR_PLANES)->where('precio', '>', 0)->where('dias', '>=', 365)->orderBy('precio')->first();
     $valorAnual = '$' . number_format((float) ($planAnual->precio ?? 220000), 0, ',', '.') . ' COP'
         . ($planAnual ? ' o ' . \App\Support\Moneda::formato($planAnual->precioEn(\App\Support\Moneda::deVenezuela()), \App\Support\Moneda::deVenezuela()) . ' para negocios de Venezuela' : '');
     $maxProductos = $planAnual->max_productos ?? 400;

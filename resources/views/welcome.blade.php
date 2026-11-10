@@ -151,7 +151,7 @@
                 </article>
             </div>
             <p style="margin-top:22px;text-align:center"><a class="btn btn-ink" href="{{ route('funciones') }}"><i class="fa-solid fa-list-check"></i> Ver todas las funciones</a></p>
-            @php $vp = (float) \App\Models\Ajuste::valor('red_valor_plan', 220000); $antes = (float) (\App\Models\Plan::where('activo', true)->where('precio', '>', 0)->where('dias', '>=', 365)->value('precio_antes') ?? 0); @endphp
+            @php $vp = (float) \App\Models\Ajuste::valor('red_valor_plan', 220000); $antes = (float) (\App\Models\Plan::where('activo', true)->whereNotIn('nombre', \App\Models\Plan::CREADOR_PLANES)->where('precio', '>', 0)->where('dias', '>=', 365)->value('precio_antes') ?? 0); @endphp
             <div class="plus">
                 <div class="plus-t">
                     <span class="eyebrow">El plus de LocalProo</span>
