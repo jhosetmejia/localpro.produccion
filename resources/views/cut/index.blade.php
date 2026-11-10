@@ -69,6 +69,12 @@ button{font:inherit;color:inherit;cursor:pointer}
 @media (prefers-reduced-motion:reduce){.cut-hero *,.app-baja .flecha,.app-baja::after{animation:none!important}}
 @media (max-height:860px){.cut-hero{transform:scale(.72);margin:-26px 0 -30px}}
 @media (max-height:740px){.cut-hero{display:none}}
+/* Al terminar de exportar: programar en redes (crea la cuenta de creador si no tiene) */
+.cut-programar{margin-top:.8rem;width:100%;display:flex;align-items:center;gap:.7rem;border:0;border-radius:16px;padding:.85rem 1rem;font-size:1.5rem;
+  background:linear-gradient(120deg,#7a3dff,#ff3d6e);color:#fff;text-align:left;box-shadow:0 10px 26px -10px rgba(122,61,255,.7);animation:pulsoProg 2.4s ease-in-out infinite}
+.cut-programar span{font-size:1rem;font-weight:800;line-height:1.2}
+.cut-programar small{display:block;font-size:.74rem;font-weight:600;opacity:.9}
+@keyframes pulsoProg{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
 /* Al terminar de exportar: compartir con un amigo y conocer LocalPro */
 .cut-amigo{margin-top:1rem;border-top:1px solid var(--b);padding-top:.9rem;display:flex;flex-direction:column;gap:.55rem}
 .cut-amigo>b{font-size:1rem}
@@ -479,6 +485,7 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
         <div class="cut-exp-fin" hidden>
             <video controls playsinline></video>
             <div class="fila-b"><button type="button" class="cut-btn-sec" data-otra>Exportar otra vez</button><button type="button" class="cut-btn-sec" data-compartir>Compartir video</button><button type="button" class="cut-exp" data-bajar>Descargar</button></div>
+            <button type="button" class="cut-programar" data-programar>📅 <span>Programar en redes sociales<small>Publíquelo o prográmelo en Facebook, Instagram y YouTube</small></span></button>
             <div class="cut-amigo">
                 <b>¿Le gustó? 🎉 Comparta LocalProCut con un amigo y siga usándolo gratis</b>
                 <p>Editor de videos gratis, sin marca de agua, con subtítulos automáticos y 4K. Entre más gente lo use, más funciones le agregamos.</p>

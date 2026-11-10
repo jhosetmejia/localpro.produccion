@@ -16,7 +16,7 @@ use Illuminate\Support\Str;
 class cutVisitasController extends Controller
 {
     private const EVENTOS = ['agrego', 'exportar', 'exporto', 'exporto_falla', 'subtitulos', 'compartio_wa', 'compartio', 'compartio_video', 'descargo_video',
-        'clic_registro', 'clic_app', 'instalo', 'clic_funciones', 'muro_registro', 'opino'];
+        'clic_registro', 'clic_app', 'instalo', 'clic_funciones', 'muro_registro', 'opino', 'clic_programar'];
 
     public function visita(Request $request)
     {
@@ -85,7 +85,7 @@ class cutVisitasController extends Controller
                 'agrego' => $cambios['videos'] = min(60000, $v->videos + max(1, min(50, $n))),
                 'exporto' => $cambios['exportados'] = min(60000, $v->exportados + 1),
                 'compartio_wa', 'compartio', 'compartio_video' => $cambios['compartidos'] = min(60000, $v->compartidos + 1),
-                'clic_registro' => $cambios['clic_registro'] = true,
+                'clic_registro', 'clic_programar' => $cambios['clic_registro'] = true,
                 'clic_app' => $cambios['clic_app'] = true,
                 'instalo' => $cambios['instalo'] = true,
                 default => null,

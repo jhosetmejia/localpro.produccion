@@ -64,6 +64,8 @@ Route::get('/institutos', fn () => redirect()->route('registro', ['tipo' => 'ins
 // Enlace corto para negocios que solo alquilan (sonido, trajes, salones, carpas, equipos…): el registro nace como "Solo alquila"
 Route::get('/alquiler', fn () => redirect()->route('registro', ['actividad' => 'alquila'] + request()->only('desde', 'tipo')))->name('registro.alquiler');
 Route::get('/alquiler-360', fn () => redirect()->route('registro', ['actividad' => 'alquila', 'plataforma' => '360', 'desde' => request('desde', 'alquiler-360')]))->name('registro.360');
+// Creadores de contenido (desde LocalProCut → Programar en redes): cuenta solo con Mis redes, Editar videos y Mis enlaces
+Route::get('/creadores', fn () => redirect()->route('registro', ['tipo' => 'creador'] + request()->only('desde')))->name('registro.creadores');
 Route::get('/contadores', fn () => redirect()->route('registro', ['tipo' => 'contable'] + request()->only('desde')))->name('registro.contadores');
 // Enlace corto para odontólogos: el registro nace como "Consultorio odontológico"
 Route::get('/odontologos', fn () => redirect()->route('registro', ['tipo' => 'odontologia'] + request()->only('desde')))->name('registro.odontologos');
@@ -485,6 +487,13 @@ Route::middleware(['auth', 'tienda'])->group(function () {
 
     // Mis redes (Facebook e Instagram)
     Route::get('/mis-redes', [redesController::class, 'index'])->name('redes.index');
+    // Creador de contenido que tiene emprendimiento: se le activa todo el sistema y pasa por la bienvenida (tipo de negocio, productos, cobro)
+    Route::post('/mi-emprendimiento', function () {
+        $t = \App\Support\TiendaActual::tienda();
+        abort_unless($t && $t->tipo_negocio === 'creador' && (auth()->user()->hasRole('dueno') || auth()->user()->es_superadmin), 403);
+        $t->forceFill(['tipo_negocio' => 'otro', 'onboarding_completo' => false, 'onboarding_paso' => 2, 'menu_oculto' => [], 'catalogo_activo' => true])->save();
+        return redirect()->route('bienvenida.index')->with('success', '¡Vamos a montar su emprendimiento! Cuéntenos qué vende.');
+    })->name('creador.emprendimiento');
     Route::get('/mis-redes/chats', [redesController::class, 'lista'])->name('redes.lista');
     Route::get('/mis-redes/chats/{conversacion}', [redesController::class, 'mensajes'])->whereNumber('conversacion')->name('redes.mensajes');
     Route::post('/mis-redes/chats/{conversacion}/enviar', [redesController::class, 'enviar'])->whereNumber('conversacion')->middleware('throttle:60,1')->name('redes.enviar');

@@ -1904,9 +1904,37 @@ async function exportar() {
   comp.hidden = !(navigator.canShare && navigator.canShare({ files: [file] }));
   comp.onclick = () => { contar('compartio_video'); navigator.share({ files: [file], title: 'Mi video' }).catch(() => {}); };
   $('[data-otra]', fin).onclick = () => { $('.cut-exp-op', m).hidden = false; fin.hidden = true; };
+  // Programar en redes: el video queda guardado en el equipo y lo toma "Mis redes → Publicar" (sin volver a buscarlo).
+  // Sin cuenta: crea la cuenta de creador (solo pide sus datos) y entra directo a conectar sus redes.
+  $('[data-programar]', fin).onclick = async (ev) => {
+    const b = ev.currentTarget; b.disabled = true;
+    contar('clic_programar', { sesion: !!window.LP_OPINION?.sesion });
+    await guardarParaPublicar(file);
+    // En la misma ventana (en la app instalada del iPhone, otra pestaña no ve el video guardado)
+    location.href = window.LP_OPINION?.sesion ? '/mis-redes/publicar' : '/creadores?desde=cut-programar';
+  };
   aviso(`¡Listo! Su video quedó en ${RESOL[EXP.res].split(' ')[0]} · ${fps} fps ✅`);
   try { localStorage.setItem('cutExportados', String(exportadosAqui() + 1)); } catch (e) { /* nada */ }
   contar('exporto', { res: EXP.res, fps, seg: Math.round(L.total), mb: Math.round(blob.size / 1e5) / 10, tardo: Math.round((performance.now() - t0) / 1000) });
+}
+
+// El video exportado se guarda en el equipo (base "localprocut-publicar") para publicarlo desde Mis redes.
+// Expira solo a los 2 días; Mis redes lo borra apenas lo usa.
+function guardarParaPublicar(file) {
+  return new Promise((ok) => {
+    try {
+      const r = indexedDB.open('localprocut-publicar', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('v');
+      r.onerror = () => ok(false);
+      r.onsuccess = () => {
+        try {
+          const tx = r.result.transaction('v', 'readwrite');
+          tx.objectStore('v').put({ file, nombre: file.name, t: Date.now() }, 'video');
+          tx.oncomplete = () => ok(true); tx.onerror = tx.onabort = () => ok(false);
+        } catch (e) { ok(false); }
+      };
+    } catch (e) { ok(false); }
+  });
 }
 
 // Pantalla siempre encendida mientras exporta (si se apaga, el celular pausa el video y la exportación se queda quieta)

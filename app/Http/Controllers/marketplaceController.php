@@ -30,7 +30,7 @@ class marketplaceController extends Controller
             ->where(fn ($w) => $this->pais === 'CO'
                 ? $w->where('tiendas.pais', 'CO')->orWhereNull('tiendas.pais')->orWhere('tiendas.pais', '')
                 : $w->where('tiendas.pais', $this->pais))
-            ->whereNotIn('tiendas.tipo_negocio', ['contable', 'conjunto', 'instituto']);
+            ->whereNotIn('tiendas.tipo_negocio', ['contable', 'conjunto', 'instituto', 'creador']);
     }
 
     // Productos que se ven en la tienda en línea, de todas las tiendas visibles (sin el filtro de tienda actual)
@@ -150,7 +150,7 @@ class marketplaceController extends Controller
         $actual = $this->pais;
         $res = [];
         $filas = Tienda::query()->where('catalogo_activo', true)->where('estado', 'activa')->where('onboarding_completo', true)
-            ->whereNull('datos_depurados_at')->whereNotIn('tipo_negocio', ['contable', 'conjunto', 'instituto'])
+            ->whereNull('datos_depurados_at')->whereNotIn('tipo_negocio', ['contable', 'conjunto', 'instituto', 'creador'])
             ->selectRaw("COALESCE(NULLIF(pais, ''), 'CO') as p, id")->get();
         foreach ($filas->groupBy('p') as $p => $ts) {
             $this->pais = $p;

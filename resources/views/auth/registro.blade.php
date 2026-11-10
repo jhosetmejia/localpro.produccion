@@ -25,7 +25,11 @@
         <div class="auth-card rise">
             <a href="{{ url('/') }}" class="back"><i class="fa-solid fa-arrow-left"></i> Volver al inicio</a>
             @php $comoContador = $errors->any() ? (bool) old('como_contador') : ($tipoRegistro ?? null) === 'contable'; @endphp
-            @if (($tipoRegistro ?? null) && $tipoRegistro !== 'contable' && isset(\App\Models\Tienda::TIPOS[$tipoRegistro]))
+            @php $esCreador = ($tipoRegistro ?? null) === 'creador'; @endphp
+            @if ($esCreador)
+            <h1 class="serif">Cree su cuenta de creador 🎬</h1>
+            <p class="sub">Gratis, sin tarjeta. Al terminar conecta Facebook, Instagram o YouTube y <b>publica o programa</b> su video. Incluye LocalProCut y su página <b>Mis enlaces</b>.</p>
+            @elseif (($tipoRegistro ?? null) && $tipoRegistro !== 'contable' && isset(\App\Models\Tienda::TIPOS[$tipoRegistro]))
             <h1 class="serif">Crear cuenta de empresa</h1>
             <p class="sub">Paso 1 de 4 · Su cuenta queda lista para <b>{{ \App\Models\Tienda::TIPOS[$tipoRegistro][0] }}</b>. Prueba gratis, sin tarjeta.</p>
             @elseif ($soloAlquiler ?? false)
@@ -103,7 +107,7 @@
                     </div>
                 </div>
                 {{-- Sección para contadores: crean su cuenta como contador (herramienta de Contabilidad) --}}
-                <div id="caja-contador" style="border:2px solid {{ $comoContador ? '#16b34a' : 'var(--line)' }};background:{{ $comoContador ? '#f2fbf4' : '#fafdfb' }};border-radius:16px;padding:14px 16px;margin:.4rem 0 .9rem">
+                <div id="caja-contador" @if ($esCreador) hidden @endif style="border:2px solid {{ $comoContador ? '#16b34a' : 'var(--line)' }};background:{{ $comoContador ? '#f2fbf4' : '#fafdfb' }};border-radius:16px;padding:14px 16px;margin:.4rem 0 .9rem">
                     <div style="font-weight:800;margin-bottom:4px"><i class="fa-solid fa-calculator" style="color:#16b34a"></i> ¿Eres contador o analista contable?</div>
                     <div style="font-size:.88rem;color:var(--muted);line-height:1.45;margin-bottom:8px">Crea tu cuenta como contador: cruce de facturas de la DIAN con la contabilidad de tus clientes, IVA, retenciones, borrador del 350 y calendario tributario.</div>
                     <label style="display:flex;gap:.6rem;align-items:center;font-weight:800;cursor:pointer;margin:0">
@@ -115,7 +119,7 @@
                     <input type="checkbox" name="acepto" value="1" {{ old('acepto') ? 'checked' : '' }} required style="width:20px;height:20px;flex:none;margin-top:2px;accent-color:#16b34a" />
                     <span>Acepto las <a href="{{ route('legal.terminos') }}" target="_blank" rel="noopener" style="font-weight:800">condiciones de uso</a> y la <a href="{{ route('legal.privacidad') }}" target="_blank" rel="noopener" style="font-weight:800">política de privacidad</a>. Acepto participar en la dinámica de LocalProo: tengo una prueba gratis; al terminar, para seguir usando el panel pago el plan (mensual o anual) o invito empresarios para ganar meses gratis. Mi tienda se muestra en el Marketplace y en Google, y si mi plan vence, su WhatsApp queda "en mantenimiento" hasta que lo active.</span>
                 </label>
-                <button class="btn btn-amber btn-block" type="submit" style="margin-top:.6rem"><span id="txt-continuar">{{ $comoContador ? 'Continuar como contador' : 'Continuar · Datos del negocio' }}</span> <i class="fa-solid fa-arrow-right"></i></button>
+                <button class="btn btn-amber btn-block" type="submit" style="margin-top:.6rem"><span id="txt-continuar">{{ $esCreador ? 'Crear mi cuenta y conectar mis redes' : ($comoContador ? 'Continuar como contador' : 'Continuar · Datos del negocio') }}</span> <i class="fa-solid fa-arrow-right"></i></button>
             </form>
 
             <script>

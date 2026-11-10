@@ -89,6 +89,11 @@ class Tienda extends Model
         'contable' => ['pos', 'cotizaciones', 'caja', 'ventas', 'cierres', 'reportes', 'separados', 'tiquetera', 'productos', 'existencias', 'entradas',
             'categorias', 'catalogo', 'redes', 'clientes', 'proveedores', 'metodos'],
         'minimercado' => ['separados'],
+        // Creador de contenido (llega desde LocalProCut): solo Mis redes, Editar videos y Mis enlaces.
+        // Si tiene emprendimiento, con "Activar mi negocio" se le muestra todo y pasa por la bienvenida.
+        'creador' => ['consultorio', 'obituarios', 'pantallas', 'eventos', 'contabilidad', 'pos', 'pedidos', 'separados', 'tiquetera', 'egresos', 'alquiler',
+            'cotizaciones', 'caja', 'ventas', 'reportes', 'nomina', 'cierres', 'productos', 'existencias', 'entradas', 'categorias', 'clientes',
+            'proveedores', 'facturacion', 'catalogo', 'metodos'],
         'belleza' => ['separados', 'entradas'],
         'consultorio' => ['separados', 'existencias', 'entradas', 'categorias', 'catalogo'],
         // Consultorio odontológico: Consultorio (pacientes, odontograma, tratamientos), caja, ventas, servicios, gastos, nómina,
@@ -127,6 +132,7 @@ class Tienda extends Model
         'odontologia' => ['Consultorio odontológico', 'fa-tooth', false, 'Odontólogos y clínicas dentales: odontograma, planes de tratamiento, abonos y consentimientos'],
         'consultorio' => ['Consultorio / salud', 'fa-user-doctor', false, 'Psicología, estética, fisioterapia, nutrición, medicina'],
         'instituto' => ['Instituto / academia', 'fa-graduation-cap', false, 'Institutos técnicos, academias y cursos: inscripciones, matrículas y cuotas'],
+        'creador' => ['Creador de contenido', 'fa-video', false, 'Edita videos gratis, programa publicaciones en Facebook, Instagram y YouTube y tiene su página de enlaces'],
         'otro' => ['Otro negocio', 'fa-store', false, 'Cualquier otro comercio'],
     ];
 
@@ -295,7 +301,7 @@ class Tienda extends Model
     public const ICONO_PRODUCTO = [
         'moda' => 'fa-shirt', 'calzado' => 'fa-shoe-prints', 'accesorios' => 'fa-gem', 'restaurante' => 'fa-burger',
         'cafeteria' => 'fa-mug-hot', 'minimercado' => 'fa-basket-shopping', 'belleza' => 'fa-spa', 'tecnologia' => 'fa-mobile-screen',
-        'papeleria' => 'fa-pen-ruler', 'ferreteria' => 'fa-screwdriver-wrench', 'funeraria' => 'fa-dove', 'eventos' => 'fa-ticket', 'conjunto' => 'fa-building', 'contable' => 'fa-calculator', 'consultorio' => 'fa-stethoscope', 'odontologia' => 'fa-tooth', 'instituto' => 'fa-graduation-cap',
+        'papeleria' => 'fa-pen-ruler', 'ferreteria' => 'fa-screwdriver-wrench', 'funeraria' => 'fa-dove', 'eventos' => 'fa-ticket', 'conjunto' => 'fa-building', 'contable' => 'fa-calculator', 'consultorio' => 'fa-stethoscope', 'odontologia' => 'fa-tooth', 'instituto' => 'fa-graduation-cap', 'creador' => 'fa-video',
     ];
 
     public function getIconoProductoAttribute(): string

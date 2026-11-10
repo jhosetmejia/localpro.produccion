@@ -24,4 +24,5 @@
 </style>
 @endonce
 {{-- Editor de videos gratis a la mano en todas las pantallas de Mis redes --}}
+@include('redes._video-cut')
 @include('cut._boton-panel')

@@ -43,6 +43,11 @@ class homeController extends Controller
             return redirect()->route('plan.index');
         }
 
+        // Creador de contenido: su inicio es Mis redes (publicar y programar sus videos)
+        if ($tienda->tipo_negocio === 'creador') {
+            return redirect()->route('redes.index');
+        }
+
         // Conjuntos residenciales tienen su propio panel de administración
         if ($tienda->es_conjunto) {
             return redirect()->route('conjunto.inicio');

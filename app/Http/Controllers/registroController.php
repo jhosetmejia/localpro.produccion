@@ -91,7 +91,7 @@ class registroController extends Controller
         $tipo = $tipo && $tipo !== 'contable' && isset(\App\Models\Tienda::TIPOS[$tipo]) ? $tipo : null;
         if ($request->boolean('como_contador')) $tipo = 'contable';
         [, $user] = CrearTienda::crear(
-            ['nombre' => ($tipo === 'contable' ? 'Oficina contable de ' : 'Tienda de ') . $primerNombre, 'pais' => $datos['pais'], 'departamento' => $datos['departamento'], 'ciudad' => $datos['ciudad'], 'telefono' => $datos['telefono']] + ($tipo ? ['tipo_negocio' => $tipo] : []),
+            ['nombre' => ($tipo === 'contable' ? 'Oficina contable de ' : ($tipo === 'creador' ? trim($datos['name']) : 'Tienda de ' . $primerNombre)) . ($tipo === 'contable' ? $primerNombre : ''), 'pais' => $datos['pais'], 'departamento' => $datos['departamento'], 'ciudad' => $datos['ciudad'], 'telefono' => $datos['telefono']] + ($tipo ? ['tipo_negocio' => $tipo] : []),
             $datos
         );
         if ($origen = session('origen_registro')) {
@@ -137,6 +137,13 @@ class registroController extends Controller
 
         $user->forceFill(['terminos_aceptados_at' => now()])->save();
 
+        // Creador de contenido: sin pasos de negocio. Queda con Mis redes, Editar videos y Mis enlaces activos
+        // y entra directo a conectar sus redes para publicar o programar el video que editó
+        if ($tipo === 'creador') {
+            $user->tienda->forceFill(['onboarding_completo' => true, 'onboarding_paso' => 5, 'enlaces_activo' => true, 'catalogo_activo' => false,
+                'menu_oculto' => \App\Models\Tienda::MENU_OCULTO_POR_TIPO['creador']])->save();
+        }
+
         // Correo de bienvenida: se envía después de responder, así el registro no se demora (si falla, solo queda en el log)
         $idNuevo = $user->id;
         dispatch(function () use ($idNuevo) {
@@ -152,6 +159,9 @@ class registroController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
+        if ($tipo === 'creador') {
+            return redirect()->route('redes.index')->with('success', '¡Listo, su cuenta de creador está creada! 🎉 Conecte Facebook, Instagram o YouTube y publique o programe su video.');
+        }
         return redirect()->route('bienvenida.index');
     }
 }
