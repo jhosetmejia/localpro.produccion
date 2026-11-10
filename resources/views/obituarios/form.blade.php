@@ -178,6 +178,18 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
                         <div class="col-12"><label class="form-label small fw-bold">Lugar de las exequias</label><input class="form-control" name="lugar_exequias" data-c="lugar" maxlength="150" value="{{ old('lugar_exequias', $obituario->lugar_exequias) }}" placeholder="Ej: Parroquia Nuestra Señora del Carmen"></div>
                         <div class="col-12"><label class="form-label small fw-bold">Destino final</label><input class="form-control" name="destino_final" data-c="destino" maxlength="150" value="{{ old('destino_final', $obituario->destino_final) }}" placeholder="Ej: Cremación / Cementerio Central"></div>
                     </div>
+                    {{-- Otros días o lugares: segundo día de velación, homenaje en el colegio, misa… --}}
+                    <div class="of-actos mt-3">
+                        <div class="fw-bold small mb-1">Otros días o lugares <span class="text-muted fw-normal">(segundo día de velación, homenaje, misa…)</span></div>
+                        <div id="of-actos">
+                            @foreach (old('actos', $obituario->actos ?? []) as $i => $a)
+                            @include('obituarios._acto', ['i' => $i, 'a' => $a])
+                            @endforeach
+                        </div>
+                        <button type="button" class="btn btn-outline-dark btn-sm mt-1" id="of-acto-mas"><i class="fa-solid fa-plus me-1"></i>Agregar otro día o lugar</button>
+                        <div class="of-ayuda mt-1">Salen en el obituario debajo de las exequias, en orden de fecha. Máximo {{ \App\Models\Obituario::MAX_ACTOS }}.</div>
+                        <template id="of-acto-tpl">@include('obituarios._acto', ['i' => '__N__', 'a' => []])</template>
+                    </div>
                 </div>
 
                 <div class="lp-box mb-3">
@@ -208,7 +220,7 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
 @endsection
 
 @push('js')
-<script src="{{ asset('js/obituarios.js') }}?v=17"></script>
+<script src="{{ asset('js/obituarios.js') }}?v=18"></script>
 <script>
 (function () {
     var form = document.getElementById('of-form'), el = document.querySelector('[data-obi]');
@@ -238,12 +250,42 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
             q.onerror = function () { ok(null); };
         }); }).catch(function () { return null; });
     }
+    // ===== Otros días o lugares =====
+    var actosCaja = document.getElementById('of-actos'), actosN = 1000;
+    if (!document.getElementById('of-actos-sug')) {
+        var dl = document.createElement('datalist'); dl.id = 'of-actos-sug';
+        ['Segundo día de velación', 'Homenaje', 'Misa de exequias', 'Eucaristía', 'Novena', 'Velación', 'Cremación', 'Sepelio'].forEach(function (t) { var o = document.createElement('option'); o.value = t; dl.appendChild(o); });
+        document.body.appendChild(dl);
+    }
+    function agregarActo(n) {
+        if (actosCaja.querySelectorAll('.of-acto').length >= {{ \App\Models\Obituario::MAX_ACTOS }}) { LP.toast('Máximo {{ \App\Models\Obituario::MAX_ACTOS }} días o lugares adicionales.', 'error'); return null; }
+        var tpl = document.getElementById('of-acto-tpl').innerHTML.replace(/__N__/g, n === undefined ? actosN++ : n);
+        actosCaja.insertAdjacentHTML('beforeend', tpl);
+        return actosCaja.lastElementChild;
+    }
+    document.getElementById('of-acto-mas').addEventListener('click', function () {
+        var fila = agregarActo(); if (fila) { fila.querySelector('input').focus(); vivo(); }
+    });
+    actosCaja.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-acto-quitar]'); if (!b) return;
+        b.closest('.of-acto').remove(); vivo();
+    });
+    function actosVivo() {
+        return [].map.call(actosCaja.querySelectorAll('.of-acto'), function (fila) {
+            var v = function (k) { var i = fila.querySelector('[name$="[' + k + ']"]'); return i ? i.value.trim() : ''; };
+            var partes = [Obi.fecha(v('fecha')), Obi.hora(v('hora')), v('lugar')].filter(Boolean);
+            return partes.length ? [v('titulo') || 'Otro día', partes.join(' · ')] : null;
+        }).filter(Boolean);
+    }
+
     var fotoPendiente = null;
     try {
         var guardado = sessionStorage.getItem(CLAVE);
         if (guardado) {
             sessionStorage.removeItem(CLAVE);
             var dg = JSON.parse(guardado), lista = Array.isArray(dg) ? dg : dg.campos;
+            // Volver a armar las filas de "otros días" que tenía antes de cambiar de plantilla
+            lista.forEach(function (c) { var m = /^actos\[(\w+)\]/.exec(c[0]); if (m && !form.elements[c[0]]) agregarActo(m[1]); });
             lista.forEach(function (c) { var f = form.elements[c[0]]; if (f && f.type !== 'file' && c[0] !== 'plantilla_id' && c[0] !== '_token' && c[0] !== '_method') f.value = c[1]; });
             if (dg.foto) fotoPendiente = fotoSacar();
         }
@@ -276,6 +318,7 @@ input[type=color].of-color{width:44px;height:34px;padding:2px;border-radius:10px
             hora: Obi.hora(f.hora_exequias.value),
             lugar: f.lugar_exequias.value,
             destino: f.destino_final.value,
+            actos: actosVivo(),
             invitan: f.invitan.value,
             foto_fondo: (form.querySelector('[name=foto_fondo]:checked') || {}).value,
             foto_color: f.foto_color.value,

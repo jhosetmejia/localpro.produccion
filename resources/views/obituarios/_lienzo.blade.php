@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600;1,700&family=Great+Vibes&family=Montserrat:ital,wght@0,500;0,700;0,800;1,500&display=swap">
-<link rel="stylesheet" href="{{ asset('css/obituarios.css') }}?v=21">
+<link rel="stylesheet" href="{{ asset('css/obituarios.css') }}?v=22">
 @endonce
 @php
     $m = $p->medida_datos;
@@ -22,6 +22,7 @@
         'hora' => $o->hora_texto,
         'lugar' => $o->lugar_exequias,
         'destino' => $o->destino_final,
+        'actos' => $o->actos_texto,
         'grupos' => \App\Models\Obituario::grupos($o->invitan),
     ] : [
         'nombre' => 'Nombre del fallecido',
@@ -34,6 +35,7 @@
         'hora' => '3 p. m.',
         'lugar' => 'Parroquia Nuestra Señora del Carmen',
         'destino' => 'Cementerio Central',
+        'actos' => [],
         'grupos' => [['Su esposa', 'Nombre de la esposa'], ['Sus hijos', 'Nombres de los hijos'], ['Sus hermanos', 'Nombres de los hermanos'], ['Demás familiares y amigos', '']],
     ];
     $fondoCss = '';
@@ -106,6 +108,7 @@
                 <div class="obi-dato" data-fila="lugar" @if (!$d['lugar']) hidden @endif><span class="obi-et">Exequias</span><span class="obi-val" data-o="lugar">{{ $d['lugar'] }}</span></div>
                 <div class="obi-dato" data-fila="hora" @if (!$d['hora']) hidden @endif><span class="obi-et">Hora</span><span class="obi-val" data-o="hora">{{ $d['hora'] }}</span></div>
                 <div class="obi-dato vp-datos" data-fila="sala" @if (!$d['sala']) hidden @endif><span class="obi-et" data-o="velacion_titulo">{{ $d['velacion_titulo'] ?: 'Velación' }}</span><span class="obi-val" data-o="sala">{{ $d['sala'] }}</span></div>
+                <div class="obi-actos" data-o="actos" data-forma="dato">@foreach ($d['actos'] ?? [] as [$at, $av])<div class="obi-dato"><span class="obi-et">{{ $at }}</span><span class="obi-val">{{ $av }}</span></div>@endforeach</div>
                 <div class="obi-dato" data-fila="destino" @if (!$d['destino']) hidden @endif><span class="obi-et">Destino final</span><span class="obi-val" data-o="destino">{{ $d['destino'] }}</span></div>
             </div>
             <div class="obi-invitan" data-bloque="invitan" data-mover="invitan" style="{{ $bs('invitan') }}{{ $mv('invitan') }}" @unless ($lb['invitan']['v']) data-oculto @endunless data-fila="invitan" @if (!$d['grupos']) hidden @endif>

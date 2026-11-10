@@ -534,3 +534,6 @@ body.sin-cursor,body.sin-cursor *{cursor:none!important}
 .obi.sin-memoria .obi-memoria{display:none!important}
 /* El título del lugar de velación va en negrilla y en la misma línea que los demás títulos (Fecha:, Lugar:…) */
 .ot-it b span{display:inline;font:inherit;color:inherit}
+
+/* Otros días o lugares (homenaje, segundo día de velación…): sus filas se acomodan como las demás */
+.obi-actos{display:contents}

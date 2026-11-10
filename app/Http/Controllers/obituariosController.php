@@ -144,6 +144,11 @@ class obituariosController extends Controller
             'hora_exequias' => 'nullable|date_format:H:i',
             'lugar_exequias' => 'nullable|string|max:150',
             'destino_final' => 'nullable|string|max:150',
+            'actos' => 'nullable|array|max:' . Obituario::MAX_ACTOS,
+            'actos.*.titulo' => 'nullable|string|max:60',
+            'actos.*.fecha' => 'nullable|date',
+            'actos.*.hora' => 'nullable|date_format:H:i',
+            'actos.*.lugar' => 'nullable|string|max:150',
             'invitan' => 'nullable|string|max:3000',
             'mostrar_hasta' => 'nullable|date',
             'foto_fondo' => ['nullable', Rule::in(array_keys(Obituario::FOTO_FONDOS))],
@@ -160,6 +165,10 @@ class obituariosController extends Controller
             'frase.required_if' => 'Escriba la frase o elija "No" en Agregar frase.',
         ]);
         unset($datos['foto']);
+        // Otros días o lugares: solo los que tienen fecha, hora o lugar, ordenados por fecha
+        $datos['actos'] = collect($datos['actos'] ?? [])->map(fn ($a) => [
+            'titulo' => trim((string) ($a['titulo'] ?? '')), 'fecha' => $a['fecha'] ?? null, 'hora' => $a['hora'] ?? null, 'lugar' => trim((string) ($a['lugar'] ?? '')),
+        ])->filter(fn ($a) => $a['fecha'] || $a['hora'] || $a['lugar'])->sortBy(fn ($a) => ($a['fecha'] ?: '9999') . ($a['hora'] ?: ''))->values()->all() ?: null;
         $datos['mostrar_fechas'] = $request->boolean('mostrar_fechas');
         $datos['mostrar_frase'] = $request->boolean('mostrar_frase');
         $datos['foto_fondo'] = $datos['foto_fondo'] ?? 'suave';

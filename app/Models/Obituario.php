@@ -14,9 +14,9 @@ class Obituario extends Model
 
     protected $table = 'obituarios';
 
-    protected $fillable = ['plantilla_id', 'sala_id', 'velacion_titulo', 'lugar_velacion', 'nombre', 'nacimiento', 'fallecimiento', 'frase', 'mostrar_frase', 'mostrar_fechas', 'fecha_exequias', 'hora_exequias', 'lugar_exequias', 'destino_final', 'invitan', 'mostrar_hasta', 'estado', 'foto_fondo', 'foto_color', 'foto_forma', 'foto_rot', 'foto_x', 'foto_y', 'foto_zoom'];
+    protected $fillable = ['plantilla_id', 'sala_id', 'velacion_titulo', 'lugar_velacion', 'nombre', 'nacimiento', 'fallecimiento', 'frase', 'mostrar_frase', 'mostrar_fechas', 'fecha_exequias', 'hora_exequias', 'lugar_exequias', 'destino_final', 'actos', 'invitan', 'mostrar_hasta', 'estado', 'foto_fondo', 'foto_color', 'foto_forma', 'foto_rot', 'foto_x', 'foto_y', 'foto_zoom'];
 
-    protected $casts = ['mostrar_frase' => 'boolean', 'mostrar_fechas' => 'boolean', 'nacimiento' => 'date', 'fallecimiento' => 'date', 'fecha_exequias' => 'date', 'mostrar_hasta' => 'datetime'];
+    protected $casts = ['mostrar_frase' => 'boolean', 'mostrar_fechas' => 'boolean', 'nacimiento' => 'date', 'fallecimiento' => 'date', 'fecha_exequias' => 'date', 'mostrar_hasta' => 'datetime', 'actos' => 'array'];
 
     public function plantilla()
     {
@@ -75,6 +75,29 @@ class Obituario extends Model
     public function getFechaTextoAttribute(): ?string
     {
         return $this->fecha_exequias ? self::fechaLarga($this->fecha_exequias) : null;
+    }
+
+    public const MAX_ACTOS = 4;
+
+    /** Otros días o lugares ya listos para mostrar: [["Homenaje", "Miércoles 11 de noviembre · 10 a. m. · Colegio San José"], …] */
+    public function getActosTextoAttribute(): array
+    {
+        return self::actosTexto($this->actos ?? []);
+    }
+
+    public static function actosTexto(?array $actos): array
+    {
+        $out = [];
+        foreach ((array) $actos as $a) {
+            $partes = array_filter([
+                !empty($a['fecha']) ? self::fechaLarga(Carbon::parse($a['fecha'])) : null,
+                self::horaTexto($a['hora'] ?? null),
+                trim((string) ($a['lugar'] ?? '')) ?: null,
+            ]);
+            if (!$partes) continue;
+            $out[] = [trim((string) ($a['titulo'] ?? '')) ?: 'Otro día', implode(' · ', $partes)];
+        }
+        return $out;
     }
 
     public static function fechaLarga(Carbon $f): string

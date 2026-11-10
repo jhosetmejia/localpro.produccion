@@ -17,6 +17,7 @@
         . ($obituario->lugar_velacion ? "\n" . ($obituario->velacion_titulo ?: 'Velación') . ": {$obituario->lugar_velacion}" : '')
         . ($obituario->fecha_texto ? "\nExequias: {$obituario->fecha_texto}" . ($obituario->hora_texto ? ", {$obituario->hora_texto}" : '') : '')
         . ($obituario->lugar_exequias ? "\nLugar: {$obituario->lugar_exequias}" : '')
+        . collect($obituario->actos_texto)->map(fn ($x) => "\n{$x[0]}: {$x[1]}")->implode('')
         . ($obituario->destino_final ? "\nDestino final: {$obituario->destino_final}" : '');
 @endphp
 <div class="lp-dash">
@@ -84,7 +85,7 @@
 @endsection
 
 @push('js')
-<script src="{{ asset('js/obituarios.js') }}?v=17"></script>
+<script src="{{ asset('js/obituarios.js') }}?v=18"></script>
 <script>
 (function () {
     var sel = document.getElementById('os-medida'), el = document.querySelector('[data-obi]');

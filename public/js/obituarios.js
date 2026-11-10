@@ -213,6 +213,16 @@
         ['nombre', 'anios', 'frase', 'velacion_titulo', 'sala', 'fecha', 'hora', 'lugar', 'destino', 'titulo', 'pie', 'cita'].forEach(function (k) {
             if (k in d) poner(k, d[k]);
         });
+        // Otros días o lugares (homenaje, segundo día de velación…)
+        if ('actos' in d) {
+            el.querySelectorAll('[data-o="actos"]').forEach(function (cont) {
+                cont.innerHTML = (d.actos || []).map(function (a) {
+                    return cont.dataset.forma === 'tarjeta'
+                        ? "<div class='ot-it'><svg viewBox='0 0 24 24' class='ot-ic'><rect x='3' y='5' width='18' height='16' rx='2'/><path d='M3 10h18M8 3v4M16 3v4'/></svg><div><b>" + esc(a[0]) + ':</b><span>' + esc(a[1]) + '</span></div></div>'
+                        : '<div class="obi-dato"><span class="obi-et">' + esc(a[0]) + '</span><span class="obi-val">' + esc(a[1]) + '</span></div>';
+                }).join('');
+            });
+        }
         if ('invitan' in d) {
             var gs = Obi.grupos(d.invitan);
             el.querySelectorAll('[data-o="grupos"]').forEach(function (cont) { cont.innerHTML = gs.map(function (g) { return '<div class="obi-grupo"><b>' + esc(g[0]) + '</b>' + (g[1] ? '<span>' + esc(g[1]) + '</span>' : '') + '</div>'; }).join('');
