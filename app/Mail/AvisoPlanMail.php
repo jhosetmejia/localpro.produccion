@@ -38,7 +38,7 @@ class AvisoPlanMail extends Mailable
             'tipo' => $this->tipo,
             'fechaBorrado' => $this->fechaBorrado,
             'urlPago' => $this->tienda->url_pago,
-            'planes' => Plan::where('activo', true)->where('precio', '>', 0)->orderBy('orden')->get(),
+            'planes' => Plan::paraTienda($this->tienda),
             'aceptoEl' => $dueno?->terminos_aceptados_at,
         ]);
     }

@@ -23,7 +23,7 @@ class planController extends Controller
         $tienda = TiendaActual::tienda()->load('plan');
         return view('plan.index', [
             'tienda' => $tienda,
-            'planes' => Plan::where('activo', true)->orderBy('orden')->get(),
+            'planes' => Plan::paraTienda($tienda, false),
             'pagos' => PagoSuscripcion::with('plan')->where('tienda_id', $tienda->id)->latest()->limit(12)->get(),
             'wompi' => self::wompiActivo(),
             'soporte' => Ajuste::valor('soporte_whatsapp'),
@@ -53,7 +53,7 @@ class planController extends Controller
         $esPrueba = \App\Support\AvisosPlan::esPrueba($tienda);
         return view('plan.vencido', [
             'tienda' => $tienda,
-            'planes' => Plan::where('activo', true)->where('precio', '>', 0)->orderBy('orden')->get(),
+            'planes' => Plan::paraTienda($tienda),
             'esPrueba' => $esPrueba,
             'fechaBorrado' => $tienda->datos_depurados ? null : \App\Support\AvisosPlan::fechaBorrado($tienda),
             'puedePagar' => $puedePagar,
@@ -70,6 +70,7 @@ class planController extends Controller
     {
         abort_unless($plan->activo && !$plan->es_gratis, 404);
         $tienda = TiendaActual::tienda();
+        abort_unless($plan->sirvePara($tienda), 404);
         $donar = \App\Support\Donacion::activa() && $request->boolean('donar') ? \App\Support\Donacion::monto() : 0;
 
         if (!self::wompiActivo()) {

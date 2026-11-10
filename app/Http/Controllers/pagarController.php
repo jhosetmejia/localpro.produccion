@@ -19,7 +19,7 @@ class pagarController extends Controller
     {
         return view('pagar.show', [
             'tienda' => $tienda->load('plan'),
-            'planes' => Plan::where('activo', true)->where('precio', '>', 0)->orderBy('orden')->get(),
+            'planes' => Plan::paraTienda($tienda),
             'wompi' => Wompi::activo(),
             'soporte' => preg_replace('/\D/', '', (string) Ajuste::valor('soporte_whatsapp')),
         ]);
@@ -27,7 +27,7 @@ class pagarController extends Controller
 
     public function ir(Request $request, Tienda $tienda, Plan $plan)
     {
-        abort_unless($plan->activo && !$plan->es_gratis, 404);
+        abort_unless($plan->activo && !$plan->es_gratis && $plan->sirvePara($tienda), 404);
         if (!Wompi::activo()) {
             return back()->withErrors('El pago en línea aún no está disponible. Comuníquese con LocalPro.');
         }

@@ -68,6 +68,29 @@ class Plan extends Model
         return static::whereIn('nombre', ['Prueba 1 mes', 'Prueba 2 meses', 'Prueba 3 meses'])->orderByRaw("nombre = 'Prueba 1 mes' desc")->first();
     }
 
+    // Plan de los creadores de contenido ($10.000 al mes)
+    public const CREADOR = 'Creador mensual';
+
+    public function getEsCreadorAttribute(): bool
+    {
+        return $this->nombre === self::CREADOR;
+    }
+
+    /** Planes que esa tienda puede pagar: el creador solo ve el suyo; los negocios, todos menos ese. */
+    public static function paraTienda(?Tienda $tienda, bool $soloPagos = true)
+    {
+        $q = static::where('activo', true)->when($soloPagos, fn ($x) => $x->where('precio', '>', 0))->orderBy('orden');
+        return $tienda?->tipo_negocio === 'creador'
+            ? $q->where('nombre', self::CREADOR)->get()
+            : $q->where('nombre', '<>', self::CREADOR)->get();
+    }
+
+    /** ¿Esa tienda puede pagar este plan? */
+    public function sirvePara(?Tienda $tienda): bool
+    {
+        return $this->es_creador === ($tienda?->tipo_negocio === 'creador');
+    }
+
     public function tiendas()
     {
         return $this->hasMany(Tienda::class);
