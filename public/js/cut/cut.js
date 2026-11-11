@@ -2375,6 +2375,7 @@ function guardarYa() {
   if (!S.clips.length) return Promise.resolve();
   if (!S.proy) { const d = new Date(); S.proy = 'p_' + uid(); S.proyNombre = 'Video del ' + d.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }) + ', ' + d.toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit' }); }
   if (!S.proyMini || Date.now() - miniAt > 15000) { const m = miniatura(); if (m) { S.proyMini = m; miniAt = Date.now(); } }
+  marcarAbierto(S.proy);
   return DB.put('estado', S.proy, estadoProyecto());
 }
 function estadoProyecto() {
@@ -2422,7 +2423,18 @@ async function borrarProyecto(k) {
   for (const [, o] of await DB.todos('estado')) [...(o?.clips || []), ...(o?.musica || []), ...(o?.capas || [])].forEach(x => x.fileId && usados.add(x.fileId));
   for (const x of [...(v.clips || []), ...(v.musica || []), ...(v.capas || [])]) if (x.fileId && !usados.has(x.fileId)) await DB.borrar('archivos', x.fileId);
 }
-async function recuperar() { await pintarProyectos(); }
+// El celular a veces cierra la página cuando uno se va a otra app (le falta memoria) y al volver la recarga:
+// se recuerda qué proyecto estaba abierto para abrirlo solo, como si nada hubiera pasado.
+function marcarAbierto(k) { try { if (k) localStorage.setItem('lpcut_abierto', k); else localStorage.removeItem('lpcut_abierto'); } catch (e) { /* modo privado */ } }
+async function recuperar() {
+  let k = null; try { k = localStorage.getItem('lpcut_abierto'); } catch (e) { /* nada */ }
+  await pintarProyectos();
+  if (k && !S.clips.length && (await DB.get('estado', k))?.clips?.length) await abrirProyecto(k);
+}
+// Al salir a otra app se guarda de una vez (sin esperar), por si el celular cierra la página
+function guardarAlSalir() { if (S.clips.length && !S.exportando) { clearTimeout(tGuardar); guardarYa(); } }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') guardarAlSalir(); });
+window.addEventListener('pagehide', guardarAlSalir);
 
 /* ---------- Compartir el editable (.lpcut): la edición + sus videos en un solo archivo, armado en el celular ----------
    No pasa por el servidor. Formato: "LPCUT1\n" + 4 bytes (largo de la cabecera) + cabecera JSON + archivos uno tras otro.
@@ -2489,7 +2501,7 @@ $('#cutImportar')?.addEventListener('change', (e) => { const f = e.target.files[
 async function abrirProyecto(k) {
   const e = await DB.get('estado', k);
   if (!e?.clips?.length) return pintarProyectos();
-  S.proy = k; S.proyNombre = e.nombre || 'Video'; S.proyMini = e.mini || null;
+  S.proy = k; S.proyNombre = e.nombre || 'Video'; S.proyMini = e.mini || null; marcarAbierto(k);
   $('#cutVacio').hidden = true;
   cargandoMsg('Abriendo su video…');
   Object.assign(S.sub, e.sub || {}); Object.assign(S.belleza, e.belleza || {});
@@ -2536,7 +2548,7 @@ async function nuevoProyecto() {
 }
 function limpiarEditor() {
   pausar();
-  S.proy = null; S.proyNombre = null; S.proyMini = null;
+  S.proy = null; S.proyNombre = null; S.proyMini = null; marcarAbierto(null);
   S.clips.forEach(c => { if (c.el) { c.el.pause(); c.el.remove(); } });
   S.musica.forEach(m => { if (m.el) { m.el.pause(); m.el.remove(); } });
   S.clips = []; S.subs = []; S.segs = []; S.musica = []; S.sel = null; S.selM = null; S.t = 0; S.silenciar = false;
