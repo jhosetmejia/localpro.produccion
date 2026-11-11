@@ -88,7 +88,7 @@ function foto() {
   return JSON.stringify({
     clips: S.clips.map(c => ({ id: c.id, in: c.in, out: c.out, mute: !!c.mute, vol: c.vol ?? 1, vel: c.vel || 1, curva: c.curva || null, z: c.z || 1, x: c.x || 0, y: c.y || 0, kf: c.kf?.length ? c.kf : null, trans: c.trans, ef: c.ef || 'ninguno', anim: c.anim || null, limpio: !!c.limpio })),
     capas: S.capas.map(datosCapa), filtro: S.filtro, ajuste: S.ajuste, fondo: S.fondo,
-    musica: S.musica.map(m => ({ id: m.id, start: m.start, in: m.in, out: m.out ?? null, vol: m.vol ?? 1, fadeIn: !!m.fadeIn, fadeOut: !!m.fadeOut, limpio: !!m.limpio, mejor: !!m.mejor, aislar: !!m.aislar, efa: m.efa || '', vel: m.vel || 1, ritmos: m.ritmos || null })),
+    musica: S.musica.map(m => ({ id: m.id, start: m.start, in: m.in, out: m.out ?? null, vol: m.vol ?? 1, fadeIn: !!m.fadeIn, fadeOut: !!m.fadeOut, limpio: !!m.limpio, mejor: !!m.mejor, aislar: !!m.aislar, efa: m.efa || '', vel: m.vel || 1, ritmos: m.ritmos || null, kfv: m.kfv?.length ? m.kfv.map(k => ({ ...k })) : null })),
     subs: S.subs, segs: S.segs, sub: S.sub, belleza: S.belleza, aspecto: S.aspecto, silenciar: !!S.silenciar,
   });
 }
@@ -398,7 +398,7 @@ function sincronizar() {
     const a = m.el; if (!a) continue;
     const act = S.playing && S.t >= m.start && S.t < Math.min(m.start + largoM(m), L.total);
     const loc = m.in + (S.t - m.start) * (m.vel || 1);
-    volumen(a, m.vol ?? 1);
+    volumen(a, volEn(m, S.t));
     if (claveCad(m) !== (a._cadKey ?? claveCad({}))) aplicarLimpieza(m);
     if (Math.abs(a.playbackRate - (m.vel || 1)) > 0.01) { try { a.preservesPitch = false; a.playbackRate = m.vel || 1; } catch (e) { /* nada */ } }
     if (act) { if (a.paused) { a.currentTime = loc; a.play().catch(() => {}); } else if (Math.abs(a.currentTime - loc) > 0.3) a.currentTime = loc; }
@@ -456,7 +456,9 @@ function bucle(ahora) {
     else { vctx.fillStyle = '#000'; vctx.fillRect(0, 0, vista.width, vista.height); }
     $('#cutTiempo').textContent = `${fmt(S.t).slice(0, 5)} / ${fmt(lay().total).slice(0, 5)}`;
     const cc = S.clips.length ? clipBajoLinea() : null, lt = cc ? ltClip(cc) : 0;
-    $('#cutClave').classList.toggle('on', !!cc?.kf?.some(q => q.t > 0.01 && Math.abs(q.t - lt) < 0.12));
+    const mk = S.selM && S.musica.find(x => x.id === S.selM);
+    $('#cutClave').classList.toggle('on', mk ? !!kfvCerca(mk) : !!cc?.kf?.some(q => q.t > 0.01 && Math.abs(q.t - lt) < 0.12));
+    if (S.tab === 'm-vol' && mk) refrescarVol(mk);
   }
   requestAnimationFrame(bucle);
 }
@@ -577,6 +579,7 @@ function pintarLinea() {
     b.innerHTML = `<span>${esc(m.nombre.replace(/\.[^.]+$/, ''))}</span>` + (m.ritmos?.length ? m.ritmos.filter(t => t >= (m.in || 0) && t <= (m.out ?? m.dur)).map(t => `<i class="rit" style="left:${(t - (m.in || 0)) / (m.vel || 1) * S.pps}px"></i>`).join('') : '');
     if (m.onda) { const v = m.vel || 1; b.style.backgroundImage = `url(${m.onda})`; b.style.backgroundSize = `${(m.dur || largoM(m)) / v * S.pps}px 100%`; b.style.backgroundPositionX = `${-(m.in || 0) / v * S.pps}px`; }
     else ondas(m);
+    if (m.kfv?.length) b.insertAdjacentHTML('beforeend', m.kfv.map(k => `<i class="kfv ${S.selM === m.id ? '' : 'apag'}" style="left:${k.t * S.pps}px"></i>`).join(''));
     b.onclick = (e) => { e.stopPropagation(); S.selM = m.id; S.sel = null; S.selC = null; S.barraClip = false; S.barraAudio = false; abrirTab(innerWidth < 1000 ? null : 'audio'); pintarLinea(); };
     pa.appendChild(b);
   });
@@ -760,6 +763,21 @@ function ponerPortada(url, t) {
 }
 
 /* ---------- música ---------- */
+// Volumen del audio en el momento t de la línea: con fotogramas clave (◆) cambia de uno a otro, como CapCut
+function volEn(m, t) {
+  const k = m.kfv; if (!k?.length) return m.vol ?? 1;
+  const r = t - m.start;
+  if (r <= k[0].t) return k[0].v;
+  for (let i = 1; i < k.length; i++) if (r <= k[i].t) { const a = k[i - 1], b = k[i]; return a.v + (b.v - a.v) * (r - a.t) / Math.max(0.001, b.t - a.t); }
+  return k[k.length - 1].v;
+}
+const kfvCerca = (m, t = S.t) => m.kfv?.find(q => Math.abs(q.t - (t - m.start)) < 0.12);
+// Pone el volumen: si el audio tiene fotogramas clave, se guarda en el de la línea blanca (o se crea uno ahí)
+function ponerVol(m, v) {
+  if (!m.kfv?.length) { m.vol = v; return; }
+  const r = Math.max(0, Math.min(largoM(m), S.t - m.start));
+  const k = kfvCerca(m); if (k) k.v = v; else { m.kfv.push({ t: r, v }); m.kfv.sort((a, b) => a.t - b.t); }
+}
 function largoM(m) { return Math.max(0.1, ((m.out ?? m.dur ?? 0) - (m.in || 0)) / (m.vel || 1)); }
 function finM(m) { return m.start + largoM(m); }
 function prepararMusica(m) {
@@ -1264,6 +1282,7 @@ function abrirTab(t) {
   pintarBarra();
   $('#cutPanel').hidden = !t;
   document.body.classList.toggle('con-panel', !!t);
+  document.body.classList.toggle('hoja-vol', t === 'm-vol');
   $('#cutPanelTit').textContent = TITULOS[t] || '';
   pintarPanel();
   requestAnimationFrame(() => pintarLinea());
@@ -1383,15 +1402,18 @@ async function accionMusica(m, a) {
   if (a === 'dividir') {
     const loc = m.in + (S.t - m.start) * (m.vel || 1), fin = m.out ?? m.dur;
     if (S.t <= m.start + 0.1 || loc >= fin - 0.1) return aviso('Ponga la línea blanca encima del audio donde lo quiere cortar');
-    const n = reg({ ...m, id: uid(), el: null, url: null, start: S.t, in: loc, out: m.out ?? null, fadeIn: false, ritmos: m.ritmos ? [...m.ritmos] : null });
-    m.out = loc; m.fadeOut = false;
+    const corte = S.t - m.start, vc = volEn(m, S.t);
+    const kA = m.kfv ? [...m.kfv.filter(k => k.t < corte - 0.01), { t: corte, v: vc }] : null;
+    const kB = m.kfv ? [{ t: 0, v: vc }, ...m.kfv.filter(k => k.t > corte + 0.01).map(k => ({ t: k.t - corte, v: k.v }))] : null;
+    const n = reg({ ...m, id: uid(), el: null, url: null, start: S.t, in: loc, out: m.out ?? null, fadeIn: false, ritmos: m.ritmos ? [...m.ritmos] : null, kfv: kB });
+    m.out = loc; m.fadeOut = false; m.kfv = kA;
     try { await prepararMusica(n); } catch (e) { return aviso(e.message, 'mal'); }
     S.musica.splice(S.musica.indexOf(m) + 1, 0, n); S.selM = n.id;
     pintarLinea(); pintarBarra(); guardar(); return aviso('Audio dividido ✂️');
   }
   if (a === 'eliminar') { if (m.el) m.el.pause(); S.musica = S.musica.filter(x => x !== m); S.selM = null; abrirTab(null); pintarLinea(); guardar(); return; }
   if (a === 'duplicar') {
-    const n = reg({ ...m, id: uid(), el: null, url: null, start: finM(m), ritmos: m.ritmos ? [...m.ritmos] : null });
+    const n = reg({ ...m, id: uid(), el: null, url: null, start: finM(m), ritmos: m.ritmos ? [...m.ritmos] : null, kfv: m.kfv ? m.kfv.map(k => ({ ...k })) : null });
     try { await prepararMusica(n); } catch (e) { return aviso(e.message, 'mal'); }
     S.musica.splice(S.musica.indexOf(m) + 1, 0, n); S.selM = n.id; pintarLinea(); pintarBarra(); guardar(); return aviso('Audio duplicado');
   }
@@ -1424,6 +1446,13 @@ async function buscarRitmos(m) {
     if (en[k] > prom * 1.6 && en[k] >= en[k - 1] && en[k] >= en[k + 1] && (ult < 0 || (k - ult) * tv > 0.28)) { out.push(Math.round(k * tv * 100) / 100); ult = k; }
   }
   return out;
+}
+function refrescarVol(m, forzar = false) {
+  const riel = $('#cutPanelCuerpo [data-riel]'); if (!riel || (!forzar && riel.classList.contains('mueve'))) return;
+  const n = Math.round(volEn(m, S.t) * 100), x = riel._aPos(n) * 100;
+  if (riel._n === n && !forzar) return; riel._n = n;
+  $('.hv-lleno', riel).style.width = x + '%'; $('.hv-bola', riel).style.left = x + '%';
+  const num = $('.hv-num', riel); num.style.left = x + '%'; num.textContent = n;
 }
 function abrirBarraAudio() { S.barraAudio = true; S.barraClip = false; S.sel = null; S.selM = null; S.selC = null; abrirTab(null); pintarLinea(); }
 function silenciarOriginales(si) { S.silenciar = si; sincronizar(); pintarLinea(); pintarBarra(); guardar(); aviso(si ? 'Sonido original de los videos apagado 🔇' : 'Sonido original de los videos activado 🔊'); }
@@ -1477,6 +1506,20 @@ $('#cutPanelCerrar').addEventListener('click', () => abrirTab(innerWidth >= 1000
 $('#cutDeshacer').addEventListener('click', deshacer);
 // Fotograma clave (como CapCut): marca este momento para que el zoom cambie desde aquí
 $('#cutClave').addEventListener('click', () => {
+  const mk = S.selM && S.musica.find(x => x.id === S.selM);
+  if (mk) {
+    pausar();
+    if (S.t < mk.start - 0.01 || S.t > finM(mk) + 0.01) return aviso('Ponga la línea blanca encima del audio para marcar el volumen ahí');
+    const ya = kfvCerca(mk);
+    if (ya) { const v0 = volEn(mk, S.t); mk.kfv = mk.kfv.filter(q => q !== ya); if (!mk.kfv.length) { mk.kfv = null; mk.vol = v0; } aviso('Fotograma clave quitado'); }
+    else {
+      const v = volEn(mk, S.t);
+      mk.kfv ||= [];
+      mk.kfv.push({ t: Math.max(0, Math.min(largoM(mk), S.t - mk.start)), v }); mk.kfv.sort((a, b) => a.t - b.t);
+      aviso(mk.kfv.length === 1 ? '◆ Volumen marcado aquí. Mueva la línea, ponga otro ◆ y cambie el volumen: el audio sube o baja entre los dos' : '◆ Fotograma clave agregado');
+    }
+    guardar(); pintarLinea(); if (S.tab === 'm-vol') pintarPanel(); S.dirty = true; return;
+  }
   const c = clipBajoLinea(); if (!c) return aviso('Ponga la línea blanca sobre un clip');
   pausar();
   const lt = ltClip(c);
@@ -1591,10 +1634,28 @@ function pintarPanel() {
   if (S.tab?.startsWith('m-')) {
     if (!m) { abrirTab(null); return; }
     if (S.tab === 'm-vol') {
-      p.innerHTML = `<div class="cut-fila"><small>Volumen</small><input type="range" min="0" max="2" step="0.05" value="${m.vol ?? 1}" data-mvol><b class="cut-val">${Math.round((m.vol ?? 1) * 100)}%</b></div>`;
-      const r = $('[data-mvol]', p);
-      r.oninput = () => { m.vol = Number(r.value); $('.cut-val', p).textContent = Math.round(m.vol * 100) + '%'; sincronizar(); };
-      r.onchange = guardar;
+      // Hoja de volumen como CapCut: 0 a 1000 (100 = normal), burbuja con el número, reducir ruido y ✓
+      p.innerHTML = `
+        <div class="hv-fila"><span>0</span><div class="hv-riel" data-riel><i class="hv-lleno"></i><i class="hv-marca"></i><b class="hv-num"></b><i class="hv-bola"></i></div><span>1000</span></div>
+        <p class="hv-kf">${m.kfv?.length ? `◆ ${m.kfv.length} fotograma${m.kfv.length > 1 ? 's' : ''} clave: el volumen se guarda en el ◆ de la línea blanca` : 'Toque ◆ (arriba, junto a deshacer) para marcar el volumen en distintos momentos'}</p>
+        <label class="hv-sw"><span><b>Reducir el ruido</b><small>Quita el ruido de fondo del audio seleccionado.</small></span><input type="checkbox" data-hvr ${m.limpio ? 'checked' : ''}><i></i></label>
+        <div class="hv-pie"><b>Volumen</b><button type="button" data-hvok aria-label="Listo">✓</button></div>`;
+      const riel = $('[data-riel]', p);
+      // Posición del deslizador ↔ número: la mitad es 100 (volumen normal) y el resto llega hasta 1000
+      const aNum = (x) => Math.round(x <= 0.5 ? x * 200 : 100 + (x - 0.5) * 1800);
+      const aPos = (n) => n <= 100 ? n / 200 : 0.5 + (n - 100) / 1800;
+      const mover = (e) => {
+        const r = riel.getBoundingClientRect(), x = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+        let n = aNum(x); if (Math.abs(n - 100) < 12) n = 100; // se pega en 100
+        ponerVol(m, n / 100); refrescarVol(m, true); sincronizar();
+      };
+      riel.onpointerdown = (e) => { riel.setPointerCapture(e.pointerId); riel.classList.add('mueve'); mover(e); };
+      riel.onpointermove = (e) => { if (riel.classList.contains('mueve')) mover(e); };
+      riel.onpointerup = riel.onpointercancel = () => { riel.classList.remove('mueve'); guardar(); pintarLinea(); };
+      riel._aPos = aPos;
+      refrescarVol(m);
+      $('[data-hvr]', p).onchange = (e) => { m.limpio = e.target.checked; aplicarLimpieza(m); pintarBarra(); guardar(); };
+      $('[data-hvok]', p).onclick = () => abrirTab(null);
     } else if (S.tab === 'm-fade') {
       p.innerHTML = `<label class="cut-check"><input type="checkbox" data-fi ${m.fadeIn ? 'checked' : ''}> Aparecer suave al inicio</label>
         <label class="cut-check"><input type="checkbox" data-fo ${m.fadeOut ? 'checked' : ''}> Desaparecer suave al final</label>`;
@@ -1981,7 +2042,15 @@ async function mezclarAudio(rate, canales, soloVoz = false) {
     if (fi) g.gain.linearRampToValueAtTime(v, m.start + fi);
     if (fo) { g.gain.setValueAtTime(v, m.start + dur - fo); g.gain.linearRampToValueAtTime(0, m.start + dur); }
     src.playbackRate.value = m.vel || 1;
-    cadenaEfectos(oc, src, m).salida.connect(g).connect(oc.destination);
+    let sal = cadenaEfectos(oc, src, m).salida;
+    if (m.kfv?.length) {
+      // Fotogramas clave de volumen: la ganancia va de uno a otro (sobre el volumen base)
+      const gk = oc.createGain(), base = Math.max(0.0001, v);
+      gk.gain.setValueAtTime(m.kfv[0].v / base, m.start);
+      for (const k of m.kfv) gk.gain.linearRampToValueAtTime(k.v / base, m.start + k.t);
+      sal.connect(gk); sal = gk;
+    }
+    sal.connect(g).connect(oc.destination);
     src.start(m.start, m.in || 0, dur * (m.vel || 1));
   }
   if (!hay) return null;
@@ -2601,7 +2670,7 @@ function guardarYa() {
 function estadoProyecto() {
   return { nombre: S.proyNombre, mini: S.proyMini || null,
       clips: S.clips.map(c => ({ id: c.id, fileId: c.fileId, nombre: c.nombre, tipo: c.tipo, in: c.in, out: c.out, dur: c.dur, mute: c.mute, vol: c.vol ?? 1, trans: c.trans, vel: c.vel || 1, curva: c.curva || null, z: c.z || 1, x: c.x || 0, y: c.y || 0, kf: c.kf?.length ? c.kf : null, ef: c.ef || 'ninguno', anim: c.anim || null, limpio: !!c.limpio })),
-      musica: S.musica.map(m => ({ id: m.id, fileId: m.fileId, nombre: m.nombre, start: m.start, in: m.in, out: m.out ?? null, dur: m.dur, vol: m.vol, fadeIn: m.fadeIn, fadeOut: m.fadeOut, limpio: !!m.limpio, voz: !!m.voz, mejor: !!m.mejor, aislar: !!m.aislar, efa: m.efa || '', vel: m.vel || 1, ritmos: m.ritmos || null })),
+      musica: S.musica.map(m => ({ id: m.id, fileId: m.fileId, nombre: m.nombre, start: m.start, in: m.in, out: m.out ?? null, dur: m.dur, vol: m.vol, fadeIn: m.fadeIn, fadeOut: m.fadeOut, limpio: !!m.limpio, voz: !!m.voz, mejor: !!m.mejor, aislar: !!m.aislar, efa: m.efa || '', vel: m.vel || 1, ritmos: m.ritmos || null, kfv: m.kfv?.length ? m.kfv.map(k => ({ ...k })) : null })),
       silenciar: !!S.silenciar,
       subs: S.subs, segs: S.segs, sub: S.sub, belleza: S.belleza, aspecto: S.aspecto, fecha: Date.now(),
       capas: S.capas.map(datosCapa), filtro: S.filtro, ajuste: S.ajuste, fondo: S.fondo, portada: S.portada ? { t: S.portada.t, url: S.portada.url } : null,
