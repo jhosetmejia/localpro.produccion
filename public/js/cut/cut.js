@@ -2239,8 +2239,40 @@ $$('.cut-modal').forEach((m) => {
 
 /* ---------- arranque ---------- */
 $('#cutPlay').addEventListener('click', () => (S.playing ? pausar() : reproducir()));
-$('#cutZoomMas').addEventListener('click', () => { S.pps = Math.min(240, S.pps * 1.4); pintarLinea(); });
-$('#cutZoomMenos').addEventListener('click', () => { S.pps = Math.max(12, S.pps / 1.4); pintarLinea(); });
+$('#cutZoomMas').addEventListener('click', () => zoomLinea(S.pps * 1.4));
+$('#cutZoomMenos').addEventListener('click', () => zoomLinea(S.pps / 1.4));
+
+/* ---------- zoom de la línea de tiempo con dos dedos (como CapCut) ----------
+   Abrir los dedos agranda los clips (más detalle para cortar justo); cerrarlos los encoge para ver todo el video.
+   La línea blanca se queda en el mismo momento del video mientras hace zoom. */
+const ZOOM_MIN = 8, ZOOM_MAX = 480;
+let zoomPend = null;
+function zoomLinea(pps) {
+  S.pps = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, pps));
+  if (zoomPend) return;
+  zoomPend = requestAnimationFrame(() => { zoomPend = null; pintarLinea(); moverLinea(); });
+}
+let pellizco = null;
+const distDedos = (t) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+linea.addEventListener('touchstart', (e) => {
+  if (e.touches.length !== 2 || orden) return;
+  clearTimeout(ordenEspera); // no confundir con "mantener presionado para mover el clip"
+  if (S.playing) pausar();
+  pellizco = { d0: Math.max(20, distDedos(e.touches)), pps0: S.pps };
+}, { passive: true });
+linea.addEventListener('touchmove', (e) => {
+  if (!pellizco || e.touches.length !== 2) return;
+  e.preventDefault(); // que el celular no deslice la línea ni haga zoom a la página
+  zoomLinea(pellizco.pps0 * distDedos(e.touches) / pellizco.d0);
+}, { passive: false });
+linea.addEventListener('touchend', (e) => { if (e.touches.length < 2) pellizco = null; });
+linea.addEventListener('touchcancel', () => { pellizco = null; });
+// Computador: Ctrl + rueda del mouse (o pellizcar en el touchpad)
+linea.addEventListener('wheel', (e) => {
+  if (!e.ctrlKey) return;
+  e.preventDefault();
+  zoomLinea(S.pps * Math.exp(-e.deltaY * 0.01));
+}, { passive: false });
 window.addEventListener('resize', () => { if (S.exportando) { S._resizePend = true; return; } ajustarVista(); pintarLinea(); });
 document.addEventListener('keydown', (e) => {
   const t = e.target;
