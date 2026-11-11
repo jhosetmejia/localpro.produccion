@@ -1283,6 +1283,44 @@ $('#cutClave').addEventListener('click', () => {
 $('#cutRehacer').addEventListener('click', rehacer);
 $('#cutPantalla').addEventListener('click', () => { document.body.classList.toggle('pantalla'); setTimeout(() => { pintarLinea(); S.dirty = true; }, 50); });
 
+/* ---------- rejilla de animaciones estilo CapCut (miniatura con su clip moviéndose + nombre debajo) ---------- */
+// Primer cuadro del clip (recortado de la tira de miniaturas) para usarlo de fondo en las vistas previas
+function fotoClip(c) {
+  if (!c?.tira) return null;
+  if (c._foto?.de === c.tira) return c._foto.url;
+  if (!c._fotoCargando) {
+    c._fotoCargando = true;
+    const img = new Image();
+    img.onload = () => {
+      c._fotoCargando = false;
+      const lado = img.height, ancho = c.tipo === 'imagen' ? img.width : Math.min(img.width, Math.round(lado * (c.w || 9) / (c.h || 16)));
+      const cv = document.createElement('canvas'); cv.width = ancho; cv.height = lado;
+      cv.getContext('2d').drawImage(img, 0, 0, ancho, lado, 0, 0, ancho, lado);
+      c._foto = { de: c.tira, url: cv.toDataURL('image/jpeg', 0.7) };
+      $$(`.lpa[data-fa="${c.id}"]`).forEach(g => g.style.setProperty('--fa', `url(${c._foto.url})`));
+      $$(`.lpa[data-fb="${c.id}"]`).forEach(g => g.style.setProperty('--fb', `url(${c._foto.url})`));
+    };
+    img.onerror = () => { c._fotoCargando = false; };
+    img.src = c.tira;
+  }
+  return null;
+}
+function rejillaAnim({ grupo, items, actual, tipo, ca = null, cb = null, salida = false }) {
+  const fa = fotoClip(ca), fb = fotoClip(cb);
+  const vars = (fa ? `--fa:url(${fa});` : '') + (fb ? `--fb:url(${fb});` : '');
+  const capa = (id) => {
+    if (tipo === 'tr') return `<i class="a ta-${id}"></i><i class="b tr-${id}"></i><i class="x tz-${id}"></i>`;
+    if (tipo === 'tx') return `<i class="a"></i><i class="txt tx-${id} ${salida ? 'sal' : ''}">Abc</i>`;
+    return `<i class="b an-${id} ${salida ? 'sal' : ''}"></i>`;
+  };
+  const nada = (id) => id === '' || id === 'ninguna';
+  return `<div class="lpa" data-grupo="${grupo}" ${ca ? `data-fa="${ca.id}"` : ''} ${cb ? `data-fb="${cb.id}"` : ''} style="${vars}">${items.map(([id, n]) => `
+    <button type="button" class="lpa-t ${String(actual) === String(id) ? 'on' : ''}" data-v="${id}">
+      <span class="lpa-m ${nada(id) ? 'nada' : ''} ${tipo === 'tx' ? 'oscura' : ''}">${nada(id) ? '' : capa(id)}</span><small>${esc(n)}</small></button>`).join('')}</div>`;
+}
+const pestanasAnim = (lado, extra = '') => `<div class="lpa-cab" data-lado>${[['in', 'Entrada'], ['out', 'Salida']].map(([v, n]) => `<button type="button" data-l="${v}" class="${lado === v ? 'on' : ''}">${n}</button>`).join('')}${extra}</div>`;
+const aplicarTodo = (on) => `<label class="lpa-todo"><input type="checkbox" data-atodo ${on ? 'checked' : ''}><i></i>Aplicar a todo</label>`;
+
 function chips(nombre, opciones, actual) {
   return `<div class="cut-chips" data-grupo="${nombre}">${opciones.map(([v, t]) => `<button type="button" class="cut-chip ${String(v) === String(actual) ? 'on' : ''}" data-v="${v}">${t}</button>`).join('')}</div>`;
 }
@@ -1329,16 +1367,20 @@ function pintarPanel() {
   if (S.tab === 'transicion') {
     const i = S.clips.indexOf(c);
     if (!c || i < 0 || i >= S.clips.length - 1) { p.innerHTML = `<p class="cut-nota">Toque el rombo <b>◇</b> que aparece entre dos clips para ponerle una transición.</p>`; return; }
+    const todas = () => { if (S.trTodo) S.clips.slice(0, -1).forEach(x => { x.trans = { ...c.trans }; }); };
     p.innerHTML = `
-      <div class="cut-trans">${TRANSICIONES.map(t => `<button type="button" class="${c.trans.tipo === t.id ? 'on' : ''}" data-t="${t.id}"><span class="ic ic-${t.id}"></span>${t.n}</button>`).join('')}</div>
-      <div class="cut-fila"><small>Duración</small>${chips('durtr', [[0.3, 'Rápida'], [0.5, 'Normal'], [0.8, 'Lenta'], [1.2, 'Muy lenta']], c.trans.dur)}</div>
-      <button type="button" class="cut-btn-sec" data-todas>Aplicar a todos los cortes</button>`;
-    $('.cut-trans', p).onclick = (e) => {
-      const b = e.target.closest('[data-t]'); if (!b) return;
-      c.trans.tipo = b.dataset.t; pintarLinea(); pintarPanel(); guardar(); irA(S.t);
+      ${aplicarTodo(S.trTodo)}
+      ${rejillaAnim({ grupo: 'trans', tipo: 'tr', items: TRANSICIONES.map(t => [t.id, t.id === 'ninguna' ? 'Ninguno' : t.n]), actual: c.trans.tipo, ca: c, cb: S.clips[i + 1] })}
+      <div class="cut-fila"><small>Duración</small>${chips('durtr', [[0.3, 'Rápida'], [0.5, 'Normal'], [0.8, 'Lenta'], [1.2, 'Muy lenta']], c.trans.dur)}</div>`;
+    $('[data-grupo="trans"]', p).onclick = (e) => {
+      const b = e.target.closest('[data-v]'); if (!b) return;
+      c.trans.tipo = b.dataset.v; todas(); pintarLinea(); pintarPanel(); guardar();
+      // Se ve de una vez: se reproduce el corte con la transición
+      const L = lay(), fin = L.start[i] + largo(c);
+      if (c.trans.tipo !== 'ninguna') { irA(Math.max(0, fin - c.trans.dur - 0.6)); reproducir(Math.min(L.total, fin + 0.5)); } else irA(S.t);
     };
-    $('[data-grupo="durtr"]', p).onclick = (e) => { const v = e.target.dataset.v; if (!v) return; c.trans.dur = Number(v); pintarLinea(); pintarPanel(); guardar(); irA(S.t); };
-    $('[data-todas]', p).onclick = () => { S.clips.slice(0, -1).forEach(x => { x.trans = { ...c.trans }; }); pintarLinea(); guardar(); aviso('Transición puesta en todos los cortes ✨'); };
+    $('[data-atodo]', p).onchange = (e) => { S.trTodo = e.target.checked; if (S.trTodo) { todas(); pintarLinea(); guardar(); aviso('Transición puesta en todos los cortes ✨'); } };
+    $('[data-grupo="durtr"]', p).onclick = (e) => { const v = e.target.dataset.v; if (!v) return; c.trans.dur = Number(v); todas(); pintarLinea(); pintarPanel(); guardar(); irA(S.t); };
     return;
   }
   if (S.tab === 'audio') {
@@ -1396,8 +1438,11 @@ function pintarPanel() {
       <div class="cut-fila"><small>Tamaño</small>${chips('tam', [['S', 'Pequeño'], ['M', 'Mediano'], ['L', 'Grande']], st.tam)}</div>
       <div class="cut-fila"><small>Color</small><div class="cut-colores">${SUB.COLORES.map(col => `<button type="button" data-col="${col}" class="${st.color === col ? 'on' : ''}" style="background:${col}"></button>`).join('')}</div></div>
       ${esSub ? `<div class="cut-fila"><small>Palabras por subtítulo</small>${chips('pal', [[1, '1'], [2, '2'], [3, '3'], [5, '5'], [0, 'Frase']], st.palabras)}</div>` : ''}
-      <div class="cut-fila"><small>Animación de entrada</small>${chips('ai', SUB.ANIM_ENTRADA, st.ai || 'ninguna')}</div>
-      <div class="cut-fila"><small>Animación de salida</small>${chips('ao', SUB.ANIM_SALIDA, st.ao || 'ninguna')}</div>
+      <div class="lbl">Animación</div>
+      ${pestanasAnim(S.txLado || 'in')}
+      ${(S.txLado || 'in') === 'in'
+        ? rejillaAnim({ grupo: 'ai', tipo: 'tx', items: SUB.ANIM_ENTRADA.map(([v, n]) => [v, v === 'ninguna' ? 'Ninguno' : n]), actual: st.ai || 'ninguna', ca: clipBajoLinea() || S.clips[0] })
+        : rejillaAnim({ grupo: 'ao', tipo: 'tx', items: SUB.ANIM_SALIDA.map(([v, n]) => [v, v === 'ninguna' ? 'Ninguno' : n]), actual: st.ao || 'ninguna', ca: clipBajoLinea() || S.clips[0], salida: true })}
       <div class="cut-fila"><small>Altura</small><input type="range" min="0.1" max="0.9" step="0.01" value="${st.pos}" data-pos></div>
       <label class="cut-check"><input type="checkbox" data-mayus ${st.mayus ? 'checked' : ''}> TODO EN MAYÚSCULAS</label>
       <div class="cut-acciones2">
@@ -1408,10 +1453,11 @@ function pintarPanel() {
     $('.cut-estilos', p).onclick = (e) => { const b = e.target.closest('[data-e]'); if (!b) return; st.estilo = b.dataset.e; pintarPanel(); S.dirty = true; guardar(); };
     $('[data-grupo="tam"]', p).onclick = (e) => { if (!e.target.dataset.v) return; st.tam = e.target.dataset.v; pintarPanel(); S.dirty = true; guardar(); };
     // Animación para todos los textos: se ve de una vez repitiendo el texto que está más cerca
-    for (const k of ['ai', 'ao']) $(`[data-grupo="${k}"]`, p).onclick = (e) => {
-      const v = e.target.dataset.v; if (!v) return;
-      st[k] = v; pintarPanel(); guardar(); verAnimTexto();
-    };
+    for (const k of ['ai', 'ao']) { const g = $(`[data-grupo="${k}"]`, p); if (g) g.onclick = (e) => {
+      const b = e.target.closest('[data-v]'); if (!b) return;
+      st[k] = b.dataset.v; pintarPanel(); guardar(); verAnimTexto();
+    }; }
+    $('[data-lado]', p).onclick = (e) => { const b = e.target.closest('[data-l]'); if (!b) return; S.txLado = b.dataset.l; pintarPanel(); };
     const gp = $('[data-grupo="pal"]', p); if (gp) gp.onclick = (e) => { if (e.target.dataset.v == null) return; st.palabras = Number(e.target.dataset.v); if (S.segs.length) { S.subs = SUB.armar(S.segs, st.palabras); pintarLinea(); } pintarPanel(); guardar(); };
     $('.cut-colores', p).onclick = (e) => { if (!e.target.dataset.col) return; st.color = e.target.dataset.col; pintarPanel(); S.dirty = true; guardar(); };
     $('[data-pos]', p).oninput = (e) => { st.pos = Number(e.target.value); S.dirty = true; };
@@ -1496,14 +1542,24 @@ function pintarPanel() {
   if (S.tab === 'animaciones') {
     if (!c) { p.innerHTML = `<p class="cut-nota">Toque un clip en la línea de tiempo.</p>`; return; }
     const an = c.anim || { in: '', out: '', dur: 0.5 };
-    const grid = (g, act) => `<div class="cut-efs" data-an="${g}">${ANIMACIONES.map(a => `<button type="button" data-v="${a.id}" class="${(act || '') === a.id ? 'on' : ''}"><i>${{ '': '⦸', fundido: '🌗', acercar: '🔍', alejar: '🔭', deslizar: '➡️', subir: '⬆️', girar: '🌀' }[a.id]}</i><small>${a.n}</small></button>`).join('')}</div>`;
+    const lado = S.anLado || 'in';
+    const todos = () => { if (S.anTodo) S.clips.forEach(x => { x.anim = { ...c.anim }; }); };
     p.innerHTML = `
-      <div class="lbl">Entrada</div>${grid('in', an.in)}
-      <div class="lbl">Salida</div>${grid('out', an.out)}
+      ${pestanasAnim(lado)}
+      ${aplicarTodo(S.anTodo)}
+      ${rejillaAnim({ grupo: 'anim', tipo: 'an', items: ANIMACIONES.map(a => [a.id, a.id === '' ? 'Ninguno' : a.n]), actual: an[lado] || '', cb: c, salida: lado === 'out' })}
       <div class="cut-fila"><small>Duración</small>${chips('andur', [[0.3, 'Rápida'], [0.5, 'Normal'], [0.8, 'Lenta'], [1.2, 'Muy lenta']], an.dur || 0.5)}</div>`;
-    const ver = () => { S.dirty = true; };
-    $$('[data-an]', p).forEach(g => g.onclick = (e) => { const b = e.target.closest('[data-v]'); if (!b) return; c.anim = { ...an, [g.dataset.an]: b.dataset.v }; pintarPanel(); guardar(); ver(g.dataset.an === 'out'); });
-    $('[data-grupo="andur"]', p).onclick = (e) => { const v = e.target.dataset.v; if (!v) return; c.anim = { ...an, dur: Number(v) }; pintarPanel(); guardar(); ver(false); };
+    // Se ve de una vez en el video: se reproduce el inicio (entrada) o el final (salida) del clip
+    const ver = () => {
+      S.dirty = true;
+      const L = lay(), k = S.clips.indexOf(c), d = (c.anim?.dur || 0.5) + 0.4;
+      if (!c.anim?.[lado]) return;
+      if (lado === 'in') { irA(L.start[k]); reproducir(L.start[k] + d); } else { const fin = L.start[k] + largo(c); irA(Math.max(L.start[k], fin - d)); reproducir(fin - 0.02); }
+    };
+    $('[data-lado]', p).onclick = (e) => { const b = e.target.closest('[data-l]'); if (!b) return; S.anLado = b.dataset.l; pintarPanel(); };
+    $('[data-grupo="anim"]', p).onclick = (e) => { const b = e.target.closest('[data-v]'); if (!b) return; c.anim = { ...an, [lado]: b.dataset.v }; todos(); pintarPanel(); guardar(); ver(); };
+    $('[data-atodo]', p).onchange = (e) => { S.anTodo = e.target.checked; if (S.anTodo && c.anim) { todos(); guardar(); aviso('Animación puesta en todos los clips ✨'); } };
+    $('[data-grupo="andur"]', p).onclick = (e) => { const v = e.target.dataset.v; if (!v) return; c.anim = { ...an, dur: Number(v) }; todos(); pintarPanel(); guardar(); ver(); };
     return;
   }
   if (S.tab === 'recortar') {

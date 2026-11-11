@@ -177,6 +177,92 @@ body.con-capas .cut-linea{height:210px}
 .cut-portada-v{display:grid;place-items:center;margin-bottom:.6rem}
 .cut-portada-v img{max-height:160px;border-radius:10px}
 .cut-portada-v span{color:var(--m);font-size:.82rem}
+/* Rejilla de animaciones y transiciones estilo CapCut: miniatura con vista previa en movimiento + nombre debajo */
+.lpa-cab{display:flex;align-items:center;gap:1.1rem;margin:.1rem 0 .7rem;border-bottom:1px solid var(--b)}
+.lpa-cab button{background:none;border:0;color:var(--m);font-weight:700;font-size:.92rem;padding:.35rem 0 .55rem;position:relative}
+.lpa-cab button.on{color:var(--t)}
+.lpa-cab button.on::after{content:"";position:absolute;left:25%;right:25%;bottom:-1px;height:3px;border-radius:3px;background:var(--v)}
+.lpa-todo{display:flex;align-items:center;gap:.6rem;font-weight:700;font-size:.95rem;margin:.1rem 0 .8rem;cursor:pointer;user-select:none}
+.lpa-todo input{position:absolute;opacity:0;pointer-events:none}
+.lpa-todo i{width:22px;height:22px;border-radius:50%;border:2px solid #8a8f8c;display:grid;place-items:center;flex-shrink:0}
+.lpa-todo input:checked+i{border-color:var(--v);background:var(--v)}
+.lpa-todo input:checked+i::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--f)}
+.lpa{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.9rem .6rem;margin-bottom:.6rem}
+@media(min-width:1000px){.lpa{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.lpa-t{background:none;border:0;padding:0;display:flex;flex-direction:column;align-items:center;gap:.45rem;min-width:0;color:#c9ccca}
+.lpa-m{position:relative;width:100%;aspect-ratio:1;border-radius:10px;overflow:hidden;background:#2a2d2c;display:block;transition:box-shadow .15s}
+.lpa-t.on .lpa-m{box-shadow:0 0 0 3px var(--f2),0 0 0 5.5px #fff}
+.lpa-t.on small{color:#fff}
+.lpa-t small{font-size:.72rem;font-weight:600;width:100%;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+.lpa-m.nada{display:grid;place-items:center;background:#323534}
+.lpa-m.nada::before{content:"";width:34%;aspect-ratio:1;border-radius:50%;border:2.5px solid #d9dcda;background:linear-gradient(45deg,transparent 46%,#d9dcda 46%,#d9dcda 54%,transparent 54%)}
+.lpa-m>i{position:absolute;inset:0;background-size:cover;background-position:center;will-change:transform,opacity,clip-path}
+.lpa-m>.a{background-image:var(--fa,linear-gradient(135deg,#3b6e8f,#8fc3d9))}
+.lpa-m>.b{background-image:var(--fb,linear-gradient(135deg,#c9733b,#f2c48f))}
+.lpa-m>.x{background:#000;opacity:0}
+.lpa-m>.txt{background:none;display:grid;place-items:center;font:900 clamp(.85rem,4.2vw,1.15rem)/1 Unbounded,system-ui,sans-serif;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.7);letter-spacing:-.02em}
+.lpa-m.oscura>.a{filter:brightness(.55)}
+.lpa [class*="tr-"],.lpa [class*="ta-"],.lpa [class*="tz-"],.lpa [class*="an-"],.lpa [class*="tx-"]{animation-duration:2s;animation-iteration-count:infinite;animation-timing-function:ease-in-out}
+.lpa .sal{animation-direction:reverse}
+@media(prefers-reduced-motion:reduce){.lpa-m>i{animation:none!important}}
+/* transiciones (A → B) */
+.tr-ninguna{animation-name:trCorte;animation-timing-function:steps(1,end)!important}
+@keyframes trCorte{0%,49%{opacity:0}50%,100%{opacity:1}}
+.tr-disolver{animation-name:trDis}
+@keyframes trDis{0%,25%{opacity:0}75%,100%{opacity:1}}
+.tr-fundido{animation-name:trFunB}.x.tz-fundido{animation-name:trFunX}
+@keyframes trFunB{0%,49%{opacity:0}50%,100%{opacity:1}}
+@keyframes trFunX{0%,20%{opacity:0}50%{opacity:1}80%,100%{opacity:0}}
+.tr-destello{animation-name:trFunB}.x.tz-destello{background:#fff;animation-name:trFunX}
+.tr-izq{animation-name:trIzq}.ta-izq{animation-name:trIzqA}
+@keyframes trIzq{0%,25%{transform:translateX(100%)}75%,100%{transform:none}}
+@keyframes trIzqA{0%,25%{transform:none}75%,100%{transform:translateX(-100%)}}
+.tr-der{animation-name:trDer}.ta-der{animation-name:trDerA}
+@keyframes trDer{0%,25%{transform:translateX(-100%)}75%,100%{transform:none}}
+@keyframes trDerA{0%,25%{transform:none}75%,100%{transform:translateX(100%)}}
+.tr-arriba{animation-name:trArr}.ta-arriba{animation-name:trArrA}
+@keyframes trArr{0%,25%{transform:translateY(100%)}75%,100%{transform:none}}
+@keyframes trArrA{0%,25%{transform:none}75%,100%{transform:translateY(-100%)}}
+.tr-zoom{animation-name:trZoom}
+@keyframes trZoom{0%,25%{transform:scale(.25);opacity:0}75%,100%{transform:none;opacity:1}}
+.tr-zoomin{animation-name:trDis}.ta-zoomin{animation-name:trZoomA}
+@keyframes trZoomA{0%,25%{transform:none}75%,100%{transform:scale(2.6)}}
+.tr-barrido{animation-name:trBar}
+@keyframes trBar{0%,25%{clip-path:inset(0 100% 0 0)}75%,100%{clip-path:inset(0 0 0 0)}}
+.tr-desenfoque{animation-name:trBlur}.ta-desenfoque{animation-name:trBlurA}
+@keyframes trBlur{0%,30%{opacity:0;filter:blur(8px)}50%{opacity:1;filter:blur(8px)}80%,100%{opacity:1;filter:none}}
+@keyframes trBlurA{0%,20%{filter:none}50%,100%{filter:blur(8px)}}
+.tr-giro{animation-name:trGiro}
+@keyframes trGiro{0%,25%{transform:rotate(-200deg) scale(.15);opacity:0}75%,100%{transform:none;opacity:1}}
+.tr-circulo{animation-name:trCir}
+@keyframes trCir{0%,25%{clip-path:circle(0% at 50% 50%)}75%,100%{clip-path:circle(72% at 50% 50%)}}
+/* animaciones del clip (entrada; la salida va al revés) */
+.an-fundido{animation-name:anFun}
+@keyframes anFun{0%,15%{opacity:0}60%,100%{opacity:1}}
+.an-acercar{animation-name:anAce}
+@keyframes anAce{0%,15%{transform:scale(.3);opacity:0}60%,100%{transform:none;opacity:1}}
+.an-alejar{animation-name:anAle}
+@keyframes anAle{0%,15%{transform:scale(1.9);opacity:0}60%,100%{transform:none;opacity:1}}
+.an-deslizar{animation-name:anDes}
+@keyframes anDes{0%,15%{transform:translateX(-100%)}60%,100%{transform:none}}
+.an-subir{animation-name:anSub}
+@keyframes anSub{0%,15%{transform:translateY(100%)}60%,100%{transform:none}}
+.an-girar{animation-name:anGir}
+@keyframes anGir{0%,15%{transform:rotate(-180deg) scale(.2);opacity:0}60%,100%{transform:none;opacity:1}}
+/* animaciones de texto */
+.tx-aparecer,.tx-desvanecer{animation-name:anFun}
+.tx-subir{animation-name:txSub}.tx-bajar{animation-name:txBaj}
+@keyframes txSub{0%,15%{transform:translateY(60%);opacity:0}60%,100%{transform:none;opacity:1}}
+@keyframes txBaj{0%,15%{transform:translateY(-60%);opacity:0}60%,100%{transform:none;opacity:1}}
+.sal.tx-subir{animation-name:txBaj}.sal.tx-bajar{animation-name:txSub}
+.tx-zoom{animation-name:anAce}
+.tx-rebote{animation-name:txReb;animation-timing-function:linear!important}
+@keyframes txReb{0%,10%{transform:scale(0);opacity:0}25%{transform:scale(1.25);opacity:1}35%{transform:scale(.9)}43%{transform:scale(1.06)}50%,100%{transform:none;opacity:1}}
+.tx-izquierda{animation-name:txIzq}
+@keyframes txIzq{0%,15%{transform:translateX(-90%);opacity:0}60%,100%{transform:none;opacity:1}}
+.tx-derecha{animation-name:txDer}
+@keyframes txDer{0%,15%{transform:translateX(90%);opacity:0}60%,100%{transform:none;opacity:1}}
+.tx-girar{animation-name:anGir}
 .cut-efs,.cut-fils{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:.5rem;margin-bottom:.4rem}
 .cut-efs button,.cut-fils button{background:var(--f3);border:1.5px solid var(--b);border-radius:12px;padding:.5rem .2rem;display:flex;flex-direction:column;align-items:center;gap:.25rem}
 .cut-efs i{font-style:normal;font-size:1.4rem;line-height:1}
