@@ -68,7 +68,7 @@ function volumen(el, v) {
   if (!el) return;
   if (!el._g && v !== 1 && !el._gFallo) {
     const a = audioCtx();
-    try { const src = a.createMediaElementSource(el); el._g = a.createGain(); src.connect(el._g).connect(a.destination); } catch (e) { el._gFallo = true; }
+    try { const src = a.createMediaElementSource(el); el._src = src; el._g = a.createGain(); src.connect(el._g).connect(a.destination); } catch (e) { el._gFallo = true; }
   }
   if (el._g) el._g.gain.value = v; else { try { el.volume = Math.max(0, Math.min(1, v)); } catch (e) { /* nada */ } }
 }
@@ -86,9 +86,9 @@ function reg(o) { REG.set(o.id, o); return o; }
 const HIST = { pila: [], pos: -1, aplicando: false };
 function foto() {
   return JSON.stringify({
-    clips: S.clips.map(c => ({ id: c.id, in: c.in, out: c.out, mute: !!c.mute, vol: c.vol ?? 1, vel: c.vel || 1, curva: c.curva || null, z: c.z || 1, x: c.x || 0, y: c.y || 0, kf: c.kf?.length ? c.kf : null, trans: c.trans, ef: c.ef || 'ninguno', anim: c.anim || null })),
+    clips: S.clips.map(c => ({ id: c.id, in: c.in, out: c.out, mute: !!c.mute, vol: c.vol ?? 1, vel: c.vel || 1, curva: c.curva || null, z: c.z || 1, x: c.x || 0, y: c.y || 0, kf: c.kf?.length ? c.kf : null, trans: c.trans, ef: c.ef || 'ninguno', anim: c.anim || null, limpio: !!c.limpio })),
     capas: S.capas.map(datosCapa), filtro: S.filtro, ajuste: S.ajuste, fondo: S.fondo,
-    musica: S.musica.map(m => ({ id: m.id, start: m.start, in: m.in, out: m.out ?? null, vol: m.vol ?? 1, fadeIn: !!m.fadeIn, fadeOut: !!m.fadeOut })),
+    musica: S.musica.map(m => ({ id: m.id, start: m.start, in: m.in, out: m.out ?? null, vol: m.vol ?? 1, fadeIn: !!m.fadeIn, fadeOut: !!m.fadeOut, limpio: !!m.limpio })),
     subs: S.subs, segs: S.segs, sub: S.sub, belleza: S.belleza, aspecto: S.aspecto, silenciar: !!S.silenciar,
   });
 }
@@ -379,6 +379,7 @@ function sincronizar() {
     const vel = Math.max(0.1, Math.min(8, velEn(c, (S.t - L.start[i]) / largo(c))));
     if (Math.abs(v.playbackRate - vel) > 0.01) { try { v.playbackRate = vel; } catch (e) { /* fuera de rango */ } }
     sonido(v, !!c.mute || !!S.silenciar, c.vol ?? 1);
+    if (!!c.limpio !== !!v._hpOn) { v._hpOn = !!c.limpio; aplicarLimpieza(c); }
     if (act && S.playing) {
       if (v.paused) {
         // Intenta reproducir (sin insistir cada cuadro, eso lo dejaba buscando y la imagen quieta);
@@ -398,6 +399,7 @@ function sincronizar() {
     const act = S.playing && S.t >= m.start && S.t < Math.min(m.start + largoM(m), L.total);
     const loc = m.in + (S.t - m.start);
     volumen(a, m.vol ?? 1);
+    if (!!m.limpio !== !!a._hpOn) { a._hpOn = !!m.limpio; aplicarLimpieza(m); }
     if (act) { if (a.paused) { a.currentTime = loc; a.play().catch(() => {}); } else if (Math.abs(a.currentTime - loc) > 0.3) a.currentTime = loc; }
     else if (!a.paused) a.pause();
   }
@@ -769,10 +771,10 @@ function prepararMusica(m) {
     $('#cutVideos').appendChild(a);
   });
 }
-async function agregarMusica(f, nombre = null, msg = 'Música agregada 🎵') {
+async function agregarMusica(f, nombre = null, msg = 'Música agregada 🎵', extra = {}) {
   if (!f) return;
   const L = lay();
-  const m = reg({ id: uid(), fileId: uid(), file: f, nombre: nombre || f.name || 'Música', start: S.t >= L.total - 0.2 ? 0 : S.t, in: 0, dur: 0, vol: 1, fadeIn: false, fadeOut: true });
+  const m = reg({ id: uid(), fileId: uid(), file: f, nombre: nombre || f.name || 'Música', start: S.t >= L.total - 0.2 ? 0 : S.t, in: 0, dur: 0, vol: 1, fadeIn: false, fadeOut: true, ...extra });
   try {
     await prepararMusica(m);
     S.musica.push(m);
@@ -815,6 +817,169 @@ function nuevoTexto() {
   const x = SUB.repartir({ id: uid(), start: S.t, end: Math.min(S.t + 2, Math.max(lay().total, S.t + 0.5)), text: 'Escriba aquí' });
   S.subs.push(x); S.subs.sort((a, b) => a.start - b.start);
   pintarLinea(); editarSub(x);
+}
+
+/* ---------- quitar pausas (silencios) de un clip donde alguien habla, como CapCut ----------
+   Se escucha el audio del clip, se buscan los tramos en silencio de más de 0,6 s y el clip se parte en los
+   pedazos con voz (dejando un respiro de 0,12 s a cada lado). Se puede deshacer con ↩. */
+async function quitarPausas(c) {
+  if (!c || c.tipo !== 'video') return;
+  if ((c.vel || 1) !== 1 || c.curva) return aviso('Quite primero el cambio de velocidad de este clip para quitarle las pausas', 'mal');
+  pausar();
+  cargandoMsg('Escuchando el audio para encontrar las pausas…');
+  let buf = null;
+  try { buf = await decodificar(c, new OfflineAudioContext(1, 16000, 16000)); } catch (e) { buf = null; }
+  if (!buf) { cargandoMsg(null); return aviso('Este clip no tiene sonido', 'mal'); }
+  const d = buf.getChannelData(0), sr = buf.sampleRate, ven = Math.round(sr * 0.03);
+  const ini = Math.floor(c.in * sr), fin = Math.min(d.length, Math.floor(c.out * sr));
+  const rms = [];
+  for (let i = ini; i < fin; i += ven) {
+    let s2 = 0; const f = Math.min(fin, i + ven);
+    for (let j = i; j < f; j++) s2 += d[j] * d[j];
+    rms.push(Math.sqrt(s2 / Math.max(1, f - i)));
+  }
+  const orden = [...rms].sort((a, b) => a - b);
+  const piso = orden[Math.floor(orden.length * 0.1)] || 0, voz = orden[Math.floor(orden.length * 0.9)] || 0;
+  // Umbral entre el ruido de fondo y la voz (nunca más bajo que unos -50 dB)
+  const umbral = Math.max(0.0032, piso + (voz - piso) * 0.12);
+  const tv = ven / sr, minPausa = 0.6, margen = 0.12;
+  const silencios = []; let desde = -1;
+  rms.forEach((v, k) => {
+    if (v < umbral) { if (desde < 0) desde = k; } else if (desde >= 0) { if ((k - desde) * tv >= minPausa) silencios.push([desde * tv, k * tv]); desde = -1; }
+  });
+  if (desde >= 0 && (rms.length - desde) * tv >= minPausa) silencios.push([desde * tv, rms.length * tv]);
+  const largoC = c.out - c.in;
+  const pedazos = []; let cursor = 0;
+  for (const [a, b] of silencios) {
+    const fA = Math.min(largoC, a + margen), iB = Math.max(0, b - margen);
+    if (fA - cursor > 0.15) pedazos.push([c.in + cursor, c.in + fA]);
+    cursor = Math.max(cursor, iB);
+  }
+  if (largoC - cursor > 0.15) pedazos.push([c.in + cursor, c.out]);
+  cargandoMsg(null);
+  const quitado = largoC - pedazos.reduce((a, [x, y]) => a + (y - x), 0);
+  if (!pedazos.length || quitado < 0.3) return aviso('No encontré pausas largas en este clip 👌');
+  const i = S.clips.indexOf(c), transFinal = c.trans;
+  const nuevos = pedazos.map(([a, b], k) => k === 0
+    ? Object.assign(c, { in: a, out: b, kf: null, _tk: null, trans: { tipo: 'ninguna', dur: 0.5 } })
+    : reg({ ...c, id: uid(), in: a, out: b, el: null, mascara: null, kf: null, _tk: null, trans: { tipo: 'ninguna', dur: 0.5 } }));
+  nuevos[nuevos.length - 1].trans = transFinal;
+  S.clips.splice(i, 1, ...nuevos);
+  cargandoMsg('Armando los cortes…');
+  for (const n of nuevos.slice(1)) { try { await cargarVideo(n); } catch (e) { /* se reintenta al reproducir */ } }
+  cargandoMsg(null);
+  S.sel = c.id; irA(lay().start[i]); pintarLinea(); pintarPanel(); guardar();
+  aviso(`Listo ✂️ Quité ${silencios.length} ${silencios.length === 1 ? 'pausa' : 'pausas'} (${quitado.toFixed(1)} s). Si no le gusta, toque ↩.`);
+}
+
+/* ---------- reducir ruido de la voz ----------
+   Vista previa: filtro de voz (corta zumbidos graves y siseo agudo). Al exportar, además, baja el ruido de fondo
+   en las pausas (puerta de ruido suave según el nivel del propio audio) y empareja el volumen de la voz. */
+function aplicarLimpieza(o) {
+  const el = o?.el; if (!el) return;
+  const a = audioCtx(); if (!a) return;
+  try {
+    if (!el._src && !el._gFallo) { const src = a.createMediaElementSource(el); el._src = src; el._g = a.createGain(); el._g.gain.value = o.vol ?? 1; src.connect(el._g).connect(a.destination); }
+    if (!el._src) return;
+    el._src.disconnect(); el._hpOn = !!o.limpio;
+    if (o.limpio) {
+      if (!el._hp) { el._hp = a.createBiquadFilter(); el._hp.type = 'highpass'; el._hp.frequency.value = 90; }
+      if (!el._lp) { el._lp = a.createBiquadFilter(); el._lp.type = 'lowpass'; el._lp.frequency.value = 8000; el._hp.connect(el._lp).connect(el._g); }
+      el._src.connect(el._hp);
+    } else el._src.connect(el._g);
+  } catch (e) { el._gFallo = true; /* el navegador no deja: se aplica solo al exportar */ }
+}
+const limpios = new Map();
+function limpiarBuffer(buf, clave) {
+  if (limpios.has(clave)) return limpios.get(clave);
+  const sr = buf.sampleRate, ven = Math.round(sr * 0.02), n = buf.length;
+  const ch0 = buf.getChannelData(0), nv = Math.ceil(n / ven), niv = new Float32Array(nv);
+  for (let k = 0; k < nv; k++) {
+    let s2 = 0; const f = Math.min(n, (k + 1) * ven);
+    for (let j = k * ven; j < f; j++) s2 += ch0[j] * ch0[j];
+    niv[k] = Math.sqrt(s2 / Math.max(1, f - k * ven));
+  }
+  const ord = Float32Array.from(niv).sort();
+  const piso = ord[Math.floor(nv * 0.15)] || 0, voz = ord[Math.floor(nv * 0.9)] || 0;
+  const umbral = piso + (voz - piso) * 0.15;
+  // Ganancia por ventana: 1 con voz y 0,15 (-16 dB) en el ruido, suavizada para que no se note el corte
+  const gan = new Float32Array(nv); let g = 1;
+  for (let k = 0; k < nv; k++) { const meta = niv[k] > umbral ? 1 : 0.15; g += (meta - g) * (meta > g ? 0.6 : 0.12); gan[k] = g; }
+  const out = new AudioBuffer({ length: n, numberOfChannels: buf.numberOfChannels, sampleRate: sr });
+  for (let ch = 0; ch < buf.numberOfChannels; ch++) {
+    const src = buf.getChannelData(ch), dst = new Float32Array(n);
+    for (let j = 0; j < n; j++) dst[j] = src[j] * gan[Math.min(nv - 1, (j / ven) | 0)];
+    out.copyToChannel(dst, ch);
+  }
+  limpios.set(clave, out);
+  return out;
+}
+function cadenaVoz(oc, nodo) {
+  const hp = oc.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 90;
+  const lp = oc.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 8000;
+  const comp = oc.createDynamicsCompressor(); comp.threshold.value = -24; comp.ratio.value = 3; comp.attack.value = 0.005; comp.release.value = 0.2;
+  nodo.connect(hp).connect(lp).connect(comp);
+  return comp;
+}
+
+/* ---------- voz en off: graba el micrófono mientras se reproduce el video, como CapCut ----------
+   El navegador ya quita ruido y eco (noiseSuppression / echoCancellation); además queda marcada "reducir ruido". */
+const VOZ = { rec: null, stream: null, t0: 0, ini: 0, timer: 0, partes: [] };
+async function vozEnOff() {
+  if (VOZ.rec) return pararVoz();
+  if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) return aviso('Este navegador no deja grabar la voz. Pruebe en Chrome o Safari actualizado.', 'mal');
+  if (!S.clips.length) return aviso('Primero agregue un video para grabarle la voz encima', 'mal');
+  try {
+    VOZ.stream = await navigator.mediaDevices.getUserMedia({ audio: { noiseSuppression: true, echoCancellation: true, autoGainControl: true, channelCount: 1 } });
+  } catch (e) {
+    return aviso(e.name === 'NotAllowedError' ? 'Dele permiso al micrófono para grabar su voz (en el candado de la barra de direcciones)' : 'No se encontró el micrófono', 'mal');
+  }
+  const tipo = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg'].find(t => MediaRecorder.isTypeSupported?.(t)) || '';
+  VOZ.partes = [];
+  VOZ.rec = new MediaRecorder(VOZ.stream, tipo ? { mimeType: tipo } : {});
+  VOZ.rec.ondataavailable = (e) => { if (e.data?.size) VOZ.partes.push(e.data); };
+  VOZ.rec.onstop = terminarVoz;
+  const L = lay();
+  VOZ.ini = S.t >= L.total - 0.3 ? 0 : S.t;
+  irA(VOZ.ini);
+  // Mientras graba, la música no suena (para no grabarla de nuevo por el parlante)
+  VOZ.musica = S.musica.map(m => [m, m.vol]); S.musica.forEach(m => { m.vol = 0; });
+  let ind = $('#cutVozRec');
+  if (!ind) {
+    ind = document.createElement('button'); ind.type = 'button'; ind.id = 'cutVozRec'; ind.className = 'cut-voz-rec';
+    ind.onclick = pararVoz;
+    document.body.appendChild(ind);
+  }
+  ind.hidden = false;
+  VOZ.rec.start(250);
+  VOZ.t0 = performance.now();
+  const pinta = () => { const s2 = (performance.now() - VOZ.t0) / 1000; ind.innerHTML = `<i></i> Grabando ${Math.floor(s2 / 60)}:${String(Math.floor(s2 % 60)).padStart(2, '0')} · <b>Parar</b>`; };
+  pinta(); VOZ.timer = setInterval(() => { pinta(); if (!S.playing && performance.now() - VOZ.t0 > 800) pararVoz(); }, 250);
+  if (!S.playing) reproducir();
+}
+function pararVoz() {
+  if (!VOZ.rec) return;
+  clearInterval(VOZ.timer);
+  try { VOZ.rec.stop(); } catch (e) { terminarVoz(); }
+  if (S.playing) pausar();
+}
+async function terminarVoz() {
+  const rec = VOZ.rec; if (!rec) return;
+  VOZ.rec = null;
+  VOZ.stream?.getTracks().forEach(t => t.stop());
+  (VOZ.musica || []).forEach(([m, v]) => { m.vol = v; }); VOZ.musica = null;
+  const ind = $('#cutVozRec'); if (ind) ind.hidden = true;
+  const seg = (performance.now() - VOZ.t0) / 1000;
+  if (!VOZ.partes.length || seg < 0.5) return aviso('La grabación quedó muy corta', 'mal');
+  const tipo = rec.mimeType || VOZ.partes[0].type || 'audio/webm';
+  const ext = tipo.includes('mp4') ? 'm4a' : tipo.includes('ogg') ? 'ogg' : 'webm';
+  const n = S.musica.filter(m => m.voz).length + 1;
+  const f = new File(VOZ.partes, `voz-${n}.${ext}`, { type: tipo.split(';')[0] });
+  const t = S.t; S.t = VOZ.ini;
+  await agregarMusica(f, 'Voz ' + n, 'Voz grabada 🎙️ Puede moverla o bajarle el volumen a la música', { voz: true, limpio: true, fadeOut: false });
+  // La música baja un poco para que se entienda la voz
+  S.musica.forEach(m => { if (!m.voz && (m.vol ?? 1) > 0.5) m.vol = 0.5; });
+  S.t = t; guardar();
 }
 
 /* ---------- agregar videos y fotos ---------- */
@@ -1023,12 +1188,14 @@ const ICS = {
   filtros: '<circle cx="12" cy="8" r="4.5"/><circle cx="8" cy="15" r="4.5"/><circle cx="16" cy="15" r="4.5"/>',
   belleza: '<circle cx="12" cy="9" r="5"/><path d="M5 21a7 7 0 0 1 14 0"/><path d="m18 3 .8 1.7L20.5 5l-1.7.8L18 7.5l-.8-1.7L15.5 5l1.7-.3z"/>',
   transicion: '<path d="M4 5l8 7-8 7zM20 5l-8 7 8 7z"/>',
+  pausas: '<path d="M3 12h3l2-5 3 10 2-5h2"/><path d="M17 8v8M21 8v8"/>',
+  ruido: '<path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/><path d="m4 4 16 16"/>',
   mover: '<path d="M5 12h14M15 8l4 4-4 4M9 8l-4 4 4 4"/>',
 };
 const ic = (k) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ICS[k]}</svg>`;
 function pintarBarra() {
   const c = S.barraClip && clipSel();
-  const modo = c ? 'clip:' + c.id + ':' + c.tipo + ':' + (S.clips.indexOf(c) < S.clips.length - 1) + ':' + !!c.mute : 'general';
+  const modo = c ? 'clip:' + c.id + ':' + c.tipo + ':' + (S.clips.indexOf(c) < S.clips.length - 1) + ':' + !!c.mute + ':' + !!c.limpio : 'general';
   if (barra._modo !== modo) {
     barra._modo = modo;
     if (!c) barra.innerHTML = BARRA_GENERAL;
@@ -1037,6 +1204,7 @@ function pintarBarra() {
       const it = [
         ['acc', 'dividir', 'Dividir'], v && ['tab', 'volumen', 'Volumen'], ['tab', 'animaciones', 'Animaciones'], ['tab', 'efectos', 'Efectos'],
         ['acc', 'eliminar', 'Eliminar'], v && ['tab', 'velocidad', 'Velocidad'], ['tab', 'recortar', 'Recortar'], ['acc', 'duplicar', 'Duplicar'],
+        v && ['acc', 'pausas', 'Quitar pausas'], v && ['acc', 'ruido', c.limpio ? 'Ruido reducido ✓' : 'Reducir ruido'],
         ['acc', 'sustituir', 'Sustituir'], v && ['acc', 'extraer', 'Extraer audio'], ['tab', 'ajustar', 'Ajustar'], ['tab', 'filtros', 'Filtros'],
         'sep', ['tab', 'belleza', 'Retoque'], hay && ['tab', 'transicion', 'Transición'], ['tab', 'editar', 'Mover']].filter(Boolean);
       barra.innerHTML = `<button type="button" class="cut-volver" data-volver aria-label="Volver">${ic('volver')}</button>`
@@ -1051,7 +1219,8 @@ barra.addEventListener('click', (e) => {
   if (b.dataset.volver != null) { S.barraClip = false; S.sel = null; abrirTab(null); pintarLinea(); return; }
   if (b.dataset.tab) return abrirTab(S.tab === b.dataset.tab && innerWidth < 1000 ? null : b.dataset.tab);
   const c = clipSel(); if (!c) return;
-  ({ dividir, eliminar: () => { eliminar(); S.barraClip = false; S.sel = null; abrirTab(null); pintarLinea(); }, duplicar, sustituir: () => $('#cutSustituir').click(), extraer: () => extraerDeClip(c) })[b.dataset.acc]?.();
+  ({ dividir, eliminar: () => { eliminar(); S.barraClip = false; S.sel = null; abrirTab(null); pintarLinea(); }, duplicar, sustituir: () => $('#cutSustituir').click(), extraer: () => extraerDeClip(c), pausas: () => quitarPausas(c),
+    ruido: () => { c.limpio = !c.limpio; aplicarLimpieza(c); pintarBarra(); guardar(); aviso(c.limpio ? 'Ruido reducido en este clip 🎙️ (se nota más en el video exportado)' : 'Sonido original'); } })[b.dataset.acc]?.();
 });
 // Sustituir: cambia el video o la foto del clip y deja lo demás (velocidad, efectos, transición)
 $('#cutSustituir').addEventListener('change', async (e) => {
@@ -1175,19 +1344,21 @@ function pintarPanel() {
   if (S.tab === 'audio') {
     if (m) {
       p.innerHTML = `
-        <p class="cut-nota" style="text-align:left">🎵 <b>${esc(m.nombre)}</b></p>
+        <p class="cut-nota" style="text-align:left">${m.voz ? '🎙️' : '🎵'} <b>${esc(m.nombre)}</b></p>
         <div class="cut-fila"><small>Volumen</small><input type="range" min="0" max="2" step="0.05" value="${m.vol ?? 1}" data-mvol><b class="cut-val">${Math.round((m.vol ?? 1) * 100)}%</b></div>
+        <label class="cut-check"><input type="checkbox" data-limpio ${m.limpio ? 'checked' : ''}> 🎙️ Reducir ruido de fondo (voz más limpia)</label>
         <label class="cut-check"><input type="checkbox" data-fi ${m.fadeIn ? 'checked' : ''}> Aparecer suave al inicio</label>
         <label class="cut-check"><input type="checkbox" data-fo ${m.fadeOut ? 'checked' : ''}> Desaparecer suave al final</label>
         <div class="cut-acciones2">
           <button type="button" class="cut-btn-sec" data-aqui>Empezar donde está la línea</button>
           <button type="button" class="cut-btn-sec" data-cero>Empezar al inicio</button>
-          <button type="button" class="cut-btn-sec" data-quitar>🗑 Quitar música</button>
+          <button type="button" class="cut-btn-sec" data-quitar>🗑 Quitar ${m.voz ? 'voz' : 'música'}</button>
         </div>`;
       const r = $('[data-mvol]', p);
       r.oninput = () => { m.vol = Number(r.value); $('.cut-val', p).textContent = Math.round(m.vol * 100) + '%'; sincronizar(); };
       r.onchange = guardar;
       $('[data-fi]', p).onchange = (e) => { m.fadeIn = e.target.checked; guardar(); };
+      $('[data-limpio]', p).onchange = (e) => { m.limpio = e.target.checked; aplicarLimpieza(m); guardar(); };
       $('[data-fo]', p).onchange = (e) => { m.fadeOut = e.target.checked; guardar(); };
       $('[data-aqui]', p).onclick = () => { m.start = S.t; pintarLinea(); guardar(); };
       $('[data-cero]', p).onclick = () => { m.start = 0; pintarLinea(); guardar(); };
@@ -1198,12 +1369,14 @@ function pintarPanel() {
       <div class="cut-acciones cut-acc-audio">
         <button type="button" data-mus><i>🎵</i>Agregar música</button>
         <button type="button" data-ext><i>🎬</i>Extraer audio</button>
+        <button type="button" data-voz><i>🎙️</i>Voz en off</button>
       </div>
-      <p class="cut-nota"><b>Agregar música:</b> una canción o audio de su celular (MP3, M4A…).<br><b>Extraer audio:</b> escoja un video y se le saca solo el sonido para ponerlo en su edición.<br>Empieza donde está la línea blanca.</p>
+      <p class="cut-nota"><b>Voz en off:</b> grabe su voz encima del video mientras se reproduce (con reducción de ruido).<br><b>Agregar música:</b> una canción o audio de su celular (MP3, M4A…).<br><b>Extraer audio:</b> escoja un video y se le saca solo el sonido para ponerlo en su edición.<br>Empieza donde está la línea blanca.</p>
       <label class="cut-check"><input type="checkbox" data-sil ${S.silenciar ? 'checked' : ''}> Silenciar el sonido original de los videos</label>
       ${S.musica.length ? `<p class="cut-nota">Toque una música en la fila <b>♪</b> para cambiarle el volumen o quitarla.</p>` : ''}`;
     $('[data-mus]', p).onclick = () => $('#cutMusica').click();
     $('[data-ext]', p).onclick = () => $('#cutExtraer').click();
+    $('[data-voz]', p).onclick = () => vozEnOff();
     $('[data-sil]', p).onchange = (e) => { S.silenciar = e.target.checked; sincronizar(); pintarLinea(); guardar(); };
     return;
   }
@@ -1223,6 +1396,8 @@ function pintarPanel() {
       <div class="cut-fila"><small>Tamaño</small>${chips('tam', [['S', 'Pequeño'], ['M', 'Mediano'], ['L', 'Grande']], st.tam)}</div>
       <div class="cut-fila"><small>Color</small><div class="cut-colores">${SUB.COLORES.map(col => `<button type="button" data-col="${col}" class="${st.color === col ? 'on' : ''}" style="background:${col}"></button>`).join('')}</div></div>
       ${esSub ? `<div class="cut-fila"><small>Palabras por subtítulo</small>${chips('pal', [[1, '1'], [2, '2'], [3, '3'], [5, '5'], [0, 'Frase']], st.palabras)}</div>` : ''}
+      <div class="cut-fila"><small>Animación de entrada</small>${chips('ai', SUB.ANIM_ENTRADA, st.ai || 'ninguna')}</div>
+      <div class="cut-fila"><small>Animación de salida</small>${chips('ao', SUB.ANIM_SALIDA, st.ao || 'ninguna')}</div>
       <div class="cut-fila"><small>Altura</small><input type="range" min="0.1" max="0.9" step="0.01" value="${st.pos}" data-pos></div>
       <label class="cut-check"><input type="checkbox" data-mayus ${st.mayus ? 'checked' : ''}> TODO EN MAYÚSCULAS</label>
       <div class="cut-acciones2">
@@ -1232,6 +1407,11 @@ function pintarPanel() {
     const gen = $('[data-gen]', p); if (gen) gen.onclick = () => generarSubs($('[data-idioma]', p).value, $('[data-modelo]', p).value);
     $('.cut-estilos', p).onclick = (e) => { const b = e.target.closest('[data-e]'); if (!b) return; st.estilo = b.dataset.e; pintarPanel(); S.dirty = true; guardar(); };
     $('[data-grupo="tam"]', p).onclick = (e) => { if (!e.target.dataset.v) return; st.tam = e.target.dataset.v; pintarPanel(); S.dirty = true; guardar(); };
+    // Animación para todos los textos: se ve de una vez repitiendo el texto que está más cerca
+    for (const k of ['ai', 'ao']) $(`[data-grupo="${k}"]`, p).onclick = (e) => {
+      const v = e.target.dataset.v; if (!v) return;
+      st[k] = v; pintarPanel(); guardar(); verAnimTexto();
+    };
     const gp = $('[data-grupo="pal"]', p); if (gp) gp.onclick = (e) => { if (e.target.dataset.v == null) return; st.palabras = Number(e.target.dataset.v); if (S.segs.length) { S.subs = SUB.armar(S.segs, st.palabras); pintarLinea(); } pintarPanel(); guardar(); };
     $('.cut-colores', p).onclick = (e) => { if (!e.target.dataset.col) return; st.color = e.target.dataset.col; pintarPanel(); S.dirty = true; guardar(); };
     $('[data-pos]', p).oninput = (e) => { st.pos = Number(e.target.value); S.dirty = true; };
@@ -1431,7 +1611,7 @@ function pintarPanel() {
       <div class="cut-formatos">
         ${[['9:16', 'TikTok · Reels · Estados'], ['16:9', 'YouTube · TV'], ['1:1', 'Cuadrado'], ['4:5', 'Instagram']].map(([v, t]) => `<button type="button" data-asp="${v}" class="${S.aspecto === v ? 'on' : ''}"><span class="caja-asp" style="aspect-ratio:${v.replace(':', '/')}"></span><b>${v}</b><small>${t}</small></button>`).join('')}
       </div>
-      <button type="button" class="cut-btn-sec" data-nuevo-proy style="margin-top:.8rem">Empezar un video nuevo</button>`;
+      <button type="button" class="cut-btn-sec" data-nuevo-proy style="margin-top:.8rem">📁 Mis proyectos · empezar un video nuevo</button>`;
     $('[data-nuevo-proy]', p).onclick = nuevoProyecto;
     $('.cut-formatos', p).onclick = (e) => { const b = e.target.closest('[data-asp]'); if (!b) return; S.aspecto = b.dataset.asp; ajustarVista(); pintarPanel(); guardar(); };
   }
@@ -1458,8 +1638,9 @@ async function mezclarAudio(rate, canales, soloVoz = false) {
   for (let i = 0; i < S.clips.length; i++) {
     const c = S.clips[i];
     if (c.tipo !== 'video' || c.mute || (S.silenciar && !soloVoz)) continue;
-    const buf = await decodificar(c, oc);
+    let buf = await decodificar(c, oc);
     if (!buf) continue;
+    if (c.limpio) buf = limpiarBuffer(buf, c.fileId + '@' + oc.sampleRate);
     hay = true;
     const src = oc.createBufferSource(); src.buffer = buf;
     const g = oc.createGain();
@@ -1473,14 +1654,15 @@ async function mezclarAudio(rate, canales, soloVoz = false) {
       const pts = Array.from({ length: 64 }, (_, k) => Math.max(0.1, velEn(c, k / 63)));
       src.playbackRate.setValueCurveAtTime(Float32Array.from(pts), ini, dur);
     } else src.playbackRate.value = c.vel || 1;
-    src.connect(g).connect(oc.destination);
+    (c.limpio ? cadenaVoz(oc, src) : src).connect(g).connect(oc.destination);
     src.start(ini, c.in, c.out - c.in);
   }
   if (!soloVoz) for (const m of S.musica) {
     const dur = Math.min(largoM(m), L.total - m.start);
     if (dur <= 0.05) continue;
-    const buf = await decodificar(m, oc);
+    let buf = await decodificar(m, oc);
     if (!buf) continue;
+    if (m.limpio) buf = limpiarBuffer(buf, m.fileId + '@' + oc.sampleRate);
     hay = true;
     const src = oc.createBufferSource(); src.buffer = buf;
     const g = oc.createGain(), v = m.vol ?? 1;
@@ -1488,7 +1670,7 @@ async function mezclarAudio(rate, canales, soloVoz = false) {
     g.gain.setValueAtTime(fi ? 0 : v, m.start);
     if (fi) g.gain.linearRampToValueAtTime(v, m.start + fi);
     if (fo) { g.gain.setValueAtTime(v, m.start + dur - fo); g.gain.linearRampToValueAtTime(0, m.start + dur); }
-    src.connect(g).connect(oc.destination);
+    (m.limpio ? cadenaVoz(oc, src) : src).connect(g).connect(oc.destination);
     src.start(m.start, m.in || 0, dur);
   }
   if (!hay) return null;
@@ -1588,8 +1770,12 @@ function editarSub(s) {
   $('textarea', m).value = s.text;
   $('[data-ini]', m).value = s.start.toFixed(1);
   $('[data-fin]', m).value = s.end.toFixed(1);
+  const opc = (lista, v) => `<option value="">Igual que todos</option>` + lista.map(([k, n]) => `<option value="${k}" ${v === k ? 'selected' : ''}>${n}</option>`).join('');
+  $('[data-ai]', m).innerHTML = opc(SUB.ANIM_ENTRADA, s.ai || '');
+  $('[data-ao]', m).innerHTML = opc(SUB.ANIM_SALIDA, s.ao || '');
   $('[data-guardar]', m).onclick = () => {
     s.text = $('textarea', m).value.trim() || s.text;
+    s.ai = $('[data-ai]', m).value || undefined; s.ao = $('[data-ao]', m).value || undefined;
     const num = (v, d) => { const n = parseFloat(String(v).replace(',', '.')); return Number.isFinite(n) ? n : d; };
     s.start = Math.max(0, num($('[data-ini]', m).value, s.start));
     s.end = Math.max(s.start + 0.2, num($('[data-fin]', m).value, s.end));
@@ -1598,6 +1784,14 @@ function editarSub(s) {
   };
   $('[data-quitar]', m).onclick = () => { S.subs = S.subs.filter(x => x !== s); m.hidden = true; pintarLinea(); guardar(); };
   $('[data-cerrar]', m).onclick = () => { m.hidden = true; };
+}
+// Muestra la animación: reproduce el texto más cercano a la línea blanca
+function verAnimTexto(s) {
+  s ||= S.subs.find(x => S.t >= x.start && S.t < x.end) || S.subs.find(x => x.start >= S.t) || S.subs[0];
+  if (!s) return;
+  pausar(); irA(s.start); moverLinea(); reproducir();
+  clearTimeout(verAnimTexto.t);
+  verAnimTexto.t = setTimeout(() => { if (S.playing) pausar(); }, Math.min(4000, (s.end - s.start) * 1000 + 300));
 }
 function listaSubs() {
   const m = $('#cutListaSubs');
@@ -1905,12 +2099,12 @@ async function exportar() {
     }
     if (tiempoReal) S.clips.forEach(c => { if (c.el) { c.el.pause(); try { c.el.playbackRate = 1; } catch (e) { /* nada */ } } });
     await pedazoAudio(L.total);
-    audios.clear();
+    audios.clear(); limpios.clear();
     poner(99, 'Terminando el archivo…');
     await out.finalize();
   } catch (e) {
     try { await out.cancel(); } catch (e2) { /* nada */ }
-    audios.clear();
+    audios.clear(); limpios.clear();
     S.clips.forEach(c => { if (c.el) { c.el.pause(); try { c.el.playbackRate = 1; } catch (e3) { /* nada */ } } });
     S.exportando = false; soltarPantalla();
     motor.tamano(vistaW, vistaH); S.dirty = true;
@@ -2055,27 +2249,88 @@ const DB = {
     }
   },
   async get(st, k) { try { const db = await this.abrir(); return await new Promise((ok) => { const r = db.transaction(st).objectStore(st).get(k); r.onsuccess = () => ok(r.result); r.onerror = () => ok(null); }); } catch (e) { return null; } },
+  async borrar(st, k) { try { const db = await this.abrir(); await new Promise((ok) => { const tx = db.transaction(st, 'readwrite'); tx.objectStore(st).delete(k); tx.oncomplete = ok; tx.onerror = ok; }); } catch (e) { /* nada */ } },
+  async todos(st) {
+    try {
+      const db = await this.abrir();
+      return await new Promise((ok) => {
+        const out = []; const r = db.transaction(st).objectStore(st).openCursor();
+        r.onsuccess = () => { const cur = r.result; if (!cur) return ok(out); out.push([cur.key, cur.value]); cur.continue(); };
+        r.onerror = () => ok(out);
+      });
+    } catch (e) { return []; }
+  },
   async limpiar() { try { const db = await this.abrir(); for (const st of ['archivos', 'estado']) await new Promise((ok) => { const tx = db.transaction(st, 'readwrite'); tx.objectStore(st).clear(); tx.oncomplete = ok; tx.onerror = ok; }); } catch (e) { /* nada */ } },
 };
 let tGuardar = null;
 function guardar() { registrarHist(); guardarDB(); }
+/* ---------- Mis proyectos: cada video se guarda aparte (estado 'p_<id>'), los archivos se comparten por fileId ---------- */
+let miniAt = 0;
+function miniatura() {
+  try {
+    const k = 150 / Math.max(vista.width, vista.height); const c = document.createElement('canvas');
+    c.width = Math.round(vista.width * k); c.height = Math.round(vista.height * k);
+    c.getContext('2d').drawImage(vista, 0, 0, c.width, c.height);
+    return c.toDataURL('image/jpeg', 0.6);
+  } catch (e) { return null; }
+}
 function guardarDB() {
   clearTimeout(tGuardar);
-  tGuardar = setTimeout(() => {
-    DB.put('estado', 'actual', {
-      clips: S.clips.map(c => ({ id: c.id, fileId: c.fileId, nombre: c.nombre, tipo: c.tipo, in: c.in, out: c.out, dur: c.dur, mute: c.mute, vol: c.vol ?? 1, trans: c.trans, vel: c.vel || 1, curva: c.curva || null, z: c.z || 1, x: c.x || 0, y: c.y || 0, kf: c.kf?.length ? c.kf : null, ef: c.ef || 'ninguno', anim: c.anim || null })),
-      musica: S.musica.map(m => ({ id: m.id, fileId: m.fileId, nombre: m.nombre, start: m.start, in: m.in, out: m.out ?? null, dur: m.dur, vol: m.vol, fadeIn: m.fadeIn, fadeOut: m.fadeOut })),
+  if (!S.clips.length) return;
+  tGuardar = setTimeout(guardarYa, 400);
+}
+function guardarYa() {
+  if (!S.clips.length) return Promise.resolve();
+  if (!S.proy) { const d = new Date(); S.proy = 'p_' + uid(); S.proyNombre = 'Video del ' + d.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }) + ', ' + d.toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit' }); }
+  if (!S.proyMini || Date.now() - miniAt > 15000) { const m = miniatura(); if (m) { S.proyMini = m; miniAt = Date.now(); } }
+  return DB.put('estado', S.proy, { nombre: S.proyNombre, mini: S.proyMini || null,
+      clips: S.clips.map(c => ({ id: c.id, fileId: c.fileId, nombre: c.nombre, tipo: c.tipo, in: c.in, out: c.out, dur: c.dur, mute: c.mute, vol: c.vol ?? 1, trans: c.trans, vel: c.vel || 1, curva: c.curva || null, z: c.z || 1, x: c.x || 0, y: c.y || 0, kf: c.kf?.length ? c.kf : null, ef: c.ef || 'ninguno', anim: c.anim || null, limpio: !!c.limpio })),
+      musica: S.musica.map(m => ({ id: m.id, fileId: m.fileId, nombre: m.nombre, start: m.start, in: m.in, out: m.out ?? null, dur: m.dur, vol: m.vol, fadeIn: m.fadeIn, fadeOut: m.fadeOut, limpio: !!m.limpio, voz: !!m.voz })),
       silenciar: !!S.silenciar,
       subs: S.subs, segs: S.segs, sub: S.sub, belleza: S.belleza, aspecto: S.aspecto, fecha: Date.now(),
       capas: S.capas.map(datosCapa), filtro: S.filtro, ajuste: S.ajuste, fondo: S.fondo, portada: S.portada ? { t: S.portada.t, url: S.portada.url } : null,
-    });
-  }, 400);
+  });
 }
-async function recuperar() {
-  const e = await DB.get('estado', 'actual');
-  if (!e?.clips?.length) return;
-  const si = await preguntar('Tiene un video sin terminar', `Lo dejó el ${new Date(e.fecha).toLocaleString('es-CO')}. ¿Quiere seguir editándolo?`, 'Seguir editando', 'Empezar uno nuevo');
-  if (!si) { await DB.limpiar(); return; }
+async function proyectos() {
+  // El proyecto de antes (un solo video guardado como 'actual') pasa a ser uno más de la lista
+  const viejo = await DB.get('estado', 'actual');
+  if (viejo?.clips?.length) { await DB.put('estado', 'p_' + uid(), { nombre: 'Video del ' + new Date(viejo.fecha || Date.now()).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }), ...viejo }); }
+  if (viejo) await DB.borrar('estado', 'actual');
+  return (await DB.todos('estado')).filter(([k, v]) => String(k).startsWith('p_') && v?.clips?.length).sort((a, b) => (b[1].fecha || 0) - (a[1].fecha || 0));
+}
+async function pintarProyectos() {
+  const caja = $('#cutProys'); if (!caja) return;
+  const lista = await proyectos();
+  caja.hidden = !lista.length;
+  $('#cutVacio').classList.toggle('con-proys', !!lista.length);
+  if (!lista.length) { caja.innerHTML = ''; return; }
+  caja.innerHTML = `<h3><span>📁 Mis proyectos</span><small>${lista.length}</small></h3><div class="lista">${lista.map(([k, v]) => `
+    <div class="cut-proy" role="button" tabindex="0" data-abrir="${esc(k)}">${v.mini ? `<img src="${v.mini}" alt="" loading="lazy">` : '<i class="sin">🎬</i>'}
+      <span>${esc(v.nombre || 'Video')}<small>${v.clips.length} ${v.clips.length === 1 ? 'clip' : 'clips'} · ${new Date(v.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })}</small></span>
+      <button type="button" class="bor" data-borrar="${esc(k)}" aria-label="Borrar proyecto">🗑</button></div>`).join('')}</div>`;
+}
+$('#cutProys')?.addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-borrar]');
+  if (b) {
+    e.stopPropagation();
+    if (!(await preguntar('¿Borrar este proyecto?', 'Se borra la edición y sus videos guardados en este equipo. Esto no se puede deshacer.', 'Borrar'))) return;
+    await borrarProyecto(b.dataset.borrar); return pintarProyectos();
+  }
+  const a = e.target.closest('[data-abrir]'); if (a) abrirProyecto(a.dataset.abrir);
+});
+async function borrarProyecto(k) {
+  const v = await DB.get('estado', k);
+  await DB.borrar('estado', k);
+  if (!v) return;
+  const usados = new Set();
+  for (const [, o] of await DB.todos('estado')) [...(o?.clips || []), ...(o?.musica || []), ...(o?.capas || [])].forEach(x => x.fileId && usados.add(x.fileId));
+  for (const x of [...(v.clips || []), ...(v.musica || []), ...(v.capas || [])]) if (x.fileId && !usados.has(x.fileId)) await DB.borrar('archivos', x.fileId);
+}
+async function recuperar() { await pintarProyectos(); }
+async function abrirProyecto(k) {
+  const e = await DB.get('estado', k);
+  if (!e?.clips?.length) return pintarProyectos();
+  S.proy = k; S.proyNombre = e.nombre || 'Video'; S.proyMini = e.mini || null;
   $('#cutVacio').hidden = true;
   cargandoMsg('Abriendo su video…');
   Object.assign(S.sub, e.sub || {}); Object.assign(S.belleza, e.belleza || {});
@@ -2112,16 +2367,17 @@ async function recuperar() {
   if (S.belleza.on) activarBelleza();
 }
 async function nuevoProyecto() {
-  if (S.clips.length && !(await preguntar('¿Empezar un video nuevo?', 'Se borra lo que tiene en la línea de tiempo.', 'Empezar de nuevo'))) return;
+  if (S.clips.length && !(await preguntar('¿Empezar un video nuevo?', 'El video que tiene queda guardado en "Mis proyectos" y puede volver a abrirlo cuando quiera.', 'Empezar uno nuevo'))) return;
   pausar();
+  if (S.clips.length) { clearTimeout(tGuardar); await guardarYa(); }
+  S.proy = null; S.proyNombre = null; S.proyMini = null;
   S.clips.forEach(c => { if (c.el) { c.el.pause(); c.el.remove(); } });
   S.musica.forEach(m => { if (m.el) { m.el.pause(); m.el.remove(); } });
   S.clips = []; S.subs = []; S.segs = []; S.musica = []; S.sel = null; S.selM = null; S.t = 0; S.silenciar = false;
   S.capas = []; S.selC = null; S.portada = null;
   S.filtro = { id: 'ninguno', k: 1 }; S.ajuste = { brillo: 0, contraste: 0, saturacion: 0, temperatura: 0, vineta: 0 }; S.fondo = { modo: 'llenar', color: '#000000' };
   REG.clear(); HIST.pila = []; HIST.pos = -1;
-  await DB.limpiar();
-  $('#cutVacio').hidden = false;
+  $('#cutVacio').hidden = false; pintarProyectos();
   registrarHist();
   pintarLinea(); abrirTab(innerWidth >= 1000 ? 'editar' : null);
 }

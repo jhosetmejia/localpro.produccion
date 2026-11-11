@@ -124,6 +124,16 @@ button{font:inherit;color:inherit;cursor:pointer}
 .cut-vacio .grande{margin-top:.8rem;background:linear-gradient(90deg,var(--v),var(--v2));border:0;border-radius:18px;padding:1rem 1.6rem;font-weight:800;color:var(--f);font-size:1.05rem;display:flex;align-items:center;gap:.5rem;box-shadow:0 10px 30px rgba(22,184,78,.25)}
 .cut-vacio .grande span{font-size:1.4rem;line-height:1}
 .cut-vacio ul{list-style:none;padding:0;margin:.9rem 0 0;display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem;max-width:420px}
+.cut-vacio.con-proys .cut-hero{display:none}
+.cut-proys{width:100%;max-width:460px;text-align:left;margin-top:.3rem}
+.cut-proys h3{font-size:.85rem;margin:.2rem 0 .45rem;color:var(--m);font-weight:700;display:flex;justify-content:space-between}
+.cut-proys .lista{display:flex;gap:.55rem;overflow-x:auto;padding-bottom:.3rem;scroll-snap-type:x mandatory}
+.cut-proy{position:relative;flex:0 0 112px;scroll-snap-align:start;background:var(--f3);border:1px solid var(--b);border-radius:14px;overflow:hidden;color:var(--t);padding:0;text-align:left}
+.cut-proy img,.cut-proy .sin{display:block;width:100%;aspect-ratio:9/12;object-fit:cover;background:#111}
+.cut-proy .sin{display:grid;place-items:center;font-size:1.6rem}
+.cut-proy span{display:block;padding:.35rem .45rem .45rem;font-size:.72rem;line-height:1.25}
+.cut-proy small{display:block;color:var(--m);font-size:.66rem}
+.cut-proy .bor{position:absolute;top:5px;right:5px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:.8rem;display:grid;place-items:center}
 .cut-vacio li{background:var(--f3);border:1px solid var(--b);border-radius:999px;padding:.3rem .7rem;font-size:.8rem;color:#cfd8d2}
 .cut-ctrl{display:flex;align-items:center;gap:.4rem;padding:4px 12px;flex:0 0 auto}
 .cut-ctrl .sp{flex:1}
@@ -217,6 +227,10 @@ body.recortando .cut-clip.sel>span{font-size:.85rem;background:var(--v);color:#0
 .cut-mus.sel{border-color:#fff}
 .cut-sub{position:absolute;top:0;height:28px;border-radius:6px;background:#f26b1d;border:1px solid #ff9a5c;color:#fff;font-size:.68rem;font-weight:700;padding:6px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
 .cut-acc-audio button{flex:1 1 0;min-width:120px;padding:.8rem .5rem;font-size:.82rem}
+.cut-voz-rec{position:fixed;left:50%;top:max(14px,env(safe-area-inset-top));transform:translateX(-50%);z-index:70;display:flex;align-items:center;gap:.5rem;padding:.6rem 1.1rem;border:0;border-radius:999px;background:#e5243b;color:#fff;font:600 .9rem/1 system-ui,sans-serif;box-shadow:0 6px 24px rgba(229,36,59,.45)}
+.cut-voz-rec i{width:10px;height:10px;border-radius:50%;background:#fff;animation:vozlat 1s infinite}
+.cut-voz-rec b{background:rgba(0,0,0,.25);padding:.25rem .55rem;border-radius:999px}
+@keyframes vozlat{50%{opacity:.25}}
 .cut-panel-h{display:flex;align-items:center;gap:.5rem;margin:-4px 0 8px}
 .cut-panel-h button{width:30px;height:30px;border-radius:9px;border:1px solid var(--b);background:var(--f2);font-size:1.2rem;line-height:1;padding:0}
 .cut-panel-h b{font-size:.92rem}
@@ -317,6 +331,7 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
 .cut-hoja textarea,.cut-hoja input[type=number],.cut-lista input{width:100%;background:var(--f);border:1px solid var(--b);color:var(--t);border-radius:12px;padding:.6rem;font:inherit}
 .cut-hoja .dos{display:flex;gap:.5rem;margin-top:.5rem}
 .cut-hoja .dos label{flex:1;font-size:.78rem;color:var(--m);font-weight:700}
+.cut-hoja .dos select{width:100%;margin-top:.25rem;background:var(--f3);color:var(--t);border:1px solid var(--b);border-radius:10px;padding:.45rem}
 .cut-lista{display:flex;flex-direction:column;gap:.4rem;max-height:55dvh;overflow-y:auto}
 .cut-lista .it{display:flex;gap:.5rem;align-items:center}
 .cut-lista small{flex:0 0 52px;color:var(--m);font-variant-numeric:tabular-nums}
@@ -372,6 +387,7 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
         <h2>Edite sus videos con <b>LocalPro</b></h2>
         <p>Subtítulos automáticos, transiciones, belleza y 4K a 60 fps. <b style="color:var(--t)">Gratis y sin marca de agua.</b></p>
         <button type="button" class="grande" data-agregar><span>+</span> Agregar videos o fotos</button>
+        <div class="cut-proys" id="cutProys" hidden></div>
         <button type="button" class="app-baja solo-web" data-instalar><img src="/icons/cut-192.png" alt=""><span>Descargar la app LocalProCut<small>Con su propio ícono, más rápida y a pantalla completa</small></span><i class="flecha">⬇</i></button>
         @guest
         <a class="cut-reg" href="{{ route('registro', ['desde' => 'cut']) }}" target="_blank" rel="noopener" data-contar="clic_registro">🚀 <span>Regístrese y siga usándolo gratis</span></a>
@@ -452,6 +468,10 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
         <div class="dos">
             <label>Empieza (seg)<input type="number" step="0.1" min="0" data-ini></label>
             <label>Termina (seg)<input type="number" step="0.1" min="0" data-fin></label>
+        </div>
+        <div class="dos">
+            <label>Animación de entrada<select data-ai></select></label>
+            <label>Animación de salida<select data-ao></select></label>
         </div>
         <div class="fila-b"><button type="button" class="cut-btn-sec" data-quitar>🗑 Quitar</button><button type="button" class="cut-btn-sec" data-cerrar>Cancelar</button><button type="button" class="cut-exp" data-guardar>Guardar</button></div>
     </div>

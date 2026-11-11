@@ -17,7 +17,7 @@ class CabecerasSeguridad
         if (!$h->has('X-Frame-Options')) $h->set('X-Frame-Options', 'SAMEORIGIN');
         $h->set('X-Content-Type-Options', 'nosniff');
         $h->set('Referrer-Policy', 'strict-origin-when-cross-origin');
-        $h->set('Permissions-Policy', 'geolocation=(self), camera=(self), microphone=()');
+        $h->set('Permissions-Policy', 'geolocation=(self), camera=(self), microphone=(self)');
         if ($request->isSecure()) $h->set('Strict-Transport-Security', 'max-age=15552000; includeSubDomains');
         $h->remove('X-Powered-By');
         return $r;

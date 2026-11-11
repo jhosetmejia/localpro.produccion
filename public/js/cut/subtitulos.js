@@ -52,10 +52,58 @@ function caja(ctx, x, y, w, h, r) {
   ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
 }
 
-// Dibuja el subtítulo del tiempo t sobre el canvas 2D (W×H)
+// Animaciones de entrada y salida de los textos (como CapCut). Cada texto puede tener la suya; si no, la general.
+export const ANIM_ENTRADA = [['ninguna', 'Ninguna'], ['aparecer', 'Aparecer'], ['subir', 'Subir'], ['bajar', 'Caer'], ['zoom', 'Zoom'], ['rebote', 'Rebote'], ['izquierda', 'Deslizar'], ['girar', 'Girar']];
+export const ANIM_SALIDA = [['ninguna', 'Ninguna'], ['desvanecer', 'Desvanecer'], ['subir', 'Subir'], ['bajar', 'Bajar'], ['zoom', 'Encoger'], ['derecha', 'Deslizar']];
+const DUR_ANIM = 0.38;
+const suave = (x) => 1 - Math.pow(1 - x, 3);
+function rebote(x) { const c = 1.70158 * 1.5; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); }
+// { a: opacidad, s: escala, dx, dy (fracción del ancho/alto), r: giro } en el tiempo t
+function estadoAnim(sub, op, t, W, H) {
+  const ai = sub.ai || op.ai || 'ninguna', ao = sub.ao || op.ao || 'ninguna';
+  const dur = Math.min(DUR_ANIM, (sub.end - sub.start) / 2.5);
+  const e = { a: 1, s: 1, dx: 0, dy: 0, r: 0 };
+  const pin = (t - sub.start) / dur, pout = (sub.end - t) / dur;
+  if (ai !== 'ninguna' && pin < 1) {
+    const k = suave(Math.max(0, pin));
+    if (ai === 'aparecer') e.a = k;
+    else if (ai === 'subir') { e.a = k; e.dy = (1 - k) * 0.06; }
+    else if (ai === 'bajar') { e.a = k; e.dy = -(1 - k) * 0.06; }
+    else if (ai === 'zoom') { e.a = k; e.s = 0.35 + 0.65 * k; }
+    else if (ai === 'rebote') { e.a = Math.min(1, pin * 3); e.s = Math.max(0.05, rebote(Math.max(0, pin))); }
+    else if (ai === 'izquierda') { e.a = k; e.dx = -(1 - k) * 0.25; }
+    else if (ai === 'girar') { e.a = k; e.s = 0.5 + 0.5 * k; e.r = -(1 - k) * 0.5; }
+  }
+  if (ao !== 'ninguna' && pout < 1) {
+    const k = suave(Math.max(0, pout)); // 1 → 0 mientras se va
+    e.a *= k;
+    if (ao === 'subir') e.dy -= (1 - k) * 0.06;
+    else if (ao === 'bajar') e.dy += (1 - k) * 0.06;
+    else if (ao === 'zoom') e.s *= 0.3 + 0.7 * k;
+    else if (ao === 'derecha') e.dx += (1 - k) * 0.25;
+  }
+  return e;
+}
+
+// Dibuja el subtítulo del tiempo t sobre el canvas 2D (W×H), con su animación de entrada/salida
 export function dibujar(ctx, W, H, t, subs, op) {
   const sub = subs.find(s => t >= s.start && t < s.end);
   if (!sub || !sub.words?.length) return;
+  const e = estadoAnim(sub, op, t, W, H);
+  if (e.a <= 0.003) return;
+  const yC = H * (op.pos ?? 0.72);
+  ctx.save();
+  ctx.globalAlpha *= Math.min(1, e.a);
+  if (e.dx || e.dy || e.s !== 1 || e.r) {
+    ctx.translate(W / 2 + e.dx * W, yC + e.dy * H);
+    if (e.r) ctx.rotate(e.r);
+    ctx.scale(e.s, e.s);
+    ctx.translate(-W / 2, -yC);
+  }
+  try { dibujarBase(ctx, W, H, t, sub, op); } finally { ctx.restore(); }
+}
+
+function dibujarBase(ctx, W, H, t, sub, op) {
   const est = ESTILOS.find(e => e.id === op.estilo) || ESTILOS[0];
   const base = Math.min(W, H) * ({ S: 0.05, M: 0.066, L: 0.085 }[op.tam] || 0.066);
   const mayus = op.mayus || est.mayus;
