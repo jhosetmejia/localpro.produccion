@@ -535,7 +535,7 @@ function pintarLinea() {
     const ef = c.ef && c.ef !== 'ninguno' ? EFECTOS.find(x => x.id === c.ef) : null;
     b.innerHTML = `<em>${etqVel ? icVel + esc(etqVel) : ''}${c.tipo === 'video' && (c.mute || S.silenciar) ? icMudo : ''}${ef ? `<i class="ef">${ef.e}</i>` : ''}</em>` + `<span>${c.tipo === 'imagen' ? '🖼 ' : ''}${fmt(largo(c)).slice(0, 5)}</span>`;
     b.addEventListener('pointerdown', (e) => presionarClip(e, c));
-    b.onclick = (e) => { e.stopPropagation(); if (b._recorto) { b._recorto = false; return; } if (Date.now() - (S._finOrden || 0) < 500) return; S.sel = c.id; S.selM = null; S.selC = null; S.barraClip = true; abrirTab(TABS_CLIP.includes(S.tab) ? S.tab : null); pintarLinea(); };
+    b.onclick = (e) => { e.stopPropagation(); if (b._recorto) { b._recorto = false; return; } if (Date.now() - (S._finOrden || 0) < 500) return; S.sel = c.id; S.selM = null; S.selC = null; S.barraClip = true; S.barraAudio = false; abrirTab(TABS_CLIP.includes(S.tab) ? S.tab : null); pintarLinea(); };
     // Tiradores para recortar arrastrando los bordes (como CapCut)
     if (S.sel === c.id) {
       for (const lado of ['izq', 'der']) {
@@ -584,7 +584,7 @@ function pintarLinea() {
   const finMus = S.musica.length ? Math.max(...S.musica.map(m => Math.min(finM(m), L.total))) : 0;
   addA.style.left = (pad + finMus * S.pps + (S.musica.length ? 6 : 0)) + 'px';
   addA.innerHTML = '+ Agregar audio';
-  addA.onclick = (e) => { e.stopPropagation(); S.selM = null; S.sel = null; abrirTab('audio'); pintarLinea(); };
+  addA.onclick = (e) => { e.stopPropagation(); if (innerWidth < 1000) return abrirBarraAudio(); S.selM = null; S.sel = null; abrirTab('audio'); pintarLinea(); };
   pa.appendChild(addA);
 
   // Fila de texto (subtítulos y textos)
@@ -1196,10 +1196,30 @@ const ICS = {
   pausas: '<path d="M3 12h3l2-5 3 10 2-5h2"/><path d="M17 8v8M21 8v8"/>',
   ruido: '<path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/><path d="m4 4 16 16"/>',
   mover: '<path d="M5 12h14M15 8l4 4-4 4M9 8l-4 4 4 4"/>',
+  'a-extraer': '<path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M14 11v5M14 11l3-1"/><circle cx="12.5" cy="16" r="1.5"/>',
+  'a-musica': '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/><path d="M15 3.5v6l3-1"/>',
+  'a-grabar': '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6"/>',
+  'a-silenciar': '<path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 5 6M21 9l-5 6"/>',
+  'a-sonido': '<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/>',
+  'a-lista': '<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',
 };
 const ic = (k) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ICS[k]}</svg>`;
 function pintarBarra() {
   const c = S.barraClip && clipSel();
+  if (!c && S.barraAudio) {
+    const modoA = 'audio:' + !!S.silenciar + ':' + S.musica.length;
+    if (barra._modo !== modoA) {
+      barra._modo = modoA;
+      // Barra de audio como CapCut: se toca "Agregar audio" y abajo salen las opciones (sin abrir ventana)
+      const it = [['acc', 'a-extraer', 'Extraer'], ['acc', 'a-musica', 'Música'], ['acc', 'a-grabar', 'Grabar'], 'sep',
+        S.silenciar ? ['acc', 'a-sonido', 'Activar sonido original'] : ['acc', 'a-silenciar', 'Silenciar originales'],
+        S.musica.length && ['acc', 'a-lista', 'Mis audios']].filter(Boolean);
+      barra.innerHTML = `<button type="button" class="cut-volver" data-volver aria-label="Volver">${ic('volver')}</button>`
+        + it.map(x => x === 'sep' ? '<span class="cut-sep"></span>' : `<button type="button" class="cut-tab" data-acc="${x[1]}">${ic(x[1])}${x[2]}</button>`).join('');
+      barra.scrollLeft = 0;
+    }
+    return;
+  }
   const modo = c ? 'clip:' + c.id + ':' + c.tipo + ':' + (S.clips.indexOf(c) < S.clips.length - 1) + ':' + !!c.mute + ':' + !!c.limpio : 'general';
   if (barra._modo !== modo) {
     barra._modo = modo;
@@ -1221,12 +1241,18 @@ function pintarBarra() {
 }
 barra.addEventListener('click', (e) => {
   const b = e.target.closest('button'); if (!b) return;
-  if (b.dataset.volver != null) { S.barraClip = false; S.sel = null; abrirTab(null); pintarLinea(); return; }
+  if (b.dataset.volver != null) { S.barraClip = false; S.barraAudio = false; S.sel = null; S.selM = null; abrirTab(null); pintarLinea(); return; }
+  if (b.dataset.tab === 'audio' && innerWidth < 1000) return abrirBarraAudio();
+  const acA = { 'a-extraer': () => $('#cutExtraer').click(), 'a-musica': () => $('#cutMusica').click(), 'a-grabar': () => vozEnOff(),
+    'a-silenciar': () => silenciarOriginales(true), 'a-sonido': () => silenciarOriginales(false), 'a-lista': () => { S.selM = null; abrirTab(S.tab === 'audio' ? null : 'audio'); } }[b.dataset.acc];
+  if (acA) return acA();
   if (b.dataset.tab) return abrirTab(S.tab === b.dataset.tab && innerWidth < 1000 ? null : b.dataset.tab);
   const c = clipSel(); if (!c) return;
   ({ dividir, eliminar: () => { eliminar(); S.barraClip = false; S.sel = null; abrirTab(null); pintarLinea(); }, duplicar, sustituir: () => $('#cutSustituir').click(), extraer: () => extraerDeClip(c), pausas: () => quitarPausas(c),
     ruido: () => { c.limpio = !c.limpio; aplicarLimpieza(c); pintarBarra(); guardar(); aviso(c.limpio ? 'Ruido reducido en este clip 🎙️ (se nota más en el video exportado)' : 'Sonido original'); } })[b.dataset.acc]?.();
 });
+function abrirBarraAudio() { S.barraAudio = true; S.barraClip = false; S.sel = null; S.selM = null; S.selC = null; abrirTab(null); pintarLinea(); }
+function silenciarOriginales(si) { S.silenciar = si; sincronizar(); pintarLinea(); pintarBarra(); guardar(); aviso(si ? 'Sonido original de los videos apagado 🔇' : 'Sonido original de los videos activado 🔊'); }
 // Sustituir: cambia el video o la foto del clip y deja lo demás (velocidad, efectos, transición)
 $('#cutSustituir').addEventListener('change', async (e) => {
   const f = e.target.files[0]; e.target.value = '';
