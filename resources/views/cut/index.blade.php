@@ -125,6 +125,10 @@ button{font:inherit;color:inherit;cursor:pointer}
 .cut-vacio .grande span{font-size:1.4rem;line-height:1}
 .cut-vacio ul{list-style:none;padding:0;margin:.9rem 0 0;display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem;max-width:420px}
 .cut-vacio.con-proys .cut-hero{display:none}
+.cut-imp{background:none;border:1px dashed var(--b);border-radius:999px;color:var(--v);font-weight:700;font-size:.78rem;padding:.35rem .75rem}
+.cut-proys>.cut-imp{display:block;margin:.2rem auto 0}
+.cut-proys h3 .cut-imp{border:0;padding:0}
+.cut-editable{width:100%;margin-top:.6rem}.cut-editable small{color:var(--m);font-weight:600}
 .cut-proys{width:100%;max-width:460px;text-align:left;margin-top:.3rem}
 .cut-proys h3{font-size:.85rem;margin:.2rem 0 .45rem;color:var(--m);font-weight:700;display:flex;justify-content:space-between}
 .cut-proys .lista{display:flex;gap:.55rem;overflow-x:auto;padding-bottom:.3rem;scroll-snap-type:x mandatory}
@@ -523,6 +527,7 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
 <input type="file" id="cutArchivo" accept="video/*,image/*" multiple hidden>
 <input type="file" id="cutMusica" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg" hidden>
 <input type="file" id="cutExtraer" accept="video/*" hidden>
+<input type="file" id="cutImportar" hidden>
 <input type="file" id="cutCapaFoto" accept="image/*" hidden>
 <input type="file" id="cutSustituir" accept="video/*,image/*" hidden>
 <div id="cutVideos"></div>
@@ -591,6 +596,7 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
         <div class="cut-exp-fin" hidden>
             <video controls playsinline></video>
             <div class="fila-b"><button type="button" class="cut-btn-sec" data-otra>Exportar otra vez</button><button type="button" class="cut-btn-sec" data-compartir>Compartir video</button><button type="button" class="cut-exp" data-bajar>Descargar</button></div>
+            <button type="button" class="cut-btn-sec cut-editable" data-editable>📦 Compartir el editable <small>(para que otro siga editándolo)</small></button>
             <button type="button" class="cut-programar" data-programar>📅 <span>Programar en redes sociales<small>Publíquelo o prográmelo en Facebook, Instagram y YouTube</small></span></button>
             <div class="cut-amigo">
                 <b>¿Le gustó? 🎉 Comparta LocalProCut con un amigo y siga usándolo gratis</b>

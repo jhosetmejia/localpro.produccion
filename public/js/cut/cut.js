@@ -1100,7 +1100,12 @@ async function agregarArchivos(lista) {
   if (S.clips.length && !S.sel) S.sel = S.clips[0].id;
   pintarLinea(); pintarPanel(); guardar();
 }
-$('#cutArchivo').addEventListener('change', (e) => { agregarArchivos(e.target.files); e.target.value = ''; });
+$('#cutArchivo').addEventListener('change', (e) => {
+  const fs = [...e.target.files]; e.target.value = '';
+  const ed = fs.find(f => /\.lpcut$/i.test(f.name));
+  if (ed) return importarEditable(ed); // escogió un editable en vez de un video: se importa
+  agregarArchivos(fs);
+});
 $$('[data-agregar]').forEach(b => b.addEventListener('click', () => $('#cutArchivo').click()));
 
 function cargandoMsg(txt) {
@@ -1667,8 +1672,12 @@ function pintarPanel() {
       <div class="cut-formatos">
         ${[['9:16', 'TikTok · Reels · Estados'], ['16:9', 'YouTube · TV'], ['1:1', 'Cuadrado'], ['4:5', 'Instagram']].map(([v, t]) => `<button type="button" data-asp="${v}" class="${S.aspecto === v ? 'on' : ''}"><span class="caja-asp" style="aspect-ratio:${v.replace(':', '/')}"></span><b>${v}</b><small>${t}</small></button>`).join('')}
       </div>
-      <button type="button" class="cut-btn-sec" data-nuevo-proy style="margin-top:.8rem">📁 Mis proyectos · empezar un video nuevo</button>`;
+      <button type="button" class="cut-btn-sec" data-nuevo-proy style="margin-top:.8rem">📁 Mis proyectos · empezar un video nuevo</button>
+      <div class="cut-acciones2"><button type="button" class="cut-btn-sec" data-editable>📦 Compartir el editable</button><button type="button" class="cut-btn-sec" data-importar>📥 Importar editable</button></div>
+      <p class="cut-nota">El <b>editable</b> es su edición con los videos en un solo archivo: mándelo por WhatsApp y la otra persona lo abre aquí con "Importar editable" para seguir editándolo.</p>`;
     $('[data-nuevo-proy]', p).onclick = nuevoProyecto;
+    $('[data-editable]', p).onclick = compartirEditable;
+    $('[data-importar]', p).onclick = () => $('#cutImportar').click();
     $('.cut-formatos', p).onclick = (e) => { const b = e.target.closest('[data-asp]'); if (!b) return; S.aspecto = b.dataset.asp; ajustarVista(); pintarPanel(); guardar(); };
   }
 }
@@ -2186,6 +2195,7 @@ async function exportar() {
   comp.hidden = !(navigator.canShare && navigator.canShare({ files: [file] }));
   comp.onclick = () => { contar('compartio_video'); navigator.share({ files: [file], title: 'Mi video' }).catch(() => {}); };
   $('[data-otra]', fin).onclick = () => { $('.cut-exp-op', m).hidden = false; fin.hidden = true; };
+  $('[data-editable]', fin).onclick = compartirEditable;
   // Programar en redes: el video queda guardado en el equipo y lo toma "Mis redes → Publicar" (sin volver a buscarlo).
   // Sin cuenta: crea la cuenta de creador (solo pide sus datos) y entra directo a conectar sus redes.
   $('[data-programar]', fin).onclick = async (ev) => {
@@ -2339,13 +2349,16 @@ function guardarYa() {
   if (!S.clips.length) return Promise.resolve();
   if (!S.proy) { const d = new Date(); S.proy = 'p_' + uid(); S.proyNombre = 'Video del ' + d.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }) + ', ' + d.toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit' }); }
   if (!S.proyMini || Date.now() - miniAt > 15000) { const m = miniatura(); if (m) { S.proyMini = m; miniAt = Date.now(); } }
-  return DB.put('estado', S.proy, { nombre: S.proyNombre, mini: S.proyMini || null,
+  return DB.put('estado', S.proy, estadoProyecto());
+}
+function estadoProyecto() {
+  return { nombre: S.proyNombre, mini: S.proyMini || null,
       clips: S.clips.map(c => ({ id: c.id, fileId: c.fileId, nombre: c.nombre, tipo: c.tipo, in: c.in, out: c.out, dur: c.dur, mute: c.mute, vol: c.vol ?? 1, trans: c.trans, vel: c.vel || 1, curva: c.curva || null, z: c.z || 1, x: c.x || 0, y: c.y || 0, kf: c.kf?.length ? c.kf : null, ef: c.ef || 'ninguno', anim: c.anim || null, limpio: !!c.limpio })),
       musica: S.musica.map(m => ({ id: m.id, fileId: m.fileId, nombre: m.nombre, start: m.start, in: m.in, out: m.out ?? null, dur: m.dur, vol: m.vol, fadeIn: m.fadeIn, fadeOut: m.fadeOut, limpio: !!m.limpio, voz: !!m.voz })),
       silenciar: !!S.silenciar,
       subs: S.subs, segs: S.segs, sub: S.sub, belleza: S.belleza, aspecto: S.aspecto, fecha: Date.now(),
       capas: S.capas.map(datosCapa), filtro: S.filtro, ajuste: S.ajuste, fondo: S.fondo, portada: S.portada ? { t: S.portada.t, url: S.portada.url } : null,
-  });
+  };
 }
 async function proyectos() {
   // El proyecto de antes (un solo video guardado como 'actual') pasa a ser uno más de la lista
@@ -2357,15 +2370,16 @@ async function proyectos() {
 async function pintarProyectos() {
   const caja = $('#cutProys'); if (!caja) return;
   const lista = await proyectos();
-  caja.hidden = !lista.length;
+  caja.hidden = false;
   $('#cutVacio').classList.toggle('con-proys', !!lista.length);
-  if (!lista.length) { caja.innerHTML = ''; return; }
-  caja.innerHTML = `<h3><span>📁 Mis proyectos</span><small>${lista.length}</small></h3><div class="lista">${lista.map(([k, v]) => `
+  if (!lista.length) { caja.innerHTML = '<button type="button" class="cut-imp" data-imp>📥 ¿Le mandaron un editable? Importarlo</button>'; return; }
+  caja.innerHTML = `<h3><span>📁 Mis proyectos</span><button type="button" class="cut-imp" data-imp>📥 Importar editable</button></h3><div class="lista">${lista.map(([k, v]) => `
     <div class="cut-proy" role="button" tabindex="0" data-abrir="${esc(k)}">${v.mini ? `<img src="${v.mini}" alt="" loading="lazy">` : '<i class="sin">🎬</i>'}
       <span>${esc(v.nombre || 'Video')}<small>${v.clips.length} ${v.clips.length === 1 ? 'clip' : 'clips'} · ${new Date(v.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })}</small></span>
       <button type="button" class="bor" data-borrar="${esc(k)}" aria-label="Borrar proyecto">🗑</button></div>`).join('')}</div>`;
 }
 $('#cutProys')?.addEventListener('click', async (e) => {
+  if (e.target.closest('[data-imp]')) return $('#cutImportar').click();
   const b = e.target.closest('[data-borrar]');
   if (b) {
     e.stopPropagation();
@@ -2383,6 +2397,69 @@ async function borrarProyecto(k) {
   for (const x of [...(v.clips || []), ...(v.musica || []), ...(v.capas || [])]) if (x.fileId && !usados.has(x.fileId)) await DB.borrar('archivos', x.fileId);
 }
 async function recuperar() { await pintarProyectos(); }
+
+/* ---------- Compartir el editable (.lpcut): la edición + sus videos en un solo archivo, armado en el celular ----------
+   No pasa por el servidor. Formato: "LPCUT1\n" + 4 bytes (largo de la cabecera) + cabecera JSON + archivos uno tras otro.
+   Se arma con Blob (no copia los videos en memoria) y se lee con slice (tampoco). */
+const MAGIA = 'LPCUT1\n';
+async function compartirEditable() {
+  if (!S.clips.length) return aviso('Primero haga una edición para compartirla', 'mal');
+  clearTimeout(tGuardar); await guardarYa();
+  const est = estadoProyecto();
+  const vistos = new Map();
+  for (const o of [...S.clips, ...S.musica, ...S.capas]) if (o.fileId && o.file && !vistos.has(o.fileId)) vistos.set(o.fileId, o.file);
+  const archivos = [...vistos].map(([id, f]) => ({ id, nombre: f.name || id, tipo: f.type || '', tam: f.size }));
+  const cab = new TextEncoder().encode(JSON.stringify({ v: 1, app: 'LocalProCut', fecha: Date.now(), proyecto: est, archivos }));
+  const largoCab = new Uint8Array(4); new DataView(largoCab.buffer).setUint32(0, cab.length);
+  const nombre = (S.proyNombre || 'Mi edición').replace(/:/g, '-').replace(/\s*a\.\s*m\./g, ' am').replace(/\s*p\.\s*m\./g, ' pm').replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, ' ').replace(/[.\s]+$/, '').trim() + '.lpcut';
+  const blob = new Blob([MAGIA, largoCab, cab, ...vistos.values()], { type: 'application/octet-stream' });
+  const mb = Math.round(blob.size / 1048576);
+  contar('compartio_editable', { mb });
+  const file = new File([blob], nombre, { type: 'application/octet-stream' });
+  const texto = 'Le comparto el editable de mi video 🎬 Ábralo en LocalProCut (gratis): ' + location.origin + '/cut → Importar editable';
+  if (navigator.canShare?.({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: nombre, text: texto }); return; } catch (e) { if (e.name === 'AbortError') return; }
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = nombre; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  aviso(`Editable descargado (${mb} MB) 📦 Mándelo por WhatsApp como Documento; el otro lo abre en LocalProCut con "Importar editable".`);
+}
+async function importarEditable(f) {
+  if (!f) return;
+  try {
+    const magia = await f.slice(0, MAGIA.length).text();
+    if (magia !== MAGIA) throw new Error('Ese archivo no es un editable de LocalProCut (.lpcut)');
+    const largoCab = new DataView(await f.slice(MAGIA.length, MAGIA.length + 4).arrayBuffer()).getUint32(0);
+    let pos = MAGIA.length + 4;
+    const cab = JSON.parse(await f.slice(pos, pos + largoCab).text());
+    pos += largoCab;
+    cargandoMsg('Importando la edición…');
+    // Ids nuevos para los archivos (por si ya tenía ese mismo editable importado)
+    const nuevo = new Map();
+    for (const a of cab.archivos) {
+      const id = uid();
+      const archivo = new File([f.slice(pos, pos + a.tam)], a.nombre, { type: a.tipo });
+      pos += a.tam;
+      if (!(await DB.put('archivos', id, archivo))) throw new Error('Su celular no tiene espacio para guardar los videos del editable');
+      nuevo.set(a.id, id);
+    }
+    const pr = cab.proyecto;
+    for (const o of [...(pr.clips || []), ...(pr.musica || []), ...(pr.capas || [])]) if (o.fileId && nuevo.has(o.fileId)) o.fileId = nuevo.get(o.fileId);
+    pr.nombre = (pr.nombre || 'Edición') + ' (recibido)'; pr.fecha = Date.now();
+    const k = 'p_' + uid();
+    await DB.put('estado', k, pr);
+    cargandoMsg(null);
+    contar('importo_editable');
+    if (S.clips.length) { clearTimeout(tGuardar); await guardarYa(); limpiarEditor(); }
+    await abrirProyecto(k);
+    aviso('Editable importado ✅ Ya puede seguir editándolo (queda en Mis proyectos)');
+  } catch (e) {
+    cargandoMsg(null);
+    aviso(e.message || 'No se pudo abrir el editable', 'mal');
+  }
+}
+$('#cutImportar')?.addEventListener('change', (e) => { const f = e.target.files[0]; e.target.value = ''; importarEditable(f); });
 async function abrirProyecto(k) {
   const e = await DB.get('estado', k);
   if (!e?.clips?.length) return pintarProyectos();
@@ -2426,6 +2503,13 @@ async function nuevoProyecto() {
   if (S.clips.length && !(await preguntar('¿Empezar un video nuevo?', 'El video que tiene queda guardado en "Mis proyectos" y puede volver a abrirlo cuando quiera.', 'Empezar uno nuevo'))) return;
   pausar();
   if (S.clips.length) { clearTimeout(tGuardar); await guardarYa(); }
+  limpiarEditor();
+  $('#cutVacio').hidden = false; pintarProyectos();
+  registrarHist();
+  pintarLinea(); abrirTab(innerWidth >= 1000 ? 'editar' : null);
+}
+function limpiarEditor() {
+  pausar();
   S.proy = null; S.proyNombre = null; S.proyMini = null;
   S.clips.forEach(c => { if (c.el) { c.el.pause(); c.el.remove(); } });
   S.musica.forEach(m => { if (m.el) { m.el.pause(); m.el.remove(); } });
@@ -2433,9 +2517,6 @@ async function nuevoProyecto() {
   S.capas = []; S.selC = null; S.portada = null;
   S.filtro = { id: 'ninguno', k: 1 }; S.ajuste = { brillo: 0, contraste: 0, saturacion: 0, temperatura: 0, vineta: 0 }; S.fondo = { modo: 'llenar', color: '#000000' };
   REG.clear(); HIST.pila = []; HIST.pos = -1;
-  $('#cutVacio').hidden = false; pintarProyectos();
-  registrarHist();
-  pintarLinea(); abrirTab(innerWidth >= 1000 ? 'editar' : null);
 }
 
 /* ---------- zoom y encuadre con los dedos sobre el video ---------- */
