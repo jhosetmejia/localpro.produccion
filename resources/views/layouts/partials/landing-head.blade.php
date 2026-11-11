@@ -8,3 +8,4 @@
 <script src="https://use.fontawesome.com/releases/v6.1.0/js/all.js" crossorigin="anonymous" defer></script>
 <script src="{{ asset('js/optimizar-imagenes.js') }}?v=1" defer></script>
 @include('layouts.partials.pwa')
+@include('layouts.partials.app-nav')
