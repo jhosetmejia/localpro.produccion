@@ -1,0 +1,7 @@
+Texto a voz de LocalProCut (corre en el celular, sin servidor):
+- piper_phonemize.mjs: de @mintplex-labs/piper-tts-web 1.0.5 (MIT), fork de @diffusion-studio/vits-web.
+- piper_phonemize.wasm / .data: @diffusionstudio/piper-wasm 1.0.0 (piper-phonemize de Rhasspy, MIT; incluye datos de espeak-ng, GPL-3.0,
+  código fuente en https://github.com/espeak-ng/espeak-ng y https://github.com/rhasspy/piper-phonemize).
+- ort.wasm.min.mjs, ort-wasm-simd-threaded.*: onnxruntime-web 1.20.1 (MIT, Microsoft).
+- Voces: Piper (https://github.com/rhasspy/piper, MIT), descargadas de huggingface.co/rhasspy/piper-voices la primera vez.
+  es_MX-claude-high (Apache-2.0), es_MX-ald-medium (Unlicense), es_ES-mls_10246-low (CC BY 4.0, Multilingual LibriSpeech).

@@ -355,6 +355,7 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
 .cut-btn:disabled{opacity:.6}
 .cut-btn-sec{background:var(--f2);border:1px solid var(--b);border-radius:12px;padding:.55rem .8rem;font-weight:700;font-size:.82rem}
 .cut-acciones2{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.5rem}
+.cut-tts-txt{width:100%;background:var(--f2);border:1px solid var(--b);color:var(--t);border-radius:12px;padding:.7rem .8rem;font:inherit;font-size:.95rem;resize:vertical;margin-bottom:.4rem}
 .cut-gen-op{display:flex;gap:.4rem;margin-top:.45rem}
 .cut-gen-op select{flex:1;background:var(--f2);border:1px solid var(--b);color:var(--t);border-radius:10px;padding:.45rem;font:inherit;font-size:.82rem}
 .cut-progreso{margin-top:.5rem;background:var(--f2);border-radius:999px;height:26px;position:relative;overflow:hidden}

@@ -922,6 +922,62 @@ function cadenaVoz(oc, nodo) {
   return comp;
 }
 
+/* ---------- texto a voz: Piper corriendo en el celular (vendor/piper), sin servidor ni costo ---------- */
+const VOCES = [
+  { id: 'es_MX-claude-high', n: 'México 1', ruta: 'es/es_MX/claude/high/es_MX-claude-high.onnx', mb: 63 },
+  { id: 'es_MX-ald-medium', n: 'México 2', ruta: 'es/es_MX/ald/medium/es_MX-ald-medium.onnx', mb: 63 },
+  { id: 'es_ES-mls_10246-low', n: 'España', ruta: 'es/es_ES/mls_10246/low/es_ES-mls_10246-low.onnx', mb: 63 },
+];
+let trabVoz = null, ttsOcupado = false, ttsAudio = null;
+function wavDe(pcm, sr) {
+  const b = new ArrayBuffer(44 + pcm.length * 2), d = new DataView(b);
+  const w = (o, t) => { for (let i = 0; i < t.length; i++) d.setUint8(o + i, t.charCodeAt(i)); };
+  w(0, 'RIFF'); d.setUint32(4, 36 + pcm.length * 2, true); w(8, 'WAVE'); w(12, 'fmt '); d.setUint32(16, 16, true); d.setUint16(20, 1, true); d.setUint16(22, 1, true);
+  d.setUint32(24, sr, true); d.setUint32(28, sr * 2, true); d.setUint16(32, 2, true); d.setUint16(34, 16, true); w(36, 'data'); d.setUint32(40, pcm.length * 2, true);
+  for (let i = 0; i < pcm.length; i++) d.setInt16(44 + i * 2, Math.max(-1, Math.min(1, pcm[i])) * 32767, true);
+  return new Blob([b], { type: 'audio/wav' });
+}
+async function textoAVoz(poner) {
+  const v = S.tts, texto = (v?.texto || '').trim();
+  if (!texto) return aviso('Escriba primero el texto que quiere convertir en voz', 'mal');
+  if (ttsOcupado) return;
+  if (poner && !S.clips.length) return aviso('Primero agregue un video para ponerle la voz', 'mal');
+  const voz = VOCES.find(x => x.id === v.voz) || VOCES[0];
+  const prog = $('[data-tprog]'), pinta = (pct, txt) => { if (!prog) return; prog.hidden = false; $('i', prog).style.width = pct + '%'; $('span', prog).textContent = txt; };
+  ttsOcupado = true; pinta(3, 'Preparando la voz…');
+  contar('texto_a_voz', { voz: voz.id, letras: texto.length });
+  try {
+    trabVoz ||= new Worker(new URL('./voz.js', import.meta.url), { type: 'module' });
+    const r = await new Promise((ok, mal) => {
+      trabVoz.onmessage = (e) => {
+        const d = e.data;
+        if (d.tipo === 'descarga') pinta(d.pct * 0.8, `Bajando la voz (solo la primera vez) ${d.pct}%`);
+        else if (d.tipo === 'cargando') pinta(82, 'Cargando la voz…');
+        else if (d.tipo === 'hablando') pinta(85 + 14 * d.i / d.n, d.n > 1 ? `Creando el audio ${d.i} de ${d.n}…` : 'Creando el audio…');
+        else if (d.tipo === 'listo') ok(d);
+        else if (d.tipo === 'error') mal(new Error(d.mensaje));
+      };
+      trabVoz.onerror = (e) => mal(new Error(e.message || 'La voz no cargó'));
+      trabVoz.postMessage({ tipo: 'hablar', texto, voz, lento: v.lento || 1 });
+    });
+    const wav = wavDe(r.pcm, r.sr);
+    if (prog) prog.hidden = true;
+    if (!poner) {
+      if (ttsAudio) { ttsAudio.pause(); URL.revokeObjectURL(ttsAudio.src); }
+      ttsAudio = new Audio(URL.createObjectURL(wav)); ttsAudio.play().catch(() => {});
+    } else {
+      const n = S.musica.filter(m => m.voz).length + 1;
+      const f = new File([wav], `voz-texto-${n}.wav`, { type: 'audio/wav' });
+      await agregarMusica(f, '🗣️ ' + texto.slice(0, 24) + (texto.length > 24 ? '…' : ''), 'Voz agregada 🗣️ Puede moverla en la fila de audio', { voz: true, fadeOut: false });
+    }
+  } catch (e) {
+    if (prog) prog.hidden = true;
+    aviso('No se pudo crear la voz: ' + e.message, 'mal');
+    window.LPOpinion?.error(new Error('Texto a voz: ' + e.message), { fase: 'texto_a_voz', voz: voz.id, letras: texto.length, ios: IOS });
+    try { trabVoz?.terminate(); } catch (e2) { /* nada */ } trabVoz = null;
+  } finally { ttsOcupado = false; }
+}
+
 /* ---------- voz en off: graba el micrófono mientras se reproduce el video, como CapCut ----------
    El navegador ya quita ruido y eco (noiseSuppression / echoCancellation); además queda marcada "reducir ruido". */
 const VOZ = { rec: null, stream: null, t0: 0, ini: 0, timer: 0, partes: [] };
@@ -1163,7 +1219,7 @@ function mover(d) {
 }
 
 /* ---------- panel de herramientas ---------- */
-const TITULOS = { volumen: 'Volumen', animaciones: 'Animaciones', recortar: 'Recortar', editar: 'Editar', audio: 'Audio', texto: 'Texto', efectos: 'Efectos', superposicion: 'Superposición', subtitulos: 'Subtítulos', filtros: 'Filtros', ajustar: 'Ajustar', stickers: 'Stickers', formato: 'Relación de aspecto', fondo: 'Fondo', velocidad: 'Velocidad', transicion: 'Transición', belleza: 'Belleza del rostro', capa: 'Capa', portada: 'Portada' };
+const TITULOS = { voz: 'Texto a voz', volumen: 'Volumen', animaciones: 'Animaciones', recortar: 'Recortar', editar: 'Editar', audio: 'Audio', texto: 'Texto', efectos: 'Efectos', superposicion: 'Superposición', subtitulos: 'Subtítulos', filtros: 'Filtros', ajustar: 'Ajustar', stickers: 'Stickers', formato: 'Relación de aspecto', fondo: 'Fondo', velocidad: 'Velocidad', transicion: 'Transición', belleza: 'Belleza del rostro', capa: 'Capa', portada: 'Portada' };
 function abrirTab(t) {
   S.tab = t;
   pintarBarra();
@@ -1201,6 +1257,7 @@ const ICS = {
   'a-grabar': '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6"/>',
   'a-silenciar': '<path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 5 6M21 9l-5 6"/>',
   'a-sonido': '<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/>',
+  'a-tts': '<path d="M4 6h10M9 6v12"/><path d="M15 10.5a3 3 0 0 1 0 5M18 8a6.5 6.5 0 0 1 0 10"/>',
   'a-lista': '<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',
 };
 const ic = (k) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ICS[k]}</svg>`;
@@ -1211,7 +1268,7 @@ function pintarBarra() {
     if (barra._modo !== modoA) {
       barra._modo = modoA;
       // Barra de audio como CapCut: se toca "Agregar audio" y abajo salen las opciones (sin abrir ventana)
-      const it = [['acc', 'a-extraer', 'Extraer'], ['acc', 'a-musica', 'Música'], ['acc', 'a-grabar', 'Grabar'], 'sep',
+      const it = [['acc', 'a-extraer', 'Extraer'], ['acc', 'a-musica', 'Música'], ['acc', 'a-grabar', 'Grabar'], ['acc', 'a-tts', 'Texto a voz'], 'sep',
         S.silenciar ? ['acc', 'a-sonido', 'Activar sonido original'] : ['acc', 'a-silenciar', 'Silenciar originales'],
         S.musica.length && ['acc', 'a-lista', 'Mis audios']].filter(Boolean);
       barra.innerHTML = `<button type="button" class="cut-volver" data-volver aria-label="Volver">${ic('volver')}</button>`
@@ -1243,7 +1300,7 @@ barra.addEventListener('click', (e) => {
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.volver != null) { S.barraClip = false; S.barraAudio = false; S.sel = null; S.selM = null; abrirTab(null); pintarLinea(); return; }
   if (b.dataset.tab === 'audio' && innerWidth < 1000) return abrirBarraAudio();
-  const acA = { 'a-extraer': () => $('#cutExtraer').click(), 'a-musica': () => $('#cutMusica').click(), 'a-grabar': () => vozEnOff(),
+  const acA = { 'a-extraer': () => $('#cutExtraer').click(), 'a-musica': () => $('#cutMusica').click(), 'a-grabar': () => vozEnOff(), 'a-tts': () => { S.selM = null; abrirTab(S.tab === 'voz' ? null : 'voz'); },
     'a-silenciar': () => silenciarOriginales(true), 'a-sonido': () => silenciarOriginales(false), 'a-lista': () => { S.selM = null; abrirTab(S.tab === 'audio' ? null : 'audio'); } }[b.dataset.acc];
   if (acA) return acA();
   if (b.dataset.tab) return abrirTab(S.tab === b.dataset.tab && innerWidth < 1000 ? null : b.dataset.tab);
@@ -1414,6 +1471,26 @@ function pintarPanel() {
     $('[data-grupo="durtr"]', p).onclick = (e) => { const v = e.target.dataset.v; if (!v) return; c.trans.dur = Number(v); todas(); pintarLinea(); pintarPanel(); guardar(); irA(S.t); };
     return;
   }
+  if (S.tab === 'voz') {
+    const v = S.tts ||= { voz: VOCES[0].id, lento: 1, texto: '' };
+    p.innerHTML = `
+      <textarea class="cut-tts-txt" data-ttxt rows="4" maxlength="3000" placeholder="Escriba lo que quiere que diga la voz…">${esc(v.texto)}</textarea>
+      <div class="cut-fila"><small>Voz</small><div class="cut-chips" data-grupo="tvoz">${VOCES.map(x => `<button type="button" class="cut-chip ${v.voz === x.id ? 'on' : ''}" data-v="${x.id}">${x.n}</button>`).join('')}</div></div>
+      <div class="cut-fila"><small>Velocidad</small>${chips('tvel', [[1.25, 'Lenta'], [1, 'Normal'], [0.85, 'Rápida']], v.lento)}</div>
+      <div class="cut-progreso" data-tprog hidden><i></i><span></span></div>
+      <div class="cut-acciones2">
+        <button type="button" class="cut-btn-sec" data-toir>▶ Escuchar</button>
+        <button type="button" class="cut-btn" data-tponer>＋ Agregar al video</button>
+      </div>
+      <p class="cut-nota">La voz se crea en su celular, gratis y sin internet después de la primera vez (la primera vez baja la voz: ${VOCES.find(x => x.id === v.voz)?.mb || 60} MB, mejor con wifi). Queda en la fila de audio donde está la línea blanca.<br><small>Voces de Piper (código abierto).</small></p>`;
+    const ta = $('[data-ttxt]', p);
+    ta.oninput = () => { v.texto = ta.value; };
+    $('[data-grupo="tvoz"]', p).onclick = (e) => { const b = e.target.closest('[data-v]'); if (!b) return; v.voz = b.dataset.v; pintarPanel(); };
+    $('[data-grupo="tvel"]', p).onclick = (e) => { if (!e.target.dataset.v) return; v.lento = Number(e.target.dataset.v); pintarPanel(); };
+    $('[data-toir]', p).onclick = () => textoAVoz(false);
+    $('[data-tponer]', p).onclick = () => textoAVoz(true);
+    return;
+  }
   if (S.tab === 'audio') {
     if (m) {
       p.innerHTML = `
@@ -1443,6 +1520,7 @@ function pintarPanel() {
         <button type="button" data-mus><i>🎵</i>Agregar música</button>
         <button type="button" data-ext><i>🎬</i>Extraer audio</button>
         <button type="button" data-voz><i>🎙️</i>Voz en off</button>
+        <button type="button" data-tts><i>🗣️</i>Texto a voz</button>
       </div>
       <p class="cut-nota"><b>Voz en off:</b> grabe su voz encima del video mientras se reproduce (con reducción de ruido).<br><b>Agregar música:</b> una canción o audio de su celular (MP3, M4A…).<br><b>Extraer audio:</b> escoja un video y se le saca solo el sonido para ponerlo en su edición.<br>Empieza donde está la línea blanca.</p>
       <label class="cut-check"><input type="checkbox" data-sil ${S.silenciar ? 'checked' : ''}> Silenciar el sonido original de los videos</label>
@@ -1450,6 +1528,7 @@ function pintarPanel() {
     $('[data-mus]', p).onclick = () => $('#cutMusica').click();
     $('[data-ext]', p).onclick = () => $('#cutExtraer').click();
     $('[data-voz]', p).onclick = () => vozEnOff();
+    $('[data-tts]', p).onclick = () => abrirTab('voz');
     $('[data-sil]', p).onchange = (e) => { S.silenciar = e.target.checked; sincronizar(); pintarLinea(); guardar(); };
     return;
   }
