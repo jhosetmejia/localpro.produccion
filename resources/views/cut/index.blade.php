@@ -313,6 +313,7 @@ body.recortando .cut-clip.sel>span{font-size:.85rem;background:var(--v);color:#0
 .cut-mas svg{width:24px;height:24px}
 .cut-agregar{position:absolute;top:0;height:30px;min-width:150px;border:0;border-radius:6px;background:var(--f2);color:#cfd8d2;font-size:.74rem;font-weight:700;text-align:left;padding:0 10px;white-space:nowrap}
 .cut-mus{position:absolute;top:0;height:28px;border-radius:6px;background:#1f6fa8 no-repeat;border:1px solid #3a93d1;color:#fff;font-size:.68rem;font-weight:700;padding:6px 8px;white-space:nowrap;overflow:hidden;cursor:pointer}
+.cut-mus .rit{position:absolute;bottom:4px;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:#ffd23d;box-shadow:0 0 0 1px rgba(0,0,0,.4);pointer-events:none}
 .cut-mus span{position:relative;text-shadow:0 1px 3px rgba(0,0,0,.7)}
 .cut-mus.sel{border-color:#fff}
 .cut-sub{position:absolute;top:0;height:28px;border-radius:6px;background:#f26b1d;border:1px solid #ff9a5c;color:#fff;font-size:.68rem;font-weight:700;padding:6px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
