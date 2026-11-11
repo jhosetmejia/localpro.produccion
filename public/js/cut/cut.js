@@ -860,7 +860,7 @@ function cargarVideo(c) {
       try { v.currentTime = Math.max(0.01, c.in || 0); } catch (e) { /* nada */ }
       ok();
     };
-    v.onerror = () => mal(new Error('No se pudo abrir ' + c.nombre));
+    v.onerror = () => { const er = v.error; v.removeAttribute('src'); v.load(); v.remove(); mal(new Error('video ' + (er ? er.code + ' ' + (er.message || '') : 'sin detalle'))); };
     ['seeked', 'loadeddata', 'playing'].forEach(ev => v.addEventListener(ev, () => { S.dirty = true; }));
     $('#cutVideos').appendChild(v);
   });
@@ -875,9 +875,41 @@ async function prepararClip(c) {
     c.tira = cv.toDataURL('image/jpeg', 0.6);
     if (S.belleza.on && BEL.listo()) { c.mascara = document.createElement('canvas'); BEL.mascara(c.bmp, c.mascara); }
   } else {
-    await cargarVideo(c);
-    tiraVideo(c);
+    try {
+      await cargarVideo(c);
+    } catch (e1) {
+      // En Android el celular a veces se queda sin decodificadores mientras arma las miniaturas de los otros videos:
+      // se espera a que termine y se intenta otra vez
+      await colaTiras; await new Promise(r => setTimeout(r, 700));
+      try { await cargarVideo(c); } catch (e2) {
+        // Formato que el reproductor del navegador no abre (ej. HEVC/H.265, 10 bits): se convierte aquí mismo a MP4 H.264, como CapCut
+        await convertirCompatible(c, e2);
+        await cargarVideo(c);
+      }
+    }
+    colaTiras = colaTiras.then(() => tiraVideo(c)).catch(() => {}); // miniaturas de a una, no todas a la vez
   }
+}
+let colaTiras = Promise.resolve();
+async function convertirCompatible(c, errOriginal) {
+  const input = new MB.Input({ source: new MB.BlobSource(c.file), formats: MB.ALL_FORMATS });
+  const tr = await input.getPrimaryVideoTrack().catch(() => null);
+  if (!tr || !(await tr.canDecode().catch(() => false))) throw errOriginal || new Error('formato no compatible');
+  const largo = Math.max(tr.displayWidth, tr.displayHeight), k = Math.min(1, 1920 / largo);
+  const output = new MB.Output({ format: new MB.Mp4OutputFormat(), target: new MB.BufferTarget() });
+  const conv = await MB.Conversion.init({
+    input, output,
+    video: { codec: 'avc', forceTranscode: true, bitrate: MB.QUALITY_HIGH, ...(k < 1 ? { width: Math.round(tr.displayWidth * k / 2) * 2, height: Math.round(tr.displayHeight * k / 2) * 2, fit: 'contain' } : {}) },
+  });
+  if (!conv.isValid) throw errOriginal || new Error('no se puede convertir');
+  const nombre = c.nombre || 'video';
+  conv.onProgress = (p) => cargandoMsg(`Convirtiendo "${nombre}" a un formato compatible… ${Math.round(p * 100)}%`);
+  cargandoMsg(`Convirtiendo "${nombre}" a un formato compatible…`);
+  await conv.execute();
+  const f = new File([output.target.buffer], nombre.replace(/\.[^.]+$/, '') + '.mp4', { type: 'video/mp4' });
+  URL.revokeObjectURL(c.url);
+  c.file = f; c.url = URL.createObjectURL(f); c.convertido = true;
+  aviso(`"${nombre}" se convirtió a un formato compatible ✅`);
 }
 async function agregarArchivos(lista) {
   const files = [...lista].filter(f => /^(video|image)\//.test(f.type) || /\.(mp4|mov|webm|m4v|jpe?g|png|webp|hei[cf])$/i.test(f.name));
@@ -890,11 +922,11 @@ async function agregarArchivos(lista) {
     try {
       await prepararClip(c);
       S.clips.push(reg(c));
-      await DB.put('archivos', c.fileId, f);
+      await DB.put('archivos', c.fileId, c.file);
     } catch (e) {
       const heic = /\.hei[cf]$/i.test(f.name) || /hei[cf]/i.test(f.type);
       aviso(heic ? `"${f.name}" es una foto HEIC del iPhone y este navegador no la abre. Compártala como JPG o en el iPhone ponga Ajustes → Cámara → Formatos → Más compatible.`
-        : `No se pudo abrir "${f.name}". Pruebe con otro archivo (MP4, MOV, JPG o PNG).`, 'mal');
+        : `"${f.name}" usa un formato que este celular no puede leer en el navegador. Pruebe abrirlo en Chrome actualizado o grábelo en "Más compatible" (H.264).`, 'mal');
       window.LPOpinion?.error(new Error('No abrió un archivo: ' + (e?.message || e)), { fase: 'agregar', tipo: f.type || '?', ext: (f.name.match(/\.\w+$/) || [''])[0].toLowerCase(), mb: Math.round(f.size / 1e5) / 10 });
     }
   }
