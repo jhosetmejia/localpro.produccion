@@ -2335,7 +2335,7 @@ async function exportar() {
       const esc2 = Math.min(1, Math.max(W / tr.displayWidth, H / tr.displayHeight) * 1.0001);
       const sw = Math.max(2, Math.round(tr.displayWidth * esc2)), sh = Math.max(2, Math.round(tr.displayHeight * esc2));
       const sink = new MB.CanvasSink(tr, { width: sw, height: sh, fit: 'fill', poolSize: 2 });
-      lectores.set(i, { it: sink.canvasesAtTimestamps(tiempos)[Symbol.asyncIterator](), w: sw, h: sh, ultimo: null });
+      lectores.set(i, { it: sink.canvasesAtTimestamps(tiempos)[Symbol.asyncIterator](), w: sw, h: sh, ultimo: null, sink, tiempos, k: 0, fallos: 0 });
     } catch (e) {
       lectores.set(i, { el: true });
     }
@@ -2427,8 +2427,22 @@ async function exportar() {
         else {
           const lc = lectores.get(i);
           if (!lc.el) {
-            const r = await lc.it.next();
-            if (!r.done && r.value) lc.ultimo = r.value.canvas;
+            let r = null;
+            try { r = await lc.it.next(); lc.k++; } catch (err) {
+              // "Decoding error": el decodificador del celular se trabó con este video (pasa en videos largos o
+              // con partes dañadas). Se reintenta desde este cuadro con un lector nuevo y, si vuelve a fallar,
+              // se sigue con el método de la vista previa (más lento pero seguro). El video no se cae.
+              lc.fallos++;
+              reportarVideo('exportar: ' + (err?.message || err) + ' (cuadro ' + n + ')', c);
+              if (lc.fallos <= 2) {
+                try {
+                  lc.it = lc.sink.canvasesAtTimestamps(lc.tiempos.slice(lc.k))[Symbol.asyncIterator]();
+                  r = await lc.it.next(); lc.k++;
+                } catch (err2) { r = null; lc.el = true; }
+              } else lc.el = true;
+              if (lc.el) { lc.reintentar = n + fps * 2; poner(3 + (n / N) * 95, 'Una parte del video está difícil de leer: la paso por el método seguro…'); }
+            }
+            if (r && !r.done && r.value) lc.ultimo = r.value.canvas;
             f = lc.ultimo ? { src: lc.ultimo, w: lc.w, h: lc.h } : null;
             // Revisar los primeros cuadros: si el lector rápido los da negros pero el video sí tiene imagen, usar el método de la vista previa
             if (f && (lc.revisados = (lc.revisados || 0) + 1) <= 3 && esNegro(f.src)) {
@@ -2436,7 +2450,16 @@ async function exportar() {
               if (!esNegro(c.el)) lc.el = true;
             }
           }
-          if (lc.el) {
+          // Pasada la parte dañada, se vuelve al lector rápido
+          if (lc.el && lc.sink && n >= lc.reintentar) {
+            try {
+              const it = lc.sink.canvasesAtTimestamps(lc.tiempos.slice(lc.k))[Symbol.asyncIterator]();
+              const r = await it.next();
+              if (!r.done && r.value) { lc.it = it; lc.k++; lc.el = false; lc.ultimo = r.value.canvas; f = { src: lc.ultimo, w: lc.w, h: lc.h }; }
+            } catch (e) { lc.reintentar = n + fps * 3; }
+          } else if (lc.el && lc.sink) lc.k++;
+          if (lc.el && !c.el) { try { await cargarVideo(c); } catch (e) { /* sin imagen este clip */ } }
+          if (lc.el && c.el) {
             if (!tiempoReal) await seekEl(c.el, tOrigen(c, t - L.start[i]));
             else if (c.el.readyState < 2) await new Promise(r => { c.el.addEventListener('loadeddata', r, { once: true }); setTimeout(r, 800); });
             const vw = c.el.videoWidth, vh = c.el.videoHeight;
