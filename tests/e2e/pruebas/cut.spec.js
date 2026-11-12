@@ -86,6 +86,30 @@ test.describe('LocalProCut', () => {
     expect(dur, 'El video exportado salió sin duración').toBeGreaterThan(8);
   });
 
+  test('logo encima del video: opacidad, quitar fondo y máscara', async ({ page }) => {
+    await abrirEditor(page);
+    await subir(page, [VIDEOS[0]], 1);
+    await page.setInputFiles('#cutCapaFoto', [media('logo.png')]);
+    await expect.poll(() => page.evaluate(() => window.__cut.capas.length), { message: 'El logo no entró como capa' }).toBe(1);
+    const panel = page.locator('#cutPanelCuerpo');
+    // Opacidad al 50%
+    await panel.locator('[data-op]').evaluate((r) => { r.value = '0.5'; r.dispatchEvent(new Event('input')); r.dispatchEvent(new Event('change')); });
+    expect(await page.evaluate(() => window.__cut.capas[0].op)).toBe(0.5);
+    // Quitar fondo liso: se borra el blanco de afuera y queda el blanco de adentro del logo
+    await panel.locator('[data-grupo="cfondo"] [data-v="liso"]').dispatchEvent('click');
+    await expect.poll(() => page.evaluate(() => !!window.__cut.capas[0]._sinFondo), { message: 'No quitó el fondo del logo' }).toBe(true);
+    const alfa = await page.evaluate(() => { const c = window.__cut.capas[0]._sinFondo, x = c.getContext('2d'); const a = (px, py) => x.getImageData(Math.round(px * c.width), Math.round(py * c.height), 1, 1).data[3]; return { esquina: a(0.02, 0.02), logo: a(0.2, 0.5), adentro: a(0.5, 0.5) }; });
+    expect(alfa, 'El fondo de afuera debe quedar transparente y el logo completo').toEqual({ esquina: 0, logo: 255, adentro: 255 });
+    // Máscara en corazón, invertida y otra vez normal
+    await panel.locator('[data-grupo="cmasc"] [data-v="corazon"]').dispatchEvent('click');
+    expect(await page.evaluate(() => window.__cut.capas[0].masc?.forma)).toBe('corazon');
+    await panel.locator('[data-minv]').dispatchEvent('click');
+    expect(await page.evaluate(() => window.__cut.capas[0].masc.inv)).toBe(true);
+    // Se dibuja sin errores encima del video
+    await page.waitForTimeout(800);
+    expect(await luzVista(page)).toBeGreaterThan(20);
+  });
+
   test('arranca en celulares sin WebGL2 (usa WebGL1)', async ({ page }) => {
     await page.addInitScript(() => {
       const g = HTMLCanvasElement.prototype.getContext;

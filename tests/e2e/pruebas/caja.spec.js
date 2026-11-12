@@ -53,6 +53,9 @@ test('abrir caja, vender en efectivo y cerrar cuadrada', async ({ page }) => {
   const contado = esperado ? num(esperado[1]) : 140000;
   await plata(page, '#contado', contado);
   if (await page.locator('#contadoBs').count()) await plata(page, '#contadoBs', 0).catch(() => {});
-  await Promise.all([page.waitForURL((u) => !/\/cajas\/cerrar/.test(u.pathname)), page.locator('form button.btn-dark').click()]);
+  await page.locator('form button.btn-dark').click();
+  // LocalPro pregunta "¿Cerrar la caja?" con su propia ventana
+  await page.locator('.lpx-ov.on .lpx-si').click();
+  await page.waitForURL((u) => !/\/cajas\/cerrar/.test(u.pathname));
   await expect(page.locator('body')).not.toContainText(/Server Error|SQLSTATE/);
 });
