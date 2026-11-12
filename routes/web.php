@@ -666,6 +666,7 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::get('/eventos', [\App\Http\Controllers\adminEventosController::class, 'index'])->name('eventos');
     Route::get('/donaciones', [\App\Http\Controllers\adminDonacionesController::class, 'index'])->name('donaciones');
     Route::get('/opiniones', [\App\Http\Controllers\adminOpinionesController::class, 'index'])->name('opiniones');
+    Route::get('/fallas', [\App\Http\Controllers\adminOpinionesController::class, 'fallas'])->name('fallas');
     Route::get('/visitas', [\App\Http\Controllers\adminSitioController::class, 'index'])->name('sitio');
     Route::get('/visitas/vivo', [\App\Http\Controllers\adminSitioController::class, 'vivo'])->name('sitio.vivo');
     Route::get('/cut', [\App\Http\Controllers\adminCutController::class, 'index'])->name('cut');

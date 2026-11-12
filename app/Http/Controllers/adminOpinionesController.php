@@ -50,6 +50,33 @@ class adminOpinionesController extends Controller
         ]);
     }
 
+    /** Fallas: los errores que les salen a las personas, explicados en palabras (qué intentaban hacer, qué pasó, en qué equipo) */
+    public function fallas(Request $request)
+    {
+        $verResueltas = $request->query('resueltas') === '1';
+        $modulo = $request->query('modulo');
+        $errores = ErrorCliente::query()
+            ->when(!$verResueltas, fn ($x) => $x->where('resuelto', false))
+            ->when($modulo, fn ($x) => $x->where('modulo', $modulo))
+            ->orderByDesc('ultima_vez')->limit(200)->get();
+        $escritas = Opinion::with(['user:id,name,email', 'tienda:id,nombre,telefono'])
+            ->where('tipo', 'falla')->whereIn('estado', ['nuevo', 'revisando'])->latest()->limit(30)->get();
+
+        return view('admin.fallas', [
+            'errores' => $errores->map(fn ($e) => ['e' => $e, 'x' => \App\Support\ExplicarFalla::de($e)]),
+            'escritas' => $escritas,
+            'verResueltas' => $verResueltas,
+            'modulo' => $modulo,
+            'cuenta' => [
+                'abiertas' => ErrorCliente::where('resuelto', false)->count(),
+                'hoy' => ErrorCliente::where('ultima_vez', '>=', now()->startOfDay())->count(),
+                'veces_semana' => (int) ErrorCliente::where('ultima_vez', '>=', now()->subDays(7))->sum('veces'),
+                'personas' => (int) ErrorCliente::where('resuelto', false)->sum('usuarios'),
+                'escritas' => $escritas->count(),
+            ],
+        ]);
+    }
+
     public function estado(Request $request, Opinion $opinion)
     {
         $d = $request->validate([

@@ -62,6 +62,11 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-comment-dots"></i></div>
                     Opiniones y fallas @if ($opNuevas)<span class="badge rounded-pill ms-auto" style="background:#ff5c9a;color:#fff">{{ $opNuevas }}</span>@endif
                 </a>
+                @php try { $fallasAb = \App\Models\ErrorCliente::where('resuelto', false)->count(); } catch (\Throwable $e) { $fallasAb = 0; } @endphp
+                <a class="nav-link {{ $on('admin.fallas') }}" href="{{ route('admin.fallas') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-bug"></i></div>
+                    Fallas @if ($fallasAb)<span class="badge rounded-pill ms-auto" style="background:#e5243b;color:#fff">{{ $fallasAb }}</span>@endif
+                </a>
                 <a class="nav-link {{ request()->routeIs('admin.sitio*') || request()->routeIs('admin.cut*') ? 'active' : '' }}" href="{{ route('admin.sitio') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-chart-line"></i></div>
                     Visitas y uso
