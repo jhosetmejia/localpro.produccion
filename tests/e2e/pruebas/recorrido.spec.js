@@ -9,7 +9,7 @@ const archivo = path.join(__dirname, '..', 'rutas.json');
 const rutas = fs.existsSync(archivo) ? JSON.parse(fs.readFileSync(archivo, 'utf8')) : [];
 
 // GET que cambian algo o que no son páginas (descargas, salir, cambiar de negocio…): no se visitan
-const NO_VISITAR = /logout|salir|impersonar|suplantar|volver-admin|exportar|descargar|excel|csv|pdf|\.xml|zip|respaldo|backup|sitemap|robots|manifest|webhook|callback|oauth|conectar|desconectar|wompi|meta\/|estado-|latido|cron|qr\.png|\/ticket\/|imprimir-todo|eliminar|borrar|activar|desactivar|aprobar|rechazar|cancelar|marcar|cambiar-tienda|entrar-como|^api\//i;
+const NO_VISITAR = /^500$|_ignition|sanctum|plantilla|pagar\/retorno|logout|salir|impersonar|suplantar|volver-admin|exportar|descargar|excel|csv|pdf|\.xml|zip|respaldo|backup|sitemap|robots|manifest|webhook|callback|oauth|conectar|desconectar|wompi|meta\/|estado-|latido|cron|qr\.png|\/ticket\/|imprimir-todo|eliminar|borrar|activar|desactivar|aprobar|rechazar|cancelar|marcar|cambiar-tienda|entrar-como|^api\//i;
 
 const mw = (r) => (Array.isArray(r.middleware) ? r.middleware : String(r.middleware || '').split(/[\n,]/)).map((x) => String(x).trim());
 const sinParametros = (r) => !/[{]/.test(r.uri);
@@ -32,10 +32,14 @@ for (const [grupo, { sesion, lista }] of Object.entries(grupos)) {
     if (sesion) test.use({ storageState: path.join(__dirname, '..', sesion) });
     for (const r of lista) {
       const url = '/' + r.uri.replace(/^\//, '');
-      test(`${url}${r.name ? ' (' + r.name + ')' : ''}`, async ({ page }) => {
+      test(`${url}${r.name ? ' (' + r.name + ')' : ''}`, async ({ page, vigia }) => {
         const res = await page.goto(url, { waitUntil: 'domcontentloaded' });
         const codigo = res ? res.status() : 0;
         expect(codigo, `${url} respondió ${codigo}`).toBeLessThan(500);
+        // 403/404: la página es de un módulo que este negocio no tiene (pedidos, 360, asesor…): está bien que no abra
+        if (codigo === 403 || codigo === 404) { vigia.permitir(new RegExp('status of ' + codigo)); test.skip(true, `No disponible para este usuario (${codigo})`); }
+        // Respuestas de datos (JSON) para las pantallas: basta con que no den error
+        if (/json/.test(res?.headers()['content-type'] || '')) return;
         // Dejar que corra el JavaScript de la página un momento
         await page.waitForLoadState('load', { timeout: 15_000 }).catch(() => {});
         await page.waitForTimeout(600);

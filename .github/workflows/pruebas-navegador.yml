@@ -102,6 +102,9 @@ jobs:
       - name: Errores de Laravel durante las pruebas
         if: always()
         run: |
+          echo "== ¿El servidor sigue vivo? ==" ; curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8000/login || echo "SE CAYÓ"
+          echo "== Últimas líneas del servidor ==" ; tail -40 storage/logs/servidor.log || true
+          echo "== Errores de Laravel ==" ; grep -E '\.(ERROR|CRITICAL|EMERGENCY)' storage/logs/laravel.log | cut -c1-500 | tail -40 || true
           if [ -s storage/logs/laravel.log ]; then
             grep -E '\.(ERROR|CRITICAL|EMERGENCY)' storage/logs/laravel.log | cut -c1-400 | sort | uniq -c | sort -rn | head -30 > errores.txt || true
             if [ -s errores.txt ]; then

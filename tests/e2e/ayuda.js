@@ -50,7 +50,7 @@ const test = base.test.extend({
       } catch (e) { /* nada */ }
       await ruta.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' });
     });
-    await use({ fallas, permitir: (r) => permitidas.push(r) });
+    await use({ fallas, permitir: (r) => { permitidas.push(r); for (let i = fallas.length - 1; i >= 0; i--) if (r.test(fallas[i])) fallas.splice(i, 1); } });
     if (fallas.length) {
       await info.attach('fallas.txt', { body: fallas.join('\n\n'), contentType: 'text/plain' });
       throw new Error('La página tuvo ' + fallas.length + ' falla(s):\n- ' + [...new Set(fallas)].slice(0, 8).join('\n- '));

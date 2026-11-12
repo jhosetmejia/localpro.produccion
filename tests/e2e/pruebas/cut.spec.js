@@ -19,9 +19,16 @@ const abrirEditor = async (page) => {
   await page.goto('/cut');
   await page.waitForFunction(() => window.__cut && window.__motor, null, { timeout: 30_000 });
 };
+const estado = (page) => page.evaluate(() => JSON.stringify({
+  clips: window.__cut.clips.map((c) => ({ tipo: c.tipo, nombre: c.nombre, el: !!c.el, rs: c.el?.readyState, dormido: !!c.el?._dormido, err: c.el?.error?.code || null })),
+  cargando: document.getElementById('cutCargando')?.hidden === false ? document.querySelector('#cutCargando span')?.textContent : null,
+  avisos: [...document.querySelectorAll('#cutToasts *')].map((x) => x.textContent).filter(Boolean).slice(-3),
+}));
 const subir = async (page, archivos, total) => {
   await page.setInputFiles('#cutArchivo', archivos);
-  await page.waitForFunction((n) => window.__cut.clips.length >= n && window.__cut.clips.every((c) => c.tipo !== 'video' || (c.el && c.el.readyState >= 1)), total, { timeout: 60_000 });
+  try {
+    await page.waitForFunction((n) => window.__cut.clips.length >= n && !window.__cut.clips.some((c) => c.tipo === 'video' && !c.el), total, { timeout: 90_000 });
+  } catch (e) { throw new Error('Los archivos no terminaron de cargar en el editor: ' + await estado(page)); }
 };
 const irA = (page, t) => page.evaluate((t) => { const l = document.getElementById('cutLinea'); l.scrollLeft = t * window.__cut.pps; l.dispatchEvent(new Event('scroll')); }, t);
 

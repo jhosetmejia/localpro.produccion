@@ -32,7 +32,8 @@ class profileController extends Controller
      */
     public function create()
     {
-        //
+        // No hay pantalla aparte: todo se maneja en Mi perfil (antes salía una página en blanco)
+        return redirect()->route('profile.index');
     }
 
     /**
@@ -40,7 +41,8 @@ class profileController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // No hay pantalla aparte: todo se maneja en Mi perfil (antes salía una página en blanco)
+        return redirect()->route('profile.index');
     }
 
     /**
@@ -48,7 +50,8 @@ class profileController extends Controller
      */
     public function show(string $id)
     {
-        //
+        // No hay pantalla aparte: todo se maneja en Mi perfil (antes salía una página en blanco)
+        return redirect()->route('profile.index');
     }
 
     /**
@@ -56,7 +59,8 @@ class profileController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        // No hay pantalla aparte: todo se maneja en Mi perfil (antes salía una página en blanco)
+        return redirect()->route('profile.index');
     }
 
     /**
@@ -87,6 +91,7 @@ class profileController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        // No hay pantalla aparte: todo se maneja en Mi perfil (antes salía una página en blanco)
+        return redirect()->route('profile.index');
     }
 }
