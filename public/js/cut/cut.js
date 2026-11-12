@@ -297,17 +297,17 @@ function prepararFondo(k) {
       if (modo === 'auto') {
         try {
           msg('Preparando la IA…');
-          k._sinFondo = await FON.quitarAuto(k.bmp, (pr, fase) => msg(fase === 'recortando' ? 'Recortando…' : 'Bajando la IA (solo la primera vez)… ' + Math.round(pr * 100) + '%'));
+          k._sinFondo = await FON.quitarAuto(k.bmp, (pr, fase) => msg(fase === 'recortando' ? 'Recortando…' : fase === 'preparando' ? 'Preparando la IA…' : 'Bajando la IA (solo la primera vez)… ' + Math.round(pr * 100) + '%'));
         } catch (e1) {
           // Celular que no alcanza con la IA grande: se intenta con la de personas y, si no hay persona, se avisa
           msg('Probando otro método…');
           try { k._sinFondo = await FON.quitarPersona(k.bmp); }
-          catch (e2) { throw new Error(/memoria|memory|alloc/i.test(e1.message) ? 'A su celular no le alcanzó la memoria para la IA. Pruebe Croma si el fondo es de un solo color.' : 'No encontré qué recortar en esa foto. Si el fondo es de un solo color, use Croma.'); }
+          catch (e2) { k._fondoDet = 'IA: ' + (e1?.message || e1) + ' · personas: ' + (e2?.message || e2); throw new Error(/memoria|memory|alloc/i.test(e1.message) ? 'A su celular no le alcanzó la memoria para la IA. Pruebe Croma si el fondo es de un solo color.' : 'No encontré qué recortar en esa foto. Si el fondo es de un solo color, use Croma.'); }
         }
       } else if (modo === 'persona') k._sinFondo = await FON.quitarPersona(k.bmp);
       else k._sinFondo = FON.quitarLiso(k.bmp, k.fondo.tol ?? 0.5);
     } catch (e) {
-      if (k._cf === cf) { k._fondoErr = e.message || String(e); k.fondo = null; k._cf = ''; aviso(k._fondoErr, 'mal'); window.LPOpinion?.error(new Error('Eliminar fondo: ' + k._fondoErr), { fase: 'fondo', modo }); }
+      if (k._cf === cf) { k._fondoErr = e.message || String(e); k.fondo = null; k._cf = ''; aviso(k._fondoErr, 'mal'); window.LPOpinion?.error(new Error('Eliminar fondo: ' + k._fondoErr), { fase: 'fondo', modo, detalle: (k._fondoDet || '').slice(0, 400), webgpu: !!navigator.gpu }); }
     } finally { if (k._cf === cf || !k.fondo) k._fondoP = null; k._proc = null; S.dirty = true; if (/^f-|capa/.test(S.tab || '')) pintarPanel(); }
   })();
   return k._fondoP;
@@ -1235,6 +1235,8 @@ function cargarVideo(c) {
     v.onloadedmetadata = () => {
       // Al despertar un video dormido (ver presupuestoVideos) vuelve a este evento: solo se mueve al punto pedido
       if (v._abierto) { try { v.currentTime = Math.max(0.01, v._loc ?? c.in ?? 0); } catch (e) { /* nada */ } S.dirty = true; return; }
+      // .mp4 sin imagen (nota de voz, audio de WhatsApp): el navegador lo abre como video negro; se agrega como audio
+      if (!v.videoWidth && !v.videoHeight) { const e = new Error('solo tiene sonido'); e.soloAudio = true; v.removeAttribute('src'); v.load(); v.remove(); mal(e); return; }
       v._abierto = true;
       c.el = v; c.w = v.videoWidth; c.h = v.videoHeight;
       if (!c.dur || !isFinite(c.dur)) c.dur = isFinite(v.duration) ? v.duration : 1;
@@ -1264,6 +1266,7 @@ async function prepararClip(c) {
     try {
       await cargarVideo(c);
     } catch (e1) {
+      if (e1?.soloAudio) throw e1;
       // En Android el celular a veces se queda sin decodificadores mientras arma las miniaturas de los otros videos:
       // se espera a que termine y se intenta otra vez
       await colaTiras; await new Promise(r => setTimeout(r, 700));
@@ -1799,7 +1802,7 @@ function opcionesFoto(k, sec) {
       <div class="cut-fila"><button type="button" class="cut-btn-sec ${modo === 'croma' ? 'on' : ''}" data-fcroma>${modo === 'croma' ? '✓ ' : ''}🎨 Croma (quitar un color: fondo blanco, verde…)</button></div>
       ${modo === 'croma' ? `<div class="cut-fila"><small>Intensidad</small><input type="range" min="0" max="1" step="0.02" value="${k.fondo.tol ?? 0.5}" data-ftol></div>` : ''}
       ${modo ? `<div class="cut-fila"><button type="button" class="cut-btn-sec" data-fquitar>↩ Restaurar el fondo</button></div>` : ''}
-      <p class="cut-nota">La eliminación automática usa IA en su celular (no se sube nada). La primera vez baja el modelo (~115 MB) y luego queda guardado.</p>`;
+      <p class="cut-nota">La eliminación automática usa IA en su celular (no se sube nada): puede tardar hasta un minuto. La primera vez baja el modelo (unos 200 MB, mejor con wifi) y luego queda guardado.</p>`;
   }
   if (sec === 'mascara') return `
       <div class="cut-chips" data-grupo="cmasc">${FON.FORMAS.map(([v, t, ic]) => `<button type="button" class="cut-chip ${(k.masc?.forma || '') === v ? 'on' : ''}" data-v="${v}">${ic} ${t}</button>`).join('')}</div>
