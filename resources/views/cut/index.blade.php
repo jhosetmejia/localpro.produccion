@@ -273,6 +273,7 @@ body.con-capas .cut-linea{height:210px}
 .cut-fils i{width:44px;height:44px;border-radius:10px}
 .cut-efs small,.cut-fils small{font-size:.66rem;font-weight:700;color:#cfd8d2;text-align:center;line-height:1.1}
 .cut-efs .on,.cut-fils .on{border-color:var(--v);background:#1d2a1f}
+.cut-btn-sec.on{border-color:var(--v);color:var(--v);background:#1d2a1f}
 .cut-emos{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:.35rem}
 .cut-emos button{font-size:1.6rem;line-height:1;background:var(--f3);border:0;border-radius:10px;padding:.4rem 0;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
 #cutClave.on{color:var(--v)}

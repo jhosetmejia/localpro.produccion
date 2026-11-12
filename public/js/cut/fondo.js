@@ -55,6 +55,83 @@ export function quitarLiso(bmp, tolerancia = 0.5) {
   return c;
 }
 
+/* Filtro guiado: ajusta los bordes de la máscara a los bordes reales de la foto (pelo, dedos, contornos),
+   así el recorte no queda "mordido" ni con escalones aunque la IA lo haya calculado más pequeño. */
+function cajas(src, w, h, r) {
+  const out = new Float32Array(w * h), integ = new Float64Array((w + 1) * (h + 1));
+  for (let y = 0; y < h; y++) { let fila = 0; for (let x = 0; x < w; x++) { fila += src[y * w + x]; integ[(y + 1) * (w + 1) + x + 1] = integ[y * (w + 1) + x + 1] + fila; } }
+  for (let y = 0; y < h; y++) {
+    const y0 = Math.max(0, y - r), y1 = Math.min(h, y + r + 1);
+    for (let x = 0; x < w; x++) {
+      const x0 = Math.max(0, x - r), x1 = Math.min(w, x + r + 1);
+      out[y * w + x] = (integ[y1 * (w + 1) + x1] - integ[y0 * (w + 1) + x1] - integ[y1 * (w + 1) + x0] + integ[y0 * (w + 1) + x0]) / ((x1 - x0) * (y1 - y0));
+    }
+  }
+  return out;
+}
+export function refinarBordes(d, alfa, w, h, r = 3, eps = 1e-4) {
+  const n = w * h, I = new Float32Array(n), P = new Float32Array(n), II = new Float32Array(n), IP = new Float32Array(n);
+  for (let i = 0; i < n; i++) { const g = (d[i * 4] * 0.299 + d[i * 4 + 1] * 0.587 + d[i * 4 + 2] * 0.114) / 255, p = alfa[i] / 255; I[i] = g; P[i] = p; II[i] = g * g; IP[i] = g * p; }
+  const mI = cajas(I, w, h, r), mP = cajas(P, w, h, r), mII = cajas(II, w, h, r), mIP = cajas(IP, w, h, r);
+  const A = new Float32Array(n), B = new Float32Array(n);
+  for (let i = 0; i < n; i++) { const v = mII[i] - mI[i] * mI[i], c = mIP[i] - mI[i] * mP[i]; A[i] = c / (v + eps); B[i] = mP[i] - A[i] * mI[i]; }
+  const mA = cajas(A, w, h, r), mB = cajas(B, w, h, r);
+  const out = new Uint8ClampedArray(n);
+  for (let i = 0; i < n; i++) {
+    let q = mA[i] * I[i] + mB[i];
+    q = (q - 0.04) / 0.92; // lo casi transparente se vuelve transparente y lo casi opaco, opaco (sin velo)
+    out[i] = Math.round(Math.max(0, Math.min(1, q)) * 255);
+  }
+  return out;
+}
+// Quita el "halo" del fondo en el borde: en los puntos semitransparentes el color se acerca al de adentro
+function limpiarHalo(d, w, h) {
+  for (let pas = 0; pas < 2; pas++) {
+    for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
+      const i = (y * w + x) * 4, a = d[i + 3];
+      if (a === 0 || a > 230) continue;
+      let r = 0, g = 0, b = 0, n = 0;
+      for (const k of [-4, 4, -w * 4, w * 4]) { const j = i + k; if (d[j + 3] > 230) { r += d[j]; g += d[j + 1]; b += d[j + 2]; n++; } }
+      if (n) { const t = 1 - a / 255; d[i] = d[i] * (1 - t) + r / n * t; d[i + 1] = d[i + 1] * (1 - t) + g / n * t; d[i + 2] = d[i + 2] * (1 - t) + b / n * t; }
+    }
+  }
+}
+
+/* Automático (como CapCut): la IA BiRefNet recorta lo principal de la foto, sea lo que sea */
+let trab = null, seq = 0;
+const pendientes = new Map();
+function trabajador() {
+  if (trab) return trab;
+  trab = new Worker(new URL('./fondo-ia.js', import.meta.url), { type: 'module' });
+  trab.onmessage = (e) => {
+    const m = e.data;
+    if (m.tipo === 'progreso') { for (const p of pendientes.values()) p.progreso?.(m.p, m.fase); return; }
+    const p = pendientes.get(m.id); if (!p) return;
+    pendientes.delete(m.id);
+    if (m.tipo === 'listo') p.ok(m); else p.mal(new Error(m.mensaje));
+  };
+  trab.onerror = (e) => { for (const p of pendientes.values()) p.mal(new Error(e.message || 'falló la IA')); pendientes.clear(); trab = null; };
+  return trab;
+}
+export async function quitarAuto(bmp, progreso) {
+  const c = copiaReducida(bmp), w = c.width, h = c.height;
+  const x = c.getContext('2d', { willReadFrequently: true });
+  const img = x.getImageData(0, 0, w, h);
+  const id = ++seq;
+  const r = await new Promise((ok, mal) => {
+    pendientes.set(id, { ok, mal, progreso });
+    trabajador().postMessage({ tipo: 'recortar', id, imagen: { data: img.data, width: w, height: h } });
+  });
+  const alfa = refinarBordes(img.data, r.alfa, w, h, Math.max(2, Math.round(Math.min(w, h) / 400)));
+  let algo = 0; for (let i = 0; i < alfa.length; i++) if (alfa[i] > 128) algo++;
+  if (algo < alfa.length * 0.005) throw new Error('No encontré qué recortar en la foto');
+  const d = img.data;
+  for (let i = 0; i < alfa.length; i++) d[i * 4 + 3] = Math.round(d[i * 4 + 3] * alfa[i] / 255);
+  limpiarHalo(d, w, h);
+  x.putImageData(img, 0, 0);
+  return c;
+}
+
 /* Persona (IA): recorta a la gente de la foto con el segmentador de MediaPipe */
 let segmentador = null, cargando = null;
 function cargarPersona() {
@@ -77,18 +154,22 @@ export async function quitarPersona(bmp) {
   if (!masc) throw new Error('No se encontró una persona en la foto');
   const conf = masc.getAsFloat32Array(), mw = masc.width, mh = masc.height;
   const img = x.getImageData(0, 0, w, h), d = img.data;
-  let alguien = 0;
+  // La máscara de la IA es pequeña (256 px): se agranda suave y se ajusta a los bordes reales de la foto
+  const bruta = new Uint8ClampedArray(w * h);
   for (let py = 0; py < h; py++) {
-    const my = Math.min(mh - 1, Math.floor(py * mh / h));
+    const fy = Math.min(mh - 1.001, py * mh / h), y0 = Math.floor(fy), ty = fy - y0;
     for (let px = 0; px < w; px++) {
-      const a = conf[my * mw + Math.min(mw - 1, Math.floor(px * mw / w))];
-      const al = Math.max(0, Math.min(1, (a - 0.35) / 0.3)); // corte suave
-      if (al > 0.5) alguien++;
-      d[(py * w + px) * 4 + 3] = Math.round(d[(py * w + px) * 4 + 3] * al);
+      const fx = Math.min(mw - 1.001, px * mw / w), x0 = Math.floor(fx), tx = fx - x0, k = y0 * mw + x0;
+      const a = (conf[k] * (1 - tx) + conf[k + 1] * tx) * (1 - ty) + (conf[k + mw] * (1 - tx) + conf[k + mw + 1] * tx) * ty;
+      bruta[py * w + px] = Math.round(Math.max(0, Math.min(1, (a - 0.3) / 0.4)) * 255);
     }
   }
   res.close?.();
+  const alfa = refinarBordes(d, bruta, w, h, Math.max(4, Math.round(Math.min(w, h) / 120)), 1e-3);
+  let alguien = 0;
+  for (let i = 0; i < alfa.length; i++) { if (alfa[i] > 128) alguien++; d[i * 4 + 3] = Math.round(d[i * 4 + 3] * alfa[i] / 255); }
   if (alguien < w * h * 0.01) throw new Error('No se encontró una persona en la foto');
+  limpiarHalo(d, w, h);
   x.putImageData(img, 0, 0);
   return c;
 }
