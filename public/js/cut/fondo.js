@@ -120,8 +120,9 @@ export async function quitarAuto(bmp, progreso) {
   const id = ++seq;
   const r = await new Promise((ok, mal) => {
     pendientes.set(id, { ok, mal, progreso });
-    trabajador().postMessage({ tipo: 'recortar', id, imagen: { data: img.data, width: w, height: h } });
+    trabajador().postMessage({ tipo: 'recortar', id, modelo: globalThis.__fondoModelo, imagen: { data: img.data, width: w, height: h } });
   });
+  globalThis.__fondoMs = r.ms;
   const alfa = refinarBordes(img.data, r.alfa, w, h, Math.max(2, Math.round(Math.min(w, h) / 400)));
   let algo = 0; for (let i = 0; i < alfa.length; i++) if (alfa[i] > 128) algo++;
   if (algo < alfa.length * 0.005) throw new Error('No encontré qué recortar en la foto');

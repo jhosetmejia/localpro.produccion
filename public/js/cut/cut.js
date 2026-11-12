@@ -297,7 +297,7 @@ function prepararFondo(k) {
       if (modo === 'auto') {
         try {
           msg('Preparando la IA…');
-          k._sinFondo = await FON.quitarAuto(k.bmp, (pr, fase) => msg(fase === 'recortando' ? 'Recortando…' : 'Bajando la IA (solo la primera vez)… ' + Math.round(pr * 100) + '%'));
+          k._sinFondo = await FON.quitarAuto(k.bmp, (pr, fase) => msg(fase === 'recortando' ? 'Recortando…' : fase === 'preparando' ? 'Preparando la IA…' : 'Bajando la IA (solo la primera vez)… ' + Math.round(pr * 100) + '%'));
         } catch (e1) {
           // Celular que no alcanza con la IA grande: se intenta con la de personas y, si no hay persona, se avisa
           msg('Probando otro método…');
