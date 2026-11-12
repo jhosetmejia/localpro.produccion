@@ -20,3 +20,10 @@ yarn-error.log
 
 graphify-out/
 .graphifyignore
+
+# Pruebas automáticas del navegador
+/tests/e2e/node_modules
+/tests/e2e/test-results
+/tests/e2e/informe
+/tests/e2e/resumen.md
+/tests/e2e/.sesion-*.json
