@@ -39,6 +39,29 @@
         <div class="lp-kpi"><div class="lbl">Escritas por la gente</div><div class="val">{{ $cuenta['escritas'] }}</div><div class="sub"><a href="{{ route('admin.opiniones', ['tipo' => 'falla']) }}">ver con el botón Opinar</a></div><div class="ic"><i class="fa-solid fa-comment-dots"></i></div></div>
     </div>
 
+    @php
+        // Texto con todas las fallas que se ven (para pegárselo a Claude y que las arregle)
+        $textoTodo = "FALLAS DE LOCALPRO (" . now()->format('Y-m-d H:i') . ") · " . $errores->count() . " fallas\n";
+        foreach ($errores as $f) {
+            $e = $f['e']; $x = $f['x'];
+            $pila = implode("\n", array_slice(array_filter(array_map('trim', explode("\n", (string) $e->pila))), 0, 8));
+            $textoTodo .= "\n==================== E{$e->id}" . ($e->resuelto ? ' (resuelta)' : '') . " ====================\n"
+                . "Intentaba: {$x['intento']}\nQué pasó: {$x['paso']}\n"
+                . "Veces: {$e->veces} · Personas: {$e->usuarios} · Módulo: {$e->modulo}\n"
+                . "Equipo: {$x['equipo']}\n"
+                . "Primera vez: " . $e->primera_vez?->format('Y-m-d H:i') . " · Última: " . $e->ultima_vez?->format('Y-m-d H:i') . "\n";
+            foreach ($x['det'] as $k => $v) $textoTodo .= "{$k}: {$v}\n";
+            $textoTodo .= "--- Detalle técnico ---\nMensaje: {$e->mensaje}\nDónde: " . ($e->donde ?: '—') . "\nPágina: " . ($e->pagina ?: '—') . "\nNavegador: {$e->navegador}\n"
+                . ($pila !== '' ? "Pila:\n{$pila}\n" : '')
+                . ($e->datos ? "Datos: " . json_encode($e->datos, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n" : '');
+        }
+    @endphp
+    <div class="d-flex gap-2 flex-wrap align-items-center mb-2">
+        <button type="button" class="btn btn-dark fw-bold" id="faCopiar" {{ $errores->count() ? '' : 'disabled' }}><i class="fa-solid fa-copy me-1"></i>Copiar todo ({{ $errores->count() }})</button>
+        <span class="text-muted fw-semibold small">Copia las fallas de esta lista con su detalle técnico, listas para pegárselas a Claude.</span>
+    </div>
+    <textarea id="faTexto" hidden>{{ $textoTodo }}</textarea>
+
     <div class="fa-filtros">
         <a href="{{ route('admin.fallas', array_filter(['resueltas' => $verResueltas ? '1' : null])) }}" class="{{ !$modulo ? 'on' : '' }}">Todo</a>
         @foreach (\App\Models\Opinion::MODULOS as $k => $n)
@@ -109,3 +132,28 @@ Navegador: {{ $e->navegador }}
     @endif
 </div>
 @endsection
+
+@push('js')
+<script>
+(function () {
+    var b = document.getElementById('faCopiar'); if (!b) return;
+    function aviso(t, ok) {
+        var d = document.createElement('div');
+        d.textContent = t;
+        d.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:9999;padding:.7rem 1.1rem;border-radius:999px;font-weight:800;box-shadow:0 10px 30px -10px rgba(0,0,0,.4);' + (ok ? 'background:#0b0d0c;color:#a6f34a' : 'background:#ffe6ea;color:#b3123a');
+        document.body.appendChild(d); setTimeout(function () { d.remove(); }, 2600);
+    }
+    b.addEventListener('click', function () {
+        var t = document.getElementById('faTexto').value;
+        var listo = function () { aviso('✓ Copiadas. Péguelas en el chat de Claude', true); b.innerHTML = '<i class="fa-solid fa-check me-1"></i>¡Copiado!'; setTimeout(function () { b.innerHTML = '<i class="fa-solid fa-copy me-1"></i>Copiar todo'; }, 2500); };
+        var aMano = function () {
+            var ta = document.getElementById('faTexto'); ta.hidden = false; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+            ta.focus(); ta.select(); ta.setSelectionRange(0, t.length);
+            var ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+            ta.hidden = true; ok ? listo() : aviso('No se pudo copiar en este navegador', false);
+        };
+        if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(listo, aMano); else aMano();
+    });
+})();
+</script>
+@endpush
