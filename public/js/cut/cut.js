@@ -1176,6 +1176,8 @@ function cargarVideo(c) {
     v.onloadedmetadata = () => {
       // Al despertar un video dormido (ver presupuestoVideos) vuelve a este evento: solo se mueve al punto pedido
       if (v._abierto) { try { v.currentTime = Math.max(0.01, v._loc ?? c.in ?? 0); } catch (e) { /* nada */ } S.dirty = true; return; }
+      // .mp4 sin imagen (nota de voz, audio de WhatsApp): el navegador lo abre como video negro; se agrega como audio
+      if (!v.videoWidth && !v.videoHeight) { const e = new Error('solo tiene sonido'); e.soloAudio = true; v.removeAttribute('src'); v.load(); v.remove(); mal(e); return; }
       v._abierto = true;
       c.el = v; c.w = v.videoWidth; c.h = v.videoHeight;
       if (!c.dur || !isFinite(c.dur)) c.dur = isFinite(v.duration) ? v.duration : 1;
@@ -1205,6 +1207,7 @@ async function prepararClip(c) {
     try {
       await cargarVideo(c);
     } catch (e1) {
+      if (e1?.soloAudio) throw e1;
       // En Android el celular a veces se queda sin decodificadores mientras arma las miniaturas de los otros videos:
       // se espera a que termine y se intenta otra vez
       await colaTiras; await new Promise(r => setTimeout(r, 700));

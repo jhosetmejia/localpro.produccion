@@ -28,6 +28,9 @@ test('abrir caja, vender en efectivo y cerrar cuadrada', async ({ page }) => {
 
   // 3) Cobrar en efectivo con un billete de 100.000 → cambio 10.000
   await page.locator('#payBtn').click();
+  // Si la tienda sugiere pedir el cliente, se sigue sin cliente
+  const sinCli = page.locator('#ovSinCli.on #scSeguir');
+  if (await sinCli.isVisible({ timeout: 1500 }).catch(() => false)) await sinCli.click();
   await expect(page.locator('#ovPay')).toBeVisible();
   const efectivo = page.locator('#methods .mt', { hasText: 'Efectivo' });
   if (!(await efectivo.evaluate((b) => b.classList.contains('sel')))) await efectivo.click();

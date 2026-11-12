@@ -32,12 +32,14 @@ for (const [grupo, { sesion, lista }] of Object.entries(grupos)) {
     if (sesion) test.use({ storageState: path.join(__dirname, '..', sesion) });
     for (const r of lista) {
       const url = '/' + r.uri.replace(/^\//, '');
-      test(`${url}${r.name ? ' (' + r.name + ')' : ''}`, async ({ page, vigia }) => {
+      test(`${url}${r.name ? ' (' + r.name + ')' : ''}`, async ({ page, vigia }, info) => {
         const res = await page.goto(url, { waitUntil: 'domcontentloaded' });
         const codigo = res ? res.status() : 0;
         expect(codigo, `${url} respondió ${codigo}`).toBeLessThan(500);
         // 403/404: la página es de un módulo que este negocio no tiene (pedidos, 360, asesor…): está bien que no abra
         if (codigo === 403 || codigo === 404) { vigia.permitir(new RegExp('status of ' + codigo)); test.skip(true, `No disponible para este usuario (${codigo})`); }
+        // Mandó a otro sitio (WhatsApp, Google…): está bien
+        if (!page.url().startsWith(info.project.use.baseURL)) return;
         // Respuestas de datos (JSON) para las pantallas: basta con que no den error
         if (/json/.test(res?.headers()['content-type'] || '')) return;
         // Dejar que corra el JavaScript de la página un momento

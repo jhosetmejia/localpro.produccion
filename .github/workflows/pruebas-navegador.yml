@@ -83,7 +83,15 @@ jobs:
 
       - name: Encender el sistema
         run: |
-          PHP_CLI_SERVER_WORKERS=4 nohup php artisan serve --host=127.0.0.1 --port=8000 > storage/logs/servidor.log 2>&1 &
+          # Servidor de PHP; si se cae, se anota cómo salió (para encontrar la causa) y se vuelve a prender solo
+          cat > /tmp/servidor.sh <<'EOF'
+          while true; do
+            PHP_CLI_SERVER_WORKERS=4 php -S 127.0.0.1:8000 -t public vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php
+            echo "$(date +%T) EL SERVIDOR SE CAYÓ (código $?) — se prende de nuevo" >&2
+            sleep 1
+          done
+          EOF
+          nohup bash /tmp/servidor.sh > storage/logs/servidor.log 2>&1 &
           for i in $(seq 1 30); do curl -sf -o /dev/null http://127.0.0.1:8000/login && break; sleep 1; done
           curl -sf -o /dev/null http://127.0.0.1:8000/login
 
@@ -103,7 +111,8 @@ jobs:
         if: always()
         run: |
           echo "== ¿El servidor sigue vivo? ==" ; curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8000/login || echo "SE CAYÓ"
-          echo "== Últimas líneas del servidor ==" ; tail -40 storage/logs/servidor.log || true
+          echo "== Caídas del servidor ==" ; grep -B12 "SE CAYÓ" storage/logs/servidor.log | cut -c1-300 | tail -80 || echo "ninguna"
+          echo "== Errores de PHP ==" ; grep -iE "fatal|segmentation|warning|error" storage/logs/servidor.log | grep -v " 200 \| 30[0-9] " | cut -c1-300 | tail -30 || true
           echo "== Errores de Laravel ==" ; grep -E '\.(ERROR|CRITICAL|EMERGENCY)' storage/logs/laravel.log | cut -c1-500 | tail -40 || true
           if [ -s storage/logs/laravel.log ]; then
             grep -E '\.(ERROR|CRITICAL|EMERGENCY)' storage/logs/laravel.log | cut -c1-400 | sort | uniq -c | sort -rn | head -30 > errores.txt || true

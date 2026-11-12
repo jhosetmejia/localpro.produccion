@@ -29,8 +29,9 @@ const test = base.test.extend({
     const permitidas = [];
     const permitida = (t) => permitidas.some((r) => r.test(t)) || RUIDO.some((r) => r.test(t));
     page.on('pageerror', (e) => { const t = 'Error de JavaScript: ' + e.message + (e.stack ? '\n' + e.stack.split('\n').slice(1, 4).join('\n') : ''); if (!permitida(t)) fallas.push(t); });
+    const local = () => page.url().startsWith(info.project.use.baseURL || 'http://127.0.0.1');
     page.on('console', (m) => {
-      if (m.type() !== 'error') return;
+      if (m.type() !== 'error' || !local()) return; // si la página mandó a otro sitio (WhatsApp…), sus errores no son de LocalPro
       const loc = m.location()?.url || '';
       const t = 'Consola: ' + m.text() + (loc ? ' (' + loc.replace(/^https?:\/\/[^/]+/, '') + ')' : '');
       if (!permitida(t) && !permitida(loc)) fallas.push(t);
