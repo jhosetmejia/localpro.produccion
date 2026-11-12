@@ -1,0 +1,92 @@
+// LocalProCut en el celular: subir videos y una foto, reproducir, mover la línea, salir a otra app y volver,
+// agregar un mp4 que solo tiene sonido y exportar el video final. También el arranque sin WebGL2 (iPhone viejo).
+const path = require('path');
+const { test, expect } = require('../ayuda');
+
+const media = (f) => path.join(__dirname, '..', 'media', f);
+const VIDEOS = ['clip1.mp4', 'clip2.mp4', 'clip3.mp4'].map(media);
+
+// ¿Qué tan clara está la vista previa? (0 = negra)
+const luzVista = (page) => page.evaluate(() => {
+  const v = document.getElementById('cutLienzo');
+  const c = Object.assign(document.createElement('canvas'), { width: 16, height: 16 });
+  const x = c.getContext('2d'); x.drawImage(v, 0, 0, 16, 16);
+  const d = x.getImageData(0, 0, 16, 16).data; let s = 0;
+  for (let i = 0; i < d.length; i += 4) s += d[i] + d[i + 1] + d[i + 2];
+  return s / (d.length / 4);
+});
+const abrirEditor = async (page) => {
+  await page.goto('/cut');
+  await page.waitForFunction(() => window.__cut && window.__motor, null, { timeout: 30_000 });
+};
+const subir = async (page, archivos, total) => {
+  await page.setInputFiles('#cutArchivo', archivos);
+  await page.waitForFunction((n) => window.__cut.clips.length >= n && window.__cut.clips.every((c) => c.tipo !== 'video' || (c.el && c.el.readyState >= 1)), total, { timeout: 60_000 });
+};
+const irA = (page, t) => page.evaluate((t) => { const l = document.getElementById('cutLinea'); l.scrollLeft = t * window.__cut.pps; l.dispatchEvent(new Event('scroll')); }, t);
+
+test.describe('LocalProCut', () => {
+  test.setTimeout(5 * 60_000);
+
+  test('editar, salir y volver, y exportar', async ({ page }) => {
+    await abrirEditor(page);
+    await subir(page, [...VIDEOS, media('foto.jpg')], 4);
+    expect(await page.evaluate(() => window.__cut.clips.map((c) => c.tipo))).toEqual(['video', 'video', 'video', 'imagen']);
+    await expect.poll(() => luzVista(page), { message: 'La vista previa quedó negra después de subir los videos' }).toBeGreaterThan(20);
+
+    // Celular con varios videos pesados: los clips lejos de la línea se duermen para no agotar los decodificadores
+    await expect.poll(() => page.evaluate(() => window.__cut.clips[2].el._dormido === true), { message: 'El clip lejano debería estar dormido' }).toBe(true);
+    await irA(page, 7); // encima del tercer video
+    await expect.poll(() => page.evaluate(() => { const v = window.__cut.clips[2].el; return !v._dormido && v.readyState >= 2; }), { message: 'El tercer video no despertó al poner la línea encima' }).toBe(true);
+    await expect.poll(() => page.evaluate(() => window.__cut.clips[0].el._dormido === true)).toBe(true);
+    await expect.poll(() => luzVista(page), { message: 'Vista previa negra en el tercer video' }).toBeGreaterThan(20);
+
+    // Reproducir desde el inicio: la línea avanza y se ve imagen
+    await irA(page, 0);
+    await page.locator('#cutPlay').dispatchEvent('click');
+    await page.waitForTimeout(2500);
+    const t = await page.evaluate(() => window.__cut.t);
+    expect(t, 'La reproducción no avanzó').toBeGreaterThan(0.8);
+    expect(await luzVista(page), 'Vista previa negra mientras reproduce').toBeGreaterThan(20);
+    await page.locator('#cutPlay').dispatchEvent('click');
+
+    // Salir a otra app (WhatsApp) y volver: no debe quedar negra (falla E7)
+    await page.evaluate(() => {
+      const poner = (v) => { Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => v }); Object.defineProperty(document, 'hidden', { configurable: true, get: () => v === 'hidden' }); document.dispatchEvent(new Event('visibilitychange')); };
+      poner('hidden'); window.dispatchEvent(new Event('blur'));
+      return new Promise((r) => setTimeout(() => { poner('visible'); window.dispatchEvent(new Event('focus')); r(); }, 1500));
+    });
+    await page.waitForTimeout(3000);
+    await expect.poll(() => luzVista(page), { message: 'Vista previa negra al volver de otra app' }).toBeGreaterThan(20);
+
+    // Un .mp4 sin imagen (nota de voz) entra como audio
+    await page.setInputFiles('#cutArchivo', [media('solo-audio.mp4')]);
+    await expect.poll(() => page.evaluate(() => window.__cut.musica.length), { message: 'El mp4 de solo sonido no entró como audio' }).toBe(1);
+    expect(await page.evaluate(() => window.__cut.clips.length)).toBe(4);
+
+    // Transición entre el clip 1 y 2 (pasa por el motor de mezcla)
+    await page.evaluate(() => { window.__cut.clips[0].trans = { tipo: 'disolver', dur: 0.5 }; window.__cut.dirty = true; });
+
+    // Exportar
+    await page.locator('#cutBtnExportar').dispatchEvent('click');
+    const hoja = page.locator('#cutExportar');
+    await expect(hoja).toBeVisible();
+    await hoja.locator('[data-res] .cut-chip').first().dispatchEvent('click').catch(() => {});
+    await hoja.locator('[data-fps] [data-v="30"]').dispatchEvent('click');
+    await hoja.locator('[data-iniciar]').dispatchEvent('click');
+    await expect(hoja.locator('.cut-exp-fin'), 'El video no terminó de exportar').toBeVisible({ timeout: 4 * 60_000 });
+    const dur = await hoja.locator('.cut-exp-fin video').evaluate((v) => new Promise((r) => { if (v.readyState >= 1) r(v.duration); else { v.onloadedmetadata = () => r(v.duration); setTimeout(() => r(v.duration), 8000); } }));
+    expect(dur, 'El video exportado salió sin duración').toBeGreaterThan(8);
+  });
+
+  test('arranca en celulares sin WebGL2 (usa WebGL1)', async ({ page }) => {
+    await page.addInitScript(() => {
+      const g = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function (t, o) { return t === 'webgl2' ? null : g.call(this, t, o); };
+    });
+    await abrirEditor(page);
+    expect(await page.evaluate(() => window.__motor.v1)).toBe(true);
+    await subir(page, [VIDEOS[0]], 1);
+    await expect.poll(() => luzVista(page), { message: 'Con WebGL1 la vista previa quedó negra' }).toBeGreaterThan(20);
+  });
+});

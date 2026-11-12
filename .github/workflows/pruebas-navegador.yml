@@ -1,0 +1,121 @@
+# Pruebas automáticas del navegador (Playwright): un Chrome de verdad usa LocalPro como una persona.
+# Monta una copia limpia del sistema (MySQL vacío + datos de prueba), recorre todas las páginas, la caja y el editor de video.
+# Corre en cada envío a staging/master, todas las noches y a mano (pestaña Actions → "Pruebas del navegador" → Run workflow).
+# Si algo falla, GitHub avisa por correo; el resumen en español sale en la página de la ejecución, con fotos y video en "informe-pruebas".
+name: Pruebas del navegador
+
+on:
+  push:
+    branches: [master, staging, 'pruebas/**']
+  schedule:
+    - cron: '17 8 * * *'   # 3:17 a. m. de Colombia
+  workflow_dispatch:
+
+concurrency:
+  group: pruebas-navegador-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  probar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: raiz
+          MYSQL_DATABASE: localpro_e2e
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -praiz" --health-interval=5s --health-timeout=5s --health-retries=20
+    env:
+      LOCALPRO_E2E: '1'
+      ADMIN_NAME: Admin E2E
+      ADMIN_EMAIL: admin-e2e@prueba.localproo.com
+      ADMIN_PASSWORD: AdminE2E-2026
+      LP_URL: http://127.0.0.1:8000
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, gd, intl, zip, pdo_mysql, bcmath, exif
+          coverage: none
+
+      - name: Dependencias PHP
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
+      - name: Sistema limpio con datos de prueba
+        run: |
+          cat > .env <<'EOF'
+          APP_NAME=LocalProo
+          APP_ENV=testing
+          APP_KEY=
+          APP_DEBUG=true
+          APP_URL=http://127.0.0.1:8000
+          DB_CONNECTION=mysql
+          DB_HOST=127.0.0.1
+          DB_PORT=3306
+          DB_DATABASE=localpro_e2e
+          DB_USERNAME=root
+          DB_PASSWORD=raiz
+          CACHE_DRIVER=file
+          CACHE_STORE=file
+          SESSION_DRIVER=file
+          QUEUE_CONNECTION=sync
+          MAIL_MAILER=log
+          LOG_CHANNEL=single
+          EOF
+          sed -i 's/^ *//' .env
+          php artisan key:generate --force
+          composer dump-autoload -o --no-scripts
+          php artisan package:discover
+          php artisan migrate --force --no-interaction
+          php artisan db:seed --force --no-interaction
+          php artisan localpro:datos-e2e
+          php artisan storage:link || true
+          php artisan route:list --method=GET --json > tests/e2e/rutas.json
+          echo "Rutas GET: $(php -r 'echo count(json_decode(file_get_contents("tests/e2e/rutas.json")));')"
+
+      - name: Prueba de humo (la misma del servidor)
+        run: php artisan localpro:prueba-humo
+
+      - name: Encender el sistema
+        run: |
+          PHP_CLI_SERVER_WORKERS=4 nohup php artisan serve --host=127.0.0.1 --port=8000 > storage/logs/servidor.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf -o /dev/null http://127.0.0.1:8000/login && break; sleep 1; done
+          curl -sf -o /dev/null http://127.0.0.1:8000/login
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Playwright
+        working-directory: tests/e2e
+        run: npm install --no-audit --no-fund
+
+      - name: Probar todo
+        working-directory: tests/e2e
+        run: npx playwright test
+
+      - name: Errores de Laravel durante las pruebas
+        if: always()
+        run: |
+          if [ -s storage/logs/laravel.log ]; then
+            grep -E '\.(ERROR|CRITICAL|EMERGENCY)' storage/logs/laravel.log | cut -c1-400 | sort | uniq -c | sort -rn | head -30 > errores.txt || true
+            if [ -s errores.txt ]; then
+              { echo "### Errores en el log de Laravel"; echo '```'; cat errores.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
+
+      - name: Guardar informe (fotos, videos y paso a paso)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: informe-pruebas
+          path: |
+            tests/e2e/informe
+            tests/e2e/test-results
+            storage/logs
+          retention-days: 14
