@@ -302,12 +302,12 @@ function prepararFondo(k) {
           // Celular que no alcanza con la IA grande: se intenta con la de personas y, si no hay persona, se avisa
           msg('Probando otro método…');
           try { k._sinFondo = await FON.quitarPersona(k.bmp); }
-          catch (e2) { throw new Error(/memoria|memory|alloc/i.test(e1.message) ? 'A su celular no le alcanzó la memoria para la IA. Pruebe Croma si el fondo es de un solo color.' : 'No encontré qué recortar en esa foto. Si el fondo es de un solo color, use Croma.'); }
+          catch (e2) { k._fondoDet = 'IA: ' + (e1?.message || e1) + ' · personas: ' + (e2?.message || e2); throw new Error(/memoria|memory|alloc/i.test(e1.message) ? 'A su celular no le alcanzó la memoria para la IA. Pruebe Croma si el fondo es de un solo color.' : 'No encontré qué recortar en esa foto. Si el fondo es de un solo color, use Croma.'); }
         }
       } else if (modo === 'persona') k._sinFondo = await FON.quitarPersona(k.bmp);
       else k._sinFondo = FON.quitarLiso(k.bmp, k.fondo.tol ?? 0.5);
     } catch (e) {
-      if (k._cf === cf) { k._fondoErr = e.message || String(e); k.fondo = null; k._cf = ''; aviso(k._fondoErr, 'mal'); window.LPOpinion?.error(new Error('Eliminar fondo: ' + k._fondoErr), { fase: 'fondo', modo }); }
+      if (k._cf === cf) { k._fondoErr = e.message || String(e); k.fondo = null; k._cf = ''; aviso(k._fondoErr, 'mal'); window.LPOpinion?.error(new Error('Eliminar fondo: ' + k._fondoErr), { fase: 'fondo', modo, detalle: (k._fondoDet || '').slice(0, 400), webgpu: !!navigator.gpu }); }
     } finally { if (k._cf === cf || !k.fondo) k._fondoP = null; k._proc = null; S.dirty = true; if (/^f-|capa/.test(S.tab || '')) pintarPanel(); }
   })();
   return k._fondoP;

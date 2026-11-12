@@ -116,7 +116,7 @@ test.describe('LocalProCut', () => {
     expect(await luzVista(page)).toBeGreaterThan(20);
   });
 
-  test('eliminar fondo automático con IA (BiRefNet)', async ({ page }) => {
+  test('eliminar fondo automático con IA (BiRefNet)', async ({ page, vigia }) => {
     test.setTimeout(8 * 60_000);
     await abrirEditor(page);
     await subir(page, [VIDEOS[0]], 1);
@@ -125,7 +125,12 @@ test.describe('LocalProCut', () => {
     await page.locator('[data-tab="f-fondo"]').first().dispatchEvent('click');
     const t0 = Date.now();
     await page.locator('#cutPanelCuerpo [data-fauto]').dispatchEvent('click');
-    await expect.poll(() => page.evaluate(() => { const k = window.__cut.capas[0]; return k._sinFondo ? 'listo' : (k._fondoErr ? 'error: ' + k._fondoErr : 'trabajando'); }), { timeout: 7 * 60_000, intervals: [2000], message: 'La IA no terminó de quitar el fondo' }).toBe('listo');
+    page.on('console', (m) => { if (/fondo|onnx|ort|transformers|webgpu/i.test(m.text())) console.log('  [consola]', m.text().slice(0, 300)); });
+    vigia.permitir(/Eliminar fondo/);
+    await expect.poll(() => page.evaluate(() => { const k = window.__cut.capas[0]; return k._sinFondo || k._fondoErr ? 'fin' : 'trabajando'; }), { timeout: 7 * 60_000, intervals: [2000], message: 'La IA se quedó trabajando' }).toBe('fin');
+    const res = await page.evaluate(() => { const k = window.__cut.capas[0]; return k._sinFondo ? 'listo' : 'error: ' + k._fondoErr + ' | ' + (k._fondoDet || ''); });
+    console.log('Resultado IA:', res);
+    expect(res).toBe('listo');
     console.log('IA lista en', Math.round((Date.now() - t0) / 1000), 's');
     const alfa = await page.evaluate(() => { const c = window.__cut.capas[0]._sinFondo, x = c.getContext('2d'); const a = (px, py) => x.getImageData(Math.round(px * c.width), Math.round(py * c.height), 1, 1).data[3]; return { esquina: a(0.03, 0.03), logo: a(0.25, 0.5) }; });
     console.log('alfa', JSON.stringify(alfa));
