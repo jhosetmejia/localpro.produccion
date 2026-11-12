@@ -90,6 +90,10 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-calculator"></i></div>
                     Simulador de ganancias
                 </a>
+                <a class="nav-link {{ $on('asesor.estados') }}" href="{{ route('asesor.estados') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-photo-film"></i></div>
+                    Imágenes y videos para estados
+                </a>
                 <a class="nav-link {{ $on('asesor.ejemplos') }}" href="{{ route('asesor.ejemplos') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-eye"></i></div>
                     Ejemplos para mostrar

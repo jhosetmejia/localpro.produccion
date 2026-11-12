@@ -12,6 +12,14 @@ class SoloAsesor
     public function handle(Request $request, Closure $next)
     {
         $asesor = Auth::user()?->asesor;
+        // El súper administrador (sin usuario de asesor) puede ver las imágenes y videos para estados,
+        // con los enlaces de LocalPro (código LOCALPRO)
+        if (!$asesor && Auth::user()?->es_superadmin && $request->routeIs('asesor.estados')) {
+            $virtual = new \App\Models\Asesor(['pais' => 'CO', 'codigo' => \App\Models\Asesor::CODIGO_LOCALPRO, 'activo' => true]);
+            $virtual->setRelation('user', Auth::user());
+            $request->attributes->set('asesor', $virtual);
+            return $next($request);
+        }
         if (!$asesor) {
             return redirect()->route('panel');
         }
