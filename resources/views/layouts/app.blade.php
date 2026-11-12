@@ -38,6 +38,7 @@
                 <form method="post" action="{{ route('admin.tiendas.salir') }}">@csrf<button class="btn btn-sm btn-primary py-1">Volver al panel de tiendas</button></form>
             </div>
             @endif
+            @include('layouts.partials.donde-estoy')
             @php $tPlan = \App\Support\TiendaActual::tienda(); @endphp
             @if ($tPlan && $tPlan->plan_vence && $tPlan->dias_para_vencer !== null && $tPlan->dias_para_vencer <= 15 && $tPlan->dias_para_vencer >= 0 && !request()->routeIs('plan.*') && !request()->routeIs('panel') && auth()->user()?->can('editar-negocio'))
             @php $urg = $tPlan->dias_para_vencer <= 7; $grat = !$tPlan->plan || (float) $tPlan->plan->precio <= 0; @endphp
