@@ -8,9 +8,11 @@
         'fresca'   => ['#fbf4ea', '#ffffff', '#2b1d14', '#7a6656', '#c4532d', '#ffffff', '#ecdccb', 'radial-gradient(120% 90% at 85% 0%,#f6d9c2 0%,#fbf4ea 62%)'],
         'parrilla' => ['#121214', '#1c1c1f', '#f4f4f5', '#a1a1aa', '#e63b2e', '#ffffff', 'rgba(230,59,46,.22)', 'radial-gradient(120% 90% at 85% 0%,#4a1410 0%,#121214 62%)'],
         'verde'    => ['#f3f8f1', '#ffffff', '#16301f', '#5d7465', '#2f7d4a', '#ffffff', '#d7e7d6', 'radial-gradient(120% 90% at 85% 0%,#cfe8cf 0%,#f3f8f1 62%)'],
+        'navidad'  => ['#122a1c', '#1b3626', '#fdf6ec', '#c8c2b0', '#e63946', '#ffffff', 'rgba(255,209,102,.28)', 'radial-gradient(90% 110% at 85% 0%,#8a1622 0%,#3b1a17 38%,#122a1c 70%)'],
     ];
     [$cBg, $cCard, $cInk, $cMut, $cAcc, $cOnAcc, $cLine, $cHero] = $temas[$tema];
-    $oscuro = in_array($tema, ['bistro', 'parrilla'], true);
+    $oscuro = in_array($tema, ['bistro', 'parrilla', 'navidad'], true);
+    $navidad = $tema === 'navidad';
     $titulo = 'Carta · ' . $tienda->nombre . ($lugar ? ' · ' . $lugar : '');
     $secTxt = implode(', ', array_slice(array_keys($secciones), 0, 5));
     $desc = \Illuminate\Support\Str::limit('Carta de ' . $tienda->nombre . ($lugar ? ' en ' . $lugar : '') . '. ' . ($tienda->descripcion ? $tienda->descripcion . '. ' : '') . ($secTxt ? $secTxt . '. ' : '') . 'Pida a domicilio por WhatsApp.', 158);
@@ -150,6 +152,25 @@ a{color:inherit}
 .toast{position:fixed;left:50%;top:18px;transform:translate(-50%,-160%);z-index:70;background:var(--ink);color:var(--bg);font-weight:800;font-size:.9rem;border-radius:999px;padding:.6rem 1.1rem;transition:transform .25s;max-width:calc(100% - 32px)}
 .toast.on{transform:translate(-50%,0)}
 .foto-rota{display:grid;place-items:center;width:100%;height:100%;font:800 1.8rem 'Fraunces',serif;color:var(--acc)}
+/* Tema Navidad: luces arriba, nieve, adornos y precios dorados */
+body.navidad .hero{overflow:hidden}
+body.navidad .hero .wrap{position:relative;z-index:1}
+body.navidad .hero::before{content:"";position:absolute;left:0;right:0;top:0;height:16px;pointer-events:none;
+  background:radial-gradient(circle at 12px 9px,#ff4d5e 0 4px,transparent 5px),radial-gradient(circle at 36px 11px,#ffd166 0 4px,transparent 5px),radial-gradient(circle at 60px 9px,#3ddc84 0 4px,transparent 5px),radial-gradient(circle at 84px 11px,#5fb4ff 0 4px,transparent 5px),linear-gradient(transparent 4px,rgba(255,255,255,.2) 4px 5px,transparent 5px);
+  background-size:96px 16px;animation:lpLuces 1.4s steps(2) infinite}
+@keyframes lpLuces{to{background-position:48px 0}}
+body.navidad .hero::after{content:"🎄";position:absolute;right:max(10px,4vw);bottom:8px;font-size:clamp(2.6rem,10vw,4.6rem);opacity:.85;pointer-events:none}
+body.navidad .hero .eti{color:#ffd166}
+body.navidad .hero .eti::before,body.navidad .hero .eti::after{background:#ffd166}
+body.navidad .hero .lg{border-color:#ffd166;box-shadow:0 0 0 6px rgba(230,57,70,.35),0 14px 30px -16px rgba(0,0,0,.6)}
+body.navidad .hero .feliz{display:block;font-family:'Fraunces',serif;font-style:italic;color:#ffd166;font-size:1.05rem;margin-top:10px}
+body.navidad .plato .pr{color:#ffd166}
+body.navidad .sec h2::before{content:"❄";color:#ffd166;font-size:1.1rem}
+body.navidad .sec h2::after{background:linear-gradient(90deg,#ffd166,#e63946,transparent)}
+.lp-nieve{position:fixed;inset:0;pointer-events:none;z-index:20;overflow:hidden}
+.lp-nieve i{position:absolute;top:-14px;font-style:normal;color:#fff;animation:lpCae linear infinite;will-change:transform}
+@keyframes lpCae{to{transform:translate3d(var(--dx),105vh,0) rotate(220deg)}}
+@media (prefers-reduced-motion:reduce){.lp-nieve{display:none}body.navidad .hero::before{animation:none}}
 </style>
 <script>
 document.addEventListener('error', function (e) {
@@ -162,14 +183,18 @@ document.addEventListener('error', function (e) {
 }, true);
 </script>
 </head>
-<body class="{{ $oscuro ? 'oscuro' : '' }}">
+<body class="{{ $oscuro ? 'oscuro' : '' }} {{ $navidad ? 'navidad' : '' }}">
+@if ($navidad)
+<div class="lp-nieve" aria-hidden="true">@for ($i = 0; $i < 22; $i++)<i style="left:{{ ($i * 37 + 11) % 100 }}%;font-size:{{ 9 + ($i * 7) % 12 }}px;opacity:{{ 0.35 + (($i * 13) % 50) / 100 }};animation-duration:{{ 9 + ($i * 5) % 11 }}s;animation-delay:-{{ ($i * 3) % 14 }}s;--dx:{{ (($i % 2) ? 1 : -1) * (20 + ($i * 9) % 40) }}px">❄</i>@endfor</div>
+@endif
 
 <header class="hero">
     <div class="wrap">
         <div class="lg">@if ($tienda->logo_url)<img src="{{ $tienda->logo_url }}" alt="{{ $tienda->nombre }}">@else{{ mb_strtoupper(mb_substr($tienda->nombre, 0, 1)) }}@endif</div>
-        <span class="eti">Nuestra carta</span>
+        <span class="eti">{{ $navidad ? 'Carta navideña' : 'Nuestra carta' }}</span>
         <h1 class="serif">{{ $tienda->nombre }}</h1>
         @if ($tienda->descripcion)<p>{{ $tienda->descripcion }}</p>@endif
+        @if ($navidad)<span class="feliz">✨ ¡Feliz Navidad y próspero Año Nuevo! ✨</span>@endif
         <div class="datos">
             @if ($tienda->direccion || $lugar)<span>📍 {{ trim($tienda->direccion . ($tienda->direccion && $lugar ? ' · ' : '') . $lugar) }}</span>@endif
             @if ($wa)<a class="wa" href="https://wa.me/{{ $wa }}" target="_blank" rel="noopener">💬 Escríbanos</a>@endif

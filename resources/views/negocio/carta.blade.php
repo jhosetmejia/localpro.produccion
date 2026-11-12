@@ -26,6 +26,17 @@
 .mc-moderna .t{background:#ff5a1f;color:#fff;margin:-18px -18px 6px;padding:18px;text-align:left}
 .mc-moderna .card{display:flex;gap:8px;align-items:center;background:#f6f3ef;border-radius:12px;padding:6px;font-size:.78rem;font-weight:700}
 .mc-moderna .card b{width:34px;height:34px;border-radius:9px;background:#ffe2d4;flex:none}
+.mc-navidad{background:radial-gradient(90% 60% at 50% 0%,#9b1b2a,#6d0d18 60%,#4a0810);color:#fbf1df;font-family:'Playfair Display',Georgia,serif;outline:2px solid #d9b45a;outline-offset:-10px}
+.mc-navidad .s{color:#f2c96b;font-style:italic}
+.mc-navidad .r span:last-child{color:#f2c96b}
+.mc-menu-navidad{background:#fbf5ea;color:#1d3b2a;font-family:'Playfair Display',Georgia,serif;border-top:16px solid #1f5a3a;box-shadow:inset 0 3px 0 #c1121f}
+.mc-menu-navidad .t{color:#c1121f;font-style:italic}
+.mc-menu-navidad .r{flex-direction:column;align-items:center;gap:0;text-align:center}
+.mc-menu-navidad .r span:last-child{color:#c1121f}
+.mc-nav-tag{position:absolute;right:10px;bottom:6px;font-size:1.6rem}
+.mc-navidad-aviso{background:linear-gradient(135deg,#7a0f1c,#0f2a1d);color:#fff;border-radius:18px;padding:14px 16px;margin-bottom:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.mc-navidad-aviso b{color:#ffd166}
+.mc-navidad-aviso a{margin-left:auto}
 .mc-moderna .card em{margin-left:auto;font-style:normal;background:#141414;color:#fff;border-radius:99px;padding:2px 8px}
 .mc-b{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
 .mc-b small{color:#5b665e}
@@ -244,7 +255,12 @@
 
     <div class="lp-box">
         <h3><span><i class="fa-solid fa-print me-1"></i>Carta para imprimir y para redes</span></h3>
-        <p class="text-muted fw-semibold mb-3">Elija una de las 4 plantillas. Cada hoja trae un QR que lleva a su carta en línea. Si tiene muchos platos, sale en varias hojas.</p>
+        <p class="text-muted fw-semibold mb-3">Elija una plantilla (hay dos de Navidad 🎄, gratis para todos). Cada hoja trae un QR que lleva a su carta en línea. Si tiene muchos platos, sale en varias hojas.</p>
+        <div class="mc-navidad-aviso">
+            <span style="font-size:1.8rem">🎄</span>
+            <div><b>¡Llegó la Navidad a su carta!</b><div class="small" style="opacity:.85">Use la <b>Carta navideña</b> o el <b>Menú navideño</b> para imprimir y para el estado de WhatsApp. Y si quiere, ponga también su carta en línea en modo Navidad.</div></div>
+            @if ($listo)<a class="btn btn-light btn-sm fw-bold" target="_blank" rel="noopener" href="{{ $tienda->url_carta_navegador }}?tema=navidad">Ver mi carta en línea navideña</a>@endif
+        </div>
         <div class="mc-grid">
             @foreach ($planes as $k => [$nom, $txt])
             <div class="mc-pl">
@@ -254,6 +270,12 @@
                         <div class="card"><b></b>Plato del día<em>$ 18.000</em></div>
                         <div class="card"><b></b>Especial de la casa<em>$ 25.000</em></div>
                         <div class="card"><b></b>Bebida natural<em>$ 6.000</em></div>
+                    @elseif ($k === 'navidad' || $k === 'menu-navidad')
+                        <div class="t">{{ $k === 'navidad' ? mb_strtoupper(\Illuminate\Support\Str::limit($tienda->nombre, 22)) : 'Menú Navideño' }}</div>
+                        <div class="s">{{ $k === 'navidad' ? '✦ ¡Feliz Navidad! ✦' : mb_strtoupper(\Illuminate\Support\Str::limit($tienda->nombre, 22)) }}</div>
+                        <div class="r"><span>{{ $k === 'navidad' ? 'Pavo navideño' : 'PAVO NAVIDEÑO' }}</span>@if ($k === 'navidad')<i></i>@endif<span>$ 38.000</span></div>
+                        <div class="r"><span>{{ $k === 'navidad' ? 'Natilla y buñuelos' : 'NATILLA Y BUÑUELOS' }}</span>@if ($k === 'navidad')<i></i>@endif<span>$ 12.000</span></div>
+                        <span class="mc-nav-tag">{{ $k === 'navidad' ? '🎄' : '🎁' }}</span>
                     @else
                         <div class="t">{{ $k === 'pro' ? 'MENÚ' : ($k === 'clasica' ? mb_strtoupper(\Illuminate\Support\Str::limit($tienda->nombre, 22)) : \Illuminate\Support\Str::limit($tienda->nombre, 22)) }}</div>
                         <div class="s">{{ $k === 'clasica' ? '✦ ✦ ✦' : ($k === 'pro' ? 'ENTRADAS' : '~ Nuestra carta ~') }}</div>

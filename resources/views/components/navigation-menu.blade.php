@@ -24,6 +24,10 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-store"></i></div>
                     Ver todas las tiendas
                 </a>
+                <a class="nav-link {{ $on('admin.marketplace*') }}" href="{{ route('admin.marketplace') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-palette"></i></div>
+                    Configuración del marketplace
+                </a>
                 <a class="nav-link {{ $on('admin.planes.*') }}" href="{{ route('admin.planes.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-gem"></i></div>
                     Planes y cobros

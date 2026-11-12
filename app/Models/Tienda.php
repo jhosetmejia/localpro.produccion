@@ -206,6 +206,7 @@ class Tienda extends Model
         'fresca' => ['Fresca', 'Crema y terracota, casera', '#fbf4ea', '#c4532d'],
         'parrilla' => ['Parrilla', 'Carbón y rojo, para asados y comidas rápidas', '#1c1c1e', '#e63b2e'],
         'verde' => ['Huerta', 'Verde y blanco, saludable', '#f3f8f1', '#2f7d4a'],
+        'navidad' => ['Navidad', 'Verde pino, rojo y dorado, con nieve y luces', '#122a1c', '#e63946'],
     ];
 
     public function getUsaCartaAttribute(): bool

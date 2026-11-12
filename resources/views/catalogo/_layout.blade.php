@@ -21,7 +21,7 @@
 @hasSection('imagen')<meta property="og:image" content="@yield('imagen')">@elseif ($tienda->logo_url)<meta property="og:image" content="{{ $tienda->logo_url }}">@endif
 @if (str_contains($__env->yieldContent('imagen'), '/compartir.jpg'))<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:type" content="image/jpeg">@endif
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#0b0d0c">
+<meta name="theme-color" content="{{ \App\Support\TemaMarketplace::navidad() ? '#0f2a1d' : '#0b0d0c' }}">
 @if ($tienda->logo_url)<link rel="icon" href="{{ $tienda->logo_url }}">@endif
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -161,6 +161,10 @@ document.addEventListener('error', function (e) {
 </head>
 {{-- Tiendas de ropa y calzado: fotos verticales 3:4 (como las tiendas de moda); los demás negocios en cuadrado --}}
 <body class="{{ ($tienda->usa_tallas ?? false) ? 'moda' : '' }}">
+@php $navidad = \App\Support\TemaMarketplace::navidad(); @endphp
+@if ($navidad)
+    @include('partials.tema-navidad')
+@endif
 <header class="top">
     <div class="wrap">
         <a class="marca" href="{{ $tienda->url_catalogo }}">
@@ -176,6 +180,7 @@ document.addEventListener('error', function (e) {
         </div>
     </div>
 </header>
+@if ($navidad)<div class="lp-cinta-nav">🎄 <b>¡Feliz Navidad!</b> Pida sus regalos aquí y le llegan por WhatsApp 🎁</div>@endif
 
 @yield('contenido')
 

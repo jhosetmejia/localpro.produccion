@@ -688,6 +688,8 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::delete('/tiendas/{tienda}', [adminTiendaController::class, 'eliminar'])->name('tiendas.eliminar');
     Route::post('/tiendas/{tienda}/pago-prueba', [adminTiendaController::class, 'pagoPrueba'])->name('tiendas.pagoPrueba');
     Route::post('/tiendas/{tienda}/ventas-historicas', [adminTiendaController::class, 'ventasHistoricas'])->name('tiendas.ventasHistoricas');
+    Route::get('/marketplace', [\App\Http\Controllers\adminMarketplaceController::class, 'index'])->name('marketplace');
+    Route::post('/marketplace', [\App\Http\Controllers\adminMarketplaceController::class, 'guardar'])->name('marketplace.guardar');
     Route::get('/planes', [adminPlanController::class, 'index'])->name('planes.index');
     Route::post('/planes', [adminPlanController::class, 'guardar'])->name('planes.guardar');
     Route::post('/salir-de-tienda', [adminTiendaController::class, 'salir'])->name('tiendas.salir');
