@@ -1802,7 +1802,7 @@ function opcionesFoto(k, sec) {
       <div class="cut-fila"><button type="button" class="cut-btn-sec ${modo === 'croma' ? 'on' : ''}" data-fcroma>${modo === 'croma' ? '✓ ' : ''}🎨 Croma (quitar un color: fondo blanco, verde…)</button></div>
       ${modo === 'croma' ? `<div class="cut-fila"><small>Intensidad</small><input type="range" min="0" max="1" step="0.02" value="${k.fondo.tol ?? 0.5}" data-ftol></div>` : ''}
       ${modo ? `<div class="cut-fila"><button type="button" class="cut-btn-sec" data-fquitar>↩ Restaurar el fondo</button></div>` : ''}
-      <p class="cut-nota">La eliminación automática usa IA en su celular (no se sube nada). La primera vez baja el modelo (~115 MB) y luego queda guardado.</p>`;
+      <p class="cut-nota">La eliminación automática usa IA en su celular (no se sube nada): puede tardar hasta un minuto. La primera vez baja el modelo (unos 200 MB, mejor con wifi) y luego queda guardado.</p>`;
   }
   if (sec === 'mascara') return `
       <div class="cut-chips" data-grupo="cmasc">${FON.FORMAS.map(([v, t, ic]) => `<button type="button" class="cut-chip ${(k.masc?.forma || '') === v ? 'on' : ''}" data-v="${v}">${ic} ${t}</button>`).join('')}</div>

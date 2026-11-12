@@ -117,11 +117,20 @@ export async function quitarAuto(bmp, progreso) {
   const c = copiaReducida(bmp), w = c.width, h = c.height;
   const x = c.getContext('2d', { willReadFrequently: true });
   const img = x.getImageData(0, 0, w, h);
-  const id = ++seq;
-  const r = await new Promise((ok, mal) => {
-    pendientes.set(id, { ok, mal, progreso });
-    trabajador().postMessage({ tipo: 'recortar', id, modelo: globalThis.__fondoModelo, imagen: { data: img.data, width: w, height: h } });
-  });
+  // Primero la IA fina (1024 px); si al celular no le alcanza la memoria, la de 512 px (un poco menos fina)
+  const modelos = globalThis.__fondoModelo ? [globalThis.__fondoModelo] : [undefined, 'tjs:onnx-community/BiRefNet_512x512-ONNX|fp16'];
+  let r, error;
+  for (const modelo of modelos) {
+    const id = ++seq;
+    try {
+      r = await new Promise((ok, mal) => {
+        pendientes.set(id, { ok, mal, progreso });
+        trabajador().postMessage({ tipo: 'recortar', id, modelo, imagen: { data: img.data.slice(), width: w, height: h } });
+      });
+      break;
+    } catch (e) { error = e; trab?.terminate(); trab = null; } // trabajador nuevo: libera la memoria del intento anterior
+  }
+  if (!r) throw error;
   globalThis.__fondoMs = r.ms;
   const alfa = refinarBordes(img.data, r.alfa, w, h, Math.max(2, Math.round(Math.min(w, h) / 400)));
   let algo = 0; for (let i = 0; i < alfa.length; i++) if (alfa[i] > 128) algo++;
