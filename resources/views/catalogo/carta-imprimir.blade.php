@@ -1,4 +1,4 @@
-{{-- Carta para imprimir y compartir: 3 plantillas en hojas tamaño carta/A4 (1240x1754), descarga en PDF y JPG con QR a la carta en línea --}}
+{{-- Carta para imprimir y compartir: plantillas (incluidas las de Navidad) en hojas tamaño carta/A4 (1240x1754), descarga en PDF y JPG con QR a la carta en línea --}}
 @php
     $lugar = trim(implode(', ', array_filter([$tienda->ciudad, $tienda->departamento !== $tienda->ciudad ? $tienda->departamento : null])));
     $wa = $tienda->telefono ? trim(preg_replace('/^(\d{3})(\d{3})(\d{4})$/', '$1 $2 $3', preg_replace('/\D/', '', $tienda->telefono))) : null;
@@ -86,6 +86,54 @@ body{background:#e9ece8;font-family:'Plus Jakarta Sans',system-ui,sans-serif;col
 .clasica .it .d{font-style:italic;font-size:26px;color:#6b5a48;margin-top:2px}
 .clasica .pie{border-top:1.5px solid #b08d57;padding:22px 30px 6px;color:#4a3a2c;font-size:26px}
 .clasica .pie b{font-family:'Playfair Display',serif;font-size:30px;color:#2a1f17}
+
+/* ===== Plantilla NAVIDAD (carta navideña): terciopelo rojo, marco dorado, acebo en las esquinas ===== */
+.navidad{background:radial-gradient(90% 60% at 50% 0%,#9b1b2a 0%,#6d0d18 55%,#4a0810 100%);color:#fbf1df;font-family:'Cormorant Garamond',Georgia,serif;padding:90px 100px 70px}
+.navidad::before{content:"";position:absolute;inset:36px;border:3px solid #d9b45a;box-shadow:inset 0 0 0 9px #6d0d18,inset 0 0 0 10px rgba(217,180,90,.75);pointer-events:none;z-index:1}
+.navidad::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,.16) 2px,transparent 3px),radial-gradient(rgba(255,255,255,.09) 1.5px,transparent 2.5px);background-size:110px 110px,70px 70px;background-position:0 0,35px 50px}
+.navidad .cab{text-align:center;margin:-62px -72px 0;padding:56px 72px 24px;position:relative;z-index:2;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='170' viewBox='0 0 260 170'%3E%3Cpath d='M10 60C34 18 92 6 128 52c-16-2-22 10-36 8 6 14-6 26 0 40-26-10-50-12-62-30-6 8-14 4-20-10z' fill='%231f6b3a'/%3E%3Cpath d='M14 60C44 50 90 46 126 54' stroke='%230f3d22' stroke-width='3' fill='none'/%3E%3Cg transform='translate%28260 0%29 scale%28-1 1%29'%3E%3Cpath d='M10 60C34 18 92 6 128 52c-16-2-22 10-36 8 6 14-6 26 0 40-26-10-50-12-62-30-6 8-14 4-20-10z' fill='%231f6b3a'/%3E%3Cpath d='M14 60C44 50 90 46 126 54' stroke='%230f3d22' stroke-width='3' fill='none'/%3E%3C/g%3E%3Cg transform='rotate%2880 130 60%29'%3E%3Cpath d='M10 60C34 18 92 6 128 52c-16-2-22 10-36 8 6 14-6 26 0 40-26-10-50-12-62-30-6 8-14 4-20-10z' fill='%232b8049'/%3E%3Cpath d='M14 60C44 50 90 46 126 54' stroke='%230f3d22' stroke-width='3' fill='none'/%3E%3C/g%3E%3Ccircle cx='120' cy='64' r='15' fill='%23d62839'/%3E%3Ccircle cx='142' cy='76' r='15' fill='%23c1121f'/%3E%3Ccircle cx='118' cy='90' r='15' fill='%23e63946'/%3E%3Ccircle cx='115' cy='59' r='4' fill='%23fff' opacity='.7'/%3E%3Ccircle cx='137' cy='71' r='4' fill='%23fff' opacity='.7'/%3E%3C/svg%3E") left 0 top 0/250px auto no-repeat,url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='170' viewBox='0 0 260 170'%3E%3Cg transform='translate%28260 0%29 scale%28-1 1%29'%3E%3Cpath d='M10 60C34 18 92 6 128 52c-16-2-22 10-36 8 6 14-6 26 0 40-26-10-50-12-62-30-6 8-14 4-20-10z' fill='%231f6b3a'/%3E%3Cpath d='M14 60C44 50 90 46 126 54' stroke='%230f3d22' stroke-width='3' fill='none'/%3E%3Cg transform='translate%28260 0%29 scale%28-1 1%29'%3E%3Cpath d='M10 60C34 18 92 6 128 52c-16-2-22 10-36 8 6 14-6 26 0 40-26-10-50-12-62-30-6 8-14 4-20-10z' fill='%231f6b3a'/%3E%3Cpath d='M14 60C44 50 90 46 126 54' stroke='%230f3d22' stroke-width='3' fill='none'/%3E%3C/g%3E%3Cg transform='rotate%2880 130 60%29'%3E%3Cpath d='M10 60C34 18 92 6 128 52c-16-2-22 10-36 8 6 14-6 26 0 40-26-10-50-12-62-30-6 8-14 4-20-10z' fill='%232b8049'/%3E%3Cpath d='M14 60C44 50 90 46 126 54' stroke='%230f3d22' stroke-width='3' fill='none'/%3E%3C/g%3E%3Ccircle cx='120' cy='64' r='15' fill='%23d62839'/%3E%3Ccircle cx='142' cy='76' r='15' fill='%23c1121f'/%3E%3Ccircle cx='118' cy='90' r='15' fill='%23e63946'/%3E%3Ccircle cx='115' cy='59' r='4' fill='%23fff' opacity='.7'/%3E%3Ccircle cx='137' cy='71' r='4' fill='%23fff' opacity='.7'/%3E%3C/g%3E%3C/svg%3E") right 0 top 0/250px auto no-repeat}
+.navidad .cab img{width:130px;height:130px;object-fit:contain;border-radius:50%;background:#fff;border:4px solid #d9b45a;margin-bottom:14px}
+.navidad .cab .eti{font-family:'Playfair Display',serif;font-style:italic;font-weight:500;color:#f2c96b;font-size:32px;letter-spacing:.12em}
+.navidad .cab h1{font-family:'Playfair Display',serif;font-weight:900;font-size:84px;line-height:1.04;letter-spacing:.04em;text-transform:uppercase;margin:6px 0 4px;text-shadow:0 4px 0 rgba(0,0,0,.25)}
+.navidad .cab .feliz{font-family:'Kaushan Script',cursive;color:#f2c96b;font-size:64px;line-height:1.1}
+.navidad .cab p{font-size:28px;font-style:italic;color:#ead6c6;margin-top:6px}
+.navidad .cab.chica{padding:40px 72px 14px;background-size:150px auto,150px auto}
+.navidad .cab.chica h1{font-size:46px}
+.navidad .cuerpo,.navidad .pie{z-index:2}
+.navidad .sec{font-family:'Playfair Display',serif;font-weight:700;font-size:46px;color:#f2c96b;text-align:center;margin:30px 0 18px;display:flex;align-items:center;gap:22px;letter-spacing:.1em;text-transform:uppercase}
+.navidad .sec::before{content:"";flex:1;height:2px;background:linear-gradient(90deg,transparent,#d9b45a)}
+.navidad .sec::after{content:"";flex:1;height:2px;background:linear-gradient(90deg,#d9b45a,transparent)}
+.navidad .it{margin:0 30px 20px}
+.navidad .it .f{display:flex;align-items:baseline;gap:14px;font-size:37px;font-weight:700}
+.navidad .it .f .n{flex:none;max-width:72%}
+.navidad .it .f .dots{flex:1;border-bottom:3px dotted rgba(242,201,107,.75);transform:translateY(-8px)}
+.navidad .it .f .p{flex:none;color:#f2c96b;white-space:nowrap}
+.navidad .it .d{font-style:italic;font-size:26px;color:#e6cfc0;margin-top:2px}
+.navidad .pie{border-top:2px solid #d9b45a;padding:22px 30px 6px;color:#fbf1df;font-size:26px;position:relative}
+.navidad .pie b{font-family:'Playfair Display',serif;font-size:30px;color:#f2c96b}
+
+/* ===== Plantilla MENÚ NAVIDEÑO: papel crema, guirnalda de pino con bolas, letra elegante y todo centrado ===== */
+.menu-navidad{background:#fbf5ea;color:#1d3b2a;font-family:'Cormorant Garamond',Georgia,serif;padding:190px 110px 70px}
+.menu-navidad::before{content:"";position:absolute;left:0;right:0;top:0;height:170px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='170' viewBox='0 0 240 170'%3E%3Cpath d='M-10 40Q120 110 250 40' stroke='%231f5a3a' stroke-width='34' fill='none'/%3E%3Cpath d='M-10 40Q120 110 250 40' stroke='%232f7d4f' stroke-width='22' fill='none' stroke-dasharray='3 7'/%3E%3Cpath d='M-10 34Q120 104 250 34' stroke='%233c9a60' stroke-width='8' fill='none' stroke-dasharray='2 9'/%3E%3Cline x1='120' y1='76' x2='120' y2='112' stroke='%23c9a24a' stroke-width='3'/%3E%3Ccircle cx='120' cy='128' r='20' fill='%23c1121f'/%3E%3Crect x='112' y='104' width='16' height='9' rx='2' fill='%23c9a24a'/%3E%3Ccircle cx='113' cy='121' r='6' fill='%23fff' opacity='.55'/%3E%3Ccircle cx='30' cy='58' r='9' fill='%23e63946'/%3E%3Ccircle cx='210' cy='58' r='9' fill='%23ffd166'/%3E%3Cpath d='M66 70l4 9 10 1-8 6 3 10-9-6-9 6 3-10-8-6 10-1z' fill='%23ffd166'/%3E%3Cpath d='M174 70l4 9 10 1-8 6 3 10-9-6-9 6 3-10-8-6 10-1z' fill='%23ffd166'/%3E%3C/svg%3E") left top/240px 170px repeat-x;pointer-events:none;z-index:2}
+.menu-navidad::after{content:"";position:absolute;left:44px;right:44px;top:120px;bottom:44px;border:2px solid #c9a24a;box-shadow:inset 0 0 0 8px #fbf5ea,inset 0 0 0 9px rgba(31,90,58,.55);pointer-events:none}
+.menu-navidad .cab,.menu-navidad .cuerpo,.menu-navidad .pie{position:relative;z-index:1}
+.menu-navidad .cab{text-align:center;padding:0 0 12px}
+.menu-navidad .cab img{width:110px;height:110px;object-fit:contain;border-radius:50%;background:#fff;border:3px solid #1f5a3a;margin-bottom:6px}
+.menu-navidad .cab .tit{font-family:'Kaushan Script',cursive;color:#c1121f;font-size:120px;line-height:1.05}
+.menu-navidad .cab h1{font-family:'Playfair Display',serif;font-weight:900;font-size:44px;letter-spacing:.22em;text-transform:uppercase;color:#1f5a3a;margin-top:2px}
+.menu-navidad .cab .orn{height:60px;margin:10px auto 4px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='60' viewBox='0 0 260 170'%3E%3Cpath d='M10 60C34 18 92 6 128 52c-16-2-22 10-36 8 6 14-6 26 0 40-26-10-50-12-62-30-6 8-14 4-20-10z' fill='%231f6b3a'/%3E%3Cpath d='M14 60C44 50 90 46 126 54' stroke='%230f3d22' stroke-width='3' fill='none'/%3E%3Cg transform='translate%28260 0%29 scale%28-1 1%29'%3E%3Cpath d='M10 60C34 18 92 6 128 52c-16-2-22 10-36 8 6 14-6 26 0 40-26-10-50-12-62-30-6 8-14 4-20-10z' fill='%231f6b3a'/%3E%3Cpath d='M14 60C44 50 90 46 126 54' stroke='%230f3d22' stroke-width='3' fill='none'/%3E%3C/g%3E%3Cg transform='rotate%2880 130 60%29'%3E%3Cpath d='M10 60C34 18 92 6 128 52c-16-2-22 10-36 8 6 14-6 26 0 40-26-10-50-12-62-30-6 8-14 4-20-10z' fill='%232b8049'/%3E%3Cpath d='M14 60C44 50 90 46 126 54' stroke='%230f3d22' stroke-width='3' fill='none'/%3E%3C/g%3E%3Ccircle cx='120' cy='64' r='15' fill='%23d62839'/%3E%3Ccircle cx='142' cy='76' r='15' fill='%23c1121f'/%3E%3Ccircle cx='118' cy='90' r='15' fill='%23e63946'/%3E%3Ccircle cx='115' cy='59' r='4' fill='%23fff' opacity='.7'/%3E%3Ccircle cx='137' cy='71' r='4' fill='%23fff' opacity='.7'/%3E%3C/svg%3E") center/90px 60px no-repeat}
+.menu-navidad .cab p{font-size:28px;font-style:italic;color:#5b6b5f}
+.menu-navidad .cab.chica{padding:0 0 10px}
+.menu-navidad .cab.chica h1{font-size:36px}
+.menu-navidad .sec{font-family:'Playfair Display',serif;font-style:italic;font-weight:500;font-size:52px;color:#1f5a3a;text-align:center;margin:28px 0 18px;display:flex;align-items:center;justify-content:center;gap:20px}
+.menu-navidad .sec::before,.menu-navidad .sec::after{content:"";width:90px;height:60px;flex:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='60' viewBox='0 0 260 170'%3E%3Cpath d='M10 60C34 18 92 6 128 52c-16-2-22 10-36 8 6 14-6 26 0 40-26-10-50-12-62-30-6 8-14 4-20-10z' fill='%231f6b3a'/%3E%3Cpath d='M14 60C44 50 90 46 126 54' stroke='%230f3d22' stroke-width='3' fill='none'/%3E%3Cg transform='translate%28260 0%29 scale%28-1 1%29'%3E%3Cpath d='M10 60C34 18 92 6 128 52c-16-2-22 10-36 8 6 14-6 26 0 40-26-10-50-12-62-30-6 8-14 4-20-10z' fill='%231f6b3a'/%3E%3Cpath d='M14 60C44 50 90 46 126 54' stroke='%230f3d22' stroke-width='3' fill='none'/%3E%3C/g%3E%3Cg transform='rotate%2880 130 60%29'%3E%3Cpath d='M10 60C34 18 92 6 128 52c-16-2-22 10-36 8 6 14-6 26 0 40-26-10-50-12-62-30-6 8-14 4-20-10z' fill='%232b8049'/%3E%3Cpath d='M14 60C44 50 90 46 126 54' stroke='%230f3d22' stroke-width='3' fill='none'/%3E%3C/g%3E%3Ccircle cx='120' cy='64' r='15' fill='%23d62839'/%3E%3Ccircle cx='142' cy='76' r='15' fill='%23c1121f'/%3E%3Ccircle cx='118' cy='90' r='15' fill='%23e63946'/%3E%3Ccircle cx='115' cy='59' r='4' fill='%23fff' opacity='.7'/%3E%3Ccircle cx='137' cy='71' r='4' fill='%23fff' opacity='.7'/%3E%3C/svg%3E") center/90px 60px no-repeat}
+.menu-navidad .it{text-align:center;margin:0 60px 20px}
+.menu-navidad .it .n{font-family:'Playfair Display',serif;font-weight:700;font-size:32px;letter-spacing:.08em;text-transform:uppercase;color:#1d3b2a}
+.menu-navidad .it .d{font-style:italic;font-size:26px;color:#6a5d50;margin-top:2px;line-height:1.2}
+.menu-navidad .it .p{font-family:'Playfair Display',serif;font-weight:700;font-size:32px;color:#c1121f;margin-top:4px}
+.menu-navidad .pie{border-top:2px dashed #c9a24a;padding:22px 30px 6px;color:#1d3b2a;font-size:26px}
+.menu-navidad .pie b{font-family:'Playfair Display',serif;font-size:30px;color:#c1121f}
+.menu-navidad .pie .qr{border:2px solid #1f5a3a}
 
 /* ===== Plantilla PIZARRA: tiza sobre tablero, marco de madera ===== */
 .pizarra{background:radial-gradient(120% 90% at 50% 40%,#3a4441 0%,#2a3230 55%,#1d2321 100%);color:#f3f1e7;font-family:'Caveat',cursive;padding:80px 96px 70px;border:34px solid #6b4a2b;box-shadow:inset 0 0 0 6px #4e3520}
@@ -233,7 +281,23 @@ body{background:#e9ece8;font-family:'Plus Jakarta Sans',system-ui,sans-serif;col
     var qrUrl = '';
     try { var q = el('div'); new QRCode(q, { text: T.url, width: 300, height: 300, correctLevel: QRCode.CorrectLevel.M }); var c = q.querySelector('canvas'); qrUrl = c ? c.toDataURL('image/png') : ''; } catch (e) {}
 
+    // Plantillas de Navidad: carta navideña (roja con marco dorado) y menú navideño (crema con guirnalda)
+    function cabeceraNavidad(primera) {
+        var c = el('div', 'cab' + (primera ? '' : ' chica'));
+        if (primera && T.logo) { var i = el('img'); i.src = T.logo; i.alt = ''; c.appendChild(i); }
+        if (P === 'menu-navidad') {
+            if (primera) c.appendChild(el('div', 'tit', 'Menú Navideño'));
+            c.appendChild(el('h1', '', T.nombre));
+            if (primera) { c.appendChild(el('div', 'orn')); c.appendChild(el('p', '', (T.desc && T.desc.length < 70 ? T.desc + ' · ' : '') + 'Feliz Navidad y próspero Año Nuevo')); }
+        } else {
+            if (primera) c.appendChild(el('div', 'eti', '✦ Carta navideña ✦'));
+            c.appendChild(el('h1', '', T.nombre));
+            if (primera) { c.appendChild(el('div', 'feliz', '¡Feliz Navidad!')); if (T.desc || T.lugar) c.appendChild(el('p', '', (T.desc || '') + (T.desc && T.lugar ? ' · ' : '') + (T.lugar || ''))); }
+        }
+        return c;
+    }
     function cabecera(primera) {
+        if (P === 'navidad' || P === 'menu-navidad') return cabeceraNavidad(primera);
         var c = el('div', 'cab' + (primera ? '' : ' chica'));
         if (primera && T.logo) { var i = el('img'); i.src = T.logo; i.alt = ''; c.appendChild(i); }
         var tx = P === 'moderna' ? el('div') : c;
@@ -258,7 +322,9 @@ body{background:#e9ece8;font-family:'Plus Jakarta Sans',system-ui,sans-serif;col
     }
     function itemEl(it) {
         var e = el('div', 'it');
-        if (P === 'clasica') {
+        if (P === 'menu-navidad') {
+            e.appendChild(el('div', 'n', it.nombre)); if (it.desc) e.appendChild(el('div', 'd', it.desc)); e.appendChild(el('div', 'p', it.precio));
+        } else if (P === 'clasica' || P === 'navidad') {
             var f = el('div', 'f'); f.appendChild(el('span', 'n', it.nombre)); f.appendChild(el('span', 'dots')); f.appendChild(el('span', 'p', it.precio)); e.appendChild(f);
             if (it.desc) e.appendChild(el('div', 'd', it.desc));
         } else if (P === 'pizarra') {
@@ -406,7 +472,7 @@ body{background:#e9ece8;font-family:'Plus Jakarta Sans',system-ui,sans-serif;col
     var est = document.getElementById('estado'), bPdf = document.getElementById('bPdf'), bJpg = document.getElementById('bJpg');
     function lienzo(x) {
         var t = x.pg.style.transform; x.pg.style.transform = 'none';
-        return htmlToImage.toCanvas(x.pg, { width: W, height: H, pixelRatio: 1, cacheBust: false, backgroundColor: P === 'pro' ? '#121212' : '#ffffff' })
+        return htmlToImage.toCanvas(x.pg, { width: W, height: H, pixelRatio: 1, cacheBust: false, backgroundColor: P === 'pro' ? '#121212' : P === 'navidad' ? '#6d0d18' : P === 'menu-navidad' ? '#fbf5ea' : '#ffffff' })
             .finally(function () { x.pg.style.transform = t; });
     }
     function guardar(blob, nombre) {
@@ -442,6 +508,8 @@ body{background:#e9ece8;font-family:'Plus Jakarta Sans',system-ui,sans-serif;col
     var LETRAS = { pro: ["38px 'Bebas Neue'", "25px 'Barlow Condensed'", "500 25px 'Barlow Condensed'", "700 24px 'Barlow Condensed'", "46px 'Kaushan Script'"],
         clasica: ["900 86px 'Playfair Display'", "700 44px 'Playfair Display'", "700 36px 'Cormorant Garamond'", "italic 500 26px 'Cormorant Garamond'"],
         pizarra: ["700 76px 'Amatic SC'", "700 48px 'Caveat'", "500 32px 'Caveat'"],
+        navidad: ["900 84px 'Playfair Display'", "700 46px 'Playfair Display'", "italic 500 32px 'Playfair Display'", "700 37px 'Cormorant Garamond'", "italic 500 26px 'Cormorant Garamond'", "64px 'Kaushan Script'"],
+        'menu-navidad': ["900 44px 'Playfair Display'", "700 32px 'Playfair Display'", "italic 500 52px 'Playfair Display'", "italic 500 26px 'Cormorant Garamond'", "120px 'Kaushan Script'"],
         moderna: ["800 56px 'Bricolage Grotesque'", "700 34px 'Bricolage Grotesque'", "400 22px 'DM Sans'", "700 28px 'DM Sans'", "500 32px 'DM Sans'"] };
     var cargarLetras = document.fonts ? Promise.all((LETRAS[P] || []).map(function (f) { return document.fonts.load(f).catch(function () {}); })).then(function () { return document.fonts.ready; }) : Promise.resolve();
     cargarLetras.then(function () {

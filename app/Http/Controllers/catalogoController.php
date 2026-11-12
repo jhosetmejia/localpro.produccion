@@ -241,6 +241,8 @@ class catalogoController extends Controller
         'clasica' => ['Clásica', 'Papel crema, letra elegante y puntos hasta el precio'],
         'pizarra' => ['Pizarra', 'Tablero de tiza con marco de madera'],
         'moderna' => ['Moderna con fotos', 'Fotos de cada plato y precios destacados'],
+        'navidad' => ['Carta navideña 🎄', 'Rojo terciopelo, marco dorado y acebo: su carta de siempre vestida de Navidad'],
+        'menu-navidad' => ['Menú navideño 🎁', 'Papel crema con guirnalda de pino: ideal para la cena de Navidad y Año Nuevo'],
     ];
 
     // Carta personalizada que el negocio hizo con su IA (encerrada: sin scripts)

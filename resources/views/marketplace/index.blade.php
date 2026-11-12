@@ -25,7 +25,7 @@
         'potentialAction' => ['@type' => 'SearchAction', 'target' => route('marketplace') . '?q={search_term_string}', 'query-input' => 'required name=search_term_string']],
     ['@type' => 'ItemList', 'name' => $titulo, 'itemListElement' => $tiendas->take(50)->values()->map(fn ($t, $i) => ['@type' => 'ListItem', 'position' => $i + 1, 'url' => $t->url_catalogo, 'name' => $t->nombre])->all()],
 ]], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}</script>
-<meta name="theme-color" content="#0b0d0c">
+<meta name="theme-color" content="{{ \App\Support\TemaMarketplace::navidad() ? '#0f2a1d' : '#0b0d0c' }}">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -144,6 +144,10 @@ document.addEventListener('error', function (e) {
 </script>
 </head>
 <body>
+@php $navidad = \App\Support\TemaMarketplace::navidad(); @endphp
+@if ($navidad)
+    @include('partials.tema-navidad')
+@endif
 <header class="top">
     <div class="wrap">
         <a class="marca" href="{{ route('marketplace') }}"><i>L</i><span>LocalProo<small>Marketplace</small></span></a>
@@ -163,6 +167,7 @@ document.addEventListener('error', function (e) {
         <a class="crear" href="{{ route('registro', ['desde' => 'marketplace']) }}"><span class="ico" aria-hidden="true">🏪</span>Venda aquí</a>
     </div>
 </header>
+@if ($navidad)<div class="lp-cinta-nav">🎄 <b>¡Feliz Navidad!</b> Este diciembre regale de su ciudad: compre a los negocios locales 🎁</div>@endif
 
 @if (!$filtrando)
 <div class="hero">
