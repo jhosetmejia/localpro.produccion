@@ -87,7 +87,7 @@ function reg(o) { REG.set(o.id, o); return o; }
 const HIST = { pila: [], pos: -1, aplicando: false };
 function foto() {
   return JSON.stringify({
-    clips: S.clips.map(c => ({ id: c.id, in: c.in, out: c.out, mute: !!c.mute, vol: c.vol ?? 1, vel: c.vel || 1, curva: c.curva || null, z: c.z || 1, x: c.x || 0, y: c.y || 0, kf: c.kf?.length ? c.kf : null, trans: c.trans, ef: c.ef || 'ninguno', anim: c.anim || null, limpio: !!c.limpio })),
+    clips: S.clips.map(c => ({ id: c.id, in: c.in, out: c.out, mute: !!c.mute, vol: c.vol ?? 1, vel: c.vel || 1, curva: c.curva || null, z: c.z || 1, x: c.x || 0, y: c.y || 0, kf: c.kf?.length ? c.kf : null, trans: c.trans, ef: c.ef || 'ninguno', anim: c.anim || null, limpio: !!c.limpio, op: c.op ?? 1, fondo: c.fondo || null, masc: c.masc || null })),
     capas: S.capas.map(datosCapa), filtro: S.filtro, ajuste: S.ajuste, fondo: S.fondo,
     musica: S.musica.map(m => ({ id: m.id, start: m.start, in: m.in, out: m.out ?? null, vol: m.vol ?? 1, fadeIn: !!m.fadeIn, fadeOut: !!m.fadeOut, limpio: !!m.limpio, mejor: !!m.mejor, aislar: !!m.aislar, efa: m.efa || '', vel: m.vel || 1, ritmos: m.ritmos || null, kfv: m.kfv?.length ? m.kfv.map(k => ({ ...k })) : null })),
     subs: S.subs, segs: S.segs, sub: S.sub, belleza: S.belleza, aspecto: S.aspecto, silenciar: !!S.silenciar,
@@ -289,11 +289,26 @@ function prepararFondo(k) {
   const cf = claveFondo(k);
   if (!cf || !k.bmp) { k._sinFondo = null; k._cf = cf; return Promise.resolve(); }
   if (k._cf === cf && (k._sinFondo || k._fondoP)) return k._fondoP || Promise.resolve();
-  k._cf = cf; k._sinFondo = null; k._fondoErr = null;
+  k._cf = cf; k._sinFondo = null; k._fondoErr = null; k._fondoMsg = null;
+  const modo = MODO_FONDO[k.fondo.modo] || k.fondo.modo;
+  const msg = (t) => { k._fondoMsg = t; const el = document.querySelector('[data-fprog]'); if (el) el.textContent = '⏳ ' + t; };
   k._fondoP = (async () => {
-    try { k._sinFondo = k.fondo.modo === 'persona' ? await FON.quitarPersona(k.bmp) : FON.quitarLiso(k.bmp, k.fondo.tol ?? 0.5); }
-    catch (e) { if (k._cf === cf) { k._fondoErr = e.message || String(e); k.fondo = null; k._cf = ''; aviso(e.message === 'No se encontró una persona en la foto' ? 'No encontré una persona en esa foto. Pruebe "Fondo liso" (para logos y productos).' : 'No se pudo quitar el fondo: ' + k._fondoErr, 'mal'); pintarPanel(); } }
-    finally { if (k._cf === cf) k._fondoP = null; k._proc = null; S.dirty = true; }
+    try {
+      if (modo === 'auto') {
+        try {
+          msg('Preparando la IA…');
+          k._sinFondo = await FON.quitarAuto(k.bmp, (pr, fase) => msg(fase === 'recortando' ? 'Recortando…' : 'Bajando la IA (solo la primera vez)… ' + Math.round(pr * 100) + '%'));
+        } catch (e1) {
+          // Celular que no alcanza con la IA grande: se intenta con la de personas y, si no hay persona, se avisa
+          msg('Probando otro método…');
+          try { k._sinFondo = await FON.quitarPersona(k.bmp); }
+          catch (e2) { throw new Error(/memoria|memory|alloc/i.test(e1.message) ? 'A su celular no le alcanzó la memoria para la IA. Pruebe Croma si el fondo es de un solo color.' : 'No encontré qué recortar en esa foto. Si el fondo es de un solo color, use Croma.'); }
+        }
+      } else if (modo === 'persona') k._sinFondo = await FON.quitarPersona(k.bmp);
+      else k._sinFondo = FON.quitarLiso(k.bmp, k.fondo.tol ?? 0.5);
+    } catch (e) {
+      if (k._cf === cf) { k._fondoErr = e.message || String(e); k.fondo = null; k._cf = ''; aviso(k._fondoErr, 'mal'); window.LPOpinion?.error(new Error('Eliminar fondo: ' + k._fondoErr), { fase: 'fondo', modo }); }
+    } finally { if (k._cf === cf || !k.fondo) k._fondoP = null; k._proc = null; S.dirty = true; if (/^f-|capa/.test(S.tab || '')) pintarPanel(); }
   })();
   return k._fondoP;
 }
@@ -307,8 +322,23 @@ function imagenCapa(k) {
   k._pk = clave; k._proc = FON.aplicarMascara(base, k.masc);
   return k._proc;
 }
+// Foto del carril principal con opacidad, fondo quitado o máscara: lo transparente deja ver el fondo del video
+// (color elegido en "Fondo" o negro), igual que en CapCut
+function imagenClip(c) {
+  const im = imagenCapa(c) || c.bmp, op = Math.max(0, Math.min(1, c.op ?? 1));
+  if (im === c.bmp && op >= 1) return c.bmp;
+  const col = S.fondo?.modo === 'color' ? S.fondo.color : '#000';
+  const clave = op + col;
+  if (c._comp && c._compIm === im && c._compK === clave) return c._comp;
+  const cv = c._comp || document.createElement('canvas');
+  cv.width = im.width; cv.height = im.height;
+  const x = cv.getContext('2d'); x.fillStyle = col; x.fillRect(0, 0, cv.width, cv.height);
+  x.globalAlpha = op; x.drawImage(im, 0, 0, cv.width, cv.height); x.globalAlpha = 1;
+  c._comp = cv; c._compIm = im; c._compK = clave;
+  return cv;
+}
 // Antes de exportar: que todas las fotos tengan su fondo listo (si no, saldría con fondo en el video final)
-async function prepararCapas() { await Promise.all(S.capas.filter(k => k.tipo === 'imagen').map(k => prepararFondo(k).catch(() => {}))); }
+async function prepararCapas() { await Promise.all([...S.capas, ...S.clips].filter(k => k.tipo === 'imagen').map(k => prepararFondo(k).catch(() => {}))); }
 function dibujarCapas(ctx, W, H, t) {
   for (const k of S.capas) {
     if (t < k.start || t >= k.end) continue;
@@ -347,7 +377,7 @@ async function cargarCapaImagen(k) {
 /* ---------- vista previa ---------- */
 function fuentePrevia(i) {
   const c = S.clips[i];
-  if (c.tipo === 'imagen') return { src: c.bmp, w: c.w, h: c.h, mascara: c.mascara };
+  if (c.tipo === 'imagen') return { src: imagenClip(c), w: c.w, h: c.h, mascara: c.mascara };
   const v = c.el;
   if (!v || v.readyState < 2) return null;
   if (S.belleza.on && BEL.listo()) {
@@ -1442,7 +1472,7 @@ function mover(d) {
 }
 
 /* ---------- panel de herramientas ---------- */
-const TITULOS = { 'm-vol': 'Volumen', 'm-fade': 'Desvanecer', 'm-efx': 'Efectos de audio', 'm-vel': 'Velocidad', voz: 'Texto a voz', volumen: 'Volumen', animaciones: 'Animaciones', recortar: 'Recortar', editar: 'Editar', audio: 'Audio', texto: 'Texto', efectos: 'Efectos', superposicion: 'Superposición', subtitulos: 'Subtítulos', filtros: 'Filtros', ajustar: 'Ajustar', stickers: 'Stickers', formato: 'Relación de aspecto', fondo: 'Fondo', velocidad: 'Velocidad', transicion: 'Transición', belleza: 'Belleza del rostro', capa: 'Capa', portada: 'Portada' };
+const TITULOS = { 'f-opacidad': 'Opacidad', 'f-fondo': 'Eliminar fondo', 'f-mascara': 'Máscara', 'm-vol': 'Volumen', 'm-fade': 'Desvanecer', 'm-efx': 'Efectos de audio', 'm-vel': 'Velocidad', voz: 'Texto a voz', volumen: 'Volumen', animaciones: 'Animaciones', recortar: 'Recortar', editar: 'Editar', audio: 'Audio', texto: 'Texto', efectos: 'Efectos', superposicion: 'Superposición', subtitulos: 'Subtítulos', filtros: 'Filtros', ajustar: 'Ajustar', stickers: 'Stickers', formato: 'Relación de aspecto', fondo: 'Fondo', velocidad: 'Velocidad', transicion: 'Transición', belleza: 'Belleza del rostro', capa: 'Capa', portada: 'Portada' };
 function abrirTab(t) {
   S.tab = t;
   pintarBarra();
@@ -1458,6 +1488,12 @@ const TABS_CLIP = ['editar', 'volumen', 'animaciones', 'efectos', 'velocidad', '
 const barra = $('.cut-tabs');
 const BARRA_GENERAL = barra.innerHTML;
 const ICS = {
+  'f-fondo': '<path d="M4 20h16"/><path d="M7 16l3-9 4 6 2-3 3 6"/><circle cx="17" cy="6" r="2"/><path d="M3 3l18 18" opacity=".55"/>',
+  'f-opacidad': '<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/><path d="M12 9v11" opacity=".5"/>',
+  'f-mascara': '<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="12" cy="12" r="5"/>',
+  'c-eliminar': '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+  capa: '<path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/>',
+  foto: '<rect x="3" y="4" width="18" height="16" rx="3" stroke-dasharray="3 2"/><circle cx="12" cy="12" r="4"/><path d="M12 8v8" opacity=".5"/>',
   volver: '<path d="m15 18-6-6 6-6"/>',
   dividir: '<path d="M12 3v18"/><path d="M5 8 2 12l3 4M19 8l3 4-3 4"/>',
   volumen: '<path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a9 9 0 0 1 0 12"/>',
@@ -1515,6 +1551,20 @@ function pintarBarra() {
     $$('.cut-tab', barra).forEach(b => b.classList.toggle('on', !!b.dataset.tab && b.dataset.tab === S.tab));
     return;
   }
+  const capa = !c && S.selC && S.capas.find(x => x.id === S.selC);
+  if (capa) {
+    const k = 'capa:' + capa.id + ':' + capa.tipo;
+    if (barra._modo !== k) {
+      barra._modo = k;
+      const foto = capa.tipo === 'imagen';
+      const it = [['tab', 'capa', 'Editar'], foto && ['tab', 'f-fondo', 'Eliminar fondo'], ['tab', 'f-opacidad', 'Opacidad'], foto && ['tab', 'f-mascara', 'Máscara'], ['acc', 'c-eliminar', 'Eliminar']].filter(Boolean);
+      barra.innerHTML = `<button type="button" class="cut-volver" data-volver aria-label="Volver">${ic('volver')}</button>`
+        + it.map(x => `<button type="button" class="cut-tab" ${x[0] === 'tab' ? 'data-tab' : 'data-acc'}="${x[1]}">${ic(x[1])}${x[2]}</button>`).join('');
+      barra.scrollLeft = 0;
+    }
+    $$('.cut-tab', barra).forEach(b => b.classList.toggle('on', !!b.dataset.tab && b.dataset.tab === S.tab));
+    return;
+  }
   if (!c && S.barraAudio) {
     const modoA = 'audio:' + !!S.silenciar + ':' + S.musica.length;
     if (barra._modo !== modoA) {
@@ -1536,7 +1586,7 @@ function pintarBarra() {
     else {
       const v = c.tipo === 'video', hay = S.clips.indexOf(c) < S.clips.length - 1;
       const it = [
-        ['acc', 'dividir', 'Dividir'], v && ['tab', 'volumen', 'Volumen'], ['tab', 'animaciones', 'Animaciones'], ['tab', 'efectos', 'Efectos'],
+        ['acc', 'dividir', 'Dividir'], !v && ['tab', 'f-fondo', 'Eliminar fondo'], !v && ['tab', 'f-opacidad', 'Opacidad'], !v && ['tab', 'f-mascara', 'Máscara'], v && ['tab', 'volumen', 'Volumen'], ['tab', 'animaciones', 'Animaciones'], ['tab', 'efectos', 'Efectos'],
         ['acc', 'eliminar', 'Eliminar'], v && ['tab', 'velocidad', 'Velocidad'], ['tab', 'recortar', 'Recortar'], ['acc', 'duplicar', 'Duplicar'],
         v && ['acc', 'pausas', 'Quitar pausas'], v && ['acc', 'ruido', c.limpio ? 'Ruido reducido ✓' : 'Reducir ruido'],
         ['acc', 'sustituir', 'Sustituir'], v && ['acc', 'extraer', 'Extraer audio'], ['tab', 'ajustar', 'Ajustar'], ['tab', 'filtros', 'Filtros'],
@@ -1550,7 +1600,8 @@ function pintarBarra() {
 }
 barra.addEventListener('click', (e) => {
   const b = e.target.closest('button'); if (!b) return;
-  if (b.dataset.volver != null) { S.barraClip = false; S.barraAudio = false; S.sel = null; S.selM = null; abrirTab(null); pintarLinea(); return; }
+  if (b.dataset.volver != null) { S.barraClip = false; S.barraAudio = false; S.sel = null; S.selM = null; S.selC = null; abrirTab(null); pintarLinea(); return; }
+  if (b.dataset.acc === 'c-eliminar') { S.capas = S.capas.filter(x => x.id !== S.selC); S.selC = null; abrirTab(null); pintarLinea(); guardar(); return; }
   if (b.dataset.tab === 'audio' && innerWidth < 1000) return abrirBarraAudio();
   const acA = { 'a-extraer': () => $('#cutExtraer').click(), 'a-musica': () => $('#cutMusica').click(), 'a-grabar': () => vozEnOff(), 'a-tts': () => { S.selM = null; abrirTab(S.tab === 'voz' ? null : 'voz'); },
     'a-silenciar': () => silenciarOriginales(true), 'a-sonido': () => silenciarOriginales(false), 'a-lista': () => { S.selM = null; abrirTab(S.tab === 'audio' ? null : 'audio'); } }[b.dataset.acc];
@@ -1735,6 +1786,59 @@ function rejillaAnim({ grupo, items, actual, tipo, ca = null, cb = null, salida 
 const pestanasAnim = (lado, extra = '') => `<div class="lpa-cab" data-lado>${[['in', 'Entrada'], ['out', 'Salida']].map(([v, n]) => `<button type="button" data-l="${v}" class="${lado === v ? 'on' : ''}">${n}</button>`).join('')}${extra}</div>`;
 const aplicarTodo = (on) => `<label class="lpa-todo"><input type="checkbox" data-atodo ${on ? 'checked' : ''}><i></i>Aplicar a todo</label>`;
 
+// Opacidad, Eliminar fondo y Máscara (botones separados, como CapCut): los mismos para las fotos encima del video
+// (capas) y las del carril principal. "sec" dice cuál se muestra.
+const MODO_FONDO = { liso: 'croma' }; // proyectos viejos: "fondo liso" ahora se llama Croma
+function opcionesFoto(k, sec) {
+  if (sec === 'opacidad') return `
+      <div class="cut-fila"><small>Opacidad · <b data-opv>${Math.round((k.op ?? 1) * 100)}%</b></small><input type="range" min="0" max="1" step="0.01" value="${k.op ?? 1}" data-op></div>
+      <div class="cut-chips">${[1, 0.75, 0.5, 0.25].map(v => `<button type="button" class="cut-chip ${Math.abs((k.op ?? 1) - v) < 0.005 ? 'on' : ''}" data-opr="${v}">${v * 100}%</button>`).join('')}</div>`;
+  if (sec === 'fondo') {
+    const modo = MODO_FONDO[k.fondo?.modo] || k.fondo?.modo || '';
+    const trabajando = k._fondoP ? `<p class="cut-nota" data-fprog>⏳ ${k._fondoMsg || 'Quitando el fondo…'}</p>` : '';
+    return `
+      <div class="cut-fila"><button type="button" class="cut-btn ${modo === 'auto' ? 'on' : ''}" data-fauto>${modo === 'auto' ? '✓ Eliminación automática' : '✨ Eliminación automática'}</button></div>
+      ${trabajando}
+      <div class="cut-fila"><button type="button" class="cut-btn-sec ${modo === 'croma' ? 'on' : ''}" data-fcroma>${modo === 'croma' ? '✓ ' : ''}🎨 Croma (quitar un color: fondo blanco, verde…)</button></div>
+      ${modo === 'croma' ? `<div class="cut-fila"><small>Intensidad</small><input type="range" min="0" max="1" step="0.02" value="${k.fondo.tol ?? 0.5}" data-ftol></div>` : ''}
+      ${modo ? `<div class="cut-fila"><button type="button" class="cut-btn-sec" data-fquitar>↩ Restaurar el fondo</button></div>` : ''}
+      <p class="cut-nota">La eliminación automática usa IA en su celular (no se sube nada). La primera vez baja el modelo (~115 MB) y luego queda guardado.</p>`;
+  }
+  if (sec === 'mascara') return `
+      <div class="cut-chips" data-grupo="cmasc">${FON.FORMAS.map(([v, t, ic]) => `<button type="button" class="cut-chip ${(k.masc?.forma || '') === v ? 'on' : ''}" data-v="${v}">${ic} ${t}</button>`).join('')}</div>
+      ${k.masc?.forma ? `
+      <div class="cut-fila"><small>Tamaño</small><input type="range" min="0.2" max="1.2" step="0.01" value="${k.masc.tam ?? 0.8}" data-mk="tam"></div>
+      <div class="cut-fila"><small>Difuminar</small><input type="range" min="0" max="1" step="0.01" value="${k.masc.suave ?? 0}" data-mk="suave"></div>
+      <div class="cut-fila"><button type="button" class="cut-chip ${k.masc.inv ? 'on' : ''}" data-minv>⇄ Invertir</button></div>` : ''}`;
+  return '';
+}
+function conectarOpcionesFoto(k, p) {
+  const rOp = $('[data-op]', p);
+  if (rOp) { rOp.oninput = () => { k.op = Number(rOp.value); $('[data-opv]', p).textContent = Math.round(k.op * 100) + '%'; S.dirty = true; }; rOp.onchange = guardar; }
+  $$('[data-opr]', p).forEach(b => { b.onclick = () => { k.op = Number(b.dataset.opr); S.dirty = true; pintarPanel(); guardar(); }; });
+  const ponerFondo = (modo) => {
+    k.fondo = modo ? { modo, tol: k.fondo?.tol ?? 0.5 } : null;
+    const pr = prepararFondo(k); pintarPanel(); S.dirty = true; guardar();
+    pr.then(() => { if (k.fondo && (k._sinFondo)) aviso('Fondo eliminado ✨'); });
+  };
+  const fa = $('[data-fauto]', p); if (fa) fa.onclick = () => ponerFondo(k.fondo?.modo === 'auto' ? null : 'auto');
+  const fc = $('[data-fcroma]', p); if (fc) fc.onclick = () => ponerFondo((MODO_FONDO[k.fondo?.modo] || k.fondo?.modo) === 'croma' ? null : 'croma');
+  const fq = $('[data-fquitar]', p); if (fq) fq.onclick = () => ponerFondo(null);
+  const ft = $('[data-ftol]', p); if (ft) { ft.onchange = () => { k.fondo.tol = Number(ft.value); prepararFondo(k); S.dirty = true; guardar(); }; }
+  const gm = $('[data-grupo="cmasc"]', p);
+  if (gm) gm.onclick = (e) => {
+    const v = e.target.closest('[data-v]')?.dataset.v; if (v == null) return;
+    k.masc = v ? { forma: v, tam: k.masc?.tam ?? (v === 'lineal' || v === 'espejo' ? 0.7 : 0.8), suave: k.masc?.suave ?? 0.1, inv: !!k.masc?.inv } : null;
+    S.dirty = true; pintarPanel(); guardar();
+  };
+  $$('[data-mk]', p).forEach(r => { r.oninput = () => { k.masc[r.dataset.mk] = Number(r.value); S.dirty = true; }; r.onchange = guardar; });
+  const mi = $('[data-minv]', p); if (mi) mi.onclick = () => { k.masc.inv = !k.masc.inv; S.dirty = true; pintarPanel(); guardar(); };
+}
+// La foto que se está editando: la capa tocada (Superposición) o la foto tocada en la línea principal
+function fotoActiva() {
+  if (S.selC && !S.barraClip) return S.capas.find(x => x.id === S.selC) || null;
+  const c = clipSel(); return c && c.tipo === 'imagen' ? c : null;
+}
 function chips(nombre, opciones, actual) {
   return `<div class="cut-chips" data-grupo="${nombre}">${opciones.map(([v, t]) => `<button type="button" class="cut-chip ${String(v) === String(actual) ? 'on' : ''}" data-v="${v}">${t}</button>`).join('')}</div>`;
 }
@@ -2096,6 +2200,13 @@ function pintarPanel() {
     $('[data-sup]', p).onclick = () => $('#cutCapaFoto').click();
     return;
   }
+  if (S.tab === 'f-opacidad' || S.tab === 'f-fondo' || S.tab === 'f-mascara') {
+    const k = fotoActiva();
+    if (!k) { p.innerHTML = `<p class="cut-nota">Toque una foto en la línea de tiempo.</p>`; return; }
+    p.innerHTML = opcionesFoto(k, S.tab.slice(2)) + (k.tipo === 'imagen' && S.clips.includes(k) && S.tab !== 'f-opacidad' ? '<p class="cut-nota">💡 Lo que se quita deja ver el fondo del video (cámbielo en <b>Fondo</b>). Para ponerla encima de un video, agréguela en <b>Superposición</b>.</p>' : '');
+    conectarOpcionesFoto(k, p);
+    return;
+  }
   if (S.tab === 'capa') {
     const k = S.capas.find(x => x.id === S.selC);
     if (!k) { p.innerHTML = `<p class="cut-nota">Toque un sticker o una foto en la fila de capas.</p>`; return; }
@@ -2106,15 +2217,6 @@ function pintarPanel() {
       <div class="cut-fila"><small>Izquierda ↔ derecha</small><input type="range" min="0" max="1" step="0.005" value="${k.x}" data-ck="x"></div>
       <div class="cut-fila"><small>Arriba ↕ abajo</small><input type="range" min="0" max="1" step="0.005" value="${k.y}" data-ck="y"></div>
       <div class="cut-fila"><small>Duración</small>${chips('cdur', [[1, '1 s'], [2, '2 s'], [3, '3 s'], [5, '5 s'], ['todo', 'Todo el video']], '')}</div>
-      <div class="cut-fila"><small>Opacidad · <b data-opv>${Math.round((k.op ?? 1) * 100)}%</b></small><input type="range" min="0" max="1" step="0.01" value="${k.op ?? 1}" data-op></div>
-      ${k.tipo === 'imagen' ? `
-      <div class="cut-fila"><small>Eliminar fondo ${k._fondoP ? '· <b>quitando… ⏳</b>' : ''}</small>${chips('cfondo', [['', 'Con fondo'], ['liso', '🪄 Fondo liso (logos)'], ['persona', '🧍 Persona (IA)']], k.fondo?.modo || '')}</div>
-      ${k.fondo?.modo === 'liso' ? `<div class="cut-fila"><small>Cuánto borrar</small><input type="range" min="0" max="1" step="0.02" value="${k.fondo.tol ?? 0.5}" data-ftol></div>` : ''}
-      <div class="cut-fila"><small>Máscara</small><div class="cut-chips" data-grupo="cmasc">${FON.FORMAS.map(([v, t, ic]) => `<button type="button" class="cut-chip ${(k.masc?.forma || '') === v ? 'on' : ''}" data-v="${v}">${ic} ${t}</button>`).join('')}</div></div>
-      ${k.masc?.forma ? `
-      <div class="cut-fila"><small>Tamaño de la máscara</small><input type="range" min="0.2" max="1.2" step="0.01" value="${k.masc.tam ?? 0.8}" data-mk="tam"></div>
-      <div class="cut-fila"><small>Difuminado</small><input type="range" min="0" max="1" step="0.01" value="${k.masc.suave ?? 0}" data-mk="suave"></div>
-      <div class="cut-fila"><button type="button" class="cut-chip ${k.masc.inv ? 'on' : ''}" data-minv>⇄ Invertir (quitar la forma)</button></div>` : ''}` : ''}
       <div class="cut-acciones2">
         <button type="button" class="cut-btn-sec" data-aqui>Empezar donde está la línea</button>
         <button type="button" class="cut-btn-sec" data-quitar>🗑 Quitar</button>
@@ -2122,24 +2224,6 @@ function pintarPanel() {
       <p class="cut-nota">💡 También puede arrastrarlo con el dedo sobre el video.</p>`;
     $$('[data-ck]', p).forEach(r => { r.oninput = () => { k[r.dataset.ck] = Number(r.value); S.dirty = true; }; r.onchange = guardar; });
     $('[data-grupo="cdur"]', p).onclick = (e) => { const v = e.target.dataset.v; if (!v) return; if (v === 'todo') { k.start = 0; k.end = L.total; } else k.end = k.start + Number(v); pintarLinea(); pintarPanel(); guardar(); };
-    const rOp = $('[data-op]', p); rOp.oninput = () => { k.op = Number(rOp.value); $('[data-opv]', p).textContent = Math.round(k.op * 100) + '%'; S.dirty = true; }; rOp.onchange = guardar;
-    if (k.tipo === 'imagen') {
-      $('[data-grupo="cfondo"]', p).onclick = (e) => {
-        const v = e.target.closest('[data-v]')?.dataset.v; if (v == null) return;
-        k.fondo = v ? { modo: v, tol: k.fondo?.tol ?? 0.5 } : null;
-        const pr = prepararFondo(k); pintarPanel(); S.dirty = true;
-        pr.then(() => { if (S.tab === 'capa' && S.selC === k.id) pintarPanel(); if (k.fondo) aviso('Fondo quitado ✨'); });
-        guardar();
-      };
-      const ft = $('[data-ftol]', p); if (ft) { ft.onchange = () => { k.fondo.tol = Number(ft.value); prepararFondo(k); S.dirty = true; guardar(); }; }
-      $('[data-grupo="cmasc"]', p).onclick = (e) => {
-        const v = e.target.closest('[data-v]')?.dataset.v; if (v == null) return;
-        k.masc = v ? { forma: v, tam: k.masc?.tam ?? (v === 'lineal' || v === 'espejo' ? 0.7 : 0.8), suave: k.masc?.suave ?? 0.1, inv: !!k.masc?.inv } : null;
-        S.dirty = true; pintarPanel(); guardar();
-      };
-      $$('[data-mk]', p).forEach(r => { r.oninput = () => { k.masc[r.dataset.mk] = Number(r.value); S.dirty = true; }; r.onchange = guardar; });
-      const mi = $('[data-minv]', p); if (mi) mi.onclick = () => { k.masc.inv = !k.masc.inv; S.dirty = true; pintarPanel(); guardar(); };
-    }
     $('[data-aqui]', p).onclick = () => { const d = k.end - k.start; k.start = S.t; k.end = S.t + d; pintarLinea(); pintarPanel(); guardar(); };
     $('[data-quitar]', p).onclick = () => { S.capas = S.capas.filter(x => x !== k); S.selC = null; pintarLinea(); abrirTab(null); guardar(); };
     return;
@@ -2618,7 +2702,7 @@ async function exportar() {
       for (const i of act) {
         const c = S.clips[i];
         let f = null;
-        if (c.tipo === 'imagen') f = { src: c.bmp, w: c.w, h: c.h };
+        if (c.tipo === 'imagen') f = { src: imagenClip(c), w: c.w, h: c.h };
         else {
           const lc = lectores.get(i);
           if (!lc.el) {
@@ -2902,7 +2986,7 @@ function guardarYa() {
 }
 function estadoProyecto() {
   return { nombre: S.proyNombre, mini: S.proyMini || null,
-      clips: S.clips.map(c => ({ id: c.id, fileId: c.fileId, nombre: c.nombre, tipo: c.tipo, in: c.in, out: c.out, dur: c.dur, mute: c.mute, vol: c.vol ?? 1, trans: c.trans, vel: c.vel || 1, curva: c.curva || null, z: c.z || 1, x: c.x || 0, y: c.y || 0, kf: c.kf?.length ? c.kf : null, ef: c.ef || 'ninguno', anim: c.anim || null, limpio: !!c.limpio })),
+      clips: S.clips.map(c => ({ id: c.id, fileId: c.fileId, nombre: c.nombre, tipo: c.tipo, in: c.in, out: c.out, dur: c.dur, mute: c.mute, vol: c.vol ?? 1, trans: c.trans, vel: c.vel || 1, curva: c.curva || null, z: c.z || 1, x: c.x || 0, y: c.y || 0, kf: c.kf?.length ? c.kf : null, ef: c.ef || 'ninguno', anim: c.anim || null, limpio: !!c.limpio , op: c.op ?? 1, fondo: c.fondo || null, masc: c.masc || null})),
       musica: S.musica.map(m => ({ id: m.id, fileId: m.fileId, nombre: m.nombre, start: m.start, in: m.in, out: m.out ?? null, dur: m.dur, vol: m.vol, fadeIn: m.fadeIn, fadeOut: m.fadeOut, limpio: !!m.limpio, voz: !!m.voz, mejor: !!m.mejor, aislar: !!m.aislar, efa: m.efa || '', vel: m.vel || 1, ritmos: m.ritmos || null, kfv: m.kfv?.length ? m.kfv.map(k => ({ ...k })) : null })),
       silenciar: !!S.silenciar,
       subs: S.subs, segs: S.segs, sub: S.sub, belleza: S.belleza, aspecto: S.aspecto, fecha: Date.now(),
