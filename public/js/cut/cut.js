@@ -1252,16 +1252,38 @@ async function abrirImagen(file) {
   };
   try { return await achicar(await createImageBitmap(file, { imageOrientation: 'from-image' })); } catch (e) { /* otro camino */ }
   try { return await achicar(await createImageBitmap(file)); } catch (e) { /* otro camino */ }
+  // Achicada mientras se lee: gasta mucha menos memoria (con varios videos 4K abiertos el celular no alcanzaba)
+  try { return await createImageBitmap(file, { resizeWidth: 1920, resizeQuality: 'medium', imageOrientation: 'from-image' }); } catch (e) { /* otro camino */ }
   // Con <img> el navegador abre más formatos (en iPhone, HEIC)
-  const url = URL.createObjectURL(file);
-  try {
-    const img = new Image(); img.decoding = 'async'; img.src = url;
-    await img.decode();
-    const lado = Math.max(img.naturalWidth, img.naturalHeight), k = Math.min(1, MAX / lado);
-    const cv = document.createElement('canvas'); cv.width = Math.round(img.naturalWidth * k); cv.height = Math.round(img.naturalHeight * k);
-    cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
-    return await createImageBitmap(cv);
-  } finally { URL.revokeObjectURL(url); }
+  const conImg = async (blob) => {
+    const url = URL.createObjectURL(blob);
+    try {
+      const img = new Image(); img.decoding = 'async'; img.src = url;
+      await img.decode();
+      const lado = Math.max(img.naturalWidth, img.naturalHeight), k = Math.min(1, MAX / lado);
+      const cv = document.createElement('canvas'); cv.width = Math.round(img.naturalWidth * k); cv.height = Math.round(img.naturalHeight * k);
+      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+      return await createImageBitmap(cv);
+    } finally { URL.revokeObjectURL(url); }
+  };
+  try { return await conImg(file); } catch (e) { /* otro camino */ }
+  // Lector de imágenes de WebCodecs (otro decodificador del celular)
+  if (typeof ImageDecoder !== 'undefined') {
+    for (const tipo of [file.type, 'image/jpeg', 'image/png', 'image/webp'].filter(Boolean)) {
+      try {
+        if (!(await ImageDecoder.isTypeSupported(tipo))) continue;
+        const dec = new ImageDecoder({ data: file.stream(), type: tipo });
+        const { image } = await dec.decode();
+        const lado = Math.max(image.displayWidth, image.displayHeight), k = Math.min(1, MAX / lado);
+        const cv = document.createElement('canvas'); cv.width = Math.round(image.displayWidth * k); cv.height = Math.round(image.displayHeight * k);
+        cv.getContext('2d').drawImage(image, 0, 0, cv.width, cv.height);
+        image.close(); dec.close();
+        return await createImageBitmap(cv);
+      } catch (e) { /* siguiente */ }
+    }
+  }
+  // JPG cortado (descarga o envío incompleto de WhatsApp): se le pone el cierre que le falta y se abre lo que alcanzó a llegar
+  return conImg(new Blob([file, new Uint8Array([0xFF, 0xD9])], { type: 'image/jpeg' }));
 }
 async function convertirCompatible(c, errOriginal) {
   const input = new MB.Input({ source: new MB.BlobSource(c.file), formats: MB.ALL_FORMATS });
@@ -1306,9 +1328,10 @@ async function agregarArchivos(lista) {
       try { await prepararClip(c); } catch (e1) {
         // Si no abrió como lo que parecía, se prueba como lo otro (foto ↔ video)
         if (real) throw e1;
+        const antes = c.tipo;
         c.tipo = c.tipo === 'imagen' ? 'video' : 'imagen';
         if (c.tipo === 'imagen') { c.dur = 3; c.out = 3; } else { c.dur = 0; c.out = null; }
-        try { await prepararClip(c); } catch (e2) { throw e1; }
+        try { await prepararClip(c); } catch (e2) { c.tipo = antes; throw e1; } // el aviso habla de lo que parecía (antes decía "formato de video" a una foto)
       }
       S.clips.push(reg(c));
       await DB.put('archivos', c.fileId, c.file);
@@ -1318,7 +1341,8 @@ async function agregarArchivos(lista) {
       aviso(heic ? `"${f.name}" es una foto HEIC del iPhone y este navegador no la abre. Compártala como JPG o en el iPhone ponga Ajustes → Cámara → Formatos → Más compatible.`
         : c.tipo === 'imagen' ? `No pude abrir la foto "${f.name}" (puede estar dañada o incompleta). Ábrala en la galería y compártala de nuevo, o tómele captura de pantalla.`
         : `"${f.name}" usa un formato que este celular no puede leer en el navegador. Pruebe abrirlo en Chrome actualizado o grábelo en "Más compatible" (H.264).`, 'mal');
-      window.LPOpinion?.error(new Error('No abrió un archivo: ' + (e?.message || e)), { fase: 'agregar', tipo: f.type || '?', ext: (f.name.match(/\.\w+$/) || [''])[0].toLowerCase(), mb: Math.round(f.size / 1e5) / 10, real: real || '?', como: c.tipo });
+      const cabeza = await f.slice(0, 12).arrayBuffer().then(b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join(' ')).catch(() => '?');
+      window.LPOpinion?.error(new Error('No abrió un archivo: ' + (e?.message || e)), { fase: 'agregar', cabeza, tipo: f.type || '?', ext: (f.name.match(/\.\w+$/) || [''])[0].toLowerCase(), mb: Math.round(f.size / 1e5) / 10, real: real || '?', como: c.tipo });
     }
   }
   cargandoMsg(null);
