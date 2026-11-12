@@ -86,28 +86,51 @@ test.describe('LocalProCut', () => {
     expect(dur, 'El video exportado salió sin duración').toBeGreaterThan(8);
   });
 
-  test('logo encima del video: opacidad, quitar fondo y máscara', async ({ page }) => {
+  test('logo encima del video: opacidad, croma y máscara (botones como CapCut)', async ({ page }) => {
     await abrirEditor(page);
     await subir(page, [VIDEOS[0]], 1);
     await page.setInputFiles('#cutCapaFoto', [media('logo.png')]);
     await expect.poll(() => page.evaluate(() => window.__cut.capas.length), { message: 'El logo no entró como capa' }).toBe(1);
+    const barra = page.locator('.cut-barra, #cutBarra').first();
+    const boton = (tab) => page.locator(`[data-tab="${tab}"]`).first();
     const panel = page.locator('#cutPanelCuerpo');
-    // Opacidad al 50%
-    await panel.locator('[data-op]').evaluate((r) => { r.value = '0.5'; r.dispatchEvent(new Event('input')); r.dispatchEvent(new Event('change')); });
+    // Los tres botones están aparte en la barra
+    for (const t of ['f-fondo', 'f-opacidad', 'f-mascara']) await expect(boton(t), `Falta el botón ${t}`).toHaveCount(1);
+    // Opacidad
+    await boton('f-opacidad').dispatchEvent('click');
+    await panel.locator('[data-opr="0.5"]').dispatchEvent('click');
     expect(await page.evaluate(() => window.__cut.capas[0].op)).toBe(0.5);
-    // Quitar fondo liso: se borra el blanco de afuera y queda el blanco de adentro del logo
-    await panel.locator('[data-grupo="cfondo"] [data-v="liso"]').dispatchEvent('click');
+    // Croma: se borra el blanco de afuera y queda el blanco de adentro del logo
+    await boton('f-fondo').dispatchEvent('click');
+    await panel.locator('[data-fcroma]').dispatchEvent('click');
     await expect.poll(() => page.evaluate(() => !!window.__cut.capas[0]._sinFondo), { message: 'No quitó el fondo del logo' }).toBe(true);
     const alfa = await page.evaluate(() => { const c = window.__cut.capas[0]._sinFondo, x = c.getContext('2d'); const a = (px, py) => x.getImageData(Math.round(px * c.width), Math.round(py * c.height), 1, 1).data[3]; return { esquina: a(0.02, 0.02), logo: a(0.2, 0.5), adentro: a(0.5, 0.5) }; });
     expect(alfa, 'El fondo de afuera debe quedar transparente y el logo completo').toEqual({ esquina: 0, logo: 255, adentro: 255 });
-    // Máscara en corazón, invertida y otra vez normal
+    // Máscara
+    await boton('f-mascara').dispatchEvent('click');
     await panel.locator('[data-grupo="cmasc"] [data-v="corazon"]').dispatchEvent('click');
     expect(await page.evaluate(() => window.__cut.capas[0].masc?.forma)).toBe('corazon');
     await panel.locator('[data-minv]').dispatchEvent('click');
     expect(await page.evaluate(() => window.__cut.capas[0].masc.inv)).toBe(true);
-    // Se dibuja sin errores encima del video
     await page.waitForTimeout(800);
     expect(await luzVista(page)).toBeGreaterThan(20);
+  });
+
+  test('eliminar fondo automático con IA (BiRefNet)', async ({ page }) => {
+    test.setTimeout(8 * 60_000);
+    await abrirEditor(page);
+    await subir(page, [VIDEOS[0]], 1);
+    await page.setInputFiles('#cutCapaFoto', [media('logo.png')]);
+    await expect.poll(() => page.evaluate(() => window.__cut.capas.length)).toBe(1);
+    await page.locator('[data-tab="f-fondo"]').first().dispatchEvent('click');
+    const t0 = Date.now();
+    await page.locator('#cutPanelCuerpo [data-fauto]').dispatchEvent('click');
+    await expect.poll(() => page.evaluate(() => { const k = window.__cut.capas[0]; return k._sinFondo ? 'listo' : (k._fondoErr ? 'error: ' + k._fondoErr : 'trabajando'); }), { timeout: 7 * 60_000, intervals: [2000], message: 'La IA no terminó de quitar el fondo' }).toBe('listo');
+    console.log('IA lista en', Math.round((Date.now() - t0) / 1000), 's');
+    const alfa = await page.evaluate(() => { const c = window.__cut.capas[0]._sinFondo, x = c.getContext('2d'); const a = (px, py) => x.getImageData(Math.round(px * c.width), Math.round(py * c.height), 1, 1).data[3]; return { esquina: a(0.03, 0.03), logo: a(0.25, 0.5) }; });
+    console.log('alfa', JSON.stringify(alfa));
+    expect(alfa.esquina, 'La esquina (fondo) debe quedar transparente').toBeLessThan(40);
+    expect(alfa.logo, 'El logo debe quedar').toBeGreaterThan(200);
   });
 
   test('arranca en celulares sin WebGL2 (usa WebGL1)', async ({ page }) => {

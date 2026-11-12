@@ -10,6 +10,11 @@ on:
   schedule:
     - cron: '17 8 * * *'   # 3:17 a. m. de Colombia
   workflow_dispatch:
+    inputs:
+      solo:
+        description: 'Probar solo esto (nombre o parte del nombre de la prueba)'
+        required: false
+        default: ''
 
 concurrency:
   group: pruebas-navegador-${{ github.ref }}
@@ -105,7 +110,7 @@ jobs:
 
       - name: Probar todo
         working-directory: tests/e2e
-        run: npx playwright test
+        run: npx playwright test ${{ github.event.inputs.solo && format('-g "{0}"', github.event.inputs.solo) || '' }}
 
       - name: Errores de Laravel durante las pruebas
         if: always()
