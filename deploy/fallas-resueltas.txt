@@ -1,0 +1,3 @@
+# Fallas (Admin → Opiniones y fallas) que ya se arreglaron. El piloto las marca como resueltas en el servidor.
+# Formato: E<id> AAAA-MM-DD HH:MM comentario   (errores del navegador)   ·   #<id> AAAA-MM-DD HH:MM comentario   (opiniones)
+# Solo se cierran si no volvieron a pasar después de esa fecha/hora (hora de Colombia).

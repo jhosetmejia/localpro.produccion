@@ -100,6 +100,9 @@ if [ -n "$OID" ] && [ "$OID" != "$HECHA" ]; then
   echo "$(ahora) Orden $OID ($ACC): $R"
 fi
 
+# ---------- 2b) Fallas que ya se arreglaron (deploy/fallas-resueltas.txt) ----------
+[ -f "$RAIZ/deploy/fallas-resueltas.txt" ] && (cd "$RAIZ" && run timeout 20 $PHP artisan localpro:opiniones --resolver="$RAIZ/deploy/fallas-resueltas.txt" >/dev/null 2>&1) || true
+
 # ---------- 3) Reporte de estado ----------
 TOKEN=$(cat /etc/localpro-estado-token 2>/dev/null || true)
 [ -n "$TOKEN" ] || exit 0
