@@ -93,7 +93,7 @@ jobs:
 
       - name: Playwright
         working-directory: tests/e2e
-        run: npm install --no-audit --no-fund
+        run: npm install --no-audit --no-fund && npx playwright install ffmpeg
 
       - name: Probar todo
         working-directory: tests/e2e
