@@ -110,7 +110,7 @@
                 @endif
 
                 @if (auth()->user()->asesor)
-                <div class="sb-sidenav-menu-heading">Red comercial</div>
+                <div class="sb-sidenav-menu-heading">{{ $tiendaMenu ? '🤝 Asesor LocalPro' : 'Red comercial' }}</div>
                 <a class="nav-link {{ $on('asesor.index') }}" href="{{ route('asesor.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-gauge"></i></div>
                     Mi panel
@@ -166,7 +166,7 @@
                 @endif
 
                 @if ($tiendaMenu || (!auth()->user()->asesor && !auth()->user()->es_superadmin))
-                <div class="sb-sidenav-menu-heading">{{ $tiendaMenu ? \Illuminate\Support\Str::limit($tiendaMenu->nombre, 22) : 'Inicio' }}</div>
+                <div class="sb-sidenav-menu-heading">{{ $tiendaMenu ? (auth()->user()->asesor ? '🏪 Tienda ' : '') . \Illuminate\Support\Str::limit($tiendaMenu->nombre, 22) : 'Inicio' }}</div>
                 @php $esConsultorio = $tiendaMenu?->es_consultorio && $tiendaMenu?->mod_consultorio; @endphp
                 <a class="nav-link {{ $on('panel') }}" href="{{ $esConsultorio ? route('panel', ['ventas' => 1]) : route('panel') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid {{ $esConsultorio ? 'fa-chart-line' : 'fa-house' }}"></i></div>
