@@ -412,6 +412,47 @@ function ltDe(c, ct) {
   for (let k = 0; k < 22; k++) { const m = (a + b) / 2; if (tOrigen(c, m) < ct) a = m; else b = m; }
   return (a + b) / 2;
 }
+/* ---------- decodificadores del celular ----------
+   Android solo puede tener abiertos unos pocos videos 4K a la vez (2-4 según el celular). Con 3 o más clips
+   pesados abiertos, el que está bajo la línea se queda sin decodificador: "no arranca o se detiene" y, al volver
+   de otra app, "suena pero no se ve" (readyState 1). Se duermen los clips lejos de la línea (se les quita el
+   archivo, se libera el decodificador) y se despiertan 3 s antes de que les toque. */
+function hayQueAhorrar() {
+  if (IOS || S.exportando) return false;
+  const vids = S.clips.filter(c => c.tipo === 'video' && c.el);
+  return vids.length > 2 && vids.filter(c => (c.w || 0) * (c.h || 0) > 2.6e6).length >= 2;
+}
+function dormirVideo(c) {
+  const v = c.el; if (!v || v._dormido || !v._abierto) return;
+  v._dormido = true; v._pt = 0;
+  try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) { /* nada */ }
+}
+function despertarVideo(c, loc) {
+  const v = c.el; if (!v || !v._dormido) return;
+  v._dormido = false; v._loc = loc ?? c.in ?? 0; c._prevT = -1;
+  v.preload = 'auto'; v.src = c.url;
+  try { v.currentTime = Math.max(0.01, v._loc); } catch (e) { /* se pone al cargar */ }
+}
+function presupuestoVideos(forzar) {
+  if (S.exportando) return; // mientras exporta no se toca nada (exportar despierta lo que necesite)
+  const ahora = performance.now();
+  if (!forzar && ahora - (presupuestoVideos.t || 0) < 250) return;
+  presupuestoVideos.t = ahora;
+  const ahorrar = hayQueAhorrar(), L = lay();
+  S.clips.forEach((c, i) => {
+    if (c.tipo !== 'video' || !c.el) return;
+    const ini = L.start[i], fin = ini + largo(c);
+    const cerca = S.t >= ini - 3 && S.t < fin + 0.5;
+    if (!ahorrar || cerca) despertarVideo(c, tOrigen(c, Math.max(0, Math.min(largo(c), S.t - ini))));
+    else dormirVideo(c);
+  });
+}
+// Al exportar, los videos se despiertan solo cuando el método seguro los necesita (no todos a la vez)
+async function videoListo(c, loc) {
+  const v = c.el; if (!v) return;
+  if (v._dormido) despertarVideo(c, loc);
+  if (v.readyState < 1) await new Promise(r => { v.addEventListener('loadedmetadata', r, { once: true }); setTimeout(r, 3000); });
+}
 // Reloj de la reproducción: manda el video que está sonando (como CapCut). Si el video se demora en arrancar
 // o en cargar (videos pesados del iPhone), la línea lo espera en vez de adelantarse y obligarlo a saltar sin parar.
 function relojVideo(L, ahora) {
@@ -434,6 +475,7 @@ function relojVideo(L, ahora) {
   return null;
 }
 function bucle(ahora) {
+  presupuestoVideos();
   if (S.playing) {
     const L = lay();
     const rv = relojVideo(L, ahora);
@@ -446,7 +488,7 @@ function bucle(ahora) {
     S.dirty = true;
   }
   // Si el celular le quitó la parte gráfica y no la devolvió, se arma de nuevo
-  if (motor && !S.exportando && motor.gl.isContextLost()) {
+  if (motor && !S.exportando && (motor.gl.isContextLost() || motor.roto)) {
     motor._perdidoDesde ||= ahora;
     if (ahora - motor._perdidoDesde > 2500) { try { motor = new Motor(); ajustarVista(); } catch (e) { /* nada */ } }
   }
@@ -479,6 +521,7 @@ function pausar() {
 }
 function irA(t) {
   S.t = Math.max(0, Math.min(t, lay().total));
+  presupuestoVideos(true);
   sincronizar();
   S.dirty = true;
 }
@@ -1131,6 +1174,9 @@ function cargarVideo(c) {
     v.src = c.url;
     v.muted = true;
     v.onloadedmetadata = () => {
+      // Al despertar un video dormido (ver presupuestoVideos) vuelve a este evento: solo se mueve al punto pedido
+      if (v._abierto) { try { v.currentTime = Math.max(0.01, v._loc ?? c.in ?? 0); } catch (e) { /* nada */ } S.dirty = true; return; }
+      v._abierto = true;
       c.el = v; c.w = v.videoWidth; c.h = v.videoHeight;
       if (!c.dur || !isFinite(c.dur)) c.dur = isFinite(v.duration) ? v.duration : 1;
       if (c.out == null) c.out = c.dur;
@@ -1138,7 +1184,10 @@ function cargarVideo(c) {
       try { v.currentTime = Math.max(0.01, c.in || 0); } catch (e) { /* nada */ }
       ok();
     };
-    v.onerror = () => { const er = v.error; v.removeAttribute('src'); v.load(); v.remove(); mal(new Error('video ' + (er ? er.code + ' ' + (er.message || '') : 'sin detalle'))); };
+    v.onerror = () => {
+      if (v._abierto) { S.dirty = true; return; } // ya estaba abierto (p. ej. se le quitó el archivo para dormirlo): no se borra
+      const er = v.error; v.removeAttribute('src'); v.load(); v.remove(); mal(new Error('video ' + (er ? er.code + ' ' + (er.message || '') : 'sin detalle')));
+    };
     ['seeked', 'loadeddata', 'playing'].forEach(ev => v.addEventListener(ev, () => { S.dirty = true; }));
     $('#cutVideos').appendChild(v);
   });
@@ -1214,7 +1263,17 @@ async function abrirImagen(file) {
 async function convertirCompatible(c, errOriginal) {
   const input = new MB.Input({ source: new MB.BlobSource(c.file), formats: MB.ALL_FORMATS });
   const tr = await input.getPrimaryVideoTrack().catch(() => null);
-  if (!tr || !(await tr.canDecode().catch(() => false))) throw errOriginal || new Error('formato no compatible');
+  if (!tr) {
+    // .mp4 sin imagen (nota de voz, audio de WhatsApp): se agrega como audio
+    const au = await input.getPrimaryAudioTrack().catch(() => null);
+    if (au) { const e = new Error('solo tiene sonido'); e.soloAudio = true; throw e; }
+  }
+  if (!tr || !(await tr.canDecode().catch(() => false))) {
+    const cod = tr ? await tr.getCodecParameterString().catch(() => null) : null;
+    const e = errOriginal || new Error('formato no compatible');
+    if (cod) e.message += ' · códec ' + cod; // para saber en Admin → Fallas qué formato fue
+    throw e;
+  }
   const largo = Math.max(tr.displayWidth, tr.displayHeight), k = Math.min(1, 1920 / largo);
   const output = new MB.Output({ format: new MB.Mp4OutputFormat(), target: new MB.BufferTarget() });
   const conv = await MB.Conversion.init({
@@ -1251,6 +1310,7 @@ async function agregarArchivos(lista) {
       S.clips.push(reg(c));
       await DB.put('archivos', c.fileId, c.file);
     } catch (e) {
+      if (e?.soloAudio) { await agregarMusica(f, f.name, `"${f.name}" no tiene imagen, solo sonido: lo agregué como audio 🎵`); continue; }
       const heic = /\.hei[cf]$/i.test(f.name) || /hei[cf]/i.test(f.type);
       aviso(heic ? `"${f.name}" es una foto HEIC del iPhone y este navegador no la abre. Compártala como JPG o en el iPhone ponga Ajustes → Cámara → Formatos → Más compatible.`
         : c.tipo === 'imagen' ? `No pude abrir la foto "${f.name}" (puede estar dañada o incompleta). Ábrala en la galería y compártala de nuevo, o tómele captura de pantalla.`
@@ -2422,6 +2482,7 @@ async function exportar() {
       const ini = L.start[i], fin = ini + largo(c);
       if (tocar && tt >= ini && tt < fin) {
         const lt = tt - ini, loc = tOrigen(c, lt);
+        despertarVideo(c, loc);
         try { v.playbackRate = Math.max(0.1, Math.min(8, velEn(c, lt / largo(c)) * RT.factor)); } catch (e) { /* nada */ }
         if (v.paused) { v.currentTime = loc; v.play().catch(() => {}); }
         else if (Math.abs(v.currentTime - loc) > 0.35) v.currentTime = loc;
@@ -2452,7 +2513,7 @@ async function exportar() {
         S.clips.forEach((c, i) => { if (c.el && !vids.includes(i) && !c.el.paused) c.el.pause(); });
         for (let k = 0; k < vids.length; k++) {
           const i = vids[k], c = S.clips[i], v = c.el, lt = t - L.start[i], loc = tOrigen(c, lt);
-          sonido(v, true);
+          despertarVideo(c, loc); sonido(v, true);
           if (k > 0) { if (!v.paused) v.pause(); await seekEl(v, loc); continue; } // el clip que entra en una transición: cuadro exacto
           try { v.playbackRate = Math.max(0.1, Math.min(8, velEn(c, lt / largo(c)) * RT.factor)); } catch (e) { /* nada */ }
           if (v.currentTime > loc + 0.3 || loc - v.currentTime > 1.5) { v.pause(); await seekEl(v, loc); }
@@ -2496,6 +2557,7 @@ async function exportar() {
             f = lc.ultimo ? { src: lc.ultimo, w: lc.w, h: lc.h } : null;
             // Revisar los primeros cuadros: si el lector rápido los da negros pero el video sí tiene imagen, usar el método de la vista previa
             if (f && (lc.revisados = (lc.revisados || 0) + 1) <= 3 && esNegro(f.src)) {
+              await videoListo(c, tOrigen(c, t - L.start[i]));
               await seekEl(c.el, tOrigen(c, t - L.start[i]));
               if (!esNegro(c.el)) lc.el = true;
             }
@@ -2510,6 +2572,7 @@ async function exportar() {
           } else if (lc.el && lc.sink) lc.k++;
           if (lc.el && !c.el) { try { await cargarVideo(c); } catch (e) { /* sin imagen este clip */ } }
           if (lc.el && c.el) {
+            await videoListo(c, tOrigen(c, t - L.start[i]));
             if (!tiempoReal) await seekEl(c.el, tOrigen(c, t - L.start[i]));
             else if (c.el.readyState < 2) await new Promise(r => { c.el.addEventListener('loadeddata', r, { once: true }); setTimeout(r, 800); });
             const vw = c.el.videoWidth, vh = c.el.videoHeight;
@@ -2635,8 +2698,10 @@ async function volvioAlEditor() {
   try {
     // 1) parte gráfica nueva si el celular la quitó
     if (!motor || motor.gl.isContextLost()) { try { if (!motor || !(await motor.recuperar(1200))) motor = new Motor(); } catch (e) { /* se reintenta en el bucle */ } }
-    // 2) que cada video vuelva a decodificar su cuadro actual
-    S.clips.forEach(c => { if (c.el) { c._prevT = -1; try { c.el.currentTime = Math.max(0, (c.el.currentTime || 0) + 0.001); } catch (e) { /* nada */ } } });
+    // 2) liberar los decodificadores de los clips lejanos y que cada video despierto vuelva a decodificar su cuadro
+    presupuestoVideos(true);
+    S.clips.forEach(c => { if (c.el && !c.el._dormido) { c._prevT = -1; try { c.el.currentTime = Math.max(0, (c.el.currentTime || 0) + 0.001); } catch (e) { /* nada */ } } });
+    empujarCuadro(clipBajoLinea());
     ajustarVista(); irA(S.t); moverLinea();
     await new Promise(r => setTimeout(r, 900));
     // 3) si la vista sigue negra, se dibuja por lienzo 2D y, si hace falta, se recargan los videos
@@ -2644,12 +2709,16 @@ async function volvioAlEditor() {
       S.copia2D = true; S.clips.forEach(c => { c._prevT = -1; }); S.dirty = true;
       await new Promise(r => setTimeout(r, 600));
       if (vistaNegra()) {
-        for (const c of S.clips) {
-          if (!c.el || c.tipo !== 'video') continue;
-          const t = c.el.currentTime || c.in || 0, src = c.el.src;
-          c.el.removeAttribute('src'); c.el.load(); c.el.src = src;
-          await new Promise(r => { const ok = () => { c.el.removeEventListener('loadeddata', ok); r(); }; c.el.addEventListener('loadeddata', ok); setTimeout(r, 2500); });
+        // Se recarga primero el clip que está bajo la línea (el que se ve) y se le da más tiempo
+        const bajo = clipBajoLinea();
+        const orden = S.clips.filter(c => c.el && c.tipo === 'video' && !c.el._dormido).sort((a, b) => (b === bajo) - (a === bajo));
+        for (const c of orden) {
+          const t = c.el.currentTime || c.in || 0;
+          c.el._loc = t;
+          c.el.removeAttribute('src'); c.el.load(); c.el.src = c.url;
+          await new Promise(r => { const ok = () => { c.el.removeEventListener('loadeddata', ok); r(); }; c.el.addEventListener('loadeddata', ok); setTimeout(r, c === bajo ? 5000 : 2500); });
           try { c.el.currentTime = t; } catch (e) { /* nada */ }
+          if (c === bajo) empujarCuadro(c);
         }
         motor = new Motor(); ajustarVista(); irA(S.t);
         await new Promise(r => setTimeout(r, 700));
@@ -2657,6 +2726,13 @@ async function volvioAlEditor() {
       }
     }
   } finally { revisando = false; S.dirty = true; }
+}
+// Android no decodifica el cuadro de un video en pausa que estuvo escondido hasta que se reproduce:
+// se le da play callado un instante y se pausa
+function empujarCuadro(c) {
+  const v = c?.el; if (!v || v._dormido || S.playing || v.readyState >= 2) return;
+  const mudo = v.muted; v.muted = true;
+  v.play().then(() => { if (!S.playing) v.pause(); v.muted = mudo; S.dirty = true; }).catch(() => { v.muted = mudo; });
 }
 // ¿La vista previa está toda negra? (muestra de 12×12 puntos)
 function vistaNegra() {

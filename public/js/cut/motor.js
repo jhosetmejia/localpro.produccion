@@ -1,4 +1,4 @@
-/* LocalProCut · motor de render (WebGL2): encuadre, filtro de belleza y transiciones.
+/* LocalProCut · motor de render (WebGL2, o WebGL1 si el celular no tiene 2): encuadre, filtro de belleza y transiciones.
    Cada clip activo se dibuja en su propio buffer (con belleza) y luego se mezclan con la transición. */
 
 const VERT = `#version 300 es
@@ -204,14 +204,32 @@ void main(){
   o = vec4(c.rgb, 1.0);
 }`;
 
+// Celulares sin WebGL2 (iPhone viejo, modo de bloqueo): el mismo sombreador pasado a WebGL1 (GLSL ES 1.0)
+function aGLSL1(src, frag) {
+  let s = src.replace(/^#version 300 es\s*/, '').replace(/\btexture\(/g, 'texture2D(');
+  if (frag) s = s.replace(/^in /gm, 'varying ').replace(/^out vec4 o;\s*$/m, '#define o gl_FragColor');
+  else s = s.replace(/^in /gm, 'attribute ').replace(/^out /gm, 'varying ');
+  return s;
+}
+// Error de la parte gráfica: si el celular la quitó en medio (memoria), no es falla del código
+export class GraficaPerdida extends Error {}
 function compilar(gl, vs, fs) {
-  const mk = (t, s) => { const sh = gl.createShader(t); gl.shaderSource(sh, s); gl.compileShader(sh); if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(sh)); return sh; };
+  const v1 = !(typeof WebGL2RenderingContext !== 'undefined' && gl instanceof WebGL2RenderingContext);
+  if (v1) { vs = aGLSL1(vs, false); fs = aGLSL1(fs, true); }
+  const mk = (t, s) => {
+    const sh = gl.createShader(t); gl.shaderSource(sh, s); gl.compileShader(sh);
+    if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
+      if (gl.isContextLost()) throw new GraficaPerdida('La parte gráfica se perdió mientras se armaba');
+      throw new Error('Sombreador: ' + (gl.getShaderInfoLog(sh) || 'sin detalle (código ' + gl.getError() + ')'));
+    }
+    return sh;
+  };
   const p = gl.createProgram();
   gl.attachShader(p, mk(gl.VERTEX_SHADER, vs));
   gl.attachShader(p, mk(gl.FRAGMENT_SHADER, fs));
   gl.bindAttribLocation(p, 0, 'aPos');
   gl.linkProgram(p);
-  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) { if (gl.isContextLost()) throw new GraficaPerdida('La parte gráfica se perdió mientras se armaba'); throw new Error('Programa: ' + (gl.getProgramInfoLog(p) || 'sin detalle')); }
   const u = {};
   const n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS);
   for (let i = 0; i < n; i++) { const nm = gl.getActiveUniform(p, i).name; u[nm] = gl.getUniformLocation(p, nm); }
@@ -273,20 +291,28 @@ export const FILTROS = [
 export class Motor {
   constructor() {
     this.canvas = document.createElement('canvas');
-    const gl = this.canvas.getContext('webgl2', { preserveDrawingBuffer: true, alpha: false, antialias: false, premultipliedAlpha: false });
-    if (!gl) throw new Error('Este navegador no tiene WebGL2. Actualice Chrome o Safari.');
+    const op = { preserveDrawingBuffer: true, alpha: false, antialias: false, premultipliedAlpha: false };
+    // WebGL2 y, si el celular no lo tiene o no lo deja crear, WebGL1 (mismo resultado)
+    const gl = this.canvas.getContext('webgl2', op) || this.canvas.getContext('webgl2') || this.canvas.getContext('webgl', op) || this.canvas.getContext('experimental-webgl', op);
+    if (!gl) throw new Error('Este navegador no tiene la parte gráfica (WebGL) activada. Actualice Chrome o Safari; en iPhone revise que el Modo de bloqueo esté apagado.');
     this.gl = gl;
-    // Si el celular se queda sin memoria le quita la parte gráfica al navegador: se pide que la devuelva y se rearma
+    this.v1 = !(typeof WebGL2RenderingContext !== 'undefined' && gl instanceof WebGL2RenderingContext);
+    // Si el celular se queda sin memoria le quita la parte gráfica al navegador: se pide que la devuelva y se rearma.
+    // Si al rearmarla se vuelve a perder, se espera la siguiente devolución (antes salía "Uncaught Error" vacío).
     this.canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); this.perdido = true; });
-    this.canvas.addEventListener('webglcontextrestored', () => { const W = this.W, H = this.H; this.init(); this.perdido = false; this.tamano(W, H); });
+    this.canvas.addEventListener('webglcontextrestored', () => {
+      const W = this.W, H = this.H;
+      try { this.init(); this.perdido = false; this.W = this.H = 0; this.tamano(W, H); }
+      catch (e) { if (!(e instanceof GraficaPerdida) && !gl.isContextLost()) { this.perdido = true; this.roto = true; } }
+    });
     this.init();
   }
   init() {
     const gl = this.gl;
     this.pClip = compilar(gl, VERT, FRAG_CLIP);
     this.pMix = compilar(gl, VERT, FRAG_MIX);
-    this.vao = gl.createVertexArray();
-    gl.bindVertexArray(this.vao);
+    this.vao = this.v1 ? null : gl.createVertexArray();
+    this.vaoOn();
     const b = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, b);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
@@ -300,11 +326,13 @@ export class Motor {
     this.fbt = [null, null];
     this.W = 0; this.H = 0;
   }
+  // WebGL1 no tiene VAO: el único atributo queda puesto para siempre
+  vaoOn() { if (this.vao) this.gl.bindVertexArray(this.vao); }
   // Espera a que vuelva la parte gráfica (máximo "ms"); devuelve true si volvió
   async recuperar(ms = 3000) {
     const t0 = performance.now();
-    while (this.gl.isContextLost() && performance.now() - t0 < ms) await new Promise(r => setTimeout(r, 100));
-    return !this.gl.isContextLost();
+    while ((this.gl.isContextLost() || this.perdido) && performance.now() - t0 < ms) await new Promise(r => setTimeout(r, 100));
+    return !this.gl.isContextLost() && !this.perdido && !this.roto;
   }
   tex() {
     const gl = this.gl, t = gl.createTexture();
@@ -386,7 +414,7 @@ export class Motor {
     const tono = conMascara && mascara._tono;
     gl.uniform1f(P.u.uHasTono, tono ? 1 : 0);
     gl.uniform3f(P.u.uTono, tono ? tono[0] : 0.6, tono ? tono[1] : 0.45, tono ? tono[2] : 0.4);
-    gl.bindVertexArray(this.vao);
+    this.vaoOn();
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
   // Mezcla A y B en pantalla con la transición tipo t y avance p (0..1)
@@ -400,7 +428,7 @@ export class Motor {
     gl.uniform1f(P.u.uP, p);
     gl.uniform1i(P.u.uT, tipo);
     gl.uniform1f(P.u.uAsp, this.W / this.H);
-    gl.bindVertexArray(this.vao);
+    this.vaoOn();
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
   negro() {

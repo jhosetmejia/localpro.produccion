@@ -75,6 +75,10 @@ class opinionController extends Controller
             'pagina' => 'nullable|string|max:300',
             'datos' => 'nullable|string|max:20000',
         ]);
+        // Robots de buscadores (Googlebot…): sus fallas no son de personas
+        if (preg_match('/bot\b|googlebot|bingbot|crawler|spider|slurp|lighthouse|headlesschrome|pagespeed|facebookexternalhit/i', (string) $request->userAgent())) {
+            return response()->json(['ok' => true]);
+        }
         $mensaje = Str::limit(trim($d['mensaje']), 480, '…');
         $donde = $this->limpiarDonde($d['donde'] ?? null);
         $modulo = $this->modulo($d['modulo'] ?? null);

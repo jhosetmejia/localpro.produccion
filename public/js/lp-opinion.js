@@ -50,7 +50,10 @@
     if (archivo && !/^\//.test(archivo) && archivo.indexOf(location.origin) !== 0) return true; // extensiones del navegador, anuncios, etc.
     return false;
   }
+  // Robots de Google y otros buscadores (y navegadores automáticos): sus fallas no son de personas
+  var ROBOT = /bot\b|googlebot|bingbot|crawler|spider|slurp|lighthouse|headlesschrome|pagespeed|facebookexternalhit/i.test(navigator.userAgent || '') || navigator.webdriver === true;
   function reportarError(msg, donde, pila, extra) {
+    if (ROBOT) return;
     var clave = msg + '|' + donde;
     recientes.push({ msg: String(msg).slice(0, 300), donde: donde, cuando: new Date().toLocaleTimeString() });
     if (recientes.length > 8) recientes.shift();
