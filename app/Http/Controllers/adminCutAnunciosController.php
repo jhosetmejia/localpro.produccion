@@ -23,6 +23,8 @@ class adminCutAnunciosController extends Controller
             'a.*.img' => 'nullable|string|max:400',
             'a.*.hasta' => 'nullable|date',
             'a.*.on' => 'nullable|boolean',
+            'a.*.d' => 'nullable|in:moda',
+            'a.*.fecha' => 'nullable|string|max:12',
         ], ['a.*.hasta.date' => 'La fecha "hasta" no es válida.', 'a.*.t.max' => 'El título es muy largo (máximo 90 letras).']);
         $lista = [];
         foreach ($d['a'] ?? [] as $a) {
@@ -31,7 +33,7 @@ class adminCutAnunciosController extends Controller
             if ($u !== '' && !preg_match('~^(https?://|/)~i', $u)) $u = 'https://' . $u;
             $img = trim($a['img'] ?? '');
             $lista[] = ['e' => trim($a['e'] ?? '') ?: '📢', 't' => $t, 's' => trim($a['s'] ?? ''), 'u' => $u,
-                'img' => preg_match('~^(https?://|/)~i', $img) ? $img : null, 'hasta' => $a['hasta'] ?? null, 'on' => !empty($a['on'])];
+                'img' => preg_match('~^(https?://|/)~i', $img) ? $img : null, 'hasta' => $a['hasta'] ?? null, 'on' => !empty($a['on']), 'd' => $a['d'] ?? null, 'fecha' => trim($a['fecha'] ?? '') ?: null];
         }
         AnunciosCut::guardar($lista);
         return back()->with('success', 'Anuncios de LocalProCut guardados.');

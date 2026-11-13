@@ -45,7 +45,15 @@ body.editando .cut-logo{display:none}
 .aj-ads{margin-top:14px}
 .ad-carr{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;gap:10px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .ad-carr::-webkit-scrollbar{display:none}
-.ad-carr .aj-anuncio{flex:0 0 100%;scroll-snap-align:center;margin-top:0;animation:none}
+.ad-carr .ad-moda{min-height:150px;padding:0!important;background:#16060f!important;align-items:stretch!important}
+.ad-moda .moda-fondo{position:absolute;inset:0;width:100%;height:100%}
+.ad-moda .moda-txt{position:relative;z-index:1;display:flex;flex-direction:column;justify-content:center;gap:3px;padding:16px 16px 14px;max-width:62%}
+.ad-moda .moda-txt small{color:#d9b45a;font-weight:800;letter-spacing:.18em;font-size:.62rem}
+.ad-moda .moda-txt b{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:700;font-size:1.45rem;line-height:1.02;letter-spacing:.02em;text-transform:uppercase;color:#fff;text-shadow:0 2px 12px rgba(255,79,163,.45)}
+.ad-moda .moda-txt>span{font-size:.8rem;opacity:.9}
+.ad-moda .moda-txt .ir{align-self:flex-start;margin:8px 0 0!important;font-style:normal;background:linear-gradient(135deg,#ffd76a,#d9b45a);color:#1a0812;border-radius:999px;padding:.35rem .8rem;font-weight:800;font-size:.78rem}
+.ad-moda em{z-index:2}
+.aj-anuncio{flex:0 0 100%;scroll-snap-align:center;margin-top:0;animation:none}
 .ad-puntos{display:flex;justify-content:center;gap:5px;margin-top:8px}
 .ad-puntos i{width:6px;height:6px;border-radius:50%;background:#3a423d;transition:width .2s}
 .ad-puntos i.on{background:#a6f34a;width:16px;border-radius:9px}
@@ -153,6 +161,16 @@ body.editando .cut-logo{display:none}
 @media (max-width:440px){.cut-opinar span{display:none}.cut-opinar{padding:.3rem .5rem}}
 .cut-exp{background:linear-gradient(90deg,var(--v),var(--v2));border:0;border-radius:999px;padding:.5rem 1.05rem;font-weight:800;color:var(--f)!important}
 #cutVistaCaja{flex:1 1 0;min-height:120px;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 40%,#161c18,#0b0d0c 70%)}
+.cut-exp-portada{position:absolute;inset:0;z-index:5;display:grid;place-items:center;overflow:hidden;background:#0b0d0c}
+.cut-exp-portada .fondo{position:absolute;inset:-30px;background:center/cover no-repeat;filter:blur(22px) brightness(.45) saturate(1.2);transform:scale(1.1)}
+.cut-exp-portada .centro{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;color:#fff}
+.cut-exp-portada img{width:64px;height:64px;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.5);animation:cutLatidoLogo 1.6s ease-in-out infinite}
+.cut-exp-portada b{font-family:Unbounded,sans-serif;font-weight:800;font-size:1.15rem}
+.cut-exp-portada b em{font-style:normal;color:var(--v)}
+.cut-exp-portada small{color:#c9d3cd;font-weight:700}
+.cut-exp-portada .mini{display:block;width:96px;aspect-ratio:9/16;max-height:30vh;margin-top:10px;border-radius:12px;background:center/cover no-repeat;border:2px solid rgba(255,255,255,.7);box-shadow:0 12px 30px rgba(0,0,0,.55)}
+.cut-exp-portada .mini[hidden]{display:none}
+@keyframes cutLatidoLogo{50%{transform:scale(1.07)}}
 #cutLienzo{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:auto;height:auto;max-width:calc(100% - 20px);max-height:calc(100% - 20px);background:#000;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
 .cut-vacio{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:16px 20px;gap:.55rem;background:var(--f);overflow-y:auto}
 .cut-vacio::before,.cut-vacio::after{content:"";flex:1 1 0}

@@ -124,7 +124,7 @@ function aplicarFoto(f) {
   S.aspecto = d.aspecto; S.silenciar = d.silenciar;
   if (!S.clips.some(c => c.id === S.sel)) S.sel = null;
   if (!S.musica.some(m => m.id === S.selM)) S.selM = null;
-  S.clips.forEach(c => { if (c.tipo === 'video' && !c.el) cargarVideo(c).then(() => { S.dirty = true; }); });
+  S.clips.forEach(c => { if (c.tipo === 'video' && !c.el) cargarVideo(c).then(() => { ponerFuenteVista(c); S.dirty = true; }); });
   if (cambioAsp) ajustarVista();
   $('#cutVacio').hidden = !!S.clips.length;
   irA(S.t); pintarLinea(); pintarPanel(); guardarDB();
@@ -426,7 +426,8 @@ function reportarVideo(msg, c) {
   const v = c.el || {};
   window.LPOpinion?.error(new Error(msg), {
     fase: 'reproducir', ios: IOS, paused: v.paused, readyState: v.readyState, networkState: v.networkState, error: v.error?.code || null,
-    t: Math.round((v.currentTime || 0) * 10) / 10, px: (v.videoWidth || 0) + 'x' + (v.videoHeight || 0), tipo: c.file?.type || '?', mb: c.file ? Math.round(c.file.size / 1e5) / 10 : null,
+    t: Math.round((v.currentTime || 0) * 10) / 10, px: v.videoWidth ? v.videoWidth + 'x' + v.videoHeight : (c.w || 0) + 'x' + (c.h || 0),
+    foto: c.tipo === 'imagen' ? (fotoVacia(c.bmp) ? 'vacia' : 'ok') : undefined, copia: c.tipo === 'video' ? (c.urlVista ? (c.el?.src === c.urlVista ? 'usando' : 'lista') : 'no') : undefined, tipo: c.file?.type || '?', mb: c.file ? Math.round(c.file.size / 1e5) / 10 : null,
     vel: c.vel || 1, curva: c.curva || null, mudo: !!v.muted, belleza: !!S.belleza.on,
   });
 }
@@ -481,7 +482,7 @@ function ltDe(c, ct) {
 function hayQueAhorrar() {
   if (IOS || S.exportando) return false;
   const vids = S.clips.filter(c => c.tipo === 'video' && c.el);
-  return vids.length > 2 && vids.filter(c => (c.w || 0) * (c.h || 0) > 2.6e6).length >= 2;
+  return vids.length > 2 && vids.filter(c => !c.urlVista && (c.w || 0) * (c.h || 0) > 2.6e6).length >= 2;
 }
 function dormirVideo(c) {
   const v = c.el; if (!v || v._dormido || !v._abierto) return;
@@ -491,7 +492,7 @@ function dormirVideo(c) {
 function despertarVideo(c, loc) {
   const v = c.el; if (!v || !v._dormido) return;
   v._dormido = false; v._loc = loc ?? c.in ?? 0; c._prevT = -1;
-  v.preload = 'auto'; v.src = c.url;
+  v.preload = 'auto'; v.src = urlVista(c);
   try { v.currentTime = Math.max(0.01, v._loc); } catch (e) { /* se pone al cargar */ }
 }
 function presupuestoVideos(forzar) {
@@ -507,6 +508,48 @@ function presupuestoVideos(forzar) {
     if (!ahorrar || cerca) despertarVideo(c, tOrigen(c, Math.max(0, Math.min(largo(c), S.t - ini))));
     else dormirVideo(c);
   });
+}
+/* ---------- copia liviana para la vista previa (como CapCut) ----------
+   En Android un video 4K pesado se traba en la vista previa ("no arranca o se detiene") y al volver de otra app
+   queda negro: el celular no alcanza a decodificarlo en vivo. Se hace en el fondo una copia de 720p, con un cuadro
+   clave cada segundo (adelantar y devolver queda rápido), y la vista previa usa esa. Al exportar se usa el original. */
+const urlVista = (c) => (!S.exportando && c.urlVista) || c.url;
+let colaVistas = Promise.resolve();
+function pedirCopiaVista(c) {
+  if (IOS || c.tipo !== 'video' || c._vistaP || c.urlVista || Math.max(c.w || 0, c.h || 0) <= 1920 || typeof VideoEncoder === 'undefined') return;
+  c._vistaP = colaVistas = colaVistas.then(() => colaTiras).then(() => hacerCopiaVista(c)).catch(() => {});
+}
+async function hacerCopiaVista(c) {
+  while (S.exportando) await new Promise(r => setTimeout(r, 3000));
+  if (!S.clips.includes(c)) return;
+  let f = await DB.get('archivos', c.fileId + ':vista');
+  if (!(f instanceof Blob)) {
+    const input = new MB.Input({ source: new MB.BlobSource(c.file), formats: MB.ALL_FORMATS });
+    const tr = await input.getPrimaryVideoTrack();
+    if (!tr || !(await tr.canDecode())) return;
+    const k = 1280 / Math.max(tr.displayWidth, tr.displayHeight);
+    if (k >= 1) return;
+    const output = new MB.Output({ format: new MB.Mp4OutputFormat({ fastStart: 'in-memory' }), target: new MB.BufferTarget() });
+    const conv = await MB.Conversion.init({
+      input, output,
+      video: { codec: 'avc', forceTranscode: true, bitrate: MB.QUALITY_MEDIUM, keyFrameInterval: 1, width: Math.round(tr.displayWidth * k / 2) * 2, height: Math.round(tr.displayHeight * k / 2) * 2, fit: 'contain' },
+    });
+    if (!conv.isValid) return;
+    await conv.execute();
+    f = new Blob([output.target.buffer], { type: 'video/mp4' });
+    DB.put('archivos', c.fileId + ':vista', f, true); // si no hay espacio, se rehace la próxima vez (sin aviso)
+  }
+  if (!S.clips.includes(c)) return;
+  c.urlVista = URL.createObjectURL(f);
+  while (S.exportando) await new Promise(r => setTimeout(r, 3000));
+  ponerFuenteVista(c);
+}
+// Cambia el video de la vista previa a la fuente que toca (copia liviana u original) sin perder el punto
+function ponerFuenteVista(c) {
+  const v = c.el; if (!v || !v._abierto || v._dormido) return;
+  const u = urlVista(c); if (v.src === u) return;
+  v._loc = v.currentTime || c.in || 0; c._prevT = -1;
+  v.preload = 'auto'; v.src = u; S.dirty = true;
 }
 // Al exportar, los videos se despiertan solo cuando el método seguro los necesita (no todos a la vez)
 async function videoListo(c, loc) {
@@ -551,7 +594,7 @@ function bucle(ahora) {
   // Si el celular le quitó la parte gráfica y no la devolvió, se arma de nuevo
   if (motor && !S.exportando && (motor.gl.isContextLost() || motor.roto)) {
     motor._perdidoDesde ||= ahora;
-    if (ahora - motor._perdidoDesde > 2500) { try { motor = new Motor(); ajustarVista(); } catch (e) { /* nada */ } }
+    if (ahora - motor._perdidoDesde > 2500) { try { nuevoMotor(); ajustarVista(); } catch (e) { /* nada */ } }
   }
   if (S.dirty && motor && !S.exportando) {
     S.dirty = false;
@@ -1375,6 +1418,8 @@ function cargarVideo(c) {
       ok();
     };
     v.onerror = () => {
+      // La copia liviana no abrió en este celular: se vuelve al original
+      if (v._abierto && c.urlVista && v.src === c.urlVista) { c.urlVista = null; v._loc = c.in || 0; v.src = c.url; S.dirty = true; return; }
       if (v._abierto) { S.dirty = true; return; } // ya estaba abierto (p. ej. se le quitó el archivo para dormirlo): no se borra
       const er = v.error; v.removeAttribute('src'); v.load(); v.remove(); mal(new Error('video ' + (er ? er.code + ' ' + (er.message || '') : 'sin detalle')));
     };
@@ -1406,6 +1451,7 @@ async function prepararClip(c) {
       }
     }
     colaTiras = colaTiras.then(() => tiraVideo(c)).catch(() => {}); // miniaturas de a una, no todas a la vez
+    pedirCopiaVista(c);
   }
 }
 let colaTiras = Promise.resolve();
@@ -1831,7 +1877,7 @@ $('#cutSustituir').addEventListener('change', async (e) => {
   const f = e.target.files[0]; e.target.value = '';
   const c = clipSel(); if (!f || !c) return;
   const largoAntes = largo(c);
-  const n = { ...c, file: f, fileId: uid(), nombre: f.name, tipo: f.type.startsWith('image/') || /\.(jpe?g|png|webp|heic)$/i.test(f.name) ? 'imagen' : 'video', in: 0, out: null, dur: 0, el: null, bmp: null, tira: null, mascara: null, _tk: null, kf: null, z: 1, x: 0, y: 0 };
+  const n = { ...c, file: f, fileId: uid(), nombre: f.name, tipo: f.type.startsWith('image/') || /\.(jpe?g|png|webp|heic)$/i.test(f.name) ? 'imagen' : 'video', in: 0, out: null, dur: 0, el: null, bmp: null, tira: null, mascara: null, _tk: null, kf: null, z: 1, x: 0, y: 0, urlVista: null, _vistaP: null };
   if (n.tipo === 'imagen') { n.dur = largoAntes; n.out = largoAntes; n.vel = 1; n.curva = null; }
   cargandoMsg('Cambiando el clip…');
   try {
@@ -2646,6 +2692,14 @@ function listaSubs() {
 }
 
 /* ---------- exportar ---------- */
+// Cancelar: cierra la ventana y deja todo como estaba
+function exportCancelada(m) {
+  if (EXP._avisado) return; EXP._avisado = true;
+  anunciosExportando(false);
+  m.hidden = true;
+  $('.cut-exp-run', m).hidden = true; $('.cut-exp-op', m).hidden = false;
+  aviso('Exportación cancelada');
+}
 const EXP = { res: 1080, fps: 30, mbps: 0, cancelar: false };
 const guardarAj = () => {}; // por defecto siempre 1080p a 30 fps; lo que cambie arriba vale mientras edita
 const FPSS = [24, 25, 30, 50, 60], MBPS = [0, 5, 10, 20, 50, 100];
@@ -2659,7 +2713,29 @@ const ANUNCIOS = (Array.isArray(window.CUT_ANUNCIOS) && window.CUT_ANUNCIOS.leng
   { e: '💼', t: 'Ventas, inventario y caja en su celular', s: 'Todo su negocio en LocalPro, con app', u: '/funciones?desde=cut-anuncio-negocio' },
 ];
 // Tarjeta de un anuncio (con foto si tiene)
+// Diseño de pasarela (Nariño Exposhow): luces, pasarela y siluetas de modelos
+const SILUETA = (x, y, s2, o) => `<g transform="translate(${x} ${y}) scale(${s2})" opacity="${o}"><circle cx="0" cy="-58" r="6.5"/><path d="M-5 -51 L5 -51 L7 -30 L13 -2 L-13 -2 L-7 -30 Z"/><path d="M-3 -2 L-5 22 L-2 22 L1 -2 Z M2 -2 L6 21 L9 21 L5 -2 Z"/><path d="M-5 -49 L-11 -24 L-9 -23 L-3 -44 Z M5 -49 L10 -26 L8 -25 L3 -44 Z"/></g>`;
+function tarjetaModa(ad) {
+  const tit = String(ad.t || '').split('·')[0].trim() || 'Nariño Exposhow';
+  const fecha = ad.fecha || String(ad.t || '').split('·')[1]?.trim() || '';
+  return `<a class="aj-anuncio ad-moda" href="${esc(ad.u)}" target="_blank" rel="noopener"><em>Anuncio</em>
+    <svg class="moda-fondo" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="mdF" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#16060f"/><stop offset=".6" stop-color="#2a0b1f"/><stop offset="1" stop-color="#0a0508"/></linearGradient>
+        <linearGradient id="mdL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3d6" stop-opacity=".55"/><stop offset="1" stop-color="#fff3d6" stop-opacity="0"/></linearGradient>
+        <linearGradient id="mdP" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b1830"/><stop offset="1" stop-color="#d9b45a" stop-opacity=".55"/></linearGradient>
+        <radialGradient id="mdB" cx=".5" cy="0" r=".6"><stop offset="0" stop-color="#ff4fa3" stop-opacity=".35"/><stop offset="1" stop-color="#ff4fa3" stop-opacity="0"/></radialGradient>
+      </defs>
+      <rect width="400" height="200" fill="url(#mdF)"/><rect width="400" height="200" fill="url(#mdB)"/>
+      <path d="M250 0 L222 200 L300 200 Z" fill="url(#mdL)"/><path d="M330 0 L290 200 L372 200 Z" fill="url(#mdL)"/><path d="M300 0 L262 200 L340 200 Z" fill="url(#mdL)" opacity=".7"/>
+      <path d="M286 92 L314 92 L380 200 L220 200 Z" fill="url(#mdP)"/>
+      <g fill="#d9b45a" opacity=".85">${[[0, 8], [40, 14], [70, 4], [105, 18], [140, 9], [175, 15], [395, 12], [380, 30]].map(([x, y]) => `<circle cx="${x + 2}" cy="${y + 4}" r="1.4"/>`).join('')}</g>
+      <g fill="#050205">${SILUETA(300, 112, 0.5, 0.6)}${SILUETA(268, 140, 0.75, 0.85)}${SILUETA(334, 140, 0.75, 0.85)}${SILUETA(300, 172, 1.15, 1)}</g>
+    </svg>
+    <span class="moda-txt"><small>LA PASARELA${fecha ? ' · ' + esc(fecha) : ''}</small><b>${esc(tit)}</b><span>${esc(ad.s || 'Los mejores modelos de Nariño')}</span><i class="ir">Entradas →</i></span></a>`;
+}
 function tarjetaAd(ad) {
+  if (ad.d === 'moda') return tarjetaModa(ad);
   const txt = `<i>${esc(ad.e || '📢')}</i><span><b>${esc(ad.t)}</b><small>${esc(ad.s || '')}</small></span><span class="ir">Ver</span>`;
   return ad.img
     ? `<a class="aj-anuncio con-img" href="${esc(ad.u)}" target="_blank" rel="noopener"><em>Anuncio</em><img src="${esc(ad.img)}" alt="" onerror="this.remove()"><span class="txt">${txt}</span></a>`
@@ -2691,7 +2767,22 @@ function carruselAds(caja, alTocar) {
   }, 6000);
   ADS.carr.push(c);
 }
+// Mientras exporta, en vez de la pantalla negra: logo de LocalPro con una miniatura del video de fondo
+function portadaExportando(si, foto) {
+  let el = $('#cutExpPortada');
+  if (!si) { if (el) el.hidden = true; return; }
+  if (!el) {
+    el = document.createElement('div'); el.id = 'cutExpPortada'; el.className = 'cut-exp-portada';
+    el.innerHTML = '<i class="fondo"></i><div class="centro"><img src="/icons/cut-192.png" alt=""><b>LocalPro<em>Cut</em></b><small>Armando su video…</small><span class="mini"></span></div>';
+    $('#cutVistaCaja').appendChild(el);
+  }
+  const mini = $('.mini', el), [aa, bb] = ASPECTOS[S.aspecto] || [9, 16];
+  mini.style.aspectRatio = `${aa}/${bb}`; mini.style.width = aa > bb ? '160px' : aa === bb ? '120px' : '96px';
+  if (foto) { $('.fondo', el).style.backgroundImage = `url(${foto})`; mini.style.backgroundImage = `url(${foto})`; mini.hidden = false; } else mini.hidden = true;
+  el.hidden = false;
+}
 function anunciosExportando(si) {
+  if (!si) portadaExportando(false);
   const caja = $('#cutExportar [data-ads]'); if (!caja) return;
   if (!si) { const c = ADS.carr.find(x => x.caja === caja); if (c) clearInterval(c.t); ADS.carr = ADS.carr.filter(x => x !== c); caja.innerHTML = ''; return; }
   // Si tocan uno mientras exporta, se abre al terminar (abrir otra pestaña frena la exportación en el celular)
@@ -2758,7 +2849,14 @@ async function abrirExportar() {
   pausar();
   if (typeof VideoEncoder === 'undefined') return aviso('Este navegador no puede exportar video. Use Chrome actualizado.', 'mal');
   const m = $('#cutExportar');
+  // Foto del cuadro que se ve ahora (antes de que la vista se apague para exportar)
+  let foto = null;
+  try { dibujarCuadro(S.t, fuentePrevia, vista.width, vista.height, vctx); foto = vista.toDataURL('image/jpeg', 0.7); } catch (e) { foto = null; }
+  if (!foto) foto = S.portada?.url || null;
+  portadaExportando(true, foto);
   m.hidden = false;
+  EXP.cancelar = false; EXP._avisado = false;
+  { const bc = $('[data-cancelar]', m); bc.disabled = false; bc.textContent = 'Cancelar'; bc.onclick = () => { EXP.cancelar = true; bc.disabled = true; bc.textContent = 'Cancelando…'; if (!S.exportando) exportCancelada(m); }; }
   // Va directo a "exportando" (sin la pantalla de opciones en medio)
   $('.cut-exp-op', m).hidden = true; $('.cut-exp-run', m).hidden = false; $('.cut-exp-fin', m).hidden = true;
   { const pr = $('.cut-exp-run .cut-progreso', m); if (pr) { $('i', pr).style.width = '1%'; $('span', pr).textContent = 'Preparando…'; } }
@@ -2786,6 +2884,7 @@ async function abrirExportar() {
   $('[data-cerrar]', m).onclick = () => { m.hidden = true; };
   const intentar = () => exportar().catch(err => {
     S.exportando = false; ajustarVista();
+    if (err?.message === 'cancelado') { exportCancelada(m); return; }
     if (EXP.mbps && err.message !== 'memoria' && !EXP.cancelar) {
       aviso('Su equipo no alcanzó esa tasa de bits: lo exportamos con la recomendada.');
       EXP.mbps = 0; marcar();
@@ -2812,11 +2911,14 @@ async function abrirExportar() {
     $('button', caja).onclick = () => window.LPOpinion?.abrir({ tipo: 'falla', mensaje: 'Al exportar el video me salió: ' + motivo + '\n\nLo que estaba haciendo: ', datos: { fase: 'exportar', res: EXP.res, fps: EXP.fps } });
   });
   $('[data-iniciar]', m).onclick = async () => {
+    EXP.cancelar = false; EXP._avisado = false; $('[data-cancelar]', m).disabled = false; $('[data-cancelar]', m).textContent = 'Cancelar';
     $('[data-fallo]', m)?.remove();
     await invitarRegistro();
+    if (EXP.cancelar) return exportCancelada(m);
     contar('exportar', { res: EXP.res, fps: EXP.fps, seg: Math.round(lay().total) });
     intentar();
   };
+  if (EXP.cancelar) return exportCancelada(m);
   // Como CapCut: con tocar Exportar arriba ya empieza, con lo elegido en el botón de calidad (o 1080p a 30 fps)
   $('[data-iniciar]', m).onclick();
 }
@@ -2863,6 +2965,7 @@ async function seekEl(v, t) {
   await new Promise((ok) => { const f = () => { v.removeEventListener('seeked', f); ok(); }; v.addEventListener('seeked', f); v.currentTime = t; setTimeout(f, 1500); });
 }
 
+function volverACopias() { S.clips.forEach(c => { if (c.urlVista && c.el && !c.el._dormido && c.el._abierto && c.el.src !== c.urlVista) dormirVideo(c); }); presupuestoVideos(true); }
 async function exportar() {
   await prepararCapas();
   const m = $('#cutExportar');
@@ -2870,10 +2973,11 @@ async function exportar() {
   ADS.pend = null; anunciosExportando(true);
   const barra = $('.cut-exp-run i', m), txt = $('.cut-exp-run span', m);
   const poner = (pct, t) => { barra.style.width = pct + '%'; txt.textContent = t; };
-  EXP.cancelar = false;
-  $('[data-cancelar]', m).onclick = () => { EXP.cancelar = true; };
+  const corte = () => { if (EXP.cancelar) throw new Error('cancelado'); };
+  corte();
   await document.fonts.ready;
   if (S.belleza.on) { poner(1, 'Cargando el filtro de belleza…'); await activarBelleza(); }
+  corte();
 
   const { W, H } = tamSalida(EXP.res);
   const fps = EXP.fps;
@@ -2885,6 +2989,7 @@ async function exportar() {
 
   poner(2, 'Preparando el audio…');
   const audio = audioCodec ? await mezclarAudio(48000, 2) : null;
+  corte();
 
   const { target, archivo } = await destino();
   const out = new MB.Output({ format: new MB.Mp4OutputFormat(), target });
@@ -2935,6 +3040,9 @@ async function exportar() {
 
   const t0 = performance.now();
   let recuperaciones = 0;
+  // Los videos con copia liviana se duermen: al exportar despiertan con el archivo original (calidad completa)
+  S.clips.forEach(c => { if (c.urlVista && c.el && !c.el._dormido && c.el._abierto) dormirVideo(c); });
+  if (EXP.cancelar) { try { await out.cancel(); } catch (e) { /* nada */ } volverACopias(); throw new Error('cancelado'); }
   S.exportando = true;
   pedirPantalla();
 
@@ -3067,7 +3175,7 @@ async function exportar() {
       if (motor.gl.isContextLost()) {
         if (++recuperaciones > 4) throw new Error('memoria');
         poner(3 + (n / N) * 95, 'El celular liberó memoria, retomando…');
-        if (!(await motor.recuperar(3000))) { motor = new Motor(); }
+        if (!(await motor.recuperar(3000))) { nuevoMotor(); }
         motor.tamano(W, H);
         masc.clear();
         dibujarCuadro(t, (i) => cuadros.get(i), W, H, lctx);
@@ -3091,13 +3199,13 @@ async function exportar() {
     try { await out.cancel(); } catch (e2) { /* nada */ }
     audios.clear(); limpios.clear();
     S.clips.forEach(c => { if (c.el) { c.el.pause(); try { c.el.playbackRate = 1; } catch (e3) { /* nada */ } } });
-    S.exportando = false; soltarPantalla();
+    S.exportando = false; soltarPantalla(); volverACopias();
     motor.tamano(vistaW, vistaH); S.dirty = true;
     if (S._resizePend) { S._resizePend = false; ajustarVista(); pintarLinea(); }
-    if (e.message === 'cancelado') { anunciosExportando(false); $('.cut-exp-op', m).hidden = false; $('.cut-exp-run', m).hidden = true; aviso('Exportación cancelada'); return; }
+    if (e.message === 'cancelado') throw e;
     throw e;
   }
-  S.exportando = false; soltarPantalla();
+  S.exportando = false; soltarPantalla(); volverACopias();
   motor.tamano(vistaW, vistaH); S.dirty = true;
   if (S._resizePend) { S._resizePend = false; ajustarVista(); pintarLinea(); }
 
@@ -3169,7 +3277,9 @@ async function volvioAlEditor() {
   revisando = true;
   try {
     // 1) parte gráfica nueva si el celular la quitó
-    if (!motor || motor.gl.isContextLost()) { try { if (!motor || !(await motor.recuperar(1200))) motor = new Motor(); } catch (e) { /* se reintenta en el bucle */ } }
+    if (!motor || motor.gl.isContextLost()) { try { if (!motor || !(await motor.recuperar(1200))) nuevoMotor(); } catch (e) { /* se reintenta en el bucle */ } }
+    // 1b) Android a veces borra las fotos ya abiertas mientras la app está atrás (quedan vacías → negro con sonido)
+    await revisarFotos(false);
     // 2) liberar los decodificadores de los clips lejanos y que cada video despierto vuelva a decodificar su cuadro
     presupuestoVideos(true);
     S.clips.forEach(c => { if (c.el && !c.el._dormido) { c._prevT = -1; try { c.el.currentTime = Math.max(0, (c.el.currentTime || 0) + 0.001); } catch (e) { /* nada */ } } });
@@ -3178,6 +3288,7 @@ async function volvioAlEditor() {
     await new Promise(r => setTimeout(r, 900));
     // 3) si la vista sigue negra, se dibuja por lienzo 2D y, si hace falta, se recargan los videos
     if (vistaNegra()) {
+      await revisarFotos(true);
       S.copia2D = true; S.clips.forEach(c => { c._prevT = -1; }); S.dirty = true;
       await new Promise(r => setTimeout(r, 600));
       if (vistaNegra()) {
@@ -3187,17 +3298,50 @@ async function volvioAlEditor() {
         for (const c of orden) {
           const t = c.el.currentTime || c.in || 0;
           c.el._loc = t;
-          c.el.removeAttribute('src'); c.el.load(); c.el.src = c.url;
+          c.el.removeAttribute('src'); c.el.load(); c.el.src = urlVista(c);
           await new Promise(r => { const ok = () => { c.el.removeEventListener('loadeddata', ok); r(); }; c.el.addEventListener('loadeddata', ok); setTimeout(r, c === bajo ? 5000 : 2500); });
           try { c.el.currentTime = t; } catch (e) { /* nada */ }
           if (c === bajo) empujarCuadro(c);
         }
-        motor = new Motor(); ajustarVista(); irA(S.t);
+        nuevoMotor(); ajustarVista(); irA(S.t);
         await new Promise(r => setTimeout(r, 700));
         if (vistaNegra()) reportarVideo('Vista previa negra al volver de otra app (suena pero no se ve)', clipBajoLinea() || S.clips[0]);
       }
     }
   } finally { revisando = false; S.dirty = true; }
+}
+function nuevoMotor() {
+  try { motor?.gl?.getExtension('WEBGL_lose_context')?.loseContext(); } catch (e) { /* nada */ }
+  motor = new Motor();
+}
+// ¿La foto quedó vacía? (el celular borró su imagen: se ve negra o transparente). Una foto negra de verdad también
+// da "vacía" y solo se vuelve a abrir, sin daño.
+function fotoVacia(im) {
+  if (!im || !im.width || !im.height) return true;
+  try {
+    const x = (fotoVacia.cv ||= Object.assign(document.createElement('canvas'), { width: 8, height: 8 })).getContext('2d', { willReadFrequently: true });
+    x.clearRect(0, 0, 8, 8); x.drawImage(im, 0, 0, 8, 8);
+    const d = x.getImageData(0, 0, 8, 8).data;
+    for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 8 && d[i] + d[i + 1] + d[i + 2] > 6) return false;
+    return true;
+  } catch (e) { return true; } // cerrada o dañada
+}
+// Vuelve a abrir desde el archivo las fotos que el celular dejó vacías (o todas, si "todas")
+async function revisarFotos(todas) {
+  for (const k of [...S.clips, ...S.capas]) {
+    if (k.tipo !== 'imagen' || !k.file) continue;
+    if (todas || fotoVacia(k.bmp)) {
+      try {
+        const viejo = k.bmp; k.bmp = await abrirImagen(k.file);
+        if (viejo !== k.bmp) try { viejo?.close?.(); } catch (e) { /* nada */ }
+        if (S.belleza.on && BEL.listo() && k.mascara) BEL.mascara(k.bmp, k.mascara);
+      } catch (e) { continue; }
+    }
+    // Lo que se arma a partir de la foto (opacidad, máscara) se rehace; el fondo quitado solo si también quedó vacío
+    k._comp = null; k._compIm = null; k._proc = null; k._pk = null;
+    if (k._sinFondo && fotoVacia(k._sinFondo)) { k._sinFondo = null; k._cf = null; }
+  }
+  S.dirty = true;
 }
 // Android no decodifica el cuadro de un video en pausa que estuvo escondido hasta que se reproduce:
 // se le da play callado un instante y se pausa
@@ -3239,14 +3383,14 @@ const DB = {
       r.onerror = () => mal(r.error);
     });
   },
-  async put(st, k, v) {
+  async put(st, k, v, callado) {
     try {
       const db = await this.abrir();
       await new Promise((ok, mal) => { const tx = db.transaction(st, 'readwrite'); tx.objectStore(st).put(v, k); tx.oncomplete = ok; tx.onerror = () => mal(tx.error); tx.onabort = () => mal(tx.error); });
       return true;
     } catch (e) {
       // Sin espacio (o modo privado): se sigue editando, pero se avisa una vez que si cierra la página se pierde
-      if (!this.avisado && st === 'archivos') { this.avisado = true; aviso('Su equipo no tiene espacio para guardar una copia de los videos: si cierra o recarga la página, se pierde la edición. Exporte antes de salir.', 'mal'); }
+      if (!callado && !this.avisado && st === 'archivos') { this.avisado = true; aviso('Su equipo no tiene espacio para guardar una copia de los videos: si cierra o recarga la página, se pierde la edición. Exporte antes de salir.', 'mal'); }
       return false;
     }
   },
@@ -3331,7 +3475,7 @@ async function borrarProyecto(k) {
   if (!v) return;
   const usados = new Set();
   for (const [, o] of await DB.todos('estado')) [...(o?.clips || []), ...(o?.musica || []), ...(o?.capas || [])].forEach(x => x.fileId && usados.add(x.fileId));
-  for (const x of [...(v.clips || []), ...(v.musica || []), ...(v.capas || [])]) if (x.fileId && !usados.has(x.fileId)) await DB.borrar('archivos', x.fileId);
+  for (const x of [...(v.clips || []), ...(v.musica || []), ...(v.capas || [])]) if (x.fileId && !usados.has(x.fileId)) { await DB.borrar('archivos', x.fileId); await DB.borrar('archivos', x.fileId + ':vista'); }
 }
 // El celular a veces cierra la página cuando uno se va a otra app (le falta memoria) y al volver la recarga:
 // se recuerda qué proyecto estaba abierto para abrirlo solo, como si nada hubiera pasado.
