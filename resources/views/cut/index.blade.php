@@ -316,6 +316,8 @@ body.recortando .cut-clip.sel>span{font-size:.85rem;background:var(--v);color:#0
 .cut-mus{position:absolute;top:0;height:28px;border-radius:6px;background:#1f6fa8 no-repeat;border:1px solid #3a93d1;color:#fff;font-size:.68rem;font-weight:700;padding:6px 8px;white-space:nowrap;overflow:hidden;cursor:pointer}
 .cut-mus .kfv{position:absolute;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;background:#e8344e;border:1.5px solid #fff;transform:rotate(45deg);border-radius:2px;pointer-events:none;z-index:1}
 .cut-mus .kfv.apag{background:#b8c6cf;border-color:#6d7a83}
+.cut-clip .kfc{position:absolute;bottom:6px;width:13px;height:13px;margin-left:-6.5px;background:#e8344e;border:1.5px solid #fff;transform:rotate(45deg);border-radius:2px;pointer-events:none;z-index:2;box-shadow:0 1px 3px rgba(0,0,0,.5)}
+.cut-clip .kfc.apag{background:#b8c6cf;border-color:#6d7a83}
 /* Hoja de volumen estilo CapCut */
 body.hoja-vol .cut-tabs{display:none}
 body.hoja-vol #cutPanel .cut-panel-h{display:none}
