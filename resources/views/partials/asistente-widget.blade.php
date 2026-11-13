@@ -64,7 +64,9 @@ body:has(#lpInstalar) #pfn-as{bottom:136px}
     precios: D.sesion ? '💳 Mira tu plan, cuándo vence y paga en línea aquí:\n\n[Mi plan](' + U.plan + ')' : '💳 Empiezas con 1 mes gratis con todo. Después eliges el plan mensual o anual.\n\n[Crear cuenta gratis](' + U.registro + ')',
     funciones: '🧰 Caja POS, inventario, facturación DIAN, nómina, tienda en línea, redes y módulos para restaurantes, consultorios, funerarias, eventos y más.\n\n[Ver todas las funciones](' + U.funciones + ')',
     aprende: D.sesion ? '🎓 Aprende a manejar tu sistema paso a paso:\n\n[Ir a los cursos](' + U.aprende + ')' : '📚 Guías y artículos para tu negocio:\n\n[Ir al blog](' + U.blog + ')',
-    humano: '🙋 Te atiende una persona del equipo:\n\n[Escribir por WhatsApp](' + wa('Hola, necesito ayuda con LocalProo') + ')'
+    humano: D.wa ? '🙋 Te atiende una persona del equipo:\n\n[Escribir por WhatsApp](' + wa('Hola, necesito ayuda con LocalProo') + ')' : '🙋 Cuéntame aquí lo que necesitas y el equipo de LocalProo lo revisa. Mientras tanto, ¿qué tipo de negocio tienes?',
+    saludo: D.sesion ? '¡Hola! 😊 ¿Qué quieres hacer hoy en tu sistema? Por ejemplo: crear productos, vender en la caja, sacar reportes o facturar con la DIAN.' : '¡Hola! 😊 Qué gusto saludarte. ¿Qué tipo de negocio tienes? Tienda, restaurante, consultorio, funeraria, eventos... y te cuento cómo LocalProo te ayuda.',
+    gracias: '¡Con mucho gusto! 😊 ¿Hay algo más en lo que te pueda ayudar?'
   };
   var CHIPS = D.sesion
     ? [['🎓 ¿Cómo hago…?', 'aprende'], ['💳 Mi plan', 'precios'], ['🧰 Funciones', 'funciones'], ['🙋 Hablar con alguien', 'humano']]
@@ -75,7 +77,9 @@ body:has(#lpInstalar) #pfn-as{bottom:136px}
     ['funciones', ['funcion', 'que hace', 'sirve', 'modulo']],
     ['aprende', ['como hago', 'como se', 'tutorial', 'curso', 'aprend']],
     ['humano', ['asesor', 'persona', 'humano', 'whatsapp', 'soporte']],
-    ['cuenta', ['cuenta', 'registr', 'login', 'prueba', 'gratis']]
+    ['cuenta', ['cuenta', 'registr', 'login', 'prueba', 'gratis']],
+    ['gracias', ['gracias', 'muy amable', 'listo', 'ok gracias']],
+    ['saludo', ['hola', 'buenas', 'buenos dias', 'buen dia', 'saludos', 'hey', 'que tal', 'ola']]
   ];
   function norm(t) { return (t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
   function burbuja(texto, quien) {
@@ -110,8 +114,17 @@ body:has(#lpInstalar) #pfn-as{bottom:136px}
     var e = document.createElement('div'); e.className = 'as-esc'; e.innerHTML = 'Mía está escribiendo<i></i><i></i><i></i>';
     msgs.appendChild(e); msgs.scrollTop = msgs.scrollHeight; return e;
   }
+  // 2026-11-13 (Jhoset): no mandar de una a WhatsApp; primero seguir la charla, y solo a la tercera ofrecer una persona
+  var FALLOS = 0;
   function noEntendi(t) {
-    burbuja('No estoy seguro de haber entendido 🤔. Toca una de las opciones de abajo, o [escríbenos por WhatsApp](' + wa('Hola, tengo una pregunta: ' + t) + ') y una persona te responde.', 'bot');
+    FALLOS++;
+    if (FALLOS < 3 || !D.wa) {
+      burbuja(FALLOS === 1
+        ? 'Cuéntame un poquito más 😊. ¿Qué tipo de negocio tienes o qué quieres lograr? Por ejemplo: vender con caja, llevar el inventario, facturar con la DIAN o vender por internet.'
+        : 'Te entiendo 🙌. Toca una de las opciones de abajo o escríbeme con otras palabras y te ayudo.', 'bot');
+      return;
+    }
+    burbuja('Para no dejarte sin respuesta, una persona del equipo te ayuda con eso 🙋\n\n[Escribir por WhatsApp](' + wa('Hola, tengo una pregunta: ' + t) + ')', 'bot');
   }
   function responder(clave) { var e = escribiendo(); setTimeout(function () { e.remove(); burbuja(R[clave], 'bot'); }, 900); }
   function entender(t) {

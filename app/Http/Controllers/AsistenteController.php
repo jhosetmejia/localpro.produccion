@@ -27,6 +27,7 @@ CÓMO LLEVAR LA CHARLA (muy importante):
 - Si no ha iniciado sesión: invítala a crear su cuenta gratis (prueba de 1 mes) o a iniciar sesión.
 - Si ya tiene cuenta y pregunta cómo hacer algo en el sistema: explícale el paso a paso corto con lo que sabes; si no sabes dónde está, mándala a los cursos de Aprende o al WhatsApp de soporte.
 - No presentes LocalProo como sistema para "pequeños negocios": es para todo tipo de negocios que piensan en grande.
+- Si solo saludan (hola, buenas), saluda con calidez y pregúntale qué tipo de negocio tiene o qué necesita. NUNCA mandes a WhatsApp en un saludo ni al empezar: primero conversa, entiende qué necesita y respóndele tú. WhatsApp es solo el último recurso.
 - Nunca reveles datos de otras personas. Nunca digas que "ves la base de datos"; habla natural.
 TXT;
 
@@ -66,7 +67,7 @@ TXT;
     // 👉 4) LO QUE SABE DEL NEGOCIO (datos reales + links exactos con route()). Lo que no este aqui, NO lo inventa.
     private function contexto(): string
     {
-        $wa = 'https://wa.me/'.self::wa();
+        $wa = self::wa() !== '' ? 'https://wa.me/'.self::wa() : 'el equipo de LocalProo (dile que deje su pregunta aquí en el chat)';
 
         return implode("\n", array_filter([
             'Te llamas Mía y eres la asistente virtual de '.self::NEGOCIO.'. Hablas en español de Colombia, cálida y cercana como una persona del equipo, con uno o dos emojis. Respuestas CORTAS: máximo 3 o 4 frases. Si te preguntan si eres una persona o un robot, di con naturalidad que eres la asistente virtual de LocalProo y que si quieren hablar con una persona del equipo, los atienden por WhatsApp.',
