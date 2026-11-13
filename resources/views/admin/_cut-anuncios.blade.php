@@ -10,7 +10,7 @@
             <tbody>
             @foreach ($filas as $i => $a)
                 <tr>
-                    <td><input name="a[{{ $i }}][e]" value="{{ $a['e'] ?? '' }}" class="form-control form-control-sm text-center" maxlength="8"><input type="hidden" name="a[{{ $i }}][d]" value="{{ $a['d'] ?? '' }}"><input type="hidden" name="a[{{ $i }}][fecha]" value="{{ $a['fecha'] ?? '' }}">@if (($a['d'] ?? '') === 'moda')<small class="d-block text-muted" style="font-size:.65rem">diseño pasarela</small>@endif</td>
+                    <td><input name="a[{{ $i }}][e]" value="{{ $a['e'] ?? '' }}" class="form-control form-control-sm text-center" maxlength="8"><input type="hidden" name="a[{{ $i }}][d]" value="{{ $a['d'] ?? '' }}"><input type="hidden" name="a[{{ $i }}][fecha]" value="{{ $a['fecha'] ?? '' }}">@if (!empty($a['d']))<small class="d-block text-muted" style="font-size:.65rem">diseño {{ $a['d'] === 'moda' ? 'pasarela' : 'pelea' }}</small>@endif</td>
                     <td><input name="a[{{ $i }}][t]" value="{{ $a['t'] ?? '' }}" class="form-control form-control-sm" maxlength="90" placeholder="Ej: Las mejores chaquetas de Pasto"></td>
                     <td><input name="a[{{ $i }}][s]" value="{{ $a['s'] ?? '' }}" class="form-control form-control-sm" maxlength="120"></td>
                     <td><input name="a[{{ $i }}][u]" value="{{ $a['u'] ?? '' }}" class="form-control form-control-sm" maxlength="400" placeholder="https://localproo.com/..."></td>

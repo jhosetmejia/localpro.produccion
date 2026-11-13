@@ -2734,8 +2734,32 @@ function tarjetaModa(ad) {
     </svg>
     <span class="moda-txt"><small>LA PASARELA${fecha ? ' · ' + esc(fecha) : ''}</small><b>${esc(tit)}</b><span>${esc(ad.s || 'Los mejores modelos de Nariño')}</span><i class="ir">Entradas →</i></span></a>`;
 }
+// Diseño de pelea (PFN): ring con cuerdas, reflectores, chispas y el logo
+function tarjetaPelea(ad) {
+  const info = ad.fecha || String(ad.t || '').split('·')[1]?.trim() || '';
+  const sub = String(ad.s || 'Los mejores peleadores de Nariño en un solo lugar');
+  const m = sub.match(/^(.*?)\s+(en un solo lugar.*)$/i);
+  return `<a class="aj-anuncio ad-pelea" href="${esc(ad.u)}" target="_blank" rel="noopener"><em>Anuncio</em>
+    <svg class="pelea-fondo" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="plF" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#050505"/><stop offset=".55" stop-color="#1a0405"/><stop offset="1" stop-color="#5c0a0d"/></linearGradient>
+        <radialGradient id="plG" cx=".78" cy=".45" r=".45"><stop offset="0" stop-color="#ff2a2a" stop-opacity=".55"/><stop offset="1" stop-color="#ff2a2a" stop-opacity="0"/></radialGradient>
+        <linearGradient id="plL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".28"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      </defs>
+      <rect width="400" height="200" fill="url(#plF)"/><rect width="400" height="200" fill="url(#plG)"/>
+      <path d="M270 0 L235 200 L285 200 Z" fill="url(#plL)"/><path d="M350 0 L330 200 L385 200 Z" fill="url(#plL)"/>
+      <g fill="none" stroke-linecap="round">
+        <path d="M-10 150 Q200 128 410 150" stroke="#c1121f" stroke-width="5"/><path d="M-10 168 Q200 148 410 168" stroke="#f1f1f1" stroke-width="4" opacity=".85"/><path d="M-10 186 Q200 168 410 186" stroke="#c1121f" stroke-width="5"/>
+      </g>
+      <rect x="196" y="120" width="8" height="80" fill="#2a2a2a"/>
+      <g fill="#ffb703">${[[215, 40], [228, 70], [380, 30], [372, 95], [246, 20], [395, 120], [258, 108]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${1 + (i % 3) * 0.6}" opacity="${0.5 + (i % 2) * 0.4}"/>`).join('')}</g>
+    </svg>
+    <img class="pelea-logo" src="/img/anuncios/pfn-logo.png" alt="PFN">
+    <span class="pelea-txt"><small>🥊 ${esc(info)}</small><b>${esc(m ? m[1] : sub)}</b>${m ? `<span>${esc(m[2])}</span>` : ''}<i class="ir">Entradas →</i></span></a>`;
+}
 function tarjetaAd(ad) {
   if (ad.d === 'moda') return tarjetaModa(ad);
+  if (ad.d === 'pelea') return tarjetaPelea(ad);
   const txt = `<i>${esc(ad.e || '📢')}</i><span><b>${esc(ad.t)}</b><small>${esc(ad.s || '')}</small></span><span class="ir">Ver</span>`;
   return ad.img
     ? `<a class="aj-anuncio con-img" href="${esc(ad.u)}" target="_blank" rel="noopener"><em>Anuncio</em><img src="${esc(ad.img)}" alt="" onerror="this.remove()"><span class="txt">${txt}</span></a>`

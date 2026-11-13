@@ -23,8 +23,8 @@ class adminCutAnunciosController extends Controller
             'a.*.img' => 'nullable|string|max:400',
             'a.*.hasta' => 'nullable|date',
             'a.*.on' => 'nullable|boolean',
-            'a.*.d' => 'nullable|in:moda',
-            'a.*.fecha' => 'nullable|string|max:12',
+            'a.*.d' => 'nullable|in:moda,pelea',
+            'a.*.fecha' => 'nullable|string|max:60',
         ], ['a.*.hasta.date' => 'La fecha "hasta" no es válida.', 'a.*.t.max' => 'El título es muy largo (máximo 90 letras).']);
         $lista = [];
         foreach ($d['a'] ?? [] as $a) {
