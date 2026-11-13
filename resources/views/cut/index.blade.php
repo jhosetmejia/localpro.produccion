@@ -26,6 +26,27 @@ body{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
 button{font:inherit;color:inherit;cursor:pointer}
 [hidden]{display:none!important}
 .cut-top{display:flex;align-items:center;gap:.6rem;padding:calc(env(safe-area-inset-top,0px) + 8px) 14px 8px;border-bottom:1px solid var(--b);flex:0 0 auto}
+.cut-x{background:transparent;border:0;color:var(--t);padding:.25rem .35rem;border-radius:10px;display:grid;place-items:center}
+.cut-calidad{display:flex;align-items:center;gap:.25rem;background:#2a2f2c;border:0;color:var(--t);border-radius:12px;padding:.45rem .7rem;font-weight:800;font-size:.86rem}
+.cut-calidad.on svg{transform:rotate(180deg)}
+body.editando .cut-logo{display:none}
+@media (min-width:700px){body.editando .cut-logo{display:flex}}
+.cut-ajexp{position:fixed;left:0;right:0;bottom:0;top:var(--alto-top,60px);z-index:150;background:rgba(0,0,0,.55)}
+.cut-ajexp-in{background:#151917;color:var(--t);max-height:100%;overflow:auto;padding:14px 18px calc(18px + env(safe-area-inset-bottom));border-radius:0 0 20px 20px;max-width:620px;margin:0 auto}
+.aj-bloque{margin:6px 0 20px}
+.aj-cab{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px}
+.aj-cab b{font-size:1.05rem}
+.aj-cab small{color:#c69cff;font-weight:700;text-align:right}
+.aj-bloque input[type=range]{width:100%;accent-color:#39d5ff}
+.aj-marcas{display:flex;justify-content:space-between;color:#9aa69f;font-size:.8rem;font-weight:700;margin-top:2px}
+.aj-marcas span.on{color:#fff}
+.aj-peso{text-align:center;color:#c9d3cd;font-size:.86rem;border-top:1px solid #2a312d;padding-top:12px;margin-top:6px}
+.aj-anuncio{display:flex;align-items:center;gap:12px;margin-top:14px;padding:14px 16px;border-radius:16px;text-decoration:none;color:#fff;background:radial-gradient(120% 140% at 100% 0%,#7a3dff 0%,#3b1a8a 45%,#1b1530 100%);position:relative;overflow:hidden}
+.aj-anuncio i{font-style:normal;font-size:2rem}
+.aj-anuncio b{display:block;font-size:1rem}
+.aj-anuncio small{display:block;opacity:.85;font-size:.8rem}
+.aj-anuncio em{position:absolute;top:8px;right:10px;font-style:normal;font-size:.62rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:rgba(255,255,255,.18);padding:2px 7px;border-radius:999px}
+.aj-anuncio .ir{margin-left:auto;font-weight:800;background:#a6f34a;color:#0b0d0c;border-radius:999px;padding:.35rem .7rem;font-size:.8rem;white-space:nowrap}
 .cut-top a.volver{color:var(--t);text-decoration:none;font-size:1.3rem;line-height:1;padding:.2rem .4rem;border-radius:10px}
 .cut-logo{font-family:Unbounded,sans-serif;font-weight:800;font-size:1.02rem;letter-spacing:-.02em;display:flex;align-items:center;gap:.4rem}
 .cut-logo i{font-style:normal;width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--v),var(--v2));display:grid;place-items:center;color:var(--f);font-size:.8rem}
@@ -517,13 +538,15 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
 </head>
 <body>
 <header class="cut-top">
-    <a class="volver solo-web" href="{{ url('/') }}" aria-label="Cerrar"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></a>
+    <button type="button" class="cut-x" id="cutCerrar" data-inicio="{{ url('/') }}" aria-label="Cerrar y ver mis proyectos" title="Cerrar y ver mis proyectos"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     <div class="cut-logo"><i>✂</i>LocalPro<b>Cut</b></div>
     <span class="sp"></span>
     <button type="button" class="cut-app solo-web" data-instalar><img src="/icons/cut-192.png" alt=""><span>Descargar app</span></button>
     <button type="button" class="cut-opinar" id="cutOpinar" aria-label="Opinar o reportar una falla" title="¿Algo falla? Cuéntenos">💬<span>Opinar</span></button>
+    <button type="button" class="cut-calidad" id="cutCalidad" hidden aria-label="Calidad del video"><span>1080P</span><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M6 9h12l-6 7z"/></svg></button>
     <button type="button" class="cut-exp" id="cutBtnExportar">Exportar</button>
 </header>
+<div class="cut-ajexp" id="cutAjExp" hidden><div class="cut-ajexp-in"></div></div>
 
 <div id="cutVistaCaja">
     <canvas id="cutLienzo" width="540" height="960"></canvas>
