@@ -42,9 +42,16 @@ body:has(#lpInstalar) #pfn-as{bottom:136px}
 #pfn-as .as-esc i{display:inline-block;width:5px;height:5px;margin-left:2px;border-radius:50%;background:#9fb3a6;animation:asPunto 1s infinite}
 #pfn-as .as-esc i:nth-child(2){animation-delay:.15s}#pfn-as .as-esc i:nth-child(3){animation-delay:.3s}
 @keyframes asPunto{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
-#pfn-as form button[data-mic]{background:transparent;color:inherit;padding:0 .75rem;font-size:1.05rem}
-#pfn-as form button[data-mic].grabando{background:#e31b23;color:#fff;animation:asGraba 1s infinite}
 @keyframes asGraba{0%,100%{opacity:1}50%{opacity:.55}}
+#pfn-as form[data-form]{position:relative;align-items:center;gap:.45rem;padding:.5rem .55rem;background:#121614}
+#pfn-as form[data-form] input{border-radius:100px;padding:.7rem 1rem;min-width:0}
+#pfn-as form[data-form] > button,#pfn-as .as-rec button[data-enviar]{width:44px;height:44px;min-width:44px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;background:#2fd15a;color:#0b0d0c;font-size:1.05rem;border:none;cursor:pointer;margin:0;box-shadow:none}
+#pfn-as .as-rec{display:none;position:absolute;inset:0;align-items:center;gap:.5rem;padding:.5rem .55rem;background:#121614}
+#pfn-as form.grabando .as-rec{display:flex}
+#pfn-as .as-rec button[data-borrar]{width:40px;height:40px;border:none;border-radius:50%;background:transparent;color:#bbb;font-size:1.15rem;cursor:pointer;margin:0;padding:0;box-shadow:none}
+#pfn-as .as-rec-t{flex:1;color:#eee;font-size:.9rem}
+#pfn-as .as-rec-t i{display:inline-block;width:10px;height:10px;border-radius:50%;background:#e31b23;margin-right:.35rem;animation:asGraba 1s infinite}
+#pfn-as .as-reint{display:block;margin-top:.55rem;padding:.45rem .8rem;border-radius:100px;border:none;background:#2fd15a;color:#0b0d0c;font-weight:700;font-size:.85rem;cursor:pointer;text-decoration:none;text-align:center}
 @media print{#pfn-as-btn,#pfn-as{display:none!important}}
 @media (max-width:640px){#pfn-as-btn{bottom:14px;right:12px;padding:.65rem .95rem}#pfn-as{right:12px;bottom:68px}}
 </style>
@@ -53,7 +60,7 @@ body:has(#lpInstalar) #pfn-as{bottom:136px}
 <div class="as-top"><span style="display:flex;align-items:center;gap:.55rem"><span style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#a6f34a,#16b34a);color:#0b0d0c;display:flex;align-items:center;justify-content:center;font-weight:900">M</span><span style="line-height:1.15">Mía<small style="display:block;font-weight:500;font-size:.72rem;color:#9fb3a6"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#2fd15a;margin-right:4px"></span>Asistente virtual de LocalProo</small></span></span><button type="button" data-cerrar aria-label="Cerrar">×</button></div>
 <div class="as-msgs" data-msgs></div>
 <div class="as-chips" data-chips></div>
-<form data-form><input type="text" data-in placeholder="Escribe tu pregunta…" maxlength="200" autocomplete="off"><button type="button" data-mic aria-label="Mandar nota de voz" title="Mandar nota de voz">🎤</button><button type="submit">➤</button></form>
+<form data-form><input type="text" data-in placeholder="Escribe tu pregunta…" maxlength="200" autocomplete="off"><button type="button" data-mic aria-label="Mandar nota de voz" title="Mandar nota de voz"><svg viewBox="0 0 24 24" width="21" height="21" fill="currentColor" aria-hidden="true"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg></button><button type="submit">➤</button></form>
 </div>
 <script>
 (function () {
@@ -162,38 +169,76 @@ body:has(#lpInstalar) #pfn-as{bottom:136px}
     // 2026-11-13 (Jhoset): lo escrito lo contesta la IA (natural); si la IA no responde, la respuesta fija o WhatsApp.
     preguntarIA(t, entender(t));
   });
-  // 2026-11-13 (Jhoset): notas de voz: toca 🎤, habla (máx. 30 s) y toca ⏹ para enviar; Whisper (Groq) la pasa a texto y Mía responde
+  // 2026-11-13 (Jhoset): notas de voz estilo WhatsApp: sin texto sale el micrófono; toca, habla (máx. 60 s) y envía o borra
   (function () {
-    var btn = box.querySelector('[data-mic]'), VOZ = {!! json_encode(route('asistente.voz'), JSON_UNESCAPED_SLASHES) !!};
-    if (!btn) return;
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) { btn.style.display = 'none'; return; }
-    var rec = null, partes = [], corte = null;
+    var form = box.querySelector('[data-form]'), inp = box.querySelector('[data-in]'), mic = box.querySelector('[data-mic]'), env = form.querySelector('button[type=submit]');
+    var VOZ = {!! json_encode(route('asistente.voz'), JSON_UNESCAPED_SLASHES) !!};
+    var puede = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
+    function botones() { var hay = inp.value.trim() !== ''; mic.style.display = (!hay && puede) ? '' : 'none'; env.style.display = (hay || !puede) ? '' : 'none'; }
+    inp.addEventListener('input', botones); form.addEventListener('submit', function () { setTimeout(botones, 0); }); botones();
+    if (!puede) return;
+    var bar = document.createElement('div'); bar.className = 'as-rec';
+    bar.innerHTML = '<button type="button" data-borrar aria-label="Borrar audio" title="Borrar">🗑</button><span class="as-rec-t"><i></i><b>0:00</b> Grabando… </span><button type="button" data-enviar aria-label="Enviar audio" title="Enviar">➤</button>';
+    form.appendChild(bar);
+    var rec = null, partes = [], corte = null, reloj = null, t0 = 0, cancelado = false, st = null;
+    function fin() { clearTimeout(corte); clearInterval(reloj); form.classList.remove('grabando'); if (st) st.getTracks().forEach(function (t) { t.stop(); }); st = null; }
     function fallo() { burbuja('No pude escuchar bien tu audio 🙈. ¿Me lo repites o me lo escribes, porfa?', 'bot'); }
-    btn.onclick = function () {
-      if (rec && rec.state === 'recording') { rec.stop(); return; }
-      navigator.mediaDevices.getUserMedia({audio: true}).then(function (st) {
-        partes = [];
-        rec = new MediaRecorder(st);
+    function enviarAudio(blob, tipo) {
+      var ext = tipo.indexOf('mp4') >= 0 ? 'm4a' : (tipo.indexOf('ogg') >= 0 ? 'ogg' : 'webm');
+      var fd = new FormData(); fd.append('audio', blob, 'nota.' + ext);
+      var e = escribiendo(); e.firstChild.nodeValue = 'Mía está escuchando tu audio';
+      fetch(VOZ, {method: 'POST', credentials: 'same-origin', headers: {'Accept': 'application/json'}, body: fd})
+        .then(function (r) { return r.ok ? r.json() : {ok: false}; })
+        .then(function (j) {
+          e.remove();
+          if (j && j.ok && j.texto) { chips.style.display = 'none'; burbuja('🎤 ' + j.texto, 'yo'); preguntarIA(j.texto, entender(j.texto)); } else { fallo(); }
+        }).catch(function () { e.remove(); fallo(); });
+    }
+    // No hay forma de abrir los ajustes del navegador desde la página: se explica paso a paso según el celular y se deja "Intentar de nuevo"
+    function permisoNegado(err) {
+      var ua = navigator.userAgent || '', n = (err && err.name) || '';
+      var ios = /iPhone|iPad|iPod/i.test(ua), enApp = /FBAN|FBAV|Instagram|TikTok|musical_ly|Bytedance|WhatsApp|Line\/|; wv\)/i.test(ua);
+      var txt, boton = 'Intentar de nuevo', accion = grabar;
+      if (n === 'NotFoundError') { burbuja('No encontré un micrófono en este equipo 🎤. Escríbeme y con gusto te ayudo.', 'bot'); return; }
+      if (enApp && !ios) {
+        txt = 'Estás viendo la página dentro de otra app y ahí no deja usar el micrófono 🙈. Ábrela en Chrome con este botón y me mandas tu audio:';
+        boton = 'Abrir en Chrome';
+        accion = function () { location.href = 'intent://' + location.host + location.pathname + location.search + '#Intent;scheme=https;package=com.android.chrome;end'; };
+      } else if (enApp) {
+        txt = 'Estás viendo la página dentro de otra app y ahí no deja usar el micrófono 🙈.\n1. Toca los tres puntos (⋯) de arriba.\n2. Elige "Abrir en Safari" o "Abrir en el navegador".\n3. Ahí me mandas tu audio.';
+        boton = '';
+      } else if (ios) {
+        txt = 'Para mandarme audio, dale permiso al micrófono 🎤:\n1. Toca "aA" en la barra de la dirección.\n2. Configuración del sitio web → Micrófono → Permitir.\n3. Toca "Intentar de nuevo".';
+      } else {
+        txt = 'Para mandarme audio, dale permiso al micrófono 🎤:\n1. Toca el ícono que está al lado de la dirección, arriba (🔒 o ⚙️).\n2. Permisos → Micrófono → Permitir.\n3. Toca "Intentar de nuevo".';
+      }
+      burbuja(txt, 'bot');
+      if (boton) {
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'as-reint'; b.textContent = '🎤 ' + boton;
+        b.onclick = function () { b.remove(); accion(); };
+        msgs.lastChild.appendChild(b); msgs.scrollTop = msgs.scrollHeight;
+      }
+    }
+    function grabar() {
+      navigator.mediaDevices.getUserMedia({audio: true}).then(function (s) {
+        st = s; partes = []; cancelado = false;
+        rec = new MediaRecorder(s);
         rec.ondataavailable = function (e) { if (e.data && e.data.size) partes.push(e.data); };
         rec.onstop = function () {
-          clearTimeout(corte); st.getTracks().forEach(function (t) { t.stop(); });
-          btn.classList.remove('grabando'); btn.textContent = '🎤';
-          var tipo = rec.mimeType || 'audio/webm', blob = new Blob(partes, {type: tipo});
+          var tipo = rec.mimeType || 'audio/webm'; fin();
+          if (cancelado) return;
+          var blob = new Blob(partes, {type: tipo});
           if (blob.size < 1500) return;
-          var ext = tipo.indexOf('mp4') >= 0 ? 'm4a' : (tipo.indexOf('ogg') >= 0 ? 'ogg' : 'webm');
-          var fd = new FormData(); fd.append('audio', blob, 'nota.' + ext);
-          var e = escribiendo(); e.firstChild.nodeValue = 'Mía está escuchando tu audio';
-          fetch(VOZ, {method: 'POST', credentials: 'same-origin', headers: {'Accept': 'application/json'}, body: fd})
-            .then(function (r) { return r.ok ? r.json() : {ok: false}; })
-            .then(function (j) {
-              e.remove();
-              if (j && j.ok && j.texto) { chips.style.display = 'none'; burbuja('🎤 ' + j.texto, 'yo'); preguntarIA(j.texto, entender(j.texto)); } else { fallo(); }
-            }).catch(function () { e.remove(); fallo(); });
+          enviarAudio(blob, tipo);
         };
-        rec.start(); btn.classList.add('grabando'); btn.textContent = '⏹';
-        corte = setTimeout(function () { if (rec && rec.state === 'recording') rec.stop(); }, 30000);
-      }).catch(function () { burbuja('Para mandarme audio, permite el micrófono en tu navegador 🎤. O si prefieres, escríbeme.', 'bot'); });
-    };
+        rec.start(); t0 = Date.now(); form.classList.add('grabando'); bar.querySelector('b').textContent = '0:00';
+        reloj = setInterval(function () { var x = Math.floor((Date.now() - t0) / 1000); bar.querySelector('b').textContent = Math.floor(x / 60) + ':' + ('0' + x % 60).slice(-2); }, 250);
+        corte = setTimeout(function () { if (rec && rec.state === 'recording') rec.stop(); }, 60000);
+      }).catch(permisoNegado);
+    }
+    mic.onclick = grabar;
+    bar.querySelector('[data-enviar]').onclick = function () { if (rec && rec.state === 'recording') rec.stop(); };
+    bar.querySelector('[data-borrar]').onclick = function () { cancelado = true; if (rec && rec.state === 'recording') rec.stop(); else fin(); };
   })();
 })();
 </script>
