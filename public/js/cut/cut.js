@@ -381,7 +381,12 @@ function fuentePrevia(i) {
   const c = S.clips[i];
   if (c.tipo === 'imagen') return { src: imagenClip(c), w: c.w, h: c.h, mascara: c.mascara };
   const v = c.el;
-  if (!v || v.readyState < 2) return null;
+  if (!v || v.readyState < 2) {
+    // Android deja el video sin imagen (readyState 1) al volver de otra app: se muestra el cuadro sacado del archivo
+    if (!v || v._dormido) return null;
+    const L = lay(), rs = cuadroRespaldo(c, tOrigen(c, Math.max(0, Math.min(largo(c), S.t - L.start[i]))));
+    return rs ? { src: rs, w: rs.width, h: rs.height, mascara: c.mascara } : null;
+  }
   if (S.belleza.on && BEL.listo()) {
     const ahora = performance.now();
     // Detectar la cara en cada cuadro nuevo para que el filtro quede pegado al rostro.
@@ -393,7 +398,7 @@ function fuentePrevia(i) {
   // iPhone: subir el <video> directo a la parte gráfica (WebGL) deja la imagen pegada en el mismo cuadro con los
   // videos HEVC/HDR de la cámara aunque el video sí avance. Se copia primero a un lienzo 2D (camino que Safari sí
   // actualiza) y ya reducido al tamaño de la vista previa, que además es más liviano que subir un cuadro 4K.
-  if (IOS || S.copia2D || Math.max(v.videoWidth, v.videoHeight) > 2 * Math.max(vista.width, vista.height)) {
+  if (IOS || (S.copia2D && !c._sin2D) || Math.max(v.videoWidth, v.videoHeight) > 2 * Math.max(vista.width, vista.height)) {
     const k = Math.min(1, Math.max(vista.width / v.videoWidth, vista.height / v.videoHeight) * 1.25);
     const cw = Math.max(2, Math.round(v.videoWidth * k)), ch = Math.max(2, Math.round(v.videoHeight * k));
     const cv = c._prev ||= document.createElement('canvas');
@@ -405,6 +410,42 @@ function fuentePrevia(i) {
     return { src: cv, w: cw, h: ch, mascara: c.mascara };
   }
   return { src: v, w: v.videoWidth, h: v.videoHeight, mascara: c.mascara };
+}
+// Cuadro de respaldo (como CapCut): si el <video> no entrega imagen, se saca ese cuadro directo del archivo con
+// WebCodecs (mediabunny) y se muestra ese, así la vista previa no queda negra. Un cuadro a la vez, al décimo de segundo.
+function cuadroRespaldo(c, loc) {
+  if (!c.file || c._rsMal || typeof VideoDecoder === 'undefined') return c._rs || null;
+  const q = Math.round(loc * 10) / 10;
+  if (c._rsQ !== q && !c._rsP) {
+    c._rsQ = q;
+    c._rsP = (async () => {
+      try {
+        if (!c._rsSink) {
+          const input = new MB.Input({ source: new MB.BlobSource(c.file), formats: MB.ALL_FORMATS });
+          const tr = await input.getPrimaryVideoTrack();
+          if (!tr || !(await tr.canDecode())) { c._rsMal = true; return; }
+          const k = Math.min(1, 1280 / Math.max(tr.displayWidth, tr.displayHeight));
+          c._rsSink = new MB.CanvasSink(tr, { width: Math.max(2, Math.round(tr.displayWidth * k)), height: Math.max(2, Math.round(tr.displayHeight * k)), fit: 'fill' });
+        }
+        const w = await c._rsSink.getCanvas(q);
+        if (w?.canvas) {
+          const cv = c._rs ||= document.createElement('canvas');
+          if (cv.width !== w.canvas.width || cv.height !== w.canvas.height) { cv.width = w.canvas.width; cv.height = w.canvas.height; }
+          cv.getContext('2d').drawImage(w.canvas, 0, 0);
+          S.dirty = true;
+        }
+      } catch (e) { c._rsMal = true; }
+      finally { c._rsP = null; }
+    })();
+  }
+  return c._rs || null;
+}
+// Vuelve a abrir el video en el mismo punto (el decodificador se trabó); si estaba sonando, sincronizar lo arranca
+function recargarVideo(c) {
+  const v = c.el; if (!v || v._dormido || !v._abierto) return;
+  v._loc = v.currentTime || c.in || 0; v._pt = 0; c._prevT = -1;
+  try { v.removeAttribute('src'); v.load(); } catch (e) { /* nada */ }
+  v.preload = 'auto'; v.src = urlVista(c); S.dirty = true;
 }
 // Si la línea avanza y el video también pero la imagen no cambia (o el video no arranca), se reporta solo una vez
 // con los datos del video, para poder arreglarlo en ese celular (Admin → Opiniones y fallas → Errores automáticos)
@@ -420,7 +461,14 @@ function vigilarPegada(c, cv) {
   const vt = c.el.currentTime;
   if (huella === c._vgH && vt - (c._vgV ?? vt) > 0.5) c._vgN = (c._vgN || 0) + 1; else c._vgN = 0;
   c._vgH = huella; c._vgV = vt;
-  if (c._vgN >= 4) { pegadaReportada = true; reportarVideo('Vista previa: la imagen se queda pegada aunque el video avanza', c); }
+  if (c._vgN >= 4) {
+    c._vgN = 0;
+    // 1º intento: video recargado, Android pasa a la vía directa (WebGL) y los videos grandes piden su copia liviana
+    if (!c._vgRec) { c._vgRec = 1; if (!IOS && S.copia2D) c._sin2D = true; pedirCopiaVista(c); recargarVideo(c); return; }
+    // 2º intento: esperar la copia liviana (si se está haciendo) y recargar otra vez
+    if (c._vgRec === 1) { c._vgRec = 2; recargarVideo(c); return; }
+    pegadaReportada = true; reportarVideo('Vista previa: la imagen se queda pegada aunque el video avanza', c);
+  }
 }
 function reportarVideo(msg, c) {
   const v = c.el || {};
@@ -516,7 +564,7 @@ function presupuestoVideos(forzar) {
 const urlVista = (c) => (!S.exportando && c.urlVista) || c.url;
 let colaVistas = Promise.resolve();
 function pedirCopiaVista(c) {
-  if (IOS || c.tipo !== 'video' || c._vistaP || c.urlVista || Math.max(c.w || 0, c.h || 0) <= 1920 || typeof VideoEncoder === 'undefined') return;
+  if (c.tipo !== 'video' || c._vistaP || c.urlVista || Math.max(c.w || 0, c.h || 0) <= 1920 || typeof VideoEncoder === 'undefined') return;
   c._vistaP = colaVistas = colaVistas.then(() => colaTiras).then(() => hacerCopiaVista(c)).catch(() => {});
 }
 async function hacerCopiaVista(c) {
@@ -569,6 +617,7 @@ function relojVideo(L, ahora) {
     if (S._esperaId !== c.id) { S._esperaId = c.id; S._espera = 0; }
     if (v.paused || v.seeking || v.readyState < 3) {
       S._espera ||= ahora;
+      if (ahora - S._espera > 1500 && !c._relRec) { c._relRec = true; S._espera = ahora; pedirCopiaVista(c); recargarVideo(c); return S.t; } // 1º se recarga
       if (ahora - S._espera > 1500) { if (!S._esperaRep) { S._esperaRep = true; reportarVideo('Vista previa: el video no arranca o se detiene (la línea sigue sola)', c); } return null; } // si no arranca en 1.5 s, sigue con el reloj normal
       return S.t;
     }
@@ -3145,13 +3194,13 @@ async function exportar() {
               // con partes dañadas). Se reintenta desde este cuadro con un lector nuevo y, si vuelve a fallar,
               // se sigue con el método de la vista previa (más lento pero seguro). El video no se cae.
               lc.fallos++;
-              reportarVideo('exportar: ' + (err?.message || err) + ' (cuadro ' + n + ')', c);
               if (lc.fallos <= 2) {
                 try {
                   lc.it = lc.sink.canvasesAtTimestamps(lc.tiempos.slice(lc.k))[Symbol.asyncIterator]();
                   r = await lc.it.next(); lc.k++;
                 } catch (err2) { r = null; lc.el = true; }
               } else lc.el = true;
+              if (lc.el && !lc.reportado) { lc.reportado = true; reportarVideo('exportar: ' + (err?.message || err) + ' (cuadro ' + n + ', pasó al método seguro)', c); }
               if (lc.el) { lc.reintentar = n + fps * 2; poner(3 + (n / N) * 95, 'Una parte del video está difícil de leer: la paso por el método seguro…'); }
             }
             if (r && !r.done && r.value) lc.ultimo = r.value.canvas;

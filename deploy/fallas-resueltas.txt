@@ -11,3 +11,15 @@ E11 2026-11-11 23:29 LocalProCut: mp4 sin imagen (solo sonido) se agrega como au
 E12 2026-11-11 23:29 LocalProCut: fotos que no abrían — se reconoce por contenido y se abre por varios caminos (desde el 11/11 22:52); menos memoria ocupada con los videos 4K dormidos
 E9 2026-11-11 23:29 LocalProCut: Decoding error al exportar — sigue por el método seguro (desde el 11/11 21:02)
 E10 2026-11-11 23:29 LocalProCut: Error during flush al exportar — sigue por el método seguro (desde el 11/11 21:02)
+E15 2026-11-12 11:15 LocalProCut: vista previa negra al volver de otra app con una foto en la línea — Android borraba la foto ya abierta; al volver se revisa y se vuelve a abrir desde el archivo (y su fondo quitado/máscara)
+E13 2026-11-12 11:15 LocalProCut: vista previa negra al volver de otra app (foto en la línea) — mismo arreglo de E15
+E7 2026-11-12 11:15 LocalProCut: vista previa negra al volver de otra app — los videos 4K usan una copia liviana de 720p en la vista previa (el celular ya no se queda sin decodificador) y se suelta la parte gráfica vieja al rearmarla
+E14 2026-11-12 11:15 LocalProCut: video que no arranca o se detiene con varios 4K — copia liviana de 720p para la vista previa (como CapCut); al exportar se usa el original
+E12 2026-11-12 00:31 LocalProCut: fotos que no abrían con varios videos 4K — se abren achicadas y por varios caminos (arreglado a las 00:31, la última vez fue 00:28)
+E4 2026-11-11 23:29 LocalProCut: iPhone sin WebGL2 — el motor pasa solo a WebGL1 (mismo arreglo de E5)
+E3 2026-11-11 23:29 Era Googlebot (robot de Google), no una persona — ya no se cuentan (mismo arreglo de E2)
+E18 2026-11-13 07:22 LocalProCut: vista previa negra al volver de otra app — si el video no entrega imagen, se saca ese cuadro directo del archivo (WebCodecs) y se muestra; ya no queda negra
+E19 2026-11-13 07:22 LocalProCut: imagen pegada en Android — se recarga el video sola y pasa a la vía directa antes de reportar
+E17 2026-11-13 07:22 LocalProCut: imagen pegada en iPhone (4K HEVC .mov) — el iPhone ahora también usa la copia liviana 720p en la vista previa y se recarga sola si se pega
+E16 2026-11-13 07:22 LocalProCut: video que no arranca en iPhone (4K HEVC) — copia liviana 720p también en iPhone y recarga automática antes de reportar
+E20 2026-11-13 07:22 LocalProCut: "Decoding error" al exportar — el exportado ya se recuperaba solo (lector nuevo / método seguro); solo se reporta si de verdad tuvo que pasar al método seguro
