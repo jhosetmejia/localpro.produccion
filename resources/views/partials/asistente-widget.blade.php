@@ -37,12 +37,16 @@
 /* LocalProo: si sale el botón "Instalar LocalPro" (abajo a la derecha), la burbuja sube */
 body:has(#lpInstalar) #pfn-as-btn{bottom:76px}
 body:has(#lpInstalar) #pfn-as{bottom:136px}
+#pfn-as .as-esc{font-size:.8rem;color:#9fb3a6;font-style:italic;padding:.2rem .3rem}
+#pfn-as .as-esc i{display:inline-block;width:5px;height:5px;margin-left:2px;border-radius:50%;background:#9fb3a6;animation:asPunto 1s infinite}
+#pfn-as .as-esc i:nth-child(2){animation-delay:.15s}#pfn-as .as-esc i:nth-child(3){animation-delay:.3s}
+@keyframes asPunto{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
 @media print{#pfn-as-btn,#pfn-as{display:none!important}}
 @media (max-width:640px){#pfn-as-btn{bottom:14px;right:12px;padding:.65rem .95rem}#pfn-as{right:12px;bottom:68px}}
 </style>
-<button type="button" id="pfn-as-btn" aria-label="Ayuda">💬 ¿Te ayudo?</button>
+<button type="button" id="pfn-as-btn" aria-label="Hablar con Mía">💬 Habla con Mía</button>
 <div id="pfn-as" role="dialog" aria-label="Asistente">
-<div class="as-top"><span>💬 Asistente LocalProo</span><button type="button" data-cerrar aria-label="Cerrar">×</button></div>
+<div class="as-top"><span style="display:flex;align-items:center;gap:.55rem"><span style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#a6f34a,#16b34a);color:#0b0d0c;display:flex;align-items:center;justify-content:center;font-weight:900">M</span><span style="line-height:1.15">Mía<small style="display:block;font-weight:500;font-size:.72rem;color:#9fb3a6"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#2fd15a;margin-right:4px"></span>Asistente virtual de LocalProo</small></span></span><button type="button" data-cerrar aria-label="Cerrar">×</button></div>
 <div class="as-msgs" data-msgs></div>
 <div class="as-chips" data-chips></div>
 <form data-form><input type="text" data-in placeholder="Escribe tu pregunta…" maxlength="200" autocomplete="off"><button type="submit">➤</button></form>
@@ -91,20 +95,25 @@ body:has(#lpInstalar) #pfn-as{bottom:136px}
   var HIST = [], IA = {!! json_encode(route('asistente.ia'), JSON_UNESCAPED_SLASHES) !!}, CSRF = {!! json_encode(csrf_token()) !!}, SESION = Math.random().toString(36).slice(2, 14) + Date.now().toString(36);
   // 2026-11-13: lo que no reconocen las palabras clave lo contesta la IA gratis (Groq); si no hay, WhatsApp.
   function preguntarIA(t, k) {
-    var pens = document.createElement('div'); pens.className = 'as-b as-bot'; pens.textContent = '…'; msgs.appendChild(pens); msgs.scrollTop = msgs.scrollHeight;
+    var pens = escribiendo(); msgs.scrollTop = msgs.scrollHeight;
     var hist = HIST.slice(0, -1);
     fetch(IA, {method: 'POST', credentials: 'same-origin', headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json'}, body: JSON.stringify({mensaje: t, historial: hist, sesion: SESION})})
       .then(function (r) { return r.ok ? r.json() : {ok: false}; })
       .then(function (j) {
+        if (j && j.ok && j.texto) { setTimeout(function () { pens.remove(); burbuja(j.texto, 'bot'); }, Math.min(1800, 300 + j.texto.length * 8)); return; }
         pens.remove();
-        if (j && j.ok && j.texto) { burbuja(j.texto, 'bot'); return; }
         k ? burbuja(R[k], 'bot') : noEntendi(t);
       }).catch(function () { pens.remove(); k ? burbuja(R[k], 'bot') : noEntendi(t); });
+  }
+  // 2026-11-13 (Jhoset): "Mía está escribiendo…" para que la charla se sienta natural
+  function escribiendo() {
+    var e = document.createElement('div'); e.className = 'as-esc'; e.innerHTML = 'Mía está escribiendo<i></i><i></i><i></i>';
+    msgs.appendChild(e); msgs.scrollTop = msgs.scrollHeight; return e;
   }
   function noEntendi(t) {
     burbuja('No estoy seguro de haber entendido 🤔. Toca una de las opciones de abajo, o [escríbenos por WhatsApp](' + wa('Hola, tengo una pregunta: ' + t) + ') y una persona te responde.', 'bot');
   }
-  function responder(clave) { setTimeout(function () { burbuja(R[clave], 'bot'); }, 250); }
+  function responder(clave) { var e = escribiendo(); setTimeout(function () { e.remove(); burbuja(R[clave], 'bot'); }, 900); }
   function entender(t) {
     var n = norm(t);
     for (var i = 0; i < CLAVES.length; i++) {
@@ -120,7 +129,7 @@ body:has(#lpInstalar) #pfn-as{bottom:136px}
   var iniciado = false;
   function abrir() {
     box.classList.add('abierto');
-    if (!iniciado) { iniciado = true; burbuja(D.sesion ? '¡Hola! 👋 Soy el asistente de LocalProo. ¿Qué quieres hacer en tu sistema? Escríbeme o toca una opción.' : '¡Hola! 👋 Soy el asistente de LocalProo. ¿Qué tipo de negocio tienes? Te cuento cómo LocalProo te ayuda.', 'bot'); }
+    if (!iniciado) { iniciado = true; var e = escribiendo(); setTimeout(function () { e.remove(); burbuja(D.sesion ? '¡Hola! 👋 Soy Mía, la asistente virtual de LocalProo. ¿Qué quieres hacer hoy en tu sistema? Escríbeme o toca una opción.' : '¡Hola! 👋 Soy Mía, la asistente virtual de LocalProo. ¿Qué tipo de negocio tienes? Te cuento cómo LocalProo te ayuda.', 'bot'); }, 700); }
     setTimeout(function () { box.querySelector('[data-in]').focus(); }, 50);
   }
   // 2026-11-13 (Jhoset): link que abre el chat solo: ?mia, ?chat o #mia / #chat
