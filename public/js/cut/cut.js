@@ -2692,6 +2692,14 @@ function listaSubs() {
 }
 
 /* ---------- exportar ---------- */
+// Cancelar: cierra la ventana y deja todo como estaba
+function exportCancelada(m) {
+  if (EXP._avisado) return; EXP._avisado = true;
+  anunciosExportando(false);
+  m.hidden = true;
+  $('.cut-exp-run', m).hidden = true; $('.cut-exp-op', m).hidden = false;
+  aviso('Exportación cancelada');
+}
 const EXP = { res: 1080, fps: 30, mbps: 0, cancelar: false };
 const guardarAj = () => {}; // por defecto siempre 1080p a 30 fps; lo que cambie arriba vale mientras edita
 const FPSS = [24, 25, 30, 50, 60], MBPS = [0, 5, 10, 20, 50, 100];
@@ -2705,7 +2713,29 @@ const ANUNCIOS = (Array.isArray(window.CUT_ANUNCIOS) && window.CUT_ANUNCIOS.leng
   { e: '💼', t: 'Ventas, inventario y caja en su celular', s: 'Todo su negocio en LocalPro, con app', u: '/funciones?desde=cut-anuncio-negocio' },
 ];
 // Tarjeta de un anuncio (con foto si tiene)
+// Diseño de pasarela (Nariño Exposhow): luces, pasarela y siluetas de modelos
+const SILUETA = (x, y, s2, o) => `<g transform="translate(${x} ${y}) scale(${s2})" opacity="${o}"><circle cx="0" cy="-58" r="6.5"/><path d="M-5 -51 L5 -51 L7 -30 L13 -2 L-13 -2 L-7 -30 Z"/><path d="M-3 -2 L-5 22 L-2 22 L1 -2 Z M2 -2 L6 21 L9 21 L5 -2 Z"/><path d="M-5 -49 L-11 -24 L-9 -23 L-3 -44 Z M5 -49 L10 -26 L8 -25 L3 -44 Z"/></g>`;
+function tarjetaModa(ad) {
+  const tit = String(ad.t || '').split('·')[0].trim() || 'Nariño Exposhow';
+  const fecha = ad.fecha || String(ad.t || '').split('·')[1]?.trim() || '';
+  return `<a class="aj-anuncio ad-moda" href="${esc(ad.u)}" target="_blank" rel="noopener"><em>Anuncio</em>
+    <svg class="moda-fondo" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="mdF" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#16060f"/><stop offset=".6" stop-color="#2a0b1f"/><stop offset="1" stop-color="#0a0508"/></linearGradient>
+        <linearGradient id="mdL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3d6" stop-opacity=".55"/><stop offset="1" stop-color="#fff3d6" stop-opacity="0"/></linearGradient>
+        <linearGradient id="mdP" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b1830"/><stop offset="1" stop-color="#d9b45a" stop-opacity=".55"/></linearGradient>
+        <radialGradient id="mdB" cx=".5" cy="0" r=".6"><stop offset="0" stop-color="#ff4fa3" stop-opacity=".35"/><stop offset="1" stop-color="#ff4fa3" stop-opacity="0"/></radialGradient>
+      </defs>
+      <rect width="400" height="200" fill="url(#mdF)"/><rect width="400" height="200" fill="url(#mdB)"/>
+      <path d="M250 0 L222 200 L300 200 Z" fill="url(#mdL)"/><path d="M330 0 L290 200 L372 200 Z" fill="url(#mdL)"/><path d="M300 0 L262 200 L340 200 Z" fill="url(#mdL)" opacity=".7"/>
+      <path d="M286 92 L314 92 L380 200 L220 200 Z" fill="url(#mdP)"/>
+      <g fill="#d9b45a" opacity=".85">${[[0, 8], [40, 14], [70, 4], [105, 18], [140, 9], [175, 15], [395, 12], [380, 30]].map(([x, y]) => `<circle cx="${x + 2}" cy="${y + 4}" r="1.4"/>`).join('')}</g>
+      <g fill="#050205">${SILUETA(300, 112, 0.5, 0.6)}${SILUETA(268, 140, 0.75, 0.85)}${SILUETA(334, 140, 0.75, 0.85)}${SILUETA(300, 172, 1.15, 1)}</g>
+    </svg>
+    <span class="moda-txt"><small>LA PASARELA${fecha ? ' · ' + esc(fecha) : ''}</small><b>${esc(tit)}</b><span>${esc(ad.s || 'Los mejores modelos de Nariño')}</span><i class="ir">Entradas →</i></span></a>`;
+}
 function tarjetaAd(ad) {
+  if (ad.d === 'moda') return tarjetaModa(ad);
   const txt = `<i>${esc(ad.e || '📢')}</i><span><b>${esc(ad.t)}</b><small>${esc(ad.s || '')}</small></span><span class="ir">Ver</span>`;
   return ad.img
     ? `<a class="aj-anuncio con-img" href="${esc(ad.u)}" target="_blank" rel="noopener"><em>Anuncio</em><img src="${esc(ad.img)}" alt="" onerror="this.remove()"><span class="txt">${txt}</span></a>`
@@ -2805,6 +2835,8 @@ async function abrirExportar() {
   if (typeof VideoEncoder === 'undefined') return aviso('Este navegador no puede exportar video. Use Chrome actualizado.', 'mal');
   const m = $('#cutExportar');
   m.hidden = false;
+  EXP.cancelar = false; EXP._avisado = false;
+  { const bc = $('[data-cancelar]', m); bc.disabled = false; bc.textContent = 'Cancelar'; bc.onclick = () => { EXP.cancelar = true; bc.disabled = true; bc.textContent = 'Cancelando…'; if (!S.exportando) exportCancelada(m); }; }
   // Va directo a "exportando" (sin la pantalla de opciones en medio)
   $('.cut-exp-op', m).hidden = true; $('.cut-exp-run', m).hidden = false; $('.cut-exp-fin', m).hidden = true;
   { const pr = $('.cut-exp-run .cut-progreso', m); if (pr) { $('i', pr).style.width = '1%'; $('span', pr).textContent = 'Preparando…'; } }
@@ -2832,6 +2864,7 @@ async function abrirExportar() {
   $('[data-cerrar]', m).onclick = () => { m.hidden = true; };
   const intentar = () => exportar().catch(err => {
     S.exportando = false; ajustarVista();
+    if (err?.message === 'cancelado') { exportCancelada(m); return; }
     if (EXP.mbps && err.message !== 'memoria' && !EXP.cancelar) {
       aviso('Su equipo no alcanzó esa tasa de bits: lo exportamos con la recomendada.');
       EXP.mbps = 0; marcar();
@@ -2858,11 +2891,14 @@ async function abrirExportar() {
     $('button', caja).onclick = () => window.LPOpinion?.abrir({ tipo: 'falla', mensaje: 'Al exportar el video me salió: ' + motivo + '\n\nLo que estaba haciendo: ', datos: { fase: 'exportar', res: EXP.res, fps: EXP.fps } });
   });
   $('[data-iniciar]', m).onclick = async () => {
+    EXP.cancelar = false; EXP._avisado = false; $('[data-cancelar]', m).disabled = false; $('[data-cancelar]', m).textContent = 'Cancelar';
     $('[data-fallo]', m)?.remove();
     await invitarRegistro();
+    if (EXP.cancelar) return exportCancelada(m);
     contar('exportar', { res: EXP.res, fps: EXP.fps, seg: Math.round(lay().total) });
     intentar();
   };
+  if (EXP.cancelar) return exportCancelada(m);
   // Como CapCut: con tocar Exportar arriba ya empieza, con lo elegido en el botón de calidad (o 1080p a 30 fps)
   $('[data-iniciar]', m).onclick();
 }
@@ -2917,10 +2953,11 @@ async function exportar() {
   ADS.pend = null; anunciosExportando(true);
   const barra = $('.cut-exp-run i', m), txt = $('.cut-exp-run span', m);
   const poner = (pct, t) => { barra.style.width = pct + '%'; txt.textContent = t; };
-  EXP.cancelar = false;
-  $('[data-cancelar]', m).onclick = () => { EXP.cancelar = true; };
+  const corte = () => { if (EXP.cancelar) throw new Error('cancelado'); };
+  corte();
   await document.fonts.ready;
   if (S.belleza.on) { poner(1, 'Cargando el filtro de belleza…'); await activarBelleza(); }
+  corte();
 
   const { W, H } = tamSalida(EXP.res);
   const fps = EXP.fps;
@@ -2932,6 +2969,7 @@ async function exportar() {
 
   poner(2, 'Preparando el audio…');
   const audio = audioCodec ? await mezclarAudio(48000, 2) : null;
+  corte();
 
   const { target, archivo } = await destino();
   const out = new MB.Output({ format: new MB.Mp4OutputFormat(), target });
@@ -2984,6 +3022,7 @@ async function exportar() {
   let recuperaciones = 0;
   // Los videos con copia liviana se duermen: al exportar despiertan con el archivo original (calidad completa)
   S.clips.forEach(c => { if (c.urlVista && c.el && !c.el._dormido && c.el._abierto) dormirVideo(c); });
+  if (EXP.cancelar) { try { await out.cancel(); } catch (e) { /* nada */ } volverACopias(); throw new Error('cancelado'); }
   S.exportando = true;
   pedirPantalla();
 
@@ -3143,7 +3182,7 @@ async function exportar() {
     S.exportando = false; soltarPantalla(); volverACopias();
     motor.tamano(vistaW, vistaH); S.dirty = true;
     if (S._resizePend) { S._resizePend = false; ajustarVista(); pintarLinea(); }
-    if (e.message === 'cancelado') { anunciosExportando(false); $('.cut-exp-op', m).hidden = false; $('.cut-exp-run', m).hidden = true; aviso('Exportación cancelada'); return; }
+    if (e.message === 'cancelado') throw e;
     throw e;
   }
   S.exportando = false; soltarPantalla(); volverACopias();

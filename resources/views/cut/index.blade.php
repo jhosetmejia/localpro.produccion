@@ -45,7 +45,15 @@ body.editando .cut-logo{display:none}
 .aj-ads{margin-top:14px}
 .ad-carr{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;gap:10px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .ad-carr::-webkit-scrollbar{display:none}
-.ad-carr .aj-anuncio{flex:0 0 100%;scroll-snap-align:center;margin-top:0;animation:none}
+.ad-carr .ad-moda{min-height:150px;padding:0!important;background:#16060f!important;align-items:stretch!important}
+.ad-moda .moda-fondo{position:absolute;inset:0;width:100%;height:100%}
+.ad-moda .moda-txt{position:relative;z-index:1;display:flex;flex-direction:column;justify-content:center;gap:3px;padding:16px 16px 14px;max-width:62%}
+.ad-moda .moda-txt small{color:#d9b45a;font-weight:800;letter-spacing:.18em;font-size:.62rem}
+.ad-moda .moda-txt b{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:700;font-size:1.45rem;line-height:1.02;letter-spacing:.02em;text-transform:uppercase;color:#fff;text-shadow:0 2px 12px rgba(255,79,163,.45)}
+.ad-moda .moda-txt>span{font-size:.8rem;opacity:.9}
+.ad-moda .moda-txt .ir{align-self:flex-start;margin:8px 0 0!important;font-style:normal;background:linear-gradient(135deg,#ffd76a,#d9b45a);color:#1a0812;border-radius:999px;padding:.35rem .8rem;font-weight:800;font-size:.78rem}
+.ad-moda em{z-index:2}
+.aj-anuncio{flex:0 0 100%;scroll-snap-align:center;margin-top:0;animation:none}
 .ad-puntos{display:flex;justify-content:center;gap:5px;margin-top:8px}
 .ad-puntos i{width:6px;height:6px;border-radius:50%;background:#3a423d;transition:width .2s}
 .ad-puntos i.on{background:#a6f34a;width:16px;border-radius:9px}

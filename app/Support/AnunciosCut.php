@@ -55,18 +55,26 @@ class AnunciosCut
     public static function automaticos(): array
     {
         $out = [];
-        foreach ([['exposhow', '👗', 'La pasarela'], ['pfn', '🥊', 'La noche de PFN']] as [$buscar, $emoji, $frase]) {
-            try {
-                $e = Evento::withoutGlobalScopes()->where('nombre', 'like', '%' . $buscar . '%')
-                    ->where('estado', 'publicado')->where('fecha_evento', '>=', now()->startOfDay())->orderBy('fecha_evento')->first();
-                if ($e) {
-                    $f = $e->fecha_evento;
-                    $out[] = ['e' => $emoji, 't' => $e->nombre . ' · ' . $f->day . ' de ' . self::MESES[$f->month],
-                        's' => Str::limit(trim($e->subtitulo ?: $frase . ' · compre su entrada aquí'), 70, '…'),
-                        'u' => $e->url, 'img' => $e->imagen_url, 'hasta' => $f->toDateString(), 'on' => true];
-                }
-            } catch (\Throwable $x) { /* si falla, ese anuncio no sale */ }
-        }
+        // Nariño Exposhow: anuncio con diseño de pasarela (sale siempre hasta el día del evento)
+        try {
+            $e = Evento::withoutGlobalScopes()->where(fn ($q) => $q->where('nombre', 'like', '%exposhow%')->orWhere('nombre', 'like', '%expo show%'))
+                ->where('estado', '!=', 'borrador')->where(fn ($q) => $q->whereNull('fecha_evento')->orWhere('fecha_evento', '>=', now()->startOfDay()))
+                ->orderBy('fecha_evento')->first();
+        } catch (\Throwable $x) { $e = null; }
+        $f = $e?->fecha_evento ?: \Illuminate\Support\Carbon::create(2026, 12, 18);
+        $out[] = ['e' => '👗', 'd' => 'moda', 't' => 'Nariño Exposhow · ' . $f->day . ' de ' . self::MESES[$f->month],
+            's' => 'La pasarela con los mejores modelos de Nariño', 'u' => $e?->url ?: url('/evento/narino-exposhow'),
+            'img' => null, 'hasta' => $f->toDateString(), 'on' => true, 'fecha' => $f->day . ' ' . mb_strtoupper(mb_substr(self::MESES[$f->month], 0, 3))];
+        try {
+            $e = Evento::withoutGlobalScopes()->where('nombre', 'like', '%pfn%')
+                ->where('estado', 'publicado')->where('fecha_evento', '>=', now()->startOfDay())->orderBy('fecha_evento')->first();
+            if ($e) {
+                $f = $e->fecha_evento;
+                $out[] = ['e' => '🥊', 't' => $e->nombre . ' · ' . $f->day . ' de ' . self::MESES[$f->month],
+                    's' => Str::limit(trim($e->subtitulo ?: 'La noche de PFN · compre su entrada aquí'), 70, '…'),
+                    'u' => $e->url, 'img' => $e->imagen_url, 'hasta' => $f->toDateString(), 'on' => true];
+            }
+        } catch (\Throwable $x) { /* si falla, ese anuncio no sale */ }
         try {
             $t = Tienda::query()->where('nombre', 'like', '%abril store%')->first();
             if ($t) {
