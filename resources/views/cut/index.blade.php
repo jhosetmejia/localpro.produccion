@@ -26,7 +26,7 @@ body{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
 button{font:inherit;color:inherit;cursor:pointer}
 [hidden]{display:none!important}
 .cut-top{display:flex;align-items:center;gap:.6rem;padding:calc(env(safe-area-inset-top,0px) + 8px) 14px 8px;border-bottom:1px solid var(--b);flex:0 0 auto}
-.cut-x{background:transparent;border:0;color:var(--t);padding:.25rem .35rem;border-radius:10px;display:grid;place-items:center}
+.cut-top .cut-cerrar-top{order:-1;flex:none;background:transparent;border:0;color:var(--t);padding:.25rem .35rem;margin-right:auto;border-radius:10px;display:grid;place-items:center;position:static}
 .cut-calidad{display:flex;align-items:center;gap:.25rem;background:#2a2f2c;border:0;color:var(--t);border-radius:12px;padding:.45rem .7rem;font-weight:800;font-size:.86rem}
 .cut-calidad.on svg{transform:rotate(180deg)}
 body.editando .cut-logo{display:none}
@@ -42,6 +42,13 @@ body.editando .cut-logo{display:none}
 .aj-marcas span.on{color:#fff}
 .aj-peso{text-align:center;color:#c9d3cd;font-size:.86rem;border-top:1px solid #2a312d;padding-top:12px;margin-top:6px}
 .cut-exp-ads{margin:14px 0 4px;min-height:96px}
+.aj-ads{margin-top:14px}
+.ad-carr{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;gap:10px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.ad-carr::-webkit-scrollbar{display:none}
+.ad-carr .aj-anuncio{flex:0 0 100%;scroll-snap-align:center;margin-top:0;animation:none}
+.ad-puntos{display:flex;justify-content:center;gap:5px;margin-top:8px}
+.ad-puntos i{width:6px;height:6px;border-radius:50%;background:#3a423d;transition:width .2s}
+.ad-puntos i.on{background:#a6f34a;width:16px;border-radius:9px}
 .cut-exp-ads .aj-anuncio{margin-top:0;animation:adEntra .45s ease}
 .cut-exp-ads .aj-anuncio.con-img{flex-direction:column;align-items:stretch;padding:0;gap:0}
 .cut-exp-ads .aj-anuncio.con-img img{width:100%;max-height:190px;object-fit:cover;display:block}
@@ -549,7 +556,7 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
 </head>
 <body>
 <header class="cut-top">
-    <button type="button" class="cut-x" id="cutCerrar" data-inicio="{{ url('/') }}" aria-label="Cerrar y ver mis proyectos" title="Cerrar y ver mis proyectos"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <button type="button" class="cut-cerrar-top" id="cutCerrar" data-inicio="{{ url('/') }}" aria-label="Cerrar y ver mis proyectos" title="Cerrar y ver mis proyectos"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     <div class="cut-logo"><i>✂</i>LocalPro<b>Cut</b></div>
     <span class="sp"></span>
     <button type="button" class="cut-app solo-web" data-instalar><img src="/icons/cut-192.png" alt=""><span>Descargar app</span></button>
