@@ -2668,21 +2668,36 @@ function tarjetaAd(ad) {
 }
 /* ---------- Anuncios mientras se exporta: van cambiando cada 6 s. Si tocan uno, se abre al terminar
    (abrir otra pestaña en medio de la exportación la pone lenta o la frena en el celular) ---------- */
-const ADS = { timer: null, i: 0, pend: null };
+const ADS = { pend: null, carr: [] };
+// Carrusel de anuncios: se puede deslizar con el dedo y si no, pasa solo cada 6 s
+function carruselAds(caja, alTocar) {
+  const prev = ADS.carr.find(c => c.caja === caja); if (prev) { clearInterval(prev.t); ADS.carr = ADS.carr.filter(c => c !== prev); }
+  if (!ANUNCIOS.length) { caja.innerHTML = ''; return; }
+  const ini = Math.floor(Math.random() * ANUNCIOS.length);
+  const lista = [...ANUNCIOS.slice(ini), ...ANUNCIOS.slice(0, ini)];
+  caja.innerHTML = `<div class="ad-carr">${lista.map(tarjetaAd).join('')}</div>`
+    + (lista.length > 1 ? `<div class="ad-puntos">${lista.map((_, j) => `<i class="${j ? '' : 'on'}"></i>`).join('')}</div>` : '');
+  const carr = $('.ad-carr', caja), pts = $$('.ad-puntos i', caja);
+  const actual = () => Math.round(carr.scrollLeft / Math.max(1, carr.clientWidth));
+  const c = { caja, t: null, quieto: 0 };
+  carr.addEventListener('scroll', () => { const i = actual(); pts.forEach((p, j) => p.classList.toggle('on', j === i)); }, { passive: true });
+  const parar = () => { c.quieto = Date.now(); };
+  carr.addEventListener('pointerdown', parar, { passive: true }); carr.addEventListener('touchstart', parar, { passive: true });
+  $$('.aj-anuncio', carr).forEach((a, j) => a.addEventListener('click', (e) => alTocar(e, lista[j])));
+  if (lista.length > 1) c.t = setInterval(() => {
+    if (!caja.isConnected) { clearInterval(c.t); return; }
+    if (Date.now() - c.quieto < 7000 || !carr.clientWidth) return; // si la persona está deslizando, no se le mueve
+    const sig = (actual() + 1) % lista.length;
+    carr.scrollTo({ left: sig * carr.clientWidth, behavior: 'smooth' });
+  }, 6000);
+  ADS.carr.push(c);
+}
 function anunciosExportando(si) {
   const caja = $('#cutExportar [data-ads]'); if (!caja) return;
-  clearInterval(ADS.timer); ADS.timer = null;
-  if (!si || !ANUNCIOS.length) { caja.innerHTML = ''; return; }
-  ADS.i = Math.floor(Math.random() * ANUNCIOS.length);
-  const pintar = () => {
-    const ad = ANUNCIOS[ADS.i % ANUNCIOS.length];
-    caja.innerHTML = tarjetaAd(ad)
-      + (ANUNCIOS.length > 1 ? `<div class="puntos">${ANUNCIOS.map((_, j) => `<i class="${j === ADS.i % ANUNCIOS.length ? 'on' : ''}"></i>`).join('')}</div>` : '')
-      + '<small class="espera">Mientras su video se arma 🎬</small>';
-    $('a', caja).onclick = (e) => { e.preventDefault(); ADS.pend = ad; contar('clic_anuncio', { t: ad.t, cuando: 'exportando' }); aviso('👍 Se lo abrimos apenas termine su video'); };
-  };
-  pintar();
-  ADS.timer = setInterval(() => { ADS.i++; pintar(); }, 6000);
+  if (!si) { const c = ADS.carr.find(x => x.caja === caja); if (c) clearInterval(c.t); ADS.carr = ADS.carr.filter(x => x !== c); caja.innerHTML = ''; return; }
+  // Si tocan uno mientras exporta, se abre al terminar (abrir otra pestaña frena la exportación en el celular)
+  carruselAds(caja, (e, ad) => { e.preventDefault(); ADS.pend = ad; contar('clic_anuncio', { t: ad.t, cuando: 'exportando' }); aviso('👍 Se lo abrimos apenas termine su video'); });
+  caja.insertAdjacentHTML('beforeend', '<small class="espera">Mientras su video se arma 🎬 · deslice para ver más</small>');
 }
 /* ---------- Calidad de exportación arriba (como CapCut): resolución, cuadros por segundo y tasa de bits ---------- */
 function pintarCalidad() { const b = $('#cutCalidad'); if (b) $('span', b).textContent = etqRes(EXP.res); }
@@ -2697,7 +2712,7 @@ const notaFps = (f) => f >= 50 ? 'Reproducción más fluida' : f === 30 ? 'Norma
 const notaMbps = () => EXP.mbps ? (EXP.mbps > 40 ? 'Muy alta: archivo pesado' : EXP.mbps < mbpsRecom() / 2 ? 'Más liviano, menos nítido' : 'Buena calidad') : `Recomendado para este video (${mbpsRecom()})`;
 function pintarAjExp() {
   const caja = $('#cutAjExp .cut-ajexp-in');
-  const rl = RES_LIST(), ad = ANUNCIOS[Math.floor(Math.random() * ANUNCIOS.length)];
+  const rl = RES_LIST();
   if (!rl.includes(EXP.res)) EXP.res = 1080;
   if (!FPSS.includes(EXP.fps)) EXP.fps = 30;
   if (!MBPS.includes(EXP.mbps)) EXP.mbps = 0;
@@ -2705,8 +2720,8 @@ function pintarAjExp() {
     + deslizador('fps', 'Cuadros por segundo', notaFps(EXP.fps), FPSS, FPSS.indexOf(EXP.fps))
     + deslizador('mbps', 'Tasa de bits (Mbps)', notaMbps(), MBPS.map(v => v || 'Auto'), MBPS.indexOf(EXP.mbps))
     + `<div class="aj-peso" data-peso>Tamaño estimado del archivo: ${pesoMB()} MB</div>
-      ${tarjetaAd(ad)}`;
-  $('.aj-anuncio', caja).onclick = () => contar('clic_anuncio', { t: ad.t });
+      <div class="aj-ads"></div>`;
+  carruselAds($('.aj-ads', caja), (e, a) => contar('clic_anuncio', { t: a.t }));
   $$('[data-aj]', caja).forEach(r => r.oninput = () => {
     const i = Number(r.value), k = r.dataset.aj;
     if (k === 'res') EXP.res = rl[i]; if (k === 'fps') EXP.fps = FPSS[i]; if (k === 'mbps') EXP.mbps = MBPS[i];
