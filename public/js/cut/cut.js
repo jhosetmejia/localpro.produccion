@@ -686,7 +686,7 @@ function pintarLinea() {
     b.innerHTML = `<em>${etqVel ? icVel + esc(etqVel) : ''}${c.tipo === 'video' && (c.mute || S.silenciar) ? icMudo : ''}${ef ? `<i class="ef">${ef.e}</i>` : ''}</em>` + `<span>${c.tipo === 'imagen' ? '🖼 ' : ''}${fmt(largo(c)).slice(0, 5)}</span>`;
     if (c.kf?.length) b.insertAdjacentHTML('beforeend', c.kf.map(k => `<i class="kfc ${S.sel === c.id ? '' : 'apag'}" style="left:${Math.min(k.t, largo(c)) * S.pps}px"></i>`).join(''));
     b.addEventListener('pointerdown', (e) => presionarClip(e, c));
-    b.onclick = (e) => { e.stopPropagation(); if (b._recorto) { b._recorto = false; return; } if (Date.now() - (S._finOrden || 0) < 500) return; S.sel = c.id; S.selM = null; S.selC = null; S.barraClip = true; S.barraAudio = false; abrirTab(TABS_CLIP.includes(S.tab) ? S.tab : null); pintarLinea(); };
+    b.onclick = (e) => { e.stopPropagation(); if (b._recorto) { b._recorto = false; return; } if (Date.now() - (S._finOrden || 0) < 500) return; S.sel = c.id; S.selM = null; S.selC = null; S.barraClip = true; S.barraAudio = false; S.barraTexto = false; abrirTab(TABS_CLIP.includes(S.tab) ? S.tab : null); pintarLinea(); };
     // Tiradores para recortar arrastrando los bordes (como CapCut)
     if (S.sel === c.id) {
       for (const lado of ['izq', 'der']) {
@@ -728,7 +728,7 @@ function pintarLinea() {
     if (m.onda) { const v = m.vel || 1; b.style.backgroundImage = `url(${m.onda})`; b.style.backgroundSize = `${(m.dur || largoM(m)) / v * S.pps}px 100%`; b.style.backgroundPositionX = `${-(m.in || 0) / v * S.pps}px`; }
     else ondas(m);
     if (m.kfv?.length) b.insertAdjacentHTML('beforeend', m.kfv.map(k => `<i class="kfv ${S.selM === m.id ? '' : 'apag'}" style="left:${k.t * S.pps}px"></i>`).join(''));
-    b.onclick = (e) => { e.stopPropagation(); S.selM = m.id; S.sel = null; S.selC = null; S.barraClip = false; S.barraAudio = false; abrirTab(innerWidth < 1000 ? null : 'audio'); pintarLinea(); };
+    b.onclick = (e) => { e.stopPropagation(); S.selM = m.id; S.sel = null; S.selC = null; S.barraClip = false; S.barraAudio = false; S.barraTexto = false; abrirTab(innerWidth < 1000 ? null : 'audio'); pintarLinea(); };
     pa.appendChild(b);
   });
   const addA = document.createElement('button');
@@ -978,6 +978,71 @@ async function extraerDeClip(c) {
     abrirTab('audio'); pintarLinea(); sincronizar(); guardar();
     aviso((c.vel || 1) !== 1 || c.curva ? 'Audio extraído (suena a velocidad normal) 🎬' : 'Audio extraído: ya lo puede mover o cambiarle el volumen 🎬');
   } catch (e) { aviso('No se pudo extraer el audio de este video', 'mal'); }
+}
+// Plantillas de texto (como CapCut): un diseño listo con letra, color, tamaño y animación
+const PLANTILLAS_TX = [
+  { n: 'Título TikTok', ej: 'MIRA ESTO', estilo: 'tiktok', color: '#ffffff', tam: 'L', ai: 'rebote', ao: 'zoom', mayus: true, pos: 0.3 },
+  { n: 'Oferta', ej: '¡2x1 HOY!', estilo: 'caja', color: '#ffe14d', tam: 'L', ai: 'zoom', ao: 'desvanecer', mayus: true, pos: 0.25 },
+  { n: 'Neón', ej: 'Abierto', estilo: 'neon', color: '#ff4fa3', tam: 'L', ai: 'aparecer', ao: 'desvanecer', pos: 0.3 },
+  { n: 'Elegante', ej: 'Bienvenidos', estilo: 'elegante', color: '#ffffff', tam: 'M', ai: 'subir', ao: 'desvanecer', pos: 0.75 },
+  { n: 'Una palabra', ej: 'WOW', estilo: 'pop', color: '#a6f34a', tam: 'L', ai: 'rebote', ao: 'zoom', mayus: true, pos: 0.5 },
+  { n: 'Máquina', ej: 'Sabías que…', estilo: 'maquina', color: '#ffffff', tam: 'M', ai: 'izquierda', ao: 'desvanecer', pos: 0.7 },
+  { n: 'Resaltado', ej: 'Lo mejor', estilo: 'resaltado', color: '#39d5ff', tam: 'M', ai: 'subir', ao: 'bajar', pos: 0.72 },
+  { n: 'Clásico', ej: 'Texto', estilo: 'clasico', color: '#ffffff', tam: 'M', ai: 'aparecer', ao: 'desvanecer', pos: 0.8 },
+];
+/* ---------- Dibujar (como CapCut): se pinta con el dedo encima del video y queda como una capa ---------- */
+function abrirDibujo() {
+  if (!S.clips.length) return aviso('Primero agregue un video');
+  pausar();
+  const W = vista.width, H = vista.height;
+  const m = document.createElement('div');
+  m.className = 'cut-dib';
+  const COLS = ['#ffffff', '#000000', '#ff3b5c', '#ffe14d', '#a6f34a', '#39d5ff', '#b06bff', '#ff8a00'];
+  m.innerHTML = `<div class="cut-dib-top"><button type="button" data-x>Cancelar</button><b>Dibujar</b><button type="button" data-ok class="ok">Listo</button></div>
+    <div class="cut-dib-lienzo"><canvas data-f></canvas><canvas data-d></canvas></div>
+    <div class="cut-dib-herr">
+      <div class="cut-dib-cols">${COLS.map((c, i) => `<button type="button" data-c="${c}" class="${i ? '' : 'on'}" style="background:${c}"></button>`).join('')}</div>
+      <div class="cut-dib-fila"><small>Grosor</small><input type="range" min="3" max="40" value="10" data-g><button type="button" data-borr>Borrador</button><button type="button" data-des>↩</button><button type="button" data-lim>Limpiar</button></div>
+    </div>`;
+  document.body.appendChild(m);
+  const f = $('[data-f]', m), d = $('[data-d]', m);
+  f.width = d.width = W; f.height = d.height = H;
+  f.getContext('2d').drawImage(vista, 0, 0);
+  const x = d.getContext('2d');
+  const trazos = []; let actual = null, color = COLS[0], borr = false;
+  const redibujar = () => {
+    x.clearRect(0, 0, W, H);
+    for (const t of trazos) {
+      x.globalCompositeOperation = t.borr ? 'destination-out' : 'source-over';
+      x.strokeStyle = t.c; x.lineWidth = t.g; x.lineCap = 'round'; x.lineJoin = 'round';
+      x.beginPath(); t.p.forEach((q, i) => i ? x.lineTo(q[0], q[1]) : x.moveTo(q[0], q[1]));
+      if (t.p.length === 1) x.lineTo(t.p[0][0] + 0.1, t.p[0][1]);
+      x.stroke();
+    }
+    x.globalCompositeOperation = 'source-over';
+  };
+  const pto = (e) => { const r = d.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
+  d.addEventListener('pointerdown', (e) => { e.preventDefault(); d.setPointerCapture(e.pointerId); actual = { c: color, g: Number($('[data-g]', m).value) * W / 400, borr, p: [pto(e)] }; trazos.push(actual); redibujar(); });
+  d.addEventListener('pointermove', (e) => { if (!actual) return; actual.p.push(pto(e)); redibujar(); });
+  const fin = () => { actual = null; };
+  d.addEventListener('pointerup', fin); d.addEventListener('pointercancel', fin);
+  $('.cut-dib-cols', m).onclick = (e) => { const b = e.target.closest('[data-c]'); if (!b) return; color = b.dataset.c; borr = false; $$('.cut-dib-cols button', m).forEach(q => q.classList.toggle('on', q === b)); $('[data-borr]', m).classList.remove('on'); };
+  $('[data-borr]', m).onclick = (e) => { borr = !borr; e.currentTarget.classList.toggle('on', borr); };
+  $('[data-des]', m).onclick = () => { trazos.pop(); redibujar(); };
+  $('[data-lim]', m).onclick = () => { trazos.length = 0; redibujar(); };
+  $('[data-x]', m).onclick = () => m.remove();
+  $('[data-ok]', m).onclick = () => {
+    if (!trazos.some(t => !t.borr)) { m.remove(); return; }
+    d.toBlob(async (blob) => {
+      m.remove();
+      if (!blob) return aviso('No se pudo guardar el dibujo', 'mal');
+      const file = new File([blob], 'dibujo.png', { type: 'image/png' });
+      const k = { tipo: 'imagen', file, fileId: uid(), nombre: 'Dibujo', tam: W / Math.min(W, H), x: 0.5, y: 0.5 };
+      try { await cargarCapaImagen(k); } catch (err) { return aviso('No se pudo guardar el dibujo', 'mal'); }
+      DB.put('archivos', k.fileId, file);
+      if (nuevaCapa(k)) aviso('Dibujo agregado ✏️ Alargue la capa en la línea de tiempo para que dure más');
+    }, 'image/png');
+  };
 }
 function nuevoTexto() {
   if (!S.clips.length) return aviso('Primero agregue un video');
@@ -1521,7 +1586,7 @@ function mover(d) {
 }
 
 /* ---------- panel de herramientas ---------- */
-const TITULOS = { 'f-opacidad': 'Opacidad', 'f-fondo': 'Eliminar fondo', 'f-mascara': 'Máscara', 'm-vol': 'Volumen', 'm-fade': 'Desvanecer', 'm-efx': 'Efectos de audio', 'm-vel': 'Velocidad', voz: 'Texto a voz', volumen: 'Volumen', animaciones: 'Animaciones', recortar: 'Recortar', editar: 'Editar', audio: 'Audio', texto: 'Texto', efectos: 'Efectos', superposicion: 'Superposición', subtitulos: 'Subtítulos', filtros: 'Filtros', ajustar: 'Ajustar', stickers: 'Stickers', formato: 'Relación de aspecto', fondo: 'Fondo', velocidad: 'Velocidad', transicion: 'Transición', belleza: 'Belleza del rostro', capa: 'Capa', portada: 'Portada' };
+const TITULOS = { plantillas: 'Plantilla de texto', letra: 'Letra automática', 'f-opacidad': 'Opacidad', 'f-fondo': 'Eliminar fondo', 'f-mascara': 'Máscara', 'm-vol': 'Volumen', 'm-fade': 'Desvanecer', 'm-efx': 'Efectos de audio', 'm-vel': 'Velocidad', voz: 'Texto a voz', volumen: 'Volumen', animaciones: 'Animaciones', recortar: 'Recortar', editar: 'Editar', audio: 'Audio', texto: 'Texto', efectos: 'Efectos', superposicion: 'Superposición', subtitulos: 'Subtítulos', filtros: 'Filtros', ajustar: 'Ajustar', stickers: 'Stickers', formato: 'Relación de aspecto', fondo: 'Fondo', velocidad: 'Velocidad', transicion: 'Transición', belleza: 'Belleza del rostro', capa: 'Capa', portada: 'Portada' };
 function abrirTab(t) {
   S.tab = t;
   pintarBarra();
@@ -1578,6 +1643,13 @@ const ICS = {
   'm-vel': '<circle cx="12" cy="13" r="8"/><path d="m12 13 4-4"/>',
   'm-ruido': '<path d="M5 9v6M8 7v10M11 10v4"/><path d="M15 12h.01M18 9h.01M18 15h.01M21 12h.01"/>',
   'm-duplicar': '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
+  't-mas': '<path d="M3 19 8.5 5h1L15 19"/><path d="M5.3 14h7.4"/><path d="M19 8v6M16 11h6"/>',
+  subtitulos: '<path d="M4 7V4h3M17 4h3v3M20 17v3h-3M7 20H4v-3"/><path d="M10.5 10a2 2 0 1 0 0 4M16 10a2 2 0 1 0 0 4"/>',
+  stickers: '<path d="M20 12a8 8 0 1 1-8-8h3l5 5z"/><path d="M15 4v5h5"/><path d="M9 14a3 3 0 0 0 5 0"/>',
+  't-dibujar': '<path d="M4 20c3 0 4-1.5 4-3.5S6.5 13 9 12"/><path d="m14.5 4.5 5 5L11 18l-5-5z"/>',
+  plantillas: '<rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 4v16M16 4v16" opacity=".4"/><path d="M9.5 15.5 12 8.5l2.5 7M10.4 13.2h3.2"/>',
+  voz: '<rect x="3" y="4" width="18" height="16" rx="1"/><path d="M7 9v6M10 7v10M13 10v4M16 8v8"/>',
+  letra: '<rect x="4" y="4" width="16" height="16" rx="1" stroke-dasharray="3 2"/><path d="M10 15V8l5-1v6"/><circle cx="8.5" cy="15.5" r="1.5"/><circle cx="13.5" cy="13.5" r="1.5"/>',
   'a-lista': '<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',
 };
 const ic = (k) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ICS[k]}</svg>`;
@@ -1609,6 +1681,19 @@ function pintarBarra() {
       const it = [['tab', 'capa', 'Editar'], foto && ['tab', 'f-fondo', 'Eliminar fondo'], ['tab', 'f-opacidad', 'Opacidad'], foto && ['tab', 'f-mascara', 'Máscara'], ['acc', 'c-eliminar', 'Eliminar']].filter(Boolean);
       barra.innerHTML = `<button type="button" class="cut-volver" data-volver aria-label="Volver">${ic('volver')}</button>`
         + it.map(x => `<button type="button" class="cut-tab" ${x[0] === 'tab' ? 'data-tab' : 'data-acc'}="${x[1]}">${ic(x[1])}${x[2]}</button>`).join('');
+      barra.scrollLeft = 0;
+    }
+    $$('.cut-tab', barra).forEach(b => b.classList.toggle('on', !!b.dataset.tab && b.dataset.tab === S.tab));
+    return;
+  }
+  if (!c && S.barraTexto) {
+    if (barra._modo !== 'texto') {
+      barra._modo = 'texto';
+      // Barra de texto como CapCut: se toca "Texto" y abajo salen las opciones
+      const it = [['acc', 't-mas', 'Más texto'], ['tab', 'subtitulos', 'Subtítulos automáticos'], ['tab', 'stickers', 'Stickers'], ['acc', 't-dibujar', 'Dibujar'], 'sep',
+        ['tab', 'plantillas', 'Plantilla de texto'], ['tab', 'voz', 'Texto a audio'], ['tab', 'letra', 'Letra automática']];
+      barra.innerHTML = `<button type="button" class="cut-volver" data-volver aria-label="Volver">${ic('volver')}</button>`
+        + it.map(x => x === 'sep' ? '<span class="cut-sep"></span>' : `<button type="button" class="cut-tab" ${x[0] === 'tab' ? 'data-tab' : 'data-acc'}="${x[1]}">${ic(x[1])}${x[2]}</button>`).join('');
       barra.scrollLeft = 0;
     }
     $$('.cut-tab', barra).forEach(b => b.classList.toggle('on', !!b.dataset.tab && b.dataset.tab === S.tab));
@@ -1649,9 +1734,12 @@ function pintarBarra() {
 }
 barra.addEventListener('click', (e) => {
   const b = e.target.closest('button'); if (!b) return;
-  if (b.dataset.volver != null) { S.barraClip = false; S.barraAudio = false; S.sel = null; S.selM = null; S.selC = null; abrirTab(null); pintarLinea(); return; }
+  if (b.dataset.volver != null) { S.barraClip = false; S.barraAudio = false; S.barraTexto = false; S.sel = null; S.selM = null; S.selC = null; abrirTab(null); pintarLinea(); return; }
   if (b.dataset.acc === 'c-eliminar') { S.capas = S.capas.filter(x => x.id !== S.selC); S.selC = null; abrirTab(null); pintarLinea(); guardar(); return; }
   if (b.dataset.tab === 'audio' && innerWidth < 1000) return abrirBarraAudio();
+  if (b.dataset.tab === 'texto' && !S.barraTexto) return abrirBarraTexto();
+  if (b.dataset.acc === 't-mas') return nuevoTexto();
+  if (b.dataset.acc === 't-dibujar') return abrirDibujo();
   const acA = { 'a-extraer': () => $('#cutExtraer').click(), 'a-musica': () => $('#cutMusica').click(), 'a-grabar': () => vozEnOff(), 'a-tts': () => { S.selM = null; abrirTab(S.tab === 'voz' ? null : 'voz'); },
     'a-silenciar': () => silenciarOriginales(true), 'a-sonido': () => silenciarOriginales(false), 'a-lista': () => { S.selM = null; abrirTab(S.tab === 'audio' ? null : 'audio'); } }[b.dataset.acc];
   if (acA) return acA();
@@ -1720,7 +1808,8 @@ function refrescarVol(m, forzar = false) {
   $('.hv-lleno', riel).style.width = x + '%'; $('.hv-bola', riel).style.left = x + '%';
   const num = $('.hv-num', riel); num.style.left = x + '%'; num.textContent = n;
 }
-function abrirBarraAudio() { S.barraAudio = true; S.barraClip = false; S.sel = null; S.selM = null; S.selC = null; abrirTab(null); pintarLinea(); }
+function abrirBarraTexto() { S.barraTexto = true; S.barraAudio = false; S.barraClip = false; S.sel = null; S.selM = null; S.selC = null; abrirTab(null); pintarLinea(); }
+function abrirBarraAudio() { S.barraTexto = false; S.barraAudio = true; S.barraClip = false; S.sel = null; S.selM = null; S.selC = null; abrirTab(null); pintarLinea(); }
 function silenciarOriginales(si) { S.silenciar = si; sincronizar(); pintarLinea(); pintarBarra(); guardar(); aviso(si ? 'Sonido original de los videos apagado 🔇' : 'Sonido original de los videos activado 🔊'); }
 // Sustituir: cambia el video o la foto del clip y deja lo demás (velocidad, efectos, transición)
 $('#cutSustituir').addEventListener('change', async (e) => {
@@ -2067,12 +2156,19 @@ function pintarPanel() {
     $('[data-sil]', p).onchange = (e) => { S.silenciar = e.target.checked; sincronizar(); pintarLinea(); guardar(); };
     return;
   }
-  if (S.tab === 'subtitulos' || S.tab === 'texto') {
+  if (S.tab === 'plantillas') {
+    p.innerHTML = `<div class="cut-plants">${PLANTILLAS_TX.map((t, i) => `<button type="button" data-pl="${i}" class="est est-${t.estilo}"><b style="color:${t.color}">${esc(t.ej)}</b><small>${esc(t.n)}</small></button>`).join('')}</div>
+      <p class="cut-nota">Toque una plantilla: se agrega un texto donde está la línea blanca para que escriba el suyo. El diseño se aplica a todos los textos del video.</p>`;
+    $('.cut-plants', p).onclick = (e) => { const b = e.target.closest('[data-pl]'); if (!b) return; const t = PLANTILLAS_TX[b.dataset.pl]; Object.assign(S.sub, { estilo: t.estilo, color: t.color, tam: t.tam, ai: t.ai, ao: t.ao, mayus: !!t.mayus, pos: t.pos ?? S.sub.pos }); S.dirty = true; guardar(); nuevoTexto(); };
+    return;
+  }
+  if (S.tab === 'subtitulos' || S.tab === 'texto' || S.tab === 'letra') {
     const st = S.sub;
-    const esSub = S.tab === 'subtitulos';
+    const esSub = S.tab !== 'texto', letra = S.tab === 'letra';
     p.innerHTML = `
       ${esSub ? `<div class="cut-gen">
-        <button type="button" class="cut-btn" data-gen>✨ ${S.segs.length ? 'Volver a generar' : 'Generar subtítulos automáticos'}</button>
+        ${letra ? `<p class="cut-nota" style="text-align:left">🎵 Escucha la canción que agregó en Audio y escribe la letra al ritmo (estilo karaoke). Reemplaza los textos que ya tenga.</p>` : ''}
+        <button type="button" class="cut-btn" data-gen>${letra ? '🎵 Reconocer la letra de la canción' : `✨ ${S.segs.length ? 'Volver a generar' : 'Generar subtítulos automáticos'}`}</button>
         <div class="cut-gen-op">
           <select data-idioma><option value="spanish">Español</option><option value="english">Inglés</option><option value="portuguese">Portugués</option></select>
           <select data-modelo><option value="onnx-community/whisper-base">Rápido</option><option value="onnx-community/whisper-small">Más preciso</option></select>
@@ -2094,7 +2190,7 @@ function pintarPanel() {
         ${esSub ? '<button type="button" class="cut-btn-sec" data-nuevo>+ Texto aquí</button>' : ''}
         ${S.subs.length ? '<button type="button" class="cut-btn-sec" data-lista>Editar textos</button><button type="button" class="cut-btn-sec" data-borrar>Quitar todos</button>' : ''}
       </div>`;
-    const gen = $('[data-gen]', p); if (gen) gen.onclick = () => generarSubs($('[data-idioma]', p).value, $('[data-modelo]', p).value);
+    const gen = $('[data-gen]', p); if (gen) gen.onclick = () => generarSubs($('[data-idioma]', p).value, $('[data-modelo]', p).value, letra);
     $('.cut-estilos', p).onclick = (e) => { const b = e.target.closest('[data-e]'); if (!b) return; st.estilo = b.dataset.e; pintarPanel(); S.dirty = true; guardar(); };
     $('[data-grupo="tam"]', p).onclick = (e) => { if (!e.target.dataset.v) return; st.tam = e.target.dataset.v; pintarPanel(); S.dirty = true; guardar(); };
     // Animación para todos los textos: se ve de una vez repitiendo el texto que está más cerca
@@ -2342,12 +2438,12 @@ async function activarBelleza() {
 }
 
 /* ---------- subtítulos ---------- */
-async function mezclarAudio(rate, canales, soloVoz = false) {
+async function mezclarAudio(rate, canales, soloVoz = false, soloMusica = false) {
   const L = lay();
   const len = Math.max(1, Math.ceil(L.total * rate));
   const oc = new OfflineAudioContext(canales, len, rate);
   let hay = false;
-  for (let i = 0; i < S.clips.length; i++) {
+  for (let i = 0; !soloMusica && i < S.clips.length; i++) {
     const c = S.clips[i];
     if (c.tipo !== 'video' || c.mute || (S.silenciar && !soloVoz)) continue;
     let buf = await decodificar(c, oc);
@@ -2444,8 +2540,9 @@ async function audioPorPista(file, ctx) {
 }
 
 let trabajador = null;
-async function generarSubs(idioma, modelo) {
+async function generarSubs(idioma, modelo, letra = false) {
   if (!S.clips.length) return aviso('Primero agregue un video');
+  if (letra && !S.musica.length) return aviso('Primero agregue una canción: toque Audio → Música', 'mal');
   const p = $('#cutPanelCuerpo');
   const barra = $('.cut-progreso', p);
   const btn = $('[data-gen]', p);
@@ -2453,8 +2550,9 @@ async function generarSubs(idioma, modelo) {
   btn.disabled = true;
   poner(3, 'Preparando el audio…');
   try {
-    const audio = await mezclarAudio(16000, 1, true);
-    if (!audio) throw new Error('El video no tiene sonido para escuchar');
+    const audio = letra ? await mezclarAudio(16000, 1, false, true) : await mezclarAudio(16000, 1, true);
+    if (!audio) throw new Error(letra ? 'La canción no tiene sonido para escuchar' : 'El video no tiene sonido para escuchar');
+    if (letra) S.sub.estilo = 'karaoke';
     poner(8, 'Descargando el modelo de voz (solo la primera vez)…');
     trabajador ||= new Worker(new URL('./transcribir.js', import.meta.url), { type: 'module' });
     const datos = audio.getChannelData(0).slice();
@@ -2462,7 +2560,7 @@ async function generarSubs(idioma, modelo) {
       trabajador.onmessage = (e) => {
         const m = e.data;
         if (m.tipo === 'descarga') poner(8 + m.pct * 0.5, `Descargando el modelo de voz… ${m.pct}%`);
-        if (m.tipo === 'escuchando') poner(62, 'Escuchando el video y escribiendo… (puede tardar un poco)');
+        if (m.tipo === 'escuchando') poner(62, letra ? 'Escuchando la canción y escribiendo la letra… (puede tardar un poco)' : 'Escuchando el video y escribiendo… (puede tardar un poco)');
         if (m.tipo === 'listo') ok(m.segmentos);
         if (m.tipo === 'error') mal(new Error(m.msg));
       };
@@ -2472,10 +2570,10 @@ async function generarSubs(idioma, modelo) {
     const total = lay().total;
     S.segs = segs.filter(s => s.text.trim()).map(s => ({ ...s, end: s.end ?? Math.min(total, s.start + 3) }));
     S.subs = SUB.armar(S.segs, S.sub.palabras);
-    poner(100, S.subs.length ? `¡Listo! ${S.subs.length} subtítulos` : 'No se entendió ninguna voz');
+    poner(100, S.subs.length ? (letra ? `¡Listo! Letra puesta en ${S.subs.length} partes 🎵` : `¡Listo! ${S.subs.length} subtítulos`) : (letra ? 'No se entendió la letra de la canción' : 'No se entendió ninguna voz'));
     contar('subtitulos', { n: S.subs.length, idioma });
     pintarLinea(); guardar();
-    setTimeout(() => { if (S.tab === 'subtitulos') pintarPanel(); }, 1200);
+    setTimeout(() => { if (S.tab === 'subtitulos' || S.tab === 'letra') pintarPanel(); }, 1200);
   } catch (e) {
     poner(0, '');
     barra.hidden = true;
