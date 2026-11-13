@@ -52,6 +52,14 @@ body:has(#lpInstalar) #pfn-as{bottom:136px}
 #pfn-as .as-rec-t{flex:1;color:#eee;font-size:.9rem}
 #pfn-as .as-rec-t i{display:inline-block;width:10px;height:10px;border-radius:50%;background:#e31b23;margin-right:.35rem;animation:asGraba 1s infinite}
 #pfn-as .as-reint{display:block;margin-top:.55rem;padding:.45rem .8rem;border-radius:100px;border:none;background:#2fd15a;color:#0b0d0c;font-weight:700;font-size:.85rem;cursor:pointer;text-decoration:none;text-align:center}
+#pfn-as .as-audio{min-width:220px}
+#pfn-as .as-aud{display:flex;align-items:center;gap:.55rem}
+#pfn-as .as-aud button{width:34px;height:34px;min-width:34px;border-radius:50%;border:none;background:rgba(255,255,255,.25);color:inherit;display:flex;align-items:center;justify-content:center;cursor:pointer;margin:0;padding:0;font-size:.85rem;box-shadow:none}
+#pfn-as .as-aud .onda{flex:1;display:flex;align-items:center;gap:2px;height:26px;cursor:pointer}
+#pfn-as .as-aud .onda span{flex:1;background:currentColor;opacity:.35;border-radius:2px}
+#pfn-as .as-aud .onda span.on{opacity:1}
+#pfn-as .as-aud small{font-size:.75rem;opacity:.85;min-width:30px;text-align:right}
+#pfn-as .as-audio .trans{display:block;margin-top:.35rem;font-size:.78rem;opacity:.85;font-style:italic;white-space:normal}
 @media print{#pfn-as-btn,#pfn-as{display:none!important}}
 @media (max-width:640px){#pfn-as-btn{bottom:14px;right:12px;padding:.65rem .95rem}#pfn-as{right:12px;bottom:68px}}
 </style>
@@ -96,9 +104,10 @@ body:has(#lpInstalar) #pfn-as{bottom:136px}
   function burbuja(texto, quien) {
     var b = document.createElement('div'); b.className = 'as-b ' + (quien === 'yo' ? 'as-yo' : 'as-bot');
     // [texto](url) o una URL suelta (las que escribe la IA) -> link
-    var re = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)|(https?:\/\/[^\s)]+[^\s).,;!?])/g, ult = 0, m;
+    var re = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)|(https?:\/\/[^\s)]+[^\s).,;!?])|\*\*([^*\n]+)\*\*/g, ult = 0, m;
     while ((m = re.exec(texto))) {
       b.appendChild(document.createTextNode(texto.slice(ult, m.index)));
+      if (m[4]) { var bb = document.createElement('b'); bb.textContent = m[4]; b.appendChild(bb); ult = re.lastIndex; continue; }
       var url = m[2] || m[3], a = document.createElement('a'); a.href = url; a.textContent = m[1] || url.replace(/^https?:\/\//, '');
       if (url.indexOf('wa.me') >= 0) a.target = '_blank';
       b.appendChild(a); ult = re.lastIndex;
@@ -183,16 +192,42 @@ body:has(#lpInstalar) #pfn-as{bottom:136px}
     var rec = null, partes = [], corte = null, reloj = null, t0 = 0, cancelado = false, st = null;
     function fin() { clearTimeout(corte); clearInterval(reloj); form.classList.remove('grabando'); if (st) st.getTracks().forEach(function (t) { t.stop(); }); st = null; }
     function fallo() { burbuja('No pude escuchar bien tu audio 🙈. ¿Me lo repites o me lo escribes, porfa?', 'bot'); }
-    function enviarAudio(blob, tipo) {
+    // 2026-11-13 (Jhoset): el audio queda en el chat como en WhatsApp (▶, onda, duración) y debajo lo que entendió Mía
+    function fmt(x) { x = Math.max(0, Math.round(x)); return Math.floor(x / 60) + ':' + ('0' + x % 60).slice(-2); }
+    function burbujaAudio(blob, dur) {
+      var w = document.createElement('div'); w.className = 'as-b as-yo as-audio';
+      var fila = document.createElement('div'); fila.className = 'as-aud';
+      var bt = document.createElement('button'); bt.type = 'button'; bt.textContent = '▶'; bt.setAttribute('aria-label', 'Reproducir');
+      var onda = document.createElement('div'); onda.className = 'onda';
+      for (var k = 0; k < 28; k++) { var sp = document.createElement('span'); sp.style.height = (25 + Math.round(Math.random() * 75)) + '%'; onda.appendChild(sp); }
+      var tm = document.createElement('small'); tm.textContent = fmt(dur);
+      var tr = document.createElement('span'); tr.className = 'trans'; tr.textContent = 'Transcribiendo…';
+      fila.appendChild(bt); fila.appendChild(onda); fila.appendChild(tm); w.appendChild(fila); w.appendChild(tr);
+      msgs.appendChild(w); msgs.scrollTop = msgs.scrollHeight;
+      var au = new Audio(URL.createObjectURL(blob)), bars = onda.children;
+      function pinta(p) { for (var k = 0; k < bars.length; k++) bars[k].className = (k + 0.5) / bars.length <= p ? 'on' : ''; }
+      au.ontimeupdate = function () { pinta(au.currentTime / dur); tm.textContent = fmt(au.currentTime); };
+      au.onended = function () { bt.textContent = '▶'; pinta(0); tm.textContent = fmt(dur); };
+      bt.onclick = function () { if (au.paused) { au.play(); bt.textContent = '❚❚'; } else { au.pause(); bt.textContent = '▶'; } };
+      onda.onclick = function (ev) { var r = onda.getBoundingClientRect(), p = (ev.clientX - r.left) / r.width; try { au.currentTime = p * dur; } catch (x) {} pinta(p); };
+      return tr;
+    }
+    function enviarAudio(blob, tipo, dur) {
       var ext = tipo.indexOf('mp4') >= 0 ? 'm4a' : (tipo.indexOf('ogg') >= 0 ? 'ogg' : 'webm');
       var fd = new FormData(); fd.append('audio', blob, 'nota.' + ext);
+      chips.style.display = 'none';
+      var tr = burbujaAudio(blob, dur);
       var e = escribiendo(); e.firstChild.nodeValue = 'Mía está escuchando tu audio';
       fetch(VOZ, {method: 'POST', credentials: 'same-origin', headers: {'Accept': 'application/json'}, body: fd})
         .then(function (r) { return r.ok ? r.json() : {ok: false}; })
         .then(function (j) {
           e.remove();
-          if (j && j.ok && j.texto) { chips.style.display = 'none'; burbuja('🎤 ' + j.texto, 'yo'); preguntarIA(j.texto, entender(j.texto)); } else { fallo(); }
-        }).catch(function () { e.remove(); fallo(); });
+          if (j && j.ok && j.texto) {
+            tr.textContent = '“' + j.texto + '”';
+            HIST.push({rol: 'yo', texto: j.texto.slice(0, 800)}); if (HIST.length > 8) HIST.shift();
+            preguntarIA(j.texto, entender(j.texto));
+          } else { tr.textContent = 'No se pudo escuchar'; fallo(); }
+        }).catch(function () { e.remove(); tr.textContent = 'No se pudo escuchar'; fallo(); });
     }
     // No hay forma de abrir los ajustes del navegador desde la página: se explica paso a paso según el celular y se deja "Intentar de nuevo"
     function permisoNegado(err) {
@@ -225,11 +260,11 @@ body:has(#lpInstalar) #pfn-as{bottom:136px}
         rec = new MediaRecorder(s);
         rec.ondataavailable = function (e) { if (e.data && e.data.size) partes.push(e.data); };
         rec.onstop = function () {
-          var tipo = rec.mimeType || 'audio/webm'; fin();
+          var tipo = rec.mimeType || 'audio/webm', dur = (Date.now() - t0) / 1000; fin();
           if (cancelado) return;
           var blob = new Blob(partes, {type: tipo});
           if (blob.size < 1500) return;
-          enviarAudio(blob, tipo);
+          enviarAudio(blob, tipo, dur);
         };
         rec.start(); t0 = Date.now(); form.classList.add('grabando'); bar.querySelector('b').textContent = '0:00';
         reloj = setInterval(function () { var x = Math.floor((Date.now() - t0) / 1000); bar.querySelector('b').textContent = Math.floor(x / 60) + ':' + ('0' + x % 60).slice(-2); }, 250);
