@@ -65,16 +65,16 @@ class AnunciosCut
         $out[] = ['e' => '👗', 'd' => 'moda', 't' => 'Nariño Exposhow · ' . $f->day . ' de ' . self::MESES[$f->month],
             's' => 'La pasarela con los mejores modelos de Nariño', 'u' => $e?->url ?: url('/evento/narino-exposhow'),
             'img' => null, 'hasta' => $f->toDateString(), 'on' => true, 'fecha' => $f->day . ' ' . mb_strtoupper(mb_substr(self::MESES[$f->month], 0, 3))];
+        // PFN: anuncio con diseño de pelea y el logo (sale siempre hasta el día de la pelea)
         try {
-            $e = Evento::withoutGlobalScopes()->where('nombre', 'like', '%pfn%')
-                ->where('estado', 'publicado')->where('fecha_evento', '>=', now()->startOfDay())->orderBy('fecha_evento')->first();
-            if ($e) {
-                $f = $e->fecha_evento;
-                $out[] = ['e' => '🥊', 't' => $e->nombre . ' · ' . $f->day . ' de ' . self::MESES[$f->month],
-                    's' => Str::limit(trim($e->subtitulo ?: 'La noche de PFN · compre su entrada aquí'), 70, '…'),
-                    'u' => $e->url, 'img' => $e->imagen_url, 'hasta' => $f->toDateString(), 'on' => true];
-            }
-        } catch (\Throwable $x) { /* si falla, ese anuncio no sale */ }
+            $e = Evento::withoutGlobalScopes()->where('nombre', 'like', '%pfn%')->where('estado', '!=', 'borrador')
+                ->where(fn ($q) => $q->whereNull('fecha_evento')->orWhere('fecha_evento', '>=', now()->startOfDay()))->orderBy('fecha_evento')->first();
+        } catch (\Throwable $x) { $e = null; }
+        $f = $e?->fecha_evento ?: \Illuminate\Support\Carbon::create(2026, 12, 12);
+        $out[] = ['e' => '🥊', 'd' => 'pelea', 't' => 'PFN · ' . $f->day . ' de ' . self::MESES[$f->month],
+            's' => 'Los mejores peleadores de Nariño en un solo lugar', 'u' => $e?->url ?: url('/evento/pfn'),
+            'img' => null, 'hasta' => $f->toDateString(), 'on' => true,
+            'fecha' => $f->day . ' ' . mb_strtoupper(mb_substr(self::MESES[$f->month], 0, 3)) . ' · CC La 17 · 3er piso'];
         try {
             $t = Tienda::query()->where('nombre', 'like', '%abril store%')->first();
             if ($t) {

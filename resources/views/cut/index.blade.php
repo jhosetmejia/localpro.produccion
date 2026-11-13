@@ -45,7 +45,16 @@ body.editando .cut-logo{display:none}
 .aj-ads{margin-top:14px}
 .ad-carr{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;gap:10px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .ad-carr::-webkit-scrollbar{display:none}
-.ad-carr .ad-moda{min-height:150px;padding:0!important;background:#16060f!important;align-items:stretch!important}
+.ad-carr .ad-pelea{min-height:160px;padding:0!important;background:#050505!important;align-items:stretch!important}
+.ad-pelea .pelea-fondo{position:absolute;inset:0;width:100%;height:100%}
+.ad-pelea .pelea-logo{position:absolute;right:6%;top:50%;width:min(36%,140px);aspect-ratio:1;transform:translateY(-54%) rotate(-6deg);border-radius:50%;box-shadow:0 0 0 3px #c1121f,0 0 34px rgba(255,42,42,.75),0 14px 30px rgba(0,0,0,.6);z-index:1}
+.ad-pelea .pelea-txt{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:center;gap:3px;padding:16px 16px 14px;max-width:60%}
+.ad-pelea .pelea-txt small{color:#ffb703;font-weight:800;letter-spacing:.06em;font-size:.66rem;text-transform:uppercase}
+.ad-pelea .pelea-txt b{font-family:Montserrat,sans-serif;font-weight:900;font-style:italic;font-size:1.22rem;line-height:1.02;text-transform:uppercase;color:#fff;text-shadow:3px 3px 0 #c1121f}
+.ad-pelea .pelea-txt>span{font-family:Montserrat,sans-serif;font-weight:800;font-style:italic;text-transform:uppercase;font-size:.78rem;color:#ffb703;letter-spacing:.04em}
+.ad-pelea .pelea-txt .ir{align-self:flex-start;margin:8px 0 0!important;font-style:normal;background:#c1121f;color:#fff;border-radius:999px;padding:.35rem .8rem;font-weight:800;font-size:.78rem;box-shadow:0 4px 14px rgba(193,18,31,.6)}
+.ad-pelea em{z-index:3}
+.ad-moda{min-height:150px;padding:0!important;background:#16060f!important;align-items:stretch!important}
 .ad-moda .moda-fondo{position:absolute;inset:0;width:100%;height:100%}
 .ad-moda .moda-txt{position:relative;z-index:1;display:flex;flex-direction:column;justify-content:center;gap:3px;padding:16px 16px 14px;max-width:62%}
 .ad-moda .moda-txt small{color:#d9b45a;font-weight:800;letter-spacing:.18em;font-size:.62rem}
