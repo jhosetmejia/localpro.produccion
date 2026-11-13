@@ -328,7 +328,7 @@ body.recortando .cut-clip.sel>span{font-size:.85rem;background:var(--v);color:#0
 .cut-dib-lienzo canvas{grid-area:1/1;max-width:100%;max-height:100%;border-radius:8px}
 .cut-dib-lienzo canvas[data-f]{opacity:.85}
 .cut-dib-herr{padding:10px 12px calc(14px + env(safe-area-inset-bottom));background:#141816}
-.cut-dib-cols{display:flex;gap:10px;justify-content:center;margin-bottom:10px}
+.cut-dib-cols{display:flex;gap:10px;justify-content:center;margin-bottom:10px;flex-wrap:wrap}
 .cut-dib-cols button{width:30px;height:30px;border-radius:50%;border:2px solid #444}
 .cut-dib-cols button.on{border-color:#a6f34a;transform:scale(1.15)}
 .cut-dib-fila{display:flex;align-items:center;gap:8px}
@@ -419,7 +419,23 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
 .est-neon b{font-family:Montserrat;color:#fff;text-shadow:0 0 6px #39d5ff,0 0 12px #39d5ff}
 .est-maquina b{font-family:"Space Mono";background:#000;padding:2px 6px}
 .est-elegante b{font-family:"Playfair Display";font-style:italic}
-.cut-colores{display:flex;gap:.45rem}
+.cut-colores{display:flex;gap:.45rem;flex-wrap:wrap;align-items:center}
+.cut-paleta-btn{width:34px!important;height:34px!important;border-radius:50%;border:0!important;padding:3px;background:conic-gradient(red,#ff0,lime,cyan,blue,#f0f,red)!important;flex:none}
+.cut-paleta-btn i{display:block;width:100%;height:100%;border-radius:50%;border:2px solid #111}
+.cut-paleta{position:fixed;inset:0;z-index:260;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
+.cut-paleta-hoja{width:100%;max-width:560px;max-height:78vh;overflow:auto;background:#141816;color:#fff;border-radius:20px 20px 0 0;padding:12px 14px calc(16px + env(safe-area-inset-bottom))}
+.cut-paleta-hoja small{display:block;color:#9aa69f;font-weight:700;margin:10px 0 6px}
+.cut-paleta-top{display:flex;align-items:center;gap:10px}
+.cut-paleta-top b{flex:1;font-size:1.05rem}
+.cut-paleta-top button{background:#a6f34a;color:#0b0d0c;border:0;border-radius:999px;padding:8px 18px;font-weight:800}
+.cut-paleta-ya{width:34px;height:34px;border-radius:10px;border:2px solid #fff}
+.cut-paleta-rej{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.cut-paleta-rej button{aspect-ratio:1;border-radius:8px;border:2px solid rgba(255,255,255,.12)}
+.cut-paleta-rej button.on{border-color:#fff;box-shadow:0 0 0 2px #a6f34a}
+.cut-paleta-libre{display:flex;gap:8px;margin-top:12px}
+.cut-paleta-arco{flex:1;display:flex;align-items:center;gap:8px;background:#222a25;border-radius:12px;padding:6px 10px;font-weight:700;cursor:pointer}
+.cut-paleta-arco input{width:36px;height:36px;border:0;padding:0;background:none}
+.cut-paleta-libre [data-hex]{width:96px;background:#222a25;color:#fff;border:1px solid #333;border-radius:12px;padding:6px 10px;font-weight:700;text-transform:lowercase}
 .cut-colores button{width:28px;height:28px;border-radius:50%;border:2px solid var(--b)}
 .cut-colores button.on{border-color:#fff;box-shadow:0 0 0 2px var(--f),0 0 0 4px #fff}
 .cut-check{display:flex;align-items:center;gap:.5rem;font-weight:700;font-size:.82rem;margin:.4rem 0}

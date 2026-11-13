@@ -936,6 +936,61 @@ async function extraerDeClip(c) {
     aviso((c.vel || 1) !== 1 || c.curva ? 'Audio extraído (suena a velocidad normal) 🎬' : 'Audio extraído: ya lo puede mover o cambiarle el volumen 🎬');
   } catch (e) { aviso('No se pudo extraer el audio de este video', 'mal'); }
 }
+/* ---------- Paleta de colores amplia (como CapCut): un botón 🎨 que abre todos los colores ---------- */
+function hslHex(h, s2, l) {
+  s2 /= 100; l /= 100;
+  const k = (n) => (n + h / 30) % 12, a = s2 * Math.min(l, 1 - l);
+  const f = (n) => Math.round(255 * (l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1)))).toString(16).padStart(2, '0');
+  return '#' + f(0) + f(8) + f(4);
+}
+const PALETA = (() => {
+  const out = ['#ffffff', '#e5e5e5', '#bdbdbd', '#8f8f8f', '#5e5e5e', '#2e2e2e', '#000000', '#a6f34a'];
+  for (const l of [88, 76, 64, 52, 40, 28]) for (let h = 0; h < 360; h += 22.5) out.push(hslHex(h, l > 80 ? 80 : 92, l));
+  out.push('#f4e1c1', '#d9b45a', '#8b5a2b', '#5c3a1e', '#c0c0c0', '#ffd700', '#b76e79', '#1f2a44');
+  return out;
+})();
+const colRecientes = () => { try { return JSON.parse(localStorage.getItem('cutColRec') || '[]'); } catch (e) { return []; } };
+function recordarColor(c) { try { localStorage.setItem('cutColRec', JSON.stringify([c, ...colRecientes().filter(x => x !== c)].slice(0, 10))); } catch (e) { /* nada */ } }
+// Fila corta: botón 🎨 (abre la paleta completa) + recientes y básicos
+function filaColores(actual, attr, base = ['#ffffff', '#000000', '#ffe14d', '#ff3b5c', '#a6f34a', '#39d5ff']) {
+  const vis = [...new Set([actual, ...colRecientes(), ...base].filter(Boolean).map(c => c.toLowerCase()))].slice(0, 8);
+  return `<button type="button" class="cut-paleta-btn" data-paleta title="Todos los colores"><i style="background:${actual}"></i></button>`
+    + vis.map(c => `<button type="button" data-${attr}="${c}" class="${(actual || '').toLowerCase() === c ? 'on' : ''}" style="background:${c}"></button>`).join('');
+}
+function abrirPaleta(actual, alCambiar, alCerrar) {
+  document.querySelector('.cut-paleta')?.remove();
+  let col = actual || '#ffffff';
+  const m = document.createElement('div');
+  m.className = 'cut-paleta';
+  const rec = colRecientes();
+  m.innerHTML = `<div class="cut-paleta-hoja">
+      <div class="cut-paleta-top"><span class="cut-paleta-ya" style="background:${col}"></span><b>Colores</b><button type="button" data-listo>Listo</button></div>
+      ${rec.length ? `<small>Recientes</small><div class="cut-paleta-rej rec">${rec.map(c => `<button type="button" data-c="${c}" style="background:${c}"></button>`).join('')}</div>` : ''}
+      <small>Todos los colores</small>
+      <div class="cut-paleta-rej">${PALETA.map(c => `<button type="button" data-c="${c}" style="background:${c}"></button>`).join('')}</div>
+      <div class="cut-paleta-libre">
+        <label class="cut-paleta-arco"><input type="color" value="${col}" data-libre><span>🌈 Elegir cualquier color</span></label>
+        <input type="text" maxlength="7" value="${col}" data-hex aria-label="Código del color">
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+  const marcar = (c, desdeHex) => {
+    if (!/^#[0-9a-f]{6}$/i.test(c)) return;
+    col = c.toLowerCase();
+    $('.cut-paleta-ya', m).style.background = col;
+    $('[data-libre]', m).value = col;
+    if (!desdeHex) $('[data-hex]', m).value = col;
+    $$('[data-c]', m).forEach(b => b.classList.toggle('on', b.dataset.c.toLowerCase() === col));
+    alCambiar(col);
+  };
+  marcar(col);
+  m.addEventListener('click', (e) => {
+    if (e.target === m || e.target.closest('[data-listo]')) { recordarColor(col); m.remove(); alCerrar?.(col); return; }
+    const b = e.target.closest('[data-c]'); if (b) marcar(b.dataset.c);
+  });
+  $('[data-libre]', m).addEventListener('input', (e) => marcar(e.target.value));
+  $('[data-hex]', m).addEventListener('input', (e) => { let v = e.target.value.trim(); if (v && v[0] !== '#') v = '#' + v; marcar(v, true); });
+}
 // Plantillas de texto (como CapCut): un diseño listo con letra, color, tamaño y animación
 const PLANTILLAS_TX = [
   { n: 'Título TikTok', ej: 'MIRA ESTO', estilo: 'tiktok', color: '#ffffff', tam: 'L', ai: 'rebote', ao: 'zoom', mayus: true, pos: 0.3 },
@@ -958,7 +1013,7 @@ function abrirDibujo() {
   m.innerHTML = `<div class="cut-dib-top"><button type="button" data-x>Cancelar</button><b>Dibujar</b><button type="button" data-ok class="ok">Listo</button></div>
     <div class="cut-dib-lienzo"><canvas data-f></canvas><canvas data-d></canvas></div>
     <div class="cut-dib-herr">
-      <div class="cut-dib-cols">${COLS.map((c, i) => `<button type="button" data-c="${c}" class="${i ? '' : 'on'}" style="background:${c}"></button>`).join('')}</div>
+      <div class="cut-dib-cols cut-colores">${filaColores(COLS[0], 'c', COLS)}</div>
       <div class="cut-dib-fila"><small>Grosor</small><input type="range" min="3" max="40" value="10" data-g><button type="button" data-borr>Borrador</button><button type="button" data-des>↩</button><button type="button" data-lim>Limpiar</button></div>
     </div>`;
   document.body.appendChild(m);
@@ -983,7 +1038,12 @@ function abrirDibujo() {
   d.addEventListener('pointermove', (e) => { if (!actual) return; actual.p.push(pto(e)); redibujar(); });
   const fin = () => { actual = null; };
   d.addEventListener('pointerup', fin); d.addEventListener('pointercancel', fin);
-  $('.cut-dib-cols', m).onclick = (e) => { const b = e.target.closest('[data-c]'); if (!b) return; color = b.dataset.c; borr = false; $$('.cut-dib-cols button', m).forEach(q => q.classList.toggle('on', q === b)); $('[data-borr]', m).classList.remove('on'); };
+  const fila = $('.cut-dib-cols', m);
+  const ponerCol = (c) => { color = c; borr = false; $('[data-borr]', m).classList.remove('on'); fila.innerHTML = filaColores(c, 'c', COLS); };
+  fila.onclick = (e) => {
+    if (e.target.closest('[data-paleta]')) return abrirPaleta(color, (c) => { color = c; borr = false; $('[data-borr]', m).classList.remove('on'); $('.cut-paleta-btn i', fila).style.background = c; }, ponerCol);
+    const b = e.target.closest('[data-c]'); if (b) ponerCol(b.dataset.c);
+  };
   $('[data-borr]', m).onclick = (e) => { borr = !borr; e.currentTarget.classList.toggle('on', borr); };
   $('[data-des]', m).onclick = () => { trazos.pop(); redibujar(); };
   $('[data-lim]', m).onclick = () => { trazos.length = 0; redibujar(); };
@@ -2131,7 +2191,7 @@ function pintarPanel() {
       </div>` : `<button type="button" class="cut-btn" data-nuevo>T + Agregar texto aquí</button>`}
       <div class="cut-estilos">${SUB.ESTILOS.map(e => `<button type="button" class="est est-${e.id} ${st.estilo === e.id ? 'on' : ''}" data-e="${e.id}"><b>Hola</b><small>${e.n}</small></button>`).join('')}</div>
       <div class="cut-fila"><small>Tamaño</small>${chips('tam', [['S', 'Pequeño'], ['M', 'Mediano'], ['L', 'Grande']], st.tam)}</div>
-      <div class="cut-fila"><small>Color</small><div class="cut-colores">${SUB.COLORES.map(col => `<button type="button" data-col="${col}" class="${st.color === col ? 'on' : ''}" style="background:${col}"></button>`).join('')}</div></div>
+      <div class="cut-fila"><small>Color</small><div class="cut-colores">${filaColores(st.color || SUB.COLORES[0], 'col', SUB.COLORES)}</div></div>
       ${esSub ? `<div class="cut-fila"><small>Palabras por subtítulo</small>${chips('pal', [[1, '1'], [2, '2'], [3, '3'], [5, '5'], [0, 'Frase']], st.palabras)}</div>` : ''}
       <div class="lbl">Animación</div>
       ${pestanasAnim(S.txLado || 'in')}
@@ -2154,7 +2214,10 @@ function pintarPanel() {
     }; }
     $('[data-lado]', p).onclick = (e) => { const b = e.target.closest('[data-l]'); if (!b) return; S.txLado = b.dataset.l; pintarPanel(); };
     const gp = $('[data-grupo="pal"]', p); if (gp) gp.onclick = (e) => { if (e.target.dataset.v == null) return; st.palabras = Number(e.target.dataset.v); if (S.segs.length) { S.subs = SUB.armar(S.segs, st.palabras); pintarLinea(); } pintarPanel(); guardar(); };
-    $('.cut-colores', p).onclick = (e) => { if (!e.target.dataset.col) return; st.color = e.target.dataset.col; pintarPanel(); S.dirty = true; guardar(); };
+    $('.cut-colores', p).onclick = (e) => {
+      if (e.target.closest('[data-paleta]')) return abrirPaleta(st.color, (c) => { st.color = c; S.dirty = true; }, () => { pintarPanel(); guardar(); });
+      if (!e.target.dataset.col) return; st.color = e.target.dataset.col; recordarColor(st.color); pintarPanel(); S.dirty = true; guardar();
+    };
     $('[data-pos]', p).oninput = (e) => { st.pos = Number(e.target.value); S.dirty = true; };
     $('[data-pos]', p).onchange = guardar;
     $('[data-mayus]', p).onchange = (e) => { st.mayus = e.target.checked; S.dirty = true; guardar(); };
@@ -2347,10 +2410,13 @@ function pintarPanel() {
     const COL = ['#000000', '#ffffff', '#0b0d0c', '#a6f34a', '#16b84e', '#ff3d6e', '#ffd23d', '#2f6bff', '#7a3dff', '#ff8a3d', '#f4e1c1', '#1f2a44'];
     p.innerHTML = `
       ${chips('fmodo', [['llenar', 'Llenar (recortar)'], ['desenfoque', 'Desenfocado'], ['color', 'Color']], f.modo)}
-      ${f.modo === 'color' ? `<div class="cut-fila"><small>Color del fondo</small><div class="cut-colores">${COL.map(col => `<button type="button" data-fcol="${col}" class="${f.color === col ? 'on' : ''}" style="background:${col}"></button>`).join('')}</div></div>` : ''}
+      ${f.modo === 'color' ? `<div class="cut-fila"><small>Color del fondo</small><div class="cut-colores">${filaColores(f.color || '#000000', 'fcol', COL)}</div></div>` : ''}
       <p class="cut-nota">${f.modo === 'llenar' ? 'El video llena todo el formato y lo que sobra se recorta.' : 'El video se ve completo y el espacio que sobra se rellena ' + (f.modo === 'color' ? 'con el color.' : 'con el mismo video desenfocado.')}</p>`;
     $('[data-grupo="fmodo"]', p).onclick = (e) => { const v = e.target.dataset.v; if (!v) return; f.modo = v; S.dirty = true; pintarPanel(); guardar(); };
-    const cc = $('.cut-colores', p); if (cc) cc.onclick = (e) => { const v = e.target.dataset.fcol; if (!v) return; f.color = v; S.dirty = true; pintarPanel(); guardar(); };
+    const cc = $('.cut-colores', p); if (cc) cc.onclick = (e) => {
+      if (e.target.closest('[data-paleta]')) return abrirPaleta(f.color, (c) => { f.color = c; S.dirty = true; }, () => { pintarPanel(); guardar(); });
+      const v = e.target.dataset.fcol; if (!v) return; f.color = v; recordarColor(v); S.dirty = true; pintarPanel(); guardar();
+    };
     return;
   }
   if (S.tab === 'portada') {
