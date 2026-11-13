@@ -40,7 +40,7 @@ TXT;
         }
         $nombre = trim(explode(' ', trim((string) ($u->name ?? '')))[0] ?? '');
 
-        $l = ['PERSONA QUE ESCRIBE (datos de SU cuenta): se llama '.($nombre ?: 'sin nombre').'.'];
+        $l = ['PERSONA QUE ESCRIBE (datos de SU cuenta): se llama '.($nombre ?: 'sin nombre').'. YA TIENE CUENTA y está dentro de su panel: NO le preguntes si tiene cuenta ni le mandes el link de registro; ayúdala a usar su sistema.'];
         try {
             if ($u->es_superadmin ?? false) {
                 $l[] = '- Es el administrador de LocalProo.';
@@ -214,6 +214,39 @@ TXT;
         }
 
         $log(null, true);
+
+        return response()->json(['ok' => false]);
+    }
+
+    /** 2026-11-13 (Jhoset): nota de voz -> texto con Whisper (Groq, gratis). El widget luego la manda a responder(). */
+    public function voz(Request $request): JsonResponse
+    {
+        $request->validate(['audio' => ['required', 'file', 'max:3072']]);
+        $key = (string) config('services.groq.key');
+        $hoy = 'asistente_voz:'.now('America/Bogota')->toDateString();
+        if ($key === '' || (int) Cache::get($hoy, 0) >= (int) config('services.groq.max_voz_dia', 300)) {
+            return response()->json(['ok' => false]);
+        }
+        Cache::put($hoy, (int) Cache::get($hoy, 0) + 1, now()->addDays(2));
+        $f = $request->file('audio');
+        $ext = strtolower($f->getClientOriginalExtension() ?: 'webm');
+        if (! in_array($ext, ['webm', 'ogg', 'm4a', 'mp4', 'mp3', 'wav'], true)) {
+            $ext = 'webm';
+        }
+        try {
+            $r = Http::timeout(30)->withToken($key)->acceptJson()
+                ->attach('file', file_get_contents($f->getRealPath()), 'nota.'.$ext)
+                ->post('https://api.groq.com/openai/v1/audio/transcriptions', [
+                    'model' => 'whisper-large-v3-turbo', 'language' => 'es', 'response_format' => 'json',
+                ]);
+            $txt = trim((string) $r->json('text'));
+            if ($r->successful() && $txt !== '') {
+                return response()->json(['ok' => true, 'texto' => mb_substr($txt, 0, 300)]);
+            }
+            Log::warning('Asistente voz: http '.$r->status().' '.mb_substr($r->body(), 0, 300));
+        } catch (\Throwable $e) {
+            Log::warning('Asistente voz: '.$e->getMessage());
+        }
 
         return response()->json(['ok' => false]);
     }

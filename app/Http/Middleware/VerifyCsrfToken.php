@@ -22,7 +22,7 @@ class VerifyCsrfToken extends Middleware
         'cut/visita', // contador de LocalProCut (sin sesión que proteger)
         'cut/evento',
         'visita/latido', // latido del contador de visitas
-        'asistente/ia', // chat de Mía: la página puede llevar horas abierta (sesión vencida = 419) y solo pregunta
+        'asistente/ia', 'asistente/voz', // chat de Mía: la página puede llevar horas abierta (sesión vencida = 419) y solo pregunta
         //
     ];
 }

@@ -87,6 +87,7 @@ Route::get('/t/{slug}/p/{producto}', [catalogoController::class, 'producto'])->w
 // LocalProo Marketplace: todas las tiendas en línea y sus productos en un solo lugar
 // Asistente IA de la página (burbuja de ayuda)
 Route::post('/asistente/ia', [\App\Http\Controllers\AsistenteController::class, 'responder'])->middleware('throttle:15,1')->name('asistente.ia');
+Route::post('/asistente/voz', [\App\Http\Controllers\AsistenteController::class, 'voz'])->middleware('throttle:6,1')->name('asistente.voz');
 Route::get('/marketplace', [\App\Http\Controllers\marketplaceController::class, 'index'])->middleware('throttle:120,1')->name('marketplace');
 Route::get('/mercado', fn () => redirect()->route('marketplace', request()->query(), 301));
 Route::get('/sitemap.xml', [catalogoController::class, 'sitemap'])->name('sitemap');
