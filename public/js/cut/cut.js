@@ -15,7 +15,7 @@ const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(
 
 const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const ASPECTOS = { '9:16': [9, 16], '16:9': [16, 9], '1:1': [1, 1], '4:5': [4, 5] };
-const RESOL = { 720: '720p', 1080: '1080p · Full HD', 1440: '2K', 2160: '4K' };
+const RESOL = { 480: '480p', 720: '720p', 1080: '1080p · Full HD', 1440: '2K', 2160: '4K' };
 
 const S = {
   clips: [], subs: [], segs: [],
@@ -644,6 +644,7 @@ linea.addEventListener('scroll', () => {
 linea.addEventListener('pointerdown', () => { if (S.playing) pausar(); });
 
 function pintarLinea() {
+  document.body.classList.toggle('editando', S.clips.length > 0); { const q = $('#cutCalidad'); if (q) q.hidden = !S.clips.length; }
   const L = lay();
   const pad = linea.clientWidth / 2;
   const cont = $('#cutLineaIn');
@@ -2691,7 +2692,75 @@ function listaSubs() {
 }
 
 /* ---------- exportar ---------- */
-const EXP = { res: 1080, fps: 30, cancelar: false };
+const EXP = { res: 1080, fps: 30, mbps: 0, cancelar: false };
+try { Object.assign(EXP, JSON.parse(localStorage.getItem('cutExpAj') || '{}'), { cancelar: false }); } catch (e) { /* nada */ }
+const guardarAj = () => { try { localStorage.setItem('cutExpAj', JSON.stringify({ res: EXP.res, fps: EXP.fps, mbps: EXP.mbps })); } catch (e) { /* nada */ } };
+const FPSS = [24, 25, 30, 50, 60], MBPS = [0, 5, 10, 20, 50, 100];
+const mbpsRecom = () => { const { W, H } = tamSalida(EXP.res); return Math.max(2, Math.round(W * H * EXP.fps * 0.1 / 1e6)); };
+const pesoMB = () => Math.max(1, Math.round((EXP.mbps || mbpsRecom()) * lay().total / 8 + lay().total * 0.02));
+const etqRes = (r) => r === 2160 ? '4K' : r === 1440 ? '2K' : r + 'P';
+// Anuncios de LocalPro (sección de anuncios del editor)
+const ANUNCIOS = [
+  { e: '🛍️', t: 'Venda más con su tienda en línea', s: 'Catálogo con pedidos por WhatsApp para su negocio', u: '/funciones?desde=cut-anuncio-tienda' },
+  { e: '📅', t: 'Programe este video en sus redes', s: 'Facebook, Instagram y YouTube desde LocalPro', u: '/funciones?desde=cut-anuncio-redes' },
+  { e: '💼', t: 'Ventas, inventario y caja en su celular', s: 'Todo su negocio en LocalPro, con app', u: '/funciones?desde=cut-anuncio-negocio' },
+];
+/* ---------- Calidad de exportación arriba (como CapCut): resolución, cuadros por segundo y tasa de bits ---------- */
+function pintarCalidad() { const b = $('#cutCalidad'); if (b) $('span', b).textContent = etqRes(EXP.res); }
+function deslizador(clave, titulo, nota, items, idx) {
+  return `<div class="aj-bloque"><div class="aj-cab"><b>${titulo}</b><small data-nota="${clave}">${nota}</small></div>
+    <input type="range" min="0" max="${items.length - 1}" step="1" value="${idx}" data-aj="${clave}">
+    <div class="aj-marcas">${items.map((t, i) => `<span class="${i === idx ? 'on' : ''}">${t}</span>`).join('')}</div></div>`;
+}
+const RES_LIST = () => Object.keys(RESOL).map(Number).filter(r => !(IOS && r === 2160));
+const notaRes = (r) => ({ 480: 'Liviano – ahorra datos', 720: 'Bueno para WhatsApp', 1080: 'Alta definición – se ve muy bien en redes', 1440: 'Más nitidez (tarda más)', 2160: 'Máxima calidad (tarda bastante)' })[r];
+const notaFps = (f) => f >= 50 ? 'Reproducción más fluida' : f === 30 ? 'Normal para redes' : 'Estilo cine';
+const notaMbps = () => EXP.mbps ? (EXP.mbps > 40 ? 'Muy alta: archivo pesado' : EXP.mbps < mbpsRecom() / 2 ? 'Más liviano, menos nítido' : 'Buena calidad') : `Recomendado para este video (${mbpsRecom()})`;
+function pintarAjExp() {
+  const caja = $('#cutAjExp .cut-ajexp-in');
+  const rl = RES_LIST(), ad = ANUNCIOS[Math.floor(Math.random() * ANUNCIOS.length)];
+  if (!rl.includes(EXP.res)) EXP.res = 1080;
+  if (!FPSS.includes(EXP.fps)) EXP.fps = 30;
+  if (!MBPS.includes(EXP.mbps)) EXP.mbps = 0;
+  caja.innerHTML = deslizador('res', 'Resolución', notaRes(EXP.res), rl.map(etqRes), rl.indexOf(EXP.res))
+    + deslizador('fps', 'Cuadros por segundo', notaFps(EXP.fps), FPSS, FPSS.indexOf(EXP.fps))
+    + deslizador('mbps', 'Tasa de bits (Mbps)', notaMbps(), MBPS.map(v => v || 'Auto'), MBPS.indexOf(EXP.mbps))
+    + `<div class="aj-peso" data-peso>Tamaño estimado del archivo: ${pesoMB()} MB</div>
+      <a class="aj-anuncio" href="${ad.u}" target="_blank" rel="noopener" data-ad="${esc(ad.t)}"><em>Anuncio</em><i>${ad.e}</i><span><b>${esc(ad.t)}</b><small>${esc(ad.s)}</small></span><span class="ir">Ver</span></a>`;
+  contar('anuncio_visto', { t: ad.t });
+  $('.aj-anuncio', caja).onclick = () => contar('clic_anuncio', { t: ad.t });
+  $$('[data-aj]', caja).forEach(r => r.oninput = () => {
+    const i = Number(r.value), k = r.dataset.aj;
+    if (k === 'res') EXP.res = rl[i]; if (k === 'fps') EXP.fps = FPSS[i]; if (k === 'mbps') EXP.mbps = MBPS[i];
+    $$('span', r.nextElementSibling).forEach((sp, j) => sp.classList.toggle('on', j === i));
+    $('[data-nota="res"]', caja).textContent = notaRes(EXP.res);
+    $('[data-nota="fps"]', caja).textContent = notaFps(EXP.fps);
+    $('[data-nota="mbps"]', caja).textContent = notaMbps();
+    $('[data-peso]', caja).textContent = `Tamaño estimado del archivo: ${pesoMB()} MB`;
+    pintarCalidad(); guardarAj();
+  });
+}
+function abrirAjExp(si) {
+  const m = $('#cutAjExp'), b = $('#cutCalidad');
+  si = si ?? m.hidden;
+  if (si) { pausar(); document.documentElement.style.setProperty('--alto-top', Math.round($('.cut-top').getBoundingClientRect().bottom) + 'px'); pintarAjExp(); }
+  m.hidden = !si; b.classList.toggle('on', si);
+}
+$('#cutCalidad').addEventListener('click', () => abrirAjExp());
+$('#cutAjExp').addEventListener('click', (e) => { if (e.target.id === 'cutAjExp') abrirAjExp(false); });
+pintarCalidad();
+/* ---------- X arriba: guarda y vuelve a "Mis proyectos" (como CapCut) ---------- */
+$('#cutCerrar').addEventListener('click', async () => {
+  abrirAjExp(false);
+  if (!S.clips.length) { if (!document.documentElement.classList.contains('es-cutapp')) location.href = $('#cutCerrar').dataset.inicio || '/'; return; }
+  pausar();
+  clearTimeout(tGuardar); await guardarYa();
+  limpiarEditor();
+  $('#cutVacio').hidden = false; pintarProyectos();
+  registrarHist();
+  pintarLinea(); abrirTab(innerWidth >= 1000 ? 'editar' : null);
+  aviso('Video guardado en Mis proyectos 📁');
+});
 async function abrirExportar() {
   if (!S.clips.length) return aviso('Primero agregue un video');
   pausar();
@@ -2700,6 +2769,8 @@ async function abrirExportar() {
   m.hidden = false;
   $('.cut-exp-op', m).hidden = false; $('.cut-exp-run', m).hidden = true; $('.cut-exp-fin', m).hidden = true;
   const ops = $('[data-res]', m);
+  abrirAjExp(false);
+  $('[data-fps]', m).innerHTML = FPSS.map(f => `<button type="button" class="cut-chip" data-v="${f}">${f} fps${f === 60 ? ' · más fluido' : ''}</button>`).join('');
   ops.innerHTML = Object.entries(RESOL).map(([v, t]) => `<button type="button" class="cut-chip" data-v="${v}">${t}</button>`).join('');
   // Desactivar lo que el equipo no puede codificar. En iPhone/iPad, 4K se queda sin memoria a mitad: solo en computador
   for (const b of $$('button', ops)) {
@@ -2712,8 +2783,8 @@ async function abrirExportar() {
     $$('button', ops).forEach(b => b.classList.toggle('on', Number(b.dataset.v) === EXP.res));
     $$('[data-fps] button', m).forEach(b => b.classList.toggle('on', Number(b.dataset.v) === EXP.fps));
     const { W, H } = tamSalida(EXP.res);
-    const mbps = (W * H * EXP.fps * 0.1) / 1e6;
-    $('[data-info]', m).textContent = `${W}×${H} · ${EXP.fps} fps · ${fmt(lay().total).slice(0, 5)} · aprox. ${Math.max(1, Math.round(mbps * lay().total / 8))} MB`;
+    $('[data-info]', m).textContent = `${W}×${H} · ${EXP.fps} fps · ${EXP.mbps ? EXP.mbps + ' Mbps · ' : ''}${fmt(lay().total).slice(0, 5)} · aprox. ${pesoMB()} MB`;
+    pintarCalidad(); guardarAj();
   };
   ops.onclick = (e) => { const v = e.target.dataset.v; if (!v || e.target.disabled) return; EXP.res = Number(v); marcar(); };
   $('[data-fps]', m).onclick = (e) => { const v = e.target.dataset.v; if (!v) return; EXP.fps = Number(v); marcar(); };
@@ -2721,6 +2792,11 @@ async function abrirExportar() {
   $('[data-cerrar]', m).onclick = () => { m.hidden = true; };
   const intentar = () => exportar().catch(err => {
     S.exportando = false; ajustarVista();
+    if (EXP.mbps && err.message !== 'memoria' && !EXP.cancelar) {
+      aviso('Su equipo no alcanzó esa tasa de bits: lo exportamos con la recomendada.');
+      EXP.mbps = 0; marcar();
+      return intentar();
+    }
     if (EXP.res > 1080) {
       aviso(`Su equipo no alcanzó ${EXP.res === 2160 ? '4K' : '2K'}: lo exportamos en 1080p (Full HD), que se ve muy bien en redes.`);
       EXP.res = 1080; marcar();
@@ -2818,7 +2894,7 @@ async function exportar() {
   const out = new MB.Output({ format: new MB.Mp4OutputFormat(), target });
   const lienzo = document.createElement('canvas'); lienzo.width = W; lienzo.height = H;
   const lctx = lienzo.getContext('2d');
-  const vsrc = new MB.CanvasSource(lienzo, { codec, bitrate: MB.QUALITY_HIGH, keyFrameInterval: 2, latencyMode: 'quality' });
+  const vsrc = new MB.CanvasSource(lienzo, { codec, bitrate: EXP.mbps ? EXP.mbps * 1e6 : MB.QUALITY_HIGH, keyFrameInterval: 2, latencyMode: 'quality' });
   out.addVideoTrack(vsrc, { frameRate: fps });
   let asrc = null;
   if (audio) { asrc = new MB.AudioBufferSource({ codec: audioCodec, bitrate: MB.QUALITY_HIGH }); out.addAudioTrack(asrc); }
