@@ -318,6 +318,23 @@ body.recortando .cut-clip.sel>span{font-size:.85rem;background:var(--v);color:#0
 .cut-mus .kfv.apag{background:#b8c6cf;border-color:#6d7a83}
 .cut-clip .kfc{position:absolute;bottom:6px;width:13px;height:13px;margin-left:-6.5px;background:#e8344e;border:1.5px solid #fff;transform:rotate(45deg);border-radius:2px;pointer-events:none;z-index:2;box-shadow:0 1px 3px rgba(0,0,0,.5)}
 .cut-clip .kfc.apag{background:#b8c6cf;border-color:#6d7a83}
+.cut-plants{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.cut-plants .est{min-height:72px}
+.cut-dib{position:fixed;inset:0;z-index:200;background:#0b0d0c;display:flex;flex-direction:column;color:#fff;touch-action:none}
+.cut-dib-top{display:flex;align-items:center;justify-content:space-between;padding:10px 12px}
+.cut-dib-top button{background:#222a25;color:#fff;border:0;border-radius:999px;padding:8px 16px;font-weight:700}
+.cut-dib-top button.ok{background:#a6f34a;color:#0b0d0c}
+.cut-dib-lienzo{flex:1;min-height:0;display:grid;place-items:center;position:relative;padding:6px}
+.cut-dib-lienzo canvas{grid-area:1/1;max-width:100%;max-height:100%;border-radius:8px}
+.cut-dib-lienzo canvas[data-f]{opacity:.85}
+.cut-dib-herr{padding:10px 12px calc(14px + env(safe-area-inset-bottom));background:#141816}
+.cut-dib-cols{display:flex;gap:10px;justify-content:center;margin-bottom:10px}
+.cut-dib-cols button{width:30px;height:30px;border-radius:50%;border:2px solid #444}
+.cut-dib-cols button.on{border-color:#a6f34a;transform:scale(1.15)}
+.cut-dib-fila{display:flex;align-items:center;gap:8px}
+.cut-dib-fila input{flex:1}
+.cut-dib-fila button{background:#222a25;color:#fff;border:1px solid #333;border-radius:10px;padding:6px 10px;font-weight:700;font-size:.85rem}
+.cut-dib-fila button.on{background:#a6f34a;color:#0b0d0c}
 /* Hoja de volumen estilo CapCut */
 body.hoja-vol .cut-tabs{display:none}
 body.hoja-vol #cutPanel .cut-panel-h{display:none}
