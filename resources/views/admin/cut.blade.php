@@ -132,6 +132,7 @@
         </div>
         <p class="cut-sub mb-0">La ubicación es aproximada (por la IP, como en ECO) y la IP se borra apenas se ubica. No se guarda ningún video ni nombre de archivo.</p>
     </div>
+    @include('admin._cut-anuncios')
 </div>
 @endsection
 

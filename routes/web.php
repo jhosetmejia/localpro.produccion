@@ -102,7 +102,7 @@ Route::get('/cut', function () {
         . "connect-src 'self' blob: data: https://storage.googleapis.com https://huggingface.co https://*.huggingface.co https://*.hf.co; "
         . "img-src 'self' blob: data:; media-src 'self' blob: data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
         . "font-src 'self' data: https://fonts.gstatic.com; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'";
-    return response()->view('cut.index')->withHeaders([
+    return response()->view('cut.index', ['anunciosCut' => \App\Support\AnunciosCut::lista()])->withHeaders([
         'Content-Security-Policy' => $csp,
         'X-Content-Type-Options' => 'nosniff',
         'Referrer-Policy' => 'strict-origin-when-cross-origin',
@@ -671,6 +671,7 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::get('/visitas/vivo', [\App\Http\Controllers\adminSitioController::class, 'vivo'])->name('sitio.vivo');
     Route::get('/cut', [\App\Http\Controllers\adminCutController::class, 'index'])->name('cut');
     Route::get('/cut/vivo', [\App\Http\Controllers\adminCutController::class, 'vivo'])->name('cut.vivo');
+    Route::post('/cut/anuncios', [\App\Http\Controllers\adminCutAnunciosController::class, 'guardar'])->name('cut.anuncios');
     Route::post('/opiniones/{opinion}/estado', [\App\Http\Controllers\adminOpinionesController::class, 'estado'])->whereNumber('opinion')->name('opiniones.estado');
     Route::get('/opiniones/{opinion}/foto', [\App\Http\Controllers\adminOpinionesController::class, 'foto'])->whereNumber('opinion')->name('opiniones.foto');
     Route::post('/opiniones/errores/{error}/resuelto', [\App\Http\Controllers\adminOpinionesController::class, 'errorResuelto'])->whereNumber('error')->name('opiniones.error');

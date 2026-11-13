@@ -2700,11 +2700,36 @@ const mbpsRecom = () => { const { W, H } = tamSalida(EXP.res); return Math.max(2
 const pesoMB = () => Math.max(1, Math.round((EXP.mbps || mbpsRecom()) * lay().total / 8 + lay().total * 0.02));
 const etqRes = (r) => r === 2160 ? '4K' : r === 1440 ? '2K' : r + 'P';
 // Anuncios de LocalPro (sección de anuncios del editor)
-const ANUNCIOS = [
+const ANUNCIOS = (Array.isArray(window.CUT_ANUNCIOS) && window.CUT_ANUNCIOS.length) ? window.CUT_ANUNCIOS : [
   { e: '🛍️', t: 'Venda más con su tienda en línea', s: 'Catálogo con pedidos por WhatsApp para su negocio', u: '/funciones?desde=cut-anuncio-tienda' },
   { e: '📅', t: 'Programe este video en sus redes', s: 'Facebook, Instagram y YouTube desde LocalPro', u: '/funciones?desde=cut-anuncio-redes' },
   { e: '💼', t: 'Ventas, inventario y caja en su celular', s: 'Todo su negocio en LocalPro, con app', u: '/funciones?desde=cut-anuncio-negocio' },
 ];
+// Tarjeta de un anuncio (con foto si tiene)
+function tarjetaAd(ad) {
+  const txt = `<i>${esc(ad.e || '📢')}</i><span><b>${esc(ad.t)}</b><small>${esc(ad.s || '')}</small></span><span class="ir">Ver</span>`;
+  return ad.img
+    ? `<a class="aj-anuncio con-img" href="${esc(ad.u)}" target="_blank" rel="noopener"><em>Anuncio</em><img src="${esc(ad.img)}" alt="" onerror="this.remove()"><span class="txt">${txt}</span></a>`
+    : `<a class="aj-anuncio" href="${esc(ad.u)}" target="_blank" rel="noopener"><em>Anuncio</em>${txt}</a>`;
+}
+/* ---------- Anuncios mientras se exporta: van cambiando cada 6 s. Si tocan uno, se abre al terminar
+   (abrir otra pestaña en medio de la exportación la pone lenta o la frena en el celular) ---------- */
+const ADS = { timer: null, i: 0, pend: null };
+function anunciosExportando(si) {
+  const caja = $('#cutExportar [data-ads]'); if (!caja) return;
+  clearInterval(ADS.timer); ADS.timer = null;
+  if (!si || !ANUNCIOS.length) { caja.innerHTML = ''; return; }
+  ADS.i = Math.floor(Math.random() * ANUNCIOS.length);
+  const pintar = () => {
+    const ad = ANUNCIOS[ADS.i % ANUNCIOS.length];
+    caja.innerHTML = tarjetaAd(ad)
+      + (ANUNCIOS.length > 1 ? `<div class="puntos">${ANUNCIOS.map((_, j) => `<i class="${j === ADS.i % ANUNCIOS.length ? 'on' : ''}"></i>`).join('')}</div>` : '')
+      + '<small class="espera">Mientras su video se arma 🎬</small>';
+    $('a', caja).onclick = (e) => { e.preventDefault(); ADS.pend = ad; contar('clic_anuncio', { t: ad.t, cuando: 'exportando' }); aviso('👍 Se lo abrimos apenas termine su video'); };
+  };
+  pintar();
+  ADS.timer = setInterval(() => { ADS.i++; pintar(); }, 6000);
+}
 /* ---------- Calidad de exportación arriba (como CapCut): resolución, cuadros por segundo y tasa de bits ---------- */
 function pintarCalidad() { const b = $('#cutCalidad'); if (b) $('span', b).textContent = etqRes(EXP.res); }
 function deslizador(clave, titulo, nota, items, idx) {
@@ -2726,8 +2751,7 @@ function pintarAjExp() {
     + deslizador('fps', 'Cuadros por segundo', notaFps(EXP.fps), FPSS, FPSS.indexOf(EXP.fps))
     + deslizador('mbps', 'Tasa de bits (Mbps)', notaMbps(), MBPS.map(v => v || 'Auto'), MBPS.indexOf(EXP.mbps))
     + `<div class="aj-peso" data-peso>Tamaño estimado del archivo: ${pesoMB()} MB</div>
-      <a class="aj-anuncio" href="${ad.u}" target="_blank" rel="noopener" data-ad="${esc(ad.t)}"><em>Anuncio</em><i>${ad.e}</i><span><b>${esc(ad.t)}</b><small>${esc(ad.s)}</small></span><span class="ir">Ver</span></a>`;
-  contar('anuncio_visto', { t: ad.t });
+      ${tarjetaAd(ad)}`;
   $('.aj-anuncio', caja).onclick = () => contar('clic_anuncio', { t: ad.t });
   $$('[data-aj]', caja).forEach(r => r.oninput = () => {
     const i = Number(r.value), k = r.dataset.aj;
@@ -2809,7 +2833,7 @@ async function abrirExportar() {
     }
     const motivo = err.message === 'memoria' ? 'el equipo se quedó sin memoria. Pruebe con 720p.' : (err.message || String(err));
     aviso('No se pudo exportar: ' + motivo, 'mal');
-    $('.cut-exp-op', m).hidden = false; $('.cut-exp-run', m).hidden = true;
+    $('.cut-exp-op', m).hidden = false; $('.cut-exp-run', m).hidden = true; anunciosExportando(false);
     window.LPOpinion?.error(err instanceof Error ? err : new Error(String(err)), { fase: 'exportar', res: EXP.res, fps: EXP.fps });
     contar('exporto_falla', { res: EXP.res, fps: EXP.fps, motivo: motivo.slice(0, 70) });
     let caja = $('[data-fallo]', m);
@@ -2872,6 +2896,7 @@ async function exportar() {
   await prepararCapas();
   const m = $('#cutExportar');
   $('.cut-exp-op', m).hidden = true; $('.cut-exp-run', m).hidden = false;
+  ADS.pend = null; anunciosExportando(true);
   const barra = $('.cut-exp-run i', m), txt = $('.cut-exp-run span', m);
   const poner = (pct, t) => { barra.style.width = pct + '%'; txt.textContent = t; };
   EXP.cancelar = false;
@@ -3100,7 +3125,7 @@ async function exportar() {
     S.exportando = false; soltarPantalla(); volverACopias();
     motor.tamano(vistaW, vistaH); S.dirty = true;
     if (S._resizePend) { S._resizePend = false; ajustarVista(); pintarLinea(); }
-    if (e.message === 'cancelado') { $('.cut-exp-op', m).hidden = false; $('.cut-exp-run', m).hidden = true; aviso('Exportación cancelada'); return; }
+    if (e.message === 'cancelado') { anunciosExportando(false); $('.cut-exp-op', m).hidden = false; $('.cut-exp-run', m).hidden = true; aviso('Exportación cancelada'); return; }
     throw e;
   }
   S.exportando = false; soltarPantalla(); volverACopias();
@@ -3113,8 +3138,11 @@ async function exportar() {
   if (EXP.url) URL.revokeObjectURL(EXP.url);
   const url = EXP.url = URL.createObjectURL(file);
   $('.cut-exp-run', m).hidden = true;
+  anunciosExportando(false);
   const fin = $('.cut-exp-fin', m);
   fin.hidden = false;
+  $('.cut-ad-pend', fin)?.remove();
+  if (ADS.pend) fin.insertAdjacentHTML('afterbegin', `<a class="cut-ad-pend" href="${esc(ADS.pend.u)}" target="_blank" rel="noopener">${esc(ADS.pend.e || '📢')} <span>Abrir: ${esc(ADS.pend.t)}</span> →</a>`);
   $('video', fin).src = url;
   $('[data-bajar]', fin).onclick = () => { contar('descargo_video'); const a = document.createElement('a'); a.href = url; a.download = nombre; document.body.appendChild(a); a.click(); a.remove(); };
   const comp = $('[data-compartir]', fin);

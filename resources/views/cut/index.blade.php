@@ -41,6 +41,17 @@ body.editando .cut-logo{display:none}
 .aj-marcas{display:flex;justify-content:space-between;color:#9aa69f;font-size:.8rem;font-weight:700;margin-top:2px}
 .aj-marcas span.on{color:#fff}
 .aj-peso{text-align:center;color:#c9d3cd;font-size:.86rem;border-top:1px solid #2a312d;padding-top:12px;margin-top:6px}
+.cut-exp-ads{margin:14px 0 4px;min-height:96px}
+.cut-exp-ads .aj-anuncio{margin-top:0;animation:adEntra .45s ease}
+.cut-exp-ads .aj-anuncio.con-img{flex-direction:column;align-items:stretch;padding:0;gap:0}
+.cut-exp-ads .aj-anuncio.con-img img{width:100%;max-height:190px;object-fit:cover;display:block}
+.cut-exp-ads .aj-anuncio.con-img .txt{display:flex;align-items:center;gap:10px;padding:12px 14px}
+.cut-exp-ads .puntos{display:flex;justify-content:center;gap:5px;margin-top:8px}
+.cut-exp-ads .puntos i{width:6px;height:6px;border-radius:50%;background:#3a423d}
+.cut-exp-ads .puntos i.on{background:#a6f34a;width:16px;border-radius:9px}
+.cut-exp-ads small.espera{display:block;text-align:center;color:#8d9a92;font-size:.74rem;margin-top:6px}
+.cut-ad-pend{display:flex;align-items:center;gap:10px;margin:0 0 10px;padding:10px 12px;border-radius:14px;background:#221a3a;color:#fff;text-decoration:none;font-weight:700}
+@keyframes adEntra{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .aj-anuncio{display:flex;align-items:center;gap:12px;margin-top:14px;padding:14px 16px;border-radius:16px;text-decoration:none;color:#fff;background:radial-gradient(120% 140% at 100% 0%,#7a3dff 0%,#3b1a8a 45%,#1b1530 100%);position:relative;overflow:hidden}
 .aj-anuncio i{font-style:normal;font-size:2rem}
 .aj-anuncio b{display:block;font-size:1rem}
@@ -675,6 +686,7 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
         </div>
         <div class="cut-exp-run" hidden>
             <div class="cut-progreso"><i></i><span>Preparando…</span></div>
+            <div class="cut-exp-ads" data-ads></div>
             <div class="fila-b"><button type="button" class="cut-btn-sec" data-cancelar>Cancelar</button></div>
         </div>
         <div class="cut-exp-fin" hidden>
@@ -837,6 +849,7 @@ body.pantalla .cut-top,body.pantalla .cut-linea,body.pantalla #cutPanel,body.pan
 </script>
 @php $cv = fn ($f) => '/js/cut/' . $f . '?v=' . @filemtime(public_path('js/cut/' . $f)); @endphp
 <script type="importmap">{!! json_encode(['imports' => collect(['motor.js', 'subtitulos.js', 'belleza.js', 'mediabunny.min.js'])->mapWithKeys(fn ($f) => ['/js/cut/' . $f => $cv($f)])->all()], JSON_UNESCAPED_SLASHES) !!}</script>
+<script>window.CUT_ANUNCIOS = {!! json_encode($anunciosCut ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!};</script>
 <script type="module" src="{{ $cv('cut.js') }}"></script>
 </body>
 </html>

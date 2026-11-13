@@ -16,7 +16,7 @@ use Illuminate\Support\Str;
 class cutVisitasController extends Controller
 {
     private const EVENTOS = ['agrego', 'exportar', 'exporto', 'exporto_falla', 'subtitulos', 'compartio_wa', 'compartio', 'compartio_video', 'descargo_video',
-        'clic_registro', 'clic_app', 'instalo', 'clic_funciones', 'muro_registro', 'opino', 'clic_programar'];
+        'clic_registro', 'clic_app', 'instalo', 'clic_funciones', 'muro_registro', 'opino', 'clic_programar', 'clic_anuncio'];
 
     public function visita(Request $request)
     {
