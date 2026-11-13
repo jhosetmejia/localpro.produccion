@@ -174,7 +174,8 @@ function tOrigen(c, lt) {
   return c.in + (c.out - c.in) * acum / T.media;
 }
 /* ---------- zoom por momentos (como los fotogramas clave de CapCut) ---------- */
-// Si se hace zoom a mitad del clip, se acerca suave desde ese momento; antes queda como estaba.
+// Con ◆: el encuadre (zoom y posición) va cambiando suave de un ◆ al siguiente, como en CapCut.
+// Sin ◆: si se hace zoom a mitad del clip, se acerca suave desde ese momento; antes queda como estaba.
 const RAMPA = 0.35;
 function encuadreEn(c, lt) {
   const k = c.kf;
@@ -195,11 +196,12 @@ function ltClip(c) { const L = lay(), i = S.clips.indexOf(c); return Math.max(0,
 function puntoZoom(c) {
   const lt = ltClip(c);
   if (!c.kf?.length && lt < 0.15) return c; // al inicio del clip: zoom en todo el clip
-  if (!c.kf?.length) c.kf = [{ t: 0, z: c.z || 1, x: c.x || 0, y: c.y || 0 }];
+  const auto = !c.kf?.length; // sin ◆ puestos: rampa corta antes de este momento
+  if (auto) c.kf = [{ t: 0, z: c.z || 1, x: c.x || 0, y: c.y || 0 }];
   let k = c.kf.find(q => Math.abs(q.t - lt) < 0.12);
   if (k) return k;
   const antes = { ...encuadreEn(c, Math.max(0, lt - RAMPA)) }, ahora = { ...encuadreEn(c, lt) };
-  if (lt - RAMPA > 0.05 && !c.kf.some(q => q.t < lt && q.t > lt - RAMPA - 0.05)) c.kf.push({ t: lt - RAMPA, z: antes.z, x: antes.x, y: antes.y });
+  if (auto && lt - RAMPA > 0.05 && !c.kf.some(q => q.t < lt && q.t > lt - RAMPA - 0.05)) c.kf.push({ t: lt - RAMPA, z: antes.z, x: antes.x, y: antes.y });
   k = { t: lt, z: ahora.z, x: ahora.x, y: ahora.y };
   c.kf.push(k);
   c.kf.sort((a, b) => a.t - b.t);
@@ -558,7 +560,7 @@ function bucle(ahora) {
     $('#cutTiempo').textContent = `${fmt(S.t).slice(0, 5)} / ${fmt(lay().total).slice(0, 5)}`;
     const cc = S.clips.length ? clipBajoLinea() : null, lt = cc ? ltClip(cc) : 0;
     const mk = S.selM && S.musica.find(x => x.id === S.selM);
-    $('#cutClave').classList.toggle('on', mk ? !!kfvCerca(mk) : !!cc?.kf?.some(q => q.t > 0.01 && Math.abs(q.t - lt) < 0.12));
+    $('#cutClave').classList.toggle('on', mk ? !!kfvCerca(mk) : !!cc?.kf?.some(q => Math.abs(q.t - lt) < 0.12));
     if (S.tab === 'm-vol' && mk) refrescarVol(mk);
   }
   requestAnimationFrame(bucle);
@@ -639,6 +641,7 @@ function pintarLinea() {
     const icMudo = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="m17 9 4 6M21 9l-4 6"/></svg>';
     const ef = c.ef && c.ef !== 'ninguno' ? EFECTOS.find(x => x.id === c.ef) : null;
     b.innerHTML = `<em>${etqVel ? icVel + esc(etqVel) : ''}${c.tipo === 'video' && (c.mute || S.silenciar) ? icMudo : ''}${ef ? `<i class="ef">${ef.e}</i>` : ''}</em>` + `<span>${c.tipo === 'imagen' ? '🖼 ' : ''}${fmt(largo(c)).slice(0, 5)}</span>`;
+    if (c.kf?.length) b.insertAdjacentHTML('beforeend', c.kf.map(k => `<i class="kfc ${S.sel === c.id ? '' : 'apag'}" style="left:${Math.min(k.t, largo(c)) * S.pps}px"></i>`).join(''));
     b.addEventListener('pointerdown', (e) => presionarClip(e, c));
     b.onclick = (e) => { e.stopPropagation(); if (b._recorto) { b._recorto = false; return; } if (Date.now() - (S._finOrden || 0) < 500) return; S.sel = c.id; S.selM = null; S.selC = null; S.barraClip = true; S.barraAudio = false; abrirTab(TABS_CLIP.includes(S.tab) ? S.tab : null); pintarLinea(); };
     // Tiradores para recortar arrastrando los bordes (como CapCut)
@@ -1740,9 +1743,24 @@ $('#cutClave').addEventListener('click', () => {
   const c = clipBajoLinea(); if (!c) return aviso('Ponga la línea blanca sobre un clip');
   pausar();
   const lt = ltClip(c);
-  const ya = c.kf?.find(q => Math.abs(q.t - lt) < 0.12 && q.t > 0.01);
-  if (ya) { c.kf = c.kf.filter(q => q !== ya); if (c.kf.length <= 1) { const e2 = c.kf[0] || encuadreEn(c, 0); c.z = e2.z; c.x = e2.x; c.y = e2.y; c.kf = null; } aviso('Fotograma clave quitado'); }
-  else { if (!c.kf?.length) c.kf = [{ t: 0, z: c.z || 1, x: c.x || 0, y: c.y || 0 }]; puntoZoom(c); aviso('◆ Fotograma clave: pellizque o mueva el video y cambia desde aquí'); }
+  const ya = c.kf?.find(q => Math.abs(q.t - lt) < 0.12);
+  if (ya && c.kf.length > 1) {
+    c.kf = c.kf.filter(q => q !== ya);
+    if (c.kf.length <= 1) { const e2 = c.kf[0] || encuadreEn(c, 0); c.z = e2.z; c.x = e2.x; c.y = e2.y; c.kf = null; }
+    aviso('Fotograma clave quitado');
+  } else if (ya) {
+    aviso('◆ Ya hay uno aquí. Mueva la línea blanca más adelante y toque ◆ otra vez');
+  } else {
+    const e1 = encuadreEn(c, lt);
+    if (!c.kf?.length) {
+      // Primer ◆ (como CapCut): guarda cómo se ve ahora, justo en este momento
+      c.kf = [{ t: lt, z: e1.z, x: e1.x, y: e1.y }];
+      aviso('◆ Marcado. Ahora mueva la línea blanca más adelante, toque ◆ otra vez y agrande con dos dedos: hace el zoom de un ◆ al otro');
+    } else {
+      c.kf.push({ t: lt, z: e1.z, x: e1.x, y: e1.y }); c.kf.sort((a, b) => a.t - b.t);
+      aviso('◆ Agregado. Pellizque o mueva la imagen: el zoom va suave desde el ◆ anterior hasta aquí');
+    }
+  }
   S.sel = c.id; S.dirty = true; guardar(); pintarLinea(); if (S.tab === 'editar') pintarPanel();
 });
 $('#cutRehacer').addEventListener('click', rehacer);
@@ -3213,7 +3231,8 @@ vista.addEventListener('pointermove', (e) => {
   if (!gesto.k) {
     const dm = Math.hypot(pts[0].x - gesto.p0[0].x, pts[0].y - gesto.p0[0].y);
     if (dm < 4 && pts.length === gesto.p0.length) return;
-    gesto.k = puntoZoom(c); gesto.z0 = gesto.k.z || 1; gesto.x0 = gesto.k.x || 0; gesto.y0 = gesto.k.y || 0;
+    const nk = c.kf?.length || 0;
+    gesto.k = puntoZoom(c); if ((c.kf?.length || 0) !== nk) pintarLinea(); gesto.z0 = gesto.k.z || 1; gesto.x0 = gesto.k.x || 0; gesto.y0 = gesto.k.y || 0;
     gesto.p0 = pts.map(q => ({ ...q }));
     if (pts.length > 1) gesto.d0 = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
   }
