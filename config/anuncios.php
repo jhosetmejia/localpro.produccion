@@ -5,6 +5,16 @@
 // 'desde' / 'hasta' (Y-m-d) son opcionales: el anuncio sale solo entre esas fechas.
 return [
     [
+        'clave' => 'anuncio-mia-2026-11',
+        'icono' => 'fa-robot',
+        'color' => 'verde',
+        'texto' => '<b>¡Hola! Soy Mía 👋</b>, tu asistente virtual de LocalProo. Escríbeme cualquier duda, por texto o por audio, y te colaboro en lo que necesites.',
+        'cuando' => 'Novedad de LocalProo',
+        'url' => '/?mia',
+        'desde' => '2026-11-13',
+        'hasta' => '2026-12-31',
+    ],
+    [
         'clave' => 'anuncio-localprocut-2026-11',
         'icono' => 'fa-scissors',
         'color' => 'morado',

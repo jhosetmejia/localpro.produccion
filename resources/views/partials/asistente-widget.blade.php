@@ -16,6 +16,7 @@
           'aprende' => auth()->check() ? route('aprende.index') : route('blog.index'),
       ],
       'sesion' => auth()->check(),
+      'asesor' => (bool) (auth()->user()?->asesor),
   ];
 @endphp
 <style>
@@ -145,7 +146,7 @@ body:has(#lpInstalar) #pfn-as{bottom:136px}
   var iniciado = false;
   function abrir() {
     box.classList.add('abierto');
-    if (!iniciado) { iniciado = true; var e = escribiendo(); setTimeout(function () { e.remove(); burbuja(D.sesion ? '¡Hola! 👋 Soy Mía, la asistente virtual de LocalProo. ¿Qué quieres hacer hoy en tu sistema? Escríbeme o toca una opción.' : '¡Hola! 👋 Soy Mía, la asistente virtual de LocalProo. ¿Qué tipo de negocio tienes? Te cuento cómo LocalProo te ayuda.', 'bot'); }, 700); }
+    if (!iniciado) { iniciado = true; var e = escribiendo(); setTimeout(function () { e.remove(); burbuja(D.asesor ? '¡Hola! 👋 Soy Mía, tu compañera de ventas en LocalProo 💪. ¿Cerramos un negocio hoy? Te armo el mensaje para mandar, te ayudo con una objeción o repasamos tus comisiones.' : D.sesion ? '¡Hola! 👋 Soy Mía, la asistente virtual de LocalProo. ¿Qué quieres hacer hoy en tu sistema? Escríbeme o toca una opción.' : '¡Hola! 👋 Soy Mía, la asistente virtual de LocalProo. ¿Qué tipo de negocio tienes? Te cuento cómo LocalProo te ayuda.', 'bot'); }, 700); }
     setTimeout(function () { box.querySelector('[data-in]').focus(); }, 50);
   }
   // 2026-11-13 (Jhoset): link que abre el chat solo: ?mia, ?chat o #mia / #chat

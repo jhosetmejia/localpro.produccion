@@ -54,8 +54,9 @@ TXT;
                     $l[] = '- Su '.($gratis ? 'prueba' : 'plan').' vence el '.$t->plan_vence->format('d/m/Y').($d !== null ? ' (le quedan '.max(0, $d).' días)' : '').'. Pagar o ver su plan: '.route('plan.index');
                 }
                 $l[] = '- Su panel: '.route('panel').' · Cursos para aprender a usar su sistema: '.route('aprende.index');
-            } elseif ($u->asesor ?? null) {
-                $l[] = '- Es asesor de la red comercial de LocalProo. Su curso: '.route('curso.index');
+            }
+            if ($a = $u->asesor ?? null) {
+                $l[] = self::asesorContexto($a);
             }
         } catch (\Throwable $e) {
             report($e);
@@ -104,6 +105,32 @@ TXT;
         $u = $request->user();
 
         return $u && (bool) ($u->es_superadmin ?? false);
+    }
+
+    /**
+     * 2026-11-13 (Jhoset): si escribe un asesor, Mía es su coach de ventas: lo motiva, le ayuda a vender
+     * los planes (guiones, objeciones, a quién ofrecer) y le da sus links y números reales.
+     */
+    private static function asesorContexto(\App\Models\Asesor $a): string
+    {
+        $l = ['', 'ES ASESOR DE LA RED COMERCIAL DE LOCALPROO ('.$a->cargo_nombre.'). CON ÉL ERES SU COACH DE VENTAS:'];
+        try {
+            $negocios = $a->tiendas()->count();
+            $pend = (float) $a->comisiones()->where('estado', 'pendiente')->sum('monto');
+            $pag = (float) $a->comisiones()->where('estado', 'pagada')->sum('monto');
+            $l[] = '- Sus números: '.$negocios.' negocio(s) registrados con su código; comisiones por cobrar '.$a->plata($pend).'; ya cobradas '.$a->plata($pag).'.';
+            if ($falta = $a->falta_perfil) {
+                $l[] = '- Para que le paguen le falta llenar: '.implode(' y ', $falta).' en Mi cuenta: '.route('asesor.cuenta.edit');
+            }
+        } catch (\Throwable $e) {
+            report($e);
+        }
+        $l[] = '- Su enlace para que los negocios se registren con su código (así gana su comisión): '.$a->enlace.' · Su código: '.$a->codigo;
+        $l[] = '- Su enlace para sumar asesores a su equipo: '.$a->enlace_reclutar;
+        $l[] = '- Herramientas: su panel '.route('asesor.index').' · vender '.route('asesor.vender').' · comisiones '.route('asesor.comisiones').' · contactos para escribir (20 al día) '.route('asesor.contactos').' · simulador de ganancias '.route('asesor.simulador').' · ejemplos para mostrar '.route('asesor.ejemplos').' · capacitación '.route('asesor.capacitacion').' · curso '.route('curso.index');
+        $l[] = '- Cómo ayudarlo: motívalo con energía y cercanía (celebra sus avances, nada de presión fea). Dale guiones cortos listos para copiar y mandar por WhatsApp según el tipo de negocio (tienda, restaurante, consultorio, funeraria, eventos, contador). Ayúdalo a responder objeciones ("es caro", "ya uso cuaderno o Excel", "no tengo tiempo", "lo pienso"): la prueba gratis de 1 mes sin compromiso, que todo queda en la nube y en el celular, que le ahorra tiempo y le muestra cuánto gana. Sugiérele a quién ofrecer hoy y que use sus 20 contactos del día. Para saber cuánto puede ganar, mándalo al simulador; NO inventes porcentajes de comisión.';
+
+        return implode("\n", $l);
     }
 
     /** LocalProo: WhatsApp de soporte (Admin → Planes y cobros). */
