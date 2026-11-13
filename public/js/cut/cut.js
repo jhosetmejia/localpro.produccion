@@ -2693,8 +2693,7 @@ function listaSubs() {
 
 /* ---------- exportar ---------- */
 const EXP = { res: 1080, fps: 30, mbps: 0, cancelar: false };
-try { Object.assign(EXP, JSON.parse(localStorage.getItem('cutExpAj') || '{}'), { cancelar: false }); } catch (e) { /* nada */ }
-const guardarAj = () => { try { localStorage.setItem('cutExpAj', JSON.stringify({ res: EXP.res, fps: EXP.fps, mbps: EXP.mbps })); } catch (e) { /* nada */ } };
+const guardarAj = () => {}; // por defecto siempre 1080p a 30 fps; lo que cambie arriba vale mientras edita
 const FPSS = [24, 25, 30, 50, 60], MBPS = [0, 5, 10, 20, 50, 100];
 const mbpsRecom = () => { const { W, H } = tamSalida(EXP.res); return Math.max(2, Math.round(W * H * EXP.fps * 0.1 / 1e6)); };
 const pesoMB = () => Math.max(1, Math.round((EXP.mbps || mbpsRecom()) * lay().total / 8 + lay().total * 0.02));
@@ -2806,7 +2805,9 @@ async function abrirExportar() {
   if (typeof VideoEncoder === 'undefined') return aviso('Este navegador no puede exportar video. Use Chrome actualizado.', 'mal');
   const m = $('#cutExportar');
   m.hidden = false;
-  $('.cut-exp-op', m).hidden = false; $('.cut-exp-run', m).hidden = true; $('.cut-exp-fin', m).hidden = true;
+  // Va directo a "exportando" (sin la pantalla de opciones en medio)
+  $('.cut-exp-op', m).hidden = true; $('.cut-exp-run', m).hidden = false; $('.cut-exp-fin', m).hidden = true;
+  { const pr = $('.cut-exp-run .cut-progreso', m); if (pr) { $('i', pr).style.width = '1%'; $('span', pr).textContent = 'Preparando…'; } }
   const ops = $('[data-res]', m);
   abrirAjExp(false);
   $('[data-fps]', m).innerHTML = FPSS.map(f => `<button type="button" class="cut-chip" data-v="${f}">${f} fps${f === 60 ? ' · más fluido' : ''}</button>`).join('');
@@ -2862,6 +2863,8 @@ async function abrirExportar() {
     contar('exportar', { res: EXP.res, fps: EXP.fps, seg: Math.round(lay().total) });
     intentar();
   };
+  // Como CapCut: con tocar Exportar arriba ya empieza, con lo elegido en el botón de calidad (o 1080p a 30 fps)
+  $('[data-iniciar]', m).onclick();
 }
 $('#cutBtnExportar').addEventListener('click', abrirExportar);
 
