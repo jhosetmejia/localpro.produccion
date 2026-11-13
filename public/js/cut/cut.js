@@ -2767,7 +2767,22 @@ function carruselAds(caja, alTocar) {
   }, 6000);
   ADS.carr.push(c);
 }
+// Mientras exporta, en vez de la pantalla negra: logo de LocalPro con una miniatura del video de fondo
+function portadaExportando(si, foto) {
+  let el = $('#cutExpPortada');
+  if (!si) { if (el) el.hidden = true; return; }
+  if (!el) {
+    el = document.createElement('div'); el.id = 'cutExpPortada'; el.className = 'cut-exp-portada';
+    el.innerHTML = '<i class="fondo"></i><div class="centro"><img src="/icons/cut-192.png" alt=""><b>LocalPro<em>Cut</em></b><small>Armando su video…</small><span class="mini"></span></div>';
+    $('#cutVistaCaja').appendChild(el);
+  }
+  const mini = $('.mini', el), [aa, bb] = ASPECTOS[S.aspecto] || [9, 16];
+  mini.style.aspectRatio = `${aa}/${bb}`; mini.style.width = aa > bb ? '160px' : aa === bb ? '120px' : '96px';
+  if (foto) { $('.fondo', el).style.backgroundImage = `url(${foto})`; mini.style.backgroundImage = `url(${foto})`; mini.hidden = false; } else mini.hidden = true;
+  el.hidden = false;
+}
 function anunciosExportando(si) {
+  if (!si) portadaExportando(false);
   const caja = $('#cutExportar [data-ads]'); if (!caja) return;
   if (!si) { const c = ADS.carr.find(x => x.caja === caja); if (c) clearInterval(c.t); ADS.carr = ADS.carr.filter(x => x !== c); caja.innerHTML = ''; return; }
   // Si tocan uno mientras exporta, se abre al terminar (abrir otra pestaña frena la exportación en el celular)
@@ -2834,6 +2849,11 @@ async function abrirExportar() {
   pausar();
   if (typeof VideoEncoder === 'undefined') return aviso('Este navegador no puede exportar video. Use Chrome actualizado.', 'mal');
   const m = $('#cutExportar');
+  // Foto del cuadro que se ve ahora (antes de que la vista se apague para exportar)
+  let foto = null;
+  try { dibujarCuadro(S.t, fuentePrevia, vista.width, vista.height, vctx); foto = vista.toDataURL('image/jpeg', 0.7); } catch (e) { foto = null; }
+  if (!foto) foto = S.portada?.url || null;
+  portadaExportando(true, foto);
   m.hidden = false;
   EXP.cancelar = false; EXP._avisado = false;
   { const bc = $('[data-cancelar]', m); bc.disabled = false; bc.textContent = 'Cancelar'; bc.onclick = () => { EXP.cancelar = true; bc.disabled = true; bc.textContent = 'Cancelando…'; if (!S.exportando) exportCancelada(m); }; }

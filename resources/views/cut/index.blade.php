@@ -161,6 +161,16 @@ body.editando .cut-logo{display:none}
 @media (max-width:440px){.cut-opinar span{display:none}.cut-opinar{padding:.3rem .5rem}}
 .cut-exp{background:linear-gradient(90deg,var(--v),var(--v2));border:0;border-radius:999px;padding:.5rem 1.05rem;font-weight:800;color:var(--f)!important}
 #cutVistaCaja{flex:1 1 0;min-height:120px;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 40%,#161c18,#0b0d0c 70%)}
+.cut-exp-portada{position:absolute;inset:0;z-index:5;display:grid;place-items:center;overflow:hidden;background:#0b0d0c}
+.cut-exp-portada .fondo{position:absolute;inset:-30px;background:center/cover no-repeat;filter:blur(22px) brightness(.45) saturate(1.2);transform:scale(1.1)}
+.cut-exp-portada .centro{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;color:#fff}
+.cut-exp-portada img{width:64px;height:64px;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.5);animation:cutLatidoLogo 1.6s ease-in-out infinite}
+.cut-exp-portada b{font-family:Unbounded,sans-serif;font-weight:800;font-size:1.15rem}
+.cut-exp-portada b em{font-style:normal;color:var(--v)}
+.cut-exp-portada small{color:#c9d3cd;font-weight:700}
+.cut-exp-portada .mini{display:block;width:96px;aspect-ratio:9/16;max-height:30vh;margin-top:10px;border-radius:12px;background:center/cover no-repeat;border:2px solid rgba(255,255,255,.7);box-shadow:0 12px 30px rgba(0,0,0,.55)}
+.cut-exp-portada .mini[hidden]{display:none}
+@keyframes cutLatidoLogo{50%{transform:scale(1.07)}}
 #cutLienzo{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:auto;height:auto;max-width:calc(100% - 20px);max-height:calc(100% - 20px);background:#000;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
 .cut-vacio{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:16px 20px;gap:.55rem;background:var(--f);overflow-y:auto}
 .cut-vacio::before,.cut-vacio::after{content:"";flex:1 1 0}
