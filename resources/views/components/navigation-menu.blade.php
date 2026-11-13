@@ -83,6 +83,11 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-ticket"></i></div>
                     Eventos
                 </a>
+                @php $asPend = 0; try { $asPend = \Illuminate\Support\Facades\DB::table('asistente_mensajes')->where('sin_respuesta', true)->where('resuelta', false)->count(); } catch (\Throwable $e) {} @endphp
+                <a class="nav-link {{ $on('admin.asistente*') }}" href="{{ route('admin.asistente') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-robot"></i></div>
+                    Asistente IA @if ($asPend > 0) <span class="badge rounded-pill ms-1" style="background:#ff5c9a">{{ $asPend }}</span> @endif
+                </a>
                 <a class="nav-link {{ $on('admin.pruebas*') }}" href="{{ route('admin.pruebas') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-vial-circle-check"></i></div>
                     Probar sistemas

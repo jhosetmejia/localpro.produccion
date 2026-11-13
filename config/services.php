@@ -62,4 +62,12 @@ return [
         'codigo' => env('GIRO360_CODIGO', '360pasto'),
     ],
 
+    // Asistente IA de la página (Groq, gratis): la misma llave sirve para LocalProo, PFN y NES
+    'groq' => [
+        'key' => env('GROQ_API_KEY'),
+        'model' => env('GROQ_MODEL', 'openai/gpt-oss-120b'),
+        'model_respaldo' => env('GROQ_MODEL_RESPALDO', 'openai/gpt-oss-20b'),
+        'max_dia' => (int) env('GROQ_MAX_DIA', 900),
+    ],
+
 ];

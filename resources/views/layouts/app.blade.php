@@ -87,6 +87,9 @@
     <script src="{{ asset('js/lp-opinion.js') }}?v=2"></script>
     @stack('js')
 
+@unless (request()->is('admin*'))
+@include('partials.asistente-widget')
+@endunless
 </body>
 
 

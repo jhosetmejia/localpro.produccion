@@ -140,5 +140,8 @@
     </div>
     <p style="margin-top:18px;color:#6b7570;font-size:.95rem">LocalProo · Para negocios que piensan en grande · <a href="{{ url('/') }}">localproo.com</a></p>
 </div>
+@unless (request()->is('admin*'))
+@include('partials.asistente-widget')
+@endunless
 </body>
 </html>

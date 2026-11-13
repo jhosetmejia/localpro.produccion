@@ -85,6 +85,8 @@ Route::get('/t/{slug}/carta-ia', [catalogoController::class, 'cartaIa'])->where(
 Route::get('/t/{slug}/carta/imprimir', [catalogoController::class, 'cartaImprimir'])->where('slug', '[a-z0-9-]+')->middleware('throttle:60,1')->name('catalogo.carta.imprimir');
 Route::get('/t/{slug}/p/{producto}', [catalogoController::class, 'producto'])->where(['slug' => '[a-z0-9-]+', 'producto' => '[0-9]+(-[a-z0-9-]*)?'])->middleware('throttle:120,1')->name('catalogo.producto');
 // LocalProo Marketplace: todas las tiendas en línea y sus productos en un solo lugar
+// Asistente IA de la página (burbuja de ayuda)
+Route::post('/asistente/ia', [\App\Http\Controllers\AsistenteController::class, 'responder'])->middleware('throttle:15,1')->name('asistente.ia');
 Route::get('/marketplace', [\App\Http\Controllers\marketplaceController::class, 'index'])->middleware('throttle:120,1')->name('marketplace');
 Route::get('/mercado', fn () => redirect()->route('marketplace', request()->query(), 301));
 Route::get('/sitemap.xml', [catalogoController::class, 'sitemap'])->name('sitemap');
@@ -677,6 +679,10 @@ Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->grou
     Route::post('/opiniones/errores/{error}/resuelto', [\App\Http\Controllers\adminOpinionesController::class, 'errorResuelto'])->whereNumber('error')->name('opiniones.error');
     Route::post('/opiniones/errores/limpiar', [\App\Http\Controllers\adminOpinionesController::class, 'erroresLimpiar'])->name('opiniones.limpiar');
     Route::get('/360', [\App\Http\Controllers\giro360Controller::class, 'admin'])->name('giro360');
+    Route::get('/asistente', [\App\Http\Controllers\AsistenteController::class, 'admin'])->name('asistente');
+    Route::post('/asistente/ensenar', [\App\Http\Controllers\AsistenteController::class, 'ensenar'])->name('asistente.ensenar');
+    Route::post('/asistente/calificar', [\App\Http\Controllers\AsistenteController::class, 'calificar'])->name('asistente.calificar');
+    Route::post('/asistente/conocimiento', [\App\Http\Controllers\AsistenteController::class, 'conocimiento'])->name('asistente.conocimiento');
     Route::post('/360/codigo', [\App\Http\Controllers\giro360Controller::class, 'cambiarCodigo'])->name('giro360.codigo');
     Route::get('/360/exportar', [\App\Http\Controllers\giro360Controller::class, 'exportar'])->name('giro360.exportar');
     Route::post('/donaciones', [\App\Http\Controllers\adminDonacionesController::class, 'guardar'])->name('donaciones.guardar');

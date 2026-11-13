@@ -245,5 +245,8 @@
     </div>
 </footer>
 
+@unless (request()->is('admin*'))
+@include('partials.asistente-widget')
+@endunless
 </body>
 </html>

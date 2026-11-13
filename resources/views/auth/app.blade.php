@@ -50,5 +50,8 @@
         </div>
     </main>
 </div>
+@unless (request()->is('admin*'))
+@include('partials.asistente-widget')
+@endunless
 </body>
 </html>
