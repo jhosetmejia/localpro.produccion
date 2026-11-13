@@ -139,11 +139,20 @@ html.lp-cargando::after{content:"";position:fixed;left:50%;top:50%;width:64px;he
         window.__lpInstalar = e;
         var mostrar = function () {
             if (document.getElementById('lpInstalar')) return;
+            // 2026-11-13 (Jhoset): si ya la instaló (abre como app) o tocó la X, no se muestra (la X lo esconde 30 días)
+            if (window.matchMedia && (matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: window-controls-overlay)').matches)) return;
+            try { if (Date.now() < +(localStorage.getItem('lpInstalarNo') || 0)) return; } catch (x) {}
             var b = document.createElement('button');
             b.id = 'lpInstalar'; b.type = 'button';
-            b.innerHTML = '📲 Instalar LocalPro';
+            b.innerHTML = '📲 Instalar LocalPro <span data-x aria-label="No mostrar" title="No mostrar" style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-left:8px;border-radius:50%;background:rgba(11,13,12,.18);font-weight:900;line-height:1">×</span>';
             b.style.cssText = 'position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:999;border:0;border-radius:999px;padding:12px 18px;font-weight:800;font-family:inherit;background:linear-gradient(135deg,#a6f34a,#2fd15a 45%,#16b34a);color:#0b0d0c;box-shadow:0 14px 30px -12px rgba(47,209,90,.9);cursor:pointer';
-            b.onclick = window.lpInstalarApp;
+            b.onclick = function (ev) {
+                if (ev.target && ev.target.closest && ev.target.closest('[data-x]')) {
+                    try { localStorage.setItem('lpInstalarNo', String(Date.now() + 30 * 864e5)); } catch (x) {}
+                    b.remove(); return;
+                }
+                window.lpInstalarApp && window.lpInstalarApp();
+            };
             document.body.appendChild(b);
             setTimeout(function () { if (b.parentNode) b.remove(); }, 20000);
         };
