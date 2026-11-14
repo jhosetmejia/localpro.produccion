@@ -44,6 +44,7 @@ TXT;
         try {
             if ($u->es_superadmin ?? false) {
                 $l[] = '- Es el administrador de LocalProo.';
+                $l[] = self::adminContexto();
             }
             $t = \App\Support\TiendaActual::tienda();
             if ($t) {
@@ -131,6 +132,42 @@ TXT;
         $l[] = '- Cómo ayudarlo: motívalo con energía y cercanía (celebra sus avances, nada de presión fea). Dale guiones cortos listos para copiar y mandar por WhatsApp según el tipo de negocio (tienda, restaurante, consultorio, funeraria, eventos, contador). Ayúdalo a responder objeciones ("es caro", "ya uso cuaderno o Excel", "no tengo tiempo", "lo pienso"): la prueba gratis de 1 mes sin compromiso, que todo queda en la nube y en el celular, que le ahorra tiempo y le muestra cuánto gana. Sugiérele a quién ofrecer hoy y que use sus 20 contactos del día. Para saber cuánto puede ganar, mándalo al simulador; NO inventes porcentajes de comisión.';
 
         return implode("\n", $l);
+    }
+
+    /**
+     * 2026-11-13 (Jhoset): datos internos de la plataforma. SOLO se le pasan a la IA cuando escribe el súper
+     * administrador (es_superadmin); a cualquier otra persona nunca le llegan. Son totales, no datos de clientes.
+     */
+    private static function adminContexto(): string
+    {
+        try {
+            $hoy = today();
+            $aprob = fn () => \App\Models\PagoSuscripcion::where('estado', 'aprobado');
+            $T = \App\Models\Tienda::class;
+            $f = fn ($v) => \App\Support\Moneda::formato($v, 'COP');
+            $nuevas = $T::with('asesor.user:id,name')->latest()->take(5)->get()
+                ->map(fn ($t) => $t->nombre.' ('.$t->created_at?->format('d/m').($t->asesor ? ', asesor '.$t->asesor->nombre : '').')')->implode('; ');
+            $l = [
+                '',
+                'DATOS INTERNOS DE LOCALPROO (solo para el administrador; puedes darle cualquiera de estos números, son reales y de hoy '.now('America/Bogota')->format('d/m/Y g:i a').'):',
+                '- Negocios registrados: '.$T::count().' en total · activos '.$T::where('estado', 'activa')->count().' · suspendidos '.$T::where('estado', '<>', 'activa')->count().' · sin terminar de configurar '.$T::where('onboarding_completo', false)->count(),
+                '- Registros nuevos: hoy '.$T::whereDate('created_at', $hoy)->count().' · últimos 7 días '.$T::where('created_at', '>=', now()->subDays(7))->count().' · este mes '.$T::where('created_at', '>=', now()->startOfMonth())->count(),
+                '- Planes: pagando al día '.$T::whereNotNull('plan_vence')->where('plan_vence', '>=', $hoy)->count().' · vencidos '.$T::whereNotNull('plan_vence')->where('plan_vence', '<', $hoy)->count().' · sin fecha (gratis) '.$T::whereNull('plan_vence')->count().' · vencen en los próximos 10 días '.$T::whereNotNull('plan_vence')->whereBetween('plan_vence', [$hoy, $hoy->copy()->addDays(10)])->count(),
+                '- Ingresos (pagos aprobados): este mes '.$f((float) $aprob()->where('created_at', '>=', now()->startOfMonth())->sum(\App\Models\PagoSuscripcion::sqlEnCop())).' · este año '.$f((float) $aprob()->where('created_at', '>=', now()->startOfYear())->sum(\App\Models\PagoSuscripcion::sqlEnCop())).' · pagos pendientes de revisar '.\App\Models\PagoSuscripcion::where('estado', 'pendiente')->count(),
+                '- Usuarios: '.\App\Models\User::count().' · asesores activos '.\App\Models\Asesor::where('activo', true)->count().' · comisiones por pagar '.$f((float) \App\Models\Comision::where('estado', 'pendiente')->sum(\Illuminate\Support\Facades\DB::raw(\App\Support\Moneda::sqlACop('monto')))),
+                '- Ventas de los negocios hoy: '.\Illuminate\Support\Facades\DB::table('pos_ventas')->where('estado', 'pagada')->whereDate('created_at', $hoy)->count(),
+                '- Últimos negocios registrados: '.($nuevas ?: 'ninguno'),
+                '- Mía hoy: '.\Illuminate\Support\Facades\DB::table('asistente_mensajes')->where('created_at', '>=', now('America/Bogota')->startOfDay()->utc())->count().' preguntas · '.\Illuminate\Support\Facades\DB::table('asistente_mensajes')->where('sin_respuesta', true)->where('resuelta', false)->count().' sin responder en '.route('admin.asistente'),
+                '- Más detalle: panel de administración '.route('admin.inicio').' · negocios '.route('admin.tiendas.index').' · pagos '.route('admin.pagos'),
+                'Con el administrador habla como su mano derecha: directo, con los números, y si ves algo para mejorar (vencidos por cobrar, registros sin configurar) sugiérelo.',
+            ];
+
+            return implode("\n", $l);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return '- (No se pudieron leer los datos internos ahora.)';
+        }
     }
 
     /** LocalProo: WhatsApp de soporte (Admin → Planes y cobros). */
