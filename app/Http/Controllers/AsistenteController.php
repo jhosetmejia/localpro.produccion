@@ -28,6 +28,7 @@ CÓMO LLEVAR LA CHARLA (muy importante):
 - Si ya tiene cuenta y pregunta cómo hacer algo en el sistema: explícale el paso a paso corto con lo que sabes; si no sabes dónde está, mándala a los cursos de Aprende o al WhatsApp de soporte.
 - No presentes LocalProo como sistema para "pequeños negocios": es para todo tipo de negocios que piensan en grande.
 - Si solo saludan (hola, buenas), saluda con calidez y pregúntale qué tipo de negocio tiene o qué necesita. NUNCA mandes a WhatsApp en un saludo ni al empezar: primero conversa, entiende qué necesita y respóndele tú. WhatsApp es solo el último recurso.
+- FALLAS E IDEAS: si la persona cuenta que algo del sistema falla, no carga, sale un error o no hace lo que debería (o propone una mejora), muéstrale empatía, ayúdale si sabes cómo, y pregúntale lo que falte para entenderlo (qué estaba haciendo y en qué pantalla). Cuando ya lo entiendas, dile que quedó reportado al equipo y pon AL FINAL, en una línea aparte, exactamente: [REPORTE:falla] resumen claro de lo que pasa (o [REPORTE:idea] resumen de la idea). Solo una vez por cada falla o idea.
 - Nunca reveles datos de otras personas. Nunca digas que "ves la base de datos"; habla natural.
 TXT;
 
@@ -267,6 +268,8 @@ TXT;
                     // 2026-11-13: tambien cuenta como "no supo" si la respuesta lo dice con palabras.
                     $sin = str_contains($txt, '[SIN_DATO]') || (bool) preg_match('/no tengo (el|ese|esa|la) (dato|informaci[oó]n)|no tengo informaci[oó]n|no cuento con (esa|ese|la|el)|te lo confirma (el equipo|una persona)|lo confirma el equipo|no s[eé] (exactamente|la respuesta)/iu', $txt);
                     $txt = trim(str_replace('[SIN_DATO]', '', $txt));
+                    // 2026-11-13 (Jhoset): Mía recibe fallas e ideas y las guarda en Admin → Opiniones y fallas.
+                    $txt = $this->guardarReporte($txt, $request, $d);
                     $log($txt, $sin);
 
                     return response()->json(['ok' => true, 'texto' => mb_substr($txt, 0, 1500)]);
@@ -280,6 +283,39 @@ TXT;
         $log(null, true);
 
         return response()->json(['ok' => false]);
+    }
+
+    /** Si la IA marcó [REPORTE:falla|idea], se guarda en Opiniones y fallas (el mismo lugar del botón de opinar) y se quita la marca. */
+    private function guardarReporte(string $txt, Request $request, array $d): string
+    {
+        if (! preg_match('/\[REPORTE:(falla|idea)\]\s*(.+)$/msu', $txt, $m)) {
+            return $txt;
+        }
+        $limpio = trim(preg_replace('/\[REPORTE:(falla|idea)\].*$/msu', '', $txt));
+        try {
+            $clave = 'mia_reporte:'.($d['sesion'] ?? $request->ip()).':'.md5(mb_strtolower(trim($m[2])));
+            if (Cache::add($clave, 1, now()->addHours(6))) {
+                $hist = collect((array) ($d['historial'] ?? []))->map(fn ($h) => ($h['rol'] === 'yo' ? 'Persona: ' : 'Mía: ').mb_substr((string) $h['texto'], 0, 400))
+                    ->push('Persona: '.$d['mensaje'])->implode("\n");
+                $u = $request->user();
+                $ruta = parse_url((string) $request->headers->get('referer'), PHP_URL_PATH) ?: null;
+                \App\Models\Opinion::create([
+                    'tipo' => $m[1],
+                    'mensaje' => mb_substr(trim($m[2]), 0, 1500)."\n\n— Reportado por chat con Mía —\n".mb_substr($hist, 0, 1400),
+                    'modulo' => $u ? 'panel' : 'publico',
+                    'pagina' => $ruta ? mb_substr($ruta, 0, 290) : null,
+                    'user_id' => $u?->id,
+                    'tienda_id' => $u ? \App\Support\TiendaActual::id() : null,
+                    'datos' => ['origen' => 'Mía (chat)', 'navegador' => mb_substr((string) $request->userAgent(), 0, 290)],
+                    'estado' => 'nuevo',
+                    'ip_hash' => hash('sha256', $request->ip().config('app.key')),
+                ]);
+            }
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        return $limpio !== '' ? $limpio : '¡Gracias! Ya quedó reportado al equipo de LocalProo 🙌';
     }
 
     /** 2026-11-13 (Jhoset): nota de voz -> texto con Whisper (Groq, gratis). El widget luego la manda a responder(). */

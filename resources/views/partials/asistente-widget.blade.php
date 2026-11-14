@@ -19,6 +19,9 @@
       'asesor' => (bool) (auth()->user()?->asesor),
   ];
 @endphp
+@if (!empty($miaSinBoton))
+<style>#pfn-as-btn{display:none!important}</style>
+@endif
 <style>
 #pfn-as-btn{position:fixed;right:18px;bottom:18px;z-index:9000;border:1px solid rgba(255,255,255,.25);border-radius:100px;background:linear-gradient(135deg,#a6f34a,#2fd15a 45%,#16b34a);color:#0b0d0c;font-weight:800;padding:.75rem 1.1rem;font-size:.95rem;box-shadow:0 8px 24px rgba(0,0,0,.45);cursor:pointer;margin:0;display:flex;align-items:center;gap:.4rem;text-transform:none;letter-spacing:0}
 #pfn-as{position:fixed;right:18px;bottom:78px;z-index:9001;width:min(370px,calc(100vw - 24px));height:min(540px,calc(100vh - 110px));background:#121614;border:1px solid #26302a;border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.6);display:none;flex-direction:column;overflow:hidden;font-family:inherit}

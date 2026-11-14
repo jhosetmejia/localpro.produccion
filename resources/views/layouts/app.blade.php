@@ -84,12 +84,11 @@
     @endauth
     {{-- Botón "Opinar / reportar falla" en todo el panel + errores del navegador que se reportan solos (Admin → Opiniones y fallas) --}}
     <script>window.LP_OPINION = {!! json_encode(['modulo' => \Illuminate\Support\Str::before((string) request()->route()?->getName(), '.') ?: 'panel', 'sesion' => true]) !!};</script>
-    <script src="{{ asset('js/lp-opinion.js') }}?v=2"></script>
+    <script src="{{ asset('js/lp-opinion.js') }}?v=3"></script>
     @stack('js')
 
-@unless (request()->is('admin*'))
-@include('partials.asistente-widget')
-@endunless
+{{-- Mía en todo el panel (también admin): se abre con el botón de abajo a la izquierda, sin la burbuja verde --}}
+@include('partials.asistente-widget', ['miaSinBoton' => true])
 </body>
 
 

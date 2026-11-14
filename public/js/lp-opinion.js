@@ -262,10 +262,13 @@
     if (C.boton === false || document.querySelector('.lpo-fab')) return;
     estilos();
     var b = document.createElement('button');
-    b.type = 'button'; b.className = 'lpo-fab'; b.title = 'Opinar o reportar una falla';
-    b.setAttribute('aria-label', 'Opinar o reportar una falla');
-    b.innerHTML = '💬<span><b>Opinar</b> · ¿algo falla?</span>';
-    b.onclick = function () { abrir(); };
+    // 2026-11-13 (Jhoset): el botón ahora abre el chat con Mía (ella también recibe las fallas).
+    // Donde Mía no está (p. ej. LocalProCut) sigue abriendo el formulario de opinar. El formulario queda en el menú.
+    var mia = typeof window.miaAbrir === 'function';
+    b.type = 'button'; b.className = 'lpo-fab'; b.title = mia ? 'Hablar con Mía' : 'Opinar o reportar una falla';
+    b.setAttribute('aria-label', b.title);
+    b.innerHTML = mia ? '💬<span><b>Mía</b> · ¿te ayudo?</span>' : '💬<span><b>Opinar</b> · ¿algo falla?</span>';
+    b.onclick = function () { if (typeof window.miaAbrir === 'function') window.miaAbrir(); else abrir(); };
     document.body.appendChild(b);
   }
 

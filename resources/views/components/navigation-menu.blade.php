@@ -523,6 +523,15 @@
                     <span class="ic"><i class="fa-solid fa-mobile-screen-button"></i></span>
                     <span class="tx"><b>Instalar la app</b><small>Úsela en el celular como una app</small></span>
                 </a>
+                {{-- 2026-11-13 (Jhoset): el botón de abajo a la izquierda ahora es Mía; opinar/reportar falla queda aquí --}}
+                <a href="#" onclick="event.preventDefault();window.miaAbrir&&window.miaAbrir()">
+                    <span class="ic"><i class="fa-solid fa-robot"></i></span>
+                    <span class="tx"><b>Hablar con Mía</b><small>Tu asistente: dudas, audios y fallas</small></span>
+                </a>
+                <a href="#" onclick="event.preventDefault();window.LPOpinion&&window.LPOpinion.abrir()">
+                    <span class="ic"><i class="fa-solid fa-bug"></i></span>
+                    <span class="tx"><b>Opinar o reportar una falla</b><small>Con captura de pantalla</small></span>
+                </a>
                 <a href="{{ route('cuenta.edit') }}">
                     <span class="ic"><i class="fa-regular fa-user"></i></span>
                     <span class="tx"><b>Mi cuenta y clave</b><small>Datos y contraseña</small></span>
