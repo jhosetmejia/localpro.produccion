@@ -275,5 +275,12 @@ body:has(#lpInstalar) #pfn-as{bottom:136px}
     bar.querySelector('[data-enviar]').onclick = function () { if (rec && rec.state === 'recording') rec.stop(); };
     bar.querySelector('[data-borrar]').onclick = function () { cancelado = true; if (rec && rec.state === 'recording') rec.stop(); else fin(); };
   })();
+  // 2026-11-13 (Jhoset): que la burbuja no estorbe: se esconde mientras la persona escribe en otra parte de la página
+  // (teclado del celular) o cuando otro chat de la página lo pide con window.miaVisible(false, 'chat').
+  var miaBtn = document.getElementById('pfn-as-btn'), ocultaPor = {};
+  function miaPinta() { var o = Object.keys(ocultaPor).some(function (k) { return ocultaPor[k]; }); miaBtn.style.display = o ? 'none' : ''; }
+  window.miaVisible = function (v, quien) { ocultaPor[quien || 'otro'] = !v; if (!v) box.classList.remove('abierto'); miaPinta(); };
+  document.addEventListener('focusin', function (e) { var t = e.target; if (t && !box.contains(t) && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) && window.innerWidth < 768) { ocultaPor.teclado = true; miaPinta(); } });
+  document.addEventListener('focusout', function (e) { if (e.target && !box.contains(e.target)) { ocultaPor.teclado = false; setTimeout(miaPinta, 200); } });
 })();
 </script>
