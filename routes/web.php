@@ -90,6 +90,17 @@ Route::post('/asistente/ia', [\App\Http\Controllers\AsistenteController::class, 
 Route::post('/asistente/voz', [\App\Http\Controllers\AsistenteController::class, 'voz'])->middleware('throttle:6,1')->name('asistente.voz');
 Route::get('/marketplace', [\App\Http\Controllers\marketplaceController::class, 'index'])->middleware('throttle:120,1')->name('marketplace');
 Route::get('/mercado', fn () => redirect()->route('marketplace', request()->query(), 301));
+// 2026-11-17 (Jhoset): Nariño ExpoShow pregunta (servidor a servidor, firmado) si su marca ya creó su cuenta/tienda aquí.
+Route::get('/api/nes/tienda', function (\Illuminate\Http\Request $request) {
+    $email = strtolower(trim((string) $request->query('email')));
+    $ts = (int) $request->query('ts');
+    $firma = \App\Support\ConexionNes::firma($email.'|'.$ts);
+    abort_unless($firma && hash_equals($firma, (string) $request->query('f')) && abs(time() - $ts) < 600, 403);
+    $u = \App\Models\User::whereRaw('LOWER(email) = ?', [$email])->first();
+    $t = $u?->tienda;
+
+    return response()->json($t ? ['existe' => true, 'nombre' => $t->nombre, 'url' => $t->url_catalogo] : ['existe' => (bool) $u]);
+})->middleware('throttle:120,1')->name('nes.tienda');
 Route::get('/sitemap.xml', [catalogoController::class, 'sitemap'])->name('sitemap');
 Route::post('/webhooks/wompi', [wompiController::class, 'evento'])->middleware('throttle:60,1');
 Route::get('/webhooks/meta', [metaWebhookController::class, 'verificar']);

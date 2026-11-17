@@ -28,11 +28,15 @@ class registroController extends Controller
             // /alquiler-360: además nace con "Alquilo plataforma 360"
             if (request()->query('plataforma') === '360') session(['registro_360' => true]);
         }
+        // 2026-11-17 (Jhoset): marca/empresa que llega desde Nariño ExpoShow con enlace firmado: datos prellenados.
+        if ($nes = \App\Support\ConexionNes::datosEnlace(request()->query('nes'), request()->query('f'))) {
+            session(['nes_prefill' => $nes, 'origen_registro' => 'nes']);
+        }
         $desde = (string) request()->query('desde', '');
         if (preg_match('/^[a-z0-9:\-]{2,80}$/', $desde)) {
             session(['origen_registro' => $desde]);
         }
-        return view('auth.registro', ['paises' => Paises::lista(), 'codigoAsesor' => session('codigo_asesor', request()->cookie('lp_asesor')), 'tipoRegistro' => session('tipo_registro'), 'soloAlquiler' => session('actividad_registro') === 'alquila']);
+        return view('auth.registro', ['nes' => session('nes_prefill'), 'paises' => Paises::lista(), 'codigoAsesor' => session('codigo_asesor', request()->cookie('lp_asesor')), 'tipoRegistro' => session('tipo_registro'), 'soloAlquiler' => session('actividad_registro') === 'alquila']);
     }
 
     // Enlace del asesor: guarda su código (60 días) y abre el registro
@@ -90,10 +94,16 @@ class registroController extends Controller
         $tipo = session('tipo_registro');
         $tipo = $tipo && $tipo !== 'contable' && isset(\App\Models\Tienda::TIPOS[$tipo]) ? $tipo : null;
         if ($request->boolean('como_contador')) $tipo = 'contable';
+        // 2026-11-17: marca de Nariño ExpoShow: la tienda nace con el nombre de su marca.
+        $nesMarca = trim((string) (session('nes_prefill.empresa') ?? ''));
+        if ($nesMarca !== '' && ! $tipo) {
+            $primerNombre = null;
+        }
         [, $user] = CrearTienda::crear(
-            ['nombre' => ($tipo === 'contable' ? 'Oficina contable de ' : ($tipo === 'creador' ? trim($datos['name']) : 'Tienda de ' . $primerNombre)) . ($tipo === 'contable' ? $primerNombre : ''), 'pais' => $datos['pais'], 'departamento' => $datos['departamento'], 'ciudad' => $datos['ciudad'], 'telefono' => $datos['telefono']] + ($tipo ? ['tipo_negocio' => $tipo] : []),
+            ['nombre' => ($tipo === 'contable' ? 'Oficina contable de ' : ($tipo === 'creador' ? trim($datos['name']) : ($primerNombre === null ? mb_substr($nesMarca, 0, 80) : 'Tienda de ' . $primerNombre))) . ($tipo === 'contable' ? $primerNombre : ''), 'pais' => $datos['pais'], 'departamento' => $datos['departamento'], 'ciudad' => $datos['ciudad'], 'telefono' => $datos['telefono']] + ($tipo ? ['tipo_negocio' => $tipo] : []),
             $datos
         );
+        $request->session()->forget('nes_prefill');
         if ($origen = session('origen_registro')) {
             $user->tienda->forceFill(['origen' => $origen])->save();
             $request->session()->forget('origen_registro');

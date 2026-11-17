@@ -43,6 +43,12 @@
             @if ($errors->any())
                 <div class="alert">{{ $errors->first() }}</div>
             @endif
+            @if (! empty($nes))
+                {{-- 2026-11-17: llega desde Nariño ExpoShow --}}
+                <div style="margin:0 0 1rem;padding:.85rem 1rem;border-radius:14px;background:#f5f3ff;border:1px solid #ddd6fe;color:#4c1d95;font-size:.92rem;line-height:1.5">
+                    🤝 <strong>Vienes de Nariño ExpoShow.</strong> Ya llenamos tus datos: elige tu contraseña, crea tu cuenta y sube tus productos a tu tienda. Saldrán en el marketplace de LocalProo.
+                </div>
+            @endif
 
             <form action="{{ route('registro') }}" method="post" novalidate>
                 @csrf
@@ -51,14 +57,14 @@
                     <label for="name">Nombre completo</label>
                     <div class="input">
                         <i class="fa-regular fa-user"></i>
-                        <input id="name" name="name" type="text" value="{{ old('name') }}" placeholder="Su nombre" autocomplete="name" required />
+                        <input id="name" name="name" type="text" value="{{ old('name', $nes['nombre'] ?? '') }}" placeholder="Su nombre" autocomplete="name" required />
                     </div>
                 </div>
                 <div class="field">
                     <label for="email">Correo electrónico</label>
                     <div class="input">
                         <i class="fa-regular fa-envelope"></i>
-                        <input id="email" name="email" type="email" value="{{ old('email') }}" placeholder="usted@negocio.com" autocomplete="email" required />
+                        <input id="email" name="email" type="email" value="{{ old('email', $nes['email'] ?? '') }}" placeholder="usted@negocio.com" autocomplete="email" required />
                     </div>
                 </div>
                 <div class="field">
@@ -81,7 +87,7 @@
                     <div class="input">
                         <i class="fa-brands fa-whatsapp"></i>
                         <span id="ind" style="position:absolute;left:2.6rem;top:50%;transform:translateY(-50%);font-weight:700;color:var(--muted);z-index:1;line-height:1">+57</span>
-                        <input id="telefono" name="telefono" type="tel" value="{{ old('telefono') }}" placeholder="300 123 4567" autocomplete="tel-national" data-sin-indicativo required style="padding-left:5rem" />
+                        <input id="telefono" name="telefono" type="tel" value="{{ old('telefono', $nes['celular'] ?? '') }}" placeholder="300 123 4567" autocomplete="tel-national" data-sin-indicativo required style="padding-left:5rem" />
                     </div>
                 </div>
                 <div class="field">
