@@ -136,6 +136,10 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-scissors"></i></div>
                     Editar videos · App <span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c;font-size:.6rem">NUEVO</span>
                 </a>
+                <a class="nav-link" href="{{ route('lpchat.index') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-comments"></i></div>
+                    LP Chat · App <span class="badge rounded-pill ms-auto" style="background:#00a884;color:#fff;font-size:.6rem">NUEVO</span>
+                </a>
                 <a class="nav-link {{ $on('asesor.red') }}" href="{{ route('asesor.red') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-sitemap"></i></div>
                     Mi red
@@ -395,6 +399,10 @@
                 @if ($tiendaMenu && $ver('cut'))<a class="nav-link {{ $on('cut') }}" href="{{ route('cut') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-scissors"></i></div>
                     Editar videos · App <span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c;font-size:.6rem">NUEVO</span>
+                </a>@endif
+                @if ($tiendaMenu)<a class="nav-link" href="{{ route('lpchat.index') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-comments"></i></div>
+                    LP Chat · clientes <span class="badge rounded-pill ms-auto" style="background:#00a884;color:#fff;font-size:.6rem">NUEVO</span>
                 </a>@endif
 
                 @canany(['ver-cliente', 'ver-proveedore'])

@@ -21,7 +21,7 @@ use Illuminate\Support\Str;
 class ContarVisita
 {
     private const COOKIE = 'lp_v';
-    private const NO_CONTAR = ['admin.sitio.vivo', 'admin.cut.vivo', 'opinion.mias', 'cut.visita', 'cut.evento', 'opinion.guardar', 'opinion.error'];
+    private const NO_CONTAR = ['admin.sitio.vivo', 'admin.cut.vivo', 'opinion.mias', 'cut.visita', 'cut.evento', 'opinion.guardar', 'opinion.error', 'lpchat.adjunto', 'lpchat.estado.archivo'];
 
     public function handle(Request $request, Closure $next)
     {

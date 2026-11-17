@@ -95,6 +95,13 @@
 <p>Frente a los datos personales que el negocio registra, el negocio es el responsable y LocalProo actúa como encargado: los trata solo para prestar el servicio, con reserva y seguridad, según la <a href="{{ route('legal.privacidad') }}">política de privacidad</a>. Al aceptar estas condiciones, el negocio le encarga a LocalProo ese tratamiento.</p>
 <h2>11. Limitaciones</h2>
 <p>Trabajamos para que el servicio esté siempre disponible, pero puede haber interrupciones por mantenimiento o por servicios de terceros (por ejemplo, Facebook o Instagram).</p>
-<h2>12. Ley aplicable y peticiones</h2>
+<h2>12. LP Chat, la red social nariñense</h2>
+<ul>
+    <li>Al registrarse en LocalProo (y en los sistemas conectados, como Pasto Fight Night y Nariño ExpoShow), la persona acepta <strong>hacer parte de LP Chat (LocalProChat), la red social nariñense</strong>, con su nombre, foto y ciudad visibles en "Conocer gente" (nunca su correo ni su celular). Puede salir de "Conocer gente" o pedir que borremos su cuenta cuando quiera.</li>
+    <li>Los negocios con tienda en línea activa aparecen en la sección <strong>Empresas</strong> con su logo, nombre y descripción, para que los clientes les escriban.</li>
+    <li>LocalProo pone la aplicación a disposición; <strong>cada usuario responde por lo que escribe, publica y comparte</strong>. Los chats guardan los últimos 7 días y los estados 24 horas.</li>
+    <li>Condiciones completas de uso: <a href="{{ route('lpchat.terminos') }}">localproo.com/chat/terminos</a>.</li>
+</ul>
+<h2>13. Ley aplicable y peticiones</h2>
 <p>Estas condiciones se rigen por las leyes de Colombia. Peticiones, quejas o reclamos: <a href="mailto:{{ $correo }}">{{ $correo }}</a>. Respondemos en máximo 15 días hábiles.</p>
 @endsection

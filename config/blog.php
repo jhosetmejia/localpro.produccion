@@ -6,6 +6,25 @@
 // palabra clave primero), 'descripcion' (máx. ~155), 'keywords' (lo que la gente busca en Google) y 'faq' (preguntas y respuestas).
 // El botón de registro lleva el tipo de negocio del rol y ?desde=blog:slug para saber qué artículo trajo al cliente.
 return [
+    'lp-chat-red-social-narinense-chatear-y-conocer-gente' => [
+        'titulo' => 'LP Chat: la red social nariñense para chatear, conocer gente y escribirle a las empresas',
+        'resumen' => 'LP Chat es la app gratis de LocalProo, igual a WhatsApp: chats, grupos, estados, fotos, videos, audios y "ver una vez", con Conocer gente y una sección de Empresas para que los clientes le escriban a su negocio.',
+        'fecha' => '17 de noviembre de 2026',
+        'publicado' => '2026-11-17',
+        'minutos' => 4,
+        'icono' => 'fa-comments',
+        'rol' => 'negocios',
+        'seo_titulo' => 'LP Chat: red social de Nariño para chatear y conocer gente',
+        'descripcion' => 'App gratis tipo WhatsApp hecha en Pasto: chats, grupos, estados, conocer gente y escribirle a las empresas de Nariño. Instálela en localproo.com/chat.',
+        'keywords' => ['red social nariñense', 'red social de Pasto', 'app para conocer gente en Pasto', 'chat Nariño', 'app tipo WhatsApp gratis', 'LP Chat', 'LocalProChat', 'chatear con empresas de Pasto', 'conocer gente en Nariño'],
+        'faq' => [
+            ['¿Qué es LP Chat?', 'Es la red social nariñense de LocalProo: una app gratis igual a WhatsApp para chatear, crear grupos, subir estados, conocer gente y escribirle a las empresas.'],
+            ['¿Cómo me registro?', 'Entre a localproo.com/chat y cree su cuenta con su correo o su celular. Si ya tiene LocalProo, entra solo.'],
+            ['¿Pueden ver mi celular?', 'No. En Conocer gente solo se ven su nombre, foto y ciudad. Su correo y su celular nunca se muestran.'],
+            ['¿Cuánto duran los mensajes?', 'Cada chat guarda los últimos 7 días y los estados duran 24 horas, para que la app sea rápida.'],
+            ['¿Mi negocio aparece?', 'Sí: todo negocio de LocalProo con tienda en línea activa sale en Empresas con su logo y descripción, y sus clientes le escriben gratis.'],
+        ],
+    ],
     'editor-de-video-gratuito-para-celular' => [
         'titulo' => 'Editor de video gratuito para celular: edite como profesional sin pagar y sin marca de agua',
         'resumen' => 'Cómo editar videos gratis en el celular para TikTok, Reels y los estados de WhatsApp: cortar, ordenar clips, subtítulos automáticos, música, transiciones y exportar en alta calidad con LocalProCut, sin marca de agua.',

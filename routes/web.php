@@ -752,3 +752,49 @@ require __DIR__ . '/pantallas.php';
 require __DIR__ . '/eventos.php';
 require __DIR__ . '/contabilidad.php';
 require __DIR__ . '/pedidos.php';
+
+// 2026-11-17 (Jhoset): LP Chat (LocalProChat), la red social de LocalProo tipo WhatsApp. App instalable aparte en /chat.
+// Límites por persona de LP Chat: RouteServiceProvider (lpchat, lpchat-60, lpchat-30, lpchat-20, lpchat-10)
+Route::prefix('chat')->name('lpchat.')->group(function () {
+    $C = \App\Http\Controllers\lpchatController::class;
+    $K = \App\Http\Controllers\lpchatCuentaController::class;
+    Route::get('/', [$C, 'index'])->name('index');
+    Route::get('/entrar', [$K, 'entrar'])->name('entrar');
+    Route::get('/terminos', [$C, 'terminos'])->name('terminos');
+    Route::post('/entrar', [$K, 'login'])->middleware('throttle:10,1')->name('login');
+    Route::post('/registro', [$K, 'registro'])->middleware('throttle:6,1')->name('registro');
+    Route::post('/salir', [$K, 'salir'])->name('salir');
+    Route::get('/conectar/{origen}', [$K, 'conectar'])->where('origen', '[a-z]+')->middleware('throttle:30,1')->name('conectar');
+    Route::post('/api/sincronizar/{origen}', [$K, 'sincronizar'])->where('origen', '[a-z]+')->middleware('throttle:10,1')->name('sincronizar');
+    Route::get('/api/no-leidos/{origen}', [$K, 'noLeidos'])->where('origen', '[a-z]+')->middleware('throttle:120,1')->name('noleidos');
+    Route::get('/u/{codigo}', [$C, 'link'])->where('codigo', '[a-z0-9]+')->name('link');
+    Route::get('/g/{codigo}', [$C, 'unirse'])->where('codigo', '[a-z0-9]+')->name('unirse');
+    Route::get('/adjunto/{mensaje}', [$C, 'adjunto'])->whereNumber('mensaje')->middleware('throttle:lpchat')->name('adjunto');
+    Route::get('/estado/{id}/archivo', [$C, 'archivoEstado'])->whereNumber('id')->middleware('throttle:lpchat')->name('estado.archivo');
+    Route::prefix('api')->middleware('throttle:lpchat')->group(function () use ($C) {
+        Route::get('/chats', [$C, 'chats'])->name('chats');
+        Route::get('/chat/{id}', [$C, 'mensajes'])->whereNumber('id')->name('mensajes');
+        Route::post('/chat/{id}/enviar', [$C, 'enviar'])->whereNumber('id')->middleware('throttle:lpchat-60')->name('enviar');
+        Route::post('/chat/{id}/escribiendo', [$C, 'escribiendo'])->whereNumber('id')->name('escribiendo');
+        Route::post('/chat/{id}/{accion}', [$C, 'accion'])->whereNumber('id')->where('accion', 'aceptar|descartar|borrar|bloquear|desbloquear|denunciar|mover')->name('accion');
+        Route::get('/conocer', [$C, 'conocer'])->middleware('throttle:lpchat-30')->name('conocer');
+        Route::get('/empresas', [$C, 'empresas'])->middleware('throttle:lpchat-60')->name('empresas');
+        Route::post('/empresas/contactar', [$C, 'contactarEmpresa'])->middleware('throttle:lpchat-20')->name('empresas.contactar');
+        Route::post('/cuenta', [$C, 'cuenta'])->name('cuenta');
+        Route::get('/estados', [$C, 'estados'])->name('estados');
+        Route::post('/estados', [$C, 'subirEstado'])->middleware('throttle:lpchat-20')->name('estados.subir');
+        Route::get('/estados/de/{usuario}', [$C, 'estadosDe'])->whereNumber('usuario')->name('estados.de');
+        Route::post('/estados/{id}/visto', [$C, 'verEstado'])->whereNumber('id')->name('estados.visto');
+        Route::post('/estados/{id}/borrar', [$C, 'borrarEstado'])->whereNumber('id')->name('estados.borrar');
+        Route::post('/abrir', [$C, 'abrir'])->middleware('throttle:lpchat-30')->name('abrir');
+        Route::post('/nuevo', [$C, 'nuevo'])->middleware('throttle:lpchat-30')->name('nuevo');
+        Route::get('/contactos', [$C, 'contactos'])->name('contactos');
+        Route::post('/grupo', [$C, 'crearGrupo'])->middleware('throttle:lpchat-10')->name('grupo.crear');
+        Route::get('/grupo/{id}', [$C, 'grupo'])->whereNumber('id')->name('grupo');
+        Route::post('/grupo/{id}/{accion}', [$C, 'grupoAccion'])->whereNumber('id')->where('accion', 'agregar|quitar|admin|editar|link')->name('grupo.accion');
+        Route::match(['get', 'post'], '/perfil', [$C, 'perfil'])->name('perfil');
+        Route::get('/perfil/{usuario}', [$C, 'perfilDe'])->whereNumber('usuario')->name('perfil.de');
+    });
+});
+Route::redirect('/lpchat', '/chat');
+Route::redirect('/localprochat', '/chat');

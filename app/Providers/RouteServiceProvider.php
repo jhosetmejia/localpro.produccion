@@ -45,6 +45,12 @@ class RouteServiceProvider extends ServiceProvider
      */
     protected function configureRateLimiting()
     {
+        // 2026-11-17: LP Chat — límites por persona de LP Chat (no por IP: muchos comparten el wifi o la red del celular)
+        foreach (['lpchat' => 240, 'lpchat-60' => 60, 'lpchat-30' => 30, 'lpchat-20' => 20, 'lpchat-10' => 10] as $nombreLim => $porMinuto) {
+            RateLimiter::for($nombreLim, fn (Request $r) => Limit::perMinute($porMinuto)
+                ->by($nombreLim.'|'.(\Illuminate\Support\Facades\Auth::guard('lpchat')->id() ?: $r->ip()).'|'.($r->route()?->getName() ?? '')));
+        }
+
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });

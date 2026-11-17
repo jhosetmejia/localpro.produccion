@@ -37,6 +37,8 @@ class Kernel extends ConsoleKernel
         // Consultorios: recordatorio por correo de las citas de mañana, con enlace para confirmar o cancelar
         $schedule->command('consultorio:recordatorios')->dailyAt('09:05')->withoutOverlapping();
         // Separados por vencer: correo al cliente 3 días antes, el día que vence y al día siguiente
+        // LP Chat: los chats guardan 7 días y los estados 24 horas
+        $schedule->command('lpchat:limpiar')->hourlyAt(17)->withoutOverlapping(30);
         $schedule->command('separados:avisos')->dailyAt('09:20')->withoutOverlapping();
         // Prospección: busca firmas contables y su correo; envía la secuencia repartida en el día (lunes a viernes, 8 a 5)
         $schedule->command('prospectos:buscar')->dailyAt('06:30')->withoutOverlapping(60)->runInBackground();

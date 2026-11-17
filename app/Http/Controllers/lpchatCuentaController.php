@@ -1,0 +1,166 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\LpchatUsuario as U;
+use App\Support\LpChat;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+
+/**
+ * 2026-11-17 (Jhoset): cuentas de LP Chat. Se entra con correo o celular + clave.
+ * Los usuarios de LocalProo entran solos; los de PFN/NES llegan con un enlace firmado (/chat/conectar/{origen}).
+ */
+class lpchatCuentaController extends Controller
+{
+    private function guard()
+    {
+        return Auth::guard('lpchat');
+    }
+
+    /** Si ya tiene sesión de LocalProo, le crea/vincula su cuenta de LP Chat sin pedir nada. */
+    public static function desdeLocalProo(): ?U
+    {
+        $w = Auth::guard('web')->user();
+        if (! $w) {
+            return null;
+        }
+        $u = U::where('user_id', $w->id)->first() ?: ($w->email ? U::where('email', mb_strtolower($w->email))->first() : null);
+        if (! $u) {
+            $cel = U::normalizarCelular($w->telefono ?? null);
+            $u = U::create([
+                'nombre' => mb_substr($w->name ?: 'Usuario', 0, 80),
+                'email' => $w->email ? mb_strtolower($w->email) : null,
+                'celular' => $cel && ! U::where('celular', $cel)->exists() ? $cel : null,
+                'user_id' => $w->id,
+                'origen' => 'localproo',
+            ]);
+        } elseif (! $u->user_id) {
+            $u->user_id = $w->id;
+            $u->save();
+        }
+        Auth::guard('lpchat')->login($u, true);
+
+        return $u;
+    }
+
+    public function entrar(Request $request)
+    {
+        if ($this->guard()->check() || self::desdeLocalProo()) {
+            return redirect()->to($this->destino($request));
+        }
+
+        return view('lpchat.entrar', ['volver' => $this->destinoSeguro($request->query('volver'))]);
+    }
+
+    public function login(Request $request)
+    {
+        $d = $request->validate(['identificador' => 'required|string|max:150', 'password' => 'required|string|max:100']);
+        $u = U::buscarPorIdentificador($d['identificador']);
+        if (! $u || ! $u->password || ! Hash::check($d['password'], $u->password)) {
+            return back()->withInput($request->only('identificador'))->withErrors(['identificador' => 'El correo/celular o la clave no coinciden.']);
+        }
+        $this->guard()->login($u, true);
+        $request->session()->regenerate();
+
+        return redirect()->to($this->destino($request));
+    }
+
+    public function registro(Request $request)
+    {
+        $d = $request->validate([
+            'nombre' => 'required|string|min:2|max:80',
+            'identificador' => 'required|string|max:150',
+            'password' => 'required|string|min:6|max:100',
+            'mayor' => 'accepted',
+        ], ['mayor.accepted' => 'LP Chat es para mayores de 18 años.']);
+        $id = U::identificador($d['identificador']);
+        if (! $id) {
+            return back()->withInput($request->except('password'))->withErrors(['identificador' => 'Escribe un correo o un número de celular válido.'])->with('tab', 'registro');
+        }
+        if (U::where($id[0], $id[1])->exists()) {
+            return back()->withInput($request->except('password'))->withErrors(['identificador' => 'Ya hay una cuenta con ese '.($id[0] === 'email' ? 'correo' : 'celular').'. Entra con tu clave.'])->with('tab', 'registro');
+        }
+        $u = U::create(['nombre' => trim($d['nombre']), $id[0] => $id[1], 'password' => Hash::make($d['password'])]);
+        $this->guard()->login($u, true);
+        $request->session()->regenerate();
+
+        return redirect()->to($this->destino($request));
+    }
+
+    public function salir(Request $request)
+    {
+        $this->guard()->logout();
+
+        return redirect()->route('lpchat.entrar');
+    }
+
+    /**
+     * Enlace firmado desde PFN/NES: /chat/conectar/pfn?d={base64url(json)}&f={hmac}
+     * json: id, nombre, email, celular, foto (https), etiqueta, bio, ciudad, ts, abrir (opcional: id del otro en ese sistema), menor
+     */
+    public function conectar(Request $request, string $origen)
+    {
+        $d = (string) $request->query('d', '');
+        abort_unless(config('lpchat.origenes.'.$origen) && LpChat::firmaValida($origen, $d, $request->query('f')), 403, 'Enlace no válido.');
+        $p = json_decode(base64_decode(strtr($d, '-_', '+/')), true);
+        abort_unless(is_array($p) && abs(time() - (int) ($p['ts'] ?? 0)) < 900, 403, 'El enlace venció. Vuelve a intentarlo.');
+        if (! empty($p['menor'])) {
+            return response()->view('lpchat.aviso', ['titulo' => 'LP Chat es para mayores de edad', 'texto' => 'Por cuidado de los menores de edad, LP Chat es solo para mayores de 18 años.', 'volver' => config('lpchat.origenes.'.$origen.'.volver')], 403);
+        }
+        $u = LpChat::desdeOrigen($origen, $p);
+        abort_unless($u, 422, 'Faltan datos de la cuenta.');
+        $this->guard()->login($u, true);
+        $request->session()->regenerate();
+        $destino = route('lpchat.index');
+        if (! empty($p['abrir'])) {
+            // Abrir de una el chat con alguien de ese mismo sistema (ej. un peleador que buscó en PFN).
+            $uid = \DB::table('lpchat_vinculos')->where('origen', $origen)->where('origen_id', (string) $p['abrir'])->value('usuario_id');
+            if ($uid && $uid !== $u->id && ($otro = U::find($uid)) && ! LpChat::bloqueado($u->id, $otro->id)
+                && (LpChat::directo($u->id, $otro->id) || LpChat::contactosHoy($u, 'conocer') < LpChat::LIMITE_CONOCER)) {
+                $destino = route('lpchat.index', ['chat' => LpChat::abrirDirecto($u, $otro, 'conocer')]);
+            }
+        }
+
+        return redirect()->to($destino);
+    }
+
+    /** Servidor a servidor: PFN/NES mandan sus perfiles públicos para "Conocer gente". Firma en X-LPChat-Firma. */
+    public function sincronizar(Request $request, string $origen)
+    {
+        $cuerpo = $request->getContent();
+        abort_unless(config('lpchat.origenes.'.$origen) && LpChat::firmaValida($origen, $cuerpo, $request->header('X-LPChat-Firma')), 403);
+        $datos = json_decode($cuerpo, true);
+        $n = 0;
+        foreach (array_slice((array) ($datos['perfiles'] ?? []), 0, 2000) as $p) {
+            if (is_array($p) && empty($p['menor']) && LpChat::desdeOrigen($origen, $p)) {
+                $n++;
+            }
+        }
+
+        return response()->json(['ok' => true, 'perfiles' => $n]);
+    }
+
+    /** Cuántos mensajes sin leer tiene alguien de PFN/NES (para su campanita). Firma = hmac(origen_id). */
+    public function noLeidos(Request $request, string $origen)
+    {
+        $oid = (string) $request->query('id', '');
+        abort_unless(config('lpchat.origenes.'.$origen) && LpChat::firmaValida($origen, $oid, $request->query('f')), 403);
+        $uid = \DB::table('lpchat_vinculos')->where('origen', $origen)->where('origen_id', $oid)->value('usuario_id');
+        $u = $uid ? U::find($uid) : null;
+
+        return response()->json(['ok' => true, 'sin_leer' => $u ? LpChat::sinLeerTotal($u) : 0, 'solicitudes' => $u ? LpChat::solicitudesTotal($u) : 0]);
+    }
+
+    private function destino(Request $request): string
+    {
+        return $this->destinoSeguro($request->input('volver', $request->query('volver'))) ?: route('lpchat.index');
+    }
+
+    /** Solo deja volver a páginas del mismo chat (evita redirecciones a otros sitios). */
+    private function destinoSeguro(?string $v): ?string
+    {
+        return $v && str_starts_with($v, '/chat') && ! str_starts_with($v, '//') ? $v : null;
+    }
+}

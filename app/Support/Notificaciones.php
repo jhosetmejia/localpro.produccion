@@ -26,6 +26,7 @@ class Notificaciones
         Anuncios::class,
         SeparadosPorVencer::class,
         CambiosDePagoCajero::class,
+        LpChatAvisos::class, // 2026-11-17: mensajes sin leer en LP Chat (personales y de la empresa)
     ];
 
     public static function paraUsuario(?User $u): array

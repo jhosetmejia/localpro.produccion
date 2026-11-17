@@ -5,6 +5,16 @@
 // 'desde' / 'hasta' (Y-m-d) son opcionales: el anuncio sale solo entre esas fechas.
 return [
     [
+        'clave' => 'anuncio-lpchat-2026-11',
+        'icono' => 'fa-comments',
+        'color' => 'verde',
+        'texto' => '<b>¡Nuevo! LP Chat</b>, la red social nariñense: chatea como en WhatsApp, sube estados y conoce gente. Y tu negocio ya aparece en <b>Empresas</b> para que tus clientes te escriban.',
+        'cuando' => 'Novedad de LocalProo',
+        'url' => '/chat',
+        'desde' => '2026-11-17',
+        'hasta' => '2027-01-31',
+    ],
+    [
         'clave' => 'anuncio-mia-2026-11',
         'icono' => 'fa-robot',
         'color' => 'verde',

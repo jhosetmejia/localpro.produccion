@@ -46,6 +46,12 @@ return [
             'driver' => 'session',
             'provider' => 'asistentes',
         ],
+
+        // 2026-11-17: LP Chat (red social): cuentas propias que entran con correo o celular
+        'lpchat' => [
+            'driver' => 'session',
+            'provider' => 'lpchat_usuarios',
+        ],
     ],
 
     /*
@@ -74,6 +80,11 @@ return [
         'asistentes' => [
             'driver' => 'eloquent',
             'model' => App\Models\EventoAsistente::class,
+        ],
+
+        'lpchat_usuarios' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\LpchatUsuario::class,
         ],
 
         // 'users' => [
