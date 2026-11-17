@@ -348,6 +348,7 @@ class LpChat
             $u = U::where('celular', $cel)->first();
         }
         $datos = array_filter([
+            // Enlace remoto (a veces firmado y con vencimiento): lpchat:fotos lo copia aquí en pocos minutos.
             'foto' => isset($p['foto']) && preg_match('#^https://#', (string) $p['foto']) ? mb_substr($p['foto'], 0, 255) : null,
             'etiqueta' => isset($p['etiqueta']) ? mb_substr((string) $p['etiqueta'], 0, 60) : null,
             'bio' => isset($p['bio']) ? mb_substr((string) $p['bio'], 0, 160) : null,
@@ -361,7 +362,7 @@ class LpChat
         } else {
             // Solo completa lo que la persona no haya puesto ella misma.
             foreach ($datos as $k => $v) {
-                if (! $u->$k || ($k === 'foto' && preg_match('#^https?://#', (string) $u->foto)) || $k === 'etiqueta') {
+                if (! $u->$k || ($k === 'foto' && (preg_match('#^https?://#', (string) $u->foto) || str_starts_with((string) $u->foto, 'lpchat/origen/'))) || $k === 'etiqueta') {
                     $u->$k = $v;
                 }
             }
@@ -376,6 +377,53 @@ class LpChat
         DB::table('lpchat_vinculos')->updateOrInsert(['origen' => $origen, 'origen_id' => $oid], ['usuario_id' => $u->id, 'updated_at' => now(), 'created_at' => now()]);
 
         return $u;
+    }
+
+    /**
+     * Las fotos de PFN y NES vienen con enlaces firmados de Backblaze que se vencen: se copian aquí (disco público)
+     * y solo se vuelven a bajar si cambia el archivo de origen. Devuelve la ruta local o null.
+     */
+    public static function fotoRemota(string $origen, string $oid, ?string $url): ?string
+    {
+        if (! $url || ! preg_match('#^https://#', $url)) {
+            return null;
+        }
+        $base = strtok($url, '?'); // sin la firma, que cambia cada vez
+        $ruta = 'lpchat/origen/'.$origen.'-'.preg_replace('/[^a-z0-9]/i', '', $oid).'-'.substr(md5($base), 0, 10).'.jpg';
+        $disco = \Illuminate\Support\Facades\Storage::disk('public');
+        if ($disco->exists($ruta)) {
+            return $ruta;
+        }
+        try {
+            $r = \Illuminate\Support\Facades\Http::timeout(15)->get($url);
+            $bytes = $r->successful() ? $r->body() : '';
+            if ($bytes === '' || strlen($bytes) > 8 * 1024 * 1024 || ! @getimagesizefromstring($bytes)) {
+                return null;
+            }
+            $img = @imagecreatefromstring($bytes);
+            if ($img) {
+                // Se guarda liviana: máximo 600 px de ancho, JPG.
+                $w = imagesx($img);
+                $h = imagesy($img);
+                if ($w > 600) {
+                    $n = imagescale($img, 600, (int) round($h * 600 / $w));
+                    imagedestroy($img);
+                    $img = $n;
+                }
+                ob_start();
+                imagejpeg($img, null, 82);
+                $bytes = ob_get_clean();
+                imagedestroy($img);
+            }
+            foreach (glob($disco->path('lpchat/origen/'.$origen.'-'.preg_replace('/[^a-z0-9]/i', '', $oid).'-*')) ?: [] as $viejo) {
+                @unlink($viejo);
+            }
+            $disco->put($ruta, $bytes);
+
+            return $ruta;
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     /** Cuenta de LP Chat de un negocio de LocalProo (la atiende su equipo desde "Usar como empresa"). */

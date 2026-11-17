@@ -39,6 +39,8 @@ class Kernel extends ConsoleKernel
         // Separados por vencer: correo al cliente 3 días antes, el día que vence y al día siguiente
         // LP Chat: los chats guardan 7 días y los estados 24 horas
         $schedule->command('lpchat:limpiar')->hourlyAt(17)->withoutOverlapping(30);
+        // LP Chat: copia aquí las fotos de PFN/NES (llegan como enlaces de Backblaze que se vencen)
+        $schedule->command('lpchat:fotos')->everyFiveMinutes()->withoutOverlapping(10)->runInBackground();
         $schedule->command('separados:avisos')->dailyAt('09:20')->withoutOverlapping();
         // Prospección: busca firmas contables y su correo; envía la secuencia repartida en el día (lunes a viernes, 8 a 5)
         $schedule->command('prospectos:buscar')->dailyAt('06:30')->withoutOverlapping(60)->runInBackground();
