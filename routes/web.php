@@ -815,6 +815,7 @@ Route::prefix('chat')->name('lpchat.')->group(function () {
         Route::post('/estados/{id}/visto', [$C, 'verEstado'])->whereNumber('id')->name('estados.visto');
         Route::post('/estados/{id}/borrar', [$C, 'borrarEstado'])->whereNumber('id')->name('estados.borrar');
         Route::post('/abrir', [$C, 'abrir'])->middleware('throttle:lpchat-30')->name('abrir');
+        Route::post('/abrir-enlace', [$C, 'abrirEnlace'])->middleware('throttle:lpchat-30')->name('abrir.enlace');
         Route::post('/nuevo', [$C, 'nuevo'])->middleware('throttle:lpchat-30')->name('nuevo');
         Route::get('/contactos', [$C, 'contactos'])->name('contactos');
         Route::post('/grupo', [$C, 'crearGrupo'])->middleware('throttle:lpchat-10')->name('grupo.crear');

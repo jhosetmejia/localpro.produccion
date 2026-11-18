@@ -522,6 +522,86 @@ class lpchatController extends Controller
         return response()->json(['ok' => true, 'chat' => LpChat::abrirDirecto($yo, $e, 'empresa')]);
     }
 
+    /**
+     * 2026-11-18 (Jhoset): enlaces de chat dentro de un mensaje (como un número en WhatsApp): se abren aquí mismo.
+     * Sirve para localproo.com/chat/u/{codigo}, /chat/g/{codigo}, /chat?chat=N y los chats de NES / PFN (/chat?con=ID, /lpchat?con=ID).
+     * Si no es un enlace de chat o la persona aún no está en LP Chat -> 'externo' (se abre normal).
+     */
+    public function abrirEnlace(Request $request): JsonResponse
+    {
+        $yo = $this->yo();
+        $url = (string) $request->input('url', '');
+        $mid = (int) $request->input('mensaje', 0);
+        $externo = response()->json(['ok' => false, 'externo' => true]);
+        $partes = parse_url($url);
+        if (! $partes || empty($partes['host'])) {
+            return $externo;
+        }
+        $host = preg_replace('/^www\./', '', mb_strtolower($partes['host']));
+        $ruta = rtrim($partes['path'] ?? '/', '/') ?: '/';
+        parse_str($partes['query'] ?? '', $q);
+
+        // El enlace tiene que venir de un mensaje de un chat donde estoy (no se puede inventar para saltarse los límites).
+        $m = $mid ? DB::table('lpchat_mensajes')->where('id', $mid)->first() : null;
+        $deMensaje = $m && LpChat::miembro((int) $m->chat_id, $yo->id) && str_contains((string) $m->texto, $url);
+
+        $local = parse_url(config('app.url'), PHP_URL_HOST);
+        if (in_array($host, ['localproo.com', preg_replace('/^www\./', '', (string) $local)], true)) {
+            if (preg_match('#^/chat/u/([a-z0-9]+)$#', $ruta, $x)) {
+                $otro = U::where('codigo', $x[1])->first();
+
+                return $otro ? $this->abrirCon($yo, $otro, 'link') : $externo;
+            }
+            if (preg_match('#^/chat/g/([a-z0-9]+)$#', $ruta, $x)) {
+                $g = DB::table('lpchat_chats')->where('tipo', 'grupo')->where('codigo', $x[1])->first();
+                if (! $g) {
+                    return response()->json(['ok' => false, 'mensaje' => 'Este link del grupo ya no sirve.']);
+                }
+                LpChat::agregar($g->id, $yo);
+
+                return response()->json(['ok' => true, 'chat' => (int) $g->id]);
+            }
+            if ($ruta === '/chat' && ($c = (int) ($q['chat'] ?? 0)) && LpChat::miembro($c, $yo->id)) {
+                return response()->json(['ok' => true, 'chat' => $c]);
+            }
+
+            return $externo;
+        }
+
+        $origenes = ['narinoexposhow.com' => 'nes', 'sistema.narinoexposhow.com' => 'nes', 'pastofightnight.com' => 'pfn'];
+        $origen = $origenes[$host] ?? null;
+        $con = mb_strtolower(trim((string) ($q['con'] ?? '')));
+        if (! $origen || ! in_array($ruta, ['/chat', '/lpchat'], true) || ! preg_match('/^[up]?\d+$/', $con)) {
+            return $externo;
+        }
+        $oid = ctype_digit($con) ? 'u'.$con : $con;
+        $uid = DB::table('lpchat_vinculos')->where('origen', $origen)->where('origen_id', $oid)->value('usuario_id');
+        $otro = $uid ? U::find($uid) : null;
+        if (! $otro) {
+            return $externo;
+        }
+        if (! $otro->sin_limite && ! LpChat::directo($yo->id, $otro->id) && ! $deMensaje) {
+            return $externo;
+        }
+
+        return $this->abrirCon($yo, $otro, $otro->sin_limite ? 'link' : 'contacto');
+    }
+
+    private function abrirCon(U $yo, U $otro, string $via): JsonResponse
+    {
+        if ($otro->id === $yo->id) {
+            return response()->json(['ok' => false, 'mensaje' => 'Ese es tu propio link 🙂']);
+        }
+        if (LpChat::bloqueado($yo->id, $otro->id)) {
+            return response()->json(['ok' => false, 'mensaje' => 'No puedes escribirle a esta persona.']);
+        }
+        if (! LpChat::puedeContactar($yo, $otro)) {
+            return response()->json(['ok' => false, 'mensaje' => LpChat::AVISO_MENOR]);
+        }
+
+        return response()->json(['ok' => true, 'chat' => LpChat::abrirDirecto($yo, $otro, $via)]);
+    }
+
     /** Escribirle a alguien de "Conocer gente": va a "General" y le llega como solicitud. Máximo 5 personas nuevas al día. */
     public function abrir(Request $request): JsonResponse
     {

@@ -408,6 +408,20 @@ var DIAS = 7;
 
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 function enlaces(s) { return esc(s).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener nofollow">$1</a>'); }
+/* 2026-11-18: enlaces de chat (LP Chat, NES, PFN) se abren aquí mismo, como un número en WhatsApp. */
+var RX_CHAT = /^https?:\/\/(www\.)?(localproo\.com\/chat(\/[ug]\/[a-z0-9]+\/?|\/?\?chat=\d+)|(sistema\.)?narinoexposhow\.com\/(lp)?chat\/?\?con=[up]?\d+|pastofightnight\.com\/(lp)?chat\/?\?con=[up]?\d+)/i;
+document.addEventListener('click', function (e) {
+    var a = e.target.closest('.m a[href]'); if (!a) return;
+    var url = a.getAttribute('href').replace(/&amp;/g, '&');
+    if (!RX_CHAT.test(url) || e.ctrlKey || e.metaKey) return;
+    e.preventDefault(); e.stopPropagation();
+    var m = a.closest('[data-m]');
+    post(U + '/abrir-enlace', { url: url, mensaje: m ? +m.dataset.m : 0 }).then(function (j) {
+        if (j.ok) { cerrarVentana(); irTab('mis'); abrirChat(j.chat); }
+        else if (j.externo) window.open(url, '_blank', 'noopener');
+        else toast(j.mensaje || 'No se pudo abrir el chat.');
+    }).catch(function () { window.open(url, '_blank', 'noopener'); });
+}, true);
 function inicial(n) { return esc((String(n || '?').trim()[0] || '?').toUpperCase()); }
 function color(n) { var h = 0; String(n || '').split('').forEach(function (c) { h = (h * 31 + c.charCodeAt(0)) % 997; }); return COL[h % COL.length]; }
 function avatar(o, cls, grupo) {

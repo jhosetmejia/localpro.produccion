@@ -23,6 +23,7 @@ return [
             ['¿Pueden ver mi celular?', 'No. En Conocer gente solo se ven su nombre, foto y ciudad. Su correo y su celular nunca se muestran.'],
             ['¿Cuánto duran los mensajes?', 'Cada chat guarda los últimos 7 días y los estados duran 24 horas, para que la app sea rápida.'],
             ['¿Mi negocio aparece?', 'Sí: todo negocio de LocalProo con tienda en línea activa sale en Empresas con su logo y descripción, y sus clientes le escriben gratis.'],
+            ['¿Qué pasa si me mandan el link de un chat?', 'Igual que un número en WhatsApp: le da clic y se abre ahí mismo el chat con esa persona dentro de LP Chat, sin salir de la app. Sirve con los links de LP Chat y con los chats de Nariño ExpoShow y PFN.'],
         ],
     ],
     'editor-de-video-gratuito-para-celular' => [
