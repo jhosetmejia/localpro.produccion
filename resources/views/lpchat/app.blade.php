@@ -84,16 +84,23 @@ body{height:100dvh;overflow:hidden}
 .lado{position:relative}
 /* Conocer gente */
 .cupo{margin:6px 12px 4px;padding:10px 12px;border-radius:12px;background:var(--chip);border:1px solid rgba(166,243,74,.25);font-size:.86rem;line-height:1.4}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;padding:6px 12px 16px}
-.card{background:var(--panel2);border:1px solid var(--borde);border-radius:16px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:6px 12px 10px}
+/* 4 tarjetas por pantalla (2x2) en PC y celular: cada fila ocupa la mitad del alto visible */
+#lista-k{container-type:size}
+@supports (height:1cqh){
+  #lista-k .grid{grid-auto-rows:calc((100cqh - 26px) / 2);padding-bottom:10px}
+  #lista-k .card .ft{aspect-ratio:auto;flex:1;min-height:0}
+}
+.card{background:var(--panel2);border:1px solid var(--borde);border-radius:16px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;min-height:0;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.card[hidden]{display:none}
 .card .ft{aspect-ratio:3/4;background:#26302a center/cover no-repeat;display:grid;place-items:center;font-size:2.6rem;color:#fff;font-weight:700;position:relative}
 .card .ft:after{content:"";position:absolute;inset:0} /* capa encima: no se puede arrastrar/guardar la foto con un clic */
 .card .ft .on{position:absolute;top:8px;right:8px;width:12px;height:12px;border-radius:50%;background:var(--verde);border:2px solid #0b0d0c;z-index:1}
 .card .ft .og{position:absolute;left:8px;top:8px;z-index:1;font-size:.66rem;font-weight:800;background:rgba(11,13,12,.75);color:var(--verde);border-radius:6px;padding:2px 6px}
-.card .cd{padding:8px 10px 10px;display:flex;flex-direction:column;gap:2px;flex:1}
-.card .cn{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card .cs{font-size:.78rem;color:var(--txt2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card .bt{margin-top:6px;padding:6px;font-size:.85rem}
+.card .cd{padding:6px 8px 8px;display:flex;flex-direction:column;gap:1px;flex:none}
+.card .cn{font-weight:600;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .cs{font-size:.74rem;color:var(--txt2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .bt{margin-top:5px;padding:6px;font-size:.84rem;width:100%}
 /* Empresas */
 .emp{display:flex;gap:12px;padding:12px 14px;border-bottom:1px solid var(--borde);align-items:flex-start}
 .emp .tx{flex:1;min-width:0}
@@ -285,7 +292,8 @@ body{height:100dvh;overflow:hidden}
                 <button class="chip" data-o="nes">✨ Nariño ExpoShow</button>
                 <button class="chip" data-o="localproo">LocalProo</button>
             </div>
-            <div class="lista"><div class="grid" id="grid"></div><div class="vacio" style="font-size:.82rem;padding:10px 20px 20px">Cada día te mostramos personas distintas. 🔒 Por seguridad no se ven correos ni celulares.</div></div>
+            <div class="buscar" style="padding-top:0"><input id="k-buscar" type="search" placeholder="Buscar por nombre…" autocomplete="off"></div>
+            <div class="lista" id="lista-k"><div class="grid" id="grid"></div><div class="vacio" style="font-size:.82rem;padding:10px 20px 20px">Cada día te mostramos personas distintas. 🔒 Por seguridad no se ven correos ni celulares.</div></div>
         </section>
         {{-- EMPRESAS --}}
         <section class="pane" id="p-empresas" hidden>
@@ -487,12 +495,22 @@ function conocer() {
         $('grid').innerHTML = j.perfiles.length ? j.perfiles.map(function (p) {
             var fs = p.foto ? 'background-image:url(\'' + esc(p.foto) + '\')' : 'background-color:' + color(p.nombre);
             var og = { pfn: 'PFN', nes: 'NES', localproo: 'LocalProo' }[p.origen] || '';
-            return '<div class="card" data-perfil="' + p.id + '"><div class="ft" style="' + fs + '">' + (p.foto ? '' : inicial(p.nombre)) + (og ? '<span class="og">' + og + '</span>' : '') + (p.en_linea ? '<span class="on"></span>' : '') + '</div>' +
-                '<div class="cd"><span class="cn">' + esc(p.nombre) + '</span><span class="cs">' + esc(p.etiqueta || p.ciudad || p.visto || '') + '</span>' + (p.bio ? '<span class="cs">' + esc(p.bio) + '</span>' : '') +
+            return '<div class="card" data-perfil="' + p.id + '" data-n="' + esc(sinTilde(p.nombre)) + '"><div class="ft" style="' + fs + '">' + (p.foto ? '' : inicial(p.nombre)) + (og ? '<span class="og">' + og + '</span>' : '') + (p.en_linea ? '<span class="on"></span>' : '') + '</div>' +
+                '<div class="cd"><span class="cn">' + esc(p.nombre) + '</span><span class="cs">' + esc(p.etiqueta || p.ciudad || p.visto || '') + '</span>' +
                 '<button class="bt" data-saludar="' + p.id + '">Saludar 👋</button></div></div>';
         }).join('') : '<div class="vacio" style="grid-column:1/-1">No hay más personas por hoy. Vuelve mañana 🙌</div>';
+        filtrarConocer();
     });
 }
+function sinTilde(t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+function filtrarConocer() {
+    var q = sinTilde($('k-buscar').value.trim()), n = 0, cs = $('grid').querySelectorAll('.card');
+    cs.forEach(function (c) { var v = !q || c.dataset.n.indexOf(q) > -1; c.hidden = !v; if (v) n++; });
+    var x = $('k-nada');
+    if (cs.length && !n) { if (!x) { x = document.createElement('div'); x.id = 'k-nada'; x.className = 'vacio'; x.style.gridColumn = '1/-1'; $('grid').appendChild(x); } x.textContent = 'Nadie con ese nombre en las personas de hoy.'; x.hidden = false; }
+    else if (x) x.hidden = true;
+}
+$('k-buscar').addEventListener('input', filtrarConocer);
 function pintarCupo(j) {
     var q = j.quedan, l = j.limite;
     st.quedan = q;
