@@ -15,7 +15,7 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'paths' => ['api/*', 'sanctum/csrf-cookie', 'opinion', 'opinion/error'], // opinion/error: fallas que mandan PFN y NES (2026-11-18)
 
     'allowed_methods' => ['*'],
 

@@ -9,6 +9,8 @@
   if (window.LPOpinion) return;
   var C = window.LP_OPINION || {};
   var MODULO = C.modulo || 'panel';
+  // 2026-11-18: PFN y NES cargan este archivo desde localproo.com y mandan sus fallas al mismo panel
+  var REMOTO = C.remoto ? String(C.remoto).replace(/\/$/, '') : '';
   var OSCURO = C.tema === 'oscuro';
   var recientes = [];          // últimos errores (van pegados al reporte manual)
   var enviados = 0;            // errores automáticos enviados en esta página (máximo 6)
@@ -35,8 +37,8 @@
   }
 
   function enviarJSON(url, cuerpo) {
-    return fetch(url, {
-      method: 'POST', credentials: 'same-origin', keepalive: true,
+    return fetch(REMOTO + url, {
+      method: 'POST', credentials: REMOTO ? 'omit' : 'same-origin', keepalive: true,
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': token(), 'X-Requested-With': 'XMLHttpRequest' },
       body: JSON.stringify(cuerpo),
     });

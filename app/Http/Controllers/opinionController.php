@@ -82,6 +82,15 @@ class opinionController extends Controller
         $mensaje = Str::limit(trim($d['mensaje']), 480, '…');
         $donde = $this->limpiarDonde($d['donde'] ?? null);
         $modulo = $this->modulo($d['modulo'] ?? null);
+        // 2026-11-18: fallas de PFN y NES (llegan desde su dominio); el módulo lo decide el dominio, no lo que mande la página
+        $origen = (string) parse_url((string) ($request->headers->get('Origin') ?: $request->headers->get('Referer')), PHP_URL_HOST);
+        if (preg_match('/(^|\.)pastofightnight\.com$/i', $origen)) {
+            $modulo = 'pfn';
+        } elseif (preg_match('/(^|\.)narinoexposhow\.com$/i', $origen)) {
+            $modulo = 'nes';
+        } elseif (in_array($modulo, ['pfn', 'nes'], true)) {
+            $modulo = 'panel';
+        }
         // Los números cambiantes (ids, tiempos) no deben partir el mismo error en muchos
         $firma = sha1($modulo . '|' . preg_replace('/\d+(\.\d+)?/', '#', $mensaje) . '|' . preg_replace('/\?v=\d+/', '', (string) $donde));
         $ahora = now();

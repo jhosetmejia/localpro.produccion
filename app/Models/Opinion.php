@@ -19,7 +19,7 @@ class Opinion extends Model
     public const TIPOS = ['falla' => 'Algo falla', 'idea' => 'Idea / mejora', 'otro' => 'Otra cosa'];
     public const ICONOS = ['falla' => '🐞', 'idea' => '💡', 'otro' => '💬'];
     public const ESTADOS = ['nuevo' => 'Nuevo', 'revisando' => 'Revisando', 'resuelto' => 'Resuelto', 'descartado' => 'Descartado'];
-    public const MODULOS = ['cut' => 'LocalProCut (editor de video)', 'panel' => 'Panel', 'publico' => 'Página pública'];
+    public const MODULOS = ['cut' => 'LocalProCut (editor de video)', 'panel' => 'Panel', 'publico' => 'Página pública', 'pfn' => 'PFN · Pasto Fight Night', 'nes' => 'NES · Nariño ExpoShow'];
 
     public function user() { return $this->belongsTo(User::class); }
     public function tienda() { return $this->belongsTo(Tienda::class); }
