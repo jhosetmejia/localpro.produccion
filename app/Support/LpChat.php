@@ -230,6 +230,13 @@ class LpChat
                 ->update(['estado' => 'activo', 'updated_at' => now()]);
         }
         Cache::forget('lpchat_esc_'.$chat->id.'_'.$yo->id);
+        // 2026-11-18: aviso al celular de los demás del chat (aunque tengan LP Chat cerrado)
+        try {
+            \App\Support\WebPush::avisarLuego(DB::table('lpchat_miembros')->where('chat_id', $chat->id)->where('usuario_id', '!=', $yo->id)
+                ->whereIn('estado', ['activo', 'solicitud'])->pluck('usuario_id')->all());
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         return $id;
     }
@@ -372,6 +379,20 @@ class LpChat
         $cel = U::normalizarCelular($p['celular'] ?? null);
         $uid = DB::table('lpchat_vinculos')->where('origen', $origen)->where('origen_id', $oid)->value('usuario_id');
         $u = $uid ? U::find($uid) : null;
+        // 2026-11-18 (Jhoset): el administrador de NES / el Equipo PFN es la misma cuenta de LP Chat del administrador de LocalProo:
+        // lo que le escriban allá le llega a su LP Chat (con aviso al celular). Si ya tenía una cuenta aparte, se une.
+        if (! empty($p['admin']) && ($admin = self::cuentaAdmin())) {
+            if ($u && $u->id !== $admin->id) {
+                self::fusionar($u, $admin);
+            }
+            DB::table('lpchat_vinculos')->updateOrInsert(['origen' => $origen, 'origen_id' => $oid], ['usuario_id' => $admin->id, 'updated_at' => now(), 'created_at' => now()]);
+            if (! $admin->sin_limite) {
+                $admin->sin_limite = true;
+                $admin->save();
+            }
+
+            return $admin;
+        }
         if (! $u && $email) {
             $u = U::where('email', $email)->first();
         }
@@ -526,6 +547,72 @@ class LpChat
      * 2026-11-18: trae mensajes de NES/PFN (chats que ya existían). $usuarios = [origen_id => perfil], $mensajes = [[id, de, para, texto, adj, fecha, leido]].
      * Cada mensaje entra una sola vez (origen "nes:m{id}"), en el chat directo de los dos, en "Mis chats" (ya se conocían).
      */
+    /** Cuenta de LP Chat del administrador de LocalProo (el primer súper administrador). */
+    public static function cuentaAdmin(): ?U
+    {
+        $w = \App\Models\User::where('es_superadmin', true)->orderBy('id')->first();
+        if (! $w) {
+            return null;
+        }
+        $u = U::where('user_id', $w->id)->first() ?: ($w->email ? U::where('email', mb_strtolower($w->email))->first() : null);
+        if (! $u) {
+            $u = U::create(['nombre' => mb_substr($w->name ?: 'LocalProo', 0, 80), 'email' => $w->email ? mb_strtolower($w->email) : null,
+                'user_id' => $w->id, 'origen' => 'localproo', 'sin_limite' => true]);
+        } elseif (! $u->user_id) {
+            $u->user_id = $w->id;
+            $u->save();
+        }
+
+        return $u;
+    }
+
+    /** Pasa todo lo de la cuenta $de (chats, mensajes, estados, vínculos) a la cuenta $a. */
+    public static function fusionar(U $de, U $a): void
+    {
+        if ($de->id === $a->id) {
+            return;
+        }
+        DB::transaction(function () use ($de, $a) {
+            foreach (DB::table('lpchat_miembros')->where('usuario_id', $de->id)->get() as $m) {
+                $chat = DB::table('lpchat_chats')->where('id', $m->chat_id)->first();
+                if (! $chat) {
+                    continue;
+                }
+                if ($chat->tipo === 'directo') {
+                    $otro = (int) DB::table('lpchat_miembros')->where('chat_id', $chat->id)->where('usuario_id', '!=', $de->id)->value('usuario_id');
+                    if (! $otro || $otro === $a->id) {
+                        DB::table('lpchat_miembros')->where('chat_id', $chat->id)->where('usuario_id', $de->id)->delete();
+                        continue;
+                    }
+                    if ($ya = self::directo($a->id, $otro)) {
+                        // Ya hablaban: los mensajes se pasan al chat que ya existe
+                        DB::table('lpchat_mensajes')->where('chat_id', $chat->id)->update(['chat_id' => $ya->id]);
+                        $ult = (int) DB::table('lpchat_mensajes')->where('chat_id', $ya->id)->max('id');
+                        DB::table('lpchat_chats')->where('id', $ya->id)->update(['ultimo_id' => $ult, 'updated_at' => now()]);
+                        DB::table('lpchat_miembros')->where('chat_id', $ya->id)->update(['estado' => 'activo']);
+                        DB::table('lpchat_miembros')->where('chat_id', $chat->id)->delete();
+                        DB::table('lpchat_chats')->where('id', $chat->id)->delete();
+                        continue;
+                    }
+                    DB::table('lpchat_miembros')->where('id', $m->id)->update(['usuario_id' => $a->id, 'estado' => $m->estado === 'oculto' ? 'oculto' : 'activo']);
+                    DB::table('lpchat_chats')->where('id', $chat->id)->update(['clave' => self::claveDirecto($a->id, $otro)]);
+                } elseif (self::miembro($chat->id, $a->id)) {
+                    DB::table('lpchat_miembros')->where('id', $m->id)->delete();
+                } else {
+                    DB::table('lpchat_miembros')->where('id', $m->id)->update(['usuario_id' => $a->id]);
+                }
+            }
+            DB::table('lpchat_mensajes')->where('usuario_id', $de->id)->update(['usuario_id' => $a->id]);
+            DB::table('lpchat_vinculos')->where('usuario_id', $de->id)->update(['usuario_id' => $a->id]);
+            foreach (['lpchat_estados', 'lpchat_push'] as $t) {
+                if (\Illuminate\Support\Facades\Schema::hasTable($t)) {
+                    DB::table($t)->where('usuario_id', $de->id)->update(['usuario_id' => $a->id]);
+                }
+            }
+            DB::table('lpchat_chats')->where('creador_id', $de->id)->update(['creador_id' => $a->id]);
+        });
+    }
+
     public static function importar(string $origen, array $usuarios, array $mensajes): int
     {
         $mapa = [];
@@ -540,6 +627,7 @@ class LpChat
             }
         }
         $n = 0;
+        $avisar = [];
         foreach (array_slice($mensajes, 0, 3000) as $m) {
             $clave = $origen.':m'.(int) ($m['id'] ?? 0);
             $de = $mapa[(string) ($m['de'] ?? '')] ?? null;
@@ -558,9 +646,9 @@ class LpChat
             $c = self::directo($de->id, $para->id);
             $cid = $c ? (int) $c->id : self::abrirDirecto($de, $para, 'contacto');
             if (! $c) {
-                // Ya se conocían en el otro sistema: queda en Mis chats, pero oculto hasta que los dos se hayan escrito
-                // (así no salen los mensajes masivos que nadie respondió).
-                DB::table('lpchat_miembros')->where('chat_id', $cid)->update(['estado' => 'oculto', 'seccion' => 'mis']);
+                // Ya se conocían en el otro sistema: queda en Mis chats. 2026-11-18: solo los mensajes masivos del equipo del evento
+                // (cuentas sin límite) quedan ocultos hasta que respondan; lo que escribe una persona SÍ se ve y avisa.
+                DB::table('lpchat_miembros')->where('chat_id', $cid)->update(['estado' => $de->sin_limite ? 'oculto' : 'activo', 'seccion' => 'mis']);
             }
             $fecha = ! empty($m['fecha']) ? Carbon::parse($m['fecha']) : now();
             $id = DB::table('lpchat_mensajes')->insertGetId(['chat_id' => $cid, 'usuario_id' => $de->id, 'texto' => $texto, 'origen' => $clave,
@@ -574,7 +662,13 @@ class LpChat
             if (self::hablaronLosDos($cid)) {
                 DB::table('lpchat_miembros')->where('chat_id', $cid)->whereIn('estado', ['salio', 'oculto'])->update(['estado' => 'activo']);
             }
+            if (empty($m['leido']) && $fecha->gt(now()->subMinutes(30)) && (! $de->sin_limite || self::hablaronLosDos($cid))) {
+                $avisar[] = $para->id;
+            }
             $n++;
+        }
+        if ($avisar) {
+            \App\Support\WebPush::avisarLuego($avisar);
         }
 
         return $n;

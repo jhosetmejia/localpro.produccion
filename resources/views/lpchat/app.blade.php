@@ -869,7 +869,7 @@ $('b-menu').onclick = function (e) {
     if (SUPER) it.push(['Comprobantes del Plan Pro', function () { location.href = '/chat/pro/admin'; }]);
     if (EMPRESA) it.push(['Usar como empresa: ' + EMPRESA, function () { usarComo(true); }]);
     if (YO.empresa) it.push(['Volver a mi cuenta', function () { usarComo(false); }]);
-    if ('Notification' in window && Notification.permission === 'default') it.push(['Activar avisos de mensajes', function () { Notification.requestPermission(); }]);
+    if ('Notification' in window && Notification.permission !== 'granted') it.push(['🔔 Activar avisos de mensajes', activarAvisos]);
     it.push(['Condiciones de uso', function () { window.open('/chat/terminos', '_blank'); }]);
     if (!yaInstalada()) it.push(['📲 Instalar app', instalarApp]);
     it.push(['Cerrar sesión', salirForm]);
@@ -1046,6 +1046,34 @@ if (/iphone|ipad/i.test(navigator.userAgent) && !navigator.standalone) {
     try { if (!localStorage.getItem('lpchat_ios')) { setTimeout(function () { toast('Para instalar LP Chat: toca Compartir ⬆️ y luego "Agregar a inicio".'); }, 2500); localStorage.setItem('lpchat_ios', 1); } } catch (e) {}
 }
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(function () {});
+
+/* ===== 2026-11-18: avisos al celular aunque LP Chat esté cerrado (Web Push) ===== */
+function b64aBytes(b) { var p = '='.repeat((4 - b.length % 4) % 4), r = atob((b + p).replace(/-/g, '+').replace(/_/g, '/')), o = new Uint8Array(r.length); for (var i = 0; i < r.length; i++) o[i] = r.charCodeAt(i); return o; }
+function suscribirAvisos() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window) || Notification.permission !== 'granted') return Promise.resolve(false);
+    return navigator.serviceWorker.register('/sw.js').then(function () { return navigator.serviceWorker.ready; }).then(function (reg) {
+        return reg.pushManager.getSubscription().then(function (sub) {
+            if (sub) return sub;
+            return api(U + '/push/clave').then(function (j) { return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64aBytes(j.clave) }); });
+        });
+    }).then(function (sub) { return post(U + '/push', { endpoint: sub.endpoint }); }).then(function () { return true; }).catch(function () { return false; });
+}
+function activarAvisos() {
+    if (!('Notification' in window)) { toast('Este navegador no deja mandar avisos. En iPhone, instala LP Chat (Compartir → Agregar a inicio) y ábrela desde el ícono.'); return; }
+    if (Notification.permission === 'denied') { toast('Los avisos están bloqueados: actívalos en los ajustes del navegador para localproo.com.'); return; }
+    Notification.requestPermission().then(function (r) {
+        var b = document.getElementById('aviso-push'); if (b) b.remove();
+        if (r === 'granted') suscribirAvisos().then(function (ok) { toast(ok ? '🔔 Listo: te avisamos cuando te escriban.' : 'No se pudieron activar los avisos en este equipo.'); });
+    });
+}
+if ('Notification' in window && Notification.permission === 'granted') suscribirAvisos();
+else if ('Notification' in window && 'PushManager' in window && Notification.permission === 'default') {
+    var bp = document.createElement('div'); bp.id = 'aviso-push';
+    bp.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:84px;z-index:60;background:#0b0d0c;color:#fff;border-radius:16px;padding:10px 12px;display:flex;gap:10px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:94vw;font-size:.9rem';
+    bp.innerHTML = '<span>🔔 Activa los avisos para saber cuando te escriban</span><button type="button" style="background:#a6f34a;color:#0b0d0c;border:0;border-radius:10px;padding:6px 12px;font-weight:800">Activar</button><button type="button" aria-label="Cerrar" style="background:none;border:0;color:#fff;font-size:1.1rem">✕</button>';
+    bp.children[1].onclick = activarAvisos; bp.children[2].onclick = function () { bp.remove(); };
+    document.body.appendChild(bp);
+}
 
 /* ================= Arranque ================= */
 cargarChats();

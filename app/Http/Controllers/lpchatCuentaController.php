@@ -156,7 +156,10 @@ class lpchatCuentaController extends Controller
         abort_unless(config('lpchat.origenes.'.$origen) && LpChat::firmaValida($origen, $cuerpo, $request->header('X-LPChat-Firma')), 403);
         $d = json_decode($cuerpo, true) ?: [];
 
-        return response()->json(['ok' => true, 'importados' => LpChat::importar($origen, (array) ($d['usuarios'] ?? []), (array) ($d['mensajes'] ?? []))]);
+        $admin = collect((array) ($d['usuarios'] ?? []))->contains(fn ($p) => is_array($p) && ! empty($p['admin']));
+
+        return response()->json(['ok' => true, 'importados' => LpChat::importar($origen, (array) ($d['usuarios'] ?? []), (array) ($d['mensajes'] ?? [])),
+            'admin_unido' => $admin && LpChat::cuentaAdmin() !== null]);
     }
 
     /** 2026-11-18: servidor a servidor: lo que se escribió en LP Chat entre personas de NES/PFN, para que les llegue allá. Firma = hmac(desde). */

@@ -121,6 +121,48 @@ class lpchatController extends Controller
         return redirect()->route('lpchat.index', ['chat' => $g->id]);
     }
 
+    /** 2026-11-18: avisos al celular. Llave pública para suscribirse. */
+    public function pushClave(): JsonResponse
+    {
+        return response()->json(['ok' => true, 'clave' => \App\Support\WebPush::clavePublica()]);
+    }
+
+    /** Guarda la suscripción de este celular/computador para avisarle los mensajes nuevos. */
+    public function pushGuardar(Request $request): JsonResponse
+    {
+        $p = $this->persona();
+        abort_unless($p, 401, 'Inicia sesión en LP Chat.');
+        $d = $request->validate(['endpoint' => 'required|string|max:1000|starts_with:https://']);
+        DB::table('lpchat_push')->updateOrInsert(['hash' => hash('sha256', $d['endpoint'])], [
+            'usuario_id' => $p->id, 'endpoint' => $d['endpoint'], 'agente' => mb_substr((string) $request->userAgent(), 0, 190),
+            'updated_at' => now(), 'created_at' => now(),
+        ]);
+
+        return response()->json(['ok' => true]);
+    }
+
+    /** Lo pide el service worker cuando llega un aviso: quién escribió y qué dijo (solo a la persona con sesión). */
+    public function aviso(): JsonResponse
+    {
+        $p = $this->persona();
+        if (! $p) {
+            return response()->json(['ok' => false]);
+        }
+        foreach (['mis', 'general', 'solicitudes'] as $tab) {
+            foreach (LpChat::lista($p, $tab) as $c) {
+                if ($c['sin_leer'] || $tab === 'solicitudes') {
+                    $total = LpChat::sinLeerTotal($p) + LpChat::solicitudesTotal($p);
+
+                    return response()->json(['ok' => true, 'titulo' => $c['nombre'].($tab === 'solicitudes' ? ' quiere chatear contigo' : ''),
+                        'texto' => $c['ultimo'] ?: 'Te escribió en LP Chat', 'url' => route('lpchat.index', ['chat' => $c['id']]),
+                        'tag' => 'lpchat-'.$c['id'], 'total' => $total]);
+                }
+            }
+        }
+
+        return response()->json(['ok' => true, 'titulo' => 'LP Chat', 'texto' => 'Tienes mensajes nuevos', 'url' => route('lpchat.index'), 'tag' => 'lpchat']);
+    }
+
     public function chats(Request $request): JsonResponse
     {
         $yo = $this->yo();
