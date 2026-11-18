@@ -22,7 +22,8 @@ class LpchatLimpiar extends Command
         $disco = Storage::disk('local');
         $limite = now()->subDays(LpChat::DIAS);
         $msj = 0;
-        DB::table('lpchat_mensajes')->where('created_at', '<', $limite)->orderBy('id')->chunkById(500, function ($filas) use ($disco, &$msj) {
+        // Lo que vino de NES/PFN (historial de esos chats) no se borra.
+        DB::table('lpchat_mensajes')->where('created_at', '<', $limite)->whereNull('origen')->orderBy('id')->chunkById(500, function ($filas) use ($disco, &$msj) {
             foreach ($filas as $m) {
                 if ($m->adjunto) {
                     $disco->delete($m->adjunto);

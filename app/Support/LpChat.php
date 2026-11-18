@@ -465,6 +465,94 @@ class LpChat
         });
     }
 
+    /**
+     * 2026-11-18: trae mensajes de NES/PFN (chats que ya existían). $usuarios = [origen_id => perfil], $mensajes = [[id, de, para, texto, adj, fecha, leido]].
+     * Cada mensaje entra una sola vez (origen "nes:m{id}"), en el chat directo de los dos, en "Mis chats" (ya se conocían).
+     */
+    public static function importar(string $origen, array $usuarios, array $mensajes): int
+    {
+        $mapa = [];
+        foreach (array_slice($usuarios, 0, 1500, true) as $oid => $p) {
+            if (! is_array($p) || ! empty($p['menor'])) {
+                continue;
+            }
+            $existe = DB::table('lpchat_vinculos')->where('origen', $origen)->where('origen_id', (string) $oid)->exists();
+            $u = self::desdeOrigen($origen, ['id' => (string) $oid] + $p + ($existe ? [] : ['conocer' => (bool) ($p['conocer'] ?? false)]));
+            if ($u) {
+                $mapa[(string) $oid] = $u;
+            }
+        }
+        $n = 0;
+        foreach (array_slice($mensajes, 0, 3000) as $m) {
+            $clave = $origen.':m'.(int) ($m['id'] ?? 0);
+            $de = $mapa[(string) ($m['de'] ?? '')] ?? null;
+            $para = $mapa[(string) ($m['para'] ?? '')] ?? null;
+            if (! $de || ! $para || $de->id === $para->id || DB::table('lpchat_mensajes')->where('origen', $clave)->exists()) {
+                continue;
+            }
+            $texto = trim(mb_substr((string) ($m['texto'] ?? ''), 0, 4000));
+            $adj = ['audio' => '🎤 Nota de voz', 'foto' => '📷 Foto', 'video' => '🎥 Video'][$m['adj'] ?? ''] ?? null;
+            if ($adj) {
+                $texto = trim($adj.' (enviada en '.strtoupper($origen).')'.($texto !== '' ? "\n".$texto : ''));
+            }
+            if ($texto === '') {
+                continue;
+            }
+            $c = self::directo($de->id, $para->id);
+            $cid = $c ? (int) $c->id : self::abrirDirecto($de, $para, 'contacto');
+            if (! $c) {
+                // Ya se conocían en el otro sistema: queda aceptado para los dos.
+                DB::table('lpchat_miembros')->where('chat_id', $cid)->update(['estado' => 'activo', 'seccion' => 'mis']);
+            }
+            $fecha = ! empty($m['fecha']) ? Carbon::parse($m['fecha']) : now();
+            $id = DB::table('lpchat_mensajes')->insertGetId(['chat_id' => $cid, 'usuario_id' => $de->id, 'texto' => $texto, 'origen' => $clave,
+                'created_at' => $fecha, 'updated_at' => $fecha]);
+            DB::table('lpchat_chats')->where('id', $cid)->where('ultimo_id', '<', $id)->update(['ultimo_id' => $id, 'updated_at' => now()]);
+            DB::table('lpchat_miembros')->where('chat_id', $cid)->where('usuario_id', $de->id)->where('leido_id', '<', $id)->update(['leido_id' => $id]);
+            if (! empty($m['leido'])) {
+                DB::table('lpchat_miembros')->where('chat_id', $cid)->where('usuario_id', $para->id)->where('leido_id', '<', $id)->update(['leido_id' => $id]);
+            }
+            // Si alguno había borrado el chat, le vuelve a aparecer.
+            DB::table('lpchat_miembros')->where('chat_id', $cid)->where('estado', 'salio')->update(['estado' => 'activo']);
+            $n++;
+        }
+
+        return $n;
+    }
+
+    /**
+     * 2026-11-18: mensajes escritos en LP Chat entre dos personas de NES/PFN, para que también les lleguen allá.
+     * Devuelve [mensajes, último id revisado] (el cursor avanza aunque no haya ninguno de ese sistema).
+     */
+    public static function exportar(string $origen, int $desde): array
+    {
+        $filas = DB::table('lpchat_mensajes as m')->join('lpchat_chats as c', 'c.id', '=', 'm.chat_id')
+            ->where('m.id', '>', $desde)->whereNull('m.origen')->whereNull('m.tipo')->whereNotNull('m.usuario_id')->where('c.tipo', 'directo')
+            ->orderBy('m.id')->limit(1000)->get(['m.id', 'm.chat_id', 'm.usuario_id', 'm.texto', 'm.adjunto_tipo', 'm.una_vez', 'm.created_at']);
+        $ultimo = (int) ($filas->max('id') ?? $desde);
+        if ($filas->isEmpty()) {
+            return [[], $ultimo];
+        }
+        $otros = DB::table('lpchat_miembros')->whereIn('chat_id', $filas->pluck('chat_id')->unique())->get(['chat_id', 'usuario_id'])->groupBy('chat_id');
+        $vin = DB::table('lpchat_vinculos')->where('origen', $origen)
+            ->whereIn('usuario_id', $otros->flatten(1)->pluck('usuario_id')->unique())->pluck('origen_id', 'usuario_id');
+        $out = [];
+        foreach ($filas as $m) {
+            $para = optional(($otros[$m->chat_id] ?? collect())->firstWhere('usuario_id', '!=', $m->usuario_id))->usuario_id;
+            if (! $para || ! isset($vin[$m->usuario_id], $vin[$para])) {
+                continue;
+            }
+            $texto = (string) $m->texto;
+            if ($m->adjunto_tipo) {
+                $nom = ['foto' => '📷 Foto', 'video' => '🎥 Video', 'audio' => '🎤 Nota de voz'][$m->adjunto_tipo] ?? '📎 Archivo';
+                $texto = trim($nom.($m->una_vez ? ' para ver una vez' : '').' en LP Chat: '.route('lpchat.index', ['chat' => $m->chat_id]).($texto !== '' ? "\n".$texto : ''));
+            }
+            $out[] = ['id' => $m->id, 'de' => $vin[$m->usuario_id], 'para' => $vin[$para], 'texto' => $texto, 'fecha' => Carbon::parse($m->created_at)->toIso8601String()];
+        }
+
+        return [$out, $ultimo];
+    }
+
     /** Firma HMAC que comparten LP Chat y el otro sistema. */
     public static function firmaValida(string $origen, string $datos, ?string $firma): bool
     {

@@ -142,6 +142,26 @@ class lpchatCuentaController extends Controller
         return response()->json(['ok' => true, 'perfiles' => $n]);
     }
 
+    /** 2026-11-18: servidor a servidor: NES/PFN mandan sus mensajes (los chats que ya tenían y los nuevos). */
+    public function importar(Request $request, string $origen)
+    {
+        $cuerpo = $request->getContent();
+        abort_unless(config('lpchat.origenes.'.$origen) && LpChat::firmaValida($origen, $cuerpo, $request->header('X-LPChat-Firma')), 403);
+        $d = json_decode($cuerpo, true) ?: [];
+
+        return response()->json(['ok' => true, 'importados' => LpChat::importar($origen, (array) ($d['usuarios'] ?? []), (array) ($d['mensajes'] ?? []))]);
+    }
+
+    /** 2026-11-18: servidor a servidor: lo que se escribió en LP Chat entre personas de NES/PFN, para que les llegue allá. Firma = hmac(desde). */
+    public function exportar(Request $request, string $origen)
+    {
+        $desde = (string) (int) $request->query('desde', 0);
+        abort_unless(config('lpchat.origenes.'.$origen) && LpChat::firmaValida($origen, $desde, $request->query('f')), 403);
+        [$mensajes, $ultimo] = LpChat::exportar($origen, (int) $desde);
+
+        return response()->json(['ok' => true, 'mensajes' => $mensajes, 'ultimo' => $ultimo]);
+    }
+
     /** Cuántos mensajes sin leer tiene alguien de PFN/NES (para su campanita). Firma = hmac(origen_id). */
     public function noLeidos(Request $request, string $origen)
     {

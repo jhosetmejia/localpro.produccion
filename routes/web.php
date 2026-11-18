@@ -777,6 +777,8 @@ Route::prefix('chat')->name('lpchat.')->group(function () {
     Route::post('/salir', [$K, 'salir'])->name('salir');
     Route::get('/conectar/{origen}', [$K, 'conectar'])->where('origen', '[a-z]+')->middleware('throttle:30,1')->name('conectar');
     Route::post('/api/sincronizar/{origen}', [$K, 'sincronizar'])->where('origen', '[a-z]+')->middleware('throttle:10,1')->name('sincronizar');
+    Route::post('/api/importar/{origen}', [$K, 'importar'])->where('origen', '[a-z]+')->middleware('throttle:120,1')->name('importar');
+    Route::get('/api/exportar/{origen}', [$K, 'exportar'])->where('origen', '[a-z]+')->middleware('throttle:120,1')->name('exportar');
     Route::get('/api/no-leidos/{origen}', [$K, 'noLeidos'])->where('origen', '[a-z]+')->middleware('throttle:120,1')->name('noleidos');
     Route::get('/u/{codigo}', [$C, 'link'])->where('codigo', '[a-z0-9]+')->name('link');
     Route::get('/g/{codigo}', [$C, 'unirse'])->where('codigo', '[a-z0-9]+')->name('unirse');
