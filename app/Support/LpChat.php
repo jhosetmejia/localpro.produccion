@@ -654,14 +654,10 @@ class LpChat
             $c = self::directo($de->id, $para->id);
             $cid = $c ? (int) $c->id : self::abrirDirecto($de, $para, 'contacto');
             if (! $c) {
-                // Ya se conocían en el otro sistema: queda en Mis chats. 2026-11-18: solo los mensajes masivos del equipo del evento
-                // (cuentas sin límite) quedan ocultos hasta que respondan; lo que escribe una persona SÍ se ve y avisa.
-                DB::table('lpchat_miembros')->where('chat_id', $cid)->update(['estado' => $de->sin_limite ? 'oculto' : 'activo', 'seccion' => 'mis']);
-            } elseif (! $de->sin_limite) {
-                // Chat que ya existía (oculto, borrado o en General): como en NES/PFN, queda a la vista en Mis chats.
-                DB::table('lpchat_miembros')->where('chat_id', $cid)->whereIn('estado', ['oculto', 'salio', 'solicitud'])->update(['estado' => 'activo']);
+                // Ya se conocían en el otro sistema: queda en Mis chats.
                 DB::table('lpchat_miembros')->where('chat_id', $cid)->update(['seccion' => 'mis']);
             }
+            self::visibilidad($cid, $de, $para, ! $c);
             // 2026-11-18: NES/PFN mandan la hora en UTC; aquí se guarda en la hora del sistema (si no, salía 5 horas adelantada).
             $fecha = (! empty($m['fecha']) ? Carbon::parse($m['fecha']) : now())->timezone(config('app.timezone'));
             $id = DB::table('lpchat_mensajes')->insertGetId(['chat_id' => $cid, 'usuario_id' => $de->id, 'texto' => $texto, 'origen' => $clave,
@@ -690,12 +686,25 @@ class LpChat
     /** Mensaje que ya se había traído: que el chat se vea igual que allá y la marca de leído quede igual. */
     private static function ponerAlDia(int $cid, U $de, U $para, int $mid, bool $leido): void
     {
-        if (! $de->sin_limite || self::hablaronLosDos($cid)) {
-            DB::table('lpchat_miembros')->where('chat_id', $cid)->whereIn('estado', ['oculto', 'salio', 'solicitud'])->update(['estado' => 'activo']);
-            DB::table('lpchat_miembros')->where('chat_id', $cid)->update(['seccion' => 'mis']);
-        }
+        self::visibilidad($cid, $de, $para, false);
         if ($leido) {
             DB::table('lpchat_miembros')->where('chat_id', $cid)->where('usuario_id', $para->id)->where('leido_id', '<', $mid)->update(['leido_id' => $mid]);
+        }
+    }
+
+    /**
+     * 2026-11-18 (Jhoset): los chats traídos de NES/PFN se ven igual que allá, en Mis chats.
+     * Única excepción: a quien manda mensajes masivos (equipo del evento, sin límite) no se le llena la lista con los
+     * que nadie respondió; a quien los recibe sí le aparecen (como en NES/PFN).
+     */
+    private static function visibilidad(int $cid, U $de, U $para, bool $nuevo): void
+    {
+        $todos = ! $de->sin_limite || self::hablaronLosDos($cid);
+        $q = DB::table('lpchat_miembros')->where('chat_id', $cid)->when(! $todos, fn ($x) => $x->where('usuario_id', $para->id));
+        (clone $q)->whereIn('estado', ['oculto', 'salio', 'solicitud'])->update(['estado' => 'activo']);
+        (clone $q)->update(['seccion' => 'mis']);
+        if (! $todos && $nuevo) {
+            DB::table('lpchat_miembros')->where('chat_id', $cid)->where('usuario_id', $de->id)->update(['estado' => 'oculto']);
         }
     }
 
