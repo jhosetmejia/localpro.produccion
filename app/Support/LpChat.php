@@ -87,7 +87,7 @@ class LpChat
                 DB::table('lpchat_miembros')->where('chat_id', $c->id)->update(['seccion' => 'mis']);
             }
             // Si yo lo había descartado o me salí, al escribirle vuelvo a quedar activo.
-            DB::table('lpchat_miembros')->where('chat_id', $c->id)->where('usuario_id', $yo->id)->whereIn('estado', ['descartado', 'salio', 'solicitud'])
+            DB::table('lpchat_miembros')->where('chat_id', $c->id)->where('usuario_id', $yo->id)->whereIn('estado', ['descartado', 'salio', 'solicitud', 'oculto'])
                 ->update(['estado' => 'activo', 'updated_at' => now()]);
             if ($conocido) {
                 DB::table('lpchat_miembros')->where('chat_id', $c->id)->where('usuario_id', $otro->id)->where('estado', 'solicitud')
@@ -211,7 +211,7 @@ class LpChat
         if ($chat->tipo === 'directo') {
             // (Responder una solicitud = aceptarla: arriba mi fila queda "activo".)
             // Si el otro había borrado el chat, le vuelve a aparecer como en WhatsApp.
-            DB::table('lpchat_miembros')->where('chat_id', $chat->id)->where('usuario_id', '!=', $yo->id)->where('estado', 'salio')
+            DB::table('lpchat_miembros')->where('chat_id', $chat->id)->where('usuario_id', '!=', $yo->id)->whereIn('estado', ['salio', 'oculto'])
                 ->update(['estado' => 'activo', 'updated_at' => now()]);
         }
         Cache::forget('lpchat_esc_'.$chat->id.'_'.$yo->id);
@@ -531,8 +531,9 @@ class LpChat
             $c = self::directo($de->id, $para->id);
             $cid = $c ? (int) $c->id : self::abrirDirecto($de, $para, 'contacto');
             if (! $c) {
-                // Ya se conocían en el otro sistema: queda aceptado para los dos.
-                DB::table('lpchat_miembros')->where('chat_id', $cid)->update(['estado' => 'activo', 'seccion' => 'mis']);
+                // Ya se conocían en el otro sistema: queda en Mis chats, pero oculto hasta que los dos se hayan escrito
+                // (así no salen los mensajes masivos que nadie respondió).
+                DB::table('lpchat_miembros')->where('chat_id', $cid)->update(['estado' => 'oculto', 'seccion' => 'mis']);
             }
             $fecha = ! empty($m['fecha']) ? Carbon::parse($m['fecha']) : now();
             $id = DB::table('lpchat_mensajes')->insertGetId(['chat_id' => $cid, 'usuario_id' => $de->id, 'texto' => $texto, 'origen' => $clave,
@@ -542,12 +543,20 @@ class LpChat
             if (! empty($m['leido'])) {
                 DB::table('lpchat_miembros')->where('chat_id', $cid)->where('usuario_id', $para->id)->where('leido_id', '<', $id)->update(['leido_id' => $id]);
             }
-            // Si alguno había borrado el chat, le vuelve a aparecer.
-            DB::table('lpchat_miembros')->where('chat_id', $cid)->where('estado', 'salio')->update(['estado' => 'activo']);
+            // Cuando ya hablaron los dos, el chat aparece (y si alguno lo había borrado, le vuelve a aparecer).
+            if (self::hablaronLosDos($cid)) {
+                DB::table('lpchat_miembros')->where('chat_id', $cid)->whereIn('estado', ['salio', 'oculto'])->update(['estado' => 'activo']);
+            }
             $n++;
         }
 
         return $n;
+    }
+
+    /** ¿Los dos del chat se han escrito al menos una vez? */
+    public static function hablaronLosDos(int $chatId): bool
+    {
+        return DB::table('lpchat_mensajes')->where('chat_id', $chatId)->whereNotNull('usuario_id')->distinct()->count('usuario_id') >= 2;
     }
 
     /**

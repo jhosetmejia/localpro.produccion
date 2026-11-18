@@ -50,6 +50,7 @@ body{height:100dvh;overflow:hidden}
 .it .n{flex:1;font-size:1.02rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .it .h{font-size:.75rem;color:var(--txt2)}
 .it .h.nl{color:var(--verde);font-weight:700}
+.it .tk{width:16px;height:11px;fill:var(--txt2);vertical-align:-1px;flex:none}
 .it .u{flex:1;font-size:.88rem;color:var(--txt2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .it .b{background:var(--verde);color:var(--sobre-verde);border-radius:11px;min-width:21px;height:21px;padding:0 6px;font-size:.75rem;display:grid;place-items:center;font-weight:700}
 .tag{font-size:.66rem;font-weight:700;background:var(--chip);color:var(--chipt);border-radius:999px;padding:1px 6px;white-space:nowrap}
