@@ -29,6 +29,22 @@ class LpChat
 
     public const DIAS = 7;             // lo de los chats se borra a los 7 días
 
+    /** 2026-11-18: ¿tiene Plan Pro vigente? */
+    public static function esPro(U $u): bool
+    {
+        return $u->sin_limite || ($u->pro_hasta && $u->pro_hasta->isFuture());
+    }
+
+    /** Personas nuevas que puede saludar al día en Conocer gente (null = sin límite). Gratis 5, Pro 100. */
+    public static function limiteConocer(U $u): ?int
+    {
+        if ($u->sin_limite) {
+            return null;
+        }
+
+        return self::esPro($u) ? (int) config('lpchat.pro.limite', 100) : self::LIMITE_CONOCER;
+    }
+
     /** Cuántas personas nuevas contactó hoy por $via (conocer | empresa). */
     public static function contactosHoy(U $yo, string $via): int
     {
@@ -374,6 +390,19 @@ class LpChat
             }
             $u->save();
         }
+        // Plan Pro o sin límite que ya tiene en NES/PFN (se queda con la fecha más lejana).
+        $cambio = false;
+        if (array_key_exists('sin_limite', $p) && (bool) $p['sin_limite'] !== (bool) $u->sin_limite) {
+            $u->sin_limite = (bool) $p['sin_limite'];
+            $cambio = true;
+        }
+        if (! empty($p['pro_hasta']) && ($h = Carbon::parse($p['pro_hasta'])) && (! $u->pro_hasta || $h->gt($u->pro_hasta))) {
+            $u->pro_hasta = $h;
+            $cambio = true;
+        }
+        if ($cambio) {
+            $u->save();
+        }
         DB::table('lpchat_vinculos')->updateOrInsert(['origen' => $origen, 'origen_id' => $oid], ['usuario_id' => $u->id, 'updated_at' => now(), 'created_at' => now()]);
 
         return $u;
@@ -448,20 +477,21 @@ class LpChat
     {
         $dia = now('America/Bogota')->toDateString();
 
-        return Cache::remember('lpchat_muestra_'.$yo->id.'_'.$dia, now()->addHours(26), function () use ($yo, $dia) {
+        $tam = self::esPro($yo) ? 200 : self::MUESTRA; // Pro ve más perfiles al día
+        return Cache::remember('lpchat_muestra_'.$yo->id.'_'.$dia.'_'.$tam, now()->addHours(26), function () use ($yo, $dia, $tam) {
             $bloq = DB::table('lpchat_bloqueos')->where('usuario_id', $yo->id)->pluck('bloqueado_id')
                 ->merge(DB::table('lpchat_bloqueos')->where('bloqueado_id', $yo->id)->pluck('usuario_id'));
             $ya = DB::table('lpchat_miembros as a')->join('lpchat_chats as c', 'c.id', '=', 'a.chat_id')->join('lpchat_miembros as b', 'b.chat_id', '=', 'c.id')
                 ->where('c.tipo', 'directo')->where('a.usuario_id', $yo->id)->where('b.usuario_id', '!=', $yo->id)->pluck('b.usuario_id');
             $base = U::where('conocer', true)->whereNull('tienda_id')->where('id', '!=', $yo->id)->whereNotIn('id', $bloq->merge($ya)->unique());
             $conFoto = (clone $base)->whereNotNull('foto')->orderByDesc('visto_at')->orderByDesc('id')->limit(4000)->pluck('id')->all();
-            $sinFoto = count($conFoto) < self::MUESTRA ? (clone $base)->whereNull('foto')->orderByDesc('visto_at')->limit(500)->pluck('id')->all() : [];
+            $sinFoto = count($conFoto) < $tam ? (clone $base)->whereNull('foto')->orderByDesc('visto_at')->limit(500)->pluck('id')->all() : [];
             mt_srand(crc32($yo->id.'|'.$dia));
             shuffle($conFoto);
             shuffle($sinFoto);
             mt_srand();
 
-            return array_slice(array_merge($conFoto, $sinFoto), 0, self::MUESTRA);
+            return array_slice(array_merge($conFoto, $sinFoto), 0, $tam);
         });
     }
 

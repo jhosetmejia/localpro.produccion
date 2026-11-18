@@ -10,4 +10,12 @@ return [
     ],
     // Máximo de mensajes que alguien puede mandar mientras su solicitud no ha sido aceptada
     'max_solicitud' => 3,
+    // Plan Pro: saluda hasta 100 personas nuevas al día en Conocer gente (gratis: 5)
+    'pro' => [
+        'precio' => 5000,
+        'limite' => 100,
+        'dias' => 30,
+        'nequi' => env('LPCHAT_NEQUI', '304 263 4953'),
+        'whatsapp' => env('LPCHAT_WHATSAPP', '573042634953'),
+    ],
 ];

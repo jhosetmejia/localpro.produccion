@@ -10,11 +10,11 @@ class LpchatUsuario extends Authenticatable
 {
     protected $table = 'lpchat_usuarios';
 
-    protected $fillable = ['nombre', 'email', 'celular', 'password', 'foto', 'bio', 'ciudad', 'etiqueta', 'conocer', 'codigo', 'user_id', 'tienda_id', 'origen', 'visto_at'];
+    protected $fillable = ['nombre', 'email', 'celular', 'password', 'foto', 'bio', 'ciudad', 'etiqueta', 'conocer', 'codigo', 'user_id', 'tienda_id', 'origen', 'visto_at', 'pro_hasta', 'sin_limite'];
 
     protected $hidden = ['password', 'remember_token'];
 
-    protected $casts = ['conocer' => 'boolean', 'visto_at' => 'datetime'];
+    protected $casts = ['conocer' => 'boolean', 'visto_at' => 'datetime', 'pro_hasta' => 'datetime', 'sin_limite' => 'boolean'];
 
     protected static function booted(): void
     {

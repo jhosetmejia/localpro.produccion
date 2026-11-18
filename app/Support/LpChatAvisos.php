@@ -26,6 +26,11 @@ class LpChatAvisos
                 'texto' => 'Tu negocio tiene <b>'.$n.' mensaje'.($n === 1 ? '' : 's').'</b> de clientes en LP Chat. Ábrelo y toca <b>Usar como empresa</b>.', 'cuando' => 'LP Chat · Empresas', 'fecha' => now()->format('Y-m-d H:i'), 'url' => route('lpchat.index')];
         }
 
+        if (($u->es_superadmin ?? false) && Schema::hasTable('lpchat_planes') && ($n = \Illuminate\Support\Facades\DB::table('lpchat_planes')->where('estado', 'pendiente')->count())) {
+            $out[] = ['clave' => 'lpchat-pro-'.$n, 'icono' => 'fa-star', 'color' => 'amarillo', 'prioridad' => 2,
+                'texto' => '<b>'.$n.' comprobante'.($n === 1 ? '' : 's').'</b> del Plan Pro de LP Chat por revisar.', 'cuando' => 'LP Chat · Plan Pro', 'fecha' => now()->format('Y-m-d H:i'), 'url' => route('lpchat.pro.admin')];
+        }
+
         return $out;
     }
 }

@@ -782,6 +782,9 @@ Route::prefix('chat')->name('lpchat.')->group(function () {
     Route::get('/api/no-leidos/{origen}', [$K, 'noLeidos'])->where('origen', '[a-z]+')->middleware('throttle:120,1')->name('noleidos');
     Route::get('/u/{codigo}', [$C, 'link'])->where('codigo', '[a-z0-9]+')->name('link');
     Route::get('/g/{codigo}', [$C, 'unirse'])->where('codigo', '[a-z0-9]+')->name('unirse');
+    Route::get('/pro/admin', [$C, 'proAdmin'])->name('pro.admin');
+    Route::post('/pro/admin/{plan}', [$C, 'proRevisar'])->whereNumber('plan')->name('pro.revisar');
+    Route::get('/pro/admin/{plan}/comprobante', [$C, 'proComprobante'])->whereNumber('plan')->name('pro.comprobante');
     Route::get('/adjunto/{mensaje}', [$C, 'adjunto'])->whereNumber('mensaje')->middleware('throttle:lpchat')->name('adjunto');
     Route::get('/estado/{id}/archivo', [$C, 'archivoEstado'])->whereNumber('id')->middleware('throttle:lpchat')->name('estado.archivo');
     Route::prefix('api')->middleware('throttle:lpchat')->group(function () use ($C) {
@@ -794,6 +797,8 @@ Route::prefix('chat')->name('lpchat.')->group(function () {
         Route::get('/empresas', [$C, 'empresas'])->middleware('throttle:lpchat-60')->name('empresas');
         Route::post('/empresas/contactar', [$C, 'contactarEmpresa'])->middleware('throttle:lpchat-20')->name('empresas.contactar');
         Route::post('/cuenta', [$C, 'cuenta'])->name('cuenta');
+        Route::get('/pro', [$C, 'pro'])->name('pro');
+        Route::post('/pro', [$C, 'pagarPro'])->middleware('throttle:lpchat-10')->name('pro.pagar');
         Route::get('/estados', [$C, 'estados'])->name('estados');
         Route::post('/estados', [$C, 'subirEstado'])->middleware('throttle:lpchat-20')->name('estados.subir');
         Route::get('/estados/de/{usuario}', [$C, 'estadosDe'])->whereNumber('usuario')->name('estados.de');

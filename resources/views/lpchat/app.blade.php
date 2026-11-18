@@ -330,6 +330,7 @@ body{height:100dvh;overflow:hidden}
 var YO = {!! json_encode(['id' => $yo->id, 'nombre' => $yo->nombre, 'link' => $yo->link, 'foto' => $yo->foto_url, 'empresa' => (bool) $yo->tienda_id], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_UNESCAPED_SLASHES) !!};
 var EMPRESA = {!! json_encode($empresa && ! $yo->tienda_id ? $empresa->nombre : null, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!};
 var U = '/chat/api';
+var SUPER = {{ auth('web')->user()?->es_superadmin ? 'true' : 'false' }};
 var CSRF = document.querySelector('meta[name=csrf-token]').content;
 var $ = function (id) { return document.getElementById(id); };
 var st = { nav: 'mensajes', tab: 'mis', filtro: 'todos', chats: { mis: [], general: [] }, solicitudes: 0, abierto: 0, ultimo: 0, info: null, adj: null, uv: false, escT: 0, sinLeer: 0, primera: true, origen: '', empPag: 1 };
@@ -456,7 +457,7 @@ function conocer() {
     api(U + '/conocer?origen=' + st.origen).then(function (j) {
         if (!j.ok) { $('grid').innerHTML = '<div class="vacio" style="grid-column:1/-1">' + esc(j.mensaje || 'No disponible.') + '</div>'; return; }
         $('grid').dataset.ok = 1;
-        pintarCupo(j.quedan, j.limite);
+        pintarCupo(j);
         $('grid').innerHTML = j.perfiles.length ? j.perfiles.map(function (p) {
             var fs = p.foto ? 'background-image:url(\'' + esc(p.foto) + '\')' : 'background-color:' + color(p.nombre);
             var og = { pfn: 'PFN', nes: 'NES', localproo: 'LocalProo' }[p.origen] || '';
@@ -466,9 +467,36 @@ function conocer() {
         }).join('') : '<div class="vacio" style="grid-column:1/-1">No hay más personas por hoy. Vuelve mañana 🙌</div>';
     });
 }
-function pintarCupo(q, l) {
+function pintarCupo(j) {
+    var q = j.quedan, l = j.limite;
     st.quedan = q;
-    $('cupo').innerHTML = q > 0 ? '👋 Hoy puedes saludar a <b>' + q + ' de ' + l + '</b> personas nuevas. Les llega como solicitud y lo verás en <b>General</b>.' : '✋ Ya saludaste a ' + l + ' personas hoy. Mañana puedes conocer a más.';
+    var pro = j.pro ? '<span class="tag" style="background:var(--verde);color:#0b0d0c;margin-right:6px">⭐ PRO</span>' : '';
+    var h = l === null ? pro + '👋 Puedes saludar a todas las personas que quieras.'
+        : (q > 0 ? pro + '👋 Hoy puedes saludar a <b>' + q + ' de ' + l + '</b> personas nuevas. Les llega como solicitud y lo verás en <b>General</b>.'
+                 : pro + '✋ Ya saludaste a ' + l + ' personas hoy.' + (j.pro ? ' Mañana puedes conocer a más.' : ''));
+    if (!j.pro && l !== null) h += '<div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="bt" data-pro style="padding:6px 12px">⭐ Pásate a Pro</button><span style="color:var(--txt2);font-size:.82rem">$' + Number(j.precio).toLocaleString('es-CO') + ' al mes · saluda hasta ' + j.limite_pro + ' personas al día</span></div>';
+    else if (j.pro_hasta) h += '<div style="color:var(--txt2);font-size:.8rem;margin-top:4px">Tu Plan Pro va hasta el ' + esc(j.pro_hasta) + '.</div>';
+    $('cupo').innerHTML = h;
+}
+function planPro(otroMes) {
+    api(U + '/pro').then(function (j) {
+        if (!j.ok) return;
+        var precio = '$' + Number(j.precio).toLocaleString('es-CO');
+        if (j.pro && otroMes !== true) return ventana('⭐ Plan Pro', '<p>Tienes Plan Pro' + (j.sin_limite ? ' sin límite' : ' hasta el <b>' + esc(j.hasta) + '</b>') + '. Saludas hasta <b>' + j.limite + '</b> personas nuevas al día en Conocer gente. 🙌</p>' + (j.sin_limite ? '' : '<p style="color:var(--txt2);font-size:.88rem">Si pagas otro mes antes de que se venza, se te suman los días.</p>'), j.sin_limite ? '' : '<button class="bt" id="pro-otra">Pagar otro mes</button>');
+        var cuerpo = '<div style="text-align:center"><div class="marca-lp" style="font-size:1.6rem">LP Chat <b>Pro</b></div><div style="font-size:2rem;font-weight:900;color:var(--verde);margin:6px 0">' + precio + '<span style="font-size:.95rem;color:var(--txt2);font-weight:600"> / mes</span></div></div>' +
+            '<div class="fila"><div class="tx">Gratis<small>Saludas a ' + j.gratis + ' personas nuevas al día</small></div></div>' +
+            '<div class="fila"><div class="tx"><b style="color:var(--verde)">⭐ Pro</b><small>Saludas hasta ' + j.limite + ' personas al día y ves más perfiles cada día, por ' + j.dias + ' días</small></div></div>' +
+            (j.pendiente ? '<div class="cupo" style="margin:14px 0 0">⏳ Ya recibimos tu comprobante. Apenas lo revisemos se activa tu Plan Pro.</div>' :
+            '<label>1. Paga ' + precio + ' por Nequi al</label><div style="display:flex;gap:6px"><input type="text" readonly id="pro-nequi" value="' + esc(j.nequi) + '"><button class="bt" data-copiar="pro-nequi">Copiar</button></div>' +
+            '<label>2. Sube la foto del comprobante</label><input type="file" id="pro-f" accept="image/*" style="width:100%">' +
+            '<p style="color:var(--txt2);font-size:.82rem">También puedes mandarlo por <a href="' + esc(j.wa) + '" target="_blank" rel="noopener">WhatsApp</a>. Se activa apenas lo revisemos.</p>');
+        ventana('⭐ Pásate a Pro', cuerpo, j.pendiente ? '<button class="bt sec" data-cerrar>Cerrar</button>' : '<button class="bt sec" data-cerrar>Ahora no</button><button class="bt" id="pro-ok">Enviar comprobante</button>');
+        if ($('pro-ok')) $('pro-ok').onclick = function () {
+            var f = $('pro-f').files[0]; if (!f) return toast('Elige la foto del comprobante.');
+            var fd = new FormData(); fd.append('comprobante', f); this.disabled = true; this.textContent = 'Enviando…';
+            api(U + '/pro', { method: 'POST', body: fd }).then(function (r) { toast(r.mensaje || (r.ok ? 'Listo.' : 'No se pudo.')); if (r.ok) cerrarVentana(); else planPro(); });
+        };
+    });
 }
 document.querySelectorAll('#p-conocer .chip').forEach(function (b) {
     b.onclick = function () { st.origen = b.dataset.o; document.querySelectorAll('#p-conocer .chip').forEach(function (x) { x.classList.toggle('on', x === b); }); conocer(); };
@@ -476,7 +504,7 @@ document.querySelectorAll('#p-conocer .chip').forEach(function (b) {
 $('grid').addEventListener('contextmenu', function (e) { e.preventDefault(); });
 function saludar(id) {
     post(U + '/abrir', { usuario_id: id }).then(function (j) {
-        if (!j.ok) return toast(j.mensaje || 'No se pudo.');
+        if (!j.ok) { toast(j.mensaje || 'No se pudo.'); if (j.pro) planPro(); return; }
         cerrarVentana(); irNav('mensajes'); irTab('general'); abrirChat(j.chat); cargarChats(); delete $('grid').dataset.ok;
     });
 }
@@ -811,6 +839,8 @@ $('b-menu').onclick = function (e) {
     e.stopPropagation();
     var it = [['Nuevo grupo', nuevoGrupo], ['Nuevo chat', nuevoChat], ['Mi link para compartir', miLink]];
     if (!YO.empresa) it.push(['Mi perfil', miPerfil]);
+    if (!YO.empresa) it.push(['⭐ Plan Pro', function () { planPro(); }]);
+    if (SUPER) it.push(['Comprobantes del Plan Pro', function () { location.href = '/chat/pro/admin'; }]);
     if (EMPRESA) it.push(['Usar como empresa: ' + EMPRESA, function () { usarComo(true); }]);
     if (YO.empresa) it.push(['Volver a mi cuenta', function () { usarComo(false); }]);
     if ('Notification' in window && Notification.permission === 'default') it.push(['Activar avisos de mensajes', function () { Notification.requestPermission(); }]);
@@ -958,6 +988,8 @@ document.addEventListener('click', function (e) {
     var p = e.target.closest('[data-perfil]'); if (p) { verPerfil(+p.dataset.perfil); return; }
     var i = e.target.closest('[data-ir]'); if (i) { irTab(i.dataset.ir); return; }
     var tb = e.target.closest('[data-tab]'); if (tb) { irTab(tb.dataset.tab); return; }
+    if (e.target.id === 'pro-otra') { planPro(true); return; }
+    if (e.target.closest('[data-pro]')) { planPro(); return; }
     if (e.target.closest('[data-compartir]')) {
         if (navigator.share) navigator.share({ title: 'LP Chat', text: '¡Hablemos por LP Chat, la red social nariñense! Abre mi link:', url: YO.link }).catch(function () {});
         else copiar(YO.link); return;

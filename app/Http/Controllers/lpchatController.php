@@ -342,9 +342,12 @@ class lpchatController extends Controller
         $lista = U::whereIn('id', $ids)->when($origen, fn ($q) => $q->where('origen', $origen))->get()
             ->sortBy(fn ($u) => array_search($u->id, $ids))->values();
         $hechos = LpChat::contactosHoy($yo, 'conocer');
+        $limite = LpChat::limiteConocer($yo);
 
         return response()->json(['ok' => true, 'perfiles' => $lista->map(fn ($u) => LpChat::tarjeta($u) + ['origen' => $u->origen, 'visto' => LpChat::visto($u->visto_at)])->values(),
-            'quedan' => max(0, LpChat::LIMITE_CONOCER - $hechos), 'limite' => LpChat::LIMITE_CONOCER]);
+            'quedan' => $limite === null ? null : max(0, $limite - $hechos), 'limite' => $limite, 'pro' => LpChat::esPro($yo),
+            'pro_hasta' => $yo->pro_hasta && $yo->pro_hasta->isFuture() ? $yo->pro_hasta->timezone('America/Bogota')->format('d/m/Y') : null,
+            'precio' => (int) config('lpchat.pro.precio'), 'limite_pro' => (int) config('lpchat.pro.limite')]);
     }
 
     /** Empresas de LocalProo (las mismas del Marketplace): logo, nombre y qué hacen. */
@@ -392,8 +395,11 @@ class lpchatController extends Controller
             return response()->json(['ok' => true, 'chat' => LpChat::abrirDirecto($yo, $otro, DB::table('lpchat_chats')->where('id', $c->id)->value('via') ?: 'conocer')]);
         }
         abort_unless($otro->conocer && in_array($otro->id, LpChat::muestraDelDia($yo), true), 403, 'Esta persona ya no está disponible.');
-        if (LpChat::contactosHoy($yo, 'conocer') >= LpChat::LIMITE_CONOCER) {
-            return response()->json(['ok' => false, 'mensaje' => 'Hoy ya saludaste a '.LpChat::LIMITE_CONOCER.' personas nuevas. Mañana puedes conocer a más 🙌'], 429);
+        $limite = LpChat::limiteConocer($yo);
+        if ($limite !== null && LpChat::contactosHoy($yo, 'conocer') >= $limite) {
+            return response()->json(['ok' => false, 'pro' => ! LpChat::esPro($yo), 'mensaje' => LpChat::esPro($yo)
+                ? 'Hoy ya saludaste a '.$limite.' personas nuevas. Mañana puedes conocer a más 🙌'
+                : 'Hoy ya saludaste a '.$limite.' personas nuevas. Pásate a Pro por $'.number_format((int) config('lpchat.pro.precio'), 0, ',', '.').' al mes y saluda hasta '.config('lpchat.pro.limite').' al día ⭐'], 429);
         }
 
         return response()->json(['ok' => true, 'chat' => LpChat::abrirDirecto($yo, $otro, 'conocer')]);
@@ -556,6 +562,81 @@ class lpchatController extends Controller
         return response()->json(['ok' => true, 'perfil' => LpChat::tarjeta($u) + ['visto' => $u->tienda_id ? '' : LpChat::visto($u->visto_at),
             'tiene_chat' => (bool) LpChat::directo($yo->id, $u->id),
             'bloqueado' => DB::table('lpchat_bloqueos')->where('usuario_id', $yo->id)->where('bloqueado_id', $u->id)->exists()]]);
+    }
+
+    /* ---------------- Plan Pro ($5.000 al mes) ---------------- */
+
+    /** Estado del plan y datos para pagar. */
+    public function pro(Request $request): JsonResponse
+    {
+        $yo = $this->yo();
+        $pend = DB::table('lpchat_planes')->where('usuario_id', $yo->id)->where('estado', 'pendiente')->latest('id')->first();
+        $cfg = config('lpchat.pro');
+
+        return response()->json(['ok' => true, 'pro' => LpChat::esPro($yo), 'sin_limite' => (bool) $yo->sin_limite,
+            'hasta' => $yo->pro_hasta && $yo->pro_hasta->isFuture() ? $yo->pro_hasta->timezone('America/Bogota')->format('d/m/Y') : null,
+            'pendiente' => (bool) $pend, 'precio' => (int) $cfg['precio'], 'limite' => (int) $cfg['limite'], 'gratis' => LpChat::LIMITE_CONOCER, 'dias' => (int) $cfg['dias'],
+            'nequi' => $cfg['nequi'], 'wa' => 'https://wa.me/'.$cfg['whatsapp'].'?text='.rawurlencode('Hola, pagué el Plan Pro de LP Chat ($'.number_format((int) $cfg['precio'], 0, ',', '.').'). Mi cuenta: '.$yo->nombre.' ('.($yo->email ?: $yo->celular ?: 'id '.$yo->id).'). Envío el comprobante.')]);
+    }
+
+    /** Sube el comprobante de Nequi; queda pendiente hasta que el súper administrador lo apruebe. */
+    public function pagarPro(Request $request): JsonResponse
+    {
+        $yo = $this->yo();
+        $request->validate(['comprobante' => 'required|image|max:10240']);
+        if (DB::table('lpchat_planes')->where('usuario_id', $yo->id)->where('estado', 'pendiente')->exists()) {
+            return response()->json(['ok' => false, 'mensaje' => 'Ya enviaste un comprobante. Te avisamos apenas lo revisemos.'], 422);
+        }
+        $ruta = $request->file('comprobante')->store('lpchat/comprobantes', 'local');
+        DB::table('lpchat_planes')->insert(['usuario_id' => $yo->id, 'comprobante' => $ruta, 'estado' => 'pendiente', 'created_at' => now(), 'updated_at' => now()]);
+
+        return response()->json(['ok' => true, 'mensaje' => 'Recibimos tu comprobante. Apenas lo revisemos se activa tu Plan Pro ⭐']);
+    }
+
+    /** Súper administrador de LocalProo: revisar comprobantes del Plan Pro. */
+    private function superadmin(): \App\Models\User
+    {
+        $w = Auth::guard('web')->user();
+        abort_unless($w && ($w->es_superadmin ?? false), 403);
+
+        return $w;
+    }
+
+    public function proAdmin(Request $request)
+    {
+        $this->superadmin();
+        $planes = DB::table('lpchat_planes')->orderByRaw("case when estado = 'pendiente' then 0 else 1 end")->orderByDesc('id')->limit(200)->get();
+        $us = U::whereIn('id', $planes->pluck('usuario_id'))->get()->keyBy('id');
+
+        return view('lpchat.pro-admin', ['planes' => $planes, 'us' => $us]);
+    }
+
+    public function proRevisar(Request $request, int $plan)
+    {
+        $w = $this->superadmin();
+        $p = DB::table('lpchat_planes')->where('id', $plan)->first();
+        abort_unless($p, 404);
+        $u = U::findOrFail($p->usuario_id);
+        if ($request->input('accion') === 'aprobar') {
+            $base = $u->pro_hasta && $u->pro_hasta->isFuture() ? $u->pro_hasta : now();
+            $u->pro_hasta = $base->copy()->addDays((int) config('lpchat.pro.dias', 30));
+            $u->save();
+            DB::table('lpchat_planes')->where('id', $p->id)->update(['estado' => 'activo', 'hasta' => $u->pro_hasta, 'revisado_por' => $w->id, 'updated_at' => now()]);
+            Cache::forget('lpchat_muestra_'.$u->id.'_'.now('America/Bogota')->toDateString().'_'.LpChat::MUESTRA);
+        } else {
+            DB::table('lpchat_planes')->where('id', $p->id)->update(['estado' => 'rechazado', 'revisado_por' => $w->id, 'updated_at' => now()]);
+        }
+
+        return back()->with('ok', 'Listo.');
+    }
+
+    public function proComprobante(Request $request, int $plan)
+    {
+        $this->superadmin();
+        $p = DB::table('lpchat_planes')->where('id', $plan)->first();
+        abort_unless($p && $p->comprobante && Storage::disk('local')->exists($p->comprobante), 404);
+
+        return response()->file(Storage::disk('local')->path($p->comprobante));
     }
 
     /* ---------------- Estados (duran 24 horas) ---------------- */
