@@ -699,7 +699,8 @@ class LpChat
      */
     private static function visibilidad(int $cid, U $de, U $para, bool $nuevo): void
     {
-        $todos = ! $de->sin_limite || self::hablaronLosDos($cid);
+        // Entre dos cuentas del equipo (p. ej. el administrador y Mía) siempre se ve.
+        $todos = ! $de->sin_limite || $para->sin_limite || self::hablaronLosDos($cid);
         $q = DB::table('lpchat_miembros')->where('chat_id', $cid)->when(! $todos, fn ($x) => $x->where('usuario_id', $para->id));
         (clone $q)->whereIn('estado', ['oculto', 'salio', 'solicitud'])->update(['estado' => 'activo']);
         (clone $q)->update(['seccion' => 'mis']);
