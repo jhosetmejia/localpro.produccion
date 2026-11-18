@@ -79,6 +79,11 @@ class opinionController extends Controller
         if (preg_match('/bot\b|googlebot|bingbot|crawler|spider|slurp|lighthouse|headlesschrome|pagespeed|facebookexternalhit/i', (string) $request->userAgent())) {
             return response()->json(['ok' => true]);
         }
+        // Scripts que meten los navegadores (Brave __firefox__/standardSelectors, HiBrowser, billeteras) y caídas de internet:
+        // no son fallas del código. Se filtran también aquí por si el navegador tiene guardado un lp-opinion.js viejo.
+        if ($this->esRuido($d['mensaje'], (string) ($d['pila'] ?? ''))) {
+            return response()->json(['ok' => true]);
+        }
         $mensaje = Str::limit(trim($d['mensaje']), 480, '…');
         $donde = $this->limpiarDonde($d['donde'] ?? null);
         $modulo = $this->modulo($d['modulo'] ?? null);
@@ -121,6 +126,14 @@ class opinionController extends Controller
             ]);
         }
         return response()->json(['ok' => true]);
+    }
+
+    public static function esRuido(string $msg, string $pila = ''): bool
+    {
+        if ($pila !== '' && str_contains($pila, '<anonymous>') && !preg_match('#https?://#', $pila)) {
+            return true;
+        }
+        return (bool) preg_match('/__firefox__|standardSelectors|window\.ethereum|ethereum\.|selectedAddress|__gCrWeb|webkit\.messageHandlers|instantSearchSDKJSBridge|WebViewJavascriptBridge|WeixinJSBridge|AlipayJSBridge|JSBridge|HiBrowser|_AutofillCallbackHandler|A network error occurred|Network request failed|Failed to fetch|Load failed|NetworkError when attempting|^Script error\.?$/i', $msg);
     }
 
     // "Mis reportes": lo que la persona nos ha escrito y lo que le contestamos

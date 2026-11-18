@@ -50,8 +50,8 @@
     // Código que mete el navegador o la app (no es de la página): la pila solo dice <anonymous>, sin archivo real
     if (pila && /<anonymous>/.test(pila) && !/https?:\/\//.test(pila)) return true;
     if (!msg || msg === 'Script error.' || msg === 'Script error') return true;           // de otro dominio: no dice nada
-    if (/LPCUT_EN_APP_SIN_WEBGL|window\.ethereum|ethereum\.|selectedAddress|__gCrWeb|webkit\.messageHandlers|instantSearchSDKJSBridge|WebViewJavascriptBridge|WeixinJSBridge|AlipayJSBridge|JSBridge|HiBrowser|_AutofillCallbackHandler/i.test(msg)) return true; // billeteras y apps/navegadores que se meten en la página (Brave, MetaMask, Instagram, HiBrowser, WeChat)
-    if (/ResizeObserver loop|Non-Error promise rejection captured|AbortError|The user aborted|cancelado|Load failed$|Failed to fetch$|NetworkError when attempting/i.test(msg)) return true;
+    if (/LPCUT_EN_APP_SIN_WEBGL|window\.ethereum|ethereum\.|selectedAddress|__gCrWeb|webkit\.messageHandlers|instantSearchSDKJSBridge|WebViewJavascriptBridge|WeixinJSBridge|AlipayJSBridge|JSBridge|HiBrowser|_AutofillCallbackHandler|__firefox__|standardSelectors/i.test(msg)) return true; // billeteras y apps/navegadores que se meten en la página (Brave, MetaMask, Instagram, HiBrowser, WeChat)
+    if (/ResizeObserver loop|Non-Error promise rejection captured|AbortError|The user aborted|cancelado|Load failed$|Failed to fetch$|NetworkError when attempting|A network error occurred|Network request failed/i.test(msg)) return true;
     if (archivo && !/^\//.test(archivo) && archivo.indexOf(location.origin) !== 0) return true; // extensiones del navegador, anuncios, etc.
     return false;
   }
