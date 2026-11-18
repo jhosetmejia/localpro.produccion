@@ -40,8 +40,76 @@
 
 @if ($tab === 'pendientes')
 <p style="opacity:.75">Preguntas que el asistente no supo responder. Escribe la respuesta correcta y dale <strong>Enseñar</strong>: la próxima vez la responde solo.</p>
+{{-- 2026-11-18 (Jhoset): copiar todas las preguntas sin respuesta para que Claude las responda, y pegar sus respuestas de una vez (igual que NES y PFN) --}}
+@if ($pendientes->isNotEmpty())
+<div data-lote style="border:2px dashed #16a34a;border-radius:12px;padding:.8rem 1rem;margin:.6rem 0;">
+<div style="font-weight:800;margin-bottom:.3rem">🤝 Responder todas con Claude</div>
+<div style="opacity:.85;font-size:.9rem">1) Dale <b>Copiar preguntas para responder</b> y pégalas en el chat de Claude. 2) Claude te devuelve un bloque con las respuestas. 3) Pégalo aquí abajo y dale <b>Enseñar todas</b>. Si a alguna no le pudo responder, te lo dice en el chat para que tú le enseñes.</div>
+<div class="btns" style="margin:.4rem 0"><button type="button" class="ok" data-lote-copiar>📋 Copiar preguntas para responder</button><span class="msg" data-lote-msg1></span></div>
+<textarea data-lote-txt placeholder="Pega aquí lo que te devolvió Claude (bloques que empiezan con #número)" style="min-height:110px;width:100%"></textarea>
+<div class="btns"><button type="button" class="ok" data-lote-ensenar>🧠 Enseñar todas</button><span class="msg" data-lote-msg2></span></div>
+</div>
+<script>
+(function () {
+  var CSRF = @json(csrf_token());
+  var URL_ENS = @json($rutas['ensenar']);
+  var caja = document.querySelector('[data-lote]'); if (!caja) return;
+  function msg(sel, t, ok) { var m = caja.querySelector(sel); m.textContent = t; m.style.color = ok ? '#3ecf6e' : '#ff5a5a'; }
+  function norm(t) { return (t || '').toLowerCase().replace(/\s+/g, ' ').trim(); }
+  function items() { return Array.prototype.slice.call(document.querySelectorAll('.it[data-pend]')); }
+  function copiar(t) {
+    if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(t);
+    return new Promise(function (ok, no) {
+      var ta = document.createElement('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy') ? ok() : no(); } catch (e) { no(); } document.body.removeChild(ta);
+    });
+  }
+  caja.querySelector('[data-lote-copiar]').addEventListener('click', function () {
+    var vistos = {}, partes = [];
+    items().forEach(function (it) {
+      var p = it.querySelector('[data-p]').value.trim(), k = norm(p); if (!p || vistos[k]) return; vistos[k] = 1;
+      var r = it.querySelector('.r'), fecha = (it.querySelector('.meta') || {}).textContent || '';
+      partes.push('#' + it.getAttribute('data-id') + ' (' + fecha.trim() + ')\nP: ' + p + (r ? '\n' + r.textContent.trim().replace(/^Respondió:/, 'Mía respondió:') : ''));
+    });
+    if (!partes.length) { msg('[data-lote-msg1]', 'No hay preguntas pendientes.', false); return; }
+    var t = 'Claude: estas son las preguntas que Mía (asistente de LocalProo, localproo.com) no supo responder. Respóndelas con la información oficial de LocalProo (funciones, planes, precios, cómo se usa) '
+      + 'y devuélveme UN solo bloque para pegar en "Enseñar todas", con este formato por cada una:\n#número\nR: respuesta corta y cálida como la diría Mía\n'
+      + 'Las que no sepas responder no las pongas en el bloque: dímelas aparte para enseñarle yo.\n\n'
+      + partes.join('\n\n');
+    copiar(t).then(function () { msg('[data-lote-msg1]', '✓ Copiadas ' + partes.length + ' preguntas. Pégalas en el chat de Claude.', true); },
+      function () { msg('[data-lote-msg1]', 'No se pudo copiar. Intenta de nuevo.', false); });
+  });
+  caja.querySelector('[data-lote-ensenar]').addEventListener('click', function () {
+    var b = this, txt = caja.querySelector('[data-lote-txt]').value, lote = [];
+    txt.split(/^\s*#(?=\d+)/m).forEach(function (blq) {
+      var m = blq.match(/^(\d+)[^\n]*\n([\s\S]*)$/); if (!m) return;
+      var cuerpo = m[2], mm = cuerpo.match(/^\s*R\s*:\s*([\s\S]*)$/m);
+      if (!mm) return;
+      var resp = mm[1].replace(/\n\s*(P|Mía respondió)\s*:[\s\S]*$/, '').trim();
+      var it = document.querySelector('.it[data-pend][data-id="' + m[1] + '"]'); if (!it || !resp) return;
+      lote.push({it: it, id: +m[1], pregunta: it.querySelector('[data-p]').value.trim(), respuesta: resp});
+    });
+    if (!lote.length) { msg('[data-lote-msg2]', 'No encontré respuestas. Pega el bloque tal cual te lo dio Claude (#número y R: …).', false); return; }
+    b.disabled = true; var hechas = 0, fallas = 0;
+    (function sig(i) {
+      if (i >= lote.length) {
+        b.disabled = false;
+        msg('[data-lote-msg2]', '✓ Mía aprendió ' + hechas + (fallas ? ' · ' + fallas + ' no se guardaron' : '') + '.', !fallas);
+        return;
+      }
+      var x = lote[i]; msg('[data-lote-msg2]', 'Enseñando ' + (i + 1) + ' de ' + lote.length + '…', true);
+      fetch(URL_ENS, {method: 'POST', credentials: 'same-origin', headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json'},
+        body: JSON.stringify({mensaje_id: x.id, pregunta: x.pregunta, respuesta: x.respuesta})})
+        .then(function (r) { return r.json(); })
+        .then(function (j) { if (j.ok) { hechas++; x.it.style.display = 'none'; } else fallas++; sig(i + 1); })
+        .catch(function () { fallas++; sig(i + 1); });
+    })(0);
+  });
+})();
+</script>
+@endif
 @forelse ($pendientes as $p)
-<div class="it" data-id="{{ $p->id }}">
+<div class="it" data-id="{{ $p->id }}" data-pend>
 <div class="meta">{{ \Carbon\Carbon::parse($p->created_at)->timezone('America/Bogota')->format('d/m h:i A') }}</div>
 <div class="q">❓ {{ $p->pregunta }}</div>
 @if ($p->respuesta)<div class="r">Respondió: {{ $p->respuesta }}</div>@endif
