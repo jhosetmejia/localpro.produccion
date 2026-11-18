@@ -169,7 +169,10 @@ class lpchatCuentaController extends Controller
         abort_unless(config('lpchat.origenes.'.$origen) && LpChat::firmaValida($origen, $desde, $request->query('f')), 403);
         [$mensajes, $ultimo] = LpChat::exportar($origen, (int) $desde);
 
-        return response()->json(['ok' => true, 'mensajes' => $mensajes, 'ultimo' => $ultimo]);
+        // 2026-11-18: en la primera tanda van también los mensajes de allá que ya se leyeron aquí
+        $leidos = $request->boolean('leidos') ? LpChat::leidosAqui($origen) : [];
+
+        return response()->json(['ok' => true, 'mensajes' => $mensajes, 'ultimo' => $ultimo, 'leidos' => $leidos]);
     }
 
     /** Cuántos mensajes sin leer tiene alguien de PFN/NES (para su campanita). Firma = hmac(origen_id). */

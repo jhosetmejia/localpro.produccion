@@ -632,8 +632,16 @@ class LpChat
             $clave = $origen.':m'.(int) ($m['id'] ?? 0);
             $de = $mapa[(string) ($m['de'] ?? '')] ?? null;
             $para = $mapa[(string) ($m['para'] ?? '')] ?? null;
-            if (! $de || ! $para || $de->id === $para->id || DB::table('lpchat_mensajes')->where('origen', $clave)->exists()) {
+            if (! $de || ! $para || $de->id === $para->id) {
                 continue;
+            }
+            // 2026-11-18: si ya estaba, igual se pone al día: que se vea el chat y si ya lo leyeron allá, aquí también.
+            if ($ya = DB::table('lpchat_mensajes')->where('origen', $clave)->first(['id', 'chat_id'])) {
+                self::ponerAlDia((int) $ya->chat_id, $de, $para, (int) $ya->id, ! empty($m['leido']));
+                continue;
+            }
+            if (! empty($m['solo_leido'])) {
+                continue; // solo venía a marcar leído algo que ya estaba
             }
             $texto = trim(mb_substr((string) ($m['texto'] ?? ''), 0, 4000));
             $adj = ['audio' => '🎤 Nota de voz', 'foto' => '📷 Foto', 'video' => '🎥 Video'][$m['adj'] ?? ''] ?? null;
@@ -649,8 +657,13 @@ class LpChat
                 // Ya se conocían en el otro sistema: queda en Mis chats. 2026-11-18: solo los mensajes masivos del equipo del evento
                 // (cuentas sin límite) quedan ocultos hasta que respondan; lo que escribe una persona SÍ se ve y avisa.
                 DB::table('lpchat_miembros')->where('chat_id', $cid)->update(['estado' => $de->sin_limite ? 'oculto' : 'activo', 'seccion' => 'mis']);
+            } elseif (! $de->sin_limite) {
+                // Chat que ya existía (oculto, borrado o en General): como en NES/PFN, queda a la vista en Mis chats.
+                DB::table('lpchat_miembros')->where('chat_id', $cid)->whereIn('estado', ['oculto', 'salio', 'solicitud'])->update(['estado' => 'activo']);
+                DB::table('lpchat_miembros')->where('chat_id', $cid)->update(['seccion' => 'mis']);
             }
-            $fecha = ! empty($m['fecha']) ? Carbon::parse($m['fecha']) : now();
+            // 2026-11-18: NES/PFN mandan la hora en UTC; aquí se guarda en la hora del sistema (si no, salía 5 horas adelantada).
+            $fecha = (! empty($m['fecha']) ? Carbon::parse($m['fecha']) : now())->timezone(config('app.timezone'));
             $id = DB::table('lpchat_mensajes')->insertGetId(['chat_id' => $cid, 'usuario_id' => $de->id, 'texto' => $texto, 'origen' => $clave,
                 'created_at' => $fecha, 'updated_at' => $fecha]);
             DB::table('lpchat_chats')->where('id', $cid)->where('ultimo_id', '<', $id)->update(['ultimo_id' => $id, 'updated_at' => now()]);
@@ -672,6 +685,18 @@ class LpChat
         }
 
         return $n;
+    }
+
+    /** Mensaje que ya se había traído: que el chat se vea igual que allá y la marca de leído quede igual. */
+    private static function ponerAlDia(int $cid, U $de, U $para, int $mid, bool $leido): void
+    {
+        if (! $de->sin_limite || self::hablaronLosDos($cid)) {
+            DB::table('lpchat_miembros')->where('chat_id', $cid)->whereIn('estado', ['oculto', 'salio', 'solicitud'])->update(['estado' => 'activo']);
+            DB::table('lpchat_miembros')->where('chat_id', $cid)->update(['seccion' => 'mis']);
+        }
+        if ($leido) {
+            DB::table('lpchat_miembros')->where('chat_id', $cid)->where('usuario_id', $para->id)->where('leido_id', '<', $mid)->update(['leido_id' => $mid]);
+        }
     }
 
     /** ¿Los dos del chat se han escrito al menos una vez? */
@@ -711,6 +736,19 @@ class LpChat
         }
 
         return [$out, $ultimo];
+    }
+
+    /**
+     * 2026-11-18: mensajes traídos de NES/PFN que la persona ya leyó aquí en LP Chat (últimos 7 días),
+     * para marcarlos leídos allá también. Devuelve los ids del otro sistema.
+     */
+    public static function leidosAqui(string $origen): array
+    {
+        return DB::table('lpchat_mensajes as x')
+            ->join('lpchat_miembros as m', fn ($j) => $j->on('m.chat_id', '=', 'x.chat_id')->on('m.usuario_id', '!=', 'x.usuario_id'))
+            ->where('x.origen', 'like', $origen.':m%')->where('x.created_at', '>=', now()->subDays(7))
+            ->whereColumn('m.leido_id', '>=', 'x.id')->orderByDesc('x.id')->limit(3000)->pluck('x.origen')
+            ->map(fn ($o) => (int) substr($o, strlen($origen) + 2))->filter()->values()->all();
     }
 
     /** Firma HMAC que comparten LP Chat y el otro sistema. */
