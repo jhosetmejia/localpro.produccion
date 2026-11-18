@@ -4,6 +4,7 @@
 {{-- 👉 PERSONALIZAR: nombre, color, WhatsApp, links de los botones --}}
 @php
   $asDatos = [
+      'uid' => auth()->id(),
       'wa' => preg_replace('/\D/', '', (string) \App\Models\Ajuste::valor('soporte_whatsapp')),
       'u' => [
           'inicio' => url('/'),
@@ -104,7 +105,7 @@ body:has(#lpInstalar) #pfn-as{bottom:136px}
     ['saludo', ['hola', 'buenas', 'buenos dias', 'buen dia', 'saludos', 'hey', 'que tal', 'ola']]
   ];
   function norm(t) { return (t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
-  function burbuja(texto, quien) {
+  function burbuja(texto, quien, restaurando) {
     var b = document.createElement('div'); b.className = 'as-b ' + (quien === 'yo' ? 'as-yo' : 'as-bot');
     // [texto](url) o una URL suelta (las que escribe la IA) -> link
     var re = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)|(https?:\/\/[^\s)]+[^\s).,;!?])|\*\*([^*\n]+)\*\*/g, ult = 0, m;
@@ -118,8 +119,21 @@ body:has(#lpInstalar) #pfn-as{bottom:136px}
     b.appendChild(document.createTextNode(texto.slice(ult)));
     msgs.appendChild(b); msgs.scrollTop = msgs.scrollHeight;
     HIST.push({rol: quien === 'yo' ? 'yo' : 'bot', texto: texto.slice(0, 800)}); if (HIST.length > 8) HIST.shift();
+    if (!restaurando) guardarChat(quien === 'yo' ? 'yo' : 'bot', texto);
   }
-  var HIST = [], IA = {!! json_encode(route('asistente.ia'), JSON_UNESCAPED_SLASHES) !!}, CSRF = {!! json_encode(csrf_token()) !!}, SESION = Math.random().toString(36).slice(2, 14) + Date.now().toString(36);
+  // 2026-11-18 (Jhoset): el chat se guarda en este equipo 7 días (por cuenta); al recargar sigue ahí y lo más viejo se va borrando solo.
+  var CHAT_KEY = 'mia_chat_' + (D.uid || 'visitante'), CHAT_DIAS = 7 * 864e5;
+  function leerChat() {
+    try { var c = JSON.parse(localStorage.getItem(CHAT_KEY) || 'null'); } catch (x) { c = null; }
+    if (!c || !Array.isArray(c.m)) c = {s: '', m: []};
+    var lim = Date.now() - CHAT_DIAS; c.m = c.m.filter(function (x) { return x && x.t > lim && typeof x.x === 'string'; }).slice(-200);
+    return c;
+  }
+  var CHAT = leerChat();
+  function guardarChat(rol, texto) {
+    try { CHAT.m.push({r: rol, x: String(texto).slice(0, 2000), t: Date.now()}); CHAT.m = CHAT.m.slice(-200); CHAT.s = SESION; localStorage.setItem(CHAT_KEY, JSON.stringify(CHAT)); } catch (x) {}
+  }
+  var HIST = [], IA = {!! json_encode(route('asistente.ia'), JSON_UNESCAPED_SLASHES) !!}, CSRF = {!! json_encode(csrf_token()) !!}, SESION = (CHAT.m.length && CHAT.s) || (Math.random().toString(36).slice(2, 14) + Date.now().toString(36));
   // 2026-11-13: lo que no reconocen las palabras clave lo contesta la IA gratis (Groq); si no hay, WhatsApp.
   function preguntarIA(t, k) {
     var pens = escribiendo(); msgs.scrollTop = msgs.scrollHeight;
@@ -163,8 +177,13 @@ body:has(#lpInstalar) #pfn-as{bottom:136px}
     chips.appendChild(b);
   });
   var iniciado = false;
+  if (CHAT.m.length) {
+    iniciado = true; chips.style.display = 'none';
+    CHAT.m.forEach(function (x) { burbuja(x.x, x.r, true); });
+  }
   function abrir() {
     box.classList.add('abierto');
+    msgs.scrollTop = msgs.scrollHeight;
     if (!iniciado) { iniciado = true; var e = escribiendo(); setTimeout(function () { e.remove(); burbuja(D.asesor ? '¡Hola! 👋 Soy Mía, tu compañera de ventas en LocalProo 💪. ¿Cerramos un negocio hoy? Te armo el mensaje para mandar, te ayudo con una objeción o repasamos tus comisiones.' : D.sesion ? '¡Hola! 👋 Soy Mía, la asistente virtual de LocalProo. ¿Qué quieres hacer hoy en tu sistema? Escríbeme o toca una opción.' : '¡Hola! 👋 Soy Mía, la asistente virtual de LocalProo. ¿Qué tipo de negocio tienes? Te cuento cómo LocalProo te ayuda.', 'bot'); }, 700); }
     setTimeout(function () { box.querySelector('[data-in]').focus(); }, 50);
   }
@@ -228,6 +247,7 @@ body:has(#lpInstalar) #pfn-as{bottom:136px}
           if (j && j.ok && j.texto) {
             tr.textContent = '“' + j.texto + '”';
             HIST.push({rol: 'yo', texto: j.texto.slice(0, 800)}); if (HIST.length > 8) HIST.shift();
+            guardarChat('yo', '🎤 ' + j.texto);
             preguntarIA(j.texto, entender(j.texto));
           } else { tr.textContent = 'No se pudo escuchar'; fallo(); }
         }).catch(function () { e.remove(); tr.textContent = 'No se pudo escuchar'; fallo(); });

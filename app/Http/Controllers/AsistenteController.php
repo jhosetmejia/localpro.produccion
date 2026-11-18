@@ -97,11 +97,6 @@ TXT;
             '- Por tipo de negocio: restaurantes (mesero → cocina → caja), tiquetera de almuerzos, servicios sin inventario (peluquerías, talleres), alquileres con disponibilidad por fecha, plataforma 360, consultorios con historia clínica, consultorios odontológicos (odontograma, presupuestos con abonos, ortodoncia, citas en línea; registro: '.route('registro.odontologos').'), institutos y academias, funerarias con obituarios digitales para los televisores, pantallas para televisores, eventos con venta de entradas y QR, conjuntos residenciales, y contadores (cruce DIAN, IVA, retenciones, formulario 350).',
             '- Asesores: LocalProo tiene una red comercial de asesores que venden el sistema y ganan comisión; para unirse, por WhatsApp.',
             '',
-            'CÓMO SE HACE (pasos reales del panel; usa SOLO estos, no inventes otros):',
-            '- Anotar un egreso (gasto): menú de la izquierda → Egresos ('.route('egresos.index').'). En el cuadro "Anotar egreso" escribe en qué se gastó, el valor, la fecha, el tipo de gasto y cómo se pagó (si es efectivo con la caja abierta, se descuenta de la caja); foto del recibo y nota son opcionales. Toca "Guardar egreso".',
-            '- Editar un egreso: en Egresos ('.route('egresos.index').'), a la derecha de la lista busca el egreso (puede filtrar por fechas, tipo o quién lo anotó) y toca el botón del lápiz ✏️ al lado del valor. Se abre el formulario debajo: cambia lo que necesites y toca "Guardar cambios". El vendedor solo puede editar los suyos mientras su caja siga abierta (o el mismo día si no tenía caja); el dueño o administrador puede editar todos. Si la caja ya se cerró, el valor y la forma de pago quedan fijos.',
-            '- Borrar un egreso: en la misma lista, botón de la caneca 🗑️ al lado del egreso (mismas reglas que editar). Si salió de la caja, vuelve a sumarse al efectivo de la caja.',
-            '',
             'SI NO SABES: cuando la respuesta no esté en esta información, empieza tu respuesta EXACTAMENTE con [SIN_DATO] y luego di amablemente que lo confirma el equipo por WhatsApp ('.$wa.').',
             self::conocimientoTexto(),
         ]));
@@ -255,7 +250,15 @@ TXT;
         }
         Cache::put($hoy, (int) Cache::get($hoy, 0) + 1, now()->addDays(2));
 
-        $msgs = [['role' => 'system', 'content' => $this->contexto()."\n\n".$this->usuarioContexto($request)."\n\n".self::GUIA]];
+        // 2026-11-18: pasos reales del panel, solo los temas de lo que pregunta (y lo último que dijo), para no gastar de más
+        try {
+            $previo = collect((array) ($d['historial'] ?? []))->where('rol', 'yo')->take(-2)->pluck('texto')->implode(' ');
+            $guia = \App\Support\MiaGuia::para($d['mensaje'].' '.$previo);
+        } catch (\Throwable $e) {
+            report($e);
+            $guia = '';
+        }
+        $msgs = [['role' => 'system', 'content' => $this->contexto()."\n\n".$guia."\n\n".$this->usuarioContexto($request)."\n\n".self::GUIA]];
         foreach ((array) ($d['historial'] ?? []) as $h) {
             $msgs[] = ['role' => $h['rol'] === 'yo' ? 'user' : 'assistant', 'content' => mb_substr($h['texto'], 0, 800)];
         }
