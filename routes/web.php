@@ -464,6 +464,7 @@ Route::middleware(['auth', 'tienda'])->group(function () {
     Route::get('/separados', [separadoController::class, 'index'])->name('separados.index');
     Route::get('/egresos', [\App\Http\Controllers\egresoController::class, 'index'])->name('egresos.index');
     Route::post('/egresos', [\App\Http\Controllers\egresoController::class, 'store'])->middleware('throttle:30,1')->name('egresos.store');
+    Route::put('/egresos/{egreso}', [\App\Http\Controllers\egresoController::class, 'update'])->whereNumber('egreso')->middleware('throttle:30,1')->name('egresos.update');
     Route::delete('/egresos/{egreso}', [\App\Http\Controllers\egresoController::class, 'destroy'])->whereNumber('egreso')->name('egresos.destroy');
 
     // Alquileres: servicios que el negocio pone en alquiler

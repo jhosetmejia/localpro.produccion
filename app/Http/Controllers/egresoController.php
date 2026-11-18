@@ -81,6 +81,56 @@ class egresoController extends Controller
         return back()->with('success', 'Egreso anotado' . ($caja ? ' y descontado del efectivo de su caja.' : '.'));
     }
 
+    public function update(Request $request, Egreso $egreso)
+    {
+        $u = Auth::user();
+        abort_unless($egreso->de_admin ? $u->can('ver-egresos-todos') : true, 404);
+        if (!$egreso->puedeEditar($u)) {
+            return back()->withErrors('Este egreso ya no se puede editar (su caja está cerrada). Pídale al administrador que lo corrija.');
+        }
+        $datos = $request->validate([
+            'concepto' => 'required|string|max:160',
+            'categoria' => ['required', Rule::in(array_keys(Egreso::CATEGORIAS))],
+            'valor' => 'required|numeric|min:0.01|max:999999999',
+            'fecha' => 'required|date|before_or_equal:today',
+            'metodo_pago_id' => 'nullable|exists:metodos_pago,id',
+            'nota' => 'nullable|string|max:255',
+            'soporte' => 'nullable|image|max:6144',
+            'de_caja' => 'nullable|boolean',
+        ], [], ['concepto' => '¿en qué se gastó?', 'valor' => 'valor', 'soporte' => 'foto del recibo', 'metodo_pago_id' => 'forma de pago']);
+
+        $cambios = [
+            'concepto' => $datos['concepto'],
+            'categoria' => $datos['categoria'],
+            'fecha' => $datos['fecha'],
+            'nota' => $datos['nota'] ?? null,
+        ];
+
+        // Si su caja ya se cerró, el valor y la forma de pago no se tocan (el cierre ya se cuadró con eso)
+        if (!$egreso->valorBloqueado()) {
+            $metodo = !empty($datos['metodo_pago_id']) ? MetodoPago::find($datos['metodo_pago_id']) : null;
+            $efectivo = $metodo?->es_efectivo && !MetodoPago::esElectronico($metodo->nombre);
+            $caja = null;
+            if ($efectivo && $request->boolean('de_caja', true)) {
+                $caja = $egreso->caja_id ? $egreso->caja : Caja::abiertaDe($egreso->user_id);
+            }
+            $cambios['valor'] = $datos['valor'];
+            $cambios['metodo_pago_id'] = $metodo?->id;
+            $cambios['caja_id'] = $caja?->id;
+        }
+
+        if ($request->hasFile('soporte')) {
+            if ($egreso->soporte_path) {
+                Storage::disk('public')->delete($egreso->soporte_path);
+            }
+            $cambios['soporte_path'] = $request->file('soporte')->store('egresos', 'public');
+        }
+
+        $egreso->update($cambios);
+
+        return back()->with('success', 'Egreso actualizado.');
+    }
+
     public function destroy(Egreso $egreso)
     {
         $u = Auth::user();

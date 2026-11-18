@@ -23,6 +23,7 @@
 .eg-item .m{font-weight:900;color:#b0206a;white-space:nowrap}
 .eg-tag{display:inline-block;border-radius:99px;padding:.05rem .45rem;font-size:.68rem;font-weight:800;margin-left:.25rem}
 .eg-tag.adm{background:#0b0d0c;color:#a6f34a}.eg-tag.caja{background:#fff5d6;color:#8a6400}
+.eg-edit{background:#f7faf8;border:1.5px solid #e3ebe6;border-radius:16px;padding:.9rem;margin:.3rem 0 .8rem}
 .eg-bar{height:7px;border-radius:99px;background:#eef2ef;overflow:hidden;margin-top:.25rem}
 .eg-bar i{display:block;height:100%;background:linear-gradient(90deg,#ff8db5,#b0206a)}
 </style>
@@ -127,10 +128,37 @@
                     </div>
                     @if ($e->soporte_url)<a href="{{ $e->soporte_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-light" title="Ver recibo"><i class="fa-solid fa-image"></i></a>@endif
                     <span class="m">-{{ $f($e->valor) }}</span>
+                    @if ($e->puedeEditar(auth()->user()))
+                    <button type="button" class="btn btn-sm btn-light" title="Editar" data-eg-editar="{{ $e->id }}"><i class="fa-solid fa-pen" style="color:#0f4c81"></i></button>
+                    @endif
                     @if ($e->puedeBorrar(auth()->user()))
                     <form method="post" action="{{ route('egresos.destroy', $e) }}" data-confirm="¿Borrar este egreso?" data-confirm-texto="{{ $e->caja_id ? 'Vuelve a sumarse al efectivo de la caja.' : 'Se quita de la lista.' }}" data-confirm-ok="Sí, borrar">@csrf @method('DELETE')<button class="btn btn-sm btn-light" title="Borrar"><i class="fa-solid fa-trash" style="color:#b0173f"></i></button></form>
                     @endif
                 </div>
+                @if ($e->puedeEditar(auth()->user()))
+                @php $bloq = $e->valorBloqueado(); @endphp
+                <form method="post" action="{{ route('egresos.update', $e) }}" enctype="multipart/form-data" class="eg-edit" id="egEdit{{ $e->id }}" hidden>
+                    @csrf @method('PUT')
+                    <div class="fw-bold mb-2"><i class="fa-solid fa-pen me-1"></i>Editar egreso</div>
+                    <div class="mb-2"><label class="form-label small mb-1">¿En qué se gastó?</label><input name="concepto" class="form-control" value="{{ $e->concepto }}" maxlength="160" required></div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6"><label class="form-label small mb-1">Valor</label><input data-dinero type="number" min="0.01" step="any" name="valor" class="form-control" value="{{ $e->valor }}" @if ($bloq) readonly @endif required></div>
+                        <div class="col-6"><label class="form-label small mb-1">Fecha</label><input type="date" name="fecha" class="form-control" value="{{ $e->fecha->format('Y-m-d') }}" max="{{ today()->format('Y-m-d') }}" required></div>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6"><label class="form-label small mb-1">Tipo de gasto</label><select name="categoria" class="form-select">@foreach (\App\Models\Egreso::CATEGORIAS as $k => $c)<option value="{{ $k }}" @selected($e->categoria === $k)>{{ $c[0] }}</option>@endforeach</select></div>
+                        <div class="col-6"><label class="form-label small mb-1">¿Cómo se pagó?</label><select name="metodo_pago_id" class="form-select" @if ($bloq) disabled @endif>@foreach ($metodos as $m)<option value="{{ $m->id }}" @selected((int) $e->metodo_pago_id === $m->id)>{{ $m->nombre }}</option>@endforeach</select></div>
+                    </div>
+                    @if ($bloq)
+                    <small class="text-muted d-block mb-2">La caja de este egreso ya se cerró: el valor y la forma de pago quedan fijos.</small>
+                    @else
+                    <label class="d-flex gap-2 align-items-center small fw-bold mb-2"><input type="hidden" name="de_caja" value="0"><input type="checkbox" name="de_caja" value="1" @checked($e->caja_id || !($e->metodo->es_efectivo ?? false))> Si es en efectivo, lo saqué de la caja abierta</label>
+                    @endif
+                    <div class="mb-2"><input name="nota" class="form-control" value="{{ $e->nota }}" maxlength="255" placeholder="Nota (opcional)"></div>
+                    <div class="mb-2"><label class="form-label small mb-1">{{ $e->soporte_path ? 'Cambiar foto del recibo' : 'Foto del recibo' }} <span class="text-muted fw-normal">(opcional)</span></label><input type="file" name="soporte" accept="image/*" class="form-control form-control-sm"></div>
+                    <div class="d-flex gap-2"><button class="btn btn-primary flex-fill"><i class="fa-solid fa-floppy-disk me-1"></i>Guardar cambios</button><button type="button" class="btn btn-light" data-eg-editar="{{ $e->id }}">Cancelar</button></div>
+                </form>
+                @endif
                 @empty
                 <div class="text-center text-muted py-4"><i class="fa-solid fa-receipt" style="font-size:2rem;color:#16b34a"></i><div class="fw-bold mt-2">No hay egresos en estas fechas.</div></div>
                 @endforelse
@@ -140,6 +168,12 @@
     </div>
 </div>
 <script>
+document.addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-eg-editar]');
+    if (!b) return;
+    var f = document.getElementById('egEdit' + b.dataset.egEditar);
+    if (f) { f.hidden = !f.hidden; if (!f.hidden) f.querySelector('input[name=concepto]').focus(); }
+});
 (function () {
     var sel = document.getElementById('egMetodo'), box = document.getElementById('egCajaBox');
     if (!sel || !box) return;

@@ -66,4 +66,16 @@ class Egreso extends Model
         }
         return $this->caja_id ? optional($this->caja)->estado === 'abierta' : $this->created_at?->isToday();
     }
+
+    /** ¿Lo puede editar este usuario? Mismas reglas que borrar. */
+    public function puedeEditar(User $u): bool
+    {
+        return $this->puedeBorrar($u);
+    }
+
+    /** Si su caja ya se cerró, el valor y la forma de pago quedan fijos (el cierre ya se cuadró con ese valor). */
+    public function valorBloqueado(): bool
+    {
+        return $this->caja_id && optional($this->caja)->estado !== 'abierta';
+    }
 }
