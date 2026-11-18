@@ -45,10 +45,12 @@
   }
 
   /* ---------- errores que se reportan solos ---------- */
-  function ruido(msg, archivo) {
+  function ruido(msg, archivo, pila) {
     msg = String(msg || '');
+    // Código que mete el navegador o la app (no es de la página): la pila solo dice <anonymous>, sin archivo real
+    if (pila && /<anonymous>/.test(pila) && !/https?:\/\//.test(pila)) return true;
     if (!msg || msg === 'Script error.' || msg === 'Script error') return true;           // de otro dominio: no dice nada
-    if (/LPCUT_EN_APP_SIN_WEBGL|window\.ethereum|ethereum\.|selectedAddress|__gCrWeb|webkit\.messageHandlers|instantSearchSDKJSBridge/i.test(msg)) return true; // billeteras y apps que se meten en la página (Brave, MetaMask, Instagram)
+    if (/LPCUT_EN_APP_SIN_WEBGL|window\.ethereum|ethereum\.|selectedAddress|__gCrWeb|webkit\.messageHandlers|instantSearchSDKJSBridge|WebViewJavascriptBridge|WeixinJSBridge|AlipayJSBridge|JSBridge|HiBrowser|_AutofillCallbackHandler/i.test(msg)) return true; // billeteras y apps/navegadores que se meten en la página (Brave, MetaMask, Instagram, HiBrowser, WeChat)
     if (/ResizeObserver loop|Non-Error promise rejection captured|AbortError|The user aborted|cancelado|Load failed$|Failed to fetch$|NetworkError when attempting/i.test(msg)) return true;
     if (archivo && !/^\//.test(archivo) && archivo.indexOf(location.origin) !== 0) return true; // extensiones del navegador, anuncios, etc.
     return false;
@@ -75,7 +77,7 @@
   window.addEventListener('error', function (e) {
     if (!e || e.target && e.target !== window && !e.message) return; // fallas de carga de imágenes/videos: no son errores del código
     var archivo = e.filename || '';
-    if (ruido(e.message, archivo)) return;
+    if (ruido(e.message, archivo, e.error && e.error.stack)) return;
     var donde = archivo ? archivo.replace(location.origin, '').replace(/\?.*$/, '') + ':' + (e.lineno || 0) + ':' + (e.colno || 0) : '';
     reportarError(e.message, donde, e.error && e.error.stack);
   }, true);
@@ -84,7 +86,7 @@
     var pila = r && r.stack ? String(r.stack) : '';
     var m = pila.match(/(https?:\/\/[^\s)]+):(\d+):(\d+)/);
     var archivo = m ? m[1] : '';
-    if (ruido(msg, archivo || null)) return;
+    if (ruido(msg, archivo || null, pila)) return;
     reportarError('Promesa sin atender: ' + msg, archivo ? archivo.replace(location.origin, '').replace(/\?.*$/, '') + ':' + m[2] : '', pila);
   });
 
