@@ -209,6 +209,31 @@ body{height:100dvh;overflow:hidden}
   .msgs{padding:10px 10px}
 }
 @media (min-width:761px){.fab{bottom:80px}}
+/* 2026-11-17 (Jhoset): tamaños de letra iguales a WhatsApp (Android): nombre 17px, último mensaje 15px,
+   hora 12.5px, burbujas 16px, foto 52px. Antes todo salía más chico porque la base era 15px. */
+.it{gap:14px}
+.it .tx{padding:14px 15px 14px 0;gap:3px}
+.it .n{font-size:17px;font-weight:500}
+.it .u{font-size:15px}
+.it .h{font-size:12.5px}
+.it .b{font-size:12.5px;min-width:22px;height:22px}
+.av{width:52px;height:52px;font-size:19px}
+.av.p{width:42px;height:42px;font-size:16px}
+.solic .ic{width:52px;height:52px}
+.solic b{font-size:17px;font-weight:500}.solic small{font-size:14.5px}
+.buscar input{font-size:16.5px;padding:12px 16px 12px 44px;border-radius:24px}
+.chip{font-size:14.5px;padding:7px 15px}
+.tabs button{font-size:14.5px;padding:8px 15px}
+.nav button{font-size:13.5px}
+.ccab .n{font-size:17px;font-weight:500}
+.ccab .s{font-size:13px}
+.m{font-size:16px;line-height:1.4}
+.m .au{font-size:14px}
+.m .meta{font-size:11.5px}
+.dia{font-size:12.5px}
+.sis{font-size:13.5px}
+.menu button{font-size:16px}
+.vacio{font-size:15px}
 </style>
 </head>
 <body>
