@@ -1029,17 +1029,48 @@ function copiar(v) {
 }
 
 /* ================= Instalar app ================= */
-var instalar = null;
-window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); instalar = e; $('b-instalar').hidden = false; });
+// 2026-11-18 (Jhoset): "que me la instale de una desde el menú". En Android se usa el instalador del navegador
+// (atrapado en _head). Si todavía no ha llegado, se espera hasta 3 s (el toque del menú sigue valiendo) y se abre solo.
+var instalar = window.__lpInst;
+function hayInstalador() { return instalar || window.__lpInst; }
+document.addEventListener('lp-instalable', function () { instalar = window.__lpInst; if ($('b-instalar')) $('b-instalar').hidden = false; });
+if (instalar && $('b-instalar')) $('b-instalar').hidden = false;
 function yaInstalada() { return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; }
-// Menú "Instalar app": Android abre el instalador; si el navegador no lo ofrece (o es iPhone), se muestran los pasos
+function abrirInstalador() {
+    var ev = hayInstalador(); if (!ev) return false;
+    ev.prompt();
+    ev.userChoice.then(function (r) { if (r && r.outcome === 'accepted') toast('¡Listo! LP Chat quedó instalada 🎉 Búscala en tu pantalla de inicio.'); })
+        .finally(function () { instalar = null; window.__lpInst = null; if ($('b-instalar')) $('b-instalar').hidden = true; });
+    return true;
+}
 function instalarApp() {
-    if (instalar) { instalar.prompt(); instalar.userChoice.finally(function () { instalar = null; $('b-instalar').hidden = true; }); return; }
-    var ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (abrirInstalador()) return;
+    var ua = navigator.userAgent || '';
+    var ios = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    var android = /android/i.test(ua);
+    if (android) {
+        // Esperar un momento a que el navegador avise que se puede instalar
+        toast('Preparando el instalador…');
+        var listo = false;
+        var al = function () { if (listo) return; listo = true; abrirInstalador(); };
+        document.addEventListener('lp-instalable', al, { once: true });
+        setTimeout(function () { if (listo) return; listo = true; document.removeEventListener('lp-instalable', al); pasosInstalar(ios, android, ua); }, 3000);
+        return;
+    }
+    pasosInstalar(ios, android, ua);
+}
+function pasosInstalar(ios, android, ua) {
+    // Dentro de WhatsApp/Facebook/Instagram/TikTok (o un navegador que no es Chrome) no se puede instalar: se abre en Chrome
+    var enApp = /FBAN|FBAV|Instagram|TikTok|musical_ly|WhatsApp|Line\/|; wv\)/i.test(ua);
+    var noChrome = android && (!/Chrome\//.test(ua) || /SamsungBrowser|MiuiBrowser|OPR\/|EdgA|Firefox/i.test(ua));
+    if (android && (enApp || noChrome)) {
+        var intent = 'intent://' + location.host + '/chat#Intent;scheme=https;package=com.android.chrome;end';
+        return ventana('📲 Instalar LP Chat', '<p style="margin-top:0">Este navegador no deja instalar apps. Ábrela en <b>Chrome</b> y desde ahí toca otra vez <b>📲 Instalar app</b> en el menú.</p>', '<a class="bt" href="' + intent + '">Abrir en Chrome</a>');
+    }
     var pasos = ios
         ? ['Toca el botón <b>Compartir</b> ⬆️ (abajo en Safari; arriba en Chrome)', 'Baja y toca <b>Agregar a inicio</b> ➕', 'Toca <b>Agregar</b>. LP Chat queda en tu pantalla de inicio como una app']
         : ['Toca el menú <b>⋮</b> del navegador (arriba a la derecha)', 'Toca <b>Instalar aplicación</b> o <b>Agregar a pantalla principal</b>', 'Confirma con <b>Instalar</b>. LP Chat queda con su ícono como una app'];
-    ventana('📲 Instalar LP Chat', '<ol style="margin:0;padding-left:20px;line-height:1.6">' + pasos.map(function (x) { return '<li style="margin-bottom:8px">' + x + '</li>'; }).join('') + '</ol><p style="color:var(--txt2);font-size:.88rem;margin-bottom:0">Ábrela desde el ícono y funciona a pantalla completa.</p>', '<button class="bt" data-cerrar>Entendido</button>');
+    ventana('📲 Instalar LP Chat', '<ol style="margin:0;padding-left:20px;line-height:1.6">' + pasos.map(function (x) { return '<li style="margin-bottom:8px">' + x + '</li>'; }).join('') + '</ol><p style="color:var(--txt2);font-size:.88rem;margin-bottom:0">' + (android ? 'Si ya la habías instalado y la borraste, o le diste "Cancelar" al aviso de Chrome, Chrome no vuelve a ofrecer el botón directo por un tiempo: usa estos pasos.' : 'Ábrela desde el ícono y funciona a pantalla completa.') + '</p>', '<button class="bt" data-cerrar>Entendido</button>');
 }
 $('b-instalar').onclick = instalarApp;
 if (/iphone|ipad/i.test(navigator.userAgent) && !navigator.standalone) {

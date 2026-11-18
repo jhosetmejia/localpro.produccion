@@ -8,6 +8,13 @@
 <meta property="og:image" content="{{ url('/icons/lpchat-512.png') }}">
 <link rel="icon" href="/icons/lpchat-192.png" type="image/png">
 <link rel="manifest" href="/lpchat.webmanifest">
+{{-- 2026-11-18 (Jhoset): el instalador de Android se atrapa aquí arriba, apenas carga la página (antes se escuchaba al final del
+     script del chat y si el aviso del navegador llegaba antes, o algo fallaba antes, el menú "Instalar app" solo mostraba pasos). --}}
+<script>
+window.__lpInst = null;
+window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__lpInst = e; try { document.dispatchEvent(new Event('lp-instalable')); } catch (x) {} });
+window.addEventListener('appinstalled', function () { window.__lpInst = null; try { localStorage.setItem('lpchat_instalada', '1'); } catch (x) {} });
+</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
