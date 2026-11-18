@@ -100,6 +100,9 @@ class lpchatController extends Controller
         if ($yo->id === $otro->id || LpChat::bloqueado($yo->id, $otro->id)) {
             return redirect()->route('lpchat.index');
         }
+        if (! LpChat::puedeContactar($yo, $otro)) {
+            return response()->view('lpchat.aviso', ['titulo' => 'No disponible', 'texto' => LpChat::AVISO_MENOR, 'volver' => route('lpchat.index')], 403);
+        }
 
         return redirect()->route('lpchat.index', ['chat' => LpChat::abrirDirecto($yo, $otro, 'link')]);
     }
@@ -378,6 +381,9 @@ class lpchatController extends Controller
         $t = Tienda::where('catalogo_activo', true)->where('estado', 'activa')->findOrFail((int) $request->input('tienda_id'));
         $e = LpChat::cuentaEmpresa($t);
         abort_if($e->id === $yo->id || LpChat::bloqueado($yo->id, $e->id), 422, 'No puedes escribirle a esta empresa.');
+        if (! LpChat::puedeContactar($yo, $e)) {
+            return response()->json(['ok' => false, 'mensaje' => LpChat::AVISO_MENOR], 403);
+        }
         if (! LpChat::directo($yo->id, $e->id) && LpChat::contactosHoy($yo, 'empresa') >= LpChat::LIMITE_EMPRESAS) {
             return response()->json(['ok' => false, 'mensaje' => 'Ya contactaste '.LpChat::LIMITE_EMPRESAS.' empresas hoy. Mañana puedes escribirle a más.'], 429);
         }
@@ -391,6 +397,9 @@ class lpchatController extends Controller
         $yo = $this->yo();
         $otro = U::findOrFail((int) $request->input('usuario_id'));
         abort_if($otro->id === $yo->id || LpChat::bloqueado($yo->id, $otro->id), 422, 'No puedes escribirle a esta persona.');
+        if (! LpChat::puedeContactar($yo, $otro)) {
+            return response()->json(['ok' => false, 'mensaje' => LpChat::AVISO_MENOR], 403);
+        }
         if ($c = LpChat::directo($yo->id, $otro->id)) {
             return response()->json(['ok' => true, 'chat' => LpChat::abrirDirecto($yo, $otro, DB::table('lpchat_chats')->where('id', $c->id)->value('via') ?: 'conocer')]);
         }
@@ -416,6 +425,9 @@ class lpchatController extends Controller
         $otro = U::buscarPorIdentificador($request->input('identificador'));
         if (! $otro || $otro->id === $yo->id || LpChat::bloqueado($yo->id, $otro->id)) {
             return response()->json(['ok' => false, 'mensaje' => 'Esa persona todavía no está en LP Chat. Invítala con tu link.', 'invitar' => true], 404);
+        }
+        if (! LpChat::puedeContactar($yo, $otro)) {
+            return response()->json(['ok' => false, 'mensaje' => LpChat::AVISO_MENOR], 403);
         }
 
         return response()->json(['ok' => true, 'chat' => LpChat::abrirDirecto($yo, $otro, 'contacto')]);
@@ -517,7 +529,7 @@ class lpchatController extends Controller
             if ($cel && U::where('celular', $cel)->where('id', '!=', $yo->id)->exists()) {
                 return response()->json(['ok' => false, 'mensaje' => 'Ese celular ya es de otra cuenta.'], 422);
             }
-            $yo->fill(['nombre' => trim($d['nombre']), 'bio' => $d['bio'] ?? null, 'ciudad' => $d['ciudad'] ?? null, 'conocer' => $request->boolean('conocer'), 'email' => $email, 'celular' => $cel]);
+            $yo->fill(['nombre' => trim($d['nombre']), 'bio' => $d['bio'] ?? null, 'ciudad' => $d['ciudad'] ?? null, 'conocer' => $request->boolean('conocer') && ! $yo->menor, 'email' => $email, 'celular' => $cel]);
             if (! empty($d['password'])) {
                 $yo->password = \Illuminate\Support\Facades\Hash::make($d['password']);
             }

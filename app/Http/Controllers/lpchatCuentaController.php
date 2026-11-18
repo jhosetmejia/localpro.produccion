@@ -106,20 +106,27 @@ class lpchatCuentaController extends Controller
         abort_unless(config('lpchat.origenes.'.$origen) && LpChat::firmaValida($origen, $d, $request->query('f')), 403, 'Enlace no válido.');
         $p = json_decode(base64_decode(strtr($d, '-_', '+/')), true);
         abort_unless(is_array($p) && abs(time() - (int) ($p['ts'] ?? 0)) < 900, 403, 'El enlace venció. Vuelve a intentarlo.');
-        if (! empty($p['menor'])) {
-            return response()->view('lpchat.aviso', ['titulo' => 'LP Chat es para mayores de edad', 'texto' => 'Por cuidado de los menores de edad, LP Chat es solo para mayores de 18 años.', 'volver' => config('lpchat.origenes.'.$origen.'.volver')], 403);
-        }
+        // 2026-11-17 (Jhoset): las cuentas con inscripciones de menores también entran (las maneja el papá/mamá),
+        // protegidas: fuera de Conocer gente y solo hablan con el equipo del evento (LpChat::puedeContactar).
         $u = LpChat::desdeOrigen($origen, $p);
         abort_unless($u, 422, 'Faltan datos de la cuenta.');
         $this->guard()->login($u, true);
         $request->session()->regenerate();
         $destino = route('lpchat.index');
         if (! empty($p['abrir'])) {
-            // Abrir de una el chat con alguien de ese mismo sistema (ej. un peleador que buscó en PFN).
+            // Abrir de una el chat con alguien de ese mismo sistema (ej. un peleador que buscó en PFN, o Edgar del equipo de NES).
             $uid = \DB::table('lpchat_vinculos')->where('origen', $origen)->where('origen_id', (string) $p['abrir'])->value('usuario_id');
-            if ($uid && $uid !== $u->id && ($otro = U::find($uid)) && ! LpChat::bloqueado($u->id, $otro->id)
-                && (LpChat::directo($u->id, $otro->id) || LpChat::contactosHoy($u, 'conocer') < LpChat::LIMITE_CONOCER)) {
-                $destino = route('lpchat.index', ['chat' => LpChat::abrirDirecto($u, $otro, 'conocer')]);
+            if (! $uid && is_array($p['abrir_perfil'] ?? null)) {
+                // Aún no había entrado a LP Chat: se crea su cuenta con lo que manda el sistema (sin correo ni celular).
+                $uid = LpChat::desdeOrigen($origen, ['id' => (string) $p['abrir']] + $p['abrir_perfil'])?->id;
+            }
+            if ($uid && $uid !== $u->id && ($otro = U::find($uid)) && ! LpChat::bloqueado($u->id, $otro->id) && LpChat::puedeContactar($u, $otro)) {
+                if ($otro->sin_limite) {
+                    // Equipo del evento (atención a la gente): directo a Mis chats, sin solicitud ni límite.
+                    $destino = route('lpchat.index', ['chat' => LpChat::abrirDirecto($u, $otro, 'contacto')]);
+                } elseif (LpChat::directo($u->id, $otro->id) || LpChat::contactosHoy($u, 'conocer') < LpChat::LIMITE_CONOCER) {
+                    $destino = route('lpchat.index', ['chat' => LpChat::abrirDirecto($u, $otro, 'conocer')]);
+                }
             }
         }
 
@@ -134,7 +141,7 @@ class lpchatCuentaController extends Controller
         $datos = json_decode($cuerpo, true);
         $n = 0;
         foreach (array_slice((array) ($datos['perfiles'] ?? []), 0, 2000) as $p) {
-            if (is_array($p) && empty($p['menor']) && LpChat::desdeOrigen($origen, $p)) {
+            if (is_array($p) && empty($p['menor']) && LpChat::desdeOrigen($origen, $p)) { // menores nunca en Conocer gente
                 $n++;
             }
         }

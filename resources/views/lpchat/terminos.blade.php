@@ -26,7 +26,7 @@ li{margin:.25rem 0}
 
     <h2>2. Quién puede usarla</h2>
     <ul>
-        <li>Solo <b>mayores de 18 años</b>. Al crear la cuenta declaras que lo eres. Las cuentas de menores de edad que lleguen desde PFN o NES no entran a LP Chat.</li>
+        <li>Solo <b>mayores de 18 años</b>. Al crear la cuenta declaras que lo eres. Las cuentas de NES o PFN con inscripciones de menores de edad las maneja su padre, madre o acudiente: no salen en "Conocer gente" y solo pueden chatear con el equipo del evento.</li>
         <li>Te registras con tu <b>correo o tu número de celular</b>, que es como te encuentran tus amigos. Eres responsable de tu clave y de lo que se haga con tu cuenta.</li>
         <li>Si te registraste en LocalProo, PFN o NES, al aceptar sus condiciones también aceptaste <b>hacer parte de LP Chat, la red social nariñense</b>. Puedes salir de "Conocer gente" o pedir que borremos tu cuenta cuando quieras.</li>
     </ul>

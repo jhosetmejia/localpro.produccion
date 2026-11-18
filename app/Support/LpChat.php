@@ -57,6 +57,21 @@ class LpChat
             ->orWhere(fn ($q) => $q->where('usuario_id', $b)->where('bloqueado_id', $a))->exists();
     }
 
+    /**
+     * 2026-11-17 (Jhoset): cuentas de menores (las maneja el papá/mamá): solo hablan con el equipo del evento
+     * (cuentas sin límite: equipo de NES/PFN) y con quien ya tenían chat. Nadie desconocido les puede escribir.
+     */
+    public static function puedeContactar(U $yo, U $otro): bool
+    {
+        if (! $yo->menor && ! $otro->menor) {
+            return true;
+        }
+
+        return $yo->sin_limite || $otro->sin_limite || (bool) self::directo($yo->id, $otro->id);
+    }
+
+    public const AVISO_MENOR = 'Esta cuenta es de un menor de edad: solo puede chatear con el equipo del evento.';
+
     public static function claveDirecto(int $a, int $b): string
     {
         return 'd:'.min($a, $b).':'.max($a, $b);
@@ -117,7 +132,7 @@ class LpChat
             DB::table('lpchat_miembros')->insert(['chat_id' => $id, 'usuario_id' => $yo->id, 'rol' => 'admin', 'estado' => 'activo', 'leido_id' => 0, 'created_at' => now(), 'updated_at' => now()]);
             self::sistema($id, $yo->nombre.' creó el grupo "'.mb_substr(trim($nombre), 0, 80).'"');
             foreach (array_unique($ids) as $uid) {
-                if ((int) $uid !== $yo->id && ($u = U::find((int) $uid))) {
+                if ((int) $uid !== $yo->id && ($u = U::find((int) $uid)) && self::puedeContactar($yo, $u)) {
                     self::agregar($id, $u, $yo);
                 }
             }
@@ -392,6 +407,15 @@ class LpChat
         }
         // Plan Pro o sin límite que ya tiene en NES/PFN (se queda con la fecha más lejana).
         $cambio = false;
+        // 2026-11-17 (Jhoset): cuenta con inscripciones de menores (la maneja el papá/mamá): fuera de Conocer gente.
+        $esMenor = ! empty($p['menor']);
+        if ($esMenor !== (bool) $u->menor || ($esMenor && $u->conocer)) {
+            $u->menor = $esMenor;
+            if ($esMenor) {
+                $u->conocer = false;
+            }
+            $cambio = true;
+        }
         if (array_key_exists('sin_limite', $p) && (bool) $p['sin_limite'] !== (bool) $u->sin_limite) {
             $u->sin_limite = (bool) $p['sin_limite'];
             $cambio = true;
@@ -475,6 +499,9 @@ class LpChat
      */
     public static function muestraDelDia(U $yo): array
     {
+        if ($yo->menor) {
+            return []; // 2026-11-17: las cuentas de menores no usan Conocer gente
+        }
         $dia = now('America/Bogota')->toDateString();
 
         $tam = self::esPro($yo) ? 200 : self::MUESTRA; // Pro ve más perfiles al día
@@ -483,7 +510,7 @@ class LpChat
                 ->merge(DB::table('lpchat_bloqueos')->where('bloqueado_id', $yo->id)->pluck('usuario_id'));
             $ya = DB::table('lpchat_miembros as a')->join('lpchat_chats as c', 'c.id', '=', 'a.chat_id')->join('lpchat_miembros as b', 'b.chat_id', '=', 'c.id')
                 ->where('c.tipo', 'directo')->where('a.usuario_id', $yo->id)->where('b.usuario_id', '!=', $yo->id)->pluck('b.usuario_id');
-            $base = U::where('conocer', true)->whereNull('tienda_id')->where('id', '!=', $yo->id)->whereNotIn('id', $bloq->merge($ya)->unique());
+            $base = U::where('conocer', true)->where('menor', false)->whereNull('tienda_id')->where('id', '!=', $yo->id)->whereNotIn('id', $bloq->merge($ya)->unique());
             $conFoto = (clone $base)->whereNotNull('foto')->orderByDesc('visto_at')->orderByDesc('id')->limit(4000)->pluck('id')->all();
             $sinFoto = count($conFoto) < $tam ? (clone $base)->whereNull('foto')->orderByDesc('visto_at')->limit(500)->pluck('id')->all() : [];
             mt_srand(crc32($yo->id.'|'.$dia));
@@ -503,7 +530,7 @@ class LpChat
     {
         $mapa = [];
         foreach (array_slice($usuarios, 0, 1500, true) as $oid => $p) {
-            if (! is_array($p) || ! empty($p['menor'])) {
+            if (! is_array($p)) {
                 continue;
             }
             $existe = DB::table('lpchat_vinculos')->where('origen', $origen)->where('origen_id', (string) $oid)->exists();
