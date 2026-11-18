@@ -1,7 +1,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
-<meta name="theme-color" content="#008069" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#202c33" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#0b0d0c">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <meta name="description" content="LP Chat, la red social de LocalProo: chatea, crea grupos y conoce gente. Gratis.">
 <meta property="og:title" content="LP Chat · Chatea y conoce gente">
@@ -11,16 +10,23 @@
 <link rel="manifest" href="/lpchat.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="LP Chat">
 <link rel="apple-touch-icon" href="/icons/lpchat-apple-touch.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
 <style>
-:root{--verde:#00a884;--verde2:#008069;--fondo:#f0f2f5;--panel:#fff;--panel2:#f0f2f5;--borde:#e9edef;--txt:#111b21;--txt2:#667781;--burbuja-yo:#d9fdd3;--burbuja-el:#fff;--wall:#efeae2;--azul:#53bdeb;--sel:#f0f2f5;--hover:#f5f6f6;--chip:#e7fce3;--chipt:#008069}
-@media (prefers-color-scheme: dark){:root{--fondo:#0c1317;--panel:#111b21;--panel2:#202c33;--borde:#222d34;--txt:#e9edef;--txt2:#8696a0;--burbuja-yo:#005c4b;--burbuja-el:#202c33;--wall:#0b141a;--sel:#2a3942;--hover:#202c33;--chip:#103529;--chipt:#00a884}}
+/* 2026-11-17: mismos colores de LocalProo (negro con el verde del sistema), siempre oscuro */
+:root{color-scheme:dark;--verde:#a6f34a;--verde2:#16b84e;--sobre-verde:#0b0d0c;--fondo:#070908;--panel:#0b0d0c;--panel2:#151a17;--panel3:#1f2622;--borde:#232b26;--txt:#f3f7f4;--txt2:#9aa6a0;--burbuja-yo:#a6f34a;--burbuja-el:#1a201c;--wall:#0d100e;--azul:#0b6b2c;--sel:#1a201c;--hover:#131815;--chip:rgba(166,243,74,.12);--chipt:#a6f34a;--grad:linear-gradient(135deg,#a6f34a,#16b84e)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:var(--fondo);color:var(--txt);font-family:"Segoe UI",Helvetica,"Helvetica Neue",Arial,system-ui,sans-serif;font-size:15px}
+html,body{margin:0;height:100%;background:var(--fondo);color:var(--txt);font-family:Figtree,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px}
 button,input,textarea{font:inherit;color:inherit}
+input::placeholder,textarea::placeholder{color:#6f7b75}
 button{cursor:pointer}
-a{color:var(--verde2)}
+a{color:var(--verde)}
 [hidden]{display:none!important}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:#2b332e;border-radius:8px}::-webkit-scrollbar-track{background:transparent}
+.marca-lp{font-family:Montserrat,Figtree,sans-serif;font-weight:900;letter-spacing:-.02em}
+.marca-lp b{color:var(--verde)}
 </style>

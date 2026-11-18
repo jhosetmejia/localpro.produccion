@@ -7,8 +7,8 @@
     "scope": "/chat",
     "display": "standalone",
     "orientation": "portrait",
-    "background_color": "#ffffff",
-    "theme_color": "#008069",
+    "background_color": "#0b0d0c",
+    "theme_color": "#0b0d0c",
     "lang": "es",
     "categories": ["social", "communication"],
     "icons": [
