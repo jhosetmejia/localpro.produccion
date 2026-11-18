@@ -870,8 +870,8 @@ $('b-menu').onclick = function (e) {
     if (EMPRESA) it.push(['Usar como empresa: ' + EMPRESA, function () { usarComo(true); }]);
     if (YO.empresa) it.push(['Volver a mi cuenta', function () { usarComo(false); }]);
     if ('Notification' in window && Notification.permission === 'default') it.push(['Activar avisos de mensajes', function () { Notification.requestPermission(); }]);
-    if (instalar) it.push(['Instalar la app', function () { $('b-instalar').click(); }]);
     it.push(['Condiciones de uso', function () { window.open('/chat/terminos', '_blank'); }]);
+    if (!yaInstalada()) it.push(['📲 Instalar app', instalarApp]);
     it.push(['Cerrar sesión', salirForm]);
     menu(this, it);
 };
@@ -1031,7 +1031,17 @@ function copiar(v) {
 /* ================= Instalar app ================= */
 var instalar = null;
 window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); instalar = e; $('b-instalar').hidden = false; });
-$('b-instalar').onclick = function () { if (instalar) { instalar.prompt(); instalar.userChoice.finally(function () { instalar = null; $('b-instalar').hidden = true; }); } };
+function yaInstalada() { return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; }
+// Menú "Instalar app": Android abre el instalador; si el navegador no lo ofrece (o es iPhone), se muestran los pasos
+function instalarApp() {
+    if (instalar) { instalar.prompt(); instalar.userChoice.finally(function () { instalar = null; $('b-instalar').hidden = true; }); return; }
+    var ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    var pasos = ios
+        ? ['Toca el botón <b>Compartir</b> ⬆️ (abajo en Safari; arriba en Chrome)', 'Baja y toca <b>Agregar a inicio</b> ➕', 'Toca <b>Agregar</b>. LP Chat queda en tu pantalla de inicio como una app']
+        : ['Toca el menú <b>⋮</b> del navegador (arriba a la derecha)', 'Toca <b>Instalar aplicación</b> o <b>Agregar a pantalla principal</b>', 'Confirma con <b>Instalar</b>. LP Chat queda con su ícono como una app'];
+    ventana('📲 Instalar LP Chat', '<ol style="margin:0;padding-left:20px;line-height:1.6">' + pasos.map(function (x) { return '<li style="margin-bottom:8px">' + x + '</li>'; }).join('') + '</ol><p style="color:var(--txt2);font-size:.88rem;margin-bottom:0">Ábrela desde el ícono y funciona a pantalla completa.</p>', '<button class="bt" data-cerrar>Entendido</button>');
+}
+$('b-instalar').onclick = instalarApp;
 if (/iphone|ipad/i.test(navigator.userAgent) && !navigator.standalone) {
     try { if (!localStorage.getItem('lpchat_ios')) { setTimeout(function () { toast('Para instalar LP Chat: toca Compartir ⬆️ y luego "Agregar a inicio".'); }, 2500); localStorage.setItem('lpchat_ios', 1); } } catch (e) {}
 }
