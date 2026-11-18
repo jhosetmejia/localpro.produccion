@@ -131,7 +131,11 @@ body:has(#lpInstalar) #pfn-as{bottom:136px}
   }
   var CHAT = leerChat();
   function guardarChat(rol, texto) {
-    try { CHAT.m.push({r: rol, x: String(texto).slice(0, 2000), t: Date.now()}); CHAT.m = CHAT.m.slice(-200); CHAT.s = SESION; localStorage.setItem(CHAT_KEY, JSON.stringify(CHAT)); } catch (x) {}
+    try {
+      var ult = CHAT.m[CHAT.m.length - 1]; texto = String(texto).slice(0, 2000);
+      if (ult && ult.r === rol && ult.x === texto && rol === 'bot') return; // saludos repetidos no se duplican
+      CHAT.m.push({r: rol, x: texto, t: Date.now()}); CHAT.m = CHAT.m.slice(-200); CHAT.s = SESION; localStorage.setItem(CHAT_KEY, JSON.stringify(CHAT));
+    } catch (x) {}
   }
   var HIST = [], IA = {!! json_encode(route('asistente.ia'), JSON_UNESCAPED_SLASHES) !!}, CSRF = {!! json_encode(csrf_token()) !!}, SESION = (CHAT.m.length && CHAT.s) || (Math.random().toString(36).slice(2, 14) + Date.now().toString(36));
   // 2026-11-13: lo que no reconocen las palabras clave lo contesta la IA gratis (Groq); si no hay, WhatsApp.
