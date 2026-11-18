@@ -172,6 +172,34 @@ body{height:100dvh;overflow:hidden}
 @keyframes lat{50%{opacity:.2}}
 .aviso{flex:none;background:var(--panel2);padding:12px 16px;text-align:center;color:var(--txt2);font-size:.9rem}
 .aviso .acc{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+/* Emojis y stickers (2026-11-18) */
+.emo{flex:none;background:var(--panel);border-top:1px solid var(--borde);display:flex;flex-direction:column;height:min(330px,42vh)}
+.emo[hidden]{display:none}
+.emo .et{display:flex;gap:2px;padding:6px 8px 0;overflow-x:auto;scrollbar-width:none;flex:none}
+.emo .et::-webkit-scrollbar{display:none}
+.emo .et button{flex:0 0 auto;border:0;background:none;font-size:1.25rem;width:40px;height:36px;border-radius:10px;opacity:.55;border-bottom:2px solid transparent}
+.emo .et button.on{opacity:1;border-bottom-color:var(--verde);border-radius:10px 10px 0 0}
+.emo .eb{flex:1;overflow-y:auto;min-height:0;padding:6px 8px}
+.emo .eg{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr))}
+.emo .eg button{border:0;background:none;font-size:1.55rem;height:42px;border-radius:10px;cursor:pointer;line-height:1}
+.emo .eg button:hover{background:var(--panel2)}
+.emo .ecat{font-size:.74rem;color:var(--txt2);font-weight:700;margin:8px 2px 4px;text-transform:uppercase;letter-spacing:.04em}
+.emo .sg{display:grid;grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:8px}
+.emo .sg .s{aspect-ratio:1;border-radius:12px;background:center/contain no-repeat;cursor:pointer;position:relative;border:1px solid transparent}
+.emo .sg .s:hover{background-color:var(--panel2);border-color:var(--borde)}
+.emo .sg .s .fv{position:absolute;right:2px;top:0;font-size:.8rem}
+.emo .sg .cr{display:grid;place-items:center;align-content:center;gap:2px;border:1px dashed var(--borde);background:var(--panel2);color:var(--txt2);font-size:.78rem}
+.emo .sg .cr b{font-size:1.7rem;color:var(--verde);line-height:1}
+.emo .ep{display:flex;justify-content:center;gap:0;padding:6px;border-top:1px solid var(--borde);flex:none}
+.emo .ep button{border:1px solid var(--borde);background:var(--panel2);color:var(--txt2);padding:6px 22px;font-weight:700;font-size:.85rem}
+.emo .ep button:first-child{border-radius:999px 0 0 999px}
+.emo .ep button:last-child{border-radius:0 999px 999px 0}
+.emo .ep button.on{background:var(--verde);color:var(--sobre-verde);border-color:var(--verde)}
+.m.st{background:none!important;border:0!important;padding:0;cursor:pointer}
+.m.st img{width:150px;height:150px;object-fit:contain;display:block;border-radius:0}
+.m.st .meta{display:inline-block;background:rgba(11,13,12,.65);color:#e9edef!important;border-radius:8px;padding:1px 6px;margin-top:2px}
+.m.solo-emo{background:none!important;border:0!important;font-size:2.6rem;line-height:1.15;padding:0 2px}
+.m.solo-emo .meta{font-size:.7rem;display:block;text-align:right;color:var(--txt2)!important}
 .prev{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--panel2);border-top:1px solid var(--borde)}
 .prev img,.prev video{height:64px;border-radius:6px}
 .uvbtn{border:2px solid var(--txt2);background:none;color:var(--txt2);border-radius:50%;width:34px;height:34px;font-weight:700}
@@ -342,9 +370,16 @@ body{height:100dvh;overflow:hidden}
             <div class="msgs" id="msgs"></div>
             <div class="aviso" id="aviso" hidden></div>
             <div class="prev" id="prev" hidden><div id="prev-m"></div><span style="flex:1;color:var(--txt2);font-size:.86rem" id="prev-t">Listo para enviar</span><button class="uvbtn" id="b-uv" title="Ver una sola vez">1</button><button class="ib" id="prev-x" title="Quitar">✕</button></div>
+            <div class="emo" id="emo" hidden>
+                <div class="et" id="emo-t"></div>
+                <div class="eb" id="emo-b"></div>
+                <div class="ep"><button type="button" class="on" data-emo-modo="e">😊 Emojis</button><button type="button" data-emo-modo="s">🧩 Stickers</button></div>
+                <input type="file" id="f-st" accept="image/*" hidden>
+            </div>
             <form class="barra" id="barra">
                 <div class="caja" id="caja">
                     <button type="button" class="ib" id="b-adj" title="Adjuntar foto o video"><svg viewBox="0 0 24 24"><path d="M1.816 15.556v.002c0 1.502.584 2.912 1.646 3.972s2.472 1.647 3.974 1.647a5.58 5.58 0 0 0 3.972-1.645l9.547-9.548c.769-.768 1.147-1.767 1.058-2.817-.079-.968-.548-1.927-1.319-2.698-1.594-1.592-4.068-1.711-5.517-.262l-7.916 7.915c-.881.881-.792 2.25.214 3.261.959.958 2.423 1.053 3.263.215l5.511-5.512c.28-.28.267-.722.053-.936l-.244-.244c-.191-.191-.567-.349-.957.04l-5.506 5.506c-.18.18-.635.127-.976-.214-.098-.097-.576-.613-.213-.973l7.915-7.917c.818-.817 2.267-.699 3.23.262.5.501.802 1.1.849 1.685.051.573-.156 1.111-.589 1.543l-9.547 9.549a3.97 3.97 0 0 1-2.829 1.171 3.975 3.975 0 0 1-2.83-1.173 3.973 3.973 0 0 1-1.172-2.828c0-1.071.415-2.076 1.172-2.83l7.209-7.211c.157-.157.264-.579.028-.814L11.5 4.36a.572.572 0 0 0-.834.018l-7.205 7.207a5.577 5.577 0 0 0-1.645 3.971z"/></svg></button>
+                    <button type="button" class="ib" id="b-emo" title="Emojis y stickers"><svg viewBox="0 0 24 24"><path d="M9.153 11.603c.795 0 1.439-.879 1.439-1.962s-.644-1.962-1.439-1.962-1.439.879-1.439 1.962.644 1.962 1.439 1.962zm-3.204 1.362c-.026-.307-.131 5.218 6.063 5.551 6.066-.25 6.066-5.551 6.066-5.551-6.078 1.416-12.129 0-12.129 0zm11.363 1.108s-.669 1.959-5.051 1.959c-3.505 0-5.388-1.164-5.607-1.959 0 0 5.912 1.055 10.658 0zM11.804 1.011C5.609 1.011.978 6.033.978 12.228s4.826 10.761 11.021 10.761S23.02 18.423 23.02 12.228c.001-6.195-5.021-11.217-11.216-11.217zM12 21.354c-5.273 0-9.381-3.886-9.381-9.159s3.942-9.548 9.215-9.548 9.548 4.275 9.548 9.548c-.001 5.272-4.109 9.159-9.382 9.159zm3.108-9.751c.795 0 1.439-.879 1.439-1.962s-.644-1.962-1.439-1.962-1.439.879-1.439 1.962.644 1.962 1.439 1.962z"/></svg></button>
                     <textarea id="txt" rows="1" placeholder="Mensaje" maxlength="4000"></textarea>
                     <label class="ib" title="Cámara" style="cursor:pointer"><svg viewBox="0 0 24 24"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z"/><path d="M9 2 7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg><input type="file" id="f-cam" accept="image/*,video/*" capture="environment" hidden></label>
                 </div>
@@ -693,7 +728,7 @@ function abrirChat(id) {
 function cerrarChat(sinHist) {
     st.abierto = 0; $('app').classList.remove('abierto'); $('conv').hidden = true; $('bienv').hidden = false;
     if (!sinHist && location.search) history.replaceState(null, '', '/chat');
-    pararGrab(true); cargarChats();
+    pararGrab(true); if ($('emo')) emoAbrir(false); cargarChats();
 }
 $('b-volver').onclick = function (e) { e.stopPropagation(); if (history.state && history.state.chat) history.back(); else cerrarChat(); };
 window.addEventListener('popstate', function () { if (visor) return cerrarVisor(); if (st.abierto) cerrarChat(true); });
@@ -732,15 +767,17 @@ function pintarMsg(box, m) {
     if (m.sistema) { box.insertAdjacentHTML('beforeend', '<div class="sis" data-m="' + m.id + '">' + esc(m.texto) + '</div>'); box.dataset.autor = ''; return; }
     var pri = box.dataset.autor !== String(m.autor_id); box.dataset.autor = m.autor_id;
     var media = '';
-    var nom = { foto: 'Foto', video: 'Video', audio: 'Audio' }[m.adj] || 'Archivo';
+    var nom = { foto: 'Foto', video: 'Video', audio: 'Audio', sticker: 'Sticker' }[m.adj] || 'Archivo';
     if (m.una_vez) {
         media = m.mio ? '<div class="uv off"><span class="c">1</span>' + nom + (m.abierto ? ' · abierto' : ' · para ver una vez') + '</div>'
             : (m.abierto ? '<div class="uv off"><span class="c">1</span>' + nom + ' · ya lo abriste</div>' : '<div class="uv" data-uv="' + m.id + '" data-t="' + m.adj + '"><span class="c">1</span>Ver ' + nom.toLowerCase() + ' una vez</div>');
     } else if (m.adj && !m.url) media = '<div class="borrado">' + nom + ' borrado</div>';
+    else if (m.adj === 'sticker') media = '<img src="' + esc(m.url) + '" alt="Sticker" loading="lazy" draggable="false">';
     else if (m.adj === 'foto') media = '<img src="' + esc(m.url) + '" alt="Foto" loading="lazy">';
     else if (m.adj === 'video') media = '<video src="' + esc(m.url) + '#t=0.1" controls playsinline preload="metadata"></video>';
     else if (m.adj === 'audio') media = '<audio src="' + esc(m.url) + '" controls preload="metadata"></audio>';
-    box.insertAdjacentHTML('beforeend', '<div class="m ' + (m.mio ? 'yo' : 'el') + (pri ? ' pri' : '') + '" data-m="' + m.id + '">' +
+    var extra = m.adj === 'sticker' && m.url ? ' st' : (!m.adj && soloEmoji(m.texto) ? ' solo-emo' : '');
+    box.insertAdjacentHTML('beforeend', '<div class="m ' + (m.mio ? 'yo' : 'el') + (pri ? ' pri' : '') + extra + '" data-m="' + m.id + '"' + (extra === ' st' && !m.mio ? ' data-st="' + m.id + '"' : '') + '>' +
         (m.autor && pri ? '<span class="au" style="color:' + color(m.autor) + '">' + esc(m.autor) + '</span>' : '') + media + (m.texto ? enlaces(m.texto) : '') +
         '<span class="meta">' + esc(m.hora) + (m.mio ? TK.replace('class="tk"', 'class="tk' + (m.leido ? ' l' : '') + '"') : '') + '</span></div>');
 }
@@ -762,6 +799,13 @@ $('msgs').addEventListener('click', function (e) {
             zoom(t === 'foto' ? '<img src="' + u + '">' : t === 'video' ? '<video src="' + u + '" autoplay controls playsinline controlsList="nodownload"></video>' : '<audio src="' + u + '" autoplay controls controlsList="nodownload"></audio>', function () { URL.revokeObjectURL(u); });
             var mm = $('msgs').querySelector('[data-m="' + id + '"] .uv'); if (mm) mm.innerHTML = '<span class="c">1</span>Ya lo abriste';
         }).catch(function () { toast('Ya se abrió o se borró.'); });
+        return;
+    }
+    var stk = e.target.closest('.m.st');
+    if (stk) {
+        if (!stk.dataset.st) return;
+        ventana('🧩 Sticker', '<div style="text-align:center"><img src="' + esc(stk.querySelector('img').src) + '" style="width:160px;height:160px;object-fit:contain"></div>', '<button class="bt" id="st-guardar">Agregar a mis stickers</button>');
+        $('st-guardar').onclick = function () { post(U + '/stickers/guardar/' + stk.dataset.st).then(function (j) { cerrarVentana(); toast(j.ok ? 'Guardado en tus stickers ✨' : (j.mensaje || 'No se pudo guardar.')); if (j.ok) emo.sts = null; }); };
         return;
     }
     var img = e.target.closest('.m img'); if (img) zoom('<img src="' + esc(img.src) + '">');
@@ -816,6 +860,128 @@ function enviar() {
         traer(false); cargarChats();
     }).catch(function () { toast('Sin conexión. No se envió.'); $('txt').value = t; actualizarBotones(); });
 }
+/* ---------- Emojis y stickers (2026-11-18) ---------- */
+var EMOJIS = [
+    ['😀', 'Caritas', '😀 😃 😄 😁 😆 😅 😂 🤣 🥲 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 😙 😚 😋 😛 😝 😜 🤪 🤨 🧐 🤓 😎 🥸 🤩 🥳 😏 😒 😞 😔 😟 😕 🙁 ☹️ 😣 😖 😫 😩 🥺 😢 😭 😤 😠 😡 🤬 🤯 😳 🥵 🥶 😱 😨 😰 😥 😓 🤗 🤔 🫣 🤭 🫢 🤫 🤥 😶 😐 😑 😬 🙄 😯 😦 😧 😮 😲 🥱 😴 🤤 😪 😵 🤐 🥴 🤢 🤮 🤧 😷 🤒 🤕 🤑 🤠 😈 👿 👹 👺 🤡 💩 👻 💀 ☠️ 👽 🤖 🎃 😺 😸 😹 😻 😼 😽 🙀 😿 😾'],
+    ['👋', 'Gestos', '👋 🤚 🖐️ ✋ 🖖 👌 🤌 🤏 ✌️ 🤞 🫰 🤟 🤘 🤙 👈 👉 👆 🖕 👇 ☝️ 👍 👎 ✊ 👊 🤛 🤜 👏 🙌 🫶 👐 🤲 🤝 🙏 ✍️ 💅 🤳 💪 🦵 🦶 👂 👃 🧠 👀 👁️ 👅 👄 💋 👶 🧒 👦 👧 🧑 👱 👨 🧔 👩 🧓 👴 👵 🙍 🙎 🙅 🙆 💁 🙋 🧏 🙇 🤦 🤷 👮 💂 👷 🤴 👸 👳 🧕 🤵 👰 🤰 🤱 👼 🎅 🤶 🦸 🦹 🧙 🧚 🧛 🧜 🧝 💃 🕺 👯 🧖 🧘 🏃 🚶 👫 👭 👬 💏 💑 👪'],
+    ['❤️', 'Corazones', '❤️ 🧡 💛 💚 💙 💜 🖤 🤍 🤎 💔 ❤️‍🔥 ❣️ 💕 💞 💓 💗 💖 💘 💝 💟 ♥️ 💌 💯 💢 💥 💫 💦 💨 🕳️ 💬 💭 💤 ✨ ⭐ 🌟 🔥 🎉 🎊'],
+    ['🐶', 'Animales y plantas', '🐶 🐱 🐭 🐹 🐰 🦊 🐻 🐼 🐨 🐯 🦁 🐮 🐷 🐸 🐵 🙈 🙉 🙊 🐔 🐧 🐦 🐤 🦆 🦅 🦉 🦇 🐺 🐗 🐴 🦄 🐝 🐛 🦋 🐌 🐞 🐜 🕷️ 🐢 🐍 🦎 🐙 🦑 🦐 🦀 🐡 🐠 🐟 🐬 🐳 🐋 🦈 🐊 🐅 🐆 🦓 🦍 🐘 🦛 🦏 🐪 🐫 🦒 🦘 🐃 🐂 🐄 🐎 🐖 🐏 🐑 🦙 🐐 🦌 🐕 🐩 🐈 🐓 🦃 🦚 🦜 🦢 🕊️ 🐇 🦝 🦨 🦡 🦦 🦥 🐁 🐀 🐿️ 🦔 🌵 🎄 🌲 🌳 🌴 🌱 🌿 ☘️ 🍀 🍁 🍂 🍃 🍄 🌾 💐 🌷 🌹 🥀 🌺 🌸 🌼 🌻 🌞 🌝 🌛 🌙 🌎 🪐 ⚡ ☀️ 🌤️ ⛅ 🌧️ ⛈️ 🌈 ☁️ ❄️ ⛄ 🌊'],
+    ['🍔', 'Comida', '🍏 🍎 🍐 🍊 🍋 🍌 🍉 🍇 🍓 🫐 🍈 🍒 🍑 🥭 🍍 🥥 🥝 🍅 🍆 🥑 🥦 🥬 🥒 🌶️ 🌽 🥕 🧄 🧅 🥔 🍠 🥐 🥯 🍞 🥖 🧀 🥚 🍳 🥞 🧇 🥓 🥩 🍗 🍖 🌭 🍔 🍟 🍕 🥪 🌮 🌯 🥗 🥘 🍝 🍜 🍲 🍛 🍣 🍱 🥟 🍤 🍙 🍚 🍘 🍥 🥮 🍢 🍡 🍧 🍨 🍦 🥧 🧁 🍰 🎂 🍮 🍭 🍬 🍫 🍿 🍩 🍪 🥜 🍯 🥛 ☕ 🍵 🧃 🥤 🧋 🍶 🍺 🍻 🥂 🍷 🥃 🍸 🍹 🧉 🍾 🧊'],
+    ['⚽', 'Actividades', '⚽ 🏀 🏈 ⚾ 🥎 🎾 🏐 🏉 🥏 🎱 🏓 🏸 🏒 🏑 🥍 🏏 🥅 ⛳ 🏹 🎣 🥊 🥋 🎽 🛹 🛼 ⛸️ 🥌 🎿 ⛷️ 🏂 🏋️ 🤼 🤸 ⛹️ 🤺 🤾 🏌️ 🏇 🧘 🏄 🏊 🤽 🚣 🧗 🚵 🚴 🏆 🥇 🥈 🥉 🏅 🎖️ 🎗️ 🎫 🎟️ 🎪 🤹 🎭 🎨 🎬 🎤 🎧 🎼 🎹 🥁 🎷 🎺 🎸 🪕 🎻 🎲 ♟️ 🎯 🎳 🎮 🎰 🧩'],
+    ['🚗', 'Viajes', '🚗 🚕 🚙 🚌 🚎 🏎️ 🚓 🚑 🚒 🚐 🛻 🚚 🚛 🚜 🛵 🏍️ 🛺 🚲 🛴 🚨 🚔 🚍 🚘 🚖 🚡 🚠 🚟 🚃 🚋 🚞 🚝 🚄 🚅 🚈 🚂 🚆 🚇 🚊 🚉 ✈️ 🛫 🛬 🛩️ 💺 🚀 🛸 🚁 🛶 ⛵ 🚤 🛥️ 🛳️ ⛴️ 🚢 ⚓ ⛽ 🚧 🚦 🚥 🗺️ 🗿 🗽 🗼 🏰 🏯 🏟️ 🎡 🎢 🎠 ⛲ ⛱️ 🏖️ 🏝️ 🏜️ 🌋 ⛰️ 🏔️ 🗻 🏕️ ⛺ 🏠 🏡 🏘️ 🏚️ 🏗️ 🏭 🏢 🏬 🏣 🏤 🏥 🏦 🏨 🏪 🏫 🏩 💒 🏛️ ⛪ 🕌 🕍 🛕 🌅 🌄 🌠 🎇 🎆 🌇 🌆 🏙️ 🌃 🌌 🌉 🌁'],
+    ['💡', 'Objetos', '⌚ 📱 💻 ⌨️ 🖥️ 🖨️ 🖱️ 🕹️ 💽 💾 💿 📀 📷 📸 📹 🎥 📞 ☎️ 📺 📻 🎙️ ⏰ ⌛ ⏳ 📡 🔋 🔌 💡 🔦 🕯️ 🧯 💸 💵 💴 💶 💷 🪙 💰 💳 💎 ⚖️ 🧰 🔧 🔨 🛠️ ⛏️ 🔩 ⚙️ 🧱 ⛓️ 🧲 🔫 💣 🧨 🪓 🔪 🗡️ 🛡️ 🚬 ⚰️ 🏺 🔮 📿 🧿 💈 ⚗️ 🔭 🔬 💊 💉 🩸 🧬 🦠 🧫 🧪 🌡️ 🧹 🧺 🧻 🚽 🚰 🚿 🛁 🧼 🪥 🪒 🧽 🧴 🛎️ 🔑 🗝️ 🚪 🪑 🛋️ 🛏️ 🧸 🖼️ 🛍️ 🛒 🎁 🎈 🎏 🎀 🪄 🪅 🎊 🎉 🎎 🏮 🎐 🧧 ✉️ 📩 📨 📧 💌 📥 📤 📦 🏷️ 📪 📫 📬 📭 📮 📯 📜 📃 📄 📑 🧾 📊 📈 📉 🗒️ 🗓️ 📆 📅 🗑️ 📇 🗃️ 🗳️ 🗄️ 📋 📁 📂 🗂️ 🗞️ 📰 📓 📔 📒 📕 📗 📘 📙 📚 📖 🔖 🧷 🔗 📎 🖇️ 📐 📏 🧮 📌 📍 ✂️ 🖊️ 🖋️ ✒️ 🖌️ 🖍️ 📝 ✏️ 🔍 🔎 🔏 🔐 🔒 🔓'],
+    ['✅', 'Símbolos', '✅ ☑️ ✔️ ❌ ❎ ➕ ➖ ➗ ✖️ ♾️ ‼️ ⁉️ ❓ ❔ ❕ ❗ 〰️ 💲 ⚠️ 🚸 ⛔ 🚫 🚳 🚭 🚯 🚱 🚷 📵 🔞 ☢️ ☣️ ⬆️ ↗️ ➡️ ↘️ ⬇️ ↙️ ⬅️ ↖️ ↕️ ↔️ ↩️ ↪️ ⤴️ ⤵️ 🔃 🔄 🔙 🔚 🔛 🔜 🔝 🛐 ⚛️ ☮️ ✝️ ☯️ ☪️ 🔯 🕎 ♈ ♉ ♊ ♋ ♌ ♍ ♎ ♏ ♐ ♑ ♒ ♓ ⛎ 🔀 🔁 🔂 ▶️ ⏩ ⏭️ ⏯️ ◀️ ⏪ ⏮️ 🔼 ⏫ 🔽 ⏬ ⏸️ ⏹️ ⏺️ 🎦 🔅 🔆 📶 📳 📴 ♻️ 🔱 📛 🔰 ⭕ 🆗 🆕 🆓 🆙 🆒 🆘 🔴 🟠 🟡 🟢 🔵 🟣 🟤 ⚫ ⚪ 🟥 🟧 🟨 🟩 🟦 🟪 🟫 ⬛ ⬜ 🔶 🔷 🔸 🔹 🔺 🔻 💠 🔘 🔳 🔲 🏁 🚩 🎌 🏴 🏳️ 🏳️‍🌈 🇨🇴']
+];
+var emo = { modo: 'e', cat: 0, sts: null };
+function emoRecientes() { try { return JSON.parse(localStorage.getItem('lpchat_emo') || '[]'); } catch (e) { return []; } }
+function emoUsar(x) { try { var r = emoRecientes().filter(function (y) { return y !== x; }); r.unshift(x); localStorage.setItem('lpchat_emo', JSON.stringify(r.slice(0, 32))); } catch (e) {} }
+function soloEmoji(t) {
+    t = String(t || '').trim();
+    if (!t || t.length > 24) return false;
+    try { return /^(?:\p{Extended_Pictographic}|\p{Emoji_Component}|️|‍|\s)+$/u.test(t) && !/^[\d#*\s]+$/.test(t); } catch (e) { return false; }
+}
+function emoAbrir(si) {
+    var abrir = si === undefined ? $('emo').hidden : si;
+    $('emo').hidden = !abrir; $('b-emo').classList.toggle('on', abrir);
+    if (abrir) emoPintar();
+}
+function emoPintar() {
+    document.querySelectorAll('[data-emo-modo]').forEach(function (b) { b.classList.toggle('on', b.dataset.emoModo === emo.modo); });
+    var t = $('emo-t'), b = $('emo-b');
+    if (emo.modo === 'e') {
+        t.hidden = false;
+        t.innerHTML = '<button type="button" data-ecat="-1" title="Recientes">🕘</button>' + EMOJIS.map(function (c, i) { return '<button type="button" data-ecat="' + i + '" title="' + c[1] + '">' + c[0] + '</button>'; }).join('');
+        var rec = emoRecientes();
+        b.innerHTML = (rec.length ? '<div class="ecat" id="ecat--1">Recientes</div><div class="eg">' + rec.map(function (x) { return '<button type="button" data-e="' + x + '">' + x + '</button>'; }).join('') + '</div>' : '') +
+            EMOJIS.map(function (c, i) { return '<div class="ecat" id="ecat-' + i + '">' + c[1] + '</div><div class="eg">' + c[2].split(' ').map(function (x) { return '<button type="button" data-e="' + x + '">' + x + '</button>'; }).join('') + '</div>'; }).join('');
+        return;
+    }
+    t.hidden = true;
+    if (!emo.sts) { b.innerHTML = '<div class="vacio">Cargando…</div>'; return api(U + '/stickers').then(function (j) { emo.sts = j.stickers || []; if (emo.modo === 's' && !$('emo').hidden) emoPintar(); }); }
+    b.innerHTML = '<div class="sg"><div class="s cr" data-st-crear><b>+</b>Crear</div>' + emo.sts.map(function (x) {
+        return '<div class="s" data-sid="' + x.id + '" title="Toca para enviar · mantén para más" style="background-image:url(\'' + esc(x.url) + '\')">' + (x.fav ? '<span class="fv">⭐</span>' : '') + '</div>';
+    }).join('') + '</div>' + (emo.sts.length ? '' : '<div class="vacio" style="font-size:.85rem">Crea tus stickers con cualquier foto. También puedes guardar los que te envíen tocándolos.</div>');
+}
+$('b-emo').onclick = function () { emoAbrir(); };
+document.querySelectorAll('[data-emo-modo]').forEach(function (b) { b.onclick = function () { emo.modo = b.dataset.emoModo; emoPintar(); }; });
+$('emo-t').addEventListener('click', function (e) {
+    var c = e.target.closest('[data-ecat]'); if (!c) return;
+    var d = $('ecat-' + c.dataset.ecat); if (d) $('emo-b').scrollTop = d.offsetTop - $('emo-b').offsetTop - 4;
+    $('emo-t').querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === c); });
+});
+var stPres = null;
+$('emo-b').addEventListener('click', function (e) {
+    var x = e.target.closest('[data-e]');
+    if (x) {
+        var t = $('txt'), v = x.dataset.e, a = t.selectionStart != null ? t.selectionStart : t.value.length, z = t.selectionEnd != null ? t.selectionEnd : a;
+        t.value = t.value.slice(0, a) + v + t.value.slice(z);
+        t.selectionStart = t.selectionEnd = a + v.length;
+        emoUsar(v); autoAlto(); actualizarBotones();
+        if (window.innerWidth > 760) t.focus();
+        return;
+    }
+    if (e.target.closest('[data-st-crear]')) return $('f-st').click();
+    var s = e.target.closest('[data-sid]');
+    if (s && !stPres) enviarSticker(s.dataset.sid);
+    stPres = null;
+});
+/* Mantener presionado (o clic derecho) un sticker: favorito o borrar */
+function stMenu(id) {
+    var x = (emo.sts || []).filter(function (y) { return String(y.id) === String(id); })[0]; if (!x) return;
+    ventana('🧩 Sticker', '<div style="text-align:center"><img src="' + esc(x.url) + '" style="width:150px;height:150px;object-fit:contain"></div>', '<button class="bt sec" id="st-fav">' + (x.fav ? 'Quitar de favoritos' : '⭐ Favorito') + '</button><button class="bt rojo" id="st-del">Borrar</button>');
+    $('st-fav').onclick = function () { post(U + '/stickers/' + id + '/favorito').then(function () { cerrarVentana(); emo.sts = null; emoPintar(); }); };
+    $('st-del').onclick = function () { post(U + '/stickers/' + id + '/borrar').then(function () { cerrarVentana(); emo.sts = null; emoPintar(); toast('Sticker borrado.'); }); };
+}
+$('emo-b').addEventListener('contextmenu', function (e) { var s = e.target.closest('[data-sid]'); if (s) { e.preventDefault(); stMenu(s.dataset.sid); } });
+var stTimer;
+$('emo-b').addEventListener('touchstart', function (e) { var s = e.target.closest('[data-sid]'); if (!s) return; stTimer = setTimeout(function () { stPres = 1; stMenu(s.dataset.sid); }, 550); }, { passive: true });
+['touchend', 'touchmove'].forEach(function (ev) { $('emo-b').addEventListener(ev, function () { clearTimeout(stTimer); }, { passive: true }); });
+function enviarSticker(id) {
+    if (!st.abierto) return;
+    var fd = new FormData(); fd.append('sticker_id', id);
+    api(U + '/chat/' + st.abierto + '/enviar', { method: 'POST', body: fd }).then(function (j) {
+        if (!j.ok) return toast(j.mensaje || 'No se envió.');
+        var x = (emo.sts || []).filter(function (y) { return String(y.id) === String(id); })[0];
+        if (x && !x.fav) { emo.sts.splice(emo.sts.indexOf(x), 1); var k = emo.sts.filter(function (y) { return y.fav; }).length; emo.sts.splice(k, 0, x); }
+        traer(false); cargarChats();
+    }).catch(function () { toast('Sin conexión. No se envió.'); });
+}
+/* Crear sticker: la foto se ajusta a un cuadro de 512 px con fondo transparente (webp; si el celular no puede, png). */
+$('f-st').onchange = function () {
+    var f = this.files[0]; this.value = '';
+    if (!f) return;
+    if (f.size > 15 * 1024 * 1024) return toast('La foto pesa mucho.');
+    var img = new Image(), u = URL.createObjectURL(f);
+    img.onload = function () {
+        var n = Math.min(img.width, img.height);
+        ventana('🧩 Crear sticker', '<div style="display:flex;gap:8px;justify-content:center;margin-bottom:10px"><button class="chip on" data-cr="cuadro">Recortar cuadrado</button><button class="chip" data-cr="todo">Foto completa</button></div><canvas id="st-cv" width="512" height="512" style="width:200px;height:200px;display:block;margin:0 auto;background:repeating-conic-gradient(#2a332e 0 25%,#1d2320 0 50%) 0 0/20px 20px;border-radius:12px"></canvas>', '<button class="bt" id="st-ok">Guardar sticker</button>');
+        var cv = $('st-cv'), cx = cv.getContext('2d'), modo = 'cuadro';
+        function dibujar() {
+            cx.clearRect(0, 0, 512, 512);
+            if (modo === 'cuadro') cx.drawImage(img, (img.width - n) / 2, (img.height - n) / 2, n, n, 0, 0, 512, 512);
+            else { var r = Math.min(512 / img.width, 512 / img.height), w = img.width * r, h = img.height * r; cx.drawImage(img, (512 - w) / 2, (512 - h) / 2, w, h); }
+        }
+        dibujar();
+        document.querySelectorAll('[data-cr]').forEach(function (b) { b.onclick = function () { modo = b.dataset.cr; document.querySelectorAll('[data-cr]').forEach(function (x) { x.classList.toggle('on', x === b); }); dibujar(); }; });
+        $('st-ok').onclick = function () {
+            var boton = this; boton.disabled = true; boton.textContent = 'Guardando…';
+            cv.toBlob(function (bl) {
+                var listo = function (bb, ext) {
+                    var fd = new FormData(); fd.append('imagen', bb, 'sticker.' + ext);
+                    api(U + '/stickers', { method: 'POST', body: fd }).then(function (j) {
+                        if (!j.ok) { boton.disabled = false; boton.textContent = 'Guardar sticker'; return toast(j.mensaje || 'No se pudo guardar.'); }
+                        cerrarVentana(); toast('Sticker creado ✨'); emo.sts = null; emo.modo = 's'; emoAbrir(true);
+                    }).catch(function () { boton.disabled = false; boton.textContent = 'Guardar sticker'; toast('Sin conexión.'); });
+                };
+                if (bl && bl.type === 'image/webp' && bl.size < 1000000) listo(bl, 'webp');
+                else cv.toBlob(function (p) { listo(p, 'png'); }, 'image/png');
+            }, 'image/webp', 0.85);
+        };
+        URL.revokeObjectURL(u);
+    };
+    img.onerror = function () { toast('No se pudo leer esa foto.'); };
+    img.src = u;
+};
 var grab = { activo: false };
 $('b-mic').onclick = function () {
     if (grab.activo) return pararGrab(false);

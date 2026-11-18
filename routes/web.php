@@ -787,6 +787,7 @@ Route::prefix('chat')->name('lpchat.')->group(function () {
     Route::post('/pro/admin/{plan}', [$C, 'proRevisar'])->whereNumber('plan')->name('pro.revisar');
     Route::get('/pro/admin/{plan}/comprobante', [$C, 'proComprobante'])->whereNumber('plan')->name('pro.comprobante');
     Route::get('/adjunto/{mensaje}', [$C, 'adjunto'])->whereNumber('mensaje')->middleware('throttle:lpchat')->name('adjunto');
+    Route::get('/sticker/{id}', [$C, 'sticker'])->whereNumber('id')->middleware('throttle:lpchat')->name('sticker');
     Route::get('/estado/{id}/archivo', [$C, 'archivoEstado'])->whereNumber('id')->middleware('throttle:lpchat')->name('estado.archivo');
     Route::prefix('api')->middleware('throttle:lpchat')->group(function () use ($C) {
         Route::get('/chats', [$C, 'chats'])->name('chats');
@@ -798,6 +799,10 @@ Route::prefix('chat')->name('lpchat.')->group(function () {
         Route::post('/chat/{id}/enviar', [$C, 'enviar'])->whereNumber('id')->middleware('throttle:lpchat-60')->name('enviar');
         Route::post('/chat/{id}/escribiendo', [$C, 'escribiendo'])->whereNumber('id')->name('escribiendo');
         Route::post('/chat/{id}/{accion}', [$C, 'accion'])->whereNumber('id')->where('accion', 'aceptar|descartar|borrar|bloquear|desbloquear|denunciar|mover')->name('accion');
+        Route::get('/stickers', [$C, 'stickers'])->name('stickers');
+        Route::post('/stickers', [$C, 'crearSticker'])->middleware('throttle:lpchat-20')->name('stickers.crear');
+        Route::post('/stickers/guardar/{mensaje}', [$C, 'guardarSticker'])->whereNumber('mensaje')->middleware('throttle:lpchat-20')->name('stickers.guardar');
+        Route::post('/stickers/{id}/{accion}', [$C, 'stickerAccion'])->whereNumber('id')->where('accion', 'borrar|favorito')->name('stickers.accion');
         Route::get('/conocer', [$C, 'conocer'])->middleware('throttle:lpchat-30')->name('conocer');
         Route::get('/empresas', [$C, 'empresas'])->middleware('throttle:lpchat-60')->name('empresas');
         Route::post('/empresas/contactar', [$C, 'contactarEmpresa'])->middleware('throttle:lpchat-20')->name('empresas.contactar');

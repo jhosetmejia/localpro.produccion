@@ -27,6 +27,8 @@
 <h2>Comparta su link e inicie a chatear</h2>
 <p>Cada persona tiene su link (por ejemplo <b>localproo.com/chat/u/abc123</b>). Póngalo en su estado de WhatsApp o en su Instagram: quien lo abra queda en sus <b>Mis chats</b> de una vez.</p>
 
+<h2>Emojis y stickers propios gratis</h2>
+<p>En LP Chat tiene todos los emojis y puede <b>crear sus propios stickers con cualquier foto</b>: toque 😊 junto al mensaje → <b>Stickers</b> → <b>Crear</b>. Si alguien le envía un sticker que le gusta, tóquelo y elija <b>Agregar a mis stickers</b>. Mantenga presionado un sticker para marcarlo como favorito o borrarlo. Un mensaje con solo emojis se ve en grande.</p>
 <h2>Fotos, videos, audios y "ver una vez"</h2>
 <ul>
     <li>Envíe fotos, videos (hasta 30 MB) y <b>notas de voz</b>.</li>

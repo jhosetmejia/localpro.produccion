@@ -260,16 +260,26 @@ class lpchatController extends Controller
     {
         $yo = $this->yo();
         $c = $this->chat($id, $yo);
-        $request->validate(['texto' => 'nullable|string|max:4000', 'archivo' => 'nullable|file|max:30720', 'una_vez' => 'nullable|boolean']);
+        $request->validate(['texto' => 'nullable|string|max:4000', 'archivo' => 'nullable|file|max:30720', 'una_vez' => 'nullable|boolean', 'sticker_id' => 'nullable|integer']);
         $texto = trim((string) $request->input('texto', ''));
         $archivo = $request->file('archivo');
-        abort_if($texto === '' && ! $archivo, 422, 'Escribe un mensaje.');
+        $sticker = $request->filled('sticker_id') ? DB::table('lpchat_stickers')->where('id', (int) $request->input('sticker_id'))->where('usuario_id', $yo->id)->first() : null;
+        abort_if($texto === '' && ! $archivo && ! $sticker, 422, 'Escribe un mensaje.');
         [$puede, $motivo] = LpChat::puedeEscribir($c, $yo);
         if (! $puede) {
             return response()->json(['ok' => false, 'mensaje' => $motivo], 422);
         }
         $adj = $tipo = null;
-        if ($archivo) {
+        if ($sticker) {
+            // Se envía una copia: el mensaje se borra a los 7 días, el sticker de la colección no.
+            $disco = Storage::disk('local');
+            abort_unless($disco->exists($sticker->archivo), 410, 'Ese sticker ya no está.');
+            $adj = 'lpchat/adjuntos/'.date('Y/m/d').'/st_'.bin2hex(random_bytes(10)).'.'.pathinfo($sticker->archivo, PATHINFO_EXTENSION);
+            $disco->copy($sticker->archivo, $adj);
+            $tipo = 'sticker';
+            $texto = '';
+            DB::table('lpchat_stickers')->where('id', $sticker->id)->update(['usado_at' => now()]);
+        } elseif ($archivo) {
             $mime = (string) $archivo->getMimeType();
             $tipo = str_starts_with($mime, 'image/') ? 'foto' : (str_starts_with($mime, 'video/') ? 'video' : (str_starts_with($mime, 'audio/') || $mime === 'application/ogg' || ($mime === 'video/webm') ? 'audio' : null));
             if ($request->input('es_audio')) {
@@ -292,6 +302,75 @@ class lpchatController extends Controller
         $mid = LpChat::enviar($c, $yo, $texto, $adj, $tipo, $unaVez);
 
         return response()->json(['ok' => true, 'id' => $mid]);
+    }
+
+    /* ---------- Stickers (2026-11-18) ---------- */
+    private const MAX_STICKERS = 150;
+
+    public function stickers(): JsonResponse
+    {
+        $yo = $this->yo();
+        $l = DB::table('lpchat_stickers')->where('usuario_id', $yo->id)
+            ->orderByDesc('favorito')->orderByRaw('COALESCE(usado_at, created_at) DESC')->limit(self::MAX_STICKERS)->get(['id', 'favorito']);
+
+        return response()->json(['ok' => true, 'max' => self::MAX_STICKERS,
+            'stickers' => $l->map(fn ($x) => ['id' => $x->id, 'fav' => (bool) $x->favorito, 'url' => route('lpchat.sticker', $x->id)])->values()]);
+    }
+
+    /** La app ya lo manda cuadrado (512 px, webp/png). Aquí solo se valida y se guarda. */
+    public function crearSticker(Request $request): JsonResponse
+    {
+        $yo = $this->yo();
+        $request->validate(['imagen' => 'required|file|max:1024|mimetypes:image/webp,image/png,image/jpeg,image/gif']);
+        if (DB::table('lpchat_stickers')->where('usuario_id', $yo->id)->count() >= self::MAX_STICKERS) {
+            return response()->json(['ok' => false, 'mensaje' => 'Ya tienes '.self::MAX_STICKERS.' stickers. Borra alguno para crear otro.'], 422);
+        }
+        $ruta = $request->file('imagen')->store('lpchat/stickers/'.$yo->id, 'local');
+        $id = DB::table('lpchat_stickers')->insertGetId(['usuario_id' => $yo->id, 'archivo' => $ruta, 'usado_at' => now(), 'created_at' => now(), 'updated_at' => now()]);
+
+        return response()->json(['ok' => true, 'id' => $id]);
+    }
+
+    /** Guardar en mis stickers uno que me enviaron. */
+    public function guardarSticker(Request $request, int $mensaje): JsonResponse
+    {
+        $yo = $this->yo();
+        $m = DB::table('lpchat_mensajes')->where('id', $mensaje)->where('adjunto_tipo', 'sticker')->first();
+        abort_unless($m && $m->adjunto && LpChat::miembro($m->chat_id, $yo->id), 404);
+        $disco = Storage::disk('local');
+        abort_unless($disco->exists($m->adjunto), 410, 'Este sticker ya se borró.');
+        if (DB::table('lpchat_stickers')->where('usuario_id', $yo->id)->count() >= self::MAX_STICKERS) {
+            return response()->json(['ok' => false, 'mensaje' => 'Ya tienes '.self::MAX_STICKERS.' stickers. Borra alguno.'], 422);
+        }
+        $ruta = 'lpchat/stickers/'.$yo->id.'/'.bin2hex(random_bytes(12)).'.'.(pathinfo($m->adjunto, PATHINFO_EXTENSION) ?: 'webp');
+        $disco->copy($m->adjunto, $ruta);
+        DB::table('lpchat_stickers')->insert(['usuario_id' => $yo->id, 'archivo' => $ruta, 'usado_at' => now(), 'created_at' => now(), 'updated_at' => now()]);
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function stickerAccion(Request $request, int $id, string $accion): JsonResponse
+    {
+        $yo = $this->yo();
+        $st = DB::table('lpchat_stickers')->where('id', $id)->where('usuario_id', $yo->id)->first();
+        abort_unless($st, 404);
+        if ($accion === 'borrar') {
+            Storage::disk('local')->delete($st->archivo);
+            DB::table('lpchat_stickers')->where('id', $id)->delete();
+        } else {
+            DB::table('lpchat_stickers')->where('id', $id)->update(['favorito' => ! $st->favorito]);
+        }
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function sticker(Request $request, int $id)
+    {
+        $yo = $this->yo();
+        $st = DB::table('lpchat_stickers')->where('id', $id)->where('usuario_id', $yo->id)->first();
+        abort_unless($st && Storage::disk('local')->exists($st->archivo), 404);
+
+        return response()->file(Storage::disk('local')->path($st->archivo), ['Cache-Control' => 'private, max-age=2592000']);
     }
 
     /** Foto/video/audio del chat. "Ver una vez": solo lo abre quien lo recibe, una sola vez, y se borra. */

@@ -314,7 +314,7 @@ class LpChat
             $ult = $ultimos->get($f->ultimo_id);
             $prev = '';
             if ($ult) {
-                $adj = ['foto' => '📷 Foto', 'video' => '🎥 Video', 'audio' => '🎤 Audio'][$ult->adjunto_tipo ?? ''] ?? ($ult->adjunto ? '📎 Archivo' : '');
+                $adj = ['foto' => '📷 Foto', 'video' => '🎥 Video', 'audio' => '🎤 Audio', 'sticker' => '🧩 Sticker'][$ult->adjunto_tipo ?? ''] ?? ($ult->adjunto ? '📎 Archivo' : '');
                 if ($ult->una_vez) {
                     $adj = '① '.($ult->adjunto_tipo === 'foto' ? 'Foto' : ($ult->adjunto_tipo === 'video' ? 'Video' : 'Audio')).' para ver una vez';
                 }
@@ -745,7 +745,7 @@ class LpChat
             }
             $texto = (string) $m->texto;
             if ($m->adjunto_tipo) {
-                $nom = ['foto' => '📷 Foto', 'video' => '🎥 Video', 'audio' => '🎤 Nota de voz'][$m->adjunto_tipo] ?? '📎 Archivo';
+                $nom = ['foto' => '📷 Foto', 'video' => '🎥 Video', 'audio' => '🎤 Nota de voz', 'sticker' => '🧩 Sticker'][$m->adjunto_tipo] ?? '📎 Archivo';
                 $texto = trim($nom.($m->una_vez ? ' para ver una vez' : '').' en LP Chat: '.route('lpchat.index', ['chat' => $m->chat_id]).($texto !== '' ? "\n".$texto : ''));
             }
             $out[] = ['id' => $m->id, 'de' => $vin[$m->usuario_id], 'para' => $vin[$para], 'texto' => $texto, 'fecha' => Carbon::parse($m->created_at)->toIso8601String()];
