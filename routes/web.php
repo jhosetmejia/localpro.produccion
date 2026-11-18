@@ -793,6 +793,7 @@ Route::prefix('chat')->name('lpchat.')->group(function () {
         Route::get('/push/clave', [$C, 'pushClave'])->name('push.clave');
         Route::post('/push', [$C, 'pushGuardar'])->middleware('throttle:lpchat-20')->name('push.guardar');
         Route::get('/aviso', [$C, 'aviso'])->name('aviso');
+        Route::get('/mis-vinculos', [$C, 'misVinculos'])->name('vinculos');
         Route::get('/chat/{id}', [$C, 'mensajes'])->whereNumber('id')->name('mensajes');
         Route::post('/chat/{id}/enviar', [$C, 'enviar'])->whereNumber('id')->middleware('throttle:lpchat-60')->name('enviar');
         Route::post('/chat/{id}/escribiendo', [$C, 'escribiendo'])->whereNumber('id')->name('escribiendo');

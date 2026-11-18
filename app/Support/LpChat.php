@@ -230,6 +230,12 @@ class LpChat
                 ->update(['estado' => 'activo', 'updated_at' => now()]);
         }
         Cache::forget('lpchat_esc_'.$chat->id.'_'.$yo->id);
+        // 2026-11-18: si el otro es de NES/PFN, se le avisa a ese sistema de una vez (no espera su cron): así llega allá y Mía responde rápido
+        try {
+            self::avisarOrigenes($chat->id, $yo->id);
+        } catch (\Throwable $e) {
+            report($e);
+        }
         // 2026-11-18: aviso al celular de los demás del chat (aunque tengan LP Chat cerrado)
         try {
             \App\Support\WebPush::avisarLuego(DB::table('lpchat_miembros')->where('chat_id', $chat->id)->where('usuario_id', '!=', $yo->id)
@@ -643,7 +649,7 @@ class LpChat
             if (! empty($m['solo_leido'])) {
                 continue; // solo venía a marcar leído algo que ya estaba
             }
-            $texto = trim(mb_substr((string) ($m['texto'] ?? ''), 0, 4000));
+            $texto = trim(str_replace('**', '', mb_substr((string) ($m['texto'] ?? ''), 0, 4000))); // 2026-11-18: sin los ** de negrilla de Mía
             $adj = ['audio' => '🎤 Nota de voz', 'foto' => '📷 Foto', 'video' => '🎥 Video'][$m['adj'] ?? ''] ?? null;
             if ($adj) {
                 $texto = trim($adj.' (enviada en '.strtoupper($origen).')'.($texto !== '' ? "\n".$texto : ''));
@@ -759,6 +765,32 @@ class LpChat
             ->where('x.origen', 'like', $origen.':m%')->where('x.created_at', '>=', now()->subDays(7))
             ->whereColumn('m.leido_id', '>=', 'x.id')->orderByDesc('x.id')->limit(3000)->pluck('x.origen')
             ->map(fn ($o) => (int) substr($o, strlen($origen) + 2))->filter()->values()->all();
+    }
+
+    /** Pide a NES/PFN que traigan ya lo nuevo de LP Chat (después de responder, firmado). */
+    public static function avisarOrigenes(int $chatId, int $yoId): void
+    {
+        $otros = DB::table('lpchat_miembros')->where('chat_id', $chatId)->where('usuario_id', '!=', $yoId)->pluck('usuario_id');
+        $origenes = DB::table('lpchat_vinculos')->whereIn('usuario_id', $otros)->distinct()->pluck('origen')
+            ->intersect(DB::table('lpchat_vinculos')->where('usuario_id', $yoId)->pluck('origen'))->values()->all();
+        if (! $origenes) {
+            return;
+        }
+        app()->terminating(function () use ($origenes) {
+            foreach ($origenes as $o) {
+                $base = rtrim((string) config('lpchat.origenes.'.$o.'.volver'), '/');
+                $s = (string) config('lpchat.origenes.'.$o.'.secreto');
+                if ($base === '' || $s === '') {
+                    continue;
+                }
+                $ts = (string) time();
+                try {
+                    \Illuminate\Support\Facades\Http::timeout(4)->get($base.'/lpchat/ping', ['ts' => $ts, 'f' => hash_hmac('sha256', 'ping:'.$ts, $s)]);
+                } catch (\Throwable $e) {
+                    // si no contesta, igual lo trae su cron
+                }
+            }
+        });
     }
 
     /** Firma HMAC que comparten LP Chat y el otro sistema. */

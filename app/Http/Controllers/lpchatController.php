@@ -163,6 +163,16 @@ class lpchatController extends Controller
         return response()->json(['ok' => true, 'titulo' => 'LP Chat', 'texto' => 'Tienes mensajes nuevos', 'url' => route('lpchat.index'), 'tag' => 'lpchat']);
     }
 
+    /** 2026-11-18: con qué cuentas de NES/PFN está unida mi cuenta (solo las mías). */
+    public function misVinculos(): JsonResponse
+    {
+        $p = $this->persona();
+        abort_unless($p, 401);
+
+        return response()->json(['ok' => true, 'id' => $p->id, 'nombre' => $p->nombre, 'sin_limite' => (bool) $p->sin_limite,
+            'vinculos' => DB::table('lpchat_vinculos')->where('usuario_id', $p->id)->orderByDesc('updated_at')->get(['origen', 'origen_id', 'updated_at'])]);
+    }
+
     public function chats(Request $request): JsonResponse
     {
         $yo = $this->yo();
