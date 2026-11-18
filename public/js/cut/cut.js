@@ -471,6 +471,7 @@ function vigilarPegada(c, cv) {
   }
 }
 function reportarVideo(msg, c) {
+  if (!c) return; // 2026-11-18: al volver de otra app sin clips no hay qué reportar
   const v = c.el || {};
   window.LPOpinion?.error(new Error(msg), {
     fase: 'reproducir', ios: IOS, paused: v.paused, readyState: v.readyState, networkState: v.networkState, error: v.error?.code || null,
@@ -618,6 +619,7 @@ function relojVideo(L, ahora) {
     if (v.paused || v.seeking || v.readyState < 3) {
       S._espera ||= ahora;
       if (ahora - S._espera > 1500 && !c._relRec) { c._relRec = true; S._espera = ahora; pedirCopiaVista(c); recargarVideo(c); return S.t; } // 1º se recarga
+      if (ahora - S._espera > 1500 && c._vistaP && !c.urlVista) { if (!c._avisoCopia) { c._avisoCopia = 1; aviso('Este video es muy pesado para la vista previa de este celular (' + (c.w || '') + 'x' + (c.h || '') + '). Estoy preparando una copia liviana; en un momento se ve fluido. El video final sale con la calidad original.'); } return null; } // 2026-11-18
       if (ahora - S._espera > 1500) { if (!S._esperaRep) { S._esperaRep = true; reportarVideo('Vista previa: el video no arranca o se detiene (la línea sigue sola)', c); } return null; } // si no arranca en 1.5 s, sigue con el reloj normal
       return S.t;
     }
@@ -1327,8 +1329,9 @@ async function textoAVoz(poner) {
   ttsOcupado = true; pinta(3, 'Preparando la voz…');
   contar('texto_a_voz', { voz: voz.id, letras: texto.length });
   try {
-    trabVoz ||= new Worker(new URL('./voz.js', import.meta.url), { type: 'module' });
-    const r = await new Promise((ok, mal) => {
+    // 2026-11-18: si la voz no carga (celular sin memoria con muchos videos, o la red se cortó) se reintenta una vez con un trabajador nuevo
+    const hablarUnaVez = () => new Promise((ok, mal) => {
+      trabVoz ||= new Worker(new URL('./voz.js', import.meta.url), { type: 'module' });
       trabVoz.onmessage = (e) => {
         const d = e.data;
         if (d.tipo === 'descarga') pinta(d.pct * 0.8, `Bajando la voz (solo la primera vez) ${d.pct}%`);
@@ -1340,6 +1343,16 @@ async function textoAVoz(poner) {
       trabVoz.onerror = (e) => mal(new Error(e.message || 'La voz no cargó'));
       trabVoz.postMessage({ tipo: 'hablar', texto, voz, lento: v.lento || 1 });
     });
+    let r;
+    try { r = await hablarUnaVez(); } catch (e1) {
+      try { trabVoz?.terminate(); } catch (e2) { /* nada */ } trabVoz = null;
+      pinta(5, 'Reintentando la voz…');
+      await new Promise(x => setTimeout(x, 800));
+      try { r = await hablarUnaVez(); } catch (e3) {
+        if (/no cargó/i.test(e3.message)) e3.message = 'La voz no cargó. Revise su internet' + (S.clips.length > 8 ? ' o cierre otras apps (el celular se quedó sin memoria con tantos videos)' : '') + ' e intente de nuevo.';
+        throw e3;
+      }
+    }
     const wav = wavDe(r.pcm, r.sr);
     if (prog) prog.hidden = true;
     if (!poner) {
@@ -1617,14 +1630,16 @@ async function agregarArchivos(lista) {
         try { await prepararClip(c); } catch (e2) { c.tipo = antes; throw e1; } // el aviso habla de lo que parecía (antes decía "formato de video" a una foto)
       }
       S.clips.push(reg(c));
+      if (!IOS && c.tipo === 'video') pedirCopiaVista(c); // 2026-11-18: 4K en Android → copia liviana desde ya
       await DB.put('archivos', c.fileId, c.file);
     } catch (e) {
       if (e?.soloAudio) { await agregarMusica(f, f.name, `"${f.name}" no tiene imagen, solo sonido: lo agregué como audio 🎵`); continue; }
       const heic = /\.hei[cf]$/i.test(f.name) || /hei[cf]/i.test(f.type);
+      const cabeza = await f.slice(0, 12).arrayBuffer().then(b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join(' ')).catch(() => '?');
+      if (cabeza === '?') aviso(`No pude leer "${f.name}" (${Math.round(f.size / 1e6)} MB). Si está en Google Fotos o en la nube, descárguelo primero al celular y vuelva a agregarlo; si lo estaba pasando por WhatsApp, espere a que termine de bajar.`, 'mal'); else
       aviso(heic ? `"${f.name}" es una foto HEIC del iPhone y este navegador no la abre. Compártala como JPG o en el iPhone ponga Ajustes → Cámara → Formatos → Más compatible.`
         : c.tipo === 'imagen' ? `No pude abrir la foto "${f.name}" (puede estar dañada o incompleta). Ábrala en la galería y compártala de nuevo, o tómele captura de pantalla.`
         : `"${f.name}" usa un formato que este celular no puede leer en el navegador. Pruebe abrirlo en Chrome actualizado o grábelo en "Más compatible" (H.264).`, 'mal');
-      const cabeza = await f.slice(0, 12).arrayBuffer().then(b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join(' ')).catch(() => '?');
       window.LPOpinion?.error(new Error('No abrió un archivo: ' + (e?.message || e)), { fase: 'agregar', cabeza, tipo: f.type || '?', ext: (f.name.match(/\.\w+$/) || [''])[0].toLowerCase(), mb: Math.round(f.size / 1e5) / 10, real: real || '?', como: c.tipo });
     }
   }
@@ -3849,6 +3864,18 @@ document.addEventListener('drop', (e) => { e.preventDefault(); if (e.dataTransfe
 try {
   motor = new Motor();
 } catch (e) {
+  // 2026-11-18: el navegador de Instagram/Facebook/TikTok no trae la parte gráfica: se ofrece abrir en Chrome/Safari
+  const enApp = /Instagram|FBAN|FBAV|FB_IAB|FBIOS|Line\/|TikTok|musical_ly|Snapchat|; wv\)/i.test(navigator.userAgent);
+  if (enApp) {
+    window.__cut = true;
+    const android = /Android/i.test(navigator.userAgent);
+    const intent = 'intent://' + location.host + '/cut#Intent;scheme=https;package=com.android.chrome;end';
+    $('#cutVacio').hidden = false;
+    $('#cutVacio').innerHTML = `<h2>Ábralo en ${android ? 'Chrome' : 'Safari'}</h2><p>El navegador de esta app (Instagram, Facebook o TikTok) no deja usar el editor de video.</p>`
+      + (android ? `<a class="grande" href="${intent}">Abrir en Chrome</a>` : `<p>Toque <b>⋯</b> arriba a la derecha y elija <b>Abrir en el navegador</b>.</p>`)
+      + `<p style="font-size:.85rem;color:#aaa">O copie este enlace: <b>${location.host}/cut</b></p>`;
+    throw new Error('LPCUT_EN_APP_SIN_WEBGL');
+  }
   $('#cutVacio').innerHTML = `<h2>Su navegador no alcanza</h2><p>${esc(e.message)}</p>`;
   throw e;
 }

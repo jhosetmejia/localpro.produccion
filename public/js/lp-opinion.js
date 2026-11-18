@@ -46,6 +46,7 @@
   function ruido(msg, archivo) {
     msg = String(msg || '');
     if (!msg || msg === 'Script error.' || msg === 'Script error') return true;           // de otro dominio: no dice nada
+    if (/LPCUT_EN_APP_SIN_WEBGL|window\.ethereum|ethereum\.|selectedAddress|__gCrWeb|webkit\.messageHandlers|instantSearchSDKJSBridge/i.test(msg)) return true; // billeteras y apps que se meten en la página (Brave, MetaMask, Instagram)
     if (/ResizeObserver loop|Non-Error promise rejection captured|AbortError|The user aborted|cancelado|Load failed$|Failed to fetch$|NetworkError when attempting/i.test(msg)) return true;
     if (archivo && !/^\//.test(archivo) && archivo.indexOf(location.origin) !== 0) return true; // extensiones del navegador, anuncios, etc.
     return false;
