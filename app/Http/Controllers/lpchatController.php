@@ -178,9 +178,13 @@ class lpchatController extends Controller
         $yo = $this->yo();
         $tab = in_array($request->query('tab'), ['general', 'solicitudes'], true) ? $request->query('tab') : 'mis';
 
-        return response()->json(['ok' => true, 'chats' => LpChat::lista($yo, $tab), 'solicitudes' => LpChat::solicitudesTotal($yo),
+        // 2026-11-19 (Jhoset): la app pide esta lista dos veces cada 6 s (Mis chats y General); los contadores
+        // (cuentas con muchos chats, como el equipo) se calculan una sola vez cada pocos segundos.
+        $cont = Cache::remember('lpchat_cont_'.$yo->id, 5, fn () => ['solicitudes' => LpChat::solicitudesTotal($yo),
             'sin_leer_mis' => LpChat::sinLeerTotal($yo, 'mis'), 'sin_leer_general' => LpChat::sinLeerTotal($yo, 'general'),
             'estados_nuevos' => $this->estadosNuevos($yo)]);
+
+        return response()->json(['ok' => true, 'chats' => LpChat::lista($yo, $tab)] + $cont);
     }
 
     public function mensajes(Request $request, int $id): JsonResponse
