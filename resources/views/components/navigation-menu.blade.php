@@ -152,6 +152,10 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-user-graduate"></i></div>
                     Mi curso y certificado @if (auth()->user()->asesor->curso_aprobado_at)<i class="fa-solid fa-circle-check ms-auto" style="color:#a6f34a"></i>@else<span class="badge rounded-pill ms-auto" style="background:#f5b544;color:#0b0d0c;font-size:.6rem">PENDIENTE</span>@endif
                 </a>
+                <a class="nav-link {{ $on('asesor.certificados*') }}" href="{{ route('asesor.certificados') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-award"></i></div>
+                    Certificados <span class="badge rounded-pill ms-auto" style="background:#a6f34a;color:#0b0d0c;font-size:.6rem">NUEVO</span>
+                </a>
                 @if (!auth()->user()->tienda_id)
                 <a class="nav-link {{ $on('aprende.*') }}" href="{{ route('aprende.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-book-open"></i></div>

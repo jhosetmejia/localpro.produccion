@@ -219,6 +219,9 @@ Route::get('/prueba/{codigo}', [cursoController::class, 'verPrueba'])->where('co
 // El código siempre empieza con letra (CERT-00001); así no se cruza con /certificado/{nivel} del panel
 Route::get('/certificado/{codigo}', [cursoController::class, 'verificar'])->where('codigo', '[A-Za-z][A-Za-z0-9\-]*')->name('certificado.verificar');
 
+// Verificación pública de la constancia de experiencia del asesor (enlace firmado del QR)
+Route::get('/constancia/{codigo}', [\App\Http\Controllers\asesorCertificadosController::class, 'verificar'])->where('codigo', '[A-Za-z0-9\-]+')->name('constancia.verificar');
+
 // ===== Panel de la red comercial (asesores y líderes) =====
 Route::middleware(['auth', 'asesor'])->prefix('asesor')->name('asesor.')->group(function () {
     Route::get('/', [asesorPanelController::class, 'index'])->name('index');
@@ -226,6 +229,9 @@ Route::middleware(['auth', 'asesor'])->prefix('asesor')->name('asesor.')->group(
     Route::get('/comisiones', [asesorPanelController::class, 'comisiones'])->name('comisiones');
     Route::get('/vender', [\App\Http\Controllers\asesorVenderController::class, 'index'])->name('vender');
     Route::get('/estados', [\App\Http\Controllers\asesorVenderController::class, 'imagenes'])->name('estados');
+    // Certificados: curso básico + constancia de experiencia en PDF (pide mínimo 2 cursos de Aprende)
+    Route::get('/certificados', [\App\Http\Controllers\asesorCertificadosController::class, 'index'])->name('certificados');
+    Route::get('/certificados/constancia', [\App\Http\Controllers\asesorCertificadosController::class, 'constancia'])->name('certificados.constancia');
     Route::post('/aspirantes/{aspirante}', [aspiranteController::class, 'decidir'])->name('aspirantes.decidir');
     Route::post('/equipo/{aspirante}/desactivar', [aspiranteController::class, 'desactivar'])->name('equipo.desactivar');
 });
