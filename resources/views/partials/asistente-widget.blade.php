@@ -193,6 +193,18 @@ body:has(#lpInstalar) #pfn-as{bottom:136px}
   }
   // 2026-11-13 (Jhoset): link que abre el chat solo: ?mia, ?chat o #mia / #chat
   if (/[?&](mia|chat)\b/i.test(location.search) || /^#(mia|chat)$/i.test(location.hash)) { setTimeout(abrir, 600); }
+  // 2026-11-20 (Jhoset): ?mia=certificado (o ?mia=cualquier pregunta) abre el chat y le hace esa pregunta a Mía sola
+  (function () {
+    var q = new URLSearchParams(location.search).get('mia');
+    if (!q) return;
+    var PRE = { certificado: 'Hola Mía, quiero solicitar mi certificado de experiencia como asesor de LocalPro. ¿Cómo lo descargo y qué me falta?' };
+    var t = PRE[q.toLowerCase()] || q;
+    setTimeout(function () {
+      var inp = box.querySelector('[data-in]'), f = box.querySelector('[data-form]');
+      if (!inp || !f) return;
+      inp.value = t.slice(0, 300); f.requestSubmit ? f.requestSubmit() : f.dispatchEvent(new Event('submit', { cancelable: true }));
+    }, 2200);
+  })();
   document.getElementById('pfn-as-btn').onclick = function () { box.classList.contains('abierto') ? box.classList.remove('abierto') : abrir(); };
   box.querySelector('[data-cerrar]').onclick = function () { box.classList.remove('abierto'); };
   box.querySelector('[data-form]').addEventListener('submit', function (e) {
