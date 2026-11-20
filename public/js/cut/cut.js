@@ -2821,7 +2821,30 @@ function tarjetaPelea(ad) {
     <img class="pelea-logo" src="/img/anuncios/pfn-logo.png" alt="PFN">
     <span class="pelea-txt"><small>🥊 ${esc(info)}</small><b>${esc(m ? m[1] : sub)}</b>${m ? `<span>${esc(m[2])}</span>` : ''}<i class="ir">Entradas →</i></span></a>`;
 }
+// Diseño de comedia (Festival del Humor): telón, reflector y micrófono
+function tarjetaHumor(ad) {
+  const tit = String(ad.t || '').split('·')[0].trim() || 'El mejor comediante de Pasto';
+  const fecha = ad.fecha || String(ad.t || '').split('·')[1]?.trim() || '';
+  return `<a class="aj-anuncio ad-humor" href="${esc(ad.u)}" target="_blank" rel="noopener"><em>Anuncio</em>
+    <svg class="humor-fondo" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="hmF" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14040a"/><stop offset="1" stop-color="#2b0710"/></linearGradient>
+        <linearGradient id="hmT" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7a0f1c"/><stop offset=".5" stop-color="#b3192b"/><stop offset="1" stop-color="#6a0c17"/></linearGradient>
+        <radialGradient id="hmL" cx=".5" cy="0" r="1"><stop offset="0" stop-color="#fff6cf" stop-opacity=".75"/><stop offset="1" stop-color="#fff6cf" stop-opacity="0"/></radialGradient>
+      </defs>
+      <rect width="400" height="200" fill="url(#hmF)"/>
+      <path d="M232 0 L262 0 L360 200 L170 200 Z" fill="url(#hmL)" opacity=".55"/>
+      <ellipse cx="292" cy="186" rx="70" ry="12" fill="#fff6cf" opacity=".25"/>
+      <g fill="url(#hmT)">${[0, 1, 2, 3].map(i => `<path d="M${330 + i * 18} 0 Q${338 + i * 18} 100 ${328 + i * 18} 200 L${346 + i * 18} 200 Q${352 + i * 18} 100 ${346 + i * 18} 0 Z" opacity="${0.75 + (i % 2) * 0.2}"/>`).join('')}</g>
+      <path d="M0 0 L400 0 L400 16 Q300 30 200 18 Q100 30 0 16 Z" fill="#8f1322"/>
+      <g stroke="#cfcfcf" stroke-width="3" fill="none"><path d="M292 92 L292 186"/><path d="M272 186 L312 186"/></g>
+      <rect x="284" y="64" width="16" height="30" rx="8" fill="#2b2b2b" stroke="#9a9a9a" stroke-width="2"/>
+      <g fill="#ffd166">${[[230, 40], [250, 120], [372, 60], [210, 90], [388, 140]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${1 + (i % 2) * 0.8}" opacity=".8"/>`).join('')}</g>
+    </svg>
+    <span class="humor-txt"><small>🎤 FESTIVAL DEL HUMOR${fecha ? ' · ' + esc(fecha) : ''}</small><b>${esc(tit)}</b><span>${esc(ad.s || 'Regístrate y participa')}</span><i class="ir">Regístrate →</i></span></a>`;
+}
 function tarjetaAd(ad) {
+  if (ad.d === 'humor') return tarjetaHumor(ad);
   if (ad.d === 'moda') return tarjetaModa(ad);
   if (ad.d === 'pelea') return tarjetaPelea(ad);
   const txt = `<i>${esc(ad.e || '📢')}</i><span><b>${esc(ad.t)}</b><small>${esc(ad.s || '')}</small></span><span class="ir">Ver</span>`;

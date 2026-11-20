@@ -52,6 +52,13 @@ class AnunciosCut
         Ajuste::guardar('cut_anuncios', '');
     }
 
+    /** 2026-11-20 (Jhoset): Festival del Humor de Nariño Exposhow, 3 de enero: el mejor comediante de Pasto. */
+    public static function humor(): array
+    {
+        return ['e' => '🎤', 'd' => 'humor', 't' => 'El mejor comediante de Pasto · 3 de enero', 's' => 'Regístrate y participa',
+            'u' => 'https://narinoexposhow.com/registro/humorista', 'img' => null, 'hasta' => '2027-01-03', 'on' => true, 'fecha' => '3 ENE'];
+    }
+
     public static function automaticos(): array
     {
         $out = [];
@@ -75,6 +82,7 @@ class AnunciosCut
             's' => 'Los mejores peleadores de Nariño en un solo lugar', 'u' => $e?->url ?: url('/evento/pfn'),
             'img' => null, 'hasta' => $f->toDateString(), 'on' => true,
             'fecha' => $f->day . ' ' . mb_strtoupper(mb_substr(self::MESES[$f->month], 0, 3)) . ' · CC La 17 · 3er piso'];
+        $out[] = self::humor();
         try {
             $t = Tienda::query()->where('nombre', 'like', '%abril store%')->first();
             if ($t) {

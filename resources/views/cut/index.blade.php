@@ -62,6 +62,14 @@ body.editando .cut-logo{display:none}
 .ad-moda .moda-txt>span{font-size:.8rem;opacity:.9}
 .ad-moda .moda-txt .ir{align-self:flex-start;margin:8px 0 0!important;font-style:normal;background:linear-gradient(135deg,#ffd76a,#d9b45a);color:#1a0812;border-radius:999px;padding:.35rem .8rem;font-weight:800;font-size:.78rem}
 .ad-moda em{z-index:2}
+.ad-humor{min-height:150px;padding:0!important;background:#14040a!important;align-items:stretch!important}
+.ad-humor .humor-fondo{position:absolute;inset:0;width:100%;height:100%}
+.ad-humor .humor-txt{position:relative;z-index:1;display:flex;flex-direction:column;justify-content:center;gap:3px;padding:16px 16px 14px;max-width:60%}
+.ad-humor .humor-txt small{color:#ffd166;font-weight:800;letter-spacing:.14em;font-size:.62rem}
+.ad-humor .humor-txt b{font-weight:900;font-size:1.35rem;line-height:1.05;text-transform:uppercase;color:#fff;text-shadow:0 2px 12px rgba(255,209,102,.4)}
+.ad-humor .humor-txt>span{font-size:.82rem;opacity:.92}
+.ad-humor .humor-txt .ir{align-self:flex-start;margin:8px 0 0!important;font-style:normal;background:#ffd166;color:#14040a;border-radius:999px;padding:.35rem .8rem;font-weight:800;font-size:.78rem}
+.ad-humor em{z-index:2}
 .aj-anuncio{flex:0 0 100%;scroll-snap-align:center;margin-top:0;animation:none}
 .ad-puntos{display:flex;justify-content:center;gap:5px;margin-top:8px}
 .ad-puntos i{width:6px;height:6px;border-radius:50%;background:#3a423d;transition:width .2s}
