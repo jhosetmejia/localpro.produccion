@@ -122,6 +122,8 @@ Route::get('/cut', function () {
         'Referrer-Policy' => 'strict-origin-when-cross-origin',
         'X-Frame-Options' => 'SAMEORIGIN',
         'Permissions-Policy' => 'camera=(), microphone=(), geolocation=(), payment=()',
+        // Que el celular no guarde la página vieja: siempre HTML al día con el cut.js nuevo (E41)
+        'Cache-Control' => 'no-cache, must-revalidate',
     ]);
 })->name('cut');
 Route::redirect('/localprocut', '/cut');

@@ -34,3 +34,7 @@ E36 2026-11-18 16:58 NES: script de Brave en iPhone (__firefox__ / standardSelec
 E37 2026-11-18 16:58 NES: script de Brave en iPhone (__firefox__ / standardSelectors), no es del código — ahora se filtra en lp-opinion.js y en el servidor
 E28 2026-11-18 16:58 NES: HiBrowser WebViewJavascriptBridge (navegador que se mete en la página) — filtrado también en el servidor
 E2 2026-11-18 16:58 LocalProCut: 'A network error occurred' es caída de internet del usuario, no falla del código — ya no se reporta
+E41 2026-11-23 16:40 LocalProCut: iPhone restauró la página vieja con el cut.js nuevo (#cutCalidad null) — ahora no se cae, recarga sola una vez y /cut va con no-cache
+E40 2026-11-23 16:40 LocalProCut: archivo que no se puede leer ni un byte (en la nube / WhatsApp a medio bajar) — ya se le explica a la persona, no es falla del código y ya no se reporta
+E39 2026-11-23 16:40 PFN registro: recortador de foto con doble toque en Confirmar (activeInput null) — arreglado en pfn-sistema
+E38 2026-11-23 16:40 NES: navigator.share no es función en WebView Honor — ahora se revisa typeof en todas las vistas de nes-sistema

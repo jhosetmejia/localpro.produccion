@@ -8,6 +8,10 @@ import * as FON from './fondo.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+// 2026-11-23 (E41): si el navegador restauró una página vieja (sin piezas nuevas) con este cut.js nuevo, se recarga una sola vez
+if (!document.getElementById('cutCalidad')) {
+  try { if (!sessionStorage.getItem('cutRecarga')) { sessionStorage.setItem('cutRecarga', '1'); location.reload(); } } catch (e) {}
+} else { try { sessionStorage.removeItem('cutRecarga'); } catch (e) {} }
 const fmt = (t) => { t = Math.max(0, t); const m = Math.floor(t / 60), s = Math.floor(t % 60), d = Math.floor((t % 1) * 10); return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${d}`; };
 const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const contar = (tipo, datos) => { try { window.cutContar?.(tipo, datos); } catch (e) { /* el contador nunca debe dañar el editor */ } };
@@ -1640,7 +1644,8 @@ async function agregarArchivos(lista) {
       aviso(heic ? `"${f.name}" es una foto HEIC del iPhone y este navegador no la abre. Compártala como JPG o en el iPhone ponga Ajustes → Cámara → Formatos → Más compatible.`
         : c.tipo === 'imagen' ? `No pude abrir la foto "${f.name}" (puede estar dañada o incompleta). Ábrala en la galería y compártala de nuevo, o tómele captura de pantalla.`
         : `"${f.name}" usa un formato que este celular no puede leer en el navegador. Pruebe abrirlo en Chrome actualizado o grábelo en "Más compatible" (H.264).`, 'mal');
-      window.LPOpinion?.error(new Error('No abrió un archivo: ' + (e?.message || e)), { fase: 'agregar', cabeza, tipo: f.type || '?', ext: (f.name.match(/\.\w+$/) || [''])[0].toLowerCase(), mb: Math.round(f.size / 1e5) / 10, real: real || '?', como: c.tipo });
+      // 2026-11-23 (E40): si ni siquiera se pueden leer los bytes, el archivo no está en el celular (nube/WhatsApp a medio bajar): ya se le explica, no es falla del código
+      if (cabeza !== '?') window.LPOpinion?.error(new Error('No abrió un archivo: ' + (e?.message || e)), { fase: 'agregar', cabeza, tipo: f.type || '?', ext: (f.name.match(/\.\w+$/) || [''])[0].toLowerCase(), mb: Math.round(f.size / 1e5) / 10, real: real || '?', como: c.tipo });
     }
   }
   cargandoMsg(null);
@@ -2936,12 +2941,13 @@ function pintarAjExp() {
 }
 function abrirAjExp(si) {
   const m = $('#cutAjExp'), b = $('#cutCalidad');
+  if (!m || !b) return; // página vieja guardada por el navegador (sin el panel de calidad)
   si = si ?? m.hidden;
   if (si) { pausar(); document.documentElement.style.setProperty('--alto-top', Math.round($('.cut-top').getBoundingClientRect().bottom) + 'px'); pintarAjExp(); }
   m.hidden = !si; b.classList.toggle('on', si);
 }
-$('#cutCalidad').addEventListener('click', () => abrirAjExp());
-$('#cutAjExp').addEventListener('click', (e) => { if (e.target.id === 'cutAjExp') abrirAjExp(false); });
+$('#cutCalidad')?.addEventListener('click', () => abrirAjExp());
+$('#cutAjExp')?.addEventListener('click', (e) => { if (e.target.id === 'cutAjExp') abrirAjExp(false); });
 pintarCalidad();
 /* ---------- X arriba: guarda y vuelve a "Mis proyectos" (como CapCut) ---------- */
 $('#cutCerrar').addEventListener('click', async () => {
