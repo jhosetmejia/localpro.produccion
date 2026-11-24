@@ -1298,8 +1298,9 @@ function activarAvisos() {
 if ('Notification' in window && Notification.permission === 'granted') suscribirAvisos();
 else if ('Notification' in window && 'PushManager' in window && Notification.permission === 'default') {
     var bp = document.createElement('div'); bp.id = 'aviso-push';
-    bp.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:84px;z-index:60;background:#0b0d0c;color:#fff;border-radius:16px;padding:10px 12px;display:flex;gap:10px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:94vw;font-size:.9rem';
-    bp.innerHTML = '<span>🔔 Activa los avisos para saber cuando te escriban</span><button type="button" style="background:#a6f34a;color:#0b0d0c;border:0;border-radius:10px;padding:6px 12px;font-weight:800">Activar</button><button type="button" aria-label="Cerrar" style="background:none;border:0;color:#fff;font-size:1.1rem">✕</button>';
+    /* left+right fijos (no left:50% + translate): así el aviso usa todo el ancho y el texto no se parte palabra por palabra */
+    bp.style.cssText = 'position:fixed;left:12px;right:12px;margin:0 auto;max-width:460px;box-sizing:border-box;bottom:84px;z-index:60;background:#0b0d0c;color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:10px 12px;display:flex;gap:10px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:.9rem;line-height:1.3';
+    bp.innerHTML = '<span style="flex:1;min-width:0">🔔 Activa los avisos para saber cuando te escriban</span><button type="button" style="flex:none;white-space:nowrap;background:#a6f34a;color:#0b0d0c;border:0;border-radius:10px;padding:8px 14px;font-weight:800">Activar</button><button type="button" aria-label="Cerrar" style="flex:none;background:none;border:0;color:#fff;font-size:1.1rem;padding:4px">✕</button>';
     bp.children[1].onclick = activarAvisos; bp.children[2].onclick = function () { bp.remove(); };
     document.body.appendChild(bp);
 }
