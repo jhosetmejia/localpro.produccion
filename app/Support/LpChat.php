@@ -568,6 +568,12 @@ class LpChat
             $u->user_id = $w->id;
             $u->save();
         }
+        // 2026-11-24 (Jhoset): sus mensajes desde el súper admin de NES/PFN salían con otro nombre; siempre su nombre.
+        $nombre = trim((string) config('lpchat.admin_nombre'));
+        if ($nombre !== '' && $u->nombre !== $nombre) {
+            $u->nombre = mb_substr($nombre, 0, 80);
+            $u->save();
+        }
 
         return $u;
     }
