@@ -788,8 +788,9 @@ Route::prefix('chat')->name('lpchat.')->group(function () {
     Route::post('/api/sincronizar/{origen}', [$K, 'sincronizar'])->where('origen', '[a-z]+')->middleware('throttle:10,1')->name('sincronizar');
     Route::post('/api/importar/{origen}', [$K, 'importar'])->where('origen', '[a-z]+')->middleware('throttle:120,1')->name('importar');
     Route::get('/api/exportar/{origen}', [$K, 'exportar'])->where('origen', '[a-z]+')->middleware('throttle:120,1')->name('exportar');
+    Route::post('/api/usuarios/{origen}', [$K, 'usuarios'])->where('origen', '[a-z]+')->middleware('throttle:60,1')->name('usuarios');
     Route::get('/api/no-leidos/{origen}', [$K, 'noLeidos'])->where('origen', '[a-z]+')->middleware('throttle:120,1')->name('noleidos');
-    Route::get('/u/{codigo}', [$C, 'link'])->where('codigo', '[a-z0-9]+')->name('link');
+    Route::get('/u/{codigo}', [$C, 'link'])->where('codigo', '[a-z0-9-]+')->name('link');
     Route::get('/g/{codigo}', [$C, 'unirse'])->where('codigo', '[a-z0-9]+')->name('unirse');
     Route::get('/pro/admin', [$C, 'proAdmin'])->name('pro.admin');
     Route::post('/pro/admin/{plan}', [$C, 'proRevisar'])->whereNumber('plan')->name('pro.revisar');

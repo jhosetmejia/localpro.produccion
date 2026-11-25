@@ -25,7 +25,14 @@ class negocioController extends Controller
         $negocio = Negocio::datos();
         $datos = $request->validate([
             'nombre' => 'required|string|max:80',
-            'slug' => ['required', 'string', 'max:60', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/', \Illuminate\Validation\Rule::unique('tiendas', 'slug')->ignore($negocio->id)],
+            'slug' => ['required', 'string', 'max:60', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/', \Illuminate\Validation\Rule::unique('tiendas', 'slug')->ignore($negocio->id),
+                // 2026-11-25: el @ es único entre negocios y personas (LP Chat, PFN, NES).
+                function ($a, $v, $fail) use ($negocio) {
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('lpchat_usuarios', 'usuario')
+                        && \App\Models\LpchatUsuario::where('usuario', $v)->where(fn ($q) => $q->whereNull('tienda_id')->orWhere('tienda_id', '!=', $negocio->id))->exists()) {
+                        $fail('Esa dirección ya la tiene una persona en LP Chat, escoge otra.');
+                    }
+                }],
             'catalogo_activo' => 'nullable|boolean',
             'catalogo_agotados' => 'nullable|boolean',
             'carta_tema' => 'nullable|in:' . implode(',', array_keys(\App\Models\Tienda::CARTA_TEMAS)),

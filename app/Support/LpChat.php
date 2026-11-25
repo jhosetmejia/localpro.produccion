@@ -369,7 +369,7 @@ class LpChat
 
     public static function tarjeta(U $u): array
     {
-        return ['id' => $u->id, 'nombre' => $u->nombre, 'foto' => $u->foto_url, 'bio' => $u->bio, 'ciudad' => $u->ciudad,
+        return ['id' => $u->id, 'nombre' => $u->nombre, 'usuario' => $u->usuario ?? null, 'foto' => $u->foto_url, 'bio' => $u->bio, 'ciudad' => $u->ciudad,
             'etiqueta' => $u->etiqueta, 'en_linea' => self::enLinea($u->visto_at), 'empresa' => (bool) $u->tienda_id];
     }
 

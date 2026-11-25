@@ -149,6 +149,53 @@ class lpchatCuentaController extends Controller
         return response()->json(['ok' => true, 'perfiles' => $n]);
     }
 
+    /**
+     * 2026-11-25 (Jhoset): servidor a servidor: PFN/NES preguntan el usuario único (@) de sus personas. LocalPro es el que
+     * manda: el @ es uno solo por persona en LP Chat, PFN y NES. Si traen "quiere" (el @ que la persona escogió allá),
+     * se le pone si está libre; si lo tiene otra persona, vuelve con error y se queda con el que tenía.
+     * Cuerpo: {"personas":[{id, nombre, email, celular, foto, etiqueta, ciudad, menor, quiere?}]} · Firma en X-LPChat-Firma.
+     */
+    public function usuarios(Request $request, string $origen)
+    {
+        $cuerpo = $request->getContent();
+        abort_unless(config('lpchat.origenes.'.$origen) && LpChat::firmaValida($origen, $cuerpo, $request->header('X-LPChat-Firma')), 403);
+        $d = json_decode($cuerpo, true) ?: [];
+        $out = [];
+        foreach (array_slice((array) ($d['personas'] ?? []), 0, 1000) as $p) {
+            if (! is_array($p)) {
+                continue;
+            }
+            $p['conocer'] = $p['conocer'] ?? false; // por esto no entra nadie nuevo a "Conocer gente"
+            try {
+                $u = LpChat::desdeOrigen($origen, $p);
+            } catch (\Throwable $e) {
+                report($e);
+                $u = null;
+            }
+            if (! $u) {
+                continue;
+            }
+            if (! $u->usuario) {
+                $u->usuario = U::usuarioLibre((string) $u->nombre, $u->id, $u->tienda_id ? (int) $u->tienda_id : null);
+                $u->save();
+            }
+            $r = [];
+            $quiere = isset($p['quiere']) ? strtolower(trim((string) $p['quiere'])) : '';
+            if ($quiere !== '' && $quiere !== $u->usuario) {
+                if (U::usuarioDisponible($quiere, $u->id, $u->tienda_id ? (int) $u->tienda_id : null)) {
+                    $u->usuario = $quiere;
+                    $u->save();
+                } else {
+                    $r['error'] = 'Esa dirección ya la tiene otra persona, escoge otra.';
+                }
+            }
+            $r['usuario'] = $u->usuario;
+            $out[(string) $p['id']] = $r;
+        }
+
+        return response()->json(['ok' => true, 'usuarios' => $out]);
+    }
+
     /** 2026-11-18: servidor a servidor: NES/PFN mandan sus mensajes (los chats que ya tenían y los nuevos). */
     public function importar(Request $request, string $origen)
     {

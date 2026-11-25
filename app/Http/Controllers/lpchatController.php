@@ -89,7 +89,8 @@ class lpchatController extends Controller
     /** Link personal "Comparte este link e inicia a chatear". Quien lo abre queda en "Mis chats" (sin solicitud). */
     public function link(Request $request, string $codigo)
     {
-        $otro = U::where('codigo', $codigo)->first();
+        // 2026-11-25: sirve con el código viejo o con el usuario único (@rafael-gomez).
+        $otro = U::where('codigo', $codigo)->first() ?: U::where('usuario', strtolower($codigo))->first();
         if (! $otro) {
             return response()->view('lpchat.aviso', ['titulo' => 'Este link no existe', 'texto' => 'Pídele a la persona que te lo comparta de nuevo.', 'volver' => route('lpchat.index')], 404);
         }

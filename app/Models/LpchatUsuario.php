@@ -10,7 +10,7 @@ class LpchatUsuario extends Authenticatable
 {
     protected $table = 'lpchat_usuarios';
 
-    protected $fillable = ['nombre', 'email', 'celular', 'password', 'foto', 'bio', 'ciudad', 'etiqueta', 'conocer', 'codigo', 'user_id', 'tienda_id', 'origen', 'visto_at', 'pro_hasta', 'sin_limite', 'menor'];
+    protected $fillable = ['nombre', 'email', 'celular', 'password', 'foto', 'bio', 'ciudad', 'etiqueta', 'conocer', 'codigo', 'usuario', 'user_id', 'tienda_id', 'origen', 'visto_at', 'pro_hasta', 'sin_limite', 'menor'];
 
     protected $hidden = ['password', 'remember_token'];
 
@@ -25,7 +25,67 @@ class LpchatUsuario extends Authenticatable
                 } while (static::where('codigo', $c)->exists());
                 $u->codigo = $c;
             }
+            // 2026-11-25 (Jhoset): usuario único (el @) que vale en LP Chat, PFN y NES.
+            if (! $u->usuario && \Illuminate\Support\Facades\Schema::hasColumn('lpchat_usuarios', 'usuario')) {
+                $base = $u->nombre;
+                if ($u->tienda_id && ($slug = \App\Models\Tienda::whereKey($u->tienda_id)->value('slug'))) {
+                    $base = $slug;
+                }
+                $u->usuario = self::usuarioLibre((string) $base, null, $u->tienda_id ? (int) $u->tienda_id : null);
+            }
         });
+    }
+
+    /** Palabras que nunca pueden ser el @ de una persona (páginas del sitio). */
+    public const USUARIOS_RESERVADOS = ['admin', 'administrador', 'api', 'app', 'chat', 'lpchat', 'login', 'logout', 'entrar', 'salir', 'registro',
+        'register', 'panel', 'dashboard', 'soporte', 'ayuda', 'equipo', 'mia', 'localpro', 'localproo', 'pfn', 'nes', 'blog', 'tienda', 'tiendas',
+        'eventos', 'evento', 'entradas', 'cut', 'planes', 'pagos', 'terminos', 'privacidad', 'contacto', 'perfil', 'usuario', 'usuarios', 'estado',
+        'peleadores', 'modelos', 'empresas', 'marcas', 'null', 'undefined', 'www'];
+
+    /** "Rafael Gómez" -> "rafael-gomez" (solo letras sin tildes, números y guiones, máx 40). */
+    public static function usuarioBase(string $texto): string
+    {
+        $s = trim(mb_substr(Str::slug($texto), 0, 40), '-');
+
+        return $s !== '' ? $s : 'persona';
+    }
+
+    /** ¿Ese @ lo puede usar esta cuenta? No lo tiene otra persona, no es un negocio ajeno ni una palabra reservada. */
+    public static function usuarioDisponible(string $usuario, ?int $exceptoId = null, ?int $tiendaId = null): bool
+    {
+        if (! preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $usuario) || strlen($usuario) < 3 || strlen($usuario) > 60
+            || in_array($usuario, self::USUARIOS_RESERVADOS, true) || preg_match('/^pfn-?\d+$/', $usuario)) {
+            return false;
+        }
+        if (static::where('usuario', $usuario)->when($exceptoId, fn ($q) => $q->whereKeyNot($exceptoId))->exists()) {
+            return false;
+        }
+        // El @ de un negocio (localproo.com/@negocio) solo lo usa la cuenta de ese negocio.
+        $tienda = \App\Models\Tienda::where('slug', $usuario)->value('id');
+
+        return ! $tienda || ($tiendaId && (int) $tienda === $tiendaId);
+    }
+
+    /** Primer @ libre a partir de un nombre: rafael-gomez, si no rafael-gomez-2, -3... */
+    public static function usuarioLibre(string $texto, ?int $exceptoId = null, ?int $tiendaId = null): string
+    {
+        $base = self::usuarioBase($texto);
+        if (strlen($base) < 3) {
+            $base .= '-lp';
+        }
+        $c = $base;
+        $n = 1;
+        while (! self::usuarioDisponible($c, $exceptoId, $tiendaId)) {
+            $c = $base.'-'.(++$n);
+        }
+
+        return $c;
+    }
+
+    /** Link corto de la persona: localproo.com/@rafael-gomez */
+    public function getArrobaUrlAttribute(): ?string
+    {
+        return $this->usuario ? url('/@'.$this->usuario) : null;
     }
 
     public function getFotoUrlAttribute(): ?string
