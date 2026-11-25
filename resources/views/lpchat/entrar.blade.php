@@ -44,7 +44,12 @@ input:focus{border-color:var(--verde)}
         <div class="invita"><div class="av" style="background:#16b84e">👥</div><div>Te invitaron al grupo <b>{{ $grupo->nombre }}</b>. Entra o crea tu cuenta para unirte.</div></div>
     @endisset
     @if ($errors->any())<div class="err">{{ $errors->first() }}</div>@endif
-    @php $tab = session('tab', old('nombre') ? 'registro' : (isset($invita) || isset($grupo) ? 'registro' : 'entrar')); @endphp
+    {{-- 2026-11-25 (Jhoset): que la gente de NES, PFN y LocalProo no cree otra cuenta: entra con la que ya tiene. --}}
+    @php $tab = session('tab', old('nombre') ? 'registro' : 'entrar'); @endphp
+    <div style="margin:0 0 14px;padding:12px 14px;border-radius:14px;background:rgba(166,243,74,.12);border:1px solid rgba(166,243,74,.45);font-size:.9rem;line-height:1.45">
+        🔑 <b>¿Ya tienes cuenta en Nariño ExpoShow, Pasto Fight Night o LocalProo?</b><br>
+        No crees otra: entra aquí con el <b>mismo correo y la misma clave</b> con los que entras a esa plataforma.
+    </div>
     <div class="tabs">
         <button type="button" data-t="entrar" class="{{ $tab === 'entrar' ? 'on' : '' }}">Entrar</button>
         <button type="button" data-t="registro" class="{{ $tab === 'registro' ? 'on' : '' }}">Crear cuenta</button>
@@ -52,7 +57,6 @@ input:focus{border-color:var(--verde)}
     <form method="post" action="{{ route('lpchat.login') }}" id="f-entrar" @if ($tab !== 'entrar') hidden @endif>
         @csrf
         <input type="hidden" name="volver" value="{{ $volver ?? '' }}">
-        <p style="margin:0 0 10px;font-size:.85rem;opacity:.8">🔑 Entra con el mismo correo y clave de <b>LocalProo</b>, <b>Pasto Fight Night</b> o <b>Nariño ExpoShow</b>.</p>
         <label>Correo o celular</label>
         <input type="text" name="identificador" value="{{ old('identificador') }}" autocomplete="username" required placeholder="tu@correo.com o 300 123 4567">
         <label>Clave</label>
@@ -62,6 +66,7 @@ input:focus{border-color:var(--verde)}
     <form method="post" action="{{ route('lpchat.registro') }}" id="f-registro" @if ($tab !== 'registro') hidden @endif>
         @csrf
         <input type="hidden" name="volver" value="{{ $volver ?? '' }}">
+        <p style="margin:0 0 10px;font-size:.85rem;color:#fcd34d">⚠️ Crea una cuenta solo si nunca te has registrado en Nariño ExpoShow, Pasto Fight Night ni LocalProo. Si ya tienes, toca <b>Entrar</b>.</p>
         <label>Tu nombre</label>
         <input type="text" name="nombre" value="{{ old('nombre') }}" maxlength="80" required placeholder="Como te verán los demás">
         <label>Correo o celular</label>
