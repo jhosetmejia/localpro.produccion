@@ -52,6 +52,7 @@ input:focus{border-color:var(--verde)}
     <form method="post" action="{{ route('lpchat.login') }}" id="f-entrar" @if ($tab !== 'entrar') hidden @endif>
         @csrf
         <input type="hidden" name="volver" value="{{ $volver ?? '' }}">
+        <p style="margin:0 0 10px;font-size:.85rem;opacity:.8">🔑 Entra con el mismo correo y clave de <b>LocalProo</b>, <b>Pasto Fight Night</b> o <b>Nariño ExpoShow</b>.</p>
         <label>Correo o celular</label>
         <input type="text" name="identificador" value="{{ old('identificador') }}" autocomplete="username" required placeholder="tu@correo.com o 300 123 4567">
         <label>Clave</label>

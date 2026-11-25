@@ -26,6 +26,15 @@ class lpchatCuentaController extends Controller
         if (! $w) {
             return null;
         }
+        $u = self::cuentaDeUsuarioWeb($w);
+        Auth::guard('lpchat')->login($u, true);
+
+        return $u;
+    }
+
+    /** Cuenta de LP Chat de un usuario de LocalProo (la crea o la vincula). */
+    public static function cuentaDeUsuarioWeb($w): U
+    {
         $u = U::where('user_id', $w->id)->first() ?: ($w->email ? U::where('email', mb_strtolower($w->email))->first() : null);
         if (! $u) {
             $cel = U::normalizarCelular($w->telefono ?? null);
@@ -40,9 +49,50 @@ class lpchatCuentaController extends Controller
             $u->user_id = $w->id;
             $u->save();
         }
-        Auth::guard('lpchat')->login($u, true);
 
         return $u;
+    }
+
+    /**
+     * 2026-11-25 (Jhoset): se entra a LP Chat con los MISMOS accesos de LocalProo, PFN o NES (correo/celular y clave).
+     * Primero la clave propia de LP Chat; si no, la de LocalProo; si no, se le pregunta a PFN y NES (servidor a servidor, firmado).
+     */
+    private function cuentaConAccesosDeOtroSistema(string $identificador, string $clave): ?U
+    {
+        $id = U::identificador($identificador);
+        if (! $id) {
+            return null;
+        }
+        if ($id[0] === 'email') {
+            try {
+                $w = \App\Models\User::whereRaw('LOWER(email) = ?', [$id[1]])->first();
+                if ($w && $w->password && Hash::check($clave, $w->password)) {
+                    return self::cuentaDeUsuarioWeb($w);
+                }
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+        foreach ((array) config('lpchat.origenes') as $origen => $cfg) {
+            if (empty($cfg['secreto']) || empty($cfg['volver'])) {
+                continue;
+            }
+            $cuerpo = json_encode(['ts' => time(), 'clave' => $clave] + ($id[0] === 'email' ? ['email' => $id[1]] : ['celular' => $id[1]]), JSON_UNESCAPED_UNICODE);
+            try {
+                $r = \Illuminate\Support\Facades\Http::timeout(8)->withHeaders(['X-LPChat-Firma' => hash_hmac('sha256', $cuerpo, $cfg['secreto']), 'Accept' => 'application/json'])
+                    ->withBody($cuerpo, 'application/json')->post(rtrim($cfg['volver'], '/').'/api/lpchat/verificar');
+                if ($r->successful() && $r->json('ok') && is_array($r->json('perfil'))) {
+                    $u = LpChat::desdeOrigen($origen, $r->json('perfil'));
+                    if ($u) {
+                        return $u;
+                    }
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('LP Chat entrar con '.$origen.': '.$e->getMessage());
+            }
+        }
+
+        return null;
     }
 
     public function entrar(Request $request)
@@ -59,7 +109,10 @@ class lpchatCuentaController extends Controller
         $d = $request->validate(['identificador' => 'required|string|max:150', 'password' => 'required|string|max:100']);
         $u = U::buscarPorIdentificador($d['identificador']);
         if (! $u || ! $u->password || ! Hash::check($d['password'], $u->password)) {
-            return back()->withInput($request->only('identificador'))->withErrors(['identificador' => 'El correo/celular o la clave no coinciden.']);
+            $u = $this->cuentaConAccesosDeOtroSistema($d['identificador'], $d['password']);
+        }
+        if (! $u) {
+            return back()->withInput($request->only('identificador'))->withErrors(['identificador' => 'El correo/celular o la clave no coinciden. Puedes entrar con los mismos datos de LocalProo, Pasto Fight Night o Nariño ExpoShow.']);
         }
         $this->guard()->login($u, true);
         $request->session()->regenerate();
