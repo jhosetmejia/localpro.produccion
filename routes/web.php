@@ -833,6 +833,9 @@ Route::prefix('chat')->name('lpchat.')->group(function () {
         Route::match(['get', 'post'], '/perfil', [$C, 'perfil'])->name('perfil');
         Route::get('/perfil/{usuario}', [$C, 'perfilDe'])->whereNumber('usuario')->name('perfil.de');
     });
+    // 2026-11-25 (Jhoset): link estándar para chatear con alguien: localproo.com/chat/{usuario} (el @ único de LP Chat, PFN y NES).
+    // Va de último para no tapar ninguna otra página del chat.
+    Route::get('/{codigo}', [$C, 'link'])->where('codigo', '[a-z0-9]+(?:-[a-z0-9]+)*')->name('persona');
 });
 Route::redirect('/lpchat', '/chat');
 Route::redirect('/localprochat', '/chat');

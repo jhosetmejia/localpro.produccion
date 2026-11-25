@@ -99,7 +99,8 @@ class LpchatUsuario extends Authenticatable
 
     public function getLinkAttribute(): string
     {
-        return route('lpchat.link', $this->codigo);
+        // 2026-11-25: link estándar con el usuario único: localproo.com/chat/rafael-gomez
+        return $this->usuario ? url('/chat/'.$this->usuario) : route('lpchat.link', $this->codigo);
     }
 
     /** Celular colombiano a solo dígitos con 57 adelante (3001234567 -> 573001234567). */

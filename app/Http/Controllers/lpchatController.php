@@ -95,7 +95,7 @@ class lpchatController extends Controller
             return response()->view('lpchat.aviso', ['titulo' => 'Este link no existe', 'texto' => 'Pídele a la persona que te lo comparta de nuevo.', 'volver' => route('lpchat.index')], 404);
         }
         if (! $this->persona()) {
-            return view('lpchat.entrar', ['volver' => '/chat/u/'.$codigo, 'invita' => $otro]);
+            return view('lpchat.entrar', ['volver' => '/chat/'.($otro->usuario ?: 'u/'.$codigo), 'invita' => $otro]);
         }
         $yo = $this->yo();
         if ($yo->id === $otro->id || LpChat::bloqueado($yo->id, $otro->id)) {

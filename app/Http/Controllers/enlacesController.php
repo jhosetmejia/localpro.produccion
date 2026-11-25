@@ -228,7 +228,7 @@ class enlacesController extends Controller
         // 2026-11-25 (Jhoset): localproo.com/@persona -> abre el chat con esa persona en LP Chat (el @ es único en LP, PFN y NES).
         if (! Tienda::where('slug', strtolower($slug))->exists()
             && ($persona = \App\Models\LpchatUsuario::where('usuario', strtolower($slug))->first())) {
-            return redirect()->route('lpchat.link', $persona->usuario);
+            return redirect()->to('/chat/'.$persona->usuario);
         }
         [$tienda, $esDueno] = $this->publica($slug, true);
 
