@@ -78,7 +78,8 @@ class lpchatController extends Controller
         }
         $yo = $this->yo();
 
-        return view('lpchat.app', ['yo' => $yo, 'persona' => $u, 'empresa' => $this->empresaDe($u), 'abrir' => (int) $request->query('chat', 0)]);
+        return view('lpchat.app', ['yo' => $yo, 'persona' => $u, 'empresa' => $this->empresaDe($u), 'abrir' => (int) $request->query('chat', 0),
+            'abrirUrl' => $request->attributes->get('lpchat_url')]);
     }
 
     public function terminos()
@@ -105,7 +106,13 @@ class lpchatController extends Controller
             return response()->view('lpchat.aviso', ['titulo' => 'No disponible', 'texto' => LpChat::AVISO_MENOR, 'volver' => route('lpchat.index')], 403);
         }
 
-        return redirect()->route('lpchat.index', ['chat' => LpChat::abrirDirecto($yo, $otro, 'link')]);
+        // 2026-11-25 (Jhoset): se queda en localproo.com/chat/{usuario} (como Instagram), sin pasar a ?chat=número.
+        $request->query->set('chat', LpChat::abrirDirecto($yo, $otro, 'link'));
+        if ($otro->usuario) {
+            $request->attributes->set('lpchat_url', '/chat/'.$otro->usuario);
+        }
+
+        return $this->index($request);
     }
 
     public function unirse(Request $request, string $codigo)

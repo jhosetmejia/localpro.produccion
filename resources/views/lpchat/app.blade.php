@@ -729,19 +729,28 @@ function cerrarVisor() { if (!visor) return; clearInterval(visor.t); visor.el.re
 
 /* ================= Conversación ================= */
 var cargando = false;
+/* 2026-11-25 (Jhoset): la dirección del chat es el usuario de la persona (localproo.com/chat/rafael-gomez), como Instagram. */
+var URL_INICIAL = {!! json_encode($abrirUrl ?? null, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) !!};
+function urlChat(id) {
+    if (id === abrir && URL_INICIAL) return URL_INICIAL;
+    var c = null;
+    ['mis', 'general'].forEach(function (s) { (st.chats[s] || []).forEach(function (x) { if (x.id === id) c = x; }); });
+    return c && c.usuario ? '/chat/' + c.usuario : '/chat?chat=' + id;
+}
 function abrirChat(id) {
     if (!id) return;
     st.abierto = id; st.ultimo = 0; st.info = null;
     $('bienv').hidden = true; $('conv').hidden = false; $('msgs').innerHTML = ''; $('msgs').dataset.dia = ''; $('msgs').dataset.autor = ''; $('aviso').hidden = true;
     $('app').classList.add('abierto'); quitarAdj();
-    if (location.search.indexOf('chat=' + id) < 0) history.pushState({ chat: id }, '', '/chat?chat=' + id);
+    var url = urlChat(id);
+    if (location.pathname + location.search !== url) history.pushState({ chat: id }, '', url);
     ['mis', 'general'].forEach(pintar);
     traer(true);
     if (window.innerWidth > 760) $('txt').focus();
 }
 function cerrarChat(sinHist) {
     st.abierto = 0; $('app').classList.remove('abierto'); $('conv').hidden = true; $('bienv').hidden = false;
-    if (!sinHist && location.search) history.replaceState(null, '', '/chat');
+    if (!sinHist && (location.search || location.pathname !== '/chat')) history.replaceState(null, '', '/chat');
     pararGrab(true); if ($('emo')) emoAbrir(false); cargarChats();
 }
 $('b-volver').onclick = function (e) { e.stopPropagation(); if (history.state && history.state.chat) history.back(); else cerrarChat(); };
@@ -1308,7 +1317,7 @@ else if ('Notification' in window && 'PushManager' in window && Notification.per
 /* ================= Arranque ================= */
 cargarChats();
 var abrir = {{ (int) $abrir }};
-if (abrir) { history.replaceState({ chat: abrir }, '', '/chat?chat=' + abrir); abrirChat(abrir); }
+if (abrir) { history.replaceState({ chat: abrir }, '', urlChat(abrir)); abrirChat(abrir); }
 setInterval(function () { if (!document.hidden) cargarChats(); }, 6000);
 setInterval(function () { if (st.abierto && !document.hidden) traer(false); }, 2500);
 document.addEventListener('visibilitychange', function () { if (!document.hidden) { cargarChats(); traer(false); } });

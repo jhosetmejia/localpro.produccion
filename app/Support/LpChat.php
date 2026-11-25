@@ -333,6 +333,7 @@ class LpChat
                 'nombre' => $f->tipo === 'grupo' ? $f->nombre : ($u->nombre ?? 'Usuario'),
                 'foto' => $f->tipo === 'grupo' ? ($f->foto ? asset('storage/'.$f->foto) : null) : $u?->foto_url,
                 'etiqueta' => $u?->etiqueta,
+                'usuario' => $f->tipo === 'grupo' ? null : ($u->usuario ?? null), // 2026-11-25: para la URL /chat/{usuario}
                 'empresa' => (bool) $u?->tienda_id,
                 'en_linea' => $u ? self::enLinea($u->visto_at) : false,
                 'ultimo' => mb_strimwidth($prev, 0, 80, '…'),
