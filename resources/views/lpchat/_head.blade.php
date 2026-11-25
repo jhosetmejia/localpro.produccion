@@ -5,8 +5,8 @@
 <meta name="description" content="LP Chat, la red social de LocalProo: chatea, crea grupos y conoce gente. Gratis.">
 <meta property="og:title" content="LP Chat · Chatea y conoce gente">
 <meta property="og:description" content="La red social de LocalProo: chats, grupos y conocer gente. Entra con tu correo o tu celular.">
-<meta property="og:image" content="{{ url('/icons/lpchat-512.png') }}">
-<link rel="icon" href="/icons/lpchat-192.png" type="image/png">
+<meta property="og:image" content="{{ url('/icons/lpchat-512.png?v=2') }}">
+<link rel="icon" href="/icons/lpchat-192.png?v=2" type="image/png">
 <link rel="manifest" href="/lpchat.webmanifest">
 {{-- 2026-11-18 (Jhoset): el instalador de Android se atrapa aquí arriba, apenas carga la página (antes se escuchaba al final del
      script del chat y si el aviso del navegador llegaba antes, o algo fallaba antes, el menú "Instalar app" solo mostraba pasos). --}}
@@ -19,7 +19,7 @@ window.addEventListener('appinstalled', function () { window.__lpInst = null; tr
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="LP Chat">
-<link rel="apple-touch-icon" href="/icons/lpchat-apple-touch.png">
+<link rel="apple-touch-icon" href="/icons/lpchat-apple-touch.png?v=2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">

@@ -31,7 +31,7 @@ input:focus{border-color:var(--verde)}
 <div class="top"></div>
 <div class="caja">
     <div class="marca">
-        <img src="/icons/lpchat-192.png" alt="">
+        <img src="/icons/lpchat-192.png?v=2" alt="">
         <div><h1>LP <b>Chat</b></h1><p>La red social nariñense · de LocalProo</p></div>
     </div>
     @isset($invita)

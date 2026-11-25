@@ -294,7 +294,7 @@ body{height:100dvh;overflow:hidden}
 <body>
 {{-- 2026-11-25 (Jhoset): pantalla de carga tipo WhatsApp con el aviso de seguridad de los chats. --}}
 <div id="lp-splash" style="position:fixed;inset:0;z-index:9999;background:#0b0d0c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .25s">
-    <img src="/icons/lpchat-192.png" alt="" style="width:64px;height:64px;border-radius:18px;opacity:.9">
+    <img src="/icons/lpchat-192.png?v=2" alt="" style="width:64px;height:64px;border-radius:18px;opacity:.9">
     <div style="color:#fff;font:700 1.15rem system-ui,sans-serif">LP <span style="color:#a6f34a">Chat</span></div>
     <div style="width:200px;height:4px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden"><div id="lp-splash-barra" style="height:100%;width:15%;background:#fff;border-radius:4px;transition:width 2.5s ease-out"></div></div>
     <div style="color:#a1a1aa;font:500 .88rem system-ui,sans-serif;display:flex;align-items:center;gap:6px">🔒 Chats privados y cifrados</div>
@@ -317,7 +317,7 @@ setTimeout(quitarSplash, 4000);</script>
     <aside class="lado">
         <div class="cab">
             <div class="f1">
-                <img class="logo" src="/icons/lpchat-192.png" alt=""><h1 id="tit"><span>LP</span> <b>Chat</b></h1>
+                <img class="logo" src="/icons/lpchat-192.png?v=2" alt=""><h1 id="tit"><span>LP</span> <b>Chat</b></h1>
                 <button class="ib" id="b-instalar" title="Instalar la app" hidden><svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg></button>
                 <button class="ib" id="b-cam" title="Subir estado"><svg viewBox="0 0 24 24"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z"/><path d="M9 2 7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg></button>
                 <button class="ib solo-pc" id="b-nuevo" title="Nuevo chat"><svg viewBox="0 0 24 24"><path d="M19.005 3.175H4.674C3.642 3.175 3 3.789 3 4.821V21.02l3.544-3.514h12.461c1.033 0 2.064-1.06 2.064-2.093V4.821c-.001-1.032-1.032-1.646-2.064-1.646zM15 11h-2v2a1 1 0 1 1-2 0v-2H9a1 1 0 1 1 0-2h2V7a1 1 0 1 1 2 0v2h2a1 1 0 1 1 0 2z"/></svg></button>
@@ -397,7 +397,7 @@ setTimeout(quitarSplash, 4000);</script>
     </aside>
     <main class="main" id="main">
         <div class="bienv" id="bienv">
-            <img src="/icons/lpchat-192.png" alt="">
+            <img src="/icons/lpchat-192.png?v=2" alt="">
             <h2>LP <b>Chat</b></h2>
             <p>La red social nariñense: chatea con tus amigos, crea grupos, conoce gente y escríbele a las empresas.</p>
             <p style="font-size:.8rem;margin-top:30px">🔒 Chats privados y cifrados · 🕒 Se guardan los últimos 7 días · Una plataforma de <b style="color:var(--verde)">LocalProo</b></p>
@@ -569,7 +569,7 @@ function avisar(chats) {
     try {
         if (!('Notification' in window) || Notification.permission !== 'granted') return;
         var c = chats.filter(function (x) { return x.sin_leer; })[0];
-        if (c) new Notification(c.nombre, { body: c.ultimo, icon: '/icons/lpchat-192.png', tag: 'lpchat-' + c.id });
+        if (c) new Notification(c.nombre, { body: c.ultimo, icon: '/icons/lpchat-192.png?v=2', tag: 'lpchat-' + c.id });
     } catch (e) {}
 }
 document.querySelectorAll('#p-mis .chip').forEach(function (b) {
@@ -1319,7 +1319,7 @@ function pasosInstalar(ios, android, ua) {
     var pasos = ios
         ? ['Toca el botón <b>Compartir</b> ⬆️ (abajo en Safari; arriba en Chrome)', 'Baja y toca <b>Agregar a inicio</b> ➕', 'Toca <b>Agregar</b>. LP Chat queda en tu pantalla de inicio como una app']
         : ['Toca el menú <b>⋮</b> del navegador (arriba a la derecha)', 'Toca <b>Instalar aplicación</b> o <b>Agregar a pantalla principal</b>', 'Confirma con <b>Instalar</b>. LP Chat queda con su ícono como una app'];
-    ventana('📲 Instalar LP Chat', '<ol style="margin:0;padding-left:20px;line-height:1.6">' + pasos.map(function (x) { return '<li style="margin-bottom:8px">' + x + '</li>'; }).join('') + '</ol><p style="color:var(--txt2);font-size:.88rem;margin-bottom:0">' + (android ? 'Si ya la habías instalado y la borraste, o le diste "Cancelar" al aviso de Chrome, Chrome no vuelve a ofrecer el botón directo por un tiempo: usa estos pasos.' : 'Ábrela desde el ícono y funciona a pantalla completa.') + '</p>', '<button class="bt" data-cerrar>Entendido</button>');
+    ventana('📲 Instalar LP Chat', '<ol style="margin:0;padding-left:20px;line-height:1.6">' + pasos.map(function (x) { return '<li style="margin-bottom:8px">' + x + '</li>'; }).join('') + '</ol><p style="color:var(--txt2);font-size:.88rem;margin-bottom:0">' + (android ? 'Si en el menú ⋮ no sale "Instalar aplicación" sino "Abrir LocalPro", es porque en este celular ya está instalada la app de LocalProo y Chrome abre LP Chat dentro de ella. Si la borraste o le diste "Cancelar" al aviso, Chrome no vuelve a ofrecer el botón por un tiempo: usa estos pasos.' : 'Ábrela desde el ícono y funciona a pantalla completa.') + '</p>', '<button class="bt" data-cerrar>Entendido</button>');
 }
 $('b-instalar').onclick = instalarApp;
 if (/iphone|ipad/i.test(navigator.userAgent) && !navigator.standalone) {
