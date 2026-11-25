@@ -400,7 +400,7 @@ setTimeout(quitarSplash, 4000);</script>
             <img src="/icons/lpchat-192.png?v=2" alt="">
             <h2>LP <b>Chat</b></h2>
             <p>La red social nariñense: chatea con tus amigos, crea grupos, conoce gente y escríbele a las empresas.</p>
-            <p style="font-size:.8rem;margin-top:30px">🔒 Chats privados y cifrados · 🕒 Se guardan los últimos 7 días · Una plataforma de <b style="color:var(--verde)">LocalProo</b></p>
+            <p style="font-size:.8rem;margin-top:30px">🔒 Chats privados y cifrados · Una plataforma de <b style="color:var(--verde)">LocalProo</b></p>
         </div>
         <div class="conv" id="conv" hidden>
             <div class="ccab" id="ccab">
@@ -446,7 +446,7 @@ var CSRF = document.querySelector('meta[name=csrf-token]').content;
 var $ = function (id) { return document.getElementById(id); };
 var st = { nav: 'mensajes', tab: 'mis', filtro: 'todos', chats: { mis: [], general: [] }, solicitudes: 0, abierto: 0, ultimo: 0, info: null, adj: null, uv: false, escT: 0, sinLeer: 0, primera: true, origen: '', empPag: 1 };
 var COL = ['#16b84e', '#3b82f6', '#7c3aed', '#e11d74', '#f59e0b', '#0ea5e9', '#ef4444', '#14b8a6', '#8b5cf6', '#22c55e'];
-var DIAS = 7;
+var DIAS = 90;
 
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 function enlaces(s) { return esc(s).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener nofollow">$1</a>'); }
@@ -811,7 +811,7 @@ function traer(primera) {
         var s = $('c-s');
         s.textContent = j.escribiendo.length ? (j.chat.tipo === 'grupo' ? j.escribiendo.join(', ') + ' escribiendo…' : (j.escribiendo[0].indexOf('🎤') > 0 ? 'grabando audio…' : 'escribiendo…')) : (j.chat.sub || (j.chat.tipo === 'directo' ? 'toca para ver el perfil' : ''));
         var box = $('msgs'), abajo = box.scrollHeight - box.scrollTop - box.clientHeight < 140;
-        if (primera) box.insertAdjacentHTML('beforeend', '<div class="sis">🔒 Chat privado: los mensajes se guardan cifrados y solo los ven las personas de este chat. 🕒 Se guardan los últimos ' + DIAS + ' días; las fotos, videos y audios se borran solos después.</div>');
+        if (primera) box.insertAdjacentHTML('beforeend', '<div class="sis">🔒 Chat privado: los mensajes se guardan cifrados y solo los ven las personas de este chat.</div>');
         j.mensajes.forEach(function (m) { pintarMsg(box, m); });
         if (j.mensajes.length) st.ultimo = j.mensajes[j.mensajes.length - 1].id;
         box.querySelectorAll('.m.yo .tk:not(.l)').forEach(function (t) { if (+t.closest('.m').dataset.m <= j.leido_otros) t.classList.add('l'); });

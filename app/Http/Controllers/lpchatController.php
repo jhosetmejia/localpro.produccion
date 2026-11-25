@@ -267,7 +267,7 @@ class lpchatController extends Controller
         return $slug ? route('catalogo.show', $slug) : null;
     }
 
-    /** Texto, foto, video o audio (y "ver una vez"). Todo se borra a los 7 días. */
+    /** Texto, foto, video o audio (y "ver una vez"). Todo se borra a los 3 meses. */
     public function enviar(Request $request, int $id): JsonResponse
     {
         $yo = $this->yo();
@@ -283,7 +283,7 @@ class lpchatController extends Controller
         }
         $adj = $tipo = null;
         if ($sticker) {
-            // Se envía una copia: el mensaje se borra a los 7 días, el sticker de la colección no.
+            // Se envía una copia: el mensaje se borra a los 3 meses, el sticker de la colección no.
             $disco = Storage::disk('local');
             abort_unless($disco->exists($sticker->archivo), 410, 'Ese sticker ya no está.');
             $adj = 'lpchat/adjuntos/'.date('Y/m/d').'/st_'.bin2hex(random_bytes(10)).'.'.pathinfo($sticker->archivo, PATHINFO_EXTENSION);
@@ -403,7 +403,7 @@ class lpchatController extends Controller
 
             return response($bytes, 200, ['Content-Type' => $mime, 'Cache-Control' => 'no-store', 'Content-Disposition' => 'inline']);
         }
-        abort_unless($disco->exists($m->adjunto), 410, 'Este archivo ya se borró (los chats guardan 7 días).');
+        abort_unless($disco->exists($m->adjunto), 410, 'Este archivo ya se borró (los chats guardan 3 meses).');
 
         return response()->file($disco->path($m->adjunto), ['Cache-Control' => 'private, max-age=604800']);
     }

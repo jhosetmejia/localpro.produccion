@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
  * - Si viene de "Conocer gente" llega a "Solicitudes" (oculto, sin aviso). El que recibe acepta o descarta;
  *   si descarta, ya no le llegan más mensajes de esa persona. Si responde, queda aceptada.
  * - Conocer gente: máximo LIMITE_CONOCER personas nuevas por día; se muestran máximo MUESTRA perfiles al día (contra la descarga de la base).
- * - Todo lo de los chats dura 7 días (fotos, videos, audios y mensajes); los estados 24 horas. Ver lpchat:limpiar.
+ * - Todo lo de los chats dura 3 meses (fotos, videos, audios y mensajes; 2026-11-25 Jhoset, antes 7 días); los estados 24 horas. Ver lpchat:limpiar.
  * - Mientras la solicitud no se acepta, el que la mandó puede escribir máximo config('lpchat.max_solicitud') mensajes.
  * - Grupos: el creador es admin; se agregan contactos o por correo/celular; link para unirse.
  * - Bloqueos: si alguien te bloqueó (o lo bloqueaste) no se pueden escribir.
@@ -27,7 +27,7 @@ class LpChat
 
     public const MUESTRA = 60;         // perfiles que ve cada persona al día en Conocer gente
 
-    public const DIAS = 7;             // lo de los chats se borra a los 7 días
+    public const DIAS = 90;            // 2026-11-25 (Jhoset): lo de los chats se guarda 3 meses
 
     /** 2026-11-18: ¿tiene Plan Pro vigente? */
     public static function esPro(U $u): bool
@@ -763,14 +763,14 @@ class LpChat
     }
 
     /**
-     * 2026-11-18: mensajes traídos de NES/PFN que la persona ya leyó aquí en LP Chat (últimos 7 días),
+     * 2026-11-18: mensajes traídos de NES/PFN que la persona ya leyó aquí en LP Chat (últimos 3 meses),
      * para marcarlos leídos allá también. Devuelve los ids del otro sistema.
      */
     public static function leidosAqui(string $origen): array
     {
         return DB::table('lpchat_mensajes as x')
             ->join('lpchat_miembros as m', fn ($j) => $j->on('m.chat_id', '=', 'x.chat_id')->on('m.usuario_id', '!=', 'x.usuario_id'))
-            ->where('x.origen', 'like', $origen.':m%')->where('x.created_at', '>=', now()->subDays(7))
+            ->where('x.origen', 'like', $origen.':m%')->where('x.created_at', '>=', now()->subDays(self::DIAS))
             ->whereColumn('m.leido_id', '>=', 'x.id')->orderByDesc('x.id')->limit(3000)->pluck('x.origen')
             ->map(fn ($o) => (int) substr($o, strlen($origen) + 2))->filter()->values()->all();
     }

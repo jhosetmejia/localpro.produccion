@@ -57,7 +57,7 @@ li{margin:.25rem 0}
 
     <h2>6. Cuánto dura lo que envías</h2>
     <ul>
-        <li>Para no saturar el servidor, LP Chat guarda solo los <b>últimos 7 días</b> de cada chat: después se borran solos los mensajes, fotos, videos y audios.</li>
+        <li>Para no saturar el servidor, LP Chat guarda los <b>últimos 3 meses</b> de cada chat: después se borran solos los mensajes, fotos, videos y audios.</li>
         <li>Los <b>estados</b> los pueden ver todos los usuarios de LP Chat y se borran a las <b>24 horas</b>.</li>
         <li>Lo que envías para <b>ver una sola vez</b> se borra apenas se abre. Ojo: nadie puede impedir que la otra persona le tome una foto o una captura a su pantalla.</li>
         <li>LP Chat no es un lugar para guardar información importante: haz tu propia copia de lo que necesites.</li>

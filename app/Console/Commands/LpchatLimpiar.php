@@ -8,14 +8,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * 2026-11-17 (Jhoset): LP Chat guarda solo los últimos 7 días de cada chat (mensajes, fotos, videos y audios)
+ * 2026-11-17 (Jhoset): LP Chat guarda los últimos 3 meses (antes 7 días) de cada chat (mensajes, fotos, videos y audios)
  * y los estados 24 horas, para no llenar el servidor. Corre cada hora.
  */
 class LpchatLimpiar extends Command
 {
     protected $signature = 'lpchat:limpiar';
 
-    protected $description = 'LP Chat: borra mensajes y archivos de más de 7 días y estados de más de 24 horas';
+    protected $description = 'LP Chat: borra mensajes y archivos de más de 3 meses y estados de más de 24 horas';
 
     public function handle(): int
     {
@@ -31,7 +31,7 @@ class LpchatLimpiar extends Command
             }
             $msj += DB::table('lpchat_mensajes')->whereIn('id', $filas->pluck('id'))->delete();
         });
-        // "Ver una vez" que se mandó y nunca se abrió en 7 días ya quedó arriba. Los abiertos ya se borraron al verlos.
+        // "Ver una vez" que se mandó y nunca se abrió en 3 meses ya quedó arriba. Los abiertos ya se borraron al verlos.
         $est = 0;
         DB::table('lpchat_estados')->where('created_at', '<', now()->subDay())->orderBy('id')->chunkById(500, function ($filas) use ($disco, &$est) {
             foreach ($filas as $e) {
