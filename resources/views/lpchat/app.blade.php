@@ -272,6 +272,16 @@ body{height:100dvh;overflow:hidden}
 </style>
 </head>
 <body>
+{{-- 2026-11-25 (Jhoset): pantalla de carga tipo WhatsApp con el aviso de seguridad de los chats. --}}
+<div id="lp-splash" style="position:fixed;inset:0;z-index:9999;background:#0b0d0c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .25s">
+    <img src="/icons/lpchat-192.png" alt="" style="width:64px;height:64px;border-radius:18px;opacity:.9">
+    <div style="color:#fff;font:700 1.15rem system-ui,sans-serif">LP <span style="color:#a6f34a">Chat</span></div>
+    <div style="width:200px;height:4px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden"><div id="lp-splash-barra" style="height:100%;width:15%;background:#fff;border-radius:4px;transition:width 2.5s ease-out"></div></div>
+    <div style="color:#a1a1aa;font:500 .88rem system-ui,sans-serif;display:flex;align-items:center;gap:6px">🔒 Chats privados y cifrados</div>
+</div>
+<script>setTimeout(function () { var b = document.getElementById('lp-splash-barra'); if (b) b.style.width = '85%'; }, 30);
+function quitarSplash() { var s = document.getElementById('lp-splash'); if (!s) return; document.getElementById('lp-splash-barra').style.width = '100%'; setTimeout(function () { s.style.opacity = '0'; setTimeout(function () { s.remove(); }, 260); }, 150); }
+setTimeout(quitarSplash, 4000);</script>
 <div class="app" id="app">
     <aside class="lado">
         <div class="cab">
@@ -358,7 +368,7 @@ body{height:100dvh;overflow:hidden}
             <img src="/icons/lpchat-192.png" alt="">
             <h2>LP <b>Chat</b></h2>
             <p>La red social nariñense: chatea con tus amigos, crea grupos, conoce gente y escríbele a las empresas.</p>
-            <p style="font-size:.8rem;margin-top:30px">🕒 Los chats guardan los últimos 7 días · 🔒 Una plataforma de <b style="color:var(--verde)">LocalProo</b></p>
+            <p style="font-size:.8rem;margin-top:30px">🔒 Chats privados y cifrados · 🕒 Se guardan los últimos 7 días · Una plataforma de <b style="color:var(--verde)">LocalProo</b></p>
         </div>
         <div class="conv" id="conv" hidden>
             <div class="ccab" id="ccab">
@@ -769,7 +779,7 @@ function traer(primera) {
         var s = $('c-s');
         s.textContent = j.escribiendo.length ? (j.chat.tipo === 'grupo' ? j.escribiendo.join(', ') + ' escribiendo…' : (j.escribiendo[0].indexOf('🎤') > 0 ? 'grabando audio…' : 'escribiendo…')) : (j.chat.sub || (j.chat.tipo === 'directo' ? 'toca para ver el perfil' : ''));
         var box = $('msgs'), abajo = box.scrollHeight - box.scrollTop - box.clientHeight < 140;
-        if (primera) box.insertAdjacentHTML('beforeend', '<div class="sis">🕒 Este chat guarda los últimos ' + DIAS + ' días. Las fotos, videos y audios se borran solos después.</div>');
+        if (primera) box.insertAdjacentHTML('beforeend', '<div class="sis">🔒 Chat privado: los mensajes se guardan cifrados y solo los ven las personas de este chat. 🕒 Se guardan los últimos ' + DIAS + ' días; las fotos, videos y audios se borran solos después.</div>');
         j.mensajes.forEach(function (m) { pintarMsg(box, m); });
         if (j.mensajes.length) st.ultimo = j.mensajes[j.mensajes.length - 1].id;
         box.querySelectorAll('.m.yo .tk:not(.l)').forEach(function (t) { if (+t.closest('.m').dataset.m <= j.leido_otros) t.classList.add('l'); });
@@ -1315,7 +1325,8 @@ else if ('Notification' in window && 'PushManager' in window && Notification.per
 }
 
 /* ================= Arranque ================= */
-cargarChats();
+var pChats = cargarChats();
+if (pChats && pChats.then) pChats.then(quitarSplash, quitarSplash); else quitarSplash();
 var abrir = {{ (int) $abrir }};
 if (abrir) { history.replaceState({ chat: abrir }, '', urlChat(abrir)); abrirChat(abrir); }
 setInterval(function () { if (!document.hidden) cargarChats(); }, 6000);

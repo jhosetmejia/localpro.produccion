@@ -218,7 +218,7 @@ class LpChat
     public static function enviar(object $chat, U $yo, ?string $texto, ?string $adjunto = null, ?string $adjTipo = null, bool $unaVez = false): int
     {
         $texto = $texto !== null ? trim(mb_substr($texto, 0, 4000)) : null;
-        $id = DB::table('lpchat_mensajes')->insertGetId(['chat_id' => $chat->id, 'usuario_id' => $yo->id, 'texto' => $texto ?: null,
+        $id = DB::table('lpchat_mensajes')->insertGetId(['chat_id' => $chat->id, 'usuario_id' => $yo->id, 'texto' => self::cifrar($texto ?: null),
             'adjunto' => $adjunto, 'adjunto_tipo' => $adjunto ? $adjTipo : null, 'una_vez' => $adjunto && $unaVez,
             'created_at' => now(), 'updated_at' => now()]);
         DB::table('lpchat_chats')->where('id', $chat->id)->update(['ultimo_id' => $id, 'updated_at' => now()]);
@@ -318,9 +318,10 @@ class LpChat
                 if ($ult->una_vez) {
                     $adj = '① '.($ult->adjunto_tipo === 'foto' ? 'Foto' : ($ult->adjunto_tipo === 'video' ? 'Video' : 'Audio')).' para ver una vez';
                 }
-                $prev = $ult->texto ?: $adj;
-                if ($adj && $ult->texto && ! $ult->una_vez) {
-                    $prev = $adj.' · '.$ult->texto;
+                $tx = self::leer($ult->texto);
+                $prev = $tx ?: $adj;
+                if ($adj && $tx && ! $ult->una_vez) {
+                    $prev = $adj.' · '.$tx;
                 }
                 if ($f->tipo === 'grupo' && $ult->usuario_id && $ult->usuario_id !== $yo->id && $ult->tipo === null) {
                     $prev = (Str::before($usuarios->get($ult->usuario_id)?->nombre ?? '', ' ') ?: 'Alguien').': '.$prev;
@@ -673,7 +674,7 @@ class LpChat
             self::visibilidad($cid, $de, $para, ! $c);
             // 2026-11-18: NES/PFN mandan la hora en UTC; aquí se guarda en la hora del sistema (si no, salía 5 horas adelantada).
             $fecha = (! empty($m['fecha']) ? Carbon::parse($m['fecha']) : now())->timezone(config('app.timezone'));
-            $id = DB::table('lpchat_mensajes')->insertGetId(['chat_id' => $cid, 'usuario_id' => $de->id, 'texto' => $texto, 'origen' => $clave,
+            $id = DB::table('lpchat_mensajes')->insertGetId(['chat_id' => $cid, 'usuario_id' => $de->id, 'texto' => self::cifrar($texto), 'origen' => $clave,
                 'created_at' => $fecha, 'updated_at' => $fecha]);
             DB::table('lpchat_chats')->where('id', $cid)->where('ultimo_id', '<', $id)->update(['ultimo_id' => $id, 'updated_at' => now()]);
             DB::table('lpchat_miembros')->where('chat_id', $cid)->where('usuario_id', $de->id)->where('leido_id', '<', $id)->update(['leido_id' => $id]);
@@ -750,7 +751,7 @@ class LpChat
             if (! $para || ! isset($vin[$m->usuario_id], $vin[$para])) {
                 continue;
             }
-            $texto = (string) $m->texto;
+            $texto = (string) self::leer($m->texto);
             if ($m->adjunto_tipo) {
                 $nom = ['foto' => '📷 Foto', 'video' => '🎥 Video', 'audio' => '🎤 Nota de voz', 'sticker' => '🧩 Sticker'][$m->adjunto_tipo] ?? '📎 Archivo';
                 $texto = trim($nom.($m->una_vez ? ' para ver una vez' : '').' en LP Chat: '.route('lpchat.index', ['chat' => $m->chat_id]).($texto !== '' ? "\n".$texto : ''));
@@ -798,6 +799,32 @@ class LpChat
                 }
             }
         });
+    }
+
+    /**
+     * 2026-11-25 (Jhoset): seguridad de los chats. Los mensajes se guardan cifrados (AES-256 con la llave del sistema):
+     * en la base de datos no se pueden leer, y solo los ven las personas que están en ese chat (cada consulta revisa que seas miembro).
+     */
+    public static function cifrar(?string $texto): ?string
+    {
+        if ($texto === null || $texto === '' || str_starts_with($texto, 'enc:')) {
+            return $texto;
+        }
+
+        return 'enc:'.\Illuminate\Support\Facades\Crypt::encryptString($texto);
+    }
+
+    /** Texto legible de un mensaje (los viejos sin cifrar pasan igual). */
+    public static function leer(?string $texto): ?string
+    {
+        if ($texto === null || ! str_starts_with($texto, 'enc:')) {
+            return $texto;
+        }
+        try {
+            return \Illuminate\Support\Facades\Crypt::decryptString(substr($texto, 4));
+        } catch (\Throwable $e) {
+            return '🔒 Mensaje no disponible';
+        }
     }
 
     /** Firma HMAC que comparten LP Chat y el otro sistema. */

@@ -235,7 +235,7 @@ class lpchatController extends Controller
         $f = Carbon::parse($m->created_at)->timezone('America/Bogota');
         $r = ['id' => $m->id, 'mio' => $mio, 'sistema' => $m->tipo === 'sistema',
             'autor' => $c->tipo === 'grupo' && $m->usuario_id && ! $mio ? ($autores->get($m->usuario_id)->nombre ?? 'Alguien') : null,
-            'autor_id' => $m->usuario_id, 'texto' => $m->texto, 'hora' => $f->format('g:i a'), 'dia' => $f->toDateString(),
+            'autor_id' => $m->usuario_id, 'texto' => LpChat::leer($m->texto), 'hora' => $f->format('g:i a'), 'dia' => $f->toDateString(),
             'adj' => $m->adjunto_tipo ?: ($m->adjunto ? 'foto' : null), 'url' => null, 'una_vez' => (bool) $m->una_vez, 'abierto' => (bool) $m->abierto_at];
         if ($m->adjunto && ! $m->una_vez) {
             $r['url'] = route('lpchat.adjunto', $m->id);
@@ -555,7 +555,7 @@ class lpchatController extends Controller
 
         // El enlace tiene que venir de un mensaje de un chat donde estoy (no se puede inventar para saltarse los límites).
         $m = $mid ? DB::table('lpchat_mensajes')->where('id', $mid)->first() : null;
-        $deMensaje = $m && LpChat::miembro((int) $m->chat_id, $yo->id) && str_contains((string) $m->texto, $url);
+        $deMensaje = $m && LpChat::miembro((int) $m->chat_id, $yo->id) && str_contains((string) LpChat::leer($m->texto), $url);
 
         $local = parse_url(config('app.url'), PHP_URL_HOST);
         if (in_array($host, ['localproo.com', preg_replace('/^www\./', '', (string) $local)], true)) {
