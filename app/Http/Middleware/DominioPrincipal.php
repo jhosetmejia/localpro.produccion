@@ -23,6 +23,17 @@ class DominioPrincipal
             return $next($request);
         }
 
+        // 2026-11-25 (Jhoset): LP Chat vive en www.localproo.com/chat para que se instale como app APARTE (si el celular ya
+        // tiene la app de LocalProo, Chrome no deja instalar otra en el mismo dominio). Los links viejos (localproo.com/chat/...)
+        // pasan solos a www. Las llamadas entre servidores (/chat/api/...) y los envíos (POST) se quedan donde llegan.
+        if ($principal && $host === 'www.' . $principal && $request->is('chat', 'chat/*')) {
+            URL::forceRootUrl('https://www.' . $principal);
+            return $next($request);
+        }
+        if ($principal && $host === $principal && $request->isMethod('GET') && $request->is('chat', 'chat/*') && !$request->is('chat/api/*')) {
+            return redirect()->to('https://www.' . $principal . $request->getRequestUri(), 302);
+        }
+
         if ($principal && $host !== $principal
             && (in_array($host, self::VIEJOS, true) || $host === 'www.' . $principal)
             && !$request->is('.well-known/*', 'webhooks/*')) {
