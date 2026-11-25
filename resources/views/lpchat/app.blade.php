@@ -269,6 +269,26 @@ body{height:100dvh;overflow:hidden}
 .sis{font-size:13.5px}
 .menu button{font-size:16px}
 .vacio{font-size:15px}
+/* 2026-11-25 (Jhoset): barra lateral tipo WhatsApp Web en computador */
+.rail{display:none}
+.solo-pc{display:none!important}
+@media (min-width:761px){
+  .rail{display:flex;flex-direction:column;align-items:center;gap:6px;width:64px;flex:none;padding:12px 0;background:var(--panel2);border-right:1px solid var(--borde)}
+  .rail button{width:42px;height:42px;border-radius:50%;border:0;background:none;color:var(--txt2);display:grid;place-items:center;position:relative;cursor:pointer;padding:0}
+  .rail button svg{width:24px;height:24px;fill:currentColor}
+  .rail button:hover{background:rgba(255,255,255,.07);color:var(--txt)}
+  .rail button.on{background:rgba(166,243,74,.16);color:var(--verde)}
+  .rail-esp{flex:1}
+  .rail .rb{position:absolute;top:2px;right:0;background:var(--verde);color:var(--sobre-verde);font-size:.62rem;font-weight:800;min-width:17px;height:17px;border-radius:9px;display:grid;place-items:center;padding:0 4px}
+  .rail .rb.punto{min-width:10px;width:10px;height:10px;padding:0;top:6px;right:6px}
+  .rail .rb[hidden]{display:none}
+  .rail-av{width:34px;height:34px;border-radius:50%;background:#2a2f2c center/cover;display:grid;place-items:center;font-weight:800;color:var(--txt);font-size:.9rem}
+  .lado .nav{display:none}
+  .lado .fab{display:none}
+  #tabs button[data-t="conocer"],#tabs button[data-t="empresas"]{display:none}
+  .solo-pc{display:grid!important}
+  .chip{background:none;border:1px solid var(--borde)}
+}
 </style>
 </head>
 <body>
@@ -283,12 +303,24 @@ body{height:100dvh;overflow:hidden}
 function quitarSplash() { var s = document.getElementById('lp-splash'); if (!s) return; document.getElementById('lp-splash-barra').style.width = '100%'; setTimeout(function () { s.style.opacity = '0'; setTimeout(function () { s.remove(); }, 260); }, 150); }
 setTimeout(quitarSplash, 4000);</script>
 <div class="app" id="app">
+    {{-- 2026-11-25 (Jhoset): barra lateral como WhatsApp Web (solo en computador): Chats, Estados, Conocer gente, Empresas, Tienda; abajo Ajustes y Perfil. --}}
+    <nav class="rail" id="rail">
+        <button type="button" data-r="chats" title="Chats" aria-label="Chats"><svg viewBox="0 0 24 24"><path d="M19.005 3.175H4.674C3.642 3.175 3 3.789 3 4.821V21.02l3.544-3.514h12.461c1.033 0 2.064-1.06 2.064-2.093V4.821c-.001-1.032-1.032-1.646-2.064-1.646z"/></svg><span class="rb" id="rb-msj" hidden></span></button>
+        <button type="button" data-r="estados" title="Estados" aria-label="Estados"><svg viewBox="0 0 24 24"><path d="M12 20.664a9.163 9.163 0 0 1-6.521-2.702.977.977 0 0 1 1.381-1.381 7.269 7.269 0 0 0 10.024.244.977.977 0 0 1 1.313 1.445A9.192 9.192 0 0 1 12 20.664zm7.965-6.112a.977.977 0 0 1-.944-1.229 7.26 7.26 0 0 0-4.8-8.804.977.977 0 0 1 .594-1.86 9.212 9.212 0 0 1 6.092 11.169.976.976 0 0 1-.942.724zm-16.025-.39a.977.977 0 0 1-.953-.769 9.21 9.21 0 0 1 6.626-10.86.975.975 0 1 1 .52 1.882l-.015.004a7.259 7.259 0 0 0-5.223 8.558.978.978 0 0 1-.955 1.185z"/><circle cx="12" cy="12" r="4"/></svg><span class="rb punto" id="rb-est" hidden></span></button>
+        <button type="button" data-r="conocer" title="Conocer gente" aria-label="Conocer gente"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></button>
+        <button type="button" data-r="empresas" title="Empresas" aria-label="Empresas"><svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg></button>
+        <button type="button" data-r="tienda" title="Tienda LocalProo" aria-label="Tienda LocalProo"><svg viewBox="0 0 24 24"><path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z"/></svg></button>
+        <span class="rail-esp"></span>
+        <button type="button" data-r="ajustes" title="Ajustes y menú" aria-label="Ajustes y menú"><svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></button>
+        <button type="button" data-r="perfil" title="Mi perfil" aria-label="Mi perfil"><span class="rail-av" id="rail-av"></span></button>
+    </nav>
     <aside class="lado">
         <div class="cab">
             <div class="f1">
                 <img class="logo" src="/icons/lpchat-192.png" alt=""><h1 id="tit"><span>LP</span> <b>Chat</b></h1>
                 <button class="ib" id="b-instalar" title="Instalar la app" hidden><svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg></button>
                 <button class="ib" id="b-cam" title="Subir estado"><svg viewBox="0 0 24 24"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z"/><path d="M9 2 7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg></button>
+                <button class="ib solo-pc" id="b-nuevo" title="Nuevo chat"><svg viewBox="0 0 24 24"><path d="M19.005 3.175H4.674C3.642 3.175 3 3.789 3 4.821V21.02l3.544-3.514h12.461c1.033 0 2.064-1.06 2.064-2.093V4.821c-.001-1.032-1.032-1.646-2.064-1.646zM15 11h-2v2a1 1 0 1 1-2 0v-2H9a1 1 0 1 1 0-2h2V7a1 1 0 1 1 2 0v2h2a1 1 0 1 1 0 2z"/></svg></button>
                 <button class="ib" id="b-menu" title="Menú"><svg viewBox="0 0 24 24"><path d="M12 7a2 2 0 1 0-.001-4.001A2 2 0 0 0 12 7zm0 2a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 9zm0 6a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 15z"/></svg></button>
             </div>
             <div class="tabs" id="tabs">
@@ -304,7 +336,7 @@ setTimeout(quitarSplash, 4000);</script>
 
         {{-- MENSAJES: Mis chats / General --}}
         <section class="pane" id="p-mis">
-            <div class="buscar"><input class="q-chats" type="search" placeholder="Buscar"></div>
+            <div class="buscar"><input class="q-chats" type="search" placeholder="Buscar un chat o iniciar uno nuevo"></div>
             <div class="chips">
                 <button class="chip on" data-f="todos">Todos</button>
                 <button class="chip" data-f="noleidos">No leídos</button>
@@ -1069,7 +1101,7 @@ function menu(boton, items) {
     cerrarMenu();
     var r = boton.getBoundingClientRect(), m = document.createElement('div');
     m.className = 'menu'; m.id = 'menu';
-    m.style.top = Math.min(r.bottom + 4, window.innerHeight - 40 * items.length - 20) + 'px'; m.style.right = Math.max(8, window.innerWidth - r.right) + 'px';
+    m.style.top = Math.min(r.bottom + 4, window.innerHeight - 40 * items.length - 20) + 'px'; if (r.left < 90) m.style.left = (r.right + 6) + 'px'; else m.style.right = Math.max(8, window.innerWidth - r.right) + 'px'; // 2026-11-25: desde la barra lateral abre hacia la derecha
     items.forEach(function (it) { var b = document.createElement('button'); b.textContent = it[0]; b.onclick = function () { cerrarMenu(); it[1](); }; m.appendChild(b); });
     document.body.appendChild(m);
     setTimeout(function () { document.addEventListener('click', cerrarMenu, { once: true }); }, 0);
@@ -1332,6 +1364,34 @@ if (abrir) { history.replaceState({ chat: abrir }, '', urlChat(abrir)); abrirCha
 setInterval(function () { if (!document.hidden) cargarChats(); }, 6000);
 setInterval(function () { if (st.abierto && !document.hidden) traer(false); }, 2500);
 document.addEventListener('visibilitychange', function () { if (!document.hidden) { cargarChats(); traer(false); } });
+/* 2026-11-25 (Jhoset): barra lateral de computador (igual a WhatsApp Web). Usa las mismas funciones de abajo. */
+(function () {
+    var rail = $('rail'); if (!rail) return;
+    function marcar() {
+        var r = st.nav !== 'mensajes' ? st.nav : (st.tab === 'conocer' || st.tab === 'empresas' ? st.tab : 'chats');
+        rail.querySelectorAll('button[data-r]').forEach(function (b) { b.classList.toggle('on', b.dataset.r === r); });
+        var a = $('pt-msj'), e = $('pt-est');
+        if (a) { $('rb-msj').hidden = a.hidden; $('rb-msj').textContent = a.textContent; }
+        if (e) $('rb-est').hidden = e.hidden;
+    }
+    var nav0 = irNav, tab0 = irTab;
+    irNav = function (n) { nav0(n); marcar(); };
+    irTab = function (t) { tab0(t); marcar(); };
+    rail.querySelectorAll('button[data-r]').forEach(function (b) {
+        b.onclick = function (ev) {
+            var r = b.dataset.r;
+            if (r === 'chats') irTab(st.tab === 'conocer' || st.tab === 'empresas' ? 'mis' : st.tab);
+            else if (r === 'estados' || r === 'tienda') irNav(r);
+            else if (r === 'conocer' || r === 'empresas') irTab(r);
+            else if (r === 'ajustes') { ev.stopPropagation(); $('b-menu').onclick.call(b, ev); }
+            else if (r === 'perfil') { if (YO.empresa) { ev.stopPropagation(); $('b-menu').onclick.call(b, ev); } else miPerfil(); }
+        };
+    });
+    var av = $('rail-av');
+    if (YO.foto) av.style.backgroundImage = "url('" + String(YO.foto).replace(/'/g, '%27') + "')"; else av.textContent = (YO.nombre || '?').trim().charAt(0).toUpperCase();
+    $('b-nuevo').onclick = function () { nuevoChat(); };
+    marcar(); setInterval(marcar, 2000);
+})();
 })();
 </script>
 </body>
