@@ -162,6 +162,83 @@ body{height:100dvh;overflow:hidden}
 .m .tk{width:16px;height:11px;fill:#8696a0}
 .m .tk.l{fill:var(--azul)}
 .m a{color:var(--verde)}
+/* 2026-11-26: menú de cada chat en la lista (flechita al pasar el mouse, como WhatsApp) */
+.it .ics{display:flex;align-items:center;gap:3px;flex:none}
+.it .ics svg{width:16px;height:16px;fill:var(--txt2)}
+.it .b.gris{background:#5b6560;color:#fff}
+.it .b.pto{min-width:0;width:12px;height:12px;padding:0}
+.it .cfl{border:0;background:none;width:0;height:22px;overflow:hidden;opacity:0;padding:0;display:grid;place-items:center;flex:none;transition:width .12s,opacity .12s}
+.it .cfl svg{width:22px;height:22px;fill:var(--txt2)}
+.it:hover .cfl,.it.mon .cfl{width:22px;opacity:1}
+@media (hover:none){.it .cfl{display:none}.it{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}}
+.it.arch{padding:0 0 0 14px}
+.it.arch .ic{width:49px;height:49px;display:grid;place-items:center;flex:none}
+.it.arch .ic svg{width:22px;height:22px;fill:var(--verde)}
+.mlist .sub{font-weight:700;color:var(--verde)}
+/* 2026-11-26 (Jhoset): como WhatsApp: flechita y carita en cada mensaje, menú, reacciones, responder, fijar y destacar */
+.m .mfl{position:absolute;top:2px;right:2px;width:32px;height:24px;border:0;padding:0 0 0 6px;border-radius:0 14px 0 16px;display:grid;place-items:center;opacity:0;transition:opacity .12s;z-index:1}
+.m .mfl svg{width:20px;height:20px;fill:var(--txt2)}
+.m.el .mfl{background:radial-gradient(circle at 70% 40%,var(--burbuja-el) 58%,rgba(26,32,28,0) 82%)}
+.m.yo .mfl{background:radial-gradient(circle at 70% 40%,#62d64b 58%,rgba(98,214,75,0) 82%)}
+.m.yo .mfl svg{fill:#0b0d0c}
+.m.st .mfl,.m.solo-emo .mfl{background:var(--panel2);border-radius:50%;width:26px;height:26px;padding:0;top:0}
+.m .mre{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border:7px solid transparent;background:var(--panel2);background-clip:padding-box;border-radius:50%;padding:0;display:grid;place-items:center;opacity:0;transition:opacity .12s}
+.m .mre svg{width:19px;height:19px;fill:var(--txt2)}
+.m .mre:hover svg{fill:var(--txt)}
+.m.yo .mre{right:100%}
+.m.el .mre{left:100%}
+.m:hover .mfl,.m:hover .mre,.m.mon .mfl,.m.mon .mre{opacity:1}
+@media (hover:none){.m .mfl,.m .mre{display:none}.m{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}}
+.m .fw{display:flex;align-items:center;gap:4px;font-size:.76rem;font-style:italic;opacity:.72;margin-bottom:2px}
+.m .fw svg{width:14px;height:14px;fill:currentColor}
+.m .cita{display:block;border-left:4px solid var(--verde);background:rgba(0,0,0,.22);border-radius:8px;padding:5px 9px;margin:0 -4px 5px;font-size:.84rem;cursor:pointer;white-space:normal;line-height:1.3}
+.m.yo .cita{background:rgba(11,13,12,.13);border-left-color:#0b0d0c}
+.m .cita b{display:block;font-size:.78rem;color:var(--verde)}
+.m.yo .cita b{color:#0b0d0c}
+.m .cita span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;opacity:.85;white-space:pre-wrap}
+.m .borrado{display:inline-flex;align-items:center;gap:5px}
+.m .borrado svg{width:15px;height:15px;fill:currentColor;flex:none}
+.m.yo .borrado{color:rgba(11,13,12,.65)}
+.m .meta .ed{font-style:italic}
+.m .meta .es{font-size:.8rem}
+.m.con-reac{margin-bottom:17px}
+.m .reacs{position:absolute;bottom:-17px;display:flex;align-items:center;gap:1px;background:var(--panel2);border:1px solid var(--borde);border-radius:12px;padding:1px 6px;font-size:.88rem;cursor:pointer;white-space:nowrap;line-height:1.4;z-index:1;color:var(--txt)}
+.m.yo .reacs{right:10px}
+.m.el .reacs{left:10px}
+.m .reacs .n{font-size:.72rem;color:var(--txt2);margin-left:3px}
+.m .reacs.mia{border-color:rgba(166,243,74,.5)}
+.m.flash{animation:mflash 1.4s}
+@keyframes mflash{25%,60%{box-shadow:0 0 0 4px rgba(166,243,74,.6)}}
+.mmenu{position:fixed;z-index:92;display:flex;flex-direction:column;gap:8px;align-items:flex-start;max-width:calc(100vw - 16px)}
+.mmenu.der{align-items:flex-end}
+.rbar{display:flex;align-items:center;gap:2px;background:var(--panel2);border:1px solid var(--borde);border-radius:999px;padding:4px 6px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.rbar button{border:0;background:none;font-size:1.55rem;width:42px;height:42px;border-radius:50%;padding:0;line-height:1;transition:transform .12s}
+.rbar button:hover{transform:scale(1.18);background:var(--hover)}
+.rbar button.on{background:var(--chip)}
+.rbar .mas{font-size:1.4rem;color:var(--txt2);background:var(--panel3)}
+.mlist{background:var(--panel2);border:1px solid var(--borde);border-radius:14px;box-shadow:0 14px 40px rgba(0,0,0,.55);padding:6px 0;min-width:230px;color:var(--txt);overflow-y:auto}
+.mlist button{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:none;border:0;padding:10px 18px;font-size:.93rem}
+.mlist button:hover{background:var(--hover)}
+.mlist button svg{width:20px;height:20px;fill:var(--txt2);flex:none}
+.mlist hr{border:0;border-top:1px solid var(--borde);margin:6px 0}
+.mlist .rojo{color:#ff5c7a}.mlist .rojo svg{fill:#ff5c7a}
+.resp{flex:none;display:flex;align-items:center;gap:8px;padding:8px 10px 0;background:var(--panel);border-top:1px solid var(--borde)}
+.resp .q{flex:1;min-width:0;border-left:4px solid var(--verde);background:var(--panel3);border-radius:10px;padding:6px 10px;font-size:.86rem}
+.resp .q b{display:block;color:var(--verde);font-size:.8rem}
+.resp .q span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--txt2)}
+.resp + .barra{border-top:0}
+.fijado{flex:none;display:flex;align-items:center;gap:10px;padding:7px 8px 7px 16px;background:var(--panel);border-bottom:1px solid var(--borde);cursor:pointer}
+.fijado>svg{width:18px;height:18px;fill:var(--txt2);flex:none}
+.fijado .tx{flex:1;min-width:0;font-size:.88rem}
+.fijado small{display:block;color:var(--verde);font-size:.74rem;font-weight:700}
+.fijado span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--txt2)}
+.rpick{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr))}
+.rpick button{border:0;background:none;font-size:1.6rem;height:44px;border-radius:10px;padding:0}
+.rpick button:hover{background:var(--panel3)}
+.rpick .cat{grid-column:1/-1;font-size:.74rem;color:var(--txt2);font-weight:700;margin:10px 2px 4px;text-transform:uppercase}
+.fsel{display:flex;align-items:center;gap:12px;padding:8px 2px;border-bottom:1px solid var(--borde);cursor:pointer;color:var(--txt)!important;margin:0!important;font-size:.95rem!important;font-weight:400!important}
+.fsel input{width:18px;height:18px;accent-color:#16b84e;flex:none}
+.fsel .tx{flex:1;min-width:0}
 .barra{flex:none;display:flex;align-items:flex-end;gap:6px;padding:8px 8px calc(env(safe-area-inset-bottom,0px) + 8px);background:var(--panel);border-top:1px solid var(--borde)}
 .barra .caja{flex:1;display:flex;align-items:flex-end;background:var(--panel3);border:1px solid var(--borde);border-radius:16px;padding:0 4px 0 6px;min-width:0}
 .barra textarea{flex:1;border:0;outline:none;resize:none;padding:11px 6px;background:transparent;max-height:120px;height:44px;line-height:1.3;min-width:0}
@@ -340,7 +417,10 @@ setTimeout(quitarSplash, 4000);</script>
             <div class="chips">
                 <button class="chip on" data-f="todos">Todos</button>
                 <button class="chip" data-f="noleidos">No leídos</button>
+                <button class="chip" data-f="favoritos">Favoritos</button>
                 <button class="chip" data-f="grupos">Grupos</button>
+                <span id="chips-listas" style="display:contents"></span>
+                <button class="chip" data-nueva-lista title="Crear una lista">＋</button>
             </div>
             <div class="lista" id="lista-mis"></div>
         </section>
@@ -409,9 +489,11 @@ setTimeout(quitarSplash, 4000);</script>
                 <div class="tx"><div class="n" id="c-n"></div><div class="s" id="c-s"></div></div>
                 <button class="ib" id="b-cmenu" title="Más"><svg viewBox="0 0 24 24"><path d="M12 7a2 2 0 1 0-.001-4.001A2 2 0 0 0 12 7zm0 2a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 9zm0 6a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 15z"/></svg></button>
             </div>
+            <div class="fijado" id="fijado" hidden><svg viewBox="0 0 24 24"><path d="M16 9V4h1c.55 0 1-.45 1-1s-.45-1-1-1H7c-.55 0-1 .45-1 1s.45 1 1 1h1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3z"/></svg><div class="tx"><small>Mensaje fijado</small><span id="fijado-t"></span></div><button class="ib" id="fijado-x" title="Desfijar">✕</button></div>
             <div class="msgs" id="msgs"></div>
             <div class="aviso" id="aviso" hidden></div>
             <div class="prev" id="prev" hidden><div id="prev-m"></div><span style="flex:1;color:var(--txt2);font-size:.86rem" id="prev-t">Listo para enviar</span><button class="uvbtn" id="b-uv" title="Ver una sola vez">1</button><button class="ib" id="prev-x" title="Quitar">✕</button></div>
+            <div class="resp" id="resp" hidden><div class="q"><b id="resp-a"></b><span id="resp-t"></span></div><button type="button" class="ib" id="resp-x" title="Cancelar">✕</button></div>
             <div class="emo" id="emo" hidden>
                 <div class="et" id="emo-t"></div>
                 <div class="eb" id="emo-b"></div>
@@ -444,7 +526,7 @@ var U = '/chat/api';
 var SUPER = {{ auth('web')->user()?->es_superadmin ? 'true' : 'false' }};
 var CSRF = document.querySelector('meta[name=csrf-token]').content;
 var $ = function (id) { return document.getElementById(id); };
-var st = { nav: 'mensajes', tab: 'mis', filtro: 'todos', chats: { mis: [], general: [] }, solicitudes: 0, abierto: 0, ultimo: 0, info: null, adj: null, uv: false, escT: 0, sinLeer: 0, primera: true, origen: '', empPag: 1 };
+var st = { nav: 'mensajes', tab: 'mis', filtro: 'todos', chats: { mis: [], general: [] }, solicitudes: 0, abierto: 0, ultimo: 0, info: null, adj: null, uv: false, escT: 0, sinLeer: 0, primera: true, origen: '', empPag: 1, msgs: {}, cambios: 0, resp: 0, nArch: 0, verArch: false, listas: [] };
 var COL = ['#16b84e', '#3b82f6', '#7c3aed', '#e11d74', '#f59e0b', '#0ea5e9', '#ef4444', '#14b8a6', '#8b5cf6', '#22c55e'];
 var DIAS = 90;
 
@@ -522,15 +604,19 @@ $('b-cam').onclick = function () { $('f-est').click(); };
 function pintar(sec) {
     var box = $('lista-' + sec), q = (box.parentNode.querySelector('.q-chats') || {}).value || '';
     q = q.trim().toLowerCase();
+    if (sec === 'mis' && st.verArch) return pintarArch(box, q);
     var l = st.chats[sec].filter(function (c) {
-        if (sec === 'mis' && st.filtro === 'noleidos' && !c.sin_leer) return false;
+        if (sec === 'mis' && st.filtro === 'noleidos' && !c.sin_leer && !c.no_leido) return false;
         if (sec === 'mis' && st.filtro === 'grupos' && c.tipo !== 'grupo') return false;
+        if (sec === 'mis' && st.filtro === 'favoritos' && !c.favorito) return false;
+        if (sec === 'mis' && st.filtro.indexOf('lista:') === 0 && (c.listas || []).indexOf(+st.filtro.slice(6)) < 0) return false;
         return !q || (c.nombre || '').toLowerCase().indexOf(q) >= 0;
     });
     var h = '';
     if (sec === 'general' && st.solicitudes && !q) {
         h += '<div class="solic" data-ir="solic"><div class="ic"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg></div><div style="flex:1"><b>Solicitudes de mensaje</b><small>' + st.solicitudes + ' persona' + (st.solicitudes === 1 ? '' : 's') + ' que no conoces te escribió</small></div><span class="b" style="background:var(--verde);color:#0b0d0c;border-radius:11px;padding:2px 8px;font-size:.75rem;font-weight:800">' + st.solicitudes + '</span></div>';
     }
+    if (st.nArch && !q && (sec === 'general' || st.filtro === 'todos')) h += '<div class="it arch" data-ver-arch><div class="ic">' + ico('archivar') + '</div><div class="tx"><div class="r1"><span class="n">Archivados</span><span class="h">' + st.nArch + '</span></div></div></div>';
     h += l.map(itemHtml).join('');
     if (!st.chats[sec].length) {
         h += sec === 'mis'
@@ -540,14 +626,18 @@ function pintar(sec) {
     box.innerHTML = h;
 }
 function itemHtml(c) {
+    var nl = c.sin_leer || c.no_leido;
+    var badge = c.sin_leer ? '<span class="b' + (c.silenciado ? ' gris' : '') + '">' + c.sin_leer + '</span>' : (c.no_leido ? '<span class="b pto"></span>' : '');
+    var ics = (c.silenciado ? ico('silenciar') : '') + (c.fijado ? ico('fijar') : '') + (c.favorito ? ico('favorito') : '');
     return '<div class="it' + (c.id === st.abierto ? ' act' : '') + '" data-chat="' + c.id + '">' + avatar(c, '', c.tipo === 'grupo') +
-        '<div class="tx"><div class="r1"><span class="n">' + esc(c.nombre) + '</span>' + (c.empresa ? '<span class="tag">Empresa</span>' : '') + '<span class="h' + (c.sin_leer ? ' nl' : '') + '">' + esc(c.hora) + '</span></div>' +
-        '<div class="r2"><span class="u">' + (c.mio ? TK + ' ' : '') + esc(c.ultimo || (c.tipo === 'grupo' ? 'Grupo creado' : '')) + '</span>' + (c.sin_leer ? '<span class="b">' + c.sin_leer + '</span>' : '') + '</div></div></div>';
+        '<div class="tx"><div class="r1"><span class="n">' + esc(c.nombre) + '</span>' + (c.empresa ? '<span class="tag">Empresa</span>' : '') + '<span class="h' + (nl && !c.silenciado ? ' nl' : '') + '">' + esc(c.hora) + '</span></div>' +
+        '<div class="r2"><span class="u">' + (c.mio ? TK + ' ' : '') + esc(c.ultimo || (c.tipo === 'grupo' ? 'Grupo creado' : '')) + '</span>' + (ics ? '<span class="ics">' + ics + '</span>' : '') + badge +
+        '<button type="button" class="cfl" data-cfl title="Opciones del chat">' + ico('flecha') + '</button></div></div></div>';
 }
 function cargar(sec) {
     return api(U + '/chats?tab=' + sec).then(function (j) {
         if (!j.ok) return;
-        st.chats[sec] = j.chats; st.solicitudes = j.solicitudes;
+        st.chats[sec] = j.chats; st.solicitudes = j.solicitudes; st.nArch = j.archivados || 0;
         var tot = j.sin_leer_mis + j.sin_leer_general;
         $('pt-mis').hidden = !j.sin_leer_mis; $('pt-mis').textContent = j.sin_leer_mis;
         $('pt-general').hidden = !(j.sin_leer_general + j.solicitudes); $('pt-general').textContent = j.sin_leer_general + j.solicitudes;
@@ -559,7 +649,7 @@ function cargar(sec) {
         pintar(sec);
     }).catch(function () {});
 }
-function cargarChats() { cargar('mis'); return cargar('general'); }
+function cargarChats() { if (st.verArch) cargarArch(); cargar('mis'); return cargar('general'); }
 function cargarSolic() {
     api(U + '/chats?tab=solicitudes').then(function (j) {
         if (j.ok) $('lista-solic').innerHTML = j.chats.length ? j.chats.map(itemHtml).join('') : '<div class="vacio">No tienes solicitudes. 🙌</div>';
@@ -573,7 +663,7 @@ function avisar(chats) {
     } catch (e) {}
 }
 document.querySelectorAll('#p-mis .chip').forEach(function (b) {
-    b.onclick = function () { st.filtro = b.dataset.f; document.querySelectorAll('#p-mis .chip').forEach(function (x) { x.classList.toggle('on', x === b); }); pintar('mis'); };
+    b.onclick = function () { st.filtro = b.dataset.f; st.verArch = false; document.querySelectorAll('#p-mis .chip').forEach(function (x) { x.classList.toggle('on', x === b); }); pintar('mis'); };
 });
 document.querySelectorAll('.q-chats').forEach(function (i) { i.oninput = function () { pintar(i.closest('section').id.slice(2)); }; });
 
@@ -781,7 +871,7 @@ function urlChat(id) {
 }
 function abrirChat(id) {
     if (!id) return;
-    st.abierto = id; st.ultimo = 0; st.info = null;
+    st.abierto = id; st.ultimo = 0; st.info = null; st.msgs = {}; st.cambios = 0; cerrarMenuMsg(); quitarResp();
     $('bienv').hidden = true; $('conv').hidden = false; $('msgs').innerHTML = ''; $('msgs').dataset.dia = ''; $('msgs').dataset.autor = ''; $('aviso').hidden = true;
     $('app').classList.add('abierto'); quitarAdj();
     var url = urlChat(id);
@@ -801,7 +891,7 @@ function traer(primera) {
     if (!st.abierto || cargando) return;
     cargando = true;
     var id = st.abierto;
-    api(U + '/chat/' + id + (st.ultimo ? '?desde=' + st.ultimo : '')).then(function (j) {
+    api(U + '/chat/' + id + (st.ultimo ? '?desde=' + st.ultimo + '&cambios=' + (st.cambios || 0) : '')).then(function (j) {
         cargando = false;
         if (id !== st.abierto) return;
         if (!j.ok) { toast('Esta conversación no está disponible.'); return cerrarChat(); }
@@ -813,6 +903,9 @@ function traer(primera) {
         var box = $('msgs'), abajo = box.scrollHeight - box.scrollTop - box.clientHeight < 140;
         if (primera) box.insertAdjacentHTML('beforeend', '<div class="sis">🔒 Chat privado: los mensajes se guardan cifrados y solo los ven las personas de este chat.</div>');
         j.mensajes.forEach(function (m) { pintarMsg(box, m); });
+        (j.cambiados || []).forEach(repintarMsg);
+        if (j.ahora) st.cambios = j.ahora;
+        pintarFijado(j.chat.fijado);
         if (j.mensajes.length) st.ultimo = j.mensajes[j.mensajes.length - 1].id;
         box.querySelectorAll('.m.yo .tk:not(.l)').forEach(function (t) { if (+t.closest('.m').dataset.m <= j.leido_otros) t.classList.add('l'); });
         if (primera || abajo || (j.mensajes.length && j.mensajes[j.mensajes.length - 1].mio)) box.scrollTop = box.scrollHeight;
@@ -831,9 +924,48 @@ function pintarMsg(box, m) {
     if (m.dia !== box.dataset.dia) { box.insertAdjacentHTML('beforeend', '<div class="dia">' + diaTxt(m.dia) + '</div>'); box.dataset.dia = m.dia; box.dataset.autor = ''; }
     if (m.sistema) { box.insertAdjacentHTML('beforeend', '<div class="sis" data-m="' + m.id + '">' + esc(m.texto) + '</div>'); box.dataset.autor = ''; return; }
     var pri = box.dataset.autor !== String(m.autor_id); box.dataset.autor = m.autor_id;
+    st.msgs[m.id] = m;
+    box.insertAdjacentHTML('beforeend', msgHtml(m, pri));
+}
+/* 2026-11-26: un mensaje que cambió (reacción, editado, eliminado, destacado): se pinta de nuevo en su sitio. */
+function repintarMsg(m) {
+    var el = $('msgs').querySelector('.m[data-m="' + m.id + '"]');
+    if (!el || m.sistema) return;
+    var antes = st.msgs[m.id];
+    if (antes && JSON.stringify(antes) === JSON.stringify(m)) return; // igual: no se toca (no corta un video que se está viendo)
+    st.msgs[m.id] = m;
+    var tmp = document.createElement('div'); tmp.innerHTML = msgHtml(m, el.classList.contains('pri'));
+    el.replaceWith(tmp.firstChild);
+}
+var ICO = {
+    flecha: 'M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z',
+    cara: 'M15.5 11c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5zM11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z',
+    info: 'M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z',
+    responder: 'M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z',
+    copiar: 'M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z',
+    reenviar: 'M14 9V5l7 7-7 7v-4.1c-5 0-8.5 1.6-11 5.1 1-5 4-10 11-11z',
+    difusion: 'M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM20.4 5.6c-.4-.53-.8-1.07-1.2-1.6-.99.74-2.24 1.68-3.2 2.4.4.53.8 1.07 1.2 1.6.96-.72 2.21-1.65 3.2-2.4zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4zm11.5 3c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z',
+    fijar: 'M16 9V4h1c.55 0 1-.45 1-1s-.45-1-1-1H7c-.55 0-1 .45-1 1s.45 1 1 1h1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3z',
+    destacar: 'M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4l-3.76 2.27 1-4.28-3.32-2.88 4.38-.38L12 6.1l1.71 4.04 4.38.38-3.32 2.88 1 4.28L12 15.4z',
+    editar: 'M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z',
+    nota: 'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z',
+    eliminar: 'M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5-1-1h-5l-1 1H5v2h14V4h-3.5z',
+    archivar: 'M20.54 5.23l-1.39-1.68C18.88 3.21 18.47 3 18 3H6c-.47 0-.88.21-1.16.55L3.46 5.23C3.17 5.57 3 6.02 3 6.5V19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6.5c0-.48-.17-.93-.46-1.27zM12 17.5 6.5 12H10v-2h4v2h3.5L12 17.5zM5.12 5l.81-1h12l.94 1H5.12z',
+    silenciar: 'M20 18.69 7.84 6.14 5.27 3.49 4 4.76l2.8 2.8v.01c-.52.99-.8 2.16-.8 3.42v5l-2 2v1h13.73l2 2L21 19.72l-1-1.03zM12 22c1.11 0 2-.89 2-2h-4c0 1.11.89 2 2 2zm6-7.32V11c0-3.08-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68c-.15.03-.29.08-.42.12-.1.03-.2.07-.3.11h-.01c-.01 0-.01 0-.02.01-.23.09-.46.2-.68.31 0 0-.01 0-.01.01L18 14.68z',
+    sonar: 'M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z',
+    noleido: 'M22 6.98V16c0 1.1-.9 2-2 2H6l-4 4V4c0-1.1.9-2 2-2h10.1c-.06.32-.1.66-.1 1 0 2.76 2.24 5 5 5 1.13 0 2.16-.39 3-1.02zM16 3c0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3-3 1.34-3 3z',
+    favorito: 'M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z',
+    lista: 'M14 10H3v2h11v-2zm0-4H3v2h11V6zm4 8v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM3 16h7v-2H3v2z',
+    vaciar: 'M7 11v2h10v-2H7zm5-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z',
+    salir: 'M10.09 15.59 11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5a2 2 0 0 0-2 2v4h2V5h14v14H5v-4H3v4a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z',
+    bloq: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9A7.902 7.902 0 0 1 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1A7.902 7.902 0 0 1 20 12c0 4.42-3.58 8-8 8z'
+};
+function ico(n) { return '<svg viewBox="0 0 24 24"><path d="' + ICO[n] + '"/></svg>'; }
+function msgHtml(m, pri) {
     var media = '';
     var nom = { foto: 'Foto', video: 'Video', audio: 'Audio', sticker: 'Sticker' }[m.adj] || 'Archivo';
-    if (m.una_vez) {
+    if (m.borrado) media = '<span class="borrado">' + ico('bloq') + (m.mio ? 'Eliminaste este mensaje' : 'Se eliminó este mensaje') + '</span>';
+    else if (m.una_vez) {
         media = m.mio ? '<div class="uv off"><span class="c">1</span>' + nom + (m.abierto ? ' · abierto' : ' · para ver una vez') + '</div>'
             : (m.abierto ? '<div class="uv off"><span class="c">1</span>' + nom + ' · ya lo abriste</div>' : '<div class="uv" data-uv="' + m.id + '" data-t="' + m.adj + '"><span class="c">1</span>Ver ' + nom.toLowerCase() + ' una vez</div>');
     } else if (m.adj && !m.url) media = '<div class="borrado">' + nom + ' borrado</div>';
@@ -841,10 +973,21 @@ function pintarMsg(box, m) {
     else if (m.adj === 'foto') media = '<img src="' + esc(m.url) + '" alt="Foto" loading="lazy">';
     else if (m.adj === 'video') media = '<video src="' + esc(m.url) + '#t=0.1" controls playsinline preload="metadata"></video>';
     else if (m.adj === 'audio') media = '<audio src="' + esc(m.url) + '" controls preload="metadata"></audio>';
-    var extra = m.adj === 'sticker' && m.url ? ' st' : (!m.adj && soloEmoji(m.texto) ? ' solo-emo' : '');
-    box.insertAdjacentHTML('beforeend', '<div class="m ' + (m.mio ? 'yo' : 'el') + (pri ? ' pri' : '') + extra + '" data-m="' + m.id + '"' + (extra === ' st' && !m.mio ? ' data-st="' + m.id + '"' : '') + '>' +
-        (m.autor && pri ? '<span class="au" style="color:' + color(m.autor) + '">' + esc(m.autor) + '</span>' : '') + media + (m.texto ? enlaces(m.texto) : '') +
-        '<span class="meta">' + esc(m.hora) + (m.mio ? TK.replace('class="tk"', 'class="tk' + (m.leido ? ' l' : '') + '"') : '') + '</span></div>');
+    var extra = m.borrado ? '' : (m.adj === 'sticker' && m.url ? ' st' : (!m.adj && soloEmoji(m.texto) && !m.responde ? ' solo-emo' : ''));
+    var rs = m.reacciones || [], reac = '';
+    if (rs.length) {
+        var tot = 0, mia = false; rs.forEach(function (r) { tot += r.n; if (r.mio) mia = true; });
+        reac = '<span class="reacs' + (mia ? ' mia' : '') + '" data-reacs="' + m.id + '" title="Ver reacciones">' + rs.slice(0, 3).map(function (r) { return esc(r.e); }).join('') + (tot > 1 ? '<span class="n">' + tot + '</span>' : '') + '</span>';
+    }
+    return '<div class="m ' + (m.mio ? 'yo' : 'el') + (pri ? ' pri' : '') + extra + (reac ? ' con-reac' : '') + '" data-m="' + m.id + '"' + (extra === ' st' && !m.mio ? ' data-st="' + m.id + '"' : '') + '>' +
+        (m.autor && pri ? '<span class="au" style="color:' + color(m.autor) + '">' + esc(m.autor) + '</span>' : '') +
+        (m.reenviado ? '<span class="fw">' + ico('reenviar') + 'Reenviado</span>' : '') +
+        (m.responde ? '<span class="cita" data-ir="' + m.responde.id + '"><b>' + esc(m.responde.autor) + '</b><span>' + esc(m.responde.texto) + '</span></span>' : '') +
+        media + (m.texto && !m.borrado ? enlaces(m.texto) : '') +
+        '<span class="meta">' + (m.destacado ? '<span class="es">★</span>' : '') + (m.editado ? '<span class="ed">Editado</span>' : '') + esc(m.hora) + (m.mio && !m.borrado ? TK.replace('class="tk"', 'class="tk' + (m.leido ? ' l' : '') + '"') : '') + '</span>' +
+        '<button type="button" class="mfl" data-mfl title="Menú">' + ico('flecha') + '</button>' +
+        (m.borrado ? '' : '<button type="button" class="mre" data-mre title="Reaccionar">' + ico('cara') + '</button>') + reac +
+        '</div>';
 }
 function diaTxt(d) {
     var hoy = new Date(), ay = new Date(); ay.setDate(hoy.getDate() - 1);
@@ -916,6 +1059,8 @@ function enviar() {
     var t = $('txt').value.trim();
     if (!t && !st.adj) return;
     var fd = new FormData(); fd.append('texto', t);
+    if (st.resp) fd.append('responde_id', st.resp);
+    quitarResp();
     if (st.adj) { fd.append('archivo', st.adj.f, st.adj.f.name || ('audio.' + (st.adj.f.type.indexOf('mp4') > 0 ? 'm4a' : 'webm'))); if (st.adj.audio) fd.append('es_audio', 1); if (st.uv) fd.append('una_vez', 1); }
     var tenia = st.adj;
     $('txt').value = ''; autoAlto(); quitarAdj();
@@ -925,6 +1070,411 @@ function enviar() {
         traer(false); cargarChats();
     }).catch(function () { toast('Sin conexión. No se envió.'); $('txt').value = t; actualizarBotones(); });
 }
+/* ---------- Menú de cada mensaje (2026-11-26, como WhatsApp) ----------
+   Computador: flechita (arriba a la derecha del mensaje) o clic derecho = menú; carita al lado = reaccionar.
+   Celular: mantener presionado el mensaje. */
+var REAC = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
+function urlM(id, acc) { return U + '/chat/' + st.abierto + '/m/' + id + (acc ? '/' + acc : ''); }
+function cerrarMenuMsg() {
+    var x = $('mmenu'); if (x) x.remove();
+    document.querySelectorAll('.m.mon,.it.mon').forEach(function (e) { e.classList.remove('mon'); });
+}
+function puedeEscribirAqui() { return !$('barra').hidden; }
+function abrirMenuMsg(id, ancla, soloReac) {
+    cerrarMenuMsg(); cerrarMenu();
+    var m = st.msgs[id], el = $('msgs').querySelector('.m[data-m="' + id + '"]');
+    if (!m || !el) return;
+    el.classList.add('mon');
+    var d = document.createElement('div'); d.className = 'mmenu' + (m.mio ? ' der' : ''); d.id = 'mmenu';
+    var h = '';
+    if (!m.borrado && puedeEscribirAqui()) {
+        var mia = (m.reacciones || []).filter(function (r) { return r.mio; })[0];
+        h += '<div class="rbar">' + REAC.map(function (e) { return '<button type="button" data-reac="' + e + '"' + (mia && mia.e === e ? ' class="on"' : '') + '>' + e + '</button>'; }).join('') +
+            '<button type="button" class="mas" data-reac-mas title="Más emojis">+</button></div>';
+    }
+    if (!soloReac) {
+        var it = [];
+        if (m.borrado) it.push(['eliminar', 'Eliminar', 'ocultar', true]);
+        else {
+            it.push(['info', 'Info. del mensaje', 'info']);
+            if (puedeEscribirAqui()) it.push(['responder', 'Responder', 'responder']);
+            if (m.texto) it.push(['copiar', 'Copiar', 'copiar']);
+            if (puedeEscribirAqui()) it.push(['cara', 'Reaccionar', 'reaccionar']);
+            if (!m.una_vez) { it.push(['reenviar', 'Reenviar', 'reenviar']); it.push(['difusion', 'Nueva difusión', 'difusion']); }
+            if (puedeEscribirAqui()) it.push(['fijar', st.info && st.info.fijado && st.info.fijado.id === m.id ? 'Desfijar' : 'Fijar', 'fijar']);
+            it.push(['destacar', m.destacado ? 'No destacar' : 'Destacar', 'destacar']);
+            if (m.editable) it.push(['editar', 'Editar', 'editar']);
+            if (m.texto) it.push(['nota', 'Añadir texto a la nota', 'nota']);
+            it.push(['eliminar', 'Eliminar', 'eliminar', true]);
+        }
+        h += '<div class="mlist">' + it.map(function (x) { return (x[3] ? '<hr>' : '') + '<button type="button" data-macc="' + x[2] + '"' + (x[3] ? ' class="rojo"' : '') + '>' + ico(x[0]) + esc(x[1]) + '</button>'; }).join('') + '</div>';
+    }
+    d.innerHTML = h;
+    document.body.appendChild(d);
+    // Se ubica junto al mensaje (abajo si cabe; si no, arriba) sin salirse de la pantalla.
+    var r = (ancla || el).getBoundingClientRect(), b = el.getBoundingClientRect(), W = window.innerWidth, H = window.innerHeight;
+    var lst = d.querySelector('.mlist'); if (lst) lst.style.maxHeight = (H - 90) + 'px';
+    var dw = d.offsetWidth, dh = d.offsetHeight;
+    var left = m.mio ? b.right - dw : b.left;
+    if (soloReac && ancla) left = m.mio ? r.right - dw + 20 : r.left - 20;
+    left = Math.max(8, Math.min(left, W - dw - 8));
+    var top = r.bottom + 6;
+    if (top + dh > H - 8) top = r.top - dh - 6;
+    if (top < 8) top = Math.max(8, (H - dh) / 2);
+    d.style.left = left + 'px'; d.style.top = top + 'px';
+    d.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var rb = e.target.closest('[data-reac]');
+        if (rb) { cerrarMenuMsg(); return reaccionar(id, rb.dataset.reac); }
+        if (e.target.closest('[data-reac-mas]')) { cerrarMenuMsg(); return elegirReaccion(id); }
+        var a = e.target.closest('[data-macc]'); if (!a) return;
+        cerrarMenuMsg(); accionMsg(id, a.dataset.macc);
+    });
+}
+document.addEventListener('click', function (e) { if ($('mmenu') && !e.target.closest('#mmenu')) cerrarMenuMsg(); });
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { cerrarMenuMsg(); } });
+$('msgs').addEventListener('scroll', cerrarMenuMsg, { passive: true });
+window.addEventListener('resize', cerrarMenuMsg);
+/* Flechita, carita, reacciones y citas (va antes que el clic de fotos/stickers) */
+$('msgs').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-mfl]');
+    if (b) { e.stopPropagation(); e.preventDefault(); var id = +b.closest('.m').dataset.m; if ($('mmenu') && $('msgs').querySelector('.m.mon[data-m="' + id + '"]')) return cerrarMenuMsg(); return abrirMenuMsg(id, b); }
+    b = e.target.closest('[data-mre]');
+    if (b) { e.stopPropagation(); e.preventDefault(); return abrirMenuMsg(+b.closest('.m').dataset.m, b, true); }
+    b = e.target.closest('[data-reacs]');
+    if (b) { e.stopPropagation(); return verReacciones(+b.dataset.reacs); }
+    b = e.target.closest('.cita[data-ir]');
+    if (b) { e.stopPropagation(); return irAMsg(+b.dataset.ir); }
+}, true);
+/* Clic derecho (computador) o mantener presionado (celular) = menú */
+var lp = { t: 0, x: 0, y: 0, hecho: 0 };
+$('msgs').addEventListener('contextmenu', function (e) {
+    var el = e.target.closest('.m[data-m]'); if (!el) return;
+    if (e.target.closest('a,video,audio') && window.matchMedia('(hover:hover)').matches) return; // en el computador deja copiar links o guardar
+    e.preventDefault();
+    if (Date.now() - lp.hecho < 700) return;
+    abrirMenuMsg(+el.dataset.m);
+});
+$('msgs').addEventListener('touchstart', function (e) {
+    var el = e.target.closest('.m[data-m]'); if (!el || e.touches.length > 1) return;
+    lp.x = e.touches[0].clientX; lp.y = e.touches[0].clientY;
+    clearTimeout(lp.t);
+    lp.t = setTimeout(function () { lp.hecho = Date.now(); if (navigator.vibrate) try { navigator.vibrate(15); } catch (x) {} abrirMenuMsg(+el.dataset.m); }, 480);
+}, { passive: true });
+$('msgs').addEventListener('touchmove', function (e) { if (Math.abs(e.touches[0].clientX - lp.x) > 10 || Math.abs(e.touches[0].clientY - lp.y) > 10) clearTimeout(lp.t); }, { passive: true });
+$('msgs').addEventListener('touchend', function (e) { clearTimeout(lp.t); if (Date.now() - lp.hecho < 600) e.preventDefault(); });
+$('msgs').addEventListener('touchcancel', function () { clearTimeout(lp.t); });
+
+function irAMsg(id) {
+    var el = id && $('msgs').querySelector('[data-m="' + id + '"]');
+    if (!el) return toast('Ese mensaje es más antiguo y ya no está cargado aquí.');
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+}
+function textoCorto(m) {
+    if (m.borrado) return 'Se eliminó este mensaje';
+    var nom = { foto: '📷 Foto', video: '🎥 Video', audio: '🎤 Audio', sticker: '🧩 Sticker' }[m.adj] || (m.adj ? '📎 Archivo' : '');
+    return (nom + (nom && m.texto ? ' · ' : '') + (m.texto || '')).slice(0, 160);
+}
+function copiarTexto(v) {
+    (navigator.clipboard ? navigator.clipboard.writeText(v) : Promise.reject()).then(function () { toast('Mensaje copiado.'); }, function () {
+        var t = document.createElement('textarea'); t.value = v; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (x) {} t.remove(); toast('Mensaje copiado.');
+    });
+}
+function reaccionar(id, e) {
+    var m = st.msgs[id]; if (!m) return;
+    post(urlM(id, 'reaccionar'), { emoji: e }).then(function (j) { if (!j.ok) return toast(j.mensaje || 'No se pudo reaccionar.'); traer(false); });
+}
+function elegirReaccion(id) {
+    ventana('Reaccionar', '<div class="rpick">' + EMOJIS.map(function (c) { return '<div class="cat">' + c[1] + '</div>' + c[2].split(' ').map(function (x) { return '<button type="button" data-rp="' + x + '">' + x + '</button>'; }).join(''); }).join('') + '</div>');
+    document.querySelector('.rpick').onclick = function (e) { var b = e.target.closest('[data-rp]'); if (!b) return; cerrarVentana(); emoUsar(b.dataset.rp); reaccionar(id, b.dataset.rp); };
+}
+function verReacciones(id) {
+    var m = st.msgs[id]; if (!m || !(m.reacciones || []).length) return;
+    var h = m.reacciones.map(function (r) {
+        return '<div class="fila"><div style="font-size:1.7rem;width:42px;text-align:center">' + esc(r.e) + '</div><div class="tx">' + r.quien.map(esc).join(', ') + '<small>' + r.n + (r.n === 1 ? ' persona' : ' personas') + '</small></div>' +
+            (r.mio ? '<button class="bt sec" data-quitar-reac>Quitar</button>' : '') + '</div>';
+    }).join('');
+    ventana('Reacciones', h);
+    var q = document.querySelector('[data-quitar-reac]'); if (q) q.onclick = function () { cerrarVentana(); reaccionar(id, ''); };
+}
+function ponerResp(id) {
+    var m = st.msgs[id]; if (!m) return;
+    st.resp = id;
+    $('resp-a').textContent = m.mio ? 'Tú' : (m.autor || (st.info && st.info.nombre) || '');
+    $('resp-t').textContent = textoCorto(m);
+    $('resp').hidden = false; $('txt').focus();
+}
+function quitarResp() { st.resp = 0; if ($('resp')) $('resp').hidden = true; }
+$('resp-x').onclick = quitarResp;
+function pintarFijado(f) {
+    if (st.info) st.info.fijado = f || null;
+    $('fijado').hidden = !f;
+    if (f) { $('fijado-t').textContent = f.texto; $('fijado').dataset.id = f.id; }
+}
+$('fijado').onclick = function (e) { if (e.target.closest('#fijado-x')) return; irAMsg(+this.dataset.id); };
+$('fijado-x').onclick = function (e) { e.stopPropagation(); var id = +$('fijado').dataset.id; post(urlM(id, 'fijar')).then(function (j) { if (!j.ok) return toast(j.mensaje || 'No se pudo.'); toast('Mensaje desfijado.'); traer(false); }); };
+
+function accionMsg(id, acc) {
+    var m = st.msgs[id]; if (!m) return;
+    if (acc === 'responder') return ponerResp(id);
+    if (acc === 'copiar') return copiarTexto(m.texto || '');
+    if (acc === 'reaccionar') return abrirMenuMsg(id, null, true);
+    if (acc === 'reenviar' || acc === 'difusion') return reenviarMsg(id, acc === 'difusion');
+    if (acc === 'info') {
+        return api(urlM(id, 'info')).then(function (j) {
+            if (!j.ok) return toast(j.mensaje || 'No se pudo.');
+            var h = '<div class="m ' + (m.mio ? 'yo' : 'el') + '" style="max-width:100%;margin:0 0 12px auto;pointer-events:none">' + esc(textoCorto(m)) + '</div>' +
+                '<div class="fila"><div class="tx">Enviado' + (m.mio ? '' : ' por ' + esc(j.autor)) + '<small>' + esc(j.enviado) + '</small></div></div>' +
+                (j.editado ? '<div class="fila"><div class="tx">Editado<small>' + esc(j.editado) + '</small></div></div>' : '');
+            if (j.mio) {
+                if (st.info && st.info.tipo === 'directo') h += '<div class="fila"><div class="tx">' + (j.leyeron.length ? '<span style="color:var(--verde)">✓✓ Leído</span>' : '✓✓ Entregado') + '<small>' + (j.leyeron.length ? 'Ya lo vio' : 'Aún no lo ha visto') + '</small></div></div>';
+                else h += '<label>Leído por (' + j.leyeron.length + ')</label>' + (j.leyeron.length ? j.leyeron.map(function (n) { return '<div class="fila"><div class="tx">' + esc(n) + '</div></div>'; }).join('') : '<p style="color:var(--txt2);margin:4px 0">Nadie todavía.</p>') +
+                    '<label>Falta por leer (' + j.faltan.length + ')</label>' + j.faltan.map(function (n) { return '<div class="fila"><div class="tx">' + esc(n) + '</div></div>'; }).join('');
+            }
+            ventana('Info. del mensaje', h);
+        });
+    }
+    if (acc === 'fijar') {
+        return post(urlM(id, 'fijar')).then(function (j) { if (!j.ok) return toast(j.mensaje || 'No se pudo.'); toast(j.fijado ? '📌 Mensaje fijado para todos en este chat.' : 'Mensaje desfijado.'); traer(false); });
+    }
+    if (acc === 'destacar') {
+        return post(urlM(id, 'destacar')).then(function (j) {
+            if (!j.ok) return toast(j.mensaje || 'No se pudo.');
+            var n = JSON.parse(JSON.stringify(m)); n.destacado = j.destacado; repintarMsg(n);
+            toast(j.destacado ? '★ Mensaje destacado.' : 'Ya no está destacado.');
+        });
+    }
+    if (acc === 'nota') {
+        return post(urlM(id, 'nota')).then(function (j) { if (!j.ok) return toast(j.mensaje || 'No se pudo.'); toast('📝 Añadido a la nota del chat (menú ⋮ → Nota del chat).'); });
+    }
+    if (acc === 'editar') {
+        ventana('Editar mensaje', '<textarea id="ed-t" rows="4" maxlength="4000" style="width:100%">' + esc(m.texto || '') + '</textarea><p style="color:var(--txt2);font-size:.82rem;margin:6px 0 0">Se puede editar durante 15 minutos. Los demás verán que dice "Editado".</p>',
+            '<button class="bt sec" data-cerrar>Cancelar</button><button class="bt" id="ed-ok">Guardar</button>');
+        var t = $('ed-t'); t.focus(); t.selectionStart = t.selectionEnd = t.value.length;
+        $('ed-ok').onclick = function () {
+            post(urlM(id, 'editar'), { texto: t.value }).then(function (j) { if (!j.ok) return toast(j.mensaje || 'No se pudo editar.'); cerrarVentana(); traer(false); });
+        };
+        return;
+    }
+    if (acc === 'ocultar') return ocultarMsg(id);
+    if (acc === 'eliminar') {
+        ventana('¿Eliminar mensaje?', '<p style="margin:0;color:var(--txt2)">' + (m.borrable ? 'Puedes eliminarlo para todos (desaparece en este chat para todos) o solo para ti.' : 'Se quitará solo de tu pantalla; los demás lo siguen viendo.') + '</p>',
+            '<button class="bt sec" data-cerrar>Cancelar</button><button class="bt sec" id="el-mi">Eliminar para mí</button>' + (m.borrable ? '<button class="bt rojo" id="el-todos">Eliminar para todos</button>' : ''));
+        $('el-mi').onclick = function () { cerrarVentana(); ocultarMsg(id); };
+        if ($('el-todos')) $('el-todos').onclick = function () {
+            cerrarVentana();
+            post(urlM(id, 'eliminar')).then(function (j) { if (!j.ok) return toast(j.mensaje || 'No se pudo eliminar.'); if (st.resp === id) quitarResp(); traer(false); cargarChats(); });
+        };
+    }
+}
+function ocultarMsg(id) {
+    post(urlM(id, 'ocultar')).then(function (j) {
+        if (!j.ok) return toast(j.mensaje || 'No se pudo eliminar.');
+        var el = $('msgs').querySelector('[data-m="' + id + '"]'); if (el) el.remove();
+        delete st.msgs[id]; if (st.resp === id) quitarResp();
+        toast('Mensaje eliminado para ti.');
+    });
+}
+/* Reenviar (hasta 5 chats) · Nueva difusión (el mismo mensaje a muchos contactos a la vez, hasta 50, cada uno lo recibe en su chat) */
+function reenviarMsg(id, difusion) {
+    var max = difusion ? 50 : 5, vistos = {}, lista = [];
+    ['mis', 'general'].forEach(function (s) { (st.chats[s] || []).forEach(function (c) { if (!vistos[c.id] && (!difusion || c.tipo === 'directo')) { vistos[c.id] = 1; lista.push(c); } }); });
+    if (!lista.length) return toast(difusion ? 'Aún no tienes contactos para la difusión.' : 'No tienes chats para reenviar.');
+    ventana(difusion ? 'Nueva difusión' : 'Reenviar mensaje',
+        (difusion ? '<p style="margin:0 0 8px;color:var(--txt2);font-size:.88rem">Escoge a quién enviarle este mensaje (hasta ' + max + '). Cada persona lo recibe en su chat contigo, como un mensaje normal.</p>' : '') +
+        '<input type="text" id="fw-q" placeholder="Buscar chat" style="margin-bottom:6px">' +
+        (difusion ? '<label class="fsel" style="font-weight:700!important"><input type="checkbox" id="fw-todos"><div class="tx">Seleccionar todos</div></label>' : '') +
+        '<div id="fw-l">' + lista.map(function (c) { return '<label class="fsel" data-n="' + esc(sinTilde(c.nombre)) + '"><input type="checkbox" class="fw-c" value="' + c.id + '">' + avatar(c, 'p', c.tipo === 'grupo') + '<div class="tx">' + esc(c.nombre) + '</div></label>'; }).join('') + '</div>',
+        '<span id="fw-n" style="margin-right:auto;color:var(--txt2);align-self:center;font-size:.88rem">0 de ' + max + '</span><button class="bt sec" data-cerrar>Cancelar</button><button class="bt" id="fw-ok">Enviar</button>');
+    var cuenta = function () {
+        var ch = document.querySelectorAll('.fw-c:checked');
+        document.querySelectorAll('.fw-c:not(:checked)').forEach(function (x) { x.disabled = ch.length >= max; });
+        $('fw-n').textContent = ch.length + ' de ' + max;
+    };
+    $('fw-l').onchange = cuenta;
+    $('fw-q').oninput = function () { var q = sinTilde(this.value.trim()); document.querySelectorAll('#fw-l .fsel').forEach(function (f) { f.hidden = q && f.dataset.n.indexOf(q) < 0; }); };
+    if ($('fw-todos')) $('fw-todos').onchange = function () { var on = this.checked, n = 0; document.querySelectorAll('#fw-l .fsel:not([hidden]) .fw-c').forEach(function (x) { x.disabled = false; x.checked = on && n++ < max; }); cuenta(); };
+    $('fw-ok').onclick = function () {
+        var ids = [].slice.call(document.querySelectorAll('.fw-c:checked')).map(function (x) { return +x.value; });
+        if (!ids.length) return toast('Escoge al menos un chat.');
+        this.disabled = true;
+        post(urlM(id, 'reenviar'), { chats: ids, difusion: difusion ? 1 : 0 }).then(function (j) {
+            if (!j.ok) { $('fw-ok').disabled = false; return toast(j.mensaje || 'No se pudo enviar.'); }
+            cerrarVentana(); toast(difusion ? '📣 Difusión enviada a ' + j.enviados + ' contacto' + (j.enviados === 1 ? '' : 's') + '.' : 'Mensaje reenviado' + (j.enviados > 1 ? ' a ' + j.enviados + ' chats' : '') + '.');
+            traer(false); cargarChats();
+        }).catch(function () { $('fw-ok').disabled = false; toast('Sin conexión.'); });
+    };
+}
+function verDestacados() {
+    api(U + '/chat/' + st.abierto + '/destacados').then(function (j) {
+        if (!j.ok) return toast('No se pudo.');
+        ventana('★ Mensajes destacados', j.mensajes.length ? j.mensajes.map(function (x) { return '<div class="fila" data-dest="' + x.id + '" style="cursor:pointer"><div class="tx"><b>' + esc(x.autor) + '</b><small style="color:var(--txt);white-space:pre-wrap">' + esc(x.texto) + '</small></div><small>' + esc(x.hora) + '</small></div>'; }).join('')
+            : '<p style="color:var(--txt2);text-align:center">No tienes mensajes destacados en este chat.<br>Abre el menú de un mensaje y toca <b>Destacar</b>.</p>');
+        document.querySelectorAll('[data-dest]').forEach(function (f) { f.onclick = function () { cerrarVentana(); irAMsg(+f.dataset.dest); }; });
+    });
+}
+function verNota() {
+    api(U + '/chat/' + st.abierto + '/nota').then(function (j) {
+        if (!j.ok) return toast('No se pudo.');
+        ventana('📝 Nota del chat', '<p style="margin:0 0 8px;color:var(--txt2);font-size:.85rem">Solo tú la ves. Úsala para apuntar datos de este chat (pedidos, direcciones, acuerdos).</p><textarea id="nota-t" rows="9" maxlength="8000" style="width:100%">' + esc(j.nota || '') + '</textarea>',
+            '<button class="bt sec" data-cerrar>Cerrar</button><button class="bt" id="nota-ok">Guardar</button>');
+        $('nota-ok').onclick = function () { post(U + '/chat/' + st.abierto + '/nota', { nota: $('nota-t').value }).then(function (r) { if (!r.ok) return toast(r.mensaje || 'No se pudo guardar.'); cerrarVentana(); toast('Nota guardada.'); }); };
+    });
+}
+
+/* ---------- Menú de cada chat en la lista (2026-11-26, como WhatsApp) ----------
+   Computador: flechita al pasar el mouse por el chat (o clic derecho). Celular: mantener presionado el chat. */
+function chatDe(id) {
+    var c = null;
+    ['mis', 'general', 'archivados'].forEach(function (s) { (st.chats[s] || []).forEach(function (x) { if (x.id === id) c = x; }); });
+    return c;
+}
+function urlC(id, acc) { return U + '/chat/' + id + '/opcion/' + acc; }
+function menuChat(id, ancla, sub) {
+    cerrarMenuMsg(); cerrarMenu();
+    var c = chatDe(id), it = $('p-' + (st.tab === 'general' ? 'general' : 'mis')).querySelector('.it[data-chat="' + id + '"]') || document.querySelector('.it[data-chat="' + id + '"]');
+    if (!c || !it) return;
+    it.classList.add('mon');
+    var l = [];
+    if (sub === 'silenciar') {
+        l.push(['silenciar', '‹ Silenciar notificaciones', 'volver', false, 'sub']);
+        l.push(['silenciar', 'Durante 8 horas', 'sil:8']); l.push(['silenciar', 'Durante 1 semana', 'sil:168']); l.push(['silenciar', 'Siempre', 'sil:-1']);
+    } else {
+        l.push(['archivar', c.archivado ? 'Desarchivar chat' : 'Archivar chat', 'archivar']);
+        l.push(c.silenciado ? ['sonar', 'Activar notificaciones', 'sil:0'] : ['silenciar', 'Silenciar notificaciones  ›', 'silmenu']);
+        l.push(['fijar', c.fijado ? 'Desfijar chat' : 'Fijar chat', 'fijar']);
+        l.push(['noleido', c.sin_leer || c.no_leido ? 'Marcar como leído' : 'Marcar como no leído', 'noleido']);
+        l.push(['favorito', c.favorito ? 'Quitar de Favoritos' : 'Añadir a Favoritos', 'favorito']);
+        l.push(['lista', 'Añadir a la lista', 'lista']);
+        if (c.tipo === 'grupo') l.push(['salir', 'Salir del grupo', 'salir', true]);
+        else l.push(['bloq', 'Bloquear', 'bloquear', true]);
+        l.push(['vaciar', 'Vaciar chat', 'vaciar']);
+        if (c.tipo !== 'grupo') l.push(['eliminar', 'Eliminar chat', 'eliminar', false, 'rojo']);
+    }
+    var d = document.createElement('div'); d.className = 'mmenu'; d.id = 'mmenu';
+    d.innerHTML = '<div class="mlist">' + l.map(function (x) { return (x[3] ? '<hr>' : '') + '<button type="button" data-cacc="' + x[2] + '"' + (x[4] ? ' class="' + x[4] + '"' : '') + '>' + ico(x[0]) + esc(x[1]) + '</button>'; }).join('') + '</div>';
+    document.body.appendChild(d);
+    var r = (ancla || it).getBoundingClientRect(), W = window.innerWidth, H = window.innerHeight, dw = d.offsetWidth, dh = d.offsetHeight;
+    var left = ancla ? r.right - dw : Math.min(r.left + 60, W - dw - 8), top = ancla ? r.bottom + 4 : r.top + r.height / 2;
+    left = Math.max(8, Math.min(left, W - dw - 8));
+    if (top + dh > H - 8) top = Math.max(8, (ancla ? r.top : top) - dh - 4);
+    d.style.left = left + 'px'; d.style.top = top + 'px';
+    d.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var b = e.target.closest('[data-cacc]'); if (!b) return;
+        var a = b.dataset.cacc;
+        if (a === 'silmenu') return menuChat(id, ancla, 'silenciar');
+        if (a === 'volver') return menuChat(id, ancla);
+        cerrarMenuMsg(); accionChat(id, a);
+    });
+}
+function trasChat(j, id) {
+    if (!j.ok) return toast(j.mensaje || 'No se pudo.');
+    if (j.mensaje) toast(j.mensaje);
+    cargarChats();
+}
+function accionChat(id, a) {
+    var c = chatDe(id); if (!c) return;
+    if (a.indexOf('sil:') === 0) return post(urlC(id, 'silenciar'), { horas: +a.slice(4) }).then(function (j) { trasChat(j, id); });
+    if (['archivar', 'fijar', 'noleido', 'favorito'].indexOf(a) >= 0) {
+        return post(urlC(id, a)).then(function (j) { trasChat(j, id); if (a === 'archivar' && st.abierto === id && !c.archivado) cerrarChat(); });
+    }
+    if (a === 'lista') return elegirListas(id);
+    var conf = {
+        bloquear: ['¿Bloquear a ' + c.nombre + '?', 'No podrán escribirse ni llamarse. Puedes desbloquearlo después desde el chat (⋮).', 'Bloquear'],
+        salir: ['¿Salir de "' + c.nombre + '"?', 'Ya no recibirás mensajes de este grupo.', 'Salir'],
+        vaciar: ['¿Vaciar este chat?', 'Se borran todos los mensajes de tu pantalla. El chat sigue en la lista y la otra persona no ve ningún cambio.', 'Vaciar chat'],
+        eliminar: ['¿Eliminar este chat?', 'Se quita de tu lista con sus mensajes. Si te vuelve a escribir, aparece otra vez.', 'Eliminar chat']
+    }[a];
+    if (!conf) return;
+    ventana(esc(conf[0]), '<p style="margin:0;color:var(--txt2)">' + esc(conf[1]) + '</p>', '<button class="bt sec" data-cerrar>Cancelar</button><button class="bt rojo" id="cc-ok">' + conf[2] + '</button>');
+    $('cc-ok').onclick = function () {
+        cerrarVentana();
+        var url = a === 'vaciar' ? urlC(id, 'vaciar') : U + '/chat/' + id + '/' + (a === 'bloquear' ? 'bloquear' : 'borrar');
+        post(url).then(function (j) {
+            if (!j.ok) return toast(j.mensaje || 'No se pudo.');
+            toast({ bloquear: 'Bloqueado.', salir: 'Saliste del grupo.', vaciar: 'Chat vaciado.', eliminar: 'Chat eliminado.' }[a]);
+            if (st.abierto === id) { if (a === 'vaciar') abrirChat(id); else if (a !== 'bloquear') cerrarChat(); else traer(false); }
+            cargarChats();
+        });
+    };
+}
+/* Archivados */
+function cargarArch() {
+    return api(U + '/chats?tab=archivados').then(function (j) { if (!j.ok) return; st.chats.archivados = j.chats; st.nArch = j.archivados || 0; if (st.verArch) pintar('mis'); }).catch(function () {});
+}
+function pintarArch(box, q) {
+    var l = (st.chats.archivados || []).filter(function (c) { return !q || (c.nombre || '').toLowerCase().indexOf(q) >= 0; });
+    box.innerHTML = '<div class="it" data-salir-arch style="padding:12px 14px;gap:8px;color:var(--verde2);font-weight:600">← Archivados</div>' +
+        '<p style="margin:4px 16px 10px;color:var(--txt2);font-size:.82rem">Los chats archivados no te avisan ni suman en los contadores. Siguen guardados aunque te escriban.</p>' +
+        (l.length ? l.map(itemHtml).join('') : '<div class="vacio">No tienes chats archivados.</div>');
+}
+/* Listas */
+function cargarListas() {
+    return api(U + '/listas').then(function (j) {
+        if (!j.ok) return;
+        st.listas = j.listas;
+        $('chips-listas').innerHTML = j.listas.map(function (x) { return '<button class="chip' + (st.filtro === 'lista:' + x.id ? ' on' : '') + '" data-f="lista:' + x.id + '">' + esc(x.nombre) + '</button>'; }).join('');
+        if (st.filtro.indexOf('lista:') === 0 && !j.listas.some(function (x) { return 'lista:' + x.id === st.filtro; })) { st.filtro = 'todos'; document.querySelector('#p-mis .chip[data-f="todos"]').classList.add('on'); pintar('mis'); }
+    }).catch(function () {});
+}
+function crearLista(alCrear) {
+    ventana('Nueva lista', '<label>Nombre de la lista</label><input type="text" id="nl-n" maxlength="40" placeholder="Ej: Clientes, Familia, Proveedores">', '<button class="bt sec" data-cerrar>Cancelar</button><button class="bt" id="nl-ok">Crear</button>');
+    $('nl-n').focus();
+    $('nl-n').onkeydown = function (e) { if (e.key === 'Enter') $('nl-ok').click(); };
+    $('nl-ok').onclick = function () {
+        var n = $('nl-n').value.trim(); if (!n) return toast('Ponle un nombre.');
+        post(U + '/listas', { nombre: n }).then(function (j) { if (!j.ok) return toast(j.mensaje || 'No se pudo.'); cargarListas(); if (alCrear) alCrear(j.id); else { cerrarVentana(); toast('Lista creada. Agrega chats con la flechita → Añadir a la lista.'); } });
+    };
+}
+function elegirListas(id) {
+    var c = chatDe(id); if (!c) return;
+    cargarListas().then(function () {
+        var dentro = (chatDe(id) || c).listas || [];
+        ventana('Añadir a la lista', (st.listas.length ? st.listas.map(function (x) {
+            return '<label class="fsel"><input type="checkbox" data-lst="' + x.id + '"' + (dentro.indexOf(x.id) >= 0 ? ' checked' : '') + '><div class="tx">' + esc(x.nombre) + '</div><button type="button" class="ib" data-lst-borrar="' + x.id + '" title="Borrar lista">🗑</button></label>';
+        }).join('') : '<p style="color:var(--txt2);margin:0">Aún no tienes listas. Crea una para ordenar tus chats (clientes, familia, trabajo…).</p>'),
+            '<button class="bt sec" id="lst-nueva">＋ Nueva lista</button><button class="bt" data-cerrar>Listo</button>');
+        document.querySelectorAll('[data-lst]').forEach(function (b) {
+            b.onchange = function () { post(U + '/listas/' + b.dataset.lst + '/chat', { chat_id: id }).then(function (j) { if (!j.ok) { b.checked = !b.checked; return toast(j.mensaje || 'No se pudo.'); } cargarChats(); }); };
+        });
+        document.querySelectorAll('[data-lst-borrar]').forEach(function (b) {
+            b.onclick = function (e) { e.preventDefault(); post(U + '/listas/' + b.dataset.lstBorrar + '/borrar').then(function () { cargarListas().then(function () { elegirListas(id); }); cargarChats(); }); };
+        });
+        $('lst-nueva').onclick = function () {
+            crearLista(function (nid) { post(U + '/listas/' + nid + '/chat', { chat_id: id }).then(function () { cargarChats(); cargarListas().then(function () { elegirListas(id); }); }); });
+        };
+    });
+}
+/* Clics de la lista (antes que abrir el chat) */
+var lpc = { t: 0, x: 0, y: 0, hecho: 0 };
+document.addEventListener('click', function (e) {
+    var it = e.target.closest('.lado .it[data-chat]');
+    if (it && Date.now() - lpc.hecho < 700) { e.stopPropagation(); e.preventDefault(); return; }
+    var b = e.target.closest('[data-cfl]');
+    if (b) { e.stopPropagation(); e.preventDefault(); var id = +b.closest('[data-chat]').dataset.chat; if ($('mmenu') && b.closest('.it.mon')) return cerrarMenuMsg(); return menuChat(id, b); }
+    if (e.target.closest('[data-ver-arch]')) { e.stopPropagation(); st.verArch = true; pintar('mis'); cargarArch(); if (st.tab !== 'mis') irTab('mis'); return; }
+    if (e.target.closest('[data-salir-arch]')) { e.stopPropagation(); st.verArch = false; pintar('mis'); return; }
+    if (e.target.closest('[data-nueva-lista]')) { e.stopPropagation(); return crearLista(); }
+    var ch = e.target.closest('#chips-listas .chip');
+    if (ch) { e.stopPropagation(); st.filtro = ch.dataset.f; st.verArch = false; document.querySelectorAll('#p-mis .chip').forEach(function (x) { x.classList.toggle('on', x === ch); }); pintar('mis'); }
+}, true);
+document.addEventListener('contextmenu', function (e) {
+    var it = e.target.closest('.lado .it[data-chat]'); if (!it) return;
+    e.preventDefault();
+    if (Date.now() - lpc.hecho < 700) return;
+    menuChat(+it.dataset.chat);
+});
+document.addEventListener('touchstart', function (e) {
+    var it = e.target.closest('.lado .it[data-chat]'); if (!it || e.touches.length > 1) return;
+    lpc.x = e.touches[0].clientX; lpc.y = e.touches[0].clientY; clearTimeout(lpc.t);
+    lpc.t = setTimeout(function () { lpc.hecho = Date.now(); if (navigator.vibrate) try { navigator.vibrate(15); } catch (x) {} menuChat(+it.dataset.chat); }, 480);
+}, { passive: true });
+document.addEventListener('touchmove', function (e) { if (Math.abs(e.touches[0].clientX - lpc.x) > 10 || Math.abs(e.touches[0].clientY - lpc.y) > 10) clearTimeout(lpc.t); }, { passive: true });
+document.addEventListener('touchend', function () { clearTimeout(lpc.t); }, { passive: true });
+cargarListas();
+
 /* ---------- Emojis y stickers (2026-11-18) ---------- */
 var EMOJIS = [
     ['😀', 'Caritas', '😀 😃 😄 😁 😆 😅 😂 🤣 🥲 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 😙 😚 😋 😛 😝 😜 🤪 🤨 🧐 🤓 😎 🥸 🤩 🥳 😏 😒 😞 😔 😟 😕 🙁 ☹️ 😣 😖 😫 😩 🥺 😢 😭 😤 😠 😡 🤬 🤯 😳 🥵 🥶 😱 😨 😰 😥 😓 🤗 🤔 🫣 🤭 🫢 🤫 🤥 😶 😐 😑 😬 🙄 😯 😦 😧 😮 😲 🥱 😴 🤤 😪 😵 🤐 🥴 🤢 🤮 🤧 😷 🤒 🤕 🤑 🤠 😈 👿 👹 👺 🤡 💩 👻 💀 ☠️ 👽 🤖 🎃 😺 😸 😹 😻 😼 😽 🙀 😿 😾'],
@@ -1127,7 +1677,7 @@ $('b-menu').onclick = function (e) {
 $('b-cmenu').onclick = function (e) {
     e.stopPropagation();
     var i = st.info; if (!i) return;
-    var it = [];
+    var it = [['★ Mensajes destacados', verDestacados], ['📝 Nota del chat', verNota]];
     if (i.tipo === 'grupo') { it.push(['Info del grupo', infoGrupo]); it.push(['Salir del grupo', function () { if (confirm('¿Salir de "' + i.nombre + '"?')) accion('borrar'); }]); }
     else {
         it.push([i.otro && i.otro.empresa ? 'Ver empresa' : 'Ver perfil', function () { verPerfil(i.otro.id); }]);

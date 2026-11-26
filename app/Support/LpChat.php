@@ -215,12 +215,13 @@ class LpChat
         return [true, null];
     }
 
-    public static function enviar(object $chat, U $yo, ?string $texto, ?string $adjunto = null, ?string $adjTipo = null, bool $unaVez = false): int
+    /** $extra (2026-11-26): responde_id, reenviado. */
+    public static function enviar(object $chat, U $yo, ?string $texto, ?string $adjunto = null, ?string $adjTipo = null, bool $unaVez = false, array $extra = []): int
     {
         $texto = $texto !== null ? trim(mb_substr($texto, 0, 4000)) : null;
         $id = DB::table('lpchat_mensajes')->insertGetId(['chat_id' => $chat->id, 'usuario_id' => $yo->id, 'texto' => self::cifrar($texto ?: null),
             'adjunto' => $adjunto, 'adjunto_tipo' => $adjunto ? $adjTipo : null, 'una_vez' => $adjunto && $unaVez,
-            'created_at' => now(), 'updated_at' => now()]);
+            'created_at' => now(), 'updated_at' => now()] + array_intersect_key($extra, ['responde_id' => 1, 'reenviado' => 1]));
         DB::table('lpchat_chats')->where('id', $chat->id)->update(['ultimo_id' => $id, 'updated_at' => now()]);
         DB::table('lpchat_miembros')->where('chat_id', $chat->id)->where('usuario_id', $yo->id)->update(['leido_id' => $id, 'estado' => 'activo', 'updated_at' => now()]);
         if ($chat->tipo === 'directo') {
@@ -239,7 +240,7 @@ class LpChat
         // 2026-11-18: aviso al celular de los demás del chat (aunque tengan LP Chat cerrado)
         try {
             \App\Support\WebPush::avisarLuego(DB::table('lpchat_miembros')->where('chat_id', $chat->id)->where('usuario_id', '!=', $yo->id)
-                ->whereIn('estado', ['activo', 'solicitud'])->pluck('usuario_id')->all());
+                ->whereIn('estado', ['activo', 'solicitud'])->where(fn ($q) => $q->whereNull('silencio_hasta')->orWhere('silencio_hasta', '<', now()))->pluck('usuario_id')->all());
         } catch (\Throwable $e) {
             report($e);
         }
@@ -292,10 +293,13 @@ class LpChat
     {
         $filas = DB::table('lpchat_miembros as m')->join('lpchat_chats as c', 'c.id', '=', 'm.chat_id')
             ->where('m.usuario_id', $yo->id)->where('m.estado', $tab === 'solicitudes' ? 'solicitud' : 'activo')
-            ->when($tab !== 'solicitudes', fn ($q) => $q->where('m.seccion', $tab === 'general' ? 'general' : 'mis'))
+            // 2026-11-26: los archivados salen aparte (pestaña "archivados"), de Mis chats y General
+            ->when($tab === 'archivados', fn ($q) => $q->where('m.archivado', true), fn ($q) => $q->where('m.archivado', false))
+            ->when(! in_array($tab, ['solicitudes', 'archivados'], true), fn ($q) => $q->where('m.seccion', $tab === 'general' ? 'general' : 'mis'))
             ->where(fn ($q) => $q->where('c.tipo', 'grupo')->orWhere('c.ultimo_id', '>', 0))
-            ->orderByDesc('c.ultimo_id')->orderByDesc('c.id')->limit(300)
-            ->get(['c.id', 'c.tipo', 'c.nombre', 'c.foto', 'c.ultimo_id', 'm.leido_id', 'c.updated_at', 'c.via']);
+            ->orderByRaw('m.fijado_at is null')->orderByDesc('m.fijado_at')->orderByDesc('c.ultimo_id')->orderByDesc('c.id')->limit(300)
+            ->get(['c.id', 'c.tipo', 'c.nombre', 'c.foto', 'c.ultimo_id', 'm.leido_id', 'c.updated_at', 'c.via',
+                'm.archivado', 'm.no_leido', 'm.favorito', 'm.silencio_hasta', 'm.fijado_at', 'm.vaciado_id', 'm.seccion']);
         if ($filas->isEmpty()) {
             return [];
         }
@@ -308,10 +312,15 @@ class LpChat
         $directos = $filas->where('tipo', 'directo')->pluck('id');
         $otros = $directos->isEmpty() ? collect() : DB::table('lpchat_miembros')->whereIn('chat_id', $directos)->where('usuario_id', '!=', $yo->id)->pluck('usuario_id', 'chat_id');
         $usuarios = U::whereIn('id', $otros->values()->merge($ultimos->pluck('usuario_id')->filter())->unique())->get()->keyBy('id');
+        $listas = DB::table('lpchat_lista_chats as lc')->join('lpchat_listas as l', 'l.id', '=', 'lc.lista_id')->where('l.usuario_id', $yo->id)
+            ->whereIn('lc.chat_id', $filas->pluck('id'))->get(['lc.chat_id', 'lc.lista_id'])->groupBy('chat_id');
 
-        return $filas->map(function ($f) use ($yo, $ultimos, $sinLeer, $otros, $usuarios) {
+        return $filas->map(function ($f) use ($yo, $ultimos, $sinLeer, $otros, $usuarios, $listas) {
             $u = $f->tipo === 'directo' ? $usuarios->get($otros->get($f->id)) : null;
             $ult = $ultimos->get($f->ultimo_id);
+            if ($ult && $ult->id <= (int) $f->vaciado_id) {
+                $ult = null; // vació el chat
+            }
             $prev = '';
             if ($ult) {
                 $adj = ['foto' => '📷 Foto', 'video' => '🎥 Video', 'audio' => '🎤 Audio', 'sticker' => '🧩 Sticker'][$ult->adjunto_tipo ?? ''] ?? ($ult->adjunto ? '📎 Archivo' : '');
@@ -320,6 +329,10 @@ class LpChat
                 }
                 $tx = self::leer($ult->texto);
                 $prev = $tx ?: $adj;
+                if ($ult->tipo === 'borrado') {
+                    $prev = '🚫 Se eliminó este mensaje';
+                    $adj = '';
+                }
                 if ($adj && $tx && ! $ult->una_vez) {
                     $prev = $adj.' · '.$tx;
                 }
@@ -341,6 +354,14 @@ class LpChat
                 'mio' => $ult && $ult->usuario_id === $yo->id,
                 'hora' => $ult ? self::hora($ult->created_at) : '',
                 'sin_leer' => (int) ($sinLeer[$f->id] ?? 0),
+                'otro_id' => $u?->id,
+                'seccion' => $f->seccion,
+                'archivado' => (bool) $f->archivado,
+                'no_leido' => (bool) $f->no_leido,
+                'favorito' => (bool) $f->favorito,
+                'fijado' => (bool) $f->fijado_at,
+                'silenciado' => $f->silencio_hasta && Carbon::parse($f->silencio_hasta)->isFuture(),
+                'listas' => ($listas[$f->id] ?? collect())->pluck('lista_id')->values(),
             ];
         })->values()->all();
     }
@@ -349,7 +370,8 @@ class LpChat
     {
         return (int) DB::table('lpchat_mensajes as x')->join('lpchat_miembros as m', function ($j) use ($yo) {
             $j->on('m.chat_id', '=', 'x.chat_id')->where('m.usuario_id', '=', $yo->id)->where('m.estado', '=', 'activo');
-        })->when($seccion, fn ($q) => $q->where('m.seccion', $seccion))
+        })->where('m.archivado', false)->where(fn ($q) => $q->whereNull('m.silencio_hasta')->orWhere('m.silencio_hasta', '<', now()))
+            ->when($seccion, fn ($q) => $q->where('m.seccion', $seccion))
             ->whereColumn('x.id', '>', 'm.leido_id')->where('x.usuario_id', '!=', $yo->id)->whereNull('x.tipo')->count();
     }
 
