@@ -20,7 +20,9 @@
 .cc .s h3{font-size:1rem;font-weight:800;margin:0 0 2px;display:flex;justify-content:space-between;gap:6px}
 .cc .s small{color:var(--mut)}
 .cc .s .num{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
-.cc .s .num div{background:#0e1311;border-radius:10px;padding:8px}
+.cc .s .num div,.cc .s .num a{display:block;background:#0e1311;border-radius:10px;padding:8px;color:var(--txt);text-decoration:none;border:1px solid transparent}
+.cc .s .num a:hover{border-color:var(--c)}
+.cc .s .num em{font-style:normal;color:var(--ok);font-size:.7rem;font-weight:700}
 .cc .s .num b{display:block;font-size:1.15rem}
 .cc .s .num span{font-size:.72rem;color:var(--mut)}
 .cc .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
@@ -45,14 +47,6 @@
 .cc .vacio{color:var(--mut);font-size:.85rem;padding:6px 0}
 .cc .err{color:#fca5a5;font-size:.85rem}
 .cc code{color:#93c5fd;font-size:.75rem}
-.cc .tot{background:linear-gradient(135deg,#0f2a1a,#121815 60%);border:1px solid #1f5a34;border-radius:16px;padding:18px 20px;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between}
-.cc .tot .lbl{font-size:.8rem;font-weight:800;color:var(--ok);text-transform:uppercase;letter-spacing:.06em}
-.cc .tot .big{font-size:clamp(2rem,5vw,3.2rem);font-weight:900;line-height:1.05;font-variant-numeric:tabular-nums}
-.cc .tot .sub{color:var(--mut);font-size:.85rem;margin-top:4px}
-.cc .tot .sub b{color:var(--txt)}
-.cc .tot .partes{display:flex;flex-wrap:wrap;gap:8px}
-.cc .tot .parte{background:#0e1311;border:1px solid var(--line);border-left:4px solid var(--c);border-radius:12px;padding:8px 12px;min-width:150px}
-.cc .tot .parte b{display:block;font-size:1.1rem}.cc .tot .parte span{font-size:.74rem;color:var(--mut)}
 .cc .barra{height:6px;border-radius:4px;background:#1b2420;overflow:hidden;margin-top:4px}.cc .barra i{display:block;height:100%;background:var(--ok)}
 </style>
 
@@ -65,7 +59,6 @@
         <div><button type="button" class="btnc" id="ccYa"><i class="fa-solid fa-rotate me-1"></i>Actualizar ya</button></div>
     </div>
 
-    <div class="tot" id="ccTotal"></div>
     <div class="sis" id="ccSis"></div>
     <div class="tabs" id="ccTabs"></div>
     <div id="ccCuerpo"><div class="vacio">Cargando los tres sistemas…</div></div>
@@ -87,37 +80,31 @@
     function dinero(s, v) { return s.ingresos && s.ingresos.tipo === 'conteo' ? num(v) : plata(v); }
     function pendientesActivos(s) { return (s.pendientes || []).filter(function (p) { return p.nivel === 'rojo' || p.nivel === 'amarillo' || (p.n && p.nivel !== 'info'); }); }
 
-    // Total de plata registrada en los tres sistemas (LocalPro: planes · PFN: todos los eventos · NES: Contabilidad)
-    function total() {
-        var t = 0, hoy = 0, mes = 0, partes = '', faltan = [];
-        Object.keys(SIS).forEach(function (k) {
-            var s = datos.sistemas[k] || {}, i = s.ingresos;
-            if (!s.ok || !i || i.tipo === 'conteo') { faltan.push(SIS[k].nombre); return; }
-            var v = i.total_historico != null ? i.total_historico : (i.total || 0);
-            t += v; hoy += i.hoy || 0; mes += i.mes || 0;
-            partes += '<div class="parte" style="--c:' + col(k) + '"><b>' + plata(v) + '</b><span>' + esc(SIS[k].nombre) + '</span></div>';
-        });
-        $('ccTotal').innerHTML = '<div><div class="lbl">💰 Dinero registrado en el sistema · total</div><div class="big">' + plata(t) + '</div>'
-            + '<div class="sub">Hoy <b>' + plata(hoy) + '</b> · este mes <b>' + plata(mes) + '</b>'
-            + (faltan.length ? ' · <span style="color:var(--am)">sin datos de ' + esc(faltan.join(' y ')) + ' (no respondió)</span>' : '') + '</div></div>'
-            + '<div class="partes">' + partes + '</div>';
+    // Cuadro con clic: abre en otra pestaña lo específico de ese sistema
+    function cuadro(url, valor, titulo, sub, color) {
+        var inn = '<b' + (color ? ' style="color:' + color + '"' : '') + '>' + valor + '</b><span>' + esc(titulo) + '</span>' + (sub ? '<small class="d-block" style="font-size:.7rem">' + sub + '</small>' : '');
+        return url ? '<a href="' + esc(url) + '" target="_blank" rel="noopener">' + inn + '</a>' : '<div>' + inn + '</div>';
+    }
+    function fallasLink(k, f) {
+        var u = f.link || {!! json_encode(route('admin.fallas')) !!};
+        return k === 'localpro' ? u : u + (u.indexOf('?') < 0 ? '?' : '&') + 'modulo=' + encodeURIComponent(k);
     }
 
     function tarjetas() {
-        total();
         var h = '';
         Object.keys(SIS).forEach(function (k) {
             var s = datos.sistemas[k] || {}, caido = !s.ok;
-            var f = s.fallas || {}, e = s.errores || {}, ing = s.ingresos || {};
+            var f = s.fallas || {}, e = s.errores || {}, r = s.resumen || {}, nf = (e.n24 || 0) + (f.abiertas || 0);
             h += '<div class="s' + (caido ? ' caido' : '') + '" style="--c:' + col(k) + '" data-tab="' + k + '">'
                 + '<h3><span>' + esc(SIS[k].nombre) + '</span>' + (caido ? '<span style="color:var(--rojo)">● Con problema</span>' : '<span style="color:var(--ok)">● En línea</span>') + '</h3>'
                 + '<small>' + (s.version ? 'versión ' + esc(s.version) + ' · ' : '') + (s.ms != null ? s.ms + ' ms' : '') + '</small>'
                 + (caido ? '<div class="err mt-2">' + esc(s.error || 'Sin respuesta') + '</div>' : '')
                 + '<div class="num">'
-                + '<div><b>' + dinero(s, ing.hoy) + '</b><span>' + (ing.tipo === 'conteo' ? 'Pagos hoy' : 'Ingresos hoy') + '</span></div>'
-                + '<div><b>' + dinero(s, ing.mes) + '</b><span>' + (ing.tipo === 'conteo' ? 'Pagos este mes' : 'Ingresos este mes') + '</span></div>'
-                + '<div><b style="color:' + ((e.n24 || 0) ? 'var(--rojo)' : 'var(--ok)') + '">' + num(e.n24 || 0) + '</b><span>Errores del servidor (24 h)</span></div>'
-                + '<div><b style="color:' + ((f.abiertas || 0) ? 'var(--am)' : 'var(--ok)') + '">' + num(f.abiertas || 0) + '</b><span>Fallas en celulares sin resolver</span></div>'
+                + cuadro(r.registrados && r.registrados.link, num(r.registrados ? r.registrados.n : null), (r.registrados && r.registrados.label) || 'Registrados',
+                    r.registrados && r.registrados.hoy ? '<em>+' + num(r.registrados.hoy) + ' hoy</em>' : (r.registrados && r.registrados.sub ? esc(r.registrados.sub) : ''), '')
+                + cuadro(r.ingresos_anio && r.ingresos_anio.link, plata(r.ingresos_anio ? r.ingresos_anio.n : null), 'Ingresos ' + ((r.ingresos_anio && r.ingresos_anio.anio) || 'del año'), '', '')
+                + cuadro(fallasLink(k, f), num(nf), 'Fallas del sistema', num(e.n24 || 0) + ' del servidor · ' + num(f.abiertas || 0) + ' en celulares', nf ? 'var(--rojo)' : 'var(--ok)')
+                + cuadro(r.mia && r.mia.link, num(r.mia ? r.mia.n : null), 'Preguntas de Mía sin responder', '', r.mia && r.mia.n ? 'var(--am)' : 'var(--ok)')
                 + '</div></div>';
         });
         $('ccSis').innerHTML = h;
@@ -245,6 +232,7 @@
     }
 
     document.addEventListener('click', function (e) {
+        if (e.target.closest('.cc .num a')) return;
         var b = e.target.closest('.cc [data-tab]');
         if (!b) return;
         tab = b.dataset.tab;

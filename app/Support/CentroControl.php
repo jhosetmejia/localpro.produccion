@@ -25,7 +25,7 @@ class CentroControl
 
     public const SISTEMAS = [
         'pfn' => ['nombre' => 'Pasto Fight Night', 'url' => 'https://pastofightnight.com', 'color' => '#e5243b'],
-        'nes' => ['nombre' => 'Nariño Exposhow', 'url' => 'https://narinoexposhow.com', 'color' => '#a855f7'],
+        'nes' => ['nombre' => 'Nariño Exposhow', 'url' => 'https://narinoexposhow.com', 'color' => '#f5b400'],
     ];
 
     /** Todo junto. Cada sistema se guarda 20 s para no golpear los servidores si hay varias pestañas abiertas. */
@@ -100,7 +100,7 @@ class CentroControl
     public static function local(): array
     {
         $out = ['ok' => true, 'sistema' => 'LocalPro', 'nombre' => 'LocalPro', 'url' => url('/'), 'version' => self::version()];
-        foreach (['kpis', 'ingresos', 'pendientes', 'errores', 'envios', 'actividad'] as $p) {
+        foreach (['kpis', 'ingresos', 'pendientes', 'errores', 'envios', 'actividad', 'resumen'] as $p) {
             try {
                 $m = 'l'.ucfirst($p);
                 $out[$p] = self::$m();
@@ -156,6 +156,22 @@ class CentroControl
             'ultimos' => PagoSuscripcion::with('tienda:id,nombre')->where('estado', 'aprobado')->latest()->take(10)->get()
                 ->map(fn ($p) => ['fecha' => $p->created_at->timezone(self::TZ)->format('Y-m-d H:i'), 'concepto' => $p->donacion ? 'Donación' : 'Plan', 'persona' => $p->tienda->nombre ?? '—',
                     'monto' => (int) round((float) PagoSuscripcion::where('id', $p->id)->sum(PagoSuscripcion::sqlEnCop()))])->all(),
+        ];
+    }
+
+    /** Los 4 cuadros de cada sistema: registrados, ingresos del año, (fallas: se arman con errores + fallas) y preguntas de Mía. */
+    private static function lResumen(): array
+    {
+        $anio = now(self::TZ)->year;
+        $desde = now(self::TZ)->startOfYear()->setTimezone(config('app.timezone'));
+
+        return [
+            'registrados' => ['n' => User::count(), 'hoy' => User::where('created_at', '>=', self::hoy())->count(), 'label' => 'Usuarios registrados',
+                'sub' => Tienda::count().' empresas', 'link' => route('admin.usuarios')],
+            'ingresos_anio' => ['n' => (int) PagoSuscripcion::where('estado', 'aprobado')->where('created_at', '>=', $desde)->sum(PagoSuscripcion::sqlEnCop()),
+                'anio' => $anio, 'link' => route('admin.pagos')],
+            'mia' => ['n' => Schema::hasTable('asistente_mensajes') ? DB::table('asistente_mensajes')->where('sin_respuesta', true)->where('resuelta', false)->count() : null,
+                'link' => url('/admin/asistente')],
         ];
     }
 
