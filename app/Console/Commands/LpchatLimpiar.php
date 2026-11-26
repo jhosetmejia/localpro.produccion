@@ -29,6 +29,9 @@ class LpchatLimpiar extends Command
                     $disco->delete($m->adjunto);
                 }
             }
+            foreach (['lpchat_reacciones', 'lpchat_destacados', 'lpchat_ocultos'] as $tb) {
+                DB::table($tb)->whereIn('mensaje_id', $filas->pluck('id'))->delete();
+            }
             $msj += DB::table('lpchat_mensajes')->whereIn('id', $filas->pluck('id'))->delete();
         });
         // "Ver una vez" que se mandó y nunca se abrió en 3 meses ya quedó arriba. Los abiertos ya se borraron al verlos.

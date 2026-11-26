@@ -162,6 +162,70 @@ body{height:100dvh;overflow:hidden}
 .m .tk{width:16px;height:11px;fill:#8696a0}
 .m .tk.l{fill:var(--azul)}
 .m a{color:var(--verde)}
+/* 2026-11-26 (Jhoset): como WhatsApp: flechita y carita en cada mensaje, menú, reacciones, responder, fijar y destacar */
+.m .mfl{position:absolute;top:2px;right:2px;width:32px;height:24px;border:0;padding:0 0 0 6px;border-radius:0 14px 0 16px;display:grid;place-items:center;opacity:0;transition:opacity .12s;z-index:1}
+.m .mfl svg{width:20px;height:20px;fill:var(--txt2)}
+.m.el .mfl{background:radial-gradient(circle at 70% 40%,var(--burbuja-el) 58%,rgba(26,32,28,0) 82%)}
+.m.yo .mfl{background:radial-gradient(circle at 70% 40%,#62d64b 58%,rgba(98,214,75,0) 82%)}
+.m.yo .mfl svg{fill:#0b0d0c}
+.m.st .mfl,.m.solo-emo .mfl{background:var(--panel2);border-radius:50%;width:26px;height:26px;padding:0;top:0}
+.m .mre{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border:7px solid transparent;background:var(--panel2);background-clip:padding-box;border-radius:50%;padding:0;display:grid;place-items:center;opacity:0;transition:opacity .12s}
+.m .mre svg{width:19px;height:19px;fill:var(--txt2)}
+.m .mre:hover svg{fill:var(--txt)}
+.m.yo .mre{right:100%}
+.m.el .mre{left:100%}
+.m:hover .mfl,.m:hover .mre,.m.mon .mfl,.m.mon .mre{opacity:1}
+@media (hover:none){.m .mfl,.m .mre{display:none}.m{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}}
+.m .fw{display:flex;align-items:center;gap:4px;font-size:.76rem;font-style:italic;opacity:.72;margin-bottom:2px}
+.m .fw svg{width:14px;height:14px;fill:currentColor}
+.m .cita{display:block;border-left:4px solid var(--verde);background:rgba(0,0,0,.22);border-radius:8px;padding:5px 9px;margin:0 -4px 5px;font-size:.84rem;cursor:pointer;white-space:normal;line-height:1.3}
+.m.yo .cita{background:rgba(11,13,12,.13);border-left-color:#0b0d0c}
+.m .cita b{display:block;font-size:.78rem;color:var(--verde)}
+.m.yo .cita b{color:#0b0d0c}
+.m .cita span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;opacity:.85;white-space:pre-wrap}
+.m .borrado{display:inline-flex;align-items:center;gap:5px}
+.m .borrado svg{width:15px;height:15px;fill:currentColor;flex:none}
+.m.yo .borrado{color:rgba(11,13,12,.65)}
+.m .meta .ed{font-style:italic}
+.m .meta .es{font-size:.8rem}
+.m.con-reac{margin-bottom:17px}
+.m .reacs{position:absolute;bottom:-17px;display:flex;align-items:center;gap:1px;background:var(--panel2);border:1px solid var(--borde);border-radius:12px;padding:1px 6px;font-size:.88rem;cursor:pointer;white-space:nowrap;line-height:1.4;z-index:1;color:var(--txt)}
+.m.yo .reacs{right:10px}
+.m.el .reacs{left:10px}
+.m .reacs .n{font-size:.72rem;color:var(--txt2);margin-left:3px}
+.m .reacs.mia{border-color:rgba(166,243,74,.5)}
+.m.flash{animation:mflash 1.4s}
+@keyframes mflash{25%,60%{box-shadow:0 0 0 4px rgba(166,243,74,.6)}}
+.mmenu{position:fixed;z-index:92;display:flex;flex-direction:column;gap:8px;align-items:flex-start;max-width:calc(100vw - 16px)}
+.mmenu.der{align-items:flex-end}
+.rbar{display:flex;align-items:center;gap:2px;background:var(--panel2);border:1px solid var(--borde);border-radius:999px;padding:4px 6px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.rbar button{border:0;background:none;font-size:1.55rem;width:42px;height:42px;border-radius:50%;padding:0;line-height:1;transition:transform .12s}
+.rbar button:hover{transform:scale(1.18);background:var(--hover)}
+.rbar button.on{background:var(--chip)}
+.rbar .mas{font-size:1.4rem;color:var(--txt2);background:var(--panel3)}
+.mlist{background:var(--panel2);border:1px solid var(--borde);border-radius:14px;box-shadow:0 14px 40px rgba(0,0,0,.55);padding:6px 0;min-width:230px;color:var(--txt);overflow-y:auto}
+.mlist button{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:none;border:0;padding:10px 18px;font-size:.93rem}
+.mlist button:hover{background:var(--hover)}
+.mlist button svg{width:20px;height:20px;fill:var(--txt2);flex:none}
+.mlist hr{border:0;border-top:1px solid var(--borde);margin:6px 0}
+.mlist .rojo{color:#ff5c7a}.mlist .rojo svg{fill:#ff5c7a}
+.resp{flex:none;display:flex;align-items:center;gap:8px;padding:8px 10px 0;background:var(--panel);border-top:1px solid var(--borde)}
+.resp .q{flex:1;min-width:0;border-left:4px solid var(--verde);background:var(--panel3);border-radius:10px;padding:6px 10px;font-size:.86rem}
+.resp .q b{display:block;color:var(--verde);font-size:.8rem}
+.resp .q span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--txt2)}
+.resp + .barra{border-top:0}
+.fijado{flex:none;display:flex;align-items:center;gap:10px;padding:7px 8px 7px 16px;background:var(--panel);border-bottom:1px solid var(--borde);cursor:pointer}
+.fijado>svg{width:18px;height:18px;fill:var(--txt2);flex:none}
+.fijado .tx{flex:1;min-width:0;font-size:.88rem}
+.fijado small{display:block;color:var(--verde);font-size:.74rem;font-weight:700}
+.fijado span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--txt2)}
+.rpick{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr))}
+.rpick button{border:0;background:none;font-size:1.6rem;height:44px;border-radius:10px;padding:0}
+.rpick button:hover{background:var(--panel3)}
+.rpick .cat{grid-column:1/-1;font-size:.74rem;color:var(--txt2);font-weight:700;margin:10px 2px 4px;text-transform:uppercase}
+.fsel{display:flex;align-items:center;gap:12px;padding:8px 2px;border-bottom:1px solid var(--borde);cursor:pointer;color:var(--txt)!important;margin:0!important;font-size:.95rem!important;font-weight:400!important}
+.fsel input{width:18px;height:18px;accent-color:#16b84e;flex:none}
+.fsel .tx{flex:1;min-width:0}
 .barra{flex:none;display:flex;align-items:flex-end;gap:6px;padding:8px 8px calc(env(safe-area-inset-bottom,0px) + 8px);background:var(--panel);border-top:1px solid var(--borde)}
 .barra .caja{flex:1;display:flex;align-items:flex-end;background:var(--panel3);border:1px solid var(--borde);border-radius:16px;padding:0 4px 0 6px;min-width:0}
 .barra textarea{flex:1;border:0;outline:none;resize:none;padding:11px 6px;background:transparent;max-height:120px;height:44px;line-height:1.3;min-width:0}
@@ -409,9 +473,11 @@ setTimeout(quitarSplash, 4000);</script>
                 <div class="tx"><div class="n" id="c-n"></div><div class="s" id="c-s"></div></div>
                 <button class="ib" id="b-cmenu" title="Más"><svg viewBox="0 0 24 24"><path d="M12 7a2 2 0 1 0-.001-4.001A2 2 0 0 0 12 7zm0 2a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 9zm0 6a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 15z"/></svg></button>
             </div>
+            <div class="fijado" id="fijado" hidden><svg viewBox="0 0 24 24"><path d="M16 9V4h1c.55 0 1-.45 1-1s-.45-1-1-1H7c-.55 0-1 .45-1 1s.45 1 1 1h1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3z"/></svg><div class="tx"><small>Mensaje fijado</small><span id="fijado-t"></span></div><button class="ib" id="fijado-x" title="Desfijar">✕</button></div>
             <div class="msgs" id="msgs"></div>
             <div class="aviso" id="aviso" hidden></div>
             <div class="prev" id="prev" hidden><div id="prev-m"></div><span style="flex:1;color:var(--txt2);font-size:.86rem" id="prev-t">Listo para enviar</span><button class="uvbtn" id="b-uv" title="Ver una sola vez">1</button><button class="ib" id="prev-x" title="Quitar">✕</button></div>
+            <div class="resp" id="resp" hidden><div class="q"><b id="resp-a"></b><span id="resp-t"></span></div><button type="button" class="ib" id="resp-x" title="Cancelar">✕</button></div>
             <div class="emo" id="emo" hidden>
                 <div class="et" id="emo-t"></div>
                 <div class="eb" id="emo-b"></div>
@@ -444,7 +510,7 @@ var U = '/chat/api';
 var SUPER = {{ auth('web')->user()?->es_superadmin ? 'true' : 'false' }};
 var CSRF = document.querySelector('meta[name=csrf-token]').content;
 var $ = function (id) { return document.getElementById(id); };
-var st = { nav: 'mensajes', tab: 'mis', filtro: 'todos', chats: { mis: [], general: [] }, solicitudes: 0, abierto: 0, ultimo: 0, info: null, adj: null, uv: false, escT: 0, sinLeer: 0, primera: true, origen: '', empPag: 1 };
+var st = { nav: 'mensajes', tab: 'mis', filtro: 'todos', chats: { mis: [], general: [] }, solicitudes: 0, abierto: 0, ultimo: 0, info: null, adj: null, uv: false, escT: 0, sinLeer: 0, primera: true, origen: '', empPag: 1, msgs: {}, cambios: 0, resp: 0 };
 var COL = ['#16b84e', '#3b82f6', '#7c3aed', '#e11d74', '#f59e0b', '#0ea5e9', '#ef4444', '#14b8a6', '#8b5cf6', '#22c55e'];
 var DIAS = 90;
 
@@ -781,7 +847,7 @@ function urlChat(id) {
 }
 function abrirChat(id) {
     if (!id) return;
-    st.abierto = id; st.ultimo = 0; st.info = null;
+    st.abierto = id; st.ultimo = 0; st.info = null; st.msgs = {}; st.cambios = 0; cerrarMenuMsg(); quitarResp();
     $('bienv').hidden = true; $('conv').hidden = false; $('msgs').innerHTML = ''; $('msgs').dataset.dia = ''; $('msgs').dataset.autor = ''; $('aviso').hidden = true;
     $('app').classList.add('abierto'); quitarAdj();
     var url = urlChat(id);
@@ -801,7 +867,7 @@ function traer(primera) {
     if (!st.abierto || cargando) return;
     cargando = true;
     var id = st.abierto;
-    api(U + '/chat/' + id + (st.ultimo ? '?desde=' + st.ultimo : '')).then(function (j) {
+    api(U + '/chat/' + id + (st.ultimo ? '?desde=' + st.ultimo + '&cambios=' + (st.cambios || 0) : '')).then(function (j) {
         cargando = false;
         if (id !== st.abierto) return;
         if (!j.ok) { toast('Esta conversación no está disponible.'); return cerrarChat(); }
@@ -813,6 +879,9 @@ function traer(primera) {
         var box = $('msgs'), abajo = box.scrollHeight - box.scrollTop - box.clientHeight < 140;
         if (primera) box.insertAdjacentHTML('beforeend', '<div class="sis">🔒 Chat privado: los mensajes se guardan cifrados y solo los ven las personas de este chat.</div>');
         j.mensajes.forEach(function (m) { pintarMsg(box, m); });
+        (j.cambiados || []).forEach(repintarMsg);
+        if (j.ahora) st.cambios = j.ahora;
+        pintarFijado(j.chat.fijado);
         if (j.mensajes.length) st.ultimo = j.mensajes[j.mensajes.length - 1].id;
         box.querySelectorAll('.m.yo .tk:not(.l)').forEach(function (t) { if (+t.closest('.m').dataset.m <= j.leido_otros) t.classList.add('l'); });
         if (primera || abajo || (j.mensajes.length && j.mensajes[j.mensajes.length - 1].mio)) box.scrollTop = box.scrollHeight;
@@ -831,9 +900,40 @@ function pintarMsg(box, m) {
     if (m.dia !== box.dataset.dia) { box.insertAdjacentHTML('beforeend', '<div class="dia">' + diaTxt(m.dia) + '</div>'); box.dataset.dia = m.dia; box.dataset.autor = ''; }
     if (m.sistema) { box.insertAdjacentHTML('beforeend', '<div class="sis" data-m="' + m.id + '">' + esc(m.texto) + '</div>'); box.dataset.autor = ''; return; }
     var pri = box.dataset.autor !== String(m.autor_id); box.dataset.autor = m.autor_id;
+    st.msgs[m.id] = m;
+    box.insertAdjacentHTML('beforeend', msgHtml(m, pri));
+}
+/* 2026-11-26: un mensaje que cambió (reacción, editado, eliminado, destacado): se pinta de nuevo en su sitio. */
+function repintarMsg(m) {
+    var el = $('msgs').querySelector('.m[data-m="' + m.id + '"]');
+    if (!el || m.sistema) return;
+    var antes = st.msgs[m.id];
+    if (antes && JSON.stringify(antes) === JSON.stringify(m)) return; // igual: no se toca (no corta un video que se está viendo)
+    st.msgs[m.id] = m;
+    var tmp = document.createElement('div'); tmp.innerHTML = msgHtml(m, el.classList.contains('pri'));
+    el.replaceWith(tmp.firstChild);
+}
+var ICO = {
+    flecha: 'M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z',
+    cara: 'M15.5 11c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5zM11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z',
+    info: 'M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z',
+    responder: 'M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z',
+    copiar: 'M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z',
+    reenviar: 'M14 9V5l7 7-7 7v-4.1c-5 0-8.5 1.6-11 5.1 1-5 4-10 11-11z',
+    difusion: 'M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM20.4 5.6c-.4-.53-.8-1.07-1.2-1.6-.99.74-2.24 1.68-3.2 2.4.4.53.8 1.07 1.2 1.6.96-.72 2.21-1.65 3.2-2.4zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4zm11.5 3c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z',
+    fijar: 'M16 9V4h1c.55 0 1-.45 1-1s-.45-1-1-1H7c-.55 0-1 .45-1 1s.45 1 1 1h1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3z',
+    destacar: 'M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4l-3.76 2.27 1-4.28-3.32-2.88 4.38-.38L12 6.1l1.71 4.04 4.38.38-3.32 2.88 1 4.28L12 15.4z',
+    editar: 'M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z',
+    nota: 'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z',
+    eliminar: 'M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5-1-1h-5l-1 1H5v2h14V4h-3.5z',
+    bloq: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9A7.902 7.902 0 0 1 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1A7.902 7.902 0 0 1 20 12c0 4.42-3.58 8-8 8z'
+};
+function ico(n) { return '<svg viewBox="0 0 24 24"><path d="' + ICO[n] + '"/></svg>'; }
+function msgHtml(m, pri) {
     var media = '';
     var nom = { foto: 'Foto', video: 'Video', audio: 'Audio', sticker: 'Sticker' }[m.adj] || 'Archivo';
-    if (m.una_vez) {
+    if (m.borrado) media = '<span class="borrado">' + ico('bloq') + (m.mio ? 'Eliminaste este mensaje' : 'Se eliminó este mensaje') + '</span>';
+    else if (m.una_vez) {
         media = m.mio ? '<div class="uv off"><span class="c">1</span>' + nom + (m.abierto ? ' · abierto' : ' · para ver una vez') + '</div>'
             : (m.abierto ? '<div class="uv off"><span class="c">1</span>' + nom + ' · ya lo abriste</div>' : '<div class="uv" data-uv="' + m.id + '" data-t="' + m.adj + '"><span class="c">1</span>Ver ' + nom.toLowerCase() + ' una vez</div>');
     } else if (m.adj && !m.url) media = '<div class="borrado">' + nom + ' borrado</div>';
@@ -841,10 +941,21 @@ function pintarMsg(box, m) {
     else if (m.adj === 'foto') media = '<img src="' + esc(m.url) + '" alt="Foto" loading="lazy">';
     else if (m.adj === 'video') media = '<video src="' + esc(m.url) + '#t=0.1" controls playsinline preload="metadata"></video>';
     else if (m.adj === 'audio') media = '<audio src="' + esc(m.url) + '" controls preload="metadata"></audio>';
-    var extra = m.adj === 'sticker' && m.url ? ' st' : (!m.adj && soloEmoji(m.texto) ? ' solo-emo' : '');
-    box.insertAdjacentHTML('beforeend', '<div class="m ' + (m.mio ? 'yo' : 'el') + (pri ? ' pri' : '') + extra + '" data-m="' + m.id + '"' + (extra === ' st' && !m.mio ? ' data-st="' + m.id + '"' : '') + '>' +
-        (m.autor && pri ? '<span class="au" style="color:' + color(m.autor) + '">' + esc(m.autor) + '</span>' : '') + media + (m.texto ? enlaces(m.texto) : '') +
-        '<span class="meta">' + esc(m.hora) + (m.mio ? TK.replace('class="tk"', 'class="tk' + (m.leido ? ' l' : '') + '"') : '') + '</span></div>');
+    var extra = m.borrado ? '' : (m.adj === 'sticker' && m.url ? ' st' : (!m.adj && soloEmoji(m.texto) && !m.responde ? ' solo-emo' : ''));
+    var rs = m.reacciones || [], reac = '';
+    if (rs.length) {
+        var tot = 0, mia = false; rs.forEach(function (r) { tot += r.n; if (r.mio) mia = true; });
+        reac = '<span class="reacs' + (mia ? ' mia' : '') + '" data-reacs="' + m.id + '" title="Ver reacciones">' + rs.slice(0, 3).map(function (r) { return esc(r.e); }).join('') + (tot > 1 ? '<span class="n">' + tot + '</span>' : '') + '</span>';
+    }
+    return '<div class="m ' + (m.mio ? 'yo' : 'el') + (pri ? ' pri' : '') + extra + (reac ? ' con-reac' : '') + '" data-m="' + m.id + '"' + (extra === ' st' && !m.mio ? ' data-st="' + m.id + '"' : '') + '>' +
+        (m.autor && pri ? '<span class="au" style="color:' + color(m.autor) + '">' + esc(m.autor) + '</span>' : '') +
+        (m.reenviado ? '<span class="fw">' + ico('reenviar') + 'Reenviado</span>' : '') +
+        (m.responde ? '<span class="cita" data-ir="' + m.responde.id + '"><b>' + esc(m.responde.autor) + '</b><span>' + esc(m.responde.texto) + '</span></span>' : '') +
+        media + (m.texto && !m.borrado ? enlaces(m.texto) : '') +
+        '<span class="meta">' + (m.destacado ? '<span class="es">★</span>' : '') + (m.editado ? '<span class="ed">Editado</span>' : '') + esc(m.hora) + (m.mio && !m.borrado ? TK.replace('class="tk"', 'class="tk' + (m.leido ? ' l' : '') + '"') : '') + '</span>' +
+        '<button type="button" class="mfl" data-mfl title="Menú">' + ico('flecha') + '</button>' +
+        (m.borrado ? '' : '<button type="button" class="mre" data-mre title="Reaccionar">' + ico('cara') + '</button>') + reac +
+        '</div>';
 }
 function diaTxt(d) {
     var hoy = new Date(), ay = new Date(); ay.setDate(hoy.getDate() - 1);
@@ -916,6 +1027,8 @@ function enviar() {
     var t = $('txt').value.trim();
     if (!t && !st.adj) return;
     var fd = new FormData(); fd.append('texto', t);
+    if (st.resp) fd.append('responde_id', st.resp);
+    quitarResp();
     if (st.adj) { fd.append('archivo', st.adj.f, st.adj.f.name || ('audio.' + (st.adj.f.type.indexOf('mp4') > 0 ? 'm4a' : 'webm'))); if (st.adj.audio) fd.append('es_audio', 1); if (st.uv) fd.append('una_vez', 1); }
     var tenia = st.adj;
     $('txt').value = ''; autoAlto(); quitarAdj();
@@ -925,6 +1038,259 @@ function enviar() {
         traer(false); cargarChats();
     }).catch(function () { toast('Sin conexión. No se envió.'); $('txt').value = t; actualizarBotones(); });
 }
+/* ---------- Menú de cada mensaje (2026-11-26, como WhatsApp) ----------
+   Computador: flechita (arriba a la derecha del mensaje) o clic derecho = menú; carita al lado = reaccionar.
+   Celular: mantener presionado el mensaje. */
+var REAC = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
+function urlM(id, acc) { return U + '/chat/' + st.abierto + '/m/' + id + (acc ? '/' + acc : ''); }
+function cerrarMenuMsg() {
+    var x = $('mmenu'); if (x) x.remove();
+    document.querySelectorAll('.m.mon').forEach(function (e) { e.classList.remove('mon'); });
+}
+function puedeEscribirAqui() { return !$('barra').hidden; }
+function abrirMenuMsg(id, ancla, soloReac) {
+    cerrarMenuMsg(); cerrarMenu();
+    var m = st.msgs[id], el = $('msgs').querySelector('.m[data-m="' + id + '"]');
+    if (!m || !el) return;
+    el.classList.add('mon');
+    var d = document.createElement('div'); d.className = 'mmenu' + (m.mio ? ' der' : ''); d.id = 'mmenu';
+    var h = '';
+    if (!m.borrado && puedeEscribirAqui()) {
+        var mia = (m.reacciones || []).filter(function (r) { return r.mio; })[0];
+        h += '<div class="rbar">' + REAC.map(function (e) { return '<button type="button" data-reac="' + e + '"' + (mia && mia.e === e ? ' class="on"' : '') + '>' + e + '</button>'; }).join('') +
+            '<button type="button" class="mas" data-reac-mas title="Más emojis">+</button></div>';
+    }
+    if (!soloReac) {
+        var it = [];
+        if (m.borrado) it.push(['eliminar', 'Eliminar', 'ocultar', true]);
+        else {
+            it.push(['info', 'Info. del mensaje', 'info']);
+            if (puedeEscribirAqui()) it.push(['responder', 'Responder', 'responder']);
+            if (m.texto) it.push(['copiar', 'Copiar', 'copiar']);
+            if (puedeEscribirAqui()) it.push(['cara', 'Reaccionar', 'reaccionar']);
+            if (!m.una_vez) { it.push(['reenviar', 'Reenviar', 'reenviar']); it.push(['difusion', 'Nueva difusión', 'difusion']); }
+            if (puedeEscribirAqui()) it.push(['fijar', st.info && st.info.fijado && st.info.fijado.id === m.id ? 'Desfijar' : 'Fijar', 'fijar']);
+            it.push(['destacar', m.destacado ? 'No destacar' : 'Destacar', 'destacar']);
+            if (m.editable) it.push(['editar', 'Editar', 'editar']);
+            if (m.texto) it.push(['nota', 'Añadir texto a la nota', 'nota']);
+            it.push(['eliminar', 'Eliminar', 'eliminar', true]);
+        }
+        h += '<div class="mlist">' + it.map(function (x) { return (x[3] ? '<hr>' : '') + '<button type="button" data-macc="' + x[2] + '"' + (x[3] ? ' class="rojo"' : '') + '>' + ico(x[0]) + esc(x[1]) + '</button>'; }).join('') + '</div>';
+    }
+    d.innerHTML = h;
+    document.body.appendChild(d);
+    // Se ubica junto al mensaje (abajo si cabe; si no, arriba) sin salirse de la pantalla.
+    var r = (ancla || el).getBoundingClientRect(), b = el.getBoundingClientRect(), W = window.innerWidth, H = window.innerHeight;
+    var lst = d.querySelector('.mlist'); if (lst) lst.style.maxHeight = (H - 90) + 'px';
+    var dw = d.offsetWidth, dh = d.offsetHeight;
+    var left = m.mio ? b.right - dw : b.left;
+    if (soloReac && ancla) left = m.mio ? r.right - dw + 20 : r.left - 20;
+    left = Math.max(8, Math.min(left, W - dw - 8));
+    var top = r.bottom + 6;
+    if (top + dh > H - 8) top = r.top - dh - 6;
+    if (top < 8) top = Math.max(8, (H - dh) / 2);
+    d.style.left = left + 'px'; d.style.top = top + 'px';
+    d.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var rb = e.target.closest('[data-reac]');
+        if (rb) { cerrarMenuMsg(); return reaccionar(id, rb.dataset.reac); }
+        if (e.target.closest('[data-reac-mas]')) { cerrarMenuMsg(); return elegirReaccion(id); }
+        var a = e.target.closest('[data-macc]'); if (!a) return;
+        cerrarMenuMsg(); accionMsg(id, a.dataset.macc);
+    });
+}
+document.addEventListener('click', function (e) { if ($('mmenu') && !e.target.closest('#mmenu')) cerrarMenuMsg(); });
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { cerrarMenuMsg(); } });
+$('msgs').addEventListener('scroll', cerrarMenuMsg, { passive: true });
+window.addEventListener('resize', cerrarMenuMsg);
+/* Flechita, carita, reacciones y citas (va antes que el clic de fotos/stickers) */
+$('msgs').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-mfl]');
+    if (b) { e.stopPropagation(); e.preventDefault(); var id = +b.closest('.m').dataset.m; if ($('mmenu') && $('msgs').querySelector('.m.mon[data-m="' + id + '"]')) return cerrarMenuMsg(); return abrirMenuMsg(id, b); }
+    b = e.target.closest('[data-mre]');
+    if (b) { e.stopPropagation(); e.preventDefault(); return abrirMenuMsg(+b.closest('.m').dataset.m, b, true); }
+    b = e.target.closest('[data-reacs]');
+    if (b) { e.stopPropagation(); return verReacciones(+b.dataset.reacs); }
+    b = e.target.closest('.cita[data-ir]');
+    if (b) { e.stopPropagation(); return irAMsg(+b.dataset.ir); }
+}, true);
+/* Clic derecho (computador) o mantener presionado (celular) = menú */
+var lp = { t: 0, x: 0, y: 0, hecho: 0 };
+$('msgs').addEventListener('contextmenu', function (e) {
+    var el = e.target.closest('.m[data-m]'); if (!el) return;
+    if (e.target.closest('a,video,audio') && window.matchMedia('(hover:hover)').matches) return; // en el computador deja copiar links o guardar
+    e.preventDefault();
+    if (Date.now() - lp.hecho < 700) return;
+    abrirMenuMsg(+el.dataset.m);
+});
+$('msgs').addEventListener('touchstart', function (e) {
+    var el = e.target.closest('.m[data-m]'); if (!el || e.touches.length > 1) return;
+    lp.x = e.touches[0].clientX; lp.y = e.touches[0].clientY;
+    clearTimeout(lp.t);
+    lp.t = setTimeout(function () { lp.hecho = Date.now(); if (navigator.vibrate) try { navigator.vibrate(15); } catch (x) {} abrirMenuMsg(+el.dataset.m); }, 480);
+}, { passive: true });
+$('msgs').addEventListener('touchmove', function (e) { if (Math.abs(e.touches[0].clientX - lp.x) > 10 || Math.abs(e.touches[0].clientY - lp.y) > 10) clearTimeout(lp.t); }, { passive: true });
+$('msgs').addEventListener('touchend', function (e) { clearTimeout(lp.t); if (Date.now() - lp.hecho < 600) e.preventDefault(); });
+$('msgs').addEventListener('touchcancel', function () { clearTimeout(lp.t); });
+
+function irAMsg(id) {
+    var el = id && $('msgs').querySelector('[data-m="' + id + '"]');
+    if (!el) return toast('Ese mensaje es más antiguo y ya no está cargado aquí.');
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+}
+function textoCorto(m) {
+    if (m.borrado) return 'Se eliminó este mensaje';
+    var nom = { foto: '📷 Foto', video: '🎥 Video', audio: '🎤 Audio', sticker: '🧩 Sticker' }[m.adj] || (m.adj ? '📎 Archivo' : '');
+    return (nom + (nom && m.texto ? ' · ' : '') + (m.texto || '')).slice(0, 160);
+}
+function copiarTexto(v) {
+    (navigator.clipboard ? navigator.clipboard.writeText(v) : Promise.reject()).then(function () { toast('Mensaje copiado.'); }, function () {
+        var t = document.createElement('textarea'); t.value = v; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (x) {} t.remove(); toast('Mensaje copiado.');
+    });
+}
+function reaccionar(id, e) {
+    var m = st.msgs[id]; if (!m) return;
+    post(urlM(id, 'reaccionar'), { emoji: e }).then(function (j) { if (!j.ok) return toast(j.mensaje || 'No se pudo reaccionar.'); traer(false); });
+}
+function elegirReaccion(id) {
+    ventana('Reaccionar', '<div class="rpick">' + EMOJIS.map(function (c) { return '<div class="cat">' + c[1] + '</div>' + c[2].split(' ').map(function (x) { return '<button type="button" data-rp="' + x + '">' + x + '</button>'; }).join(''); }).join('') + '</div>');
+    document.querySelector('.rpick').onclick = function (e) { var b = e.target.closest('[data-rp]'); if (!b) return; cerrarVentana(); emoUsar(b.dataset.rp); reaccionar(id, b.dataset.rp); };
+}
+function verReacciones(id) {
+    var m = st.msgs[id]; if (!m || !(m.reacciones || []).length) return;
+    var h = m.reacciones.map(function (r) {
+        return '<div class="fila"><div style="font-size:1.7rem;width:42px;text-align:center">' + esc(r.e) + '</div><div class="tx">' + r.quien.map(esc).join(', ') + '<small>' + r.n + (r.n === 1 ? ' persona' : ' personas') + '</small></div>' +
+            (r.mio ? '<button class="bt sec" data-quitar-reac>Quitar</button>' : '') + '</div>';
+    }).join('');
+    ventana('Reacciones', h);
+    var q = document.querySelector('[data-quitar-reac]'); if (q) q.onclick = function () { cerrarVentana(); reaccionar(id, ''); };
+}
+function ponerResp(id) {
+    var m = st.msgs[id]; if (!m) return;
+    st.resp = id;
+    $('resp-a').textContent = m.mio ? 'Tú' : (m.autor || (st.info && st.info.nombre) || '');
+    $('resp-t').textContent = textoCorto(m);
+    $('resp').hidden = false; $('txt').focus();
+}
+function quitarResp() { st.resp = 0; if ($('resp')) $('resp').hidden = true; }
+$('resp-x').onclick = quitarResp;
+function pintarFijado(f) {
+    if (st.info) st.info.fijado = f || null;
+    $('fijado').hidden = !f;
+    if (f) { $('fijado-t').textContent = f.texto; $('fijado').dataset.id = f.id; }
+}
+$('fijado').onclick = function (e) { if (e.target.closest('#fijado-x')) return; irAMsg(+this.dataset.id); };
+$('fijado-x').onclick = function (e) { e.stopPropagation(); var id = +$('fijado').dataset.id; post(urlM(id, 'fijar')).then(function (j) { if (!j.ok) return toast(j.mensaje || 'No se pudo.'); toast('Mensaje desfijado.'); traer(false); }); };
+
+function accionMsg(id, acc) {
+    var m = st.msgs[id]; if (!m) return;
+    if (acc === 'responder') return ponerResp(id);
+    if (acc === 'copiar') return copiarTexto(m.texto || '');
+    if (acc === 'reaccionar') return abrirMenuMsg(id, null, true);
+    if (acc === 'reenviar' || acc === 'difusion') return reenviarMsg(id, acc === 'difusion');
+    if (acc === 'info') {
+        return api(urlM(id, 'info')).then(function (j) {
+            if (!j.ok) return toast(j.mensaje || 'No se pudo.');
+            var h = '<div class="m ' + (m.mio ? 'yo' : 'el') + '" style="max-width:100%;margin:0 0 12px auto;pointer-events:none">' + esc(textoCorto(m)) + '</div>' +
+                '<div class="fila"><div class="tx">Enviado' + (m.mio ? '' : ' por ' + esc(j.autor)) + '<small>' + esc(j.enviado) + '</small></div></div>' +
+                (j.editado ? '<div class="fila"><div class="tx">Editado<small>' + esc(j.editado) + '</small></div></div>' : '');
+            if (j.mio) {
+                if (st.info && st.info.tipo === 'directo') h += '<div class="fila"><div class="tx">' + (j.leyeron.length ? '<span style="color:var(--verde)">✓✓ Leído</span>' : '✓✓ Entregado') + '<small>' + (j.leyeron.length ? 'Ya lo vio' : 'Aún no lo ha visto') + '</small></div></div>';
+                else h += '<label>Leído por (' + j.leyeron.length + ')</label>' + (j.leyeron.length ? j.leyeron.map(function (n) { return '<div class="fila"><div class="tx">' + esc(n) + '</div></div>'; }).join('') : '<p style="color:var(--txt2);margin:4px 0">Nadie todavía.</p>') +
+                    '<label>Falta por leer (' + j.faltan.length + ')</label>' + j.faltan.map(function (n) { return '<div class="fila"><div class="tx">' + esc(n) + '</div></div>'; }).join('');
+            }
+            ventana('Info. del mensaje', h);
+        });
+    }
+    if (acc === 'fijar') {
+        return post(urlM(id, 'fijar')).then(function (j) { if (!j.ok) return toast(j.mensaje || 'No se pudo.'); toast(j.fijado ? '📌 Mensaje fijado para todos en este chat.' : 'Mensaje desfijado.'); traer(false); });
+    }
+    if (acc === 'destacar') {
+        return post(urlM(id, 'destacar')).then(function (j) {
+            if (!j.ok) return toast(j.mensaje || 'No se pudo.');
+            var n = JSON.parse(JSON.stringify(m)); n.destacado = j.destacado; repintarMsg(n);
+            toast(j.destacado ? '★ Mensaje destacado.' : 'Ya no está destacado.');
+        });
+    }
+    if (acc === 'nota') {
+        return post(urlM(id, 'nota')).then(function (j) { if (!j.ok) return toast(j.mensaje || 'No se pudo.'); toast('📝 Añadido a la nota del chat (menú ⋮ → Nota del chat).'); });
+    }
+    if (acc === 'editar') {
+        ventana('Editar mensaje', '<textarea id="ed-t" rows="4" maxlength="4000" style="width:100%">' + esc(m.texto || '') + '</textarea><p style="color:var(--txt2);font-size:.82rem;margin:6px 0 0">Se puede editar durante 15 minutos. Los demás verán que dice "Editado".</p>',
+            '<button class="bt sec" data-cerrar>Cancelar</button><button class="bt" id="ed-ok">Guardar</button>');
+        var t = $('ed-t'); t.focus(); t.selectionStart = t.selectionEnd = t.value.length;
+        $('ed-ok').onclick = function () {
+            post(urlM(id, 'editar'), { texto: t.value }).then(function (j) { if (!j.ok) return toast(j.mensaje || 'No se pudo editar.'); cerrarVentana(); traer(false); });
+        };
+        return;
+    }
+    if (acc === 'ocultar') return ocultarMsg(id);
+    if (acc === 'eliminar') {
+        ventana('¿Eliminar mensaje?', '<p style="margin:0;color:var(--txt2)">' + (m.borrable ? 'Puedes eliminarlo para todos (desaparece en este chat para todos) o solo para ti.' : 'Se quitará solo de tu pantalla; los demás lo siguen viendo.') + '</p>',
+            '<button class="bt sec" data-cerrar>Cancelar</button><button class="bt sec" id="el-mi">Eliminar para mí</button>' + (m.borrable ? '<button class="bt rojo" id="el-todos">Eliminar para todos</button>' : ''));
+        $('el-mi').onclick = function () { cerrarVentana(); ocultarMsg(id); };
+        if ($('el-todos')) $('el-todos').onclick = function () {
+            cerrarVentana();
+            post(urlM(id, 'eliminar')).then(function (j) { if (!j.ok) return toast(j.mensaje || 'No se pudo eliminar.'); if (st.resp === id) quitarResp(); traer(false); cargarChats(); });
+        };
+    }
+}
+function ocultarMsg(id) {
+    post(urlM(id, 'ocultar')).then(function (j) {
+        if (!j.ok) return toast(j.mensaje || 'No se pudo eliminar.');
+        var el = $('msgs').querySelector('[data-m="' + id + '"]'); if (el) el.remove();
+        delete st.msgs[id]; if (st.resp === id) quitarResp();
+        toast('Mensaje eliminado para ti.');
+    });
+}
+/* Reenviar (hasta 5 chats) · Nueva difusión (el mismo mensaje a muchos contactos a la vez, hasta 50, cada uno lo recibe en su chat) */
+function reenviarMsg(id, difusion) {
+    var max = difusion ? 50 : 5, vistos = {}, lista = [];
+    ['mis', 'general'].forEach(function (s) { (st.chats[s] || []).forEach(function (c) { if (!vistos[c.id] && (!difusion || c.tipo === 'directo')) { vistos[c.id] = 1; lista.push(c); } }); });
+    if (!lista.length) return toast(difusion ? 'Aún no tienes contactos para la difusión.' : 'No tienes chats para reenviar.');
+    ventana(difusion ? 'Nueva difusión' : 'Reenviar mensaje',
+        (difusion ? '<p style="margin:0 0 8px;color:var(--txt2);font-size:.88rem">Escoge a quién enviarle este mensaje (hasta ' + max + '). Cada persona lo recibe en su chat contigo, como un mensaje normal.</p>' : '') +
+        '<input type="text" id="fw-q" placeholder="Buscar chat" style="margin-bottom:6px">' +
+        (difusion ? '<label class="fsel" style="font-weight:700!important"><input type="checkbox" id="fw-todos"><div class="tx">Seleccionar todos</div></label>' : '') +
+        '<div id="fw-l">' + lista.map(function (c) { return '<label class="fsel" data-n="' + esc(sinTilde(c.nombre)) + '"><input type="checkbox" class="fw-c" value="' + c.id + '">' + avatar(c, 'p', c.tipo === 'grupo') + '<div class="tx">' + esc(c.nombre) + '</div></label>'; }).join('') + '</div>',
+        '<span id="fw-n" style="margin-right:auto;color:var(--txt2);align-self:center;font-size:.88rem">0 de ' + max + '</span><button class="bt sec" data-cerrar>Cancelar</button><button class="bt" id="fw-ok">Enviar</button>');
+    var cuenta = function () {
+        var ch = document.querySelectorAll('.fw-c:checked');
+        document.querySelectorAll('.fw-c:not(:checked)').forEach(function (x) { x.disabled = ch.length >= max; });
+        $('fw-n').textContent = ch.length + ' de ' + max;
+    };
+    $('fw-l').onchange = cuenta;
+    $('fw-q').oninput = function () { var q = sinTilde(this.value.trim()); document.querySelectorAll('#fw-l .fsel').forEach(function (f) { f.hidden = q && f.dataset.n.indexOf(q) < 0; }); };
+    if ($('fw-todos')) $('fw-todos').onchange = function () { var on = this.checked, n = 0; document.querySelectorAll('#fw-l .fsel:not([hidden]) .fw-c').forEach(function (x) { x.disabled = false; x.checked = on && n++ < max; }); cuenta(); };
+    $('fw-ok').onclick = function () {
+        var ids = [].slice.call(document.querySelectorAll('.fw-c:checked')).map(function (x) { return +x.value; });
+        if (!ids.length) return toast('Escoge al menos un chat.');
+        this.disabled = true;
+        post(urlM(id, 'reenviar'), { chats: ids, difusion: difusion ? 1 : 0 }).then(function (j) {
+            if (!j.ok) { $('fw-ok').disabled = false; return toast(j.mensaje || 'No se pudo enviar.'); }
+            cerrarVentana(); toast(difusion ? '📣 Difusión enviada a ' + j.enviados + ' contacto' + (j.enviados === 1 ? '' : 's') + '.' : 'Mensaje reenviado' + (j.enviados > 1 ? ' a ' + j.enviados + ' chats' : '') + '.');
+            traer(false); cargarChats();
+        }).catch(function () { $('fw-ok').disabled = false; toast('Sin conexión.'); });
+    };
+}
+function verDestacados() {
+    api(U + '/chat/' + st.abierto + '/destacados').then(function (j) {
+        if (!j.ok) return toast('No se pudo.');
+        ventana('★ Mensajes destacados', j.mensajes.length ? j.mensajes.map(function (x) { return '<div class="fila" data-dest="' + x.id + '" style="cursor:pointer"><div class="tx"><b>' + esc(x.autor) + '</b><small style="color:var(--txt);white-space:pre-wrap">' + esc(x.texto) + '</small></div><small>' + esc(x.hora) + '</small></div>'; }).join('')
+            : '<p style="color:var(--txt2);text-align:center">No tienes mensajes destacados en este chat.<br>Abre el menú de un mensaje y toca <b>Destacar</b>.</p>');
+        document.querySelectorAll('[data-dest]').forEach(function (f) { f.onclick = function () { cerrarVentana(); irAMsg(+f.dataset.dest); }; });
+    });
+}
+function verNota() {
+    api(U + '/chat/' + st.abierto + '/nota').then(function (j) {
+        if (!j.ok) return toast('No se pudo.');
+        ventana('📝 Nota del chat', '<p style="margin:0 0 8px;color:var(--txt2);font-size:.85rem">Solo tú la ves. Úsala para apuntar datos de este chat (pedidos, direcciones, acuerdos).</p><textarea id="nota-t" rows="9" maxlength="8000" style="width:100%">' + esc(j.nota || '') + '</textarea>',
+            '<button class="bt sec" data-cerrar>Cerrar</button><button class="bt" id="nota-ok">Guardar</button>');
+        $('nota-ok').onclick = function () { post(U + '/chat/' + st.abierto + '/nota', { nota: $('nota-t').value }).then(function (r) { if (!r.ok) return toast(r.mensaje || 'No se pudo guardar.'); cerrarVentana(); toast('Nota guardada.'); }); };
+    });
+}
+
 /* ---------- Emojis y stickers (2026-11-18) ---------- */
 var EMOJIS = [
     ['😀', 'Caritas', '😀 😃 😄 😁 😆 😅 😂 🤣 🥲 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 😙 😚 😋 😛 😝 😜 🤪 🤨 🧐 🤓 😎 🥸 🤩 🥳 😏 😒 😞 😔 😟 😕 🙁 ☹️ 😣 😖 😫 😩 🥺 😢 😭 😤 😠 😡 🤬 🤯 😳 🥵 🥶 😱 😨 😰 😥 😓 🤗 🤔 🫣 🤭 🫢 🤫 🤥 😶 😐 😑 😬 🙄 😯 😦 😧 😮 😲 🥱 😴 🤤 😪 😵 🤐 🥴 🤢 🤮 🤧 😷 🤒 🤕 🤑 🤠 😈 👿 👹 👺 🤡 💩 👻 💀 ☠️ 👽 🤖 🎃 😺 😸 😹 😻 😼 😽 🙀 😿 😾'],
@@ -1127,7 +1493,7 @@ $('b-menu').onclick = function (e) {
 $('b-cmenu').onclick = function (e) {
     e.stopPropagation();
     var i = st.info; if (!i) return;
-    var it = [];
+    var it = [['★ Mensajes destacados', verDestacados], ['📝 Nota del chat', verNota]];
     if (i.tipo === 'grupo') { it.push(['Info del grupo', infoGrupo]); it.push(['Salir del grupo', function () { if (confirm('¿Salir de "' + i.nombre + '"?')) accion('borrar'); }]); }
     else {
         it.push([i.otro && i.otro.empresa ? 'Ver empresa' : 'Ver perfil', function () { verPerfil(i.otro.id); }]);

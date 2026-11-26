@@ -200,13 +200,20 @@ class lpchatController extends Controller
         $yo = $this->yo();
         $c = $this->chat($id, $yo);
         $desde = (int) $request->query('desde', 0);
-        $q = DB::table('lpchat_mensajes')->where('chat_id', $c->id);
-        $msgs = $desde ? $q->where('id', '>', $desde)->orderBy('id')->limit(200)->get() : $q->orderByDesc('id')->limit(80)->get()->reverse()->values();
+        $ocultos = DB::table('lpchat_ocultos')->where('usuario_id', $yo->id)->where('chat_id', $c->id)->pluck('mensaje_id');
+        $q = DB::table('lpchat_mensajes')->where('chat_id', $c->id)->when($ocultos->isNotEmpty(), fn ($w) => $w->whereNotIn('id', $ocultos));
+        $msgs = $desde ? (clone $q)->where('id', '>', $desde)->orderBy('id')->limit(200)->get() : (clone $q)->orderByDesc('id')->limit(80)->get()->reverse()->values();
+        // 2026-11-26: los que cambiaron (reacción, editado, eliminado) desde la última vez que preguntó, para pintarlos de nuevo.
+        $cambiados = collect();
+        if ($desde && ($cambios = (int) $request->query('cambios', 0)) > 0) {
+            $cambiados = (clone $q)->where('id', '<=', $desde)->where('cambio_at', '>=', Carbon::createFromTimestamp($cambios - 2))->orderBy('id')->limit(100)->get();
+        }
         // Al leer una solicitud no se marca como leída (como Instagram: el otro no sabe que la vio).
         if ($c->yo->estado === 'activo' && $c->ultimo_id > $c->yo->leido_id) {
             DB::table('lpchat_miembros')->where('id', $c->yo->id)->update(['leido_id' => $c->ultimo_id]);
         }
-        $autores = U::whereIn('id', $msgs->pluck('usuario_id')->filter()->unique())->get()->keyBy('id');
+        $todos = $msgs->concat($cambiados);
+        $x = $this->extras($todos, $c, $yo);
         $leidoOtros = (int) DB::table('lpchat_miembros')->where('chat_id', $c->id)->where('usuario_id', '!=', $yo->id)->where('estado', 'activo')->min('leido_id');
         [$puede, $motivo] = LpChat::puedeEscribir($c, $yo);
         $escribiendo = [];
@@ -215,11 +222,14 @@ class lpchatController extends Controller
                 $escribiendo[] = $n;
             }
         }
+        $json = fn ($m) => $this->mensajeJson($m, $c, $yo, $x) + ['leido' => $m->usuario_id === $yo->id && $leidoOtros >= $m->id];
 
         return response()->json([
             'ok' => true,
             'chat' => $this->info($c, $yo),
-            'mensajes' => $msgs->map(fn ($m) => $this->mensajeJson($m, $c, $yo, $autores) + ['leido' => $m->usuario_id === $yo->id && $leidoOtros >= $m->id])->values(),
+            'mensajes' => $msgs->map($json)->values(),
+            'cambiados' => $cambiados->map($json)->values(),
+            'ahora' => now()->timestamp,
             'leido_otros' => $leidoOtros,
             'puede' => $puede,
             'motivo' => $motivo,
@@ -229,22 +239,85 @@ class lpchatController extends Controller
         ]);
     }
 
-    private function mensajeJson(object $m, object $c, U $yo, $autores): array
+    /** 2026-11-26: lo que se carga de una vez para varios mensajes: autores, reacciones, destacados y a qué responden. */
+    private function extras($msgs, object $c, U $yo): array
+    {
+        $ids = $msgs->pluck('id')->unique()->values();
+        $resp = $msgs->pluck('responde_id')->filter()->unique();
+        $citados = $resp->isEmpty() ? collect() : DB::table('lpchat_mensajes')->where('chat_id', $c->id)->whereIn('id', $resp)->get()->keyBy('id');
+        $reac = $ids->isEmpty() ? collect() : DB::table('lpchat_reacciones')->whereIn('mensaje_id', $ids)->orderBy('id')->get()->groupBy('mensaje_id');
+        $uids = $msgs->pluck('usuario_id')->merge($citados->pluck('usuario_id'))->merge($reac->flatten(1)->pluck('usuario_id'))->filter()->unique();
+
+        return [
+            'autores' => U::whereIn('id', $uids)->get()->keyBy('id'),
+            'citados' => $citados,
+            'reac' => $reac,
+            'dest' => $ids->isEmpty() ? collect() : DB::table('lpchat_destacados')->where('usuario_id', $yo->id)->whereIn('mensaje_id', $ids)->pluck('mensaje_id')->flip(),
+        ];
+    }
+
+    /** Resumen corto de un mensaje (para la cita de "Responder", lo fijado y las notas). */
+    private function resumen(object $m): string
+    {
+        if ($m->tipo === 'borrado') {
+            return '🚫 Se eliminó este mensaje';
+        }
+        $adj = ['foto' => '📷 Foto', 'video' => '🎥 Video', 'audio' => '🎤 Audio', 'sticker' => '🧩 Sticker'][$m->adjunto_tipo ?? ''] ?? ($m->adjunto ? '📎 Archivo' : '');
+        $tx = (string) LpChat::leer($m->texto);
+
+        return mb_strimwidth(trim($adj.($adj && $tx !== '' ? ' · ' : '').$tx), 0, 140, '…');
+    }
+
+    private function mensajeJson(object $m, object $c, U $yo, array $x): array
     {
         $mio = $m->usuario_id === $yo->id;
+        $autores = $x['autores'];
+        $nombre = fn ($uid) => $uid === $yo->id ? 'Tú' : ($autores->get($uid)->nombre ?? 'Alguien');
         $f = Carbon::parse($m->created_at)->timezone('America/Bogota');
-        $r = ['id' => $m->id, 'mio' => $mio, 'sistema' => $m->tipo === 'sistema',
+        $borrado = $m->tipo === 'borrado';
+        $r = ['id' => $m->id, 'mio' => $mio, 'sistema' => $m->tipo === 'sistema', 'borrado' => $borrado,
             'autor' => $c->tipo === 'grupo' && $m->usuario_id && ! $mio ? ($autores->get($m->usuario_id)->nombre ?? 'Alguien') : null,
-            'autor_id' => $m->usuario_id, 'texto' => LpChat::leer($m->texto), 'hora' => $f->format('g:i a'), 'dia' => $f->toDateString(),
-            'adj' => $m->adjunto_tipo ?: ($m->adjunto ? 'foto' : null), 'url' => null, 'una_vez' => (bool) $m->una_vez, 'abierto' => (bool) $m->abierto_at];
-        if ($m->adjunto && ! $m->una_vez) {
+            'autor_id' => $m->usuario_id, 'texto' => $borrado ? null : LpChat::leer($m->texto), 'hora' => $f->format('g:i a'), 'dia' => $f->toDateString(),
+            'adj' => $borrado ? null : ($m->adjunto_tipo ?: ($m->adjunto ? 'foto' : null)), 'url' => null, 'una_vez' => (bool) $m->una_vez, 'abierto' => (bool) $m->abierto_at,
+            'editado' => ! $borrado && ! empty($m->editado_at), 'reenviado' => ! $borrado && ! empty($m->reenviado),
+            'destacado' => isset($x['dest'][$m->id]),
+            // Se puede editar 15 minutos y eliminar para todos 2 días (como WhatsApp).
+            'editable' => $mio && ! $borrado && ! $m->una_vez && $m->adjunto_tipo !== 'sticker' && $f->gt(now()->subMinutes(15)),
+            'borrable' => $mio && ! $borrado && $f->gt(now()->subDays(2)),
+            'responde' => null, 'reacciones' => []];
+        if (! $borrado && $m->adjunto && ! $m->una_vez) {
             $r['url'] = route('lpchat.adjunto', $m->id);
+        }
+        if (! $borrado && ! empty($m->responde_id)) {
+            $q = $x['citados']->get($m->responde_id);
+            $r['responde'] = $q ? ['id' => $q->id, 'autor' => $q->usuario_id ? $nombre($q->usuario_id) : 'LP Chat', 'texto' => $this->resumen($q)]
+                : ['id' => 0, 'autor' => '', 'texto' => 'Mensaje que ya no está'];
+        }
+        foreach (($x['reac'][$m->id] ?? collect())->groupBy('emoji') as $emoji => $filas) {
+            $r['reacciones'][] = ['e' => $emoji, 'n' => $filas->count(), 'mio' => $filas->contains('usuario_id', $yo->id),
+                'quien' => $filas->take(30)->map(fn ($f) => $nombre($f->usuario_id))->values()];
         }
 
         return $r;
     }
 
     private function info(object $c, U $yo): array
+    {
+        return $this->infoBase($c, $yo) + ['fijado' => $this->fijado($c)];
+    }
+
+    /** 2026-11-26: el mensaje fijado arriba del chat (para todos). */
+    private function fijado(object $c): ?array
+    {
+        if (empty($c->fijado_id)) {
+            return null;
+        }
+        $m = DB::table('lpchat_mensajes')->where('id', $c->fijado_id)->where('chat_id', $c->id)->first();
+
+        return $m && $m->tipo !== 'borrado' ? ['id' => $m->id, 'texto' => $this->resumen($m)] : null;
+    }
+
+    private function infoBase(object $c, U $yo): array
     {
         if ($c->tipo === 'grupo') {
             $n = DB::table('lpchat_miembros')->where('chat_id', $c->id)->where('estado', 'activo')->count();
@@ -272,7 +345,7 @@ class lpchatController extends Controller
     {
         $yo = $this->yo();
         $c = $this->chat($id, $yo);
-        $request->validate(['texto' => 'nullable|string|max:4000', 'archivo' => 'nullable|file|max:30720', 'una_vez' => 'nullable|boolean', 'sticker_id' => 'nullable|integer']);
+        $request->validate(['texto' => 'nullable|string|max:4000', 'archivo' => 'nullable|file|max:30720', 'una_vez' => 'nullable|boolean', 'sticker_id' => 'nullable|integer', 'responde_id' => 'nullable|integer']);
         $texto = trim((string) $request->input('texto', ''));
         $archivo = $request->file('archivo');
         $sticker = $request->filled('sticker_id') ? DB::table('lpchat_stickers')->where('id', (int) $request->input('sticker_id'))->where('usuario_id', $yo->id)->first() : null;
@@ -311,9 +384,208 @@ class lpchatController extends Controller
             $adj = $archivo->store('lpchat/adjuntos/'.date('Y/m/d'), 'local');
         }
         $unaVez = $adj && $c->tipo === 'directo' && $request->boolean('una_vez');
-        $mid = LpChat::enviar($c, $yo, $texto, $adj, $tipo, $unaVez);
+        // 2026-11-26: responder a un mensaje del mismo chat
+        $resp = $request->filled('responde_id') ? DB::table('lpchat_mensajes')->where('id', (int) $request->input('responde_id'))->where('chat_id', $c->id)
+            ->where(fn ($q) => $q->whereNull('tipo')->orWhere('tipo', '!=', 'sistema'))->value('id') : null;
+        $mid = LpChat::enviar($c, $yo, $texto, $adj, $tipo, $unaVez, $resp ? ['responde_id' => $resp] : []);
 
         return response()->json(['ok' => true, 'id' => $mid]);
+    }
+
+    /* ---------- Menú de cada mensaje (2026-11-26, como WhatsApp) ---------- */
+
+    /** Un mensaje de este chat que la persona puede ver. */
+    private function mensajeDe(object $c, int $mid, U $yo): object
+    {
+        $m = DB::table('lpchat_mensajes')->where('id', $mid)->where('chat_id', $c->id)->first();
+        abort_unless($m && $m->tipo !== 'sistema', 404);
+        abort_if(DB::table('lpchat_ocultos')->where('usuario_id', $yo->id)->where('mensaje_id', $m->id)->exists(), 404);
+
+        return $m;
+    }
+
+    private function cambio(int $mid, array $datos = []): void
+    {
+        DB::table('lpchat_mensajes')->where('id', $mid)->update($datos + ['cambio_at' => now()]);
+    }
+
+    /** reaccionar | destacar | fijar | editar | eliminar (para todos) | ocultar (eliminar para mí) | nota (añadir texto a la nota) */
+    public function accionMensaje(Request $request, int $id, int $mensaje, string $accion): JsonResponse
+    {
+        $yo = $this->yo();
+        $c = $this->chat($id, $yo);
+        $m = $this->mensajeDe($c, $mensaje, $yo);
+        $borrado = $m->tipo === 'borrado';
+        $mio = $m->usuario_id === $yo->id;
+        $activo = $c->yo->estado === 'activo';
+        switch ($accion) {
+            case 'reaccionar':
+                abort_if($borrado || ! $activo, 422, 'No puedes reaccionar a este mensaje.');
+                $e = trim((string) $request->input('emoji', ''));
+                $actual = DB::table('lpchat_reacciones')->where('mensaje_id', $m->id)->where('usuario_id', $yo->id)->value('emoji');
+                if ($e === '' || $e === $actual) {
+                    DB::table('lpchat_reacciones')->where('mensaje_id', $m->id)->where('usuario_id', $yo->id)->delete();
+                } else {
+                    // Solo un emoji (o una secuencia de emoji), nada de texto.
+                    abort_unless(mb_strlen($e) <= 12 && preg_match('/^[\p{Extended_Pictographic}\p{Emoji_Component}\x{FE0F}\x{200D}\x{20E3}]+$/u', $e) && ! preg_match('/^[\d#*]+$/', $e), 422, 'Reacción no válida.');
+                    DB::table('lpchat_reacciones')->updateOrInsert(['mensaje_id' => $m->id, 'usuario_id' => $yo->id],
+                        ['chat_id' => $c->id, 'emoji' => $e, 'updated_at' => now(), 'created_at' => now()]);
+                }
+                $this->cambio($m->id);
+                break;
+            case 'destacar':
+                $ya = DB::table('lpchat_destacados')->where('usuario_id', $yo->id)->where('mensaje_id', $m->id)->delete();
+                if (! $ya) {
+                    abort_if($borrado, 422);
+                    DB::table('lpchat_destacados')->insert(['usuario_id' => $yo->id, 'mensaje_id' => $m->id, 'chat_id' => $c->id, 'created_at' => now()]);
+                }
+
+                return response()->json(['ok' => true, 'destacado' => ! $ya]);
+            case 'fijar':
+                abort_if(! $activo, 422);
+                $quitar = (int) ($c->fijado_id ?? 0) === $m->id;
+                abort_if(! $quitar && $borrado, 422);
+                DB::table('lpchat_chats')->where('id', $c->id)->update(['fijado_id' => $quitar ? null : $m->id]);
+
+                return response()->json(['ok' => true, 'fijado' => ! $quitar]);
+            case 'editar':
+                abort_unless($mio && ! $borrado && ! $m->una_vez && $m->adjunto_tipo !== 'sticker', 403, 'Solo puedes editar tus mensajes.');
+                if (Carbon::parse($m->created_at)->lt(now()->subMinutes(15))) {
+                    return response()->json(['ok' => false, 'mensaje' => 'Solo se puede editar durante 15 minutos después de enviarlo.'], 422);
+                }
+                $t = trim(mb_substr((string) $request->input('texto', ''), 0, 4000));
+                if ($t === '' && ! $m->adjunto) {
+                    return response()->json(['ok' => false, 'mensaje' => 'El mensaje no puede quedar vacío.'], 422);
+                }
+                $this->cambio($m->id, ['texto' => LpChat::cifrar($t ?: null), 'editado_at' => now()]);
+                break;
+            case 'eliminar':
+                abort_unless($mio && ! $borrado, 403, 'Solo puedes eliminar para todos tus mensajes.');
+                if (Carbon::parse($m->created_at)->lt(now()->subDays(2))) {
+                    return response()->json(['ok' => false, 'mensaje' => 'Solo se puede eliminar para todos hasta 2 días después de enviarlo. Puedes eliminarlo para ti.'], 422);
+                }
+                if ($m->adjunto) {
+                    Storage::disk('local')->delete($m->adjunto);
+                }
+                $this->cambio($m->id, ['texto' => null, 'adjunto' => null, 'adjunto_tipo' => null, 'una_vez' => false, 'tipo' => 'borrado', 'responde_id' => null]);
+                DB::table('lpchat_reacciones')->where('mensaje_id', $m->id)->delete();
+                DB::table('lpchat_chats')->where('id', $c->id)->where('fijado_id', $m->id)->update(['fijado_id' => null]);
+                break;
+            case 'ocultar':
+                DB::table('lpchat_ocultos')->insertOrIgnore(['usuario_id' => $yo->id, 'mensaje_id' => $m->id, 'chat_id' => $c->id, 'created_at' => now()]);
+                DB::table('lpchat_destacados')->where('usuario_id', $yo->id)->where('mensaje_id', $m->id)->delete();
+                break;
+            case 'nota':
+                abort_if($borrado, 422);
+                $tx = trim((string) LpChat::leer($m->texto));
+                abort_if($tx === '', 422, 'Este mensaje no tiene texto.');
+                $nota = trim((string) LpChat::leer($c->yo->nota ?? null));
+                $nueva = mb_substr(trim($nota."\n\n".$tx), -8000);
+                DB::table('lpchat_miembros')->where('id', $c->yo->id)->update(['nota' => LpChat::cifrar($nueva)]);
+
+                return response()->json(['ok' => true, 'nota' => $nueva]);
+            default:
+                abort(404);
+        }
+
+        return response()->json(['ok' => true]);
+    }
+
+    /** Info. del mensaje: cuándo se envió y quién lo leyó. */
+    public function infoMensaje(Request $request, int $id, int $mensaje): JsonResponse
+    {
+        $yo = $this->yo();
+        $c = $this->chat($id, $yo);
+        $m = $this->mensajeDe($c, $mensaje, $yo);
+        $fecha = fn ($f) => $f ? Carbon::parse($f)->timezone('America/Bogota')->locale('es')->isoFormat('D [de] MMMM YYYY, h:mm a') : null;
+        $autor = $m->usuario_id ? U::find($m->usuario_id) : null;
+        $r = ['ok' => true, 'enviado' => $fecha($m->created_at), 'editado' => $fecha($m->editado_at ?? null), 'autor' => $m->usuario_id === $yo->id ? 'Tú' : ($autor->nombre ?? 'Alguien'),
+            'mio' => $m->usuario_id === $yo->id, 'leyeron' => [], 'faltan' => []];
+        if ($r['mio']) {
+            $miembros = DB::table('lpchat_miembros')->where('chat_id', $c->id)->where('usuario_id', '!=', $yo->id)->where('estado', 'activo')->limit(300)->get(['usuario_id', 'leido_id']);
+            $nombres = U::whereIn('id', $miembros->pluck('usuario_id'))->pluck('nombre', 'id');
+            foreach ($miembros as $x) {
+                $r[$x->leido_id >= $m->id ? 'leyeron' : 'faltan'][] = $nombres[$x->usuario_id] ?? 'Alguien';
+            }
+        }
+
+        return response()->json($r);
+    }
+
+    /** Reenviar (hasta 5 chats) o Nueva difusión (hasta 50 chats directos): manda una copia del mensaje a cada uno. */
+    public function reenviar(Request $request, int $id, int $mensaje): JsonResponse
+    {
+        $yo = $this->yo();
+        $c = $this->chat($id, $yo);
+        $m = $this->mensajeDe($c, $mensaje, $yo);
+        $difusion = $request->boolean('difusion');
+        $request->validate(['chats' => 'required|array|min:1|max:'.($difusion ? 50 : 5), 'chats.*' => 'integer']);
+        if ($m->tipo === 'borrado' || $m->una_vez) {
+            return response()->json(['ok' => false, 'mensaje' => 'Este mensaje no se puede reenviar.'], 422);
+        }
+        $disco = Storage::disk('local');
+        if ($m->adjunto && ! $disco->exists($m->adjunto)) {
+            return response()->json(['ok' => false, 'mensaje' => 'El archivo de este mensaje ya se borró.'], 422);
+        }
+        $texto = (string) LpChat::leer($m->texto);
+        $enviados = 0;
+        $fallas = [];
+        foreach (array_unique(array_map('intval', $request->input('chats'))) as $cid) {
+            $d = DB::table('lpchat_chats')->where('id', $cid)->first();
+            $mi = $d ? LpChat::miembro($d->id, $yo->id) : null;
+            if (! $d || ! $mi || $mi->estado !== 'activo' || ($difusion && $d->tipo !== 'directo')) {
+                continue;
+            }
+            $d->yo = $mi;
+            [$puede, $motivo] = LpChat::puedeEscribir($d, $yo);
+            if (! $puede) {
+                $fallas[] = $motivo;
+                continue;
+            }
+            $adj = null;
+            if ($m->adjunto) {
+                // Copia propia: cada mensaje se borra con sus 3 meses sin dañar el otro.
+                $adj = 'lpchat/adjuntos/'.date('Y/m/d').'/fw_'.bin2hex(random_bytes(10)).'.'.(pathinfo($m->adjunto, PATHINFO_EXTENSION) ?: 'bin');
+                $disco->copy($m->adjunto, $adj);
+            }
+            // En la difusión el mensaje sale como nuevo (no dice "Reenviado").
+            LpChat::enviar($d, $yo, $texto, $adj, $m->adjunto_tipo ?: ($adj ? 'foto' : null), false, $difusion ? [] : ['reenviado' => true]);
+            $enviados++;
+        }
+        if (! $enviados) {
+            return response()->json(['ok' => false, 'mensaje' => $fallas[0] ?? 'No se pudo enviar a esos chats.'], 422);
+        }
+
+        return response()->json(['ok' => true, 'enviados' => $enviados]);
+    }
+
+    /** Nota privada del chat (solo la ve quien la escribe). */
+    public function nota(Request $request, int $id): JsonResponse
+    {
+        $yo = $this->yo();
+        $c = $this->chat($id, $yo);
+        if ($request->isMethod('post')) {
+            $request->validate(['nota' => 'nullable|string|max:8000']);
+            $t = trim((string) $request->input('nota', ''));
+            DB::table('lpchat_miembros')->where('id', $c->yo->id)->update(['nota' => $t === '' ? null : LpChat::cifrar($t)]);
+
+            return response()->json(['ok' => true]);
+        }
+
+        return response()->json(['ok' => true, 'nota' => (string) LpChat::leer($c->yo->nota ?? null)]);
+    }
+
+    /** Mensajes destacados de este chat. */
+    public function destacados(Request $request, int $id): JsonResponse
+    {
+        $yo = $this->yo();
+        $c = $this->chat($id, $yo);
+        $ids = DB::table('lpchat_destacados')->where('usuario_id', $yo->id)->where('chat_id', $c->id)->orderByDesc('id')->limit(100)->pluck('mensaje_id');
+        $msgs = DB::table('lpchat_mensajes')->whereIn('id', $ids)->where('chat_id', $c->id)->orderByDesc('id')->get();
+        $autores = U::whereIn('id', $msgs->pluck('usuario_id')->filter())->pluck('nombre', 'id');
+
+        return response()->json(['ok' => true, 'mensajes' => $msgs->map(fn ($m) => ['id' => $m->id, 'autor' => $m->usuario_id === $yo->id ? 'Tú' : ($autores[$m->usuario_id] ?? 'Alguien'),
+            'texto' => $this->resumen($m), 'hora' => LpChat::hora($m->created_at)])->values()]);
     }
 
     /* ---------- Stickers (2026-11-18) ---------- */

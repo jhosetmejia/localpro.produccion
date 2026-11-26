@@ -215,12 +215,13 @@ class LpChat
         return [true, null];
     }
 
-    public static function enviar(object $chat, U $yo, ?string $texto, ?string $adjunto = null, ?string $adjTipo = null, bool $unaVez = false): int
+    /** $extra (2026-11-26): responde_id, reenviado. */
+    public static function enviar(object $chat, U $yo, ?string $texto, ?string $adjunto = null, ?string $adjTipo = null, bool $unaVez = false, array $extra = []): int
     {
         $texto = $texto !== null ? trim(mb_substr($texto, 0, 4000)) : null;
         $id = DB::table('lpchat_mensajes')->insertGetId(['chat_id' => $chat->id, 'usuario_id' => $yo->id, 'texto' => self::cifrar($texto ?: null),
             'adjunto' => $adjunto, 'adjunto_tipo' => $adjunto ? $adjTipo : null, 'una_vez' => $adjunto && $unaVez,
-            'created_at' => now(), 'updated_at' => now()]);
+            'created_at' => now(), 'updated_at' => now()] + array_intersect_key($extra, ['responde_id' => 1, 'reenviado' => 1]));
         DB::table('lpchat_chats')->where('id', $chat->id)->update(['ultimo_id' => $id, 'updated_at' => now()]);
         DB::table('lpchat_miembros')->where('chat_id', $chat->id)->where('usuario_id', $yo->id)->update(['leido_id' => $id, 'estado' => 'activo', 'updated_at' => now()]);
         if ($chat->tipo === 'directo') {
@@ -320,6 +321,10 @@ class LpChat
                 }
                 $tx = self::leer($ult->texto);
                 $prev = $tx ?: $adj;
+                if ($ult->tipo === 'borrado') {
+                    $prev = '🚫 Se eliminó este mensaje';
+                    $adj = '';
+                }
                 if ($adj && $tx && ! $ult->una_vez) {
                     $prev = $adj.' · '.$tx;
                 }
