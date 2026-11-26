@@ -12,7 +12,7 @@ echo
 echo "=================================================================="
 echo " EN EL COMPUTADOR (Windows, PowerShell), una sola vez:"
 echo "   1) winget install Rclone.Rclone"
-echo "   2) Cierre y abra PowerShell, y escriba:  rclone authorize \"drive\""
+echo "   2) Cierre y abra PowerShell, y escriba:  rclone authorize \"drive\" \"eyJzY29wZSI6ImRyaXZlLmZpbGUifQ\""
 echo "   3) Se abre Google: entre con la cuenta del Drive y dé Permitir."
 echo "   4) En PowerShell sale un texto que empieza con {\"access_token\":..."
 echo "      Cópielo COMPLETO (desde { hasta }) y péguelo aquí abajo."
@@ -20,7 +20,7 @@ echo "=================================================================="
 read -r -p "Token: " TOKEN
 case "$TOKEN" in \{*access_token*\}) ;; *) echo "Eso no parece el token (debe empezar con { y terminar con }). No se cambió nada."; exit 1 ;; esac
 
-rclone config create gdrive drive scope drive token "$TOKEN" >/dev/null || { echo "No se pudo guardar la conexión."; exit 1; }
+rclone config create gdrive drive scope drive.file token "$TOKEN" >/dev/null || { echo "No se pudo guardar la conexión."; exit 1; }
 chmod 600 /root/.config/rclone/rclone.conf 2>/dev/null
 
 echo "==> Probando Google Drive"
