@@ -38,3 +38,6 @@ E41 2026-11-23 16:40 LocalProCut: iPhone restauró la página vieja con el cut.j
 E40 2026-11-23 16:40 LocalProCut: archivo que no se puede leer ni un byte (en la nube / WhatsApp a medio bajar) — ya se le explica a la persona, no es falla del código y ya no se reporta
 E39 2026-11-23 16:40 PFN registro: recortador de foto con doble toque en Confirmar (activeInput null) — arreglado en pfn-sistema
 E38 2026-11-23 16:40 NES: navigator.share no es función en WebView Honor — ahora se revisa typeof en todas las vistas de nes-sistema
+E42 2026-11-25 23:05 PFN /repeticiones: "Failed to connect to MetaMask" sale de la extensión MetaMask (chrome-extension://), no del código — ya no se reporta
+E43 2026-11-25 23:05 LocalProCut vista previa en Firefox: readyState 2 aunque el video avanzaba hacía creer que estaba pegado — ahora se mira si el tiempo del video avanza
+E44 2026-11-25 23:05 PFN /login: "Can't find variable: DarkReader" lo mete la extensión Dark Reader de Brave (iPhone), no es del código — ya no se reporta (lp-opinion.js y servidor filtran extensiones)

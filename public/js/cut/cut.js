@@ -620,7 +620,10 @@ function relojVideo(L, ahora) {
     // El clip llegó a su final: pasar al siguiente
     if (v.ended || v.currentTime >= c.out - 0.04) return Math.max(S.t, L.start[i] + largo(c));
     if (S._esperaId !== c.id) { S._esperaId = c.id; S._espera = 0; }
-    if (v.paused || v.seeking || v.readyState < 3) {
+    // Firefox deja readyState en 2 aunque el video va bien: si el tiempo del video sigue avanzando, está sonando (E43)
+    if (v.currentTime !== c._rvT) { c._rvT = v.currentTime; c._rvMov = ahora; }
+    const avanza = !v.paused && !v.seeking && v.readyState >= 2 && ahora - (c._rvMov || 0) < 500;
+    if (!avanza && (v.paused || v.seeking || v.readyState < 3)) {
       S._espera ||= ahora;
       if (ahora - S._espera > 1500 && !c._relRec) { c._relRec = true; S._espera = ahora; pedirCopiaVista(c); recargarVideo(c); return S.t; } // 1º se recarga
       if (ahora - S._espera > 1500 && c._vistaP && !c.urlVista) { if (!c._avisoCopia) { c._avisoCopia = 1; aviso('Este video es muy pesado para la vista previa de este celular (' + (c.w || '') + 'x' + (c.h || '') + '). Estoy preparando una copia liviana; en un momento se ve fluido. El video final sale con la calidad original.'); } return null; } // 2026-11-18

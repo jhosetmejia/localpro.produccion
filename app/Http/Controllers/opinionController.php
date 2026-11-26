@@ -133,6 +133,10 @@ class opinionController extends Controller
         if ($pila !== '' && str_contains($pila, '<anonymous>') && !preg_match('#https?://#', $pila)) {
             return true;
         }
+        // Extensiones del navegador (Dark Reader, MetaMask, traductores…): no son fallas del código (E42, E44)
+        if (preg_match('#(chrome|moz|safari|safari-web)-extension://#i', $pila) || preg_match('/DarkReader|MetaMask/i', $msg)) {
+            return true;
+        }
         return (bool) preg_match('/__firefox__|standardSelectors|window\.ethereum|ethereum\.|selectedAddress|__gCrWeb|webkit\.messageHandlers|instantSearchSDKJSBridge|WebViewJavascriptBridge|WeixinJSBridge|AlipayJSBridge|JSBridge|HiBrowser|_AutofillCallbackHandler|A network error occurred|Network request failed|Failed to fetch|Load failed|NetworkError when attempting|^Script error\.?$/i', $msg);
     }
 

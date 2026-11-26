@@ -49,6 +49,9 @@
     msg = String(msg || '');
     // Código que mete el navegador o la app (no es de la página): la pila solo dice <anonymous>, sin archivo real
     if (pila && /<anonymous>/.test(pila) && !/https?:\/\//.test(pila)) return true;
+    // Extensiones del navegador (Dark Reader, MetaMask, traductores…): su pila sale de chrome-extension:// y similares
+    if (pila && /(chrome|moz|safari|safari-web)-extension:\/\//i.test(pila)) return true;
+    if (/DarkReader|MetaMask/i.test(msg)) return true;
     if (!msg || msg === 'Script error.' || msg === 'Script error') return true;           // de otro dominio: no dice nada
     if (/LPCUT_EN_APP_SIN_WEBGL|window\.ethereum|ethereum\.|selectedAddress|__gCrWeb|webkit\.messageHandlers|instantSearchSDKJSBridge|WebViewJavascriptBridge|WeixinJSBridge|AlipayJSBridge|JSBridge|HiBrowser|_AutofillCallbackHandler|__firefox__|standardSelectors/i.test(msg)) return true; // billeteras y apps/navegadores que se meten en la página (Brave, MetaMask, Instagram, HiBrowser, WeChat)
     if (/ResizeObserver loop|Non-Error promise rejection captured|AbortError|The user aborted|cancelado|Load failed$|Failed to fetch$|NetworkError when attempting|A network error occurred|Network request failed/i.test(msg)) return true;
