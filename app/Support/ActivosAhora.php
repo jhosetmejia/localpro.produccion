@@ -54,6 +54,32 @@ class ActivosAhora
         }
     }
 
+    /**
+     * 2026-11-25: registros por día de los últimos $dias días (hora de Colombia), del más viejo al de hoy.
+     * Para la gráfica de tendencia del Centro de control.
+     */
+    public static function serieDiaria($query, string $col = 'created_at', int $dias = 30): array
+    {
+        try {
+            $tz = 'America/Bogota';
+            $inicio = now($tz)->startOfDay()->subDays($dias - 1);
+            $out = array_fill(0, $dias, 0);
+            (clone $query)->where($col, '>=', $inicio->copy()->setTimezone(config('app.timezone', 'UTC')))->pluck($col)
+                ->each(function ($f) use (&$out, $inicio, $tz, $dias) {
+                    $i = (int) floor(($inicio->diffInSeconds(\Illuminate\Support\Carbon::parse($f)->setTimezone($tz), false)) / 86400);
+                    if ($i >= 0 && $i < $dias) {
+                        $out[$i]++;
+                    }
+                });
+
+            return $out;
+        } catch (\Throwable $e) {
+            report($e);
+
+            return [];
+        }
+    }
+
     private static function deDatos(string $crudo): ?string
     {
         if ($crudo === '') {

@@ -19,7 +19,9 @@
 .cc .s.caido{border-color:var(--rojo)}
 .cc .s h3{font-size:1rem;font-weight:800;margin:0 0 2px;display:flex;justify-content:space-between;gap:6px}
 .cc .s small{color:var(--mut)}
-.cc .s .num{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
+.cc .s .num{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:10px}
+.cc .s .num>*{grid-column:span 2}.cc .s .num>.c3{grid-column:span 3}
+.cc .s .num .reg{display:flex!important;align-items:center;gap:8px}.cc .s .num .reg>.t{flex:1;min-width:0;background:none;padding:0;border:0}.cc .s .num .tend{display:block;flex:none;width:96px;text-align:right}.cc .s .num .tend svg{display:block;width:96px;height:34px}.cc .s .num .tend i{font-style:normal;font-size:.68rem;font-weight:800;white-space:nowrap}.cc .s .num .tend i span{font-size:inherit;color:var(--mut)}
 .cc .s .num div,.cc .s .num a{display:block;background:#0e1311;border-radius:10px;padding:8px;color:var(--txt);text-decoration:none;border:1px solid transparent}
 .cc .s .num a:hover{border-color:var(--c)}
 .cc .s .num em{font-style:normal;color:var(--ok);font-size:.7rem;font-weight:700}
@@ -82,9 +84,26 @@
     function pendientesActivos(s) { return (s.pendientes || []).filter(function (p) { return p.nivel === 'rojo' || p.nivel === 'amarillo' || (p.n && p.nivel !== 'info'); }); }
 
     // Cuadro con clic: abre en otra pestaña lo específico de ese sistema
-    function cuadro(url, valor, titulo, sub, color) {
+    function cuadro(url, valor, titulo, sub, color, clase, extra) {
         var inn = '<b' + (color ? ' style="color:' + color + '"' : '') + '>' + valor + '</b><span>' + esc(titulo) + '</span>' + (sub ? '<small class="d-block" style="font-size:.7rem">' + sub + '</small>' : '');
-        return url ? '<a href="' + esc(url) + '" target="_blank" rel="noopener">' + inn + '</a>' : '<div>' + inn + '</div>';
+        if (extra) inn = '<div class="t">' + inn + '</div>' + extra;
+        var c = clase ? ' class="' + clase + '"' : '';
+        return url ? '<a' + c + ' href="' + esc(url) + '" target="_blank" rel="noopener">' + inn + '</a>' : '<div' + c + '>' + inn + '</div>';
+    }
+    // 2026-11-25 (Jhoset): gráfica chiquita de registros de los últimos 30 días y si vamos creciendo o bajando
+    // (últimos 15 días contra los 15 anteriores).
+    function tendencia(serie) {
+        if (!serie || serie.length < 4) return '';
+        var n = serie.length, mitad = Math.floor(n / 2), a = 0, b = 0, max = 1;
+        serie.forEach(function (v, i) { if (i < n - mitad) a += v; else b += v; if (v > max) max = v; });
+        var dif = b - a, pct = a ? Math.round(dif * 100 / a) : (b ? 100 : 0);
+        var colr = dif > 0 ? 'var(--ok)' : (dif < 0 ? 'var(--rojo)' : 'var(--mut)');
+        var W = 96, H = 30, pts = serie.map(function (v, i) { return (i * W / (n - 1)).toFixed(1) + ',' + (H - 2 - v * (H - 6) / max).toFixed(1); });
+        var txt = dif > 0 ? '▲ ' + pct + '%' : (dif < 0 ? '▼ ' + Math.abs(pct) + '%' : '= igual');
+        return '<span class="tend" title="Registros por día, últimos ' + n + ' días. Últimos 15 días: ' + b + ' · 15 anteriores: ' + a + '">'
+            + '<svg viewBox="0 0 ' + W + ' ' + (H + 4) + '" preserveAspectRatio="none"><polygon points="0,' + (H + 4) + ' ' + pts.join(' ') + ' ' + W + ',' + (H + 4) + '" fill="' + colr + '" opacity=".15"/>'
+            + '<polyline points="' + pts.join(' ') + '" fill="none" stroke="' + colr + '" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>'
+            + '<i style="color:' + colr + '">' + txt + ' <span style="font-weight:600">15 días</span></i></span>';
     }
     function fallasLink(k, f) {
         var u = f.link || {!! json_encode(route('admin.fallas')) !!};
@@ -102,10 +121,12 @@
                 + (caido ? '<div class="err mt-2">' + esc(s.error || 'Sin respuesta') + '</div>' : '')
                 + '<div class="num">'
                 + cuadro(r.registrados && r.registrados.link, num(r.registrados ? r.registrados.n : null) + (r.registrados && r.registrados.activos != null ? ' <span style="font-size:.55em;font-weight:700;color:var(--ok);white-space:nowrap">/ ' + num(r.registrados.activos) + ' activos</span>' : ''), (r.registrados && r.registrados.label) || 'Registrados',
-                    r.registrados && r.registrados.hoy ? '<em>+' + num(r.registrados.hoy) + ' hoy</em>' : (r.registrados && r.registrados.sub ? esc(r.registrados.sub) : ''), '')
-                + cuadro(r.ingresos_anio && r.ingresos_anio.link, plata(r.ingresos_anio ? r.ingresos_anio.n : null), 'Ingresos ' + ((r.ingresos_anio && r.ingresos_anio.anio) || 'del año'), '', '')
+                    r.registrados && r.registrados.hoy ? '<em>+' + num(r.registrados.hoy) + ' hoy</em>' : (r.registrados && r.registrados.sub ? esc(r.registrados.sub) : ''), '', 'c3 reg', tendencia(r.registrados && r.registrados.serie))
+                + cuadro(r.ingresos_anio && r.ingresos_anio.link, plata(r.ingresos_anio ? r.ingresos_anio.n : null), 'Ingresos ' + ((r.ingresos_anio && r.ingresos_anio.anio) || 'del año'), '', '', 'c3')
                 + cuadro(fallasLink(k, f), num(nf), 'Fallas del sistema', num(e.n24 || 0) + ' del servidor · ' + num(f.abiertas || 0) + ' en celulares', nf ? 'var(--rojo)' : 'var(--ok)')
                 + cuadro(r.mia && r.mia.link, num(r.mia ? r.mia.n : null), 'Preguntas de Mía sin responder', '', r.mia && r.mia.n ? 'var(--am)' : 'var(--ok)')
+                // 2026-11-25: tercera cajita: lo pendiente por atender en ese sistema (pagos, mensajes, opiniones…); abre su pestaña
+                + (function () { var np = pendientesActivos(s).length; return '<div data-tab="' + k + '"><b style="color:' + (np ? 'var(--am)' : 'var(--ok)') + '">' + num(np) + '</b><span>Pendientes por atender</span><small class="d-block" style="font-size:.7rem">' + (np ? 'ver la lista abajo' : 'todo al día') + '</small></div>'; })()
                 + '</div></div>';
         });
         $('ccSis').innerHTML = h;
