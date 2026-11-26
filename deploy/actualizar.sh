@@ -128,7 +128,8 @@ CRONTXT="15 3 * * * root /bin/bash $RAIZ/deploy/respaldo-diario.sh >> /var/log/l
 45 */4 * * * root /bin/bash $RAIZ/deploy/respaldo-diario.sh --rapido >> /var/log/localpro-respaldo.log 2>&1
 30 5 * * 0 root /bin/bash $RAIZ/deploy/probar-respaldo.sh >> /var/log/localpro-respaldo.log 2>&1
 40 3 * * * root /bin/bash $RAIZ/deploy/respaldo-sistemas.sh >> /var/log/localpro-respaldo.log 2>&1
-20 */6 * * * root /bin/bash $RAIZ/deploy/respaldo-sistemas.sh --rapido >> /var/log/localpro-respaldo.log 2>&1"
+20 */6 * * * root /bin/bash $RAIZ/deploy/respaldo-sistemas.sh --rapido >> /var/log/localpro-respaldo.log 2>&1
+50 5 * * 0 root /bin/bash $RAIZ/deploy/probar-sistemas.sh >> /var/log/localpro-respaldo.log 2>&1"
 if [ "$(cat "$CRON" 2>/dev/null)" != "$CRONTXT" ]; then
   echo "$CRONTXT" > "$CRON"
   chmod 644 "$CRON"

@@ -85,6 +85,7 @@ if [ -n "$OID" ] && [ "$OID" != "$HECHA" ]; then
     refrescar-pruebas) bash "$RAIZ/deploy/refrescar-pruebas.sh" >> /var/log/localpro-pruebas.log 2>&1 || R="falló (ver /var/log/localpro-pruebas.log)" ;;
     respaldo-ya) bash "$RAIZ/deploy/respaldo-diario.sh" >> /var/log/localpro-respaldo.log 2>&1 || R="falló" ;;
     respaldo-sistemas) bash "$RAIZ/deploy/respaldo-sistemas.sh" >> /var/log/localpro-respaldo.log 2>&1; R="$(cat /var/lib/localpro/respaldo-sistemas 2>/dev/null || echo falló)" ;;
+    probar-sistemas) bash "$RAIZ/deploy/probar-sistemas.sh" >> /var/log/localpro-respaldo.log 2>&1; R="$(cat /var/lib/localpro/prueba-sistemas 2>/dev/null || echo falló)" ;;
     probar-respaldo) bash "$RAIZ/deploy/probar-respaldo.sh" >> /var/log/localpro-respaldo.log 2>&1 || R="falló (ver Simulacro en el reporte)" ;;
     recuperar-fotos)
       # Fotos de productos que están en la base pero sin archivo: se buscan en las otras carpetas del VPS (ej. la carpeta vieja) y se copian
@@ -129,6 +130,7 @@ set +o pipefail   # en el reporte, que no haya errores (grep sin resultados) no 
   echo "Respaldo externo (fuera del servidor): $(cat /var/lib/localpro/respaldo-externo 2>/dev/null || echo 'NO ACTIVADO')"
   echo "Copias en el servidor: $(ls -1 /home/$USR/respaldos/diario/base-*.sql.gz 2>/dev/null | wc -l) de la base · configuración: $(ls -1 /home/$USR/respaldos/diario/config-*.tar.gz 2>/dev/null | wc -l)"
   echo "Respaldo PFN y NES: $(cat /var/lib/localpro/respaldo-sistemas 2>/dev/null || echo 'aún no se ha hecho')"
+  echo "Simulacro PFN y NES: $(cat /var/lib/localpro/prueba-sistemas 2>/dev/null || echo 'aún no se ha hecho')"
   echo "Google Drive: $(rclone listremotes 2>/dev/null | grep -qx 'gdrive:' && echo "conectado · $(rclone about gdrive: 2>/dev/null | awk '/^(Used|Total):/{printf "%s %s %s  ", $1, $2, $3}')" || echo 'NO CONECTADO (deploy/activar-google-drive.sh)')"
   echo "Simulacro de restauración: $(cat /var/lib/localpro/prueba-respaldo 2>/dev/null || echo 'aún no se ha hecho')"
   [ -s /var/lib/localpro/pruebas-estado ] && echo "Sitio de pruebas: $(cat /var/lib/localpro/pruebas-estado)"
