@@ -50,6 +50,8 @@ Sitio en vivo: https://localproo.com
   - Restaurar en el mismo servidor: `localproo restaurar [AAAA-MM-DD]` (copia del estado actual antes, pide escribir RESTAURAR, base completa + fotos que falten, no toca `.env`).
   - Servidor perdido: en un VPS nuevo con CloudPanel, `deploy/montar-desde-respaldo.sh` (pide llaves de Backblaze y la llave de cifrado; instala, restaura base, fotos y `.env`, crons y piloto; al final cambiar el A de Cloudflare a la IP nueva).
   - Órdenes del piloto: `respaldo-ya`, `probar-respaldo`. Ver la llave: `localproo llave`.
+  - **PFN y NES** (2026-11-25): `deploy/respaldo-sistemas.sh` (3:40 a. m. completo, `--rapido` cada 6 h solo bases): busca las carpetas de pastofightnight.com y narinoexposhow.com en este VPS, base (mysqldump o pg_dump 17 para Neon) + `storage/app` + `.env`, cifrado con la misma llave a Backblaze `respaldo:<bucket>/pfn|nes/AAAA-MM-DD` y a Google Drive. Fotos de su Backblaze (S3, llaves del `.env` de cada uno) se copian solo las nuevas (nunca se borran) a `gdrive:Respaldos LocalPro/fotos-pfn|nes` (o al Backblaze de respaldo si no hay Drive). Estado `/var/lib/localpro/respaldo-sistemas`. Orden `respaldo-sistemas`.
+  - **Google Drive** (segunda copia, 15 GB gratis): remoto rclone `gdrive`, se conecta una vez con `deploy/activar-google-drive.sh` (token de `rclone authorize "drive"` en el PC). `respaldo-externo.sh` también sube ahí la copia de LocalPro (`Respaldos LocalPro/localpro`).
 - Otros scripts en `deploy/` (instalar VPS, correo, respaldo diario, dominio nuevo, reset admin).
 - Pagos con Wompi (`wompiController`); integración Meta con webhook (`metaWebhookController`).
 

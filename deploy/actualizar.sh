@@ -126,11 +126,13 @@ CRON=/etc/cron.d/localpro-respaldo
 # Copia completa a las 3:15 a. m., copia rápida de la base cada 4 horas y simulacro de restauración los domingos
 CRONTXT="15 3 * * * root /bin/bash $RAIZ/deploy/respaldo-diario.sh >> /var/log/localpro-respaldo.log 2>&1
 45 */4 * * * root /bin/bash $RAIZ/deploy/respaldo-diario.sh --rapido >> /var/log/localpro-respaldo.log 2>&1
-30 5 * * 0 root /bin/bash $RAIZ/deploy/probar-respaldo.sh >> /var/log/localpro-respaldo.log 2>&1"
+30 5 * * 0 root /bin/bash $RAIZ/deploy/probar-respaldo.sh >> /var/log/localpro-respaldo.log 2>&1
+40 3 * * * root /bin/bash $RAIZ/deploy/respaldo-sistemas.sh >> /var/log/localpro-respaldo.log 2>&1
+20 */6 * * * root /bin/bash $RAIZ/deploy/respaldo-sistemas.sh --rapido >> /var/log/localpro-respaldo.log 2>&1"
 if [ "$(cat "$CRON" 2>/dev/null)" != "$CRONTXT" ]; then
   echo "$CRONTXT" > "$CRON"
   chmod 644 "$CRON"
-  echo "    Respaldos programados: completo 3:15 a. m., base cada 4 horas y simulacro los domingos."
+  echo "    Respaldos programados: completo 3:15 a. m., base cada 4 horas, simulacro los domingos y PFN/NES 3:40 a. m. (bases cada 6 h)."
 fi
 # Vigilante cada 5 minutos: si el sitio se cae, reinicia PHP/nginx/MySQL solo y cuida el disco
 VIG=/etc/cron.d/localpro-vigilante

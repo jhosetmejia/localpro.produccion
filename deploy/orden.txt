@@ -3,3 +3,4 @@
 # Acciones: reiniciar · reiniciar-php · reiniciar-nginx · limpiar-cache · quitar-mantenimiento · liberar-disco
 #           reintentar-actualizacion · migrar · colas · diagnostico · recuperar-fotos · respaldo-ya · probar-respaldo · refrescar-pruebas (copia los datos de producción al sitio de pruebas)
 20261026-04|probar-respaldo
+20261125-01|respaldo-sistemas
