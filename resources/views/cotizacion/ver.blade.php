@@ -8,11 +8,12 @@
 .ct-acc .btn{border-radius:14px;font-weight:700}
 .ct-acc form{display:inline}
 .ct-wrap{background:#eef1ef;border-radius:24px;padding:22px 12px}
+/* Imprimir / PDF: solo la hoja, sin menú ni panel (antes quedaba corrida y en 2 páginas en iPhone) */
+#ctPrint{display:none}
 @media print{
-  body *{visibility:hidden!important}
-  #ctHoja,#ctHoja *{visibility:visible!important}
-  #ctHoja{position:absolute;left:0;top:0;width:100%}
-  .ct-wrap{background:none;padding:0}
+  html,body{background:#fff!important;margin:0!important;padding:0!important;width:auto!important;min-width:0!important;overflow:visible!important}
+  body.ct-imprimiendo > *:not(#ctPrint){display:none!important}
+  body.ct-imprimiendo > #ctPrint{display:block!important;position:static!important;width:100%!important;margin:0!important}
 }
 </style>
 @endpush
@@ -79,6 +80,13 @@
 
 @push('js')
 <script>
+// Copia limpia de la hoja directo en <body>, para que imprimir/PDF (también Safari iPhone) salga completo y en 1 hoja
+(function () {
+    var h = document.getElementById('ctHoja'); if (!h) return;
+    var p = document.createElement('div'); p.id = 'ctPrint';
+    var c = h.cloneNode(true); c.id = 'ctHojaPrint'; p.appendChild(c);
+    document.body.appendChild(p); document.body.classList.add('ct-imprimiendo');
+})();
 document.getElementById('copiar').addEventListener('click', function () {
     var b = this, u = b.dataset.url;
     (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(function () {

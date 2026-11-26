@@ -46,7 +46,11 @@
   .ct-hoja::before{display:none}
   .ct-hoja .no-pdf{display:none!important}
   .ct-hoja .cajas{grid-template-columns:1fr 1fr}.ct-hoja .hide-sm{display:table-cell}
-  @page{margin:14mm 14mm}
+  .ct-hoja .cab{flex-wrap:nowrap}.ct-hoja .doc{text-align:right}
+  .ct-hoja .firma{flex-wrap:nowrap;margin-top:34px}
+  .ct-hoja .cajas,.ct-hoja .caja,.ct-hoja tr,.ct-hoja .tot,.ct-hoja .cond,.ct-hoja .firma,.ct-hoja .pie{break-inside:avoid;page-break-inside:avoid}
+  .ct-hoja *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  @page{size:letter;margin:12mm}
 }
 </style>
 <div class="ct-hoja" id="ctHoja">
