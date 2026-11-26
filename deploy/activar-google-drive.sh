@@ -14,10 +14,15 @@ echo " EN EL COMPUTADOR (Windows, PowerShell), una sola vez:"
 echo "   1) winget install Rclone.Rclone"
 echo "   2) Cierre y abra PowerShell, y escriba:  rclone authorize \"drive\" \"eyJzY29wZSI6ImRyaXZlLmZpbGUifQ\""
 echo "   3) Se abre Google: entre con la cuenta del Drive y dé Permitir."
-echo "   4) En PowerShell sale un texto que empieza con {\"access_token\":..."
-echo "      Cópielo COMPLETO (desde { hasta }) y péguelo aquí abajo."
+echo "   4) En PowerShell sale un texto entre ---> y <---End paste."
+echo "      Cópielo COMPLETO y péguelo aquí abajo."
 echo "=================================================================="
 read -r -p "Token: " TOKEN
+TOKEN="$(echo "$TOKEN" | tr -d '[:space:]')"
+# rclone nuevo entrega un bloque en base64 ({"client_id":"","client_secret":"","token":"{...}"}): se saca el token de adentro
+case "$TOKEN" in \{*) ;; *)
+  TOKEN="$(python3 -c 'import sys,json,base64;b=sys.argv[1];b+="="*(-len(b)%4);d=json.loads(base64.urlsafe_b64decode(b));print(d.get("token",""))' "$TOKEN" 2>/dev/null)" ;;
+esac
 case "$TOKEN" in \{*access_token*\}) ;; *) echo "Eso no parece el token (debe empezar con { y terminar con }). No se cambió nada."; exit 1 ;; esac
 
 rclone config create gdrive drive scope drive.file token "$TOKEN" >/dev/null || { echo "No se pudo guardar la conexión."; exit 1; }
