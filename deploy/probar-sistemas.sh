@@ -29,7 +29,7 @@ for S in pfn nes; do
   [ "$NT" -ge 10 ] || MAL="${MAL:-la base no se puede abrir o tiene $NT tablas}"
   ARCH=$(ls -1 "$TMP"/archivos-*.tar.gz 2>/dev/null | head -1); [ -n "$ARCH" ] && ! tar -tzf "$ARCH" >/dev/null 2>&1 && MAL="${MAL:-los archivos están dañados}"
   CONF=$(ls -1 "$TMP"/config-*.tar.gz 2>/dev/null | head -1)
-  NF=0; for F in "${FUENTES[@]}"; do n=$(rclone size --json "$F/fotos-$S" 2>/dev/null | python3 -c 'import sys,json;print(json.load(sys.stdin).get("count",0))' 2>/dev/null); [ "${n:-0}" -gt "$NF" ] && NF=$n; done
+  NF=0; for F in "${FUENTES[@]}"; do for D in "fotos-$S" fotos-pfn; do n=$(rclone size --json "$F/$D" 2>/dev/null | python3 -c 'import sys,json;print(json.load(sys.stdin).get("count",0))' 2>/dev/null); [ "${n:-0}" -gt "$NF" ] && NF=$n; done; done
   if [ -n "$MAL" ]; then RES="$RES · $S: FALLÓ ($MAL)"; OK=0
   else RES="$RES · $S OK ($R): base con $NT tablas, archivos $([ -n "$ARCH" ] && echo sí || echo no), .env $([ -n "$CONF" ] && echo sí || echo no), $NF fotos copiadas"; fi
   rm -rf "$TMP"

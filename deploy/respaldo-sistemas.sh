@@ -50,6 +50,7 @@ subir() {
 }
 
 OK=1; RES=""
+declare -A HECHO   # bucket ya copiado en esta corrida (PFN y NES pueden usar el mismo bucket de Backblaze)
 for PAR in "pfn pastofightnight\.com" "nes narinoexposhow\.com"; do
   SIS="${PAR%% *}"; DOM="${PAR#* }"
   R="$(raiz "$DOM")"
@@ -85,7 +86,11 @@ for PAR in "pfn pastofightnight\.com" "nes narinoexposhow\.com"; do
     export RCLONE_S3_PROVIDER=Other RCLONE_S3_ACCESS_KEY_ID="$(envv "$R" B2_KEY_ID)" RCLONE_S3_SECRET_ACCESS_KEY="$(envv "$R" B2_APPLICATION_KEY)" \
       RCLONE_S3_ENDPOINT="$(envv "$R" B2_ENDPOINT)" RCLONE_S3_REGION="$(envv "$R" B2_REGION)"
     BUCKET="$(envv "$R" B2_BUCKET)"
-    if [ -n "$BUCKET" ] && [ -n "$RCLONE_S3_ACCESS_KEY_ID" ]; then
+    LLAVEB="$RCLONE_S3_ENDPOINT/$BUCKET"
+    if [ -n "$BUCKET" ] && [ -n "${HECHO[$LLAVEB]:-}" ]; then
+      log "$SIS fotos: mismo bucket que ${HECHO[$LLAVEB]}, ya copiadas"; RES="$RES $SIS-fotos=OK(=${HECHO[$LLAVEB]})"
+    elif [ -n "$BUCKET" ] && [ -n "$RCLONE_S3_ACCESS_KEY_ID" ]; then
+      HECHO[$LLAVEB]="$SIS"
       FD=""; tiene gdrive && FD="gdrive:$GD/fotos-$SIS"; [ -z "$FD" ] && [ -n "$B2DEST" ] && tiene respaldo && FD="$B2DEST/fotos-$SIS"
       if [ -n "$FD" ]; then
         if rclone copy --transfers 8 --checkers 16 --retries 3 --exclude 'video-tmp/**' ":s3:$BUCKET" "$FD" 2>>/var/log/localpro-respaldo.log; then
