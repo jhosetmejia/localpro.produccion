@@ -36,6 +36,14 @@ class CentroControl
         foreach (array_keys(self::SISTEMAS) as $k) {
             $out['sistemas'][$k] = self::guardado($k, $fresco, fn () => self::remoto($k));
         }
+        // Errores del servidor: se agrupan por firma y se ocultan los ya resueltos (deploy/errores-resueltos.txt)
+        $resueltos = self::erroresResueltos();
+        foreach ($out['sistemas'] as $k => &$s0) {
+            if (! empty($s0['errores']['grupos'])) {
+                $s0['errores'] = self::limpiarErrores($k, $s0['errores'], $resueltos);
+            }
+        }
+        unset($s0);
         // Fallas del navegador: llegan todas a LocalPro (lp-opinion.js); se reparten por sistema
         foreach ($out['sistemas'] as $k => &$s) {
             try {
@@ -274,6 +282,62 @@ class CentroControl
         usort($a, fn ($x, $y) => Carbon::parse($y[0])->timestamp <=> Carbon::parse($x[0])->timestamp);
 
         return array_map(fn ($x) => ['fecha' => Carbon::parse($x[0])->timezone(self::TZ)->format('Y-m-d H:i'), 'texto' => $x[1]], array_slice($a, 0, 12));
+    }
+
+    /** Firma corta de un error del servidor: el mensaje sin el contexto JSON del final, sin números (ids, horas, firmas). */
+    public static function firmaError(string $msg): string
+    {
+        $m = preg_replace('/\s*\{".*$/s', '', $msg);
+        $m = preg_replace('/^(ERROR-[A-Z0-9]+\s+)?([\w\\\\]+(Exception|Error):\s*)?/', '', (string) $m); // "ERROR-FI897G RuntimeException: …" = "…"
+        $m = preg_replace('/[0-9a-f]{16,}/i', '#', (string) $m);
+
+        return substr(md5(preg_replace('/\d+/', '#', trim((string) $m))), 0, 10);
+    }
+
+    /**
+     * deploy/errores-resueltos.txt — una línea por error ya arreglado:  "S-nes-1a2b3c4d5e AAAA-MM-DD HH:MM comentario"
+     * (hora de Colombia). Se oculta si no volvió a pasar después de esa hora; si vuelve a pasar, aparece otra vez.
+     */
+    private static function erroresResueltos(): array
+    {
+        $f = base_path('deploy/errores-resueltos.txt');
+        $r = [];
+        if (! is_file($f)) {
+            return $r;
+        }
+        foreach (file($f, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $l) {
+            if (preg_match('/^\s*S-([a-z]+)-([0-9a-f]{10})\s+(\d{4}-\d{2}-\d{2} \d{1,2}:\d{2})/', $l, $m)) {
+                $r[$m[1].'-'.$m[2]] = max($r[$m[1].'-'.$m[2]] ?? '', $m[3]);
+            }
+        }
+
+        return $r;
+    }
+
+    private static function limpiarErrores(string $k, array $err, array $resueltos): array
+    {
+        $g = [];
+        foreach ($err['grupos'] as $x) {
+            $id = self::firmaError((string) ($x['mensaje'] ?? ''));
+            $ult = (string) ($x['ultima'] ?? '');
+            if (isset($resueltos[$k.'-'.$id]) && $ult !== '' && $ult <= $resueltos[$k.'-'.$id]) {
+                continue;
+            }
+            if (isset($g[$id])) {
+                $g[$id]['veces'] += (int) ($x['veces'] ?? 1);
+                $g[$id]['ultima'] = max($g[$id]['ultima'], $ult);
+                continue;
+            }
+            $x['id'] = 'S-'.$k.'-'.$id;
+            $x['veces'] = (int) ($x['veces'] ?? 1);
+            $g[$id] = $x;
+        }
+        $g = array_values($g);
+        usort($g, fn ($a, $b) => strcmp($b['ultima'], $a['ultima']));
+        $err['grupos'] = $g;
+        $err['n24'] = array_sum(array_column($g, 'veces'));
+
+        return $err;
     }
 
     /** Fallas del navegador sin resolver (llegan todas a LocalPro), por sistema: pfn, nes o el resto (LocalPro). */

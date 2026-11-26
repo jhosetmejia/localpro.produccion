@@ -1,0 +1,6 @@
+# Errores del SERVIDOR (Centro de control → Errores del servidor) que ya se arreglaron. Se ocultan del Centro de control
+# si no volvieron a pasar después de esa hora (hora de Colombia); si vuelven a pasar, aparecen otra vez solos.
+# Formato: S-<sistema>-<firma> AAAA-MM-DD HH:MM comentario   (la firma sale en "Copiar fallas")
+# Las fallas de los celulares (E##) van en deploy/fallas-resueltas.txt
+S-nes-936542de99 2026-11-25 22:55 /api/lp/panel: "Session store not set on request" — el filtro CSRF pedía sesión; quitado de esa ruta en nes-sistema
+S-pfn-936542de99 2026-11-25 22:55 /api/lp/panel: "Session store not set on request" — mismo arreglo en pfn-sistema

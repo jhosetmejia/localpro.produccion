@@ -47,6 +47,7 @@
 .cc .vacio{color:var(--mut);font-size:.85rem;padding:6px 0}
 .cc .err{color:#fca5a5;font-size:.85rem}
 .cc code{color:#93c5fd;font-size:.75rem}
+.cc .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#16a34a;color:#fff;font-weight:800;padding:10px 18px;border-radius:999px;z-index:3000;box-shadow:0 10px 30px rgba(0,0,0,.4)}
 .cc .barra{height:6px;border-radius:4px;background:#1b2420;overflow:hidden;margin-top:4px}.cc .barra i{display:block;height:100%;background:var(--ok)}
 </style>
 
@@ -56,7 +57,7 @@
             <h1><i class="fa-solid fa-tower-broadcast me-1"></i> Centro de control</h1>
             <span class="vivo"><i></i> En vivo · se actualiza cada 30 s</span> <span class="reloj" id="ccHora"></span>
         </div>
-        <div><button type="button" class="btnc" id="ccYa"><i class="fa-solid fa-rotate me-1"></i>Actualizar ya</button></div>
+        <div class="d-flex gap-2"><button type="button" class="btnc" id="ccCopiar"><i class="fa-solid fa-copy me-1"></i>Copiar fallas</button><button type="button" class="btnc" id="ccYa"><i class="fa-solid fa-rotate me-1"></i>Actualizar ya</button></div>
     </div>
 
     <div class="sis" id="ccSis"></div>
@@ -127,7 +128,7 @@
     function filasErrores(lista, conTag) {
         if (!lista.length) return '<div class="vacio">✅ Sin errores del servidor en las últimas 24 h.</div>';
         return lista.map(function (g) {
-            return '<div class="fila">' + (conTag ? tag(g._k) : '') + '<div class="t">' + esc(g.mensaje) + (g.archivo ? '<br><code>' + esc(g.archivo) + '</code>' : '') + '</div><div class="m">' + num(g.veces) + '× · ' + esc((g.ultima || '').slice(5)) + '</div></div>';
+            return '<div class="fila">' + (conTag ? tag(g._k) : '') + '<div class="t">' + (g.id ? '<b>' + esc(g.id) + '</b> ' : '') + esc(g.mensaje) + (g.archivo ? '<br><code>' + esc(g.archivo) + '</code>' : '') + '</div><div class="m">' + num(g.veces) + '× · ' + esc((g.ultima || '').slice(5)) + '</div></div>';
         }).join('');
     }
     function filasFallas(lista, conTag) {
@@ -240,6 +241,44 @@
         pintar();
     });
     $('ccYa').addEventListener('click', function () { cargar(true); });
+
+    // Copiar fallas: texto para pegarlo en el chat de Claude. Si hay una pestaña de sistema abierta, solo ese sistema.
+    function textoFallas() {
+        var ks = tab !== 'todo' && SIS[tab] ? [tab] : Object.keys(SIS), total = 0, t = '';
+        ks.forEach(function (k) {
+            var s = datos.sistemas[k] || {}, err = (s.errores || {}).grupos || [], fal = (s.fallas || {}).lista || [], b = '';
+            if (!s.ok) b += '\n⚠️ El sistema no respondió: ' + (s.error || 'sin respuesta') + '\n';
+            (s.fallas_panel || []).forEach(function (x) { b += '\n⚠️ Parte del panel que no cargó: ' + x + '\n'; });
+            err.forEach(function (g) {
+                total++;
+                b += '\n--- ' + (g.id || 'S') + ' · error del servidor · ' + (g.veces || 1) + '× · última ' + (g.ultima || '') + '\n' + (g.mensaje || '') + (g.archivo ? '\nDónde: ' + g.archivo : '') + '\n';
+            });
+            fal.forEach(function (f) {
+                total++;
+                b += '\n--- ' + f.id + ' · falla en celular · ' + (f.veces || 1) + '× · última ' + (f.ultima || '') + '\n' + (f.mensaje || '') + (f.pagina ? '\nPágina: ' + f.pagina : '') + '\n';
+            });
+            if (b) t += '\n==================== ' + SIS[k].nombre.toUpperCase() + ' ====================' + b;
+        });
+        var cab = 'FALLAS DEL CENTRO DE CONTROL (' + new Date().toLocaleString('es-CO') + ') · ' + total + ' falla' + (total === 1 ? '' : 's') + '\n'
+            + 'Al arreglarlas: S-… en deploy/errores-resueltos.txt y E… en deploy/fallas-resueltas.txt (localpro.produccion).\n';
+        return total || t ? cab + t : cab + '\n✅ No hay fallas abiertas.';
+    }
+    function avisito(msg) {
+        var d = document.createElement('div'); d.className = 'toast'; d.textContent = msg;
+        document.querySelector('.cc').appendChild(d); setTimeout(function () { d.remove(); }, 2600);
+    }
+    $('ccCopiar').addEventListener('click', function () {
+        if (!datos) return avisito('Espere a que cargue…');
+        var txt = textoFallas();
+        var listo = function () { avisito('📋 Fallas copiadas. Péguelas en el chat de Claude.'); };
+        var viejo = function () {
+            var ta = document.createElement('textarea'); ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+            document.body.appendChild(ta); ta.select();
+            try { document.execCommand('copy'); listo(); } catch (e) { avisito('No se pudo copiar'); }
+            ta.remove();
+        };
+        if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(txt).then(listo, viejo); else viejo();
+    });
     setInterval(function () { $('ccHora').textContent = new Date().toLocaleTimeString('es-CO'); }, 1000);
     cargar(false);
     setInterval(function () { if (!document.hidden) cargar(false); }, 30000);
