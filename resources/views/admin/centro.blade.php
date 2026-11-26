@@ -45,6 +45,14 @@
 .cc .vacio{color:var(--mut);font-size:.85rem;padding:6px 0}
 .cc .err{color:#fca5a5;font-size:.85rem}
 .cc code{color:#93c5fd;font-size:.75rem}
+.cc .tot{background:linear-gradient(135deg,#0f2a1a,#121815 60%);border:1px solid #1f5a34;border-radius:16px;padding:18px 20px;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between}
+.cc .tot .lbl{font-size:.8rem;font-weight:800;color:var(--ok);text-transform:uppercase;letter-spacing:.06em}
+.cc .tot .big{font-size:clamp(2rem,5vw,3.2rem);font-weight:900;line-height:1.05;font-variant-numeric:tabular-nums}
+.cc .tot .sub{color:var(--mut);font-size:.85rem;margin-top:4px}
+.cc .tot .sub b{color:var(--txt)}
+.cc .tot .partes{display:flex;flex-wrap:wrap;gap:8px}
+.cc .tot .parte{background:#0e1311;border:1px solid var(--line);border-left:4px solid var(--c);border-radius:12px;padding:8px 12px;min-width:150px}
+.cc .tot .parte b{display:block;font-size:1.1rem}.cc .tot .parte span{font-size:.74rem;color:var(--mut)}
 .cc .barra{height:6px;border-radius:4px;background:#1b2420;overflow:hidden;margin-top:4px}.cc .barra i{display:block;height:100%;background:var(--ok)}
 </style>
 
@@ -57,6 +65,7 @@
         <div><button type="button" class="btnc" id="ccYa"><i class="fa-solid fa-rotate me-1"></i>Actualizar ya</button></div>
     </div>
 
+    <div class="tot" id="ccTotal"></div>
     <div class="sis" id="ccSis"></div>
     <div class="tabs" id="ccTabs"></div>
     <div id="ccCuerpo"><div class="vacio">Cargando los tres sistemas…</div></div>
@@ -78,7 +87,24 @@
     function dinero(s, v) { return s.ingresos && s.ingresos.tipo === 'conteo' ? num(v) : plata(v); }
     function pendientesActivos(s) { return (s.pendientes || []).filter(function (p) { return p.nivel === 'rojo' || p.nivel === 'amarillo' || (p.n && p.nivel !== 'info'); }); }
 
+    // Total de plata registrada en los tres sistemas (LocalPro: planes · PFN: todos los eventos · NES: Contabilidad)
+    function total() {
+        var t = 0, hoy = 0, mes = 0, partes = '', faltan = [];
+        Object.keys(SIS).forEach(function (k) {
+            var s = datos.sistemas[k] || {}, i = s.ingresos;
+            if (!s.ok || !i || i.tipo === 'conteo') { faltan.push(SIS[k].nombre); return; }
+            var v = i.total_historico != null ? i.total_historico : (i.total || 0);
+            t += v; hoy += i.hoy || 0; mes += i.mes || 0;
+            partes += '<div class="parte" style="--c:' + col(k) + '"><b>' + plata(v) + '</b><span>' + esc(SIS[k].nombre) + '</span></div>';
+        });
+        $('ccTotal').innerHTML = '<div><div class="lbl">💰 Dinero registrado en el sistema · total</div><div class="big">' + plata(t) + '</div>'
+            + '<div class="sub">Hoy <b>' + plata(hoy) + '</b> · este mes <b>' + plata(mes) + '</b>'
+            + (faltan.length ? ' · <span style="color:var(--am)">sin datos de ' + esc(faltan.join(' y ')) + ' (no respondió)</span>' : '') + '</div></div>'
+            + '<div class="partes">' + partes + '</div>';
+    }
+
     function tarjetas() {
+        total();
         var h = '';
         Object.keys(SIS).forEach(function (k) {
             var s = datos.sistemas[k] || {}, caido = !s.ok;
