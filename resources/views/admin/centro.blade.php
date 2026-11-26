@@ -101,7 +101,7 @@
                 + '<small>' + (s.version ? 'versión ' + esc(s.version) + ' · ' : '') + (s.ms != null ? s.ms + ' ms' : '') + '</small>'
                 + (caido ? '<div class="err mt-2">' + esc(s.error || 'Sin respuesta') + '</div>' : '')
                 + '<div class="num">'
-                + cuadro(r.registrados && r.registrados.link, num(r.registrados ? r.registrados.n : null), (r.registrados && r.registrados.label) || 'Registrados',
+                + cuadro(r.registrados && r.registrados.link, num(r.registrados ? r.registrados.n : null) + (r.registrados && r.registrados.activos != null ? ' <span style="font-size:.55em;font-weight:700;color:var(--ok);white-space:nowrap">/ ' + num(r.registrados.activos) + ' activos</span>' : ''), (r.registrados && r.registrados.label) || 'Registrados',
                     r.registrados && r.registrados.hoy ? '<em>+' + num(r.registrados.hoy) + ' hoy</em>' : (r.registrados && r.registrados.sub ? esc(r.registrados.sub) : ''), '')
                 + cuadro(r.ingresos_anio && r.ingresos_anio.link, plata(r.ingresos_anio ? r.ingresos_anio.n : null), 'Ingresos ' + ((r.ingresos_anio && r.ingresos_anio.anio) || 'del año'), '', '')
                 + cuadro(fallasLink(k, f), num(nf), 'Fallas del sistema', num(e.n24 || 0) + ' del servidor · ' + num(f.abiertas || 0) + ' en celulares', nf ? 'var(--rojo)' : 'var(--ok)')

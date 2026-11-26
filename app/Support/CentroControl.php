@@ -174,7 +174,7 @@ class CentroControl
         $desde = now(self::TZ)->startOfYear()->setTimezone(config('app.timezone'));
 
         return [
-            'registrados' => ['n' => User::count(), 'hoy' => User::where('created_at', '>=', self::hoy())->count(), 'label' => 'Usuarios registrados',
+            'registrados' => ['n' => User::count(), 'hoy' => User::where('created_at', '>=', self::hoy())->count(), 'activos' => \App\Support\ActivosAhora::contar(), 'label' => 'Usuarios registrados',
                 'sub' => Tienda::count().' empresas', 'link' => route('admin.usuarios')],
             'ingresos_anio' => ['n' => (int) PagoSuscripcion::where('estado', 'aprobado')->where('created_at', '>=', $desde)->sum(PagoSuscripcion::sqlEnCop()),
                 'anio' => $anio, 'link' => route('admin.pagos')],
