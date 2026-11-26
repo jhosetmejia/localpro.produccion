@@ -25,8 +25,12 @@ case "$TOKEN" in \{*) ;; *)
 esac
 case "$TOKEN" in \{*access_token*\}) ;; *) echo "Eso no parece el token (debe empezar con { y terminar con }). No se cambió nada."; exit 1 ;; esac
 
-rclone config create gdrive drive scope drive.file token "$TOKEN" >/dev/null || { echo "No se pudo guardar la conexión."; exit 1; }
-chmod 600 /root/.config/rclone/rclone.conf 2>/dev/null
+# Se escribe la conexión directo en el archivo de rclone (con "config create" rclone se queda esperando un navegador)
+rclone config delete gdrive >/dev/null 2>&1
+CONF="$(rclone config file 2>/dev/null | tail -1)"; [ -n "$CONF" ] || CONF=/root/.config/rclone/rclone.conf
+mkdir -p "$(dirname "$CONF")"
+printf '\n[gdrive]\ntype = drive\nscope = drive.file\ntoken = %s\n' "$TOKEN" >> "$CONF" || { echo "No se pudo guardar la conexión."; exit 1; }
+chmod 600 "$CONF" 2>/dev/null
 
 echo "==> Probando Google Drive"
 echo "prueba $(date)" > /tmp/lp-drive.txt
