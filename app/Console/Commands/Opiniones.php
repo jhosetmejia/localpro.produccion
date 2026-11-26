@@ -68,6 +68,12 @@ class Opiniones extends Command
                 $n += Opinion::where('id', $m[2])->whereIn('estado', ['nuevo', 'revisando'])->where('created_at', '<=', $hasta)->update(['estado' => 'resuelto']);
             }
         }
+        // Lo que no es del código (extensiones del navegador, apps que se meten en la página): se cierra solo
+        foreach (ErrorCliente::where('resuelto', false)->get(['id', 'mensaje', 'pila']) as $e) {
+            if (\App\Http\Controllers\opinionController::esRuido((string) $e->mensaje, (string) $e->pila)) {
+                $n += ErrorCliente::where('id', $e->id)->update(['resuelto' => true]);
+            }
+        }
         if ($n) $this->line("Marcadas como resueltas: $n");
         return self::SUCCESS;
     }
