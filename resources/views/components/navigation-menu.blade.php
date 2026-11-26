@@ -15,6 +15,10 @@
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-gauge-high"></i></div>
                     Panel LocalPro
                 </a>
+                <a class="nav-link {{ $on('admin.centro*') }}" href="{{ route('admin.centro') }}">
+                    <div class="sb-nav-link-icon"><i class="fa-solid fa-tower-broadcast"></i></div>
+                    Centro de control
+                </a>
                 <a class="nav-link {{ $on('admin.tiendas.*') }}" href="{{ route('admin.tiendas.index') }}">
                     <div class="sb-nav-link-icon"><i class="fa-solid fa-crown"></i></div>
                     Empresas inscritas

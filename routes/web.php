@@ -673,6 +673,9 @@ Route::middleware(['auth', 'tienda'])->group(function () {
 // ===== Administrador de la plataforma =====
 Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [adminInicioController::class, 'index'])->name('inicio');
+    // 2026-11-25 (Jhoset): Centro de control en vivo (LocalPro + PFN + NES)
+    Route::get('/centro', [\App\Http\Controllers\adminCentroController::class, 'index'])->name('centro');
+    Route::get('/centro/datos', [\App\Http\Controllers\adminCentroController::class, 'datos'])->middleware('throttle:60,1')->name('centro.datos');
     Route::get('/usuarios', [adminInicioController::class, 'usuarios'])->name('usuarios');
     Route::post('/usuarios/{user}/clave', [adminInicioController::class, 'clave'])->name('usuarios.clave');
     Route::post('/usuarios/{user}/correo', [adminInicioController::class, 'correo'])->name('usuarios.correo');

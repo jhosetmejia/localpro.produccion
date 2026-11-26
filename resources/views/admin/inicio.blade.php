@@ -12,6 +12,7 @@
         <div><small><i class="fa-solid fa-crown me-1"></i>Administrador LocalPro</small><h1>Hola, <span>{{ strtok(auth()->user()->name, ' ') }}</span></h1>
             <span class="text-muted fw-semibold">{{ ucfirst(now()->locale('es')->isoFormat('dddd D [de] MMMM')) }}</span></div>
         <div class="lp-quick">
+            <a href="{{ route('admin.centro') }}" class="btn btn-success"><i class="fa-solid fa-tower-broadcast me-1"></i>Centro de control</a>
             <a href="{{ route('admin.tiendas.index') }}" class="btn btn-dark"><i class="fa-solid fa-store me-1"></i>Empresas</a>
             <a href="{{ route('admin.red.index') }}" class="btn btn-primary"><i class="fa-solid fa-sitemap me-1"></i>Mi red</a>
         </div>
