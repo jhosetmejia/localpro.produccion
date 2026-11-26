@@ -409,7 +409,8 @@ class LpChat
         }
         $datos = array_filter([
             // Enlace remoto (a veces firmado y con vencimiento): lpchat:fotos lo copia aquí en pocos minutos.
-            'foto' => isset($p['foto']) && preg_match('#^https://#', (string) $p['foto']) ? mb_substr($p['foto'], 0, 255) : null,
+            // 2026-11-25: sin cortar (los enlaces firmados pasan de 255 letras y cortados no abren).
+            'foto' => isset($p['foto']) && preg_match('#^https://#', (string) $p['foto']) && mb_strlen((string) $p['foto']) <= 3000 ? (string) $p['foto'] : null,
             'etiqueta' => isset($p['etiqueta']) ? mb_substr((string) $p['etiqueta'], 0, 60) : null,
             'bio' => isset($p['bio']) ? mb_substr((string) $p['bio'], 0, 160) : null,
             'ciudad' => isset($p['ciudad']) ? mb_substr((string) $p['ciudad'], 0, 60) : null,
