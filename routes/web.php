@@ -816,6 +816,10 @@ Route::prefix('chat')->name('lpchat.')->group(function () {
         Route::post('/chat/{id}/m/{mensaje}/{accion}', [$C, 'accionMensaje'])->whereNumber(['id', 'mensaje'])->where('accion', 'reaccionar|destacar|fijar|editar|eliminar|ocultar|nota')->middleware('throttle:lpchat-60')->name('mensaje.accion');
         Route::match(['get', 'post'], '/chat/{id}/nota', [$C, 'nota'])->whereNumber('id')->name('nota');
         Route::get('/chat/{id}/destacados', [$C, 'destacados'])->whereNumber('id')->name('destacados');
+        // 2026-11-26: menú de cada chat en la lista (archivar, silenciar, fijar, no leído, favoritos, listas, vaciar)
+        Route::post('/chat/{id}/opcion/{accion}', [$C, 'opcionChat'])->whereNumber('id')->where('accion', 'archivar|silenciar|fijar|noleido|favorito|vaciar')->middleware('throttle:lpchat-60')->name('chat.opcion');
+        Route::match(['get', 'post'], '/listas', [$C, 'listas'])->name('listas');
+        Route::post('/listas/{lista}/{accion}', [$C, 'listaAccion'])->whereNumber('lista')->where('accion', 'chat|borrar')->name('listas.accion');
         Route::post('/chat/{id}/{accion}', [$C, 'accion'])->whereNumber('id')->where('accion', 'aceptar|descartar|borrar|bloquear|desbloquear|denunciar|mover')->name('accion');
         Route::get('/stickers', [$C, 'stickers'])->name('stickers');
         Route::post('/stickers', [$C, 'crearSticker'])->middleware('throttle:lpchat-20')->name('stickers.crear');

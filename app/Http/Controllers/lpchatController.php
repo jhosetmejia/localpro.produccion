@@ -184,13 +184,14 @@ class lpchatController extends Controller
     public function chats(Request $request): JsonResponse
     {
         $yo = $this->yo();
-        $tab = in_array($request->query('tab'), ['general', 'solicitudes'], true) ? $request->query('tab') : 'mis';
+        $tab = in_array($request->query('tab'), ['general', 'solicitudes', 'archivados'], true) ? $request->query('tab') : 'mis';
 
         // 2026-11-19 (Jhoset): la app pide esta lista dos veces cada 6 s (Mis chats y General); los contadores
         // (cuentas con muchos chats, como el equipo) se calculan una sola vez cada pocos segundos.
         $cont = Cache::remember('lpchat_cont_'.$yo->id, 5, fn () => ['solicitudes' => LpChat::solicitudesTotal($yo),
             'sin_leer_mis' => LpChat::sinLeerTotal($yo, 'mis'), 'sin_leer_general' => LpChat::sinLeerTotal($yo, 'general'),
-            'estados_nuevos' => $this->estadosNuevos($yo)]);
+            'estados_nuevos' => $this->estadosNuevos($yo),
+            'archivados' => DB::table('lpchat_miembros')->where('usuario_id', $yo->id)->where('estado', 'activo')->where('archivado', true)->count()]);
 
         return response()->json(['ok' => true, 'chats' => LpChat::lista($yo, $tab)] + $cont);
     }
@@ -201,7 +202,10 @@ class lpchatController extends Controller
         $c = $this->chat($id, $yo);
         $desde = (int) $request->query('desde', 0);
         $ocultos = DB::table('lpchat_ocultos')->where('usuario_id', $yo->id)->where('chat_id', $c->id)->pluck('mensaje_id');
-        $q = DB::table('lpchat_mensajes')->where('chat_id', $c->id)->when($ocultos->isNotEmpty(), fn ($w) => $w->whereNotIn('id', $ocultos));
+        $q = DB::table('lpchat_mensajes')->where('chat_id', $c->id)->where('id', '>', (int) ($c->yo->vaciado_id ?? 0))->when($ocultos->isNotEmpty(), fn ($w) => $w->whereNotIn('id', $ocultos));
+        if (! $desde && ! empty($c->yo->no_leido)) {
+            DB::table('lpchat_miembros')->where('id', $c->yo->id)->update(['no_leido' => false]); // lo abrió: ya no sale "no leído"
+        }
         $msgs = $desde ? (clone $q)->where('id', '>', $desde)->orderBy('id')->limit(200)->get() : (clone $q)->orderByDesc('id')->limit(80)->get()->reverse()->values();
         // 2026-11-26: los que cambiaron (reacción, editado, eliminado) desde la última vez que preguntó, para pintarlos de nuevo.
         $cambiados = collect();
@@ -390,6 +394,99 @@ class lpchatController extends Controller
         $mid = LpChat::enviar($c, $yo, $texto, $adj, $tipo, $unaVez, $resp ? ['responde_id' => $resp] : []);
 
         return response()->json(['ok' => true, 'id' => $mid]);
+    }
+
+    /* ---------- Menú de cada chat en la lista (2026-11-26, como WhatsApp) ---------- */
+
+    /** archivar | silenciar | fijar | noleido | favorito | vaciar  (solo cambia para quien lo hace) */
+    public function opcionChat(Request $request, int $id, string $accion): JsonResponse
+    {
+        $yo = $this->yo();
+        $c = $this->chat($id, $yo);
+        $m = $c->yo;
+        $set = [];
+        $msg = null;
+        switch ($accion) {
+            case 'archivar':
+                $set = ['archivado' => ! $m->archivado, 'fijado_at' => null];
+                $msg = $m->archivado ? 'Chat desarchivado.' : 'Chat archivado.';
+                break;
+            case 'silenciar':
+                $h = (int) $request->input('horas', 0); // 8 | 168 | -1 = siempre | 0 = quitar
+                abort_unless(in_array($h, [0, 8, 168, -1], true), 422);
+                $set = ['silencio_hasta' => $h === 0 ? null : ($h === -1 ? Carbon::create(2100, 1, 1) : now()->addHours($h))];
+                $msg = $h === 0 ? 'Notificaciones activadas.' : 'Chat silenciado'.($h === 8 ? ' por 8 horas.' : ($h === 168 ? ' por 1 semana.' : '.'));
+                break;
+            case 'fijar':
+                if (! $m->fijado_at && DB::table('lpchat_miembros')->where('usuario_id', $yo->id)->where('estado', 'activo')->whereNotNull('fijado_at')->count() >= 3) {
+                    return response()->json(['ok' => false, 'mensaje' => 'Solo puedes fijar hasta 3 chats.'], 422);
+                }
+                $set = ['fijado_at' => $m->fijado_at ? null : now(), 'archivado' => false];
+                $msg = $m->fijado_at ? 'Chat desfijado.' : '📌 Chat fijado arriba.';
+                break;
+            case 'noleido':
+                if ($m->no_leido || $c->ultimo_id > $m->leido_id) {
+                    $set = ['no_leido' => false, 'leido_id' => max($c->ultimo_id, $m->leido_id)];
+                } else {
+                    $set = ['no_leido' => true];
+                }
+                break;
+            case 'favorito':
+                $set = ['favorito' => ! $m->favorito];
+                $msg = $m->favorito ? 'Quitado de Favoritos.' : '❤️ Añadido a Favoritos.';
+                break;
+            case 'vaciar':
+                $set = ['vaciado_id' => $c->ultimo_id, 'leido_id' => max($c->ultimo_id, $m->leido_id), 'no_leido' => false];
+                DB::table('lpchat_destacados')->where('usuario_id', $yo->id)->where('chat_id', $c->id)->delete();
+                $msg = 'Chat vaciado.';
+                break;
+            default:
+                abort(404);
+        }
+        DB::table('lpchat_miembros')->where('id', $m->id)->update($set);
+        Cache::forget('lpchat_cont_'.$yo->id);
+
+        return response()->json(['ok' => true, 'mensaje' => $msg]);
+    }
+
+    /** Listas propias (como "Añadir a la lista" de WhatsApp): GET = mis listas; POST = crear. */
+    public function listas(Request $request): JsonResponse
+    {
+        $yo = $this->yo();
+        if ($request->isMethod('post')) {
+            $request->validate(['nombre' => 'required|string|max:40']);
+            if (DB::table('lpchat_listas')->where('usuario_id', $yo->id)->count() >= 20) {
+                return response()->json(['ok' => false, 'mensaje' => 'Puedes tener hasta 20 listas.'], 422);
+            }
+            $id = DB::table('lpchat_listas')->insertGetId(['usuario_id' => $yo->id, 'nombre' => trim($request->input('nombre')), 'created_at' => now(), 'updated_at' => now()]);
+
+            return response()->json(['ok' => true, 'id' => $id]);
+        }
+        $n = DB::table('lpchat_lista_chats')->whereIn('lista_id', DB::table('lpchat_listas')->where('usuario_id', $yo->id)->pluck('id'))->groupBy('lista_id')->selectRaw('lista_id, count(*) n')->pluck('n', 'lista_id');
+
+        return response()->json(['ok' => true, 'listas' => DB::table('lpchat_listas')->where('usuario_id', $yo->id)->orderBy('id')->get(['id', 'nombre'])
+            ->map(fn ($l) => ['id' => $l->id, 'nombre' => $l->nombre, 'n' => (int) ($n[$l->id] ?? 0)])]);
+    }
+
+    /** Poner o quitar un chat de una lista, o borrar la lista. */
+    public function listaAccion(Request $request, int $lista, string $accion): JsonResponse
+    {
+        $yo = $this->yo();
+        $l = DB::table('lpchat_listas')->where('id', $lista)->where('usuario_id', $yo->id)->first();
+        abort_unless($l, 404);
+        if ($accion === 'borrar') {
+            DB::table('lpchat_lista_chats')->where('lista_id', $l->id)->delete();
+            DB::table('lpchat_listas')->where('id', $l->id)->delete();
+
+            return response()->json(['ok' => true]);
+        }
+        $c = $this->chat((int) $request->input('chat_id'), $yo);
+        $ya = DB::table('lpchat_lista_chats')->where('lista_id', $l->id)->where('chat_id', $c->id)->delete();
+        if (! $ya) {
+            DB::table('lpchat_lista_chats')->insert(['lista_id' => $l->id, 'chat_id' => $c->id]);
+        }
+
+        return response()->json(['ok' => true, 'en_lista' => ! $ya]);
     }
 
     /* ---------- Menú de cada mensaje (2026-11-26, como WhatsApp) ---------- */
@@ -711,7 +808,9 @@ class lpchatController extends Controller
                     LpChat::sistema($c->id, $yo->nombre.' salió del grupo');
                     $this->pasarAdmin($c, $yo);
                 }
-                DB::table('lpchat_miembros')->where('id', $c->yo->id)->update(['estado' => 'salio', 'leido_id' => $c->ultimo_id, 'updated_at' => now()]);
+                // 2026-11-26: como WhatsApp, "Eliminar chat" también borra los mensajes de su pantalla (si le vuelven a escribir, empieza limpio).
+                DB::table('lpchat_miembros')->where('id', $c->yo->id)->update(['estado' => 'salio', 'leido_id' => $c->ultimo_id, 'vaciado_id' => $c->ultimo_id,
+                    'archivado' => false, 'fijado_at' => null, 'favorito' => false, 'no_leido' => false, 'updated_at' => now()]);
                 break;
             case 'bloquear':
             case 'denunciar':
