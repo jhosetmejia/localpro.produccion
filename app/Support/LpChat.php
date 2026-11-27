@@ -756,6 +756,9 @@ class LpChat
         $otros = DB::table('lpchat_miembros')->whereIn('chat_id', $filas->pluck('chat_id')->unique())->get(['chat_id', 'usuario_id'])->groupBy('chat_id');
         $vin = DB::table('lpchat_vinculos')->where('origen', $origen)
             ->whereIn('usuario_id', $otros->flatten(1)->pluck('usuario_id')->unique())->pluck('origen_id', 'usuario_id');
+        $todos = DB::table('lpchat_vinculos')->where('origen', $origen)
+            ->whereIn('usuario_id', $otros->flatten(1)->pluck('usuario_id')->unique())->get(['usuario_id', 'origen_id'])
+            ->groupBy('usuario_id')->map(fn ($g) => $g->pluck('origen_id')->values()->all())->all();
         $out = [];
         foreach ($filas as $m) {
             $para = optional(($otros[$m->chat_id] ?? collect())->firstWhere('usuario_id', '!=', $m->usuario_id))->usuario_id;
@@ -767,7 +770,10 @@ class LpChat
                 $nom = ['foto' => '📷 Foto', 'video' => '🎥 Video', 'audio' => '🎤 Nota de voz', 'sticker' => '🧩 Sticker'][$m->adjunto_tipo] ?? '📎 Archivo';
                 $texto = trim($nom.($m->una_vez ? ' para ver una vez' : '').' en LP Chat: '.route('lpchat.index', ['chat' => $m->chat_id]).($texto !== '' ? "\n".$texto : ''));
             }
-            $out[] = ['id' => $m->id, 'de' => $vin[$m->usuario_id], 'para' => $vin[$para], 'texto' => $texto, 'fecha' => Carbon::parse($m->created_at)->toIso8601String()];
+            // 2026-11-27 (Jhoset): una cuenta de LP Chat puede estar unida a varias cuentas del otro sistema (ej. el administrador:
+            // superadmin y cuenta personal de NES). Van todas, para que allá caiga en la conversación que ya existe.
+            $out[] = ['id' => $m->id, 'de' => $vin[$m->usuario_id], 'para' => $vin[$para], 'de_ids' => $todos[$m->usuario_id] ?? [$vin[$m->usuario_id]],
+                'para_ids' => $todos[$para] ?? [$vin[$para]], 'texto' => $texto, 'fecha' => Carbon::parse($m->created_at)->toIso8601String()];
         }
 
         return [$out, $ultimo];
