@@ -794,6 +794,10 @@ function urlChat(id) {
 }
 function abrirChat(id) {
     if (!id) return;
+    // 2026-11-27 (Jhoset): borrador por chat (como WhatsApp): lo escrito se queda en SU chat, no pasa a los demás.
+    st.borr = st.borr || {};
+    if (st.abierto && st.abierto !== id) st.borr[st.abierto] = $('txt').value;
+    if (st.abierto !== id) { $('txt').value = st.borr[id] || ''; autoAlto(); actualizarBotones(); }
     st.abierto = id; st.ultimo = 0; st.info = null;
     $('bienv').hidden = true; $('conv').hidden = false; $('msgs').innerHTML = ''; $('msgs').dataset.dia = ''; $('msgs').dataset.autor = ''; $('aviso').hidden = true;
     $('app').classList.add('abierto'); quitarAdj();
@@ -804,6 +808,7 @@ function abrirChat(id) {
     if (window.innerWidth > 760) $('txt').focus();
 }
 function cerrarChat(sinHist) {
+    if (st.abierto) { st.borr = st.borr || {}; st.borr[st.abierto] = $('txt').value; $('txt').value = ''; }
     st.abierto = 0; $('app').classList.remove('abierto'); $('conv').hidden = true; $('bienv').hidden = false;
     if (!sinHist && (location.search || location.pathname !== '/chat')) history.replaceState(null, '', '/chat');
     pararGrab(true); if ($('emo')) emoAbrir(false); cargarChats();
