@@ -1104,6 +1104,10 @@ function menu(boton, items) {
     m.style.top = Math.min(r.bottom + 4, window.innerHeight - 40 * items.length - 20) + 'px'; if (r.left < 90) m.style.left = (r.right + 6) + 'px'; else m.style.right = Math.max(8, window.innerWidth - r.right) + 'px'; // 2026-11-25: desde la barra lateral abre hacia la derecha
     items.forEach(function (it) { var b = document.createElement('button'); b.textContent = it[0]; b.onclick = function () { cerrarMenu(); it[1](); }; m.appendChild(b); });
     document.body.appendChild(m);
+    // 2026-11-27 (Jhoset): que el menú nunca se corte abajo (ventana baja / app de escritorio): se sube lo necesario y, si no cabe, hace scroll.
+    m.style.maxHeight = (window.innerHeight - 16) + 'px'; m.style.overflowY = 'auto';
+    var h = m.offsetHeight, top = parseFloat(m.style.top) || 8;
+    if (top + h > window.innerHeight - 8) m.style.top = Math.max(8, window.innerHeight - h - 8) + 'px';
     setTimeout(function () { document.addEventListener('click', cerrarMenu, { once: true }); }, 0);
 }
 function cerrarMenu() { var m = $('menu'); if (m) m.remove(); }
