@@ -1444,7 +1444,9 @@ else if ('Notification' in window && 'PushManager' in window && Notification.per
 var pChats = cargarChats();
 if (pChats && pChats.then) pChats.then(quitarSplash, quitarSplash); else quitarSplash();
 var abrir = {{ (int) $abrir }};
-if (abrir) { history.replaceState({ chat: abrir }, '', urlChat(abrir)); abrirChat(abrir); }
+/* 2026-11-27 (Jhoset): al entrar directo a un chat, debajo queda la lista (/chat): la flecha ← vuelve a los chats
+   y no al link de NES/PFN (que volvía a abrir el mismo chat). */
+if (abrir) { history.replaceState(null, '', '/chat'); abrirChat(abrir); }
 /* 2026-11-27 (Jhoset): mensaje que trae escrito por defecto (ej. "Ya pagué mi entrada…" desde NES); la persona lo envía. */
 var TEXTO_INICIAL = {!! json_encode($texto ?? '', JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) !!};
 if (abrir && TEXTO_INICIAL) { $('txt').value = TEXTO_INICIAL; autoAlto(); actualizarBotones(); }
