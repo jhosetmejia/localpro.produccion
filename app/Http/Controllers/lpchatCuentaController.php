@@ -183,6 +183,11 @@ class lpchatCuentaController extends Controller
             }
         }
 
+        // 2026-11-27 (Jhoset): el sistema puede mandar un mensaje que queda escrito (sin enviar) en la caja del chat.
+        if ($destino !== route('lpchat.index') && is_string($p['texto'] ?? null) && trim($p['texto']) !== '') {
+            $destino .= (str_contains($destino, '?') ? '&' : '?').'texto='.rawurlencode(mb_substr(trim($p['texto']), 0, 500));
+        }
+
         return redirect()->to($destino);
     }
 

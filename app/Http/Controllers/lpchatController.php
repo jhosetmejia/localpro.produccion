@@ -79,7 +79,8 @@ class lpchatController extends Controller
         $yo = $this->yo();
 
         return view('lpchat.app', ['yo' => $yo, 'persona' => $u, 'empresa' => $this->empresaDe($u), 'abrir' => (int) $request->query('chat', 0),
-            'abrirUrl' => $request->attributes->get('lpchat_url')]);
+            'abrirUrl' => $request->attributes->get('lpchat_url'),
+            'texto' => mb_substr(trim((string) $request->query('texto', '')), 0, 500)]);
     }
 
     public function terminos()
