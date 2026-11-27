@@ -239,7 +239,9 @@ class LpChat
         // 2026-11-18: aviso al celular de los demás del chat (aunque tengan LP Chat cerrado)
         try {
             \App\Support\WebPush::avisarLuego(DB::table('lpchat_miembros')->where('chat_id', $chat->id)->where('usuario_id', '!=', $yo->id)
-                ->whereIn('estado', ['activo', 'solicitud'])->pluck('usuario_id')->all());
+                ->whereIn('estado', ['activo', 'solicitud'])
+                ->where(fn ($q) => $q->whereNull('silenciado_hasta')->orWhere('silenciado_hasta', '<', now())) // 2026-11-27: silenciados no suenan
+                ->pluck('usuario_id')->all());
         } catch (\Throwable $e) {
             report($e);
         }
@@ -294,8 +296,10 @@ class LpChat
             ->where('m.usuario_id', $yo->id)->where('m.estado', $tab === 'solicitudes' ? 'solicitud' : 'activo')
             ->when($tab !== 'solicitudes', fn ($q) => $q->where('m.seccion', $tab === 'general' ? 'general' : 'mis'))
             ->where(fn ($q) => $q->where('c.tipo', 'grupo')->orWhere('c.ultimo_id', '>', 0))
+            ->orderByRaw('m.fijado_at IS NULL')->orderByDesc('m.fijado_at') // 2026-11-27: fijados arriba (como WhatsApp)
             ->orderByDesc('c.ultimo_id')->orderByDesc('c.id')->limit(300)
-            ->get(['c.id', 'c.tipo', 'c.nombre', 'c.foto', 'c.ultimo_id', 'm.leido_id', 'c.updated_at', 'c.via']);
+            ->get(['c.id', 'c.tipo', 'c.nombre', 'c.foto', 'c.ultimo_id', 'm.leido_id', 'c.updated_at', 'c.via',
+                'm.archivado', 'm.silenciado_hasta', 'm.fijado_at', 'm.no_leido', 'm.favorito', 'm.vaciado_id']);
         if ($filas->isEmpty()) {
             return [];
         }
@@ -311,7 +315,7 @@ class LpChat
 
         return $filas->map(function ($f) use ($yo, $ultimos, $sinLeer, $otros, $usuarios) {
             $u = $f->tipo === 'directo' ? $usuarios->get($otros->get($f->id)) : null;
-            $ult = $ultimos->get($f->ultimo_id);
+            $ult = (int) $f->ultimo_id > (int) $f->vaciado_id ? $ultimos->get($f->ultimo_id) : null; // chat vaciado: sin vista previa
             $prev = '';
             if ($ult) {
                 $adj = ['foto' => '📷 Foto', 'video' => '🎥 Video', 'audio' => '🎤 Audio', 'sticker' => '🧩 Sticker'][$ult->adjunto_tipo ?? ''] ?? ($ult->adjunto ? '📎 Archivo' : '');
@@ -341,6 +345,12 @@ class LpChat
                 'mio' => $ult && $ult->usuario_id === $yo->id,
                 'hora' => $ult ? self::hora($ult->created_at) : '',
                 'sin_leer' => (int) ($sinLeer[$f->id] ?? 0),
+                // 2026-11-27 (Jhoset): menú del chat como WhatsApp (solo para esta persona)
+                'archivado' => (bool) $f->archivado,
+                'silenciado' => $f->silenciado_hasta && Carbon::parse($f->silenciado_hasta)->isFuture(),
+                'fijado' => (bool) $f->fijado_at,
+                'no_leido' => (bool) $f->no_leido,
+                'favorito' => (bool) $f->favorito,
             ];
         })->values()->all();
     }
@@ -348,7 +358,7 @@ class LpChat
     public static function sinLeerTotal(U $yo, ?string $seccion = null): int
     {
         return (int) DB::table('lpchat_mensajes as x')->join('lpchat_miembros as m', function ($j) use ($yo) {
-            $j->on('m.chat_id', '=', 'x.chat_id')->where('m.usuario_id', '=', $yo->id)->where('m.estado', '=', 'activo');
+            $j->on('m.chat_id', '=', 'x.chat_id')->where('m.usuario_id', '=', $yo->id)->where('m.estado', '=', 'activo')->where('m.archivado', '=', false);
         })->when($seccion, fn ($q) => $q->where('m.seccion', $seccion))
             ->whereColumn('x.id', '>', 'm.leido_id')->where('x.usuario_id', '!=', $yo->id)->whereNull('x.tipo')->count();
     }

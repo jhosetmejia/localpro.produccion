@@ -52,6 +52,9 @@ body{height:100dvh;overflow:hidden}
 .it .h.nl{color:var(--verde);font-weight:700}
 .it .tk{width:16px;height:11px;fill:var(--txt2);vertical-align:-1px;flex:none}
 .it .u{flex:1;font-size:.88rem;color:var(--txt2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lista .it{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.it .ico{font-size:.8rem;opacity:.75;flex:none}
+.menu .sep{height:1px;background:var(--borde);margin:5px 0}
 .it .b{background:var(--verde);color:var(--sobre-verde);border-radius:11px;min-width:21px;height:21px;padding:0 6px;font-size:.75rem;display:grid;place-items:center;font-weight:700}
 .tag{font-size:.66rem;font-weight:700;background:var(--chip);color:var(--chipt);border-radius:999px;padding:1px 6px;white-space:nowrap}
 .solic{display:flex;align-items:center;gap:13px;padding:12px 15px 12px 14px;cursor:pointer;border-bottom:1px solid var(--borde)}
@@ -340,6 +343,7 @@ setTimeout(quitarSplash, 4000);</script>
             <div class="chips">
                 <button class="chip on" data-f="todos">Todos</button>
                 <button class="chip" data-f="noleidos">No leídos</button>
+                <button class="chip" data-f="favoritos">Favoritos</button>
                 <button class="chip" data-f="grupos">Grupos</button>
             </div>
             <div class="lista" id="lista-mis"></div>
@@ -522,8 +526,12 @@ $('b-cam').onclick = function () { $('f-est').click(); };
 function pintar(sec) {
     var box = $('lista-' + sec), q = (box.parentNode.querySelector('.q-chats') || {}).value || '';
     q = q.trim().toLowerCase();
+    var arch = st.chats[sec].filter(function (c) { return c.archivado; });
+    var verArch = st.verArch === sec; // 2026-11-27: viendo "Archivados" de esta sección
     var l = st.chats[sec].filter(function (c) {
-        if (sec === 'mis' && st.filtro === 'noleidos' && !c.sin_leer) return false;
+        if (!!c.archivado !== verArch) return false;
+        if (sec === 'mis' && st.filtro === 'noleidos' && !c.sin_leer && !c.no_leido) return false;
+        if (sec === 'mis' && st.filtro === 'favoritos' && !c.favorito) return false;
         if (sec === 'mis' && st.filtro === 'grupos' && c.tipo !== 'grupo') return false;
         return !q || (c.nombre || '').toLowerCase().indexOf(q) >= 0;
     });
@@ -531,6 +539,9 @@ function pintar(sec) {
     if (sec === 'general' && st.solicitudes && !q) {
         h += '<div class="solic" data-ir="solic"><div class="ic"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg></div><div style="flex:1"><b>Solicitudes de mensaje</b><small>' + st.solicitudes + ' persona' + (st.solicitudes === 1 ? '' : 's') + ' que no conoces te escribió</small></div><span class="b" style="background:var(--verde);color:#0b0d0c;border-radius:11px;padding:2px 8px;font-size:.75rem;font-weight:800">' + st.solicitudes + '</span></div>';
     }
+    // 2026-11-27 (Jhoset): "Archivados" arriba, como WhatsApp
+    if (verArch) h += '<div class="solic" data-arch="0"><div class="ic">←</div><div style="flex:1"><b>Archivados</b><small>Estos chats no salen en tu lista. Clic derecho o mantén presionado para desarchivar.</small></div></div>';
+    else if (arch.length && !q) h += '<div class="solic" data-arch="' + sec + '"><div class="ic">🗄️</div><div style="flex:1"><b>Archivados</b></div><span style="color:var(--verde);font-weight:700;font-size:.85rem">' + arch.length + '</span></div>';
     h += l.map(itemHtml).join('');
     if (!st.chats[sec].length) {
         h += sec === 'mis'
@@ -542,7 +553,9 @@ function pintar(sec) {
 function itemHtml(c) {
     return '<div class="it' + (c.id === st.abierto ? ' act' : '') + '" data-chat="' + c.id + '">' + avatar(c, '', c.tipo === 'grupo') +
         '<div class="tx"><div class="r1"><span class="n">' + esc(c.nombre) + '</span>' + (c.empresa ? '<span class="tag">Empresa</span>' : '') + '<span class="h' + (c.sin_leer ? ' nl' : '') + '">' + esc(c.hora) + '</span></div>' +
-        '<div class="r2"><span class="u">' + (c.mio ? TK + ' ' : '') + esc(c.ultimo || (c.tipo === 'grupo' ? 'Grupo creado' : '')) + '</span>' + (c.sin_leer ? '<span class="b">' + c.sin_leer + '</span>' : '') + '</div></div></div>';
+        '<div class="r2"><span class="u">' + (c.mio ? TK + ' ' : '') + esc(c.ultimo || (c.tipo === 'grupo' ? 'Grupo creado' : '')) + '</span>' +
+        (c.silenciado ? '<span class="ico" title="Silenciado">🔇</span>' : '') + (c.fijado ? '<span class="ico" title="Fijado">📌</span>' : '') +
+        (c.sin_leer ? '<span class="b"' + (c.silenciado ? ' style="background:var(--txt2)"' : '') + '>' + c.sin_leer + '</span>' : (c.no_leido ? '<span class="b" style="min-width:12px;width:12px;height:12px;padding:0"></span>' : '')) + '</div></div></div>';
 }
 function cargar(sec) {
     return api(U + '/chats?tab=' + sec).then(function (j) {
@@ -1111,6 +1124,66 @@ function menu(boton, items) {
     setTimeout(function () { document.addEventListener('click', cerrarMenu, { once: true }); }, 0);
 }
 function cerrarMenu() { var m = $('menu'); if (m) m.remove(); }
+/* 2026-11-27 (Jhoset): menú de cada chat como WhatsApp: clic derecho en el computador, mantener presionado en el celular. */
+function menuXY(x, y, items) {
+    cerrarMenu();
+    var m = document.createElement('div'); m.className = 'menu'; m.id = 'menu';
+    items.forEach(function (it) {
+        if (!it) { var sp = document.createElement('div'); sp.className = 'sep'; m.appendChild(sp); return; }
+        var b = document.createElement('button'); b.textContent = it[0]; b.onclick = function (ev) { ev.stopPropagation(); cerrarMenu(); it[1](); }; m.appendChild(b);
+    });
+    document.body.appendChild(m);
+    m.style.maxHeight = (window.innerHeight - 16) + 'px'; m.style.overflowY = 'auto';
+    var w = m.offsetWidth, h = m.offsetHeight;
+    m.style.left = Math.max(8, Math.min(x, window.innerWidth - w - 8)) + 'px';
+    m.style.top = Math.max(8, Math.min(y, window.innerHeight - h - 8)) + 'px';
+    // en el celular, al soltar el dedo llega un clic: se espera para que no cierre el menú apenas sale
+    setTimeout(function () { document.addEventListener('click', cerrarMenu, { once: true }); }, Date.now() - (st.lpT || 0) < 700 ? 700 : 0);
+}
+function buscarChat(id) { var r = null; ['mis', 'general'].forEach(function (s) { (st.chats[s] || []).forEach(function (c) { if (c.id === id) r = c; }); }); return r; }
+function accionChat(id, a, extra, msj) {
+    return post(U + '/chat/' + id + '/' + a, extra || {}).then(function (j) {
+        if (!j.ok) return toast(j.mensaje || 'No se pudo.');
+        if (msj) toast(msj);
+        if (id === st.abierto && (a === 'vaciar' || a === 'borrar')) { if (a === 'borrar') cerrarChat(); else { $('msgs').innerHTML = ''; $('msgs').dataset.dia = ''; st.ultimo = 0; traer(true); } }
+        cargarChats();
+    });
+}
+function menuChat(id, x, y) {
+    var c = buscarChat(id); if (!c) return;
+    var grupo = c.tipo === 'grupo', sinLeer = c.sin_leer || c.no_leido;
+    menuXY(x, y, [
+        [c.archivado ? '🗄️  Desarchivar chat' : '🗄️  Archivar chat', function () { accionChat(id, 'archivar', {}, c.archivado ? 'Chat desarchivado.' : 'Chat archivado.'); }],
+        [c.silenciado ? '🔔  Activar notificaciones' : '🔕  Silenciar notificaciones', function () {
+            if (c.silenciado) return accionChat(id, 'silenciar', { quitar: 1 }, 'Notificaciones activadas.');
+            ventana('Silenciar notificaciones', '<p style="margin-top:0;color:var(--txt2)">No te sonará ni te llegará aviso de este chat. Igual ves los mensajes.</p>' +
+                '<div class="fila" style="cursor:pointer" data-sil="8"><div class="tx">8 horas</div></div><div class="fila" style="cursor:pointer" data-sil="168"><div class="tx">1 semana</div></div><div class="fila" style="cursor:pointer" data-sil="0"><div class="tx">Siempre</div></div>');
+            document.querySelectorAll('[data-sil]').forEach(function (b) { b.onclick = function () { cerrarVentana(); accionChat(id, 'silenciar', { horas: +b.dataset.sil }, 'Chat silenciado.'); }; });
+        }],
+        [c.fijado ? '📌  Desfijar chat' : '📌  Fijar chat', function () { accionChat(id, 'fijar', {}, c.fijado ? 'Chat desfijado.' : 'Chat fijado arriba.'); }],
+        [sinLeer ? '✅  Marcar como leído' : '✉️  Marcar como no leído', function () { accionChat(id, 'noleido', { leido: sinLeer ? 1 : 0 }); }],
+        [c.favorito ? '💔  Quitar de Favoritos' : '🤍  Añadir a Favoritos', function () { accionChat(id, 'favorito', {}, c.favorito ? 'Quitado de Favoritos.' : 'Añadido a Favoritos.'); }],
+        null,
+        ['🧹  Vaciar chat', function () {
+            ventana('¿Vaciar este chat?', '<p style="margin-top:0">Se borran los mensajes <b>solo para ti</b>. ' + esc(c.nombre) + ' los sigue viendo.</p>', '<button class="bt sec" data-cerrar>Cancelar</button><button class="bt" id="vc-ok">Vaciar chat</button>');
+            $('vc-ok').onclick = function () { cerrarVentana(); accionChat(id, 'vaciar', {}, 'Chat vaciado.'); };
+        }],
+        [grupo ? '🚪  Salir del grupo' : '🗑️  Borrar chat', function () {
+            ventana(grupo ? '¿Salir del grupo?' : '¿Borrar este chat?', '<p style="margin-top:0">' + (grupo ? 'Saldrás de <b>' + esc(c.nombre) + '</b>.' : 'El chat con <b>' + esc(c.nombre) + '</b> se quita de tu lista.') + '</p>', '<button class="bt sec" data-cerrar>Cancelar</button><button class="bt" id="bc-ok">' + (grupo ? 'Salir' : 'Borrar') + '</button>');
+            $('bc-ok').onclick = function () { cerrarVentana(); accionChat(id, 'borrar', {}, grupo ? 'Saliste del grupo.' : 'Chat borrado.'); };
+        }]
+    ]);
+}
+['lista-mis', 'lista-general'].forEach(function (lid) {
+    var box = $(lid), t = null, p0 = null;
+    box.addEventListener('contextmenu', function (e) { var it = e.target.closest('[data-chat]'); if (!it) return; e.preventDefault(); if (t) { clearTimeout(t); t = null; st.lpT = Date.now(); } menuChat(+it.dataset.chat, e.clientX, e.clientY); });
+    box.addEventListener('touchstart', function (e) {
+        var it = e.target.closest('[data-chat]'); if (!it) return; var tc = e.touches[0]; p0 = [tc.clientX, tc.clientY];
+        t = setTimeout(function () { t = null; st.lpT = Date.now(); if (navigator.vibrate) try { navigator.vibrate(30); } catch (x) {} menuChat(+it.dataset.chat, p0[0], p0[1]); }, 500);
+    }, { passive: true });
+    box.addEventListener('touchmove', function (e) { if (t && p0) { var tc = e.touches[0]; if (Math.abs(tc.clientX - p0[0]) > 10 || Math.abs(tc.clientY - p0[1]) > 10) { clearTimeout(t); t = null; } } }, { passive: true });
+    box.addEventListener('touchend', function () { if (t) { clearTimeout(t); t = null; } });
+});
 function salirForm() { var f = document.createElement('form'); f.method = 'post'; f.action = '/chat/salir'; f.innerHTML = '<input type="hidden" name="_token" value="' + CSRF + '">'; document.body.appendChild(f); f.submit(); }
 function usarComo(emp) { post(U + '/cuenta', { empresa: emp ? 1 : 0 }).then(function (j) { if (j.ok) location.href = '/chat'; else toast(j.mensaje || 'No se pudo.'); }); }
 if ($('b-volver-cuenta')) $('b-volver-cuenta').onclick = function () { usarComo(false); };
@@ -1259,6 +1332,8 @@ function miPerfil() {
 
 /* ================= Clics generales ================= */
 document.addEventListener('click', function (e) {
+    var ar = e.target.closest('[data-arch]'); if (ar) { st.verArch = ar.dataset.arch === '0' ? '' : ar.dataset.arch; pintar('mis'); pintar('general'); return; }
+    if (Date.now() - (st.lpT || 0) < 700) return; // venía de mantener presionado (abre el menú, no el chat)
     var c = e.target.closest('[data-chat]'); if (c) { abrirChat(+c.dataset.chat); return; }
     var s = e.target.closest('[data-saludar]'); if (s) { e.stopPropagation(); saludar(+s.dataset.saludar); return; }
     var em = e.target.closest('[data-empresa]'); if (em) { escribirEmpresa(+em.dataset.empresa); return; }

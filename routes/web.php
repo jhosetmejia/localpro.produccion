@@ -810,7 +810,7 @@ Route::prefix('chat')->name('lpchat.')->group(function () {
         Route::get('/chat/{id}', [$C, 'mensajes'])->whereNumber('id')->name('mensajes');
         Route::post('/chat/{id}/enviar', [$C, 'enviar'])->whereNumber('id')->middleware('throttle:lpchat-60')->name('enviar');
         Route::post('/chat/{id}/escribiendo', [$C, 'escribiendo'])->whereNumber('id')->name('escribiendo');
-        Route::post('/chat/{id}/{accion}', [$C, 'accion'])->whereNumber('id')->where('accion', 'aceptar|descartar|borrar|bloquear|desbloquear|denunciar|mover')->name('accion');
+        Route::post('/chat/{id}/{accion}', [$C, 'accion'])->whereNumber('id')->where('accion', 'aceptar|descartar|borrar|bloquear|desbloquear|denunciar|mover|archivar|silenciar|fijar|noleido|favorito|vaciar')->name('accion');
         Route::get('/stickers', [$C, 'stickers'])->name('stickers');
         Route::post('/stickers', [$C, 'crearSticker'])->middleware('throttle:lpchat-20')->name('stickers.crear');
         Route::post('/stickers/guardar/{mensaje}', [$C, 'guardarSticker'])->whereNumber('mensaje')->middleware('throttle:lpchat-20')->name('stickers.guardar');

@@ -201,7 +201,10 @@ class lpchatController extends Controller
         $yo = $this->yo();
         $c = $this->chat($id, $yo);
         $desde = (int) $request->query('desde', 0);
-        $q = DB::table('lpchat_mensajes')->where('chat_id', $c->id);
+        $q = DB::table('lpchat_mensajes')->where('chat_id', $c->id)->where('id', '>', (int) ($c->yo->vaciado_id ?? 0)); // 2026-11-27: "Vaciar chat"
+        if (! empty($c->yo->no_leido)) {
+            DB::table('lpchat_miembros')->where('id', $c->yo->id)->update(['no_leido' => false]); // al abrirlo se quita "no leído"
+        }
         $msgs = $desde ? $q->where('id', '>', $desde)->orderBy('id')->limit(200)->get() : $q->orderByDesc('id')->limit(80)->get()->reverse()->values();
         // Al leer una solicitud no se marca como leída (como Instagram: el otro no sabe que la vio).
         if ($c->yo->estado === 'activo' && $c->ultimo_id > $c->yo->leido_id) {
@@ -457,6 +460,36 @@ class lpchatController extends Controller
             case 'desbloquear':
                 abort_unless($otro, 422);
                 DB::table('lpchat_bloqueos')->where('usuario_id', $yo->id)->where('bloqueado_id', $otro->id)->delete();
+                break;
+            // 2026-11-27 (Jhoset): menú del chat como WhatsApp (clic derecho / mantener presionado). Solo cambia para quien lo hace.
+            case 'archivar':
+                DB::table('lpchat_miembros')->where('id', $c->yo->id)->update(['archivado' => ! $c->yo->archivado, 'fijado_at' => null]);
+                break;
+            case 'silenciar': // horas: 8, 168 (1 semana), 0 = siempre; quitar = 1
+                if ($request->boolean('quitar')) {
+                    $hasta = null;
+                } else {
+                    $h = (int) $request->input('horas', 0);
+                    $hasta = in_array($h, [8, 168], true) ? now()->addHours($h) : now()->addYears(50);
+                }
+                DB::table('lpchat_miembros')->where('id', $c->yo->id)->update(['silenciado_hasta' => $hasta]);
+                break;
+            case 'fijar':
+                if (! $c->yo->fijado_at && DB::table('lpchat_miembros')->where('usuario_id', $yo->id)->whereNotNull('fijado_at')->where('estado', 'activo')->count() >= 3) {
+                    return response()->json(['ok' => false, 'mensaje' => 'Solo puedes fijar 3 chats.'], 422);
+                }
+                DB::table('lpchat_miembros')->where('id', $c->yo->id)->update(['fijado_at' => $c->yo->fijado_at ? null : now(), 'archivado' => false]);
+                break;
+            case 'noleido':
+                DB::table('lpchat_miembros')->where('id', $c->yo->id)->update($request->boolean('leido')
+                    ? ['no_leido' => false, 'leido_id' => $c->ultimo_id] // "Marcar como leído"
+                    : ['no_leido' => true]);
+                break;
+            case 'favorito':
+                DB::table('lpchat_miembros')->where('id', $c->yo->id)->update(['favorito' => ! $c->yo->favorito]);
+                break;
+            case 'vaciar': // borra los mensajes solo para esta persona
+                DB::table('lpchat_miembros')->where('id', $c->yo->id)->update(['vaciado_id' => $c->ultimo_id, 'leido_id' => $c->ultimo_id, 'no_leido' => false]);
                 break;
             default:
                 abort(404);
