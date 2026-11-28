@@ -830,6 +830,12 @@ Route::prefix('chat')->name('lpchat.')->group(function () {
         Route::post('/abrir-enlace', [$C, 'abrirEnlace'])->middleware('throttle:lpchat-30')->name('abrir.enlace');
         Route::post('/nuevo', [$C, 'nuevo'])->middleware('throttle:lpchat-30')->name('nuevo');
         Route::get('/contactos', [$C, 'contactos'])->name('contactos');
+        // 2026-11-28 (Jhoset): llamadas de voz y videollamadas.
+        Route::post('/llamada', [\App\Http\Controllers\lpchatLlamadasController::class, 'llamar'])->middleware('throttle:lpchat-20')->name('llamada.llamar');
+        Route::get('/llamada/entrante', [\App\Http\Controllers\lpchatLlamadasController::class, 'entrante'])->name('llamada.entrante');
+        Route::get('/llamada/{id}', [\App\Http\Controllers\lpchatLlamadasController::class, 'estado'])->whereNumber('id')->name('llamada.estado');
+        Route::post('/llamada/{id}/senal', [\App\Http\Controllers\lpchatLlamadasController::class, 'senal'])->whereNumber('id')->name('llamada.senal');
+        Route::post('/llamada/{id}/{accion}', [\App\Http\Controllers\lpchatLlamadasController::class, 'accion'])->whereNumber('id')->where('accion', 'aceptar|rechazar|colgar')->name('llamada.accion');
         Route::post('/grupo', [$C, 'crearGrupo'])->middleware('throttle:lpchat-10')->name('grupo.crear');
         Route::get('/grupo/{id}', [$C, 'grupo'])->whereNumber('id')->name('grupo');
         Route::post('/grupo/{id}/{accion}', [$C, 'grupoAccion'])->whereNumber('id')->where('accion', 'agregar|quitar|admin|editar|link')->name('grupo.accion');

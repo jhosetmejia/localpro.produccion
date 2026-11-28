@@ -10,6 +10,10 @@ return [
     ],
     // 2026-11-24 (Jhoset): nombre con el que sale la cuenta del administrador (la misma de NES y PFN) en LP Chat.
     'admin_nombre' => env('LPCHAT_ADMIN_NOMBRE', 'Jhoset Mejía'),
+    // 2026-11-28 (Jhoset): servidor TURN propio (coturn en el VPS) para que las llamadas funcionen con datos móviles.
+    // Lo deja listo deploy/activar-llamadas.sh (orden "activar-llamadas"). Sin esto las llamadas usan solo STUN gratis.
+    'turn_url' => env('LPCHAT_TURN_URL'),
+    'turn_secret' => env('LPCHAT_TURN_SECRET'),
     // Máximo de mensajes que alguien puede mandar mientras su solicitud no ha sido aceptada
     'max_solicitud' => 3,
     // Plan Pro: saluda hasta 100 personas nuevas al día en Conocer gente (gratis: 5)

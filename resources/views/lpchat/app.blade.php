@@ -439,6 +439,7 @@ setTimeout(quitarSplash, 4000);</script>
 </div>
 <input type="file" id="f-est" accept="image/*,video/*" hidden>
 <div id="capa"></div>
+@include('lpchat._llamadas')
 <script>
 (function () {
 'use strict';
@@ -826,6 +827,7 @@ function traer(primera) {
         st.info = j.chat; st.info.seccion = j.seccion;
         $('c-av').outerHTML = avatar(j.chat.otro || j.chat, 'p', j.chat.tipo === 'grupo').replace('class="av', 'id="c-av" class="av');
         $('c-n').textContent = j.chat.nombre;
+        llamadaBotones(j.chat); // 2026-11-28: botones de llamada (solo chats de dos)
         var s = $('c-s');
         s.textContent = j.escribiendo.length ? (j.chat.tipo === 'grupo' ? j.escribiendo.join(', ') + ' escribiendo…' : (j.escribiendo[0].indexOf('🎤') > 0 ? 'grabando audio…' : 'escribiendo…')) : (j.chat.sub || (j.chat.tipo === 'directo' ? 'toca para ver el perfil' : ''));
         var box = $('msgs'), abajo = box.scrollHeight - box.scrollTop - box.clientHeight < 140;
@@ -1481,6 +1483,7 @@ document.addEventListener('visibilitychange', function () { if (!document.hidden
     $('b-nuevo').onclick = function () { nuevoChat(); };
     marcar(); setInterval(marcar, 2000);
 })();
+@include('lpchat._llamadas_js')
 })();
 </script>
 </body>

@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Storage;
 class lpchatController extends Controller
 {
     /** La cuenta personal con la que entró (nunca la de empresa). */
-    private function persona(): ?U
+    protected function persona(): ?U
     {
         return Auth::guard('lpchat')->user() ?: lpchatCuentaController::desdeLocalProo();
     }
@@ -37,7 +37,7 @@ class lpchatController extends Controller
     }
 
     /** Quién está chateando: la persona o, si cambió a "Usar como empresa", la cuenta del negocio. */
-    private function yo(): U
+    protected function yo(): U
     {
         $p = $this->persona();
         abort_unless($p, 401, 'Inicia sesión en LP Chat.');
@@ -156,6 +156,15 @@ class lpchatController extends Controller
         $p = $this->persona();
         if (! $p) {
             return response()->json(['ok' => false]);
+        }
+        // 2026-11-28 (Jhoset): llamada entrante → aviso de llamada (se queda en pantalla y vibra).
+        $ll = DB::table('lpchat_llamadas')->where('para_id', $p->id)->where('estado', 'llamando')->where('created_at', '>=', now()->subSeconds(45))->orderByDesc('id')->first();
+        if ($ll) {
+            $de = U::find($ll->de_id);
+
+            return response()->json(['ok' => true, 'titulo' => ($ll->video ? '🎥 ' : '📞 ').($de?->nombre ?? 'Alguien').' te está llamando',
+                'texto' => $ll->video ? 'Videollamada de LP Chat · toca para contestar' : 'Llamada de LP Chat · toca para contestar',
+                'url' => route('lpchat.index', ['llamada' => $ll->id]), 'tag' => 'lpchat-llamada-'.$ll->id, 'llamada' => true]);
         }
         foreach (['mis', 'general', 'solicitudes'] as $tab) {
             foreach (LpChat::lista($p, $tab) as $c) {

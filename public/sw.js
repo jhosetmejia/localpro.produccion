@@ -52,8 +52,11 @@ self.addEventListener('push', (e) => {
         const ya = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
         // Si tiene el chat abierto y a la vista, no hace falta el aviso del celular
         if (ya.some((c) => c.visibilityState === 'visible' && new URL(c.url).pathname.startsWith('/chat'))) return;
+        // 2026-11-28 (Jhoset): llamada entrante: el aviso se queda en pantalla y vibra como timbre.
+        const ll = !!d.llamada;
         await self.registration.showNotification(d.titulo, {
             body: d.texto, tag: d.tag, renotify: true, icon: '/icons/lpchat-192.png', badge: '/icons/lpchat-192.png', data: { url: d.url },
+            requireInteraction: ll, vibrate: ll ? [600, 300, 600, 300, 600, 300, 600, 300, 600] : undefined,
         });
         if (self.navigator && self.navigator.setAppBadge && d.total) { try { await self.navigator.setAppBadge(d.total); } catch (x) {} }
     })());

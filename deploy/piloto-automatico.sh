@@ -95,6 +95,7 @@ if [ -n "$OID" ] && [ "$OID" != "$HECHA" ]; then
         if [ -n "$SRC" ]; then cp -p "$SRC" "$DEST/$F" && chown "$USR:$USR" "$DEST/$F" && OK=$((OK+1)); else NO=$((NO+1)); fi
       done
       R="recuperadas $OK, sin copia en el servidor $NO (esas hay que volver a subirlas)" ;;
+    activar-llamadas) bash "$RAIZ/deploy/activar-llamadas.sh" >> /var/log/localpro-llamadas.log 2>&1; R="$(cat /var/lib/localpro/llamadas 2>/dev/null || echo falló)" ;;  # 2026-11-28 TURN para llamadas de LP Chat
     diagnostico) : ;;  # solo refresca el reporte con más detalle
     *) R="acción desconocida, no se hizo nada" ;;
   esac
