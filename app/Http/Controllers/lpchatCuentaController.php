@@ -156,9 +156,17 @@ class lpchatCuentaController extends Controller
     public function conectar(Request $request, string $origen)
     {
         $d = (string) $request->query('d', '');
-        abort_unless(config('lpchat.origenes.'.$origen) && LpChat::firmaValida($origen, $d, $request->query('f')), 403, 'Enlace no válido.');
         $p = json_decode(base64_decode(strtr($d, '-_', '+/')), true);
-        abort_unless(is_array($p) && abs(time() - (int) ($p['ts'] ?? 0)) < 900, 403, 'El enlace venció. Vuelve a intentarlo.');
+        // 2026-11-28 (Jhoset): un enlace viejo (ej. al devolverse en el celular o recargar) ya no muestra el error 403 ni
+        // saca a la página de LocalProo: si ya tiene sesión de LP Chat sigue en su chat; si no, a entrar a LP Chat.
+        if (! config('lpchat.origenes.'.$origen) || ! LpChat::firmaValida($origen, $d, $request->query('f'))
+            || ! is_array($p) || abs(time() - (int) ($p['ts'] ?? 0)) >= 900) {
+            if ($this->guard()->check()) {
+                return redirect()->route('lpchat.index');
+            }
+
+            return redirect()->route('lpchat.entrar')->withErrors(['identificador' => 'Ese enlace ya venció. Vuelve a abrir LP Chat desde '.(config('lpchat.origenes.'.$origen.'.nombre') ?: 'el sistema').' o entra con tu correo y clave.']);
+        }
         // 2026-11-17 (Jhoset): las cuentas con inscripciones de menores también entran (las maneja el papá/mamá),
         // protegidas: fuera de Conocer gente y solo hablan con el equipo del evento (LpChat::puedeContactar).
         $u = LpChat::desdeOrigen($origen, $p);
