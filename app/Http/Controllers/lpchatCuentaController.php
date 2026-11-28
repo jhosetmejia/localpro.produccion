@@ -191,6 +191,11 @@ class lpchatCuentaController extends Controller
             }
         }
 
+        // 2026-11-28 (Jhoset): abrir un grupo de LP Chat (desde el aviso de NES/PFN "escribieron en el grupo …").
+        if (! empty($p['chat']) && ctype_digit((string) $p['chat']) && ($mb = LpChat::miembro((int) $p['chat'], $u->id)) && $mb->estado === 'activo') {
+            $destino = route('lpchat.index', ['chat' => (int) $p['chat']]);
+        }
+
         // 2026-11-27 (Jhoset): el sistema puede mandar un mensaje que queda escrito (sin enviar) en la caja del chat.
         if ($destino !== route('lpchat.index') && is_string($p['texto'] ?? null) && trim($p['texto']) !== '') {
             $destino .= (str_contains($destino, '?') ? '&' : '?').'texto='.rawurlencode(mb_substr(trim($p['texto']), 0, 500));
@@ -285,7 +290,7 @@ class lpchatCuentaController extends Controller
         // 2026-11-18: en la primera tanda van también los mensajes de allá que ya se leyeron aquí
         $leidos = $request->boolean('leidos') ? LpChat::leidosAqui($origen) : [];
 
-        return response()->json(['ok' => true, 'mensajes' => $mensajes, 'ultimo' => $ultimo, 'leidos' => $leidos]);
+        return response()->json(['ok' => true, 'mensajes' => $mensajes, 'ultimo' => $ultimo, 'leidos' => $leidos, 'grupos' => LpChat::$gruposExport]);
     }
 
     /** Cuántos mensajes sin leer tiene alguien de PFN/NES (para su campanita). Firma = hmac(origen_id). */

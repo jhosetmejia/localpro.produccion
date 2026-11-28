@@ -781,12 +781,49 @@ class LpChat
      * 2026-11-18: mensajes escritos en LP Chat entre dos personas de NES/PFN, para que también les lleguen allá.
      * Devuelve [mensajes, último id revisado] (el cursor avanza aunque no haya ninguno de ese sistema).
      */
+    /** 2026-11-28: avisos de grupos de la última exportación (los lee el controlador). */
+    public static array $gruposExport = [];
+
+    private static function avisosGrupos(string $origen, $filas): array
+    {
+        if ($filas->isEmpty()) {
+            return [];
+        }
+        $miembros = DB::table('lpchat_miembros')->whereIn('chat_id', $filas->pluck('chat_id')->unique())->where('estado', 'activo')
+            ->where(fn ($q) => $q->whereNull('silenciado_hasta')->orWhere('silenciado_hasta', '<', now()))
+            ->get(['chat_id', 'usuario_id'])->groupBy('chat_id');
+        $vin = DB::table('lpchat_vinculos')->where('origen', $origen)->whereIn('usuario_id', $miembros->flatten(1)->pluck('usuario_id')->unique())
+            ->get(['usuario_id', 'origen_id'])->groupBy('usuario_id')->map(fn ($g) => $g->pluck('origen_id')->all());
+        $nombres = U::whereIn('id', $filas->pluck('usuario_id')->unique())->pluck('nombre', 'id');
+        $out = [];
+        foreach ($filas as $m) {
+            $para = [];
+            foreach ($miembros[$m->chat_id] ?? [] as $mb) {
+                if ((int) $mb->usuario_id !== (int) $m->usuario_id) {
+                    $para = array_merge($para, $vin[$mb->usuario_id] ?? []);
+                }
+            }
+            if (! $para) {
+                continue;
+            }
+            $tx = (string) self::leer($m->texto);
+            $adj = ['foto' => '📷 Foto', 'video' => '🎥 Video', 'audio' => '🎤 Nota de voz', 'sticker' => '🧩 Sticker'][$m->adjunto_tipo ?? ''] ?? '';
+            $out[] = ['id' => $m->id, 'chat_id' => $m->chat_id, 'grupo' => (string) $m->chat_nombre, 'de' => (string) ($nombres[$m->usuario_id] ?? 'Alguien'),
+                'texto' => mb_strimwidth(trim($adj.($adj && $tx ? ' · ' : '').$tx), 0, 140, '…'), 'para_ids' => array_values(array_unique($para))];
+        }
+
+        return $out;
+    }
+
     public static function exportar(string $origen, int $desde): array
     {
-        $filas = DB::table('lpchat_mensajes as m')->join('lpchat_chats as c', 'c.id', '=', 'm.chat_id')
-            ->where('m.id', '>', $desde)->whereNull('m.origen')->whereNull('m.tipo')->whereNotNull('m.usuario_id')->where('c.tipo', 'directo')
-            ->orderBy('m.id')->limit(1000)->get(['m.id', 'm.chat_id', 'm.usuario_id', 'm.texto', 'm.adjunto_tipo', 'm.una_vez', 'm.created_at']);
-        $ultimo = (int) ($filas->max('id') ?? $desde);
+        $todas = DB::table('lpchat_mensajes as m')->join('lpchat_chats as c', 'c.id', '=', 'm.chat_id')
+            ->where('m.id', '>', $desde)->whereNull('m.origen')->whereNull('m.tipo')->whereNotNull('m.usuario_id')->whereIn('c.tipo', ['directo', 'grupo'])
+            ->orderBy('m.id')->limit(1000)->get(['m.id', 'm.chat_id', 'm.usuario_id', 'm.texto', 'm.adjunto_tipo', 'm.una_vez', 'm.created_at', 'c.tipo as chat_tipo', 'c.nombre as chat_nombre']);
+        $ultimo = (int) ($todas->max('id') ?? $desde);
+        // 2026-11-28 (Jhoset): los mensajes de grupos van aparte, solo como aviso (campana y celular) en NES/PFN.
+        self::$gruposExport = self::avisosGrupos($origen, $todas->where('chat_tipo', 'grupo')->values());
+        $filas = $todas->where('chat_tipo', 'directo')->values();
         if ($filas->isEmpty()) {
             return [[], $ultimo];
         }
