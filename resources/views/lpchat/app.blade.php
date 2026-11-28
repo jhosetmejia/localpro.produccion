@@ -313,6 +313,7 @@ body{height:100dvh;overflow:hidden}
 </style>
 </head>
 <body>
+@include('lpchat._tema')
 {{-- 2026-11-25 (Jhoset): pantalla de carga tipo WhatsApp con el aviso de seguridad de los chats. --}}
 <div id="lp-splash" style="position:fixed;inset:0;z-index:9999;background:#0b0d0c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .25s">
     <img src="/icons/lpchat-192.png?v=2" alt="" style="width:64px;height:64px;border-radius:18px;opacity:.9">
@@ -1268,6 +1269,23 @@ function menu(boton, items) {
     if (top + h > window.innerHeight - 8) m.style.top = Math.max(8, window.innerHeight - h - 8) + 'px';
     setTimeout(function () { document.addEventListener('click', cerrarMenu, { once: true }); }, 0);
 }
+/* 2026-11-28 (Jhoset): Tema (oscuro / claro / automático) y fondo del chat, como WhatsApp. Se guarda en este celular. */
+function temaYFondo() {
+    function g(k, d) { try { return localStorage.getItem(k) || d; } catch (e) { return d; } }
+    function s(k, v) { try { if (v) localStorage.setItem(k, v); else localStorage.removeItem(k); } catch (e) {} }
+    function pintar() {
+        var modo = g('lp-tema', 'oscuro'), t = lpTemaActual(), f = g('lp-fondo-' + t, '');
+        $('tm-op').innerHTML = [['oscuro', '🌙 Oscuro'], ['claro', '☀️ Claro'], ['auto', '📱 Como el celular']].map(function (o) { return '<button type="button" data-tema="' + o[0] + '"' + (o[0] === modo ? ' class="on"' : '') + '>' + o[1] + '</button>'; }).join('');
+        $('tm-sw').innerHTML = LP_FONDOS[t].map(function (o) {
+            var bg = o[0] || (t === 'claro' ? '#efeae2' : '#0d100e');
+            return '<button type="button" data-fondo="' + o[0] + '" style="background:' + bg + (t === 'claro' ? ';color:#333;text-shadow:none' : '') + '"' + (o[0] === f ? ' class="on"' : '') + '>' + o[1] + '</button>';
+        }).join('');
+    }
+    ventana('🎨 Tema y fondo', '<b>Tema</b><div class="tema-op" id="tm-op" style="margin:8px 0 16px"></div><b>Fondo del chat</b><div class="tema-sw" id="tm-sw"></div><p style="color:var(--txt2);font-size:.82rem;margin-bottom:0">Se guarda en este celular o computador.</p>');
+    pintar();
+    $('tm-op').onclick = function (e) { var b = e.target.closest('[data-tema]'); if (!b) return; s('lp-tema', b.dataset.tema); lpAplicarTema(); pintar(); };
+    $('tm-sw').onclick = function (e) { var b = e.target.closest('[data-fondo]'); if (!b) return; s('lp-fondo-' + lpTemaActual(), b.dataset.fondo); lpAplicarTema(); pintar(); };
+}
 function cerrarMenu() { var m = $('menu'); if (m) m.remove(); var v = $('menu-velo'); if (v) v.remove(); setTimeout(function () { if (!$('menu')) st.menuBoton = null; }, 0); }
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && $('menu')) cerrarMenu(); });
 /* 2026-11-27 (Jhoset): menú de cada chat como WhatsApp: clic derecho en el computador, mantener presionado en el celular. */
@@ -1342,6 +1360,7 @@ $('b-menu').onclick = function (e) {
     if (EMPRESA) it.push(['Usar como empresa: ' + EMPRESA, function () { usarComo(true); }]);
     if (YO.empresa) it.push(['Volver a mi cuenta', function () { usarComo(false); }]);
     if ('Notification' in window && Notification.permission !== 'granted') it.push(['🔔 Activar avisos de mensajes', activarAvisos]);
+    it.push(['🎨 Tema y fondo del chat', temaYFondo]);
     it.push(['Condiciones de uso', function () { window.open('/chat/terminos', '_blank'); }]);
     if (!yaInstalada()) it.push(['📲 Instalar app', instalarApp]);
     it.push(['Cerrar sesión', salirForm]);
