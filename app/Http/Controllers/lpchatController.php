@@ -157,6 +157,7 @@ class lpchatController extends Controller
         if (! $p) {
             return response()->json(['ok' => false]);
         }
+        LpChat::marcarEntregado($p); // 2026-11-28: le llegó el aviso al celular = entregado (✓✓)
         // 2026-11-28 (Jhoset): llamada entrante → aviso de llamada (se queda en pantalla y vibra).
         $ll = DB::table('lpchat_llamadas')->where('para_id', $p->id)->where('estado', 'llamando')->where('created_at', '>=', now()->subSeconds(45))->orderByDesc('id')->first();
         if ($ll) {
@@ -202,6 +203,8 @@ class lpchatController extends Controller
             'sin_leer_mis' => LpChat::sinLeerTotal($yo, 'mis'), 'sin_leer_general' => LpChat::sinLeerTotal($yo, 'general'),
             'estados_nuevos' => $this->estadosNuevos($yo)]);
 
+        LpChat::marcarEntregado($yo); // 2026-11-28: abrió la app = le llegaron los mensajes (✓✓)
+
         return response()->json(['ok' => true, 'chats' => LpChat::lista($yo, $tab)] + $cont);
     }
 
@@ -224,6 +227,10 @@ class lpchatController extends Controller
         }
         $autores = U::whereIn('id', $msgs->pluck('usuario_id')->filter()->unique())->get()->keyBy('id');
         $leidoOtros = (int) DB::table('lpchat_miembros')->where('chat_id', $c->id)->where('usuario_id', '!=', $yo->id)->where('estado', 'activo')->min('leido_id');
+        // 2026-11-28 (Jhoset): ✓✓ gris = ya le llegó al celular del otro (entregado).
+        LpChat::marcarEntregado($yo);
+        $entregadoOtros = LpChat::conEntregado() ? (int) DB::table('lpchat_miembros')->where('chat_id', $c->id)->where('usuario_id', '!=', $yo->id)
+            ->whereIn('estado', ['activo', 'solicitud'])->min(DB::raw('GREATEST(entregado_id, leido_id)')) : $leidoOtros;
         [$puede, $motivo] = LpChat::puedeEscribir($c, $yo);
         $escribiendo = [];
         foreach (DB::table('lpchat_miembros')->where('chat_id', $c->id)->where('usuario_id', '!=', $yo->id)->where('estado', 'activo')->limit(50)->pluck('usuario_id') as $uid) {
@@ -237,6 +244,7 @@ class lpchatController extends Controller
             'chat' => $this->info($c, $yo),
             'mensajes' => $msgs->map(fn ($m) => $this->mensajeJson($m, $c, $yo, $autores) + ['leido' => $m->usuario_id === $yo->id && $leidoOtros >= $m->id])->values(),
             'leido_otros' => $leidoOtros,
+            'entregado_otros' => max($entregadoOtros, $leidoOtros),
             'puede' => $puede,
             'motivo' => $motivo,
             'solicitud' => $c->yo->estado === 'solicitud',

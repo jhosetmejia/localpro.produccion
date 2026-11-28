@@ -148,7 +148,10 @@ body{height:100dvh;overflow:hidden}
 .m.yo .meta{color:rgba(11,13,12,.6)}
 .m.yo a{color:#0b0d0c;font-weight:700}
 .m.yo .tk{fill:rgba(11,13,12,.45)}
-.m.yo .tk.l{fill:#0b0d0c}
+.m.yo .tk.l{fill:#0057ff}
+/* 2026-11-28 (Jhoset): vistos como WhatsApp: ✓ enviado · ✓✓ entregado · ✓✓ azul leído (bien notorio). */
+.tk.uno path+path{display:none}
+.tk.l{filter:drop-shadow(0 0 .5px rgba(0,60,200,.6))}
 .m.el{align-self:flex-start;background:var(--burbuja-el);border:1px solid var(--borde)}
 .m.pri.yo{border-bottom-right-radius:5px;margin-top:8px}
 .m.pri.el{border-bottom-left-radius:5px;margin-top:8px}
@@ -177,6 +180,8 @@ body{height:100dvh;overflow:hidden}
 .m .meta{float:right;margin:8px 0 -6px 12px;font-size:.68rem;color:var(--txt2);display:flex;align-items:center;gap:3px;position:relative;top:4px}
 .m .tk{width:16px;height:11px;fill:#8696a0}
 .m .tk.l{fill:var(--azul)}
+.m.yo .tk.l{fill:#0057ff}
+.it .tk.l{fill:#53bdeb}
 .m a{color:var(--verde)}
 .barra{flex:none;display:flex;align-items:flex-end;gap:6px;padding:6px 6px calc(env(safe-area-inset-bottom,0px) + 10px);background:var(--panel);border-top:1px solid var(--borde)}/* 2026-11-27 (Jhoset): igual a WhatsApp: caja redonda, texto centrado y espacio abajo */
 .barra .caja{flex:1;display:flex;align-items:flex-end;background:var(--panel3);border:1px solid var(--borde);border-radius:26px;padding:3px 6px;min-width:0;min-height:50px;box-sizing:border-box}
@@ -568,7 +573,7 @@ function pintar(sec) {
 function itemHtml(c) {
     return '<div class="it' + (c.id === st.abierto ? ' act' : '') + '" data-chat="' + c.id + '">' + avatar(c, '', c.tipo === 'grupo') +
         '<div class="tx"><div class="r1"><span class="n">' + esc(c.nombre) + '</span>' + (c.empresa ? '<span class="tag">Empresa</span>' : '') + '<span class="h' + (c.sin_leer ? ' nl' : '') + '">' + esc(c.hora) + '</span></div>' +
-        '<div class="r2"><span class="u">' + (c.mio ? TK + ' ' : '') + esc(c.ultimo || (c.tipo === 'grupo' ? 'Grupo creado' : '')) + '</span>' +
+        '<div class="r2"><span class="u">' + (c.mio ? TK.replace('class="tk"', 'class="tk ' + (c.visto || 'uno') + '"') + ' ' : '') + esc(c.ultimo || (c.tipo === 'grupo' ? 'Grupo creado' : '')) + '</span>' +
         (c.silenciado ? '<span class="ico" title="Silenciado">🔇</span>' : '') + (c.fijado ? '<span class="ico" title="Fijado">📌</span>' : '') +
         (c.sin_leer ? '<span class="b"' + (c.silenciado ? ' style="background:var(--txt2)"' : '') + '>' + c.sin_leer + '</span>' : (c.no_leido ? '<span class="b" style="min-width:12px;width:12px;height:12px;padding:0"></span>' : '')) + '</div></div></div>';
 }
@@ -857,10 +862,11 @@ function traer(primera) {
         var box = $('msgs'), abajo = box.scrollHeight - box.scrollTop - box.clientHeight < 140;
         if (primera) box.insertAdjacentHTML('beforeend', '<div class="sis">🔒 Chat privado: los mensajes se guardan cifrados y solo los ven las personas de este chat.</div>');
         if (primera) { st.reac = j.reac || {}; st.msg = {}; } // 2026-11-28: reacciones de este chat
+        st.leidoOtros = +j.leido_otros || 0; st.entOtros = Math.max(+j.entregado_otros || 0, st.leidoOtros);
         j.mensajes.forEach(function (m) { pintarMsg(box, m); });
         if (!primera) aplicarCambios(j);
         if (j.mensajes.length) st.ultimo = j.mensajes[j.mensajes.length - 1].id;
-        box.querySelectorAll('.m.yo .tk:not(.l)').forEach(function (t) { if (+t.closest('.m').dataset.m <= j.leido_otros) t.classList.add('l'); });
+        box.querySelectorAll('.m.yo .tk:not(.l)').forEach(function (t) { var mid = +t.closest('.m').dataset.m; t.setAttribute('class', 'tk ' + claseVisto(mid)); });
         if (primera || abajo || (j.mensajes.length && j.mensajes[j.mensajes.length - 1].mio)) box.scrollTop = box.scrollHeight;
         if (primera && !j.mensajes.length) box.insertAdjacentHTML('beforeend', '<div class="sis">' + (j.chat.tipo === 'grupo' ? 'Escribe el primer mensaje del grupo.' : 'Saluda a ' + esc(j.chat.nombre) + ' 👋') + '</div>');
         var av = $('aviso');
@@ -902,7 +908,7 @@ function htmlMsg(m) {
         (m.autor && pri ? '<span class="au" style="color:' + color(m.autor) + '">' + esc(m.autor) + '</span>' : '') +
         (m.reenv && !m.elim ? '<span class="fw">↪ Reenviado</span>' : '') + cita + media +
         (m.texto && !m.elim ? '<span class="tx" data-r="' + m.id + '">' + fmtTexto(m.texto) + '</span>' : '') +
-        '<span class="meta">' + esc(m.hora) + (m.mio && !m.elim ? TK.replace('class="tk"', 'class="tk' + (m.leido ? ' l' : '') + '"') : '') + '</span>' + rh + '</div>';
+        '<span class="meta">' + esc(m.hora) + (m.mio && !m.elim ? TK.replace('class="tk"', 'class="tk ' + claseVisto(m.id) + '"') : '') + '</span>' + rh + '</div>';
     // 2026-11-28 (Jhoset): en grupos, la foto de quien escribe al lado (solo en el primero de seguidos, como WhatsApp).
     if (m.autor) {
         var fo = m.autor_foto ? 'background-image:url(\'' + esc(m.autor_foto) + '\')' : 'background-color:' + color(m.autor);
@@ -910,6 +916,7 @@ function htmlMsg(m) {
     }
     return burb;
 }
+function claseVisto(id) { return id <= (st.leidoOtros || 0) ? 'l' : (id <= (st.entOtros || 0) ? 'e' : 'uno'); }
 function repintarMsg(id) {
     var m = st.msg[id], w = $('msgs').querySelector('[data-w="' + id + '"]'); if (!m || !w) return;
     var leido = !!w.querySelector('.tk.l'); if (leido) m.leido = true;

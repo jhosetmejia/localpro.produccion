@@ -312,8 +312,12 @@ class LpChat
         $directos = $filas->where('tipo', 'directo')->pluck('id');
         $otros = $directos->isEmpty() ? collect() : DB::table('lpchat_miembros')->whereIn('chat_id', $directos)->where('usuario_id', '!=', $yo->id)->pluck('usuario_id', 'chat_id');
         $usuarios = U::whereIn('id', $otros->values()->merge($ultimos->pluck('usuario_id')->filter())->unique())->get()->keyBy('id');
+        // 2026-11-28 (Jhoset): vistos del último mensaje mío (✓ enviado · ✓✓ entregado · ✓✓ azul leído), como WhatsApp.
+        $vistos = DB::table('lpchat_miembros')->whereIn('chat_id', $filas->pluck('id'))->where('usuario_id', '!=', $yo->id)->whereIn('estado', ['activo', 'solicitud'])
+            ->groupBy('chat_id')->selectRaw("chat_id, MIN(CASE WHEN estado = 'activo' THEN leido_id ELSE 0 END) l".(self::conEntregado() ? ', MIN(GREATEST(entregado_id, leido_id)) e' : ', 0 e'))
+            ->get()->keyBy('chat_id');
 
-        return $filas->map(function ($f) use ($yo, $ultimos, $sinLeer, $otros, $usuarios) {
+        return $filas->map(function ($f) use ($yo, $ultimos, $sinLeer, $otros, $usuarios, $vistos) {
             $u = $f->tipo === 'directo' ? $usuarios->get($otros->get($f->id)) : null;
             $ult = (int) $f->ultimo_id > (int) $f->vaciado_id ? $ultimos->get($f->ultimo_id) : null; // chat vaciado: sin vista previa
             $prev = '';
@@ -343,6 +347,7 @@ class LpChat
                 'en_linea' => $u ? self::enLinea($u->visto_at) : false,
                 'ultimo' => mb_strimwidth($prev, 0, 80, '…'),
                 'mio' => $ult && $ult->usuario_id === $yo->id,
+                'visto' => ! $ult || $ult->usuario_id !== $yo->id ? null : (($v = $vistos->get($f->id)) && $v->l >= $ult->id ? 'l' : ($v && $v->e >= $ult->id ? 'e' : 'uno')),
                 'hora' => $ult ? self::hora($ult->created_at) : '',
                 'sin_leer' => (int) ($sinLeer[$f->id] ?? 0),
                 // 2026-11-27 (Jhoset): menú del chat como WhatsApp (solo para esta persona)
@@ -353,6 +358,38 @@ class LpChat
                 'favorito' => (bool) $f->favorito,
             ];
         })->values()->all();
+    }
+
+    /**
+     * 2026-11-28 (Jhoset): "entregado" (✓✓ gris): la app o el aviso del celular de esta persona ya recibió los mensajes.
+     * Se llama cuando su app pregunta por los chats o cuando le llega el aviso al celular.
+     */
+    public static function marcarEntregado(U $yo): void
+    {
+        if (Cache::has('lpchat_entr_'.$yo->id) || ! self::conEntregado()) {
+            return;
+        }
+        Cache::put('lpchat_entr_'.$yo->id, 1, 3);
+        try {
+            DB::table('lpchat_miembros as m')->join('lpchat_chats as c', 'c.id', '=', 'm.chat_id')
+                ->where('m.usuario_id', $yo->id)->whereIn('m.estado', ['activo', 'solicitud'])->whereColumn('m.entregado_id', '<', 'c.ultimo_id')
+                ->update(['m.entregado_id' => DB::raw('c.ultimo_id')]);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
+    public static function conEntregado(): bool
+    {
+        if (Cache::get('lpchat_con_entregado')) {
+            return true;
+        }
+        $ok = \Illuminate\Support\Facades\Schema::hasColumn('lpchat_miembros', 'entregado_id');
+        if ($ok) {
+            Cache::put('lpchat_con_entregado', true, 3600);
+        }
+
+        return $ok;
     }
 
     public static function sinLeerTotal(U $yo, ?string $seccion = null): int
