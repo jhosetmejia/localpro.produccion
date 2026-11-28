@@ -165,12 +165,12 @@ body{height:100dvh;overflow:hidden}
 .m .tk{width:16px;height:11px;fill:#8696a0}
 .m .tk.l{fill:var(--azul)}
 .m a{color:var(--verde)}
-.barra{flex:none;display:flex;align-items:flex-end;gap:6px;padding:8px 8px calc(env(safe-area-inset-bottom,0px) + 8px);background:var(--panel);border-top:1px solid var(--borde)}
-.barra .caja{flex:1;display:flex;align-items:flex-end;background:var(--panel3);border:1px solid var(--borde);border-radius:16px;padding:0 4px 0 6px;min-width:0}
-.barra textarea{flex:1;border:0;outline:none;resize:none;padding:11px 6px;background:transparent;max-height:120px;height:44px;line-height:1.3;min-width:0;box-sizing:border-box;font-size:1rem;align-self:center;min-height:44px;overflow-y:auto;scrollbar-width:none}.barra textarea::-webkit-scrollbar{display:none}/* 2026-11-27: "Mensaje" salía corrido/cortado: la caja quedaba con alto 0 si se medía con el chat oculto */
-.barra .env{background:var(--grad);color:var(--sobre-verde);width:46px;height:46px;border-radius:14px}
+.barra{flex:none;display:flex;align-items:flex-end;gap:6px;padding:6px 6px calc(env(safe-area-inset-bottom,0px) + 10px);background:var(--panel);border-top:1px solid var(--borde)}/* 2026-11-27 (Jhoset): igual a WhatsApp: caja redonda, texto centrado y espacio abajo */
+.barra .caja{flex:1;display:flex;align-items:flex-end;background:var(--panel3);border:1px solid var(--borde);border-radius:26px;padding:3px 6px;min-width:0;min-height:50px;box-sizing:border-box}
+.barra textarea{flex:1;border:0;outline:none;resize:none;padding:9px 4px;background:transparent;max-height:120px;height:42px;min-height:42px;line-height:24px;font-size:1.05rem;min-width:0;box-sizing:border-box;overflow-y:auto;scrollbar-width:none}.barra textarea::-webkit-scrollbar{display:none}
+.barra .env{background:var(--grad);color:var(--sobre-verde);width:50px;height:50px;border-radius:50%}
 .barra .env svg{fill:var(--sobre-verde)}
-.grab{flex:1;display:flex;align-items:center;gap:10px;background:var(--panel3);border-radius:16px;padding:0 14px;height:46px;color:#ea0038;font-weight:600}
+.grab{flex:1;display:flex;align-items:center;gap:10px;background:var(--panel3);border-radius:26px;padding:0 14px;height:50px;color:#ea0038;font-weight:600}
 .grab .pto{width:10px;height:10px;border-radius:50%;background:#ea0038;animation:lat 1s infinite}
 @keyframes lat{50%{opacity:.2}}
 .aviso{flex:none;background:var(--panel2);padding:12px 16px;text-align:center;color:var(--txt2);font-size:.9rem}
@@ -902,7 +902,7 @@ function zoom(html, alCerrar) {
 
 /* ---------- Escribir, adjuntar y grabar ---------- */
 function actualizarBotones() { var hay = $('txt').value.trim() || st.adj; $('b-env').hidden = !hay; $('b-mic').hidden = !!hay || grab.activo; }
-function autoAlto() { var t = $('txt'); t.style.height = '44px'; t.style.height = Math.max(44, Math.min(t.scrollHeight, 120)) + 'px'; }
+function autoAlto() { var t = $('txt'); t.style.height = '42px'; t.style.height = Math.max(42, Math.min(t.scrollHeight, 120)) + 'px'; }
 $('txt').addEventListener('input', function () {
     autoAlto(); actualizarBotones();
     if (Date.now() - st.escT > 3000 && st.abierto) { st.escT = Date.now(); post(U + '/chat/' + st.abierto + '/escribiendo').catch(function () {}); }
