@@ -59,7 +59,7 @@ class lpchatController extends Controller
         return $u;
     }
 
-    private function chat(int $id, U $yo, bool $activo = false): object
+    protected function chat(int $id, U $yo, bool $activo = false): object
     {
         $c = DB::table('lpchat_chats')->where('id', $id)->first();
         $m = $c ? LpChat::miembro($c->id, $yo->id) : null;
@@ -211,6 +211,9 @@ class lpchatController extends Controller
         $c = $this->chat($id, $yo);
         $desde = (int) $request->query('desde', 0);
         $q = DB::table('lpchat_mensajes')->where('chat_id', $c->id)->where('id', '>', (int) ($c->yo->vaciado_id ?? 0)); // 2026-11-27: "Vaciar chat"
+        if (lpchatMensajesController::listo()) {
+            $q->whereNotIn('id', DB::table('lpchat_ocultos')->where('usuario_id', $yo->id)->select('mensaje_id')); // 2026-11-28: "Eliminar para mí"
+        }
         if (! empty($c->yo->no_leido)) {
             DB::table('lpchat_miembros')->where('id', $c->yo->id)->update(['no_leido' => false]); // al abrirlo se quita "no leído"
         }
@@ -239,6 +242,9 @@ class lpchatController extends Controller
             'solicitud' => $c->yo->estado === 'solicitud',
             'seccion' => $c->yo->seccion,
             'escribiendo' => $escribiendo,
+            // 2026-11-28 (Jhoset): reacciones y mensajes eliminados para todos (para refrescar los que ya están en pantalla).
+            'reac' => lpchatMensajesController::reaccionesDe($c->id, $yo->id),
+            'elim' => lpchatMensajesController::eliminadosDe($c->id),
         ]);
     }
 
@@ -254,6 +260,14 @@ class lpchatController extends Controller
             'adj' => $m->adjunto_tipo ?: ($m->adjunto ? 'foto' : null), 'url' => null, 'una_vez' => (bool) $m->una_vez, 'abierto' => (bool) $m->abierto_at];
         if ($m->adjunto && ! $m->una_vez) {
             $r['url'] = route('lpchat.adjunto', $m->id);
+        }
+        // 2026-11-28 (Jhoset): responder, reenviado y "Se eliminó este mensaje" (como WhatsApp).
+        $r['reenv'] = (bool) ($m->reenviado ?? false);
+        if (! empty($m->eliminado_at)) {
+            $r = array_merge($r, ['elim' => true, 'texto' => null, 'adj' => null, 'url' => null, 'una_vez' => false]);
+        }
+        if (! empty($m->responde_id)) {
+            $r['resp'] = lpchatMensajesController::cita((int) $m->responde_id, $yo);
         }
 
         return $r;
@@ -287,7 +301,7 @@ class lpchatController extends Controller
     {
         $yo = $this->yo();
         $c = $this->chat($id, $yo);
-        $request->validate(['texto' => 'nullable|string|max:4000', 'archivo' => 'nullable|file|max:30720', 'una_vez' => 'nullable|boolean', 'sticker_id' => 'nullable|integer', 'menciones' => 'nullable|string|max:2000']);
+        $request->validate(['texto' => 'nullable|string|max:4000', 'archivo' => 'nullable|file|max:30720', 'una_vez' => 'nullable|boolean', 'sticker_id' => 'nullable|integer', 'menciones' => 'nullable|string|max:2000', 'responde_id' => 'nullable|integer']);
         $texto = trim((string) $request->input('texto', ''));
         $archivo = $request->file('archivo');
         $sticker = $request->filled('sticker_id') ? DB::table('lpchat_stickers')->where('id', (int) $request->input('sticker_id'))->where('usuario_id', $yo->id)->first() : null;
@@ -327,6 +341,11 @@ class lpchatController extends Controller
         }
         $unaVez = $adj && $c->tipo === 'directo' && $request->boolean('una_vez');
         $mid = LpChat::enviar($c, $yo, $texto, $adj, $tipo, $unaVez);
+        // 2026-11-28 (Jhoset): responder a un mensaje (del mismo chat).
+        if ($request->filled('responde_id') && lpchatMensajesController::listo()
+            && DB::table('lpchat_mensajes')->where('id', (int) $request->input('responde_id'))->where('chat_id', $c->id)->exists()) {
+            DB::table('lpchat_mensajes')->where('id', $mid)->update(['responde_id' => (int) $request->input('responde_id')]);
+        }
         // 2026-11-28 (Jhoset): @menciones en grupos (como WhatsApp): al mencionado le llega el aviso aunque tenga el grupo silenciado.
         if ($c->tipo === 'grupo' && $request->filled('menciones')) {
             try {

@@ -453,6 +453,7 @@ setTimeout(quitarSplash, 4000);</script>
 <input type="file" id="f-est" accept="image/*,video/*" hidden>
 <div id="capa"></div>
 @include('lpchat._llamadas')
+@include('lpchat._seleccion')
 <script>
 (function () {
 'use strict';
@@ -462,7 +463,7 @@ var U = '/chat/api';
 var SUPER = {{ auth('web')->user()?->es_superadmin ? 'true' : 'false' }};
 var CSRF = document.querySelector('meta[name=csrf-token]').content;
 var $ = function (id) { return document.getElementById(id); };
-var st = { raw: {}, miem: null, miemChat: 0, mencSel: {}, nav: 'mensajes', tab: 'mis', filtro: 'todos', chats: { mis: [], general: [] }, solicitudes: 0, abierto: 0, ultimo: 0, info: null, adj: null, uv: false, escT: 0, sinLeer: 0, primera: true, origen: '', empPag: 1 };
+var st = { raw: {}, msg: {}, reac: {}, sel: null, resp: null, miem: null, miemChat: 0, mencSel: {}, nav: 'mensajes', tab: 'mis', filtro: 'todos', chats: { mis: [], general: [] }, solicitudes: 0, abierto: 0, ultimo: 0, info: null, adj: null, uv: false, escT: 0, sinLeer: 0, primera: true, origen: '', empPag: 1 };
 var COL = ['#16b84e', '#3b82f6', '#7c3aed', '#e11d74', '#f59e0b', '#0ea5e9', '#ef4444', '#14b8a6', '#8b5cf6', '#22c55e'];
 var DIAS = 90;
 
@@ -667,7 +668,7 @@ $('grid').addEventListener('contextmenu', function (e) { e.preventDefault(); });
 function saludar(id) {
     post(U + '/abrir', { usuario_id: id }).then(function (j) {
         if (!j.ok) { toast(j.mensaje || 'No se pudo.'); if (j.pro) planPro(); return; }
-        cerrarVentana(); irNav('mensajes'); irTab('general'); abrirChat(j.chat); cargarChats(); delete $('grid').dataset.ok;
+        cerrarVentana(); irNav('mensajes'); irTab('general'); st.saludoPend = j.chat; abrirChat(j.chat); cargarChats(); delete $('grid').dataset.ok;
     });
 }
 function verPerfil(id) {
@@ -814,7 +815,7 @@ function abrirChat(id) {
     if (st.abierto !== id) { $('txt').value = st.borr[id] || ''; autoAlto(); actualizarBotones(); }
     st.abierto = id; st.ultimo = 0; st.info = null;
     $('bienv').hidden = true; $('conv').hidden = false; $('msgs').innerHTML = ''; $('msgs').dataset.dia = ''; $('msgs').dataset.autor = ''; $('aviso').hidden = true;
-    $('app').classList.add('abierto'); quitarAdj();
+    $('app').classList.add('abierto'); quitarAdj(); salirSel(true); quitarResp();
     var url = urlChat(id);
     if (location.pathname + location.search !== url) history.pushState({ chat: id }, '', url);
     ['mis', 'general'].forEach(pintar);
@@ -828,7 +829,7 @@ function cerrarChat(sinHist) {
     pararGrab(true); if ($('emo')) emoAbrir(false); cargarChats();
 }
 $('b-volver').onclick = function (e) { e.stopPropagation(); if (history.state && history.state.chat) history.back(); else cerrarChat(); };
-window.addEventListener('popstate', function () { if (visor) return cerrarVisor(); if (st.abierto) cerrarChat(true); });
+window.addEventListener('popstate', function () { if (st.ignorarPop) { st.ignorarPop = false; return; } if (st.sel) return salirSel(true); if (visor) return cerrarVisor(); if (st.abierto) cerrarChat(true); });
 function traer(primera) {
     if (!st.abierto || cargando) return;
     cargando = true;
@@ -841,12 +842,23 @@ function traer(primera) {
         $('c-av').outerHTML = avatar(j.chat.otro || j.chat, 'p', j.chat.tipo === 'grupo').replace('class="av', 'id="c-av" class="av');
         $('c-n').textContent = j.chat.nombre;
         llamadaBotones(j.chat); // 2026-11-28: botones de llamada (solo chats de dos)
+        // 2026-11-28 (Jhoset): "Saludar" deja escrito "Hola {nombre}, ¿cómo estás?" (la persona lo envía).
+        if (st.saludoPend === id) {
+            st.saludoPend = 0;
+            if (!$('txt').value.trim() && !j.mensajes.length) {
+                var pn = String(j.chat.nombre || '').trim().split(/\s+/)[0] || '';
+                pn = pn ? pn.charAt(0).toUpperCase() + pn.slice(1).toLowerCase() : '';
+                $('txt').value = 'Hola' + (pn ? ' ' + pn : '') + ', ¿cómo estás?'; autoAlto(); actualizarBotones();
+            }
+        }
         cargarMiembros(j.chat); // 2026-11-28: miembros del grupo para las @menciones
         var s = $('c-s');
         s.textContent = j.escribiendo.length ? (j.chat.tipo === 'grupo' ? j.escribiendo.join(', ') + ' escribiendo…' : (j.escribiendo[0].indexOf('🎤') > 0 ? 'grabando audio…' : 'escribiendo…')) : (j.chat.sub || (j.chat.tipo === 'directo' ? 'toca para ver el perfil' : ''));
         var box = $('msgs'), abajo = box.scrollHeight - box.scrollTop - box.clientHeight < 140;
         if (primera) box.insertAdjacentHTML('beforeend', '<div class="sis">🔒 Chat privado: los mensajes se guardan cifrados y solo los ven las personas de este chat.</div>');
+        if (primera) { st.reac = j.reac || {}; st.msg = {}; } // 2026-11-28: reacciones de este chat
         j.mensajes.forEach(function (m) { pintarMsg(box, m); });
+        if (!primera) aplicarCambios(j);
         if (j.mensajes.length) st.ultimo = j.mensajes[j.mensajes.length - 1].id;
         box.querySelectorAll('.m.yo .tk:not(.l)').forEach(function (t) { if (+t.closest('.m').dataset.m <= j.leido_otros) t.classList.add('l'); });
         if (primera || abajo || (j.mensajes.length && j.mensajes[j.mensajes.length - 1].mio)) box.scrollTop = box.scrollHeight;
@@ -865,9 +877,15 @@ function pintarMsg(box, m) {
     if (m.dia !== box.dataset.dia) { box.insertAdjacentHTML('beforeend', '<div class="dia">' + diaTxt(m.dia) + '</div>'); box.dataset.dia = m.dia; box.dataset.autor = ''; }
     if (m.sistema) { box.insertAdjacentHTML('beforeend', '<div class="sis" data-m="' + m.id + '">' + esc(m.texto) + '</div>'); box.dataset.autor = ''; return; }
     var pri = box.dataset.autor !== String(m.autor_id); box.dataset.autor = m.autor_id;
-    var media = '';
+    m._pri = pri; st.msg[m.id] = m;
+    box.insertAdjacentHTML('beforeend', htmlMsg(m));
+}
+/* 2026-11-28 (Jhoset): la burbuja se arma aquí para poder volver a pintarla (reacciones, "Se eliminó este mensaje"). */
+function htmlMsg(m) {
+    var pri = m._pri, media = '';
     var nom = { foto: 'Foto', video: 'Video', audio: 'Audio', sticker: 'Sticker' }[m.adj] || 'Archivo';
-    if (m.una_vez) {
+    if (m.elim) media = '<div class="borrado">🚫 ' + (m.mio ? 'Eliminaste este mensaje' : 'Se eliminó este mensaje') + '</div>';
+    else if (m.una_vez) {
         media = m.mio ? '<div class="uv off"><span class="c">1</span>' + nom + (m.abierto ? ' · abierto' : ' · para ver una vez') + '</div>'
             : (m.abierto ? '<div class="uv off"><span class="c">1</span>' + nom + ' · ya lo abriste</div>' : '<div class="uv" data-uv="' + m.id + '" data-t="' + m.adj + '"><span class="c">1</span>Ver ' + nom.toLowerCase() + ' una vez</div>');
     } else if (m.adj && !m.url) media = '<div class="borrado">' + nom + ' borrado</div>';
@@ -875,17 +893,34 @@ function pintarMsg(box, m) {
     else if (m.adj === 'foto') media = '<img src="' + esc(m.url) + '" alt="Foto" loading="lazy">';
     else if (m.adj === 'video') media = '<video src="' + esc(m.url) + '#t=0.1" controls playsinline preload="metadata"></video>';
     else if (m.adj === 'audio') media = '<audio src="' + esc(m.url) + '" controls preload="metadata"></audio>';
-    var extra = m.adj === 'sticker' && m.url ? ' st' : (!m.adj && soloEmoji(m.texto) ? ' solo-emo' : '');
+    var extra = m.adj === 'sticker' && m.url ? ' st' : (!m.adj && !m.elim && soloEmoji(m.texto) ? ' solo-emo' : '');
     if (m.texto) st.raw[m.id] = m.texto;
-    var burb = '<div class="m ' + (m.mio ? 'yo' : 'el') + (pri ? ' pri' : '') + extra + '" data-m="' + m.id + '"' + (extra === ' st' && !m.mio ? ' data-st="' + m.id + '"' : '') + '>' +
-        (m.autor && pri ? '<span class="au" style="color:' + color(m.autor) + '">' + esc(m.autor) + '</span>' : '') + media + (m.texto ? '<span class="tx" data-r="' + m.id + '">' + fmtTexto(m.texto) + '</span>' : '') +
-        '<span class="meta">' + esc(m.hora) + (m.mio ? TK.replace('class="tk"', 'class="tk' + (m.leido ? ' l' : '') + '"') : '') + '</span></div>';
+    var cita = m.resp ? '<div class="cita" data-ir="' + m.resp.id + '"><b style="color:' + (m.resp.autor === 'Tú' ? 'var(--verde)' : color(m.resp.autor)) + '">' + esc(m.resp.autor || '') + '</b><span>' + esc(m.resp.adj ? m.resp.adj + (m.resp.texto ? ' · ' + m.resp.texto : '') : m.resp.texto) + '</span></div>' : '';
+    var reac = (st.reac[m.id] || []);
+    var rh = reac.length ? '<div class="reac" data-reac="' + m.id + '">' + reac.slice(0, 3).map(function (r) { return r.e; }).join('') + (reac.reduce(function (a, r) { return a + r.n; }, 0) > 1 ? '<small>' + reac.reduce(function (a, r) { return a + r.n; }, 0) + '</small>' : '') + '</div>' : '';
+    var burb = '<div class="m ' + (m.mio ? 'yo' : 'el') + (pri ? ' pri' : '') + extra + (rh ? ' con-reac' : '') + (st.sel && st.sel[m.id] ? ' sel' : '') + '" data-m="' + m.id + '"' + (extra === ' st' && !m.mio ? ' data-st="' + m.id + '"' : '') + (m.autor ? '' : ' data-w="' + m.id + '"') + '>' +
+        (m.autor && pri ? '<span class="au" style="color:' + color(m.autor) + '">' + esc(m.autor) + '</span>' : '') +
+        (m.reenv && !m.elim ? '<span class="fw">↪ Reenviado</span>' : '') + cita + media +
+        (m.texto && !m.elim ? '<span class="tx" data-r="' + m.id + '">' + fmtTexto(m.texto) + '</span>' : '') +
+        '<span class="meta">' + esc(m.hora) + (m.mio && !m.elim ? TK.replace('class="tk"', 'class="tk' + (m.leido ? ' l' : '') + '"') : '') + '</span>' + rh + '</div>';
     // 2026-11-28 (Jhoset): en grupos, la foto de quien escribe al lado (solo en el primero de seguidos, como WhatsApp).
     if (m.autor) {
         var fo = m.autor_foto ? 'background-image:url(\'' + esc(m.autor_foto) + '\')' : 'background-color:' + color(m.autor);
-        burb = '<div class="gfila' + (pri ? '' : ' sig') + '"><div class="gav" data-perfil="' + m.autor_id + '" style="' + fo + '">' + (m.autor_foto ? '' : inicial(m.autor)) + '</div>' + burb + '</div>';
+        burb = '<div class="gfila' + (pri ? '' : ' sig') + '" data-w="' + m.id + '"><div class="gav" data-perfil="' + m.autor_id + '" style="' + fo + '">' + (m.autor_foto ? '' : inicial(m.autor)) + '</div>' + burb + '</div>';
     }
-    box.insertAdjacentHTML('beforeend', burb);
+    return burb;
+}
+function repintarMsg(id) {
+    var m = st.msg[id], w = $('msgs').querySelector('[data-w="' + id + '"]'); if (!m || !w) return;
+    var leido = !!w.querySelector('.tk.l'); if (leido) m.leido = true;
+    w.outerHTML = htmlMsg(m);
+}
+/* Reacciones y eliminados que cambian en mensajes que ya están en pantalla. */
+function aplicarCambios(j) {
+    var nuevo = j.reac || {}, viejo = st.reac || {}; st.reac = nuevo;
+    var ids = {}; Object.keys(nuevo).forEach(function (k) { ids[k] = 1; }); Object.keys(viejo).forEach(function (k) { ids[k] = 1; });
+    Object.keys(ids).forEach(function (k) { if (JSON.stringify(nuevo[k] || null) !== JSON.stringify(viejo[k] || null)) repintarMsg(k); });
+    (j.elim || []).forEach(function (id) { var m = st.msg[id]; if (m && !m.elim) { m.elim = true; m.texto = null; m.adj = null; m.url = null; m.una_vez = false; repintarMsg(id); } });
 }
 /* 2026-11-28 (Jhoset): @menciones en grupos. */
 function normTx(t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
@@ -1025,6 +1060,7 @@ function enviar() {
     var men = Object.keys(st.mencSel || {}).filter(function (id) { return t.indexOf('@' + st.mencSel[id]) >= 0; });
     if (men.length) fd.append('menciones', men.join(','));
     st.mencSel = {}; if ($('menc')) $('menc').hidden = true;
+    if (st.resp) { fd.append('responde_id', st.resp); quitarResp(); } // 2026-11-28: responder
     if (st.adj) { fd.append('archivo', st.adj.f, st.adj.f.name || ('audio.' + (st.adj.f.type.indexOf('mp4') > 0 ? 'm4a' : 'webm'))); if (st.adj.audio) fd.append('es_audio', 1); if (st.uv) fd.append('una_vez', 1); }
     var tenia = st.adj;
     $('txt').value = ''; autoAlto(); quitarAdj();
@@ -1572,6 +1608,7 @@ document.addEventListener('visibilitychange', function () { if (!document.hidden
     $('b-nuevo').onclick = function () { nuevoChat(); };
     marcar(); setInterval(marcar, 2000);
 })();
+@include('lpchat._seleccion_js')
 @include('lpchat._llamadas_js')
 })();
 </script>

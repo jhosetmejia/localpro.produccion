@@ -830,6 +830,11 @@ Route::prefix('chat')->name('lpchat.')->group(function () {
         Route::post('/abrir-enlace', [$C, 'abrirEnlace'])->middleware('throttle:lpchat-30')->name('abrir.enlace');
         Route::post('/nuevo', [$C, 'nuevo'])->middleware('throttle:lpchat-30')->name('nuevo');
         Route::get('/contactos', [$C, 'contactos'])->name('contactos');
+        // 2026-11-28 (Jhoset): al seleccionar mensajes: reaccionar, eliminar, reenviar e info.
+        Route::post('/mensaje/{id}/reaccion', [\App\Http\Controllers\lpchatMensajesController::class, 'reaccion'])->whereNumber('id')->middleware('throttle:lpchat-60')->name('msg.reaccion');
+        Route::get('/mensaje/{id}/info', [\App\Http\Controllers\lpchatMensajesController::class, 'info'])->whereNumber('id')->name('msg.info');
+        Route::post('/mensajes/borrar', [\App\Http\Controllers\lpchatMensajesController::class, 'borrar'])->middleware('throttle:lpchat-30')->name('msg.borrar');
+        Route::post('/mensajes/reenviar', [\App\Http\Controllers\lpchatMensajesController::class, 'reenviar'])->middleware('throttle:lpchat-20')->name('msg.reenviar');
         // 2026-11-28 (Jhoset): llamadas de voz y videollamadas.
         Route::post('/llamada', [\App\Http\Controllers\lpchatLlamadasController::class, 'llamar'])->middleware('throttle:lpchat-20')->name('llamada.llamar');
         Route::get('/llamada/entrante', [\App\Http\Controllers\lpchatLlamadasController::class, 'entrante'])->name('llamada.entrante');
