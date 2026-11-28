@@ -153,6 +153,19 @@ body{height:100dvh;overflow:hidden}
 .m.pri.yo{border-bottom-right-radius:5px;margin-top:8px}
 .m.pri.el{border-bottom-left-radius:5px;margin-top:8px}
 .m .au{display:block;font-size:.8rem;font-weight:600;margin-bottom:2px}
+/* 2026-11-28 (Jhoset): en grupos, la foto de quien escribe al lado de su mensaje y @menciones (como WhatsApp). */
+.gfila{display:flex;align-items:flex-start;gap:7px;align-self:flex-start;max-width:min(88%,570px)}
+.gfila .m{max-width:100%;min-width:0}
+.gav{width:32px;height:32px;border-radius:50%;flex:none;margin-top:8px;background:#26302a center/cover no-repeat;display:grid;place-items:center;font-size:.85rem;font-weight:700;color:#fff;cursor:pointer}
+.gfila.sig .gav{visibility:hidden;height:0;margin:0}
+.m .mencion{color:#53bdeb;font-weight:600;cursor:pointer}
+.m.yo .mencion{color:#0b3d6b}
+.m .mencion.mi{background:rgba(83,189,235,.15);border-radius:4px;padding:0 2px}
+.menc{flex:none;max-height:236px;overflow-y:auto;background:var(--panel);border-top:1px solid var(--borde)}
+.menc[hidden]{display:none}
+.menc .op{display:flex;align-items:center;gap:10px;padding:8px 14px;cursor:pointer}
+.menc .op:hover,.menc .op.sel{background:rgba(255,255,255,.06)}
+.menc .op .av{width:34px;height:34px;font-size:.85rem}
 .m img,.m video{display:block;max-width:100%;width:280px;max-height:340px;object-fit:cover;border-radius:6px;margin:-2px -4px 4px;background:#000}
 .m img{cursor:zoom-in}
 .m audio{width:250px;max-width:100%;display:block;margin:2px 0 4px}
@@ -449,7 +462,7 @@ var U = '/chat/api';
 var SUPER = {{ auth('web')->user()?->es_superadmin ? 'true' : 'false' }};
 var CSRF = document.querySelector('meta[name=csrf-token]').content;
 var $ = function (id) { return document.getElementById(id); };
-var st = { nav: 'mensajes', tab: 'mis', filtro: 'todos', chats: { mis: [], general: [] }, solicitudes: 0, abierto: 0, ultimo: 0, info: null, adj: null, uv: false, escT: 0, sinLeer: 0, primera: true, origen: '', empPag: 1 };
+var st = { raw: {}, miem: null, miemChat: 0, mencSel: {}, nav: 'mensajes', tab: 'mis', filtro: 'todos', chats: { mis: [], general: [] }, solicitudes: 0, abierto: 0, ultimo: 0, info: null, adj: null, uv: false, escT: 0, sinLeer: 0, primera: true, origen: '', empPag: 1 };
 var COL = ['#16b84e', '#3b82f6', '#7c3aed', '#e11d74', '#f59e0b', '#0ea5e9', '#ef4444', '#14b8a6', '#8b5cf6', '#22c55e'];
 var DIAS = 90;
 
@@ -828,6 +841,7 @@ function traer(primera) {
         $('c-av').outerHTML = avatar(j.chat.otro || j.chat, 'p', j.chat.tipo === 'grupo').replace('class="av', 'id="c-av" class="av');
         $('c-n').textContent = j.chat.nombre;
         llamadaBotones(j.chat); // 2026-11-28: botones de llamada (solo chats de dos)
+        cargarMiembros(j.chat); // 2026-11-28: miembros del grupo para las @menciones
         var s = $('c-s');
         s.textContent = j.escribiendo.length ? (j.chat.tipo === 'grupo' ? j.escribiendo.join(', ') + ' escribiendo…' : (j.escribiendo[0].indexOf('🎤') > 0 ? 'grabando audio…' : 'escribiendo…')) : (j.chat.sub || (j.chat.tipo === 'directo' ? 'toca para ver el perfil' : ''));
         var box = $('msgs'), abajo = box.scrollHeight - box.scrollTop - box.clientHeight < 140;
@@ -862,10 +876,81 @@ function pintarMsg(box, m) {
     else if (m.adj === 'video') media = '<video src="' + esc(m.url) + '#t=0.1" controls playsinline preload="metadata"></video>';
     else if (m.adj === 'audio') media = '<audio src="' + esc(m.url) + '" controls preload="metadata"></audio>';
     var extra = m.adj === 'sticker' && m.url ? ' st' : (!m.adj && soloEmoji(m.texto) ? ' solo-emo' : '');
-    box.insertAdjacentHTML('beforeend', '<div class="m ' + (m.mio ? 'yo' : 'el') + (pri ? ' pri' : '') + extra + '" data-m="' + m.id + '"' + (extra === ' st' && !m.mio ? ' data-st="' + m.id + '"' : '') + '>' +
-        (m.autor && pri ? '<span class="au" style="color:' + color(m.autor) + '">' + esc(m.autor) + '</span>' : '') + media + (m.texto ? enlaces(m.texto) : '') +
-        '<span class="meta">' + esc(m.hora) + (m.mio ? TK.replace('class="tk"', 'class="tk' + (m.leido ? ' l' : '') + '"') : '') + '</span></div>');
+    if (m.texto) st.raw[m.id] = m.texto;
+    var burb = '<div class="m ' + (m.mio ? 'yo' : 'el') + (pri ? ' pri' : '') + extra + '" data-m="' + m.id + '"' + (extra === ' st' && !m.mio ? ' data-st="' + m.id + '"' : '') + '>' +
+        (m.autor && pri ? '<span class="au" style="color:' + color(m.autor) + '">' + esc(m.autor) + '</span>' : '') + media + (m.texto ? '<span class="tx" data-r="' + m.id + '">' + fmtTexto(m.texto) + '</span>' : '') +
+        '<span class="meta">' + esc(m.hora) + (m.mio ? TK.replace('class="tk"', 'class="tk' + (m.leido ? ' l' : '') + '"') : '') + '</span></div>';
+    // 2026-11-28 (Jhoset): en grupos, la foto de quien escribe al lado (solo en el primero de seguidos, como WhatsApp).
+    if (m.autor) {
+        var fo = m.autor_foto ? 'background-image:url(\'' + esc(m.autor_foto) + '\')' : 'background-color:' + color(m.autor);
+        burb = '<div class="gfila' + (pri ? '' : ' sig') + '"><div class="gav" data-perfil="' + m.autor_id + '" style="' + fo + '">' + (m.autor_foto ? '' : inicial(m.autor)) + '</div>' + burb + '</div>';
+    }
+    box.insertAdjacentHTML('beforeend', burb);
 }
+/* 2026-11-28 (Jhoset): @menciones en grupos. */
+function normTx(t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+function fmtTexto(t) {
+    var h = enlaces(t);
+    if (!st.miem || st.miemChat !== st.abierto || h.indexOf('@') < 0) return h;
+    var por = {}, alt = st.miem.slice().sort(function (a, b) { return b.nombre.length - a.nombre.length; }).map(function (x) {
+        var e = esc(x.nombre); por[e] = x; return e.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    });
+    if (!alt.length) return h;
+    return h.replace(new RegExp('@(' + alt.join('|') + ')(?![\\wÁÉÍÓÚáéíóúÑñ])', 'g'), function (s0, n) {
+        var x = por[n]; return '<span class="mencion' + (x.yo ? ' mi' : '') + '" data-perfil="' + x.id + '">' + s0 + '</span>';
+    });
+}
+function cargarMiembros(c) {
+    if (!c || c.tipo !== 'grupo') { st.miem = null; st.miemChat = 0; return; }
+    if (st.miemChat === st.abierto && st.miem) return;
+    var id = st.abierto; st.miemChat = id; st.miem = null;
+    api(U + '/grupo/' + id).then(function (j) {
+        if (!j.ok || st.abierto !== id) return;
+        st.miem = j.miembros || [];
+        document.querySelectorAll('#msgs .m .tx[data-r]').forEach(function (s) { if (st.raw[s.dataset.r]) s.innerHTML = fmtTexto(st.raw[s.dataset.r]); });
+    });
+}
+$('msgs').addEventListener('click', function (e) {
+    var p = e.target.closest('[data-perfil]'); if (!p) return;
+    e.stopPropagation(); var id = +p.dataset.perfil; if (id && id !== YO.id) verPerfil(id);
+}, true);
+(function () {
+    var caja = document.createElement('div'); caja.className = 'menc'; caja.id = 'menc'; caja.hidden = true;
+    $('barra').parentNode.insertBefore(caja, $('barra'));
+    var lista = [], sel = 0, rango = null;
+    function cerrar() { caja.hidden = true; lista = []; rango = null; }
+    function revisar() {
+        var t = $('txt'), c = t.selectionStart;
+        if (!st.miem || st.miemChat !== st.abierto || c == null) return cerrar();
+        var m = t.value.slice(0, c).match(/(^|\s)@([^\s@]{0,30})$/);
+        if (!m) return cerrar();
+        var q = normTx(m[2]);
+        lista = st.miem.filter(function (x) { return !x.yo && normTx(x.nombre).indexOf(q) >= 0; }).slice(0, 8);
+        if (!lista.length) return cerrar();
+        rango = [c - m[2].length - 1, c]; sel = 0;
+        caja.innerHTML = lista.map(function (x, i) { return '<div class="op' + (i === sel ? ' sel' : '') + '" data-i="' + i + '">' + avatar(x, 'p') + '<span>' + esc(x.nombre) + '</span></div>'; }).join('');
+        caja.hidden = false;
+    }
+    function elegir(i) {
+        var x = lista[i], t = $('txt'); if (!x || !rango) return;
+        var ins = '@' + x.nombre + ' ';
+        t.value = t.value.slice(0, rango[0]) + ins + t.value.slice(rango[1]);
+        var p = rango[0] + ins.length; t.setSelectionRange(p, p); t.focus();
+        st.mencSel = st.mencSel || {}; st.mencSel[x.id] = x.nombre;
+        cerrar(); autoAlto(); actualizarBotones();
+    }
+    caja.addEventListener('mousedown', function (e) { e.preventDefault(); });
+    caja.addEventListener('click', function (e) { var o = e.target.closest('.op'); if (o) elegir(+o.dataset.i); });
+    $('txt').addEventListener('input', revisar);
+    $('txt').addEventListener('click', revisar);
+    $('txt').addEventListener('keydown', function (e) {
+        if (caja.hidden) return;
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); sel = (sel + (e.key === 'ArrowDown' ? 1 : lista.length - 1)) % lista.length; caja.querySelectorAll('.op').forEach(function (o, i) { o.classList.toggle('sel', i === sel); }); }
+        else if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); e.stopImmediatePropagation(); elegir(sel); }
+        else if (e.key === 'Escape') cerrar();
+    }, true);
+    $('txt').addEventListener('blur', function () { setTimeout(cerrar, 150); });
+})();
 function diaTxt(d) {
     var hoy = new Date(), ay = new Date(); ay.setDate(hoy.getDate() - 1);
     var iso = function (x) { return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); };
@@ -936,6 +1021,10 @@ function enviar() {
     var t = $('txt').value.trim();
     if (!t && !st.adj) return;
     var fd = new FormData(); fd.append('texto', t);
+    // 2026-11-28: @menciones que siguen en el texto (para avisarles aunque tengan el grupo silenciado).
+    var men = Object.keys(st.mencSel || {}).filter(function (id) { return t.indexOf('@' + st.mencSel[id]) >= 0; });
+    if (men.length) fd.append('menciones', men.join(','));
+    st.mencSel = {}; if ($('menc')) $('menc').hidden = true;
     if (st.adj) { fd.append('archivo', st.adj.f, st.adj.f.name || ('audio.' + (st.adj.f.type.indexOf('mp4') > 0 ? 'm4a' : 'webm'))); if (st.adj.audio) fd.append('es_audio', 1); if (st.uv) fd.append('una_vez', 1); }
     var tenia = st.adj;
     $('txt').value = ''; autoAlto(); quitarAdj();

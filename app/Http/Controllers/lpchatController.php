@@ -248,6 +248,8 @@ class lpchatController extends Controller
         $f = Carbon::parse($m->created_at)->timezone('America/Bogota');
         $r = ['id' => $m->id, 'mio' => $mio, 'sistema' => $m->tipo === 'sistema',
             'autor' => $c->tipo === 'grupo' && $m->usuario_id && ! $mio ? ($autores->get($m->usuario_id)->nombre ?? 'Alguien') : null,
+            // 2026-11-28 (Jhoset): foto de quien escribe en los grupos (como WhatsApp).
+            'autor_foto' => $c->tipo === 'grupo' && $m->usuario_id && ! $mio ? $autores->get($m->usuario_id)?->foto_url : null,
             'autor_id' => $m->usuario_id, 'texto' => LpChat::leer($m->texto), 'hora' => $f->format('g:i a'), 'dia' => $f->toDateString(),
             'adj' => $m->adjunto_tipo ?: ($m->adjunto ? 'foto' : null), 'url' => null, 'una_vez' => (bool) $m->una_vez, 'abierto' => (bool) $m->abierto_at];
         if ($m->adjunto && ! $m->una_vez) {
@@ -285,7 +287,7 @@ class lpchatController extends Controller
     {
         $yo = $this->yo();
         $c = $this->chat($id, $yo);
-        $request->validate(['texto' => 'nullable|string|max:4000', 'archivo' => 'nullable|file|max:30720', 'una_vez' => 'nullable|boolean', 'sticker_id' => 'nullable|integer']);
+        $request->validate(['texto' => 'nullable|string|max:4000', 'archivo' => 'nullable|file|max:30720', 'una_vez' => 'nullable|boolean', 'sticker_id' => 'nullable|integer', 'menciones' => 'nullable|string|max:2000']);
         $texto = trim((string) $request->input('texto', ''));
         $archivo = $request->file('archivo');
         $sticker = $request->filled('sticker_id') ? DB::table('lpchat_stickers')->where('id', (int) $request->input('sticker_id'))->where('usuario_id', $yo->id)->first() : null;
@@ -325,6 +327,19 @@ class lpchatController extends Controller
         }
         $unaVez = $adj && $c->tipo === 'directo' && $request->boolean('una_vez');
         $mid = LpChat::enviar($c, $yo, $texto, $adj, $tipo, $unaVez);
+        // 2026-11-28 (Jhoset): @menciones en grupos (como WhatsApp): al mencionado le llega el aviso aunque tenga el grupo silenciado.
+        if ($c->tipo === 'grupo' && $request->filled('menciones')) {
+            try {
+                $ids = array_values(array_filter(array_map('intval', explode(',', (string) $request->input('menciones')))));
+                $silenciados = DB::table('lpchat_miembros')->where('chat_id', $c->id)->where('estado', 'activo')->where('usuario_id', '!=', $yo->id)
+                    ->whereIn('usuario_id', $ids)->whereNotNull('silenciado_hasta')->where('silenciado_hasta', '>', now())->pluck('usuario_id')->all();
+                if ($silenciados) {
+                    \App\Support\WebPush::avisarLuego($silenciados);
+                }
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
 
         return response()->json(['ok' => true, 'id' => $mid]);
     }
