@@ -1250,7 +1250,13 @@ function accion(a, extra) {
 
 /* ================= Menús y ventanas ================= */
 function menu(boton, items) {
-    cerrarMenu();
+    // 2026-11-28 (Jhoset): el mismo botón abre y cierra el menú (y tocar afuera lo cierra sin abrir lo de abajo).
+    if ($('menu') && st.menuBoton === boton) { cerrarMenu(); return; }
+    cerrarMenu(); st.menuBoton = boton;
+    var velo = document.createElement('div'); velo.id = 'menu-velo'; velo.style.cssText = 'position:fixed;inset:0;z-index:49;background:transparent';
+    velo.addEventListener('click', function (e) { e.stopPropagation(); cerrarMenu(); });
+    velo.addEventListener('touchstart', function (e) { e.preventDefault(); cerrarMenu(); }, { passive: false });
+    document.body.appendChild(velo);
     var r = boton.getBoundingClientRect(), m = document.createElement('div');
     m.className = 'menu'; m.id = 'menu';
     m.style.top = Math.min(r.bottom + 4, window.innerHeight - 40 * items.length - 20) + 'px'; if (r.left < 90) m.style.left = (r.right + 6) + 'px'; else m.style.right = Math.max(8, window.innerWidth - r.right) + 'px'; // 2026-11-25: desde la barra lateral abre hacia la derecha
@@ -1262,7 +1268,8 @@ function menu(boton, items) {
     if (top + h > window.innerHeight - 8) m.style.top = Math.max(8, window.innerHeight - h - 8) + 'px';
     setTimeout(function () { document.addEventListener('click', cerrarMenu, { once: true }); }, 0);
 }
-function cerrarMenu() { var m = $('menu'); if (m) m.remove(); }
+function cerrarMenu() { var m = $('menu'); if (m) m.remove(); var v = $('menu-velo'); if (v) v.remove(); setTimeout(function () { if (!$('menu')) st.menuBoton = null; }, 0); }
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && $('menu')) cerrarMenu(); });
 /* 2026-11-27 (Jhoset): menú de cada chat como WhatsApp: clic derecho en el computador, mantener presionado en el celular. */
 function menuXY(x, y, items) {
     cerrarMenu();
