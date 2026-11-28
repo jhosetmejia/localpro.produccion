@@ -167,7 +167,7 @@ body{height:100dvh;overflow:hidden}
 .m a{color:var(--verde)}
 .barra{flex:none;display:flex;align-items:flex-end;gap:6px;padding:8px 8px calc(env(safe-area-inset-bottom,0px) + 8px);background:var(--panel);border-top:1px solid var(--borde)}
 .barra .caja{flex:1;display:flex;align-items:flex-end;background:var(--panel3);border:1px solid var(--borde);border-radius:16px;padding:0 4px 0 6px;min-width:0}
-.barra textarea{flex:1;border:0;outline:none;resize:none;padding:11px 6px;background:transparent;max-height:120px;height:44px;line-height:1.3;min-width:0;box-sizing:border-box;font-size:1rem;align-self:center}/* 2026-11-27: "Mensaje" salía corrido hacia abajo */
+.barra textarea{flex:1;border:0;outline:none;resize:none;padding:11px 6px;background:transparent;max-height:120px;height:44px;line-height:1.3;min-width:0;box-sizing:border-box;font-size:1rem;align-self:center;min-height:44px;overflow-y:auto;scrollbar-width:none}.barra textarea::-webkit-scrollbar{display:none}/* 2026-11-27: "Mensaje" salía corrido/cortado: la caja quedaba con alto 0 si se medía con el chat oculto */
 .barra .env{background:var(--grad);color:var(--sobre-verde);width:46px;height:46px;border-radius:14px}
 .barra .env svg{fill:var(--sobre-verde)}
 .grab{flex:1;display:flex;align-items:center;gap:10px;background:var(--panel3);border-radius:16px;padding:0 14px;height:46px;color:#ea0038;font-weight:600}
@@ -902,7 +902,7 @@ function zoom(html, alCerrar) {
 
 /* ---------- Escribir, adjuntar y grabar ---------- */
 function actualizarBotones() { var hay = $('txt').value.trim() || st.adj; $('b-env').hidden = !hay; $('b-mic').hidden = !!hay || grab.activo; }
-function autoAlto() { var t = $('txt'); t.style.height = '44px'; t.style.height = Math.min(t.scrollHeight, 120) + 'px'; }
+function autoAlto() { var t = $('txt'); t.style.height = '44px'; t.style.height = Math.max(44, Math.min(t.scrollHeight, 120)) + 'px'; }
 $('txt').addEventListener('input', function () {
     autoAlto(); actualizarBotones();
     if (Date.now() - st.escT > 3000 && st.abierto) { st.escT = Date.now(); post(U + '/chat/' + st.abierto + '/escribiendo').catch(function () {}); }
